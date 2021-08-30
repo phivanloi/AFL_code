@@ -1,0 +1,355 @@
+/*
+_ Canh bao Vung Khang Cu / Ho Tro (HHV, LLV)
+_ Canh bao cac moc Pivot Daily 
+_ Canh bao Volume va Spread tang dot bien
+_ Canh bao chi so VN30, luc cung cau 
+_ Canh bao Oscilator qua cao, qua thap 
+*/
+
+TimeFrameRestore();
+
+
+//////////////////////////////////////////////
+_SECTION_BEGIN("RSI_Alert");
+RSI_alert = ParamToggle("RSi_Alert", "No|Yes",0);
+period = Param("period", 10, 1,100,1);
+r = RSI(period);
+Buy = Cross(r, 20);
+Sell = Cross(r, 80); 
+
+TelegramAlerts = ParamTrigger("Telegram Alert","Send Alert");
+TelegramAPI_ID = ParamStr("Telegram Bot API Key","1200942736:AAEG8y9qyJ7aHefUm4vt_xKqkNBxfKd3qCc");
+TelgramCHAT_ID = ParamStr("Telegram Channel ID","@Victor_AlgoTrading");  
+
+Message = numtostr(C) + " Spead = " + NumToStr(H - L) + " Volume =   " + NumToStr(V) + "   " + WriteVal(ROC(V, 1), 1.2) + ROC(V, 1) + " " 
++ " \n" + TimeNum() + "    " + Interval() + "  " + "RSI_Alert, " + " rsi = " + numtostr(r) ;
+
+// for( i = 0, i < BarCount, i++)
+//{if(Buy[i] =1  }
+
+if(Buy[BarCount - 1] == 1 OR Sell[BarCount - 1] == 1 OR TelegramAlerts)
+{
+	if(RSI_alert)
+//if (TelegramAlerts)
+	{
+	ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message ); 
+	InternetClose(ih);
+	}
+}
+// AlertIf(Buy,"EXEC https://api.telegram.org/bot"+TelegramAPI_ID+"/sendMessage?chat_id="+TelgramGroupCHAT_ID+"&text=+"+message,"",1,4+8);
+_SECTION_END();
+
+_SECTION_BEGIN("Spread vs Volume");
+sv = ParamToggle("Spread_Volume", "NO|YES",0); 
+spread = H - L; 
+vol = V > Ref(V, -1) AND V > Ref(V,-2) ; 
+con_wsell = Cross(C, Ref(HHV(C,5),-1)); // wsell = warning_sell
+con_buy = C> Ref(HHV(C,5),-1) AND V > Percentile(V, 10, 80); 
+con_wbuy =  Cross(C, Ref(LLV(L,5),-1));
+con_sell = C < Ref(HHV(C,5),-1) AND V > Percentile(V, 10, 80);
+con3 = vol AND spread > Percentile(spread, 10, 70) AND C >= O;
+con4 = vol AND spread > Percentile(spread, 10, 70) AND C < O;
+
+Message_buy = "LONG_spread_volume" + " " + Name() + " " + TimeNum() + " " +  ValueWhen(Buy[BarCount-2],C,1) + " SL = "  + (ValueWhen(Buy[BarCount-2],C,1) - ValueWhen(Buy[BarCount-2],C,1) * 0.45 * 0.05 * 0.1) + "  " + "\n" + Interval(2);
+Message_sell = "SHORT_spread_volume" + " " + Name() + " "  + TimeNum() + " " +  ValueWhen(Sell[BarCount-2],C,1) + " SL = "  +(ValueWhen(Sell[BarCount-2],C,1) + ValueWhen(Sell[BarCount-2],C,1) * 0.35 * 0.05 * 0.1) + "  " + "\n" + Interval(2);
+Message_warn_sell = "Warn_sell";
+Message_warn_buy = "Warn_buy";
+
+if(con_buy[BarCount-2] == 1 OR TelegramAlerts)
+{
+	if(sv){
+	ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message_buy); 
+	InternetClose(ih);
+	}
+}
+if(con_sell[BarCount-2] == 1 OR TelegramAlerts)
+{
+	if(sv)
+	{
+	ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message_sell); 
+	InternetClose(ih);
+	}
+}	
+if(con_wsell[BarCount-1] == 1 OR TelegramAlerts)
+{
+	if(sv)
+	{
+	ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message_warn_sell); 
+	InternetClose(ih);
+	}
+}	
+if(con_wbuy[BarCount-1] == 1 OR TelegramAlerts)
+{
+	if(sv)
+	{
+	ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message_warn_buy); 
+	InternetClose(ih);
+	}
+}	
+if(con3[BarCount-1] == 1 OR TelegramAlerts)
+{
+	if(sv)
+	{
+	ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message_warn_sell); 
+	InternetClose(ih);
+	}
+}	
+if(con4[BarCount-1] == 1 OR TelegramAlerts)
+{
+	if(sv)
+	{
+	ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message_warn_buy); 
+	InternetClose(ih);
+	}
+}	
+
+
+_SECTION_END();
+
+
+/*
+_SECTION_BEGIN("Bao_tin_hieu_sau_15p");
+for ( i = 0; i < BarCount; i ++)
+{
+	if((TimeNum()[BarCount -1] == 090000 + i*1500) AND TimeNum()[BarCount -1] < 145000)
+	{
+	ih_15p = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message ); 
+	InternetClose(ih_15p);
+	}
+	break;
+}
+*/
+_SECTION_END();
+
+_SECTION_BEGIN("Stoploss");
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("Multi_Timeframe_Alert");
+Mul = ParamToggle("Multi_time", "No|Yes", 0);
+/// in 5 minute
+TimeFrameSet(in5Minute);
+ema5_5 = EMA(C,5); 
+ema5_10 = EMA(C,10); 
+ema5_20 = EMA(C,20);
+ema5_34 = EMA(C,34); 
+ema5_55 = EMA(C,55); 
+ema5_89 = EMA(C,89);
+ema5_144 = EMA(C,144);
+ema5_200 = EMA(C,200); 
+TimeFrameRestore();
+// in 15 minute
+TimeFrameSet(in15Minute);
+ema15_5 = EMA(C,5); 
+ema15_10 = EMA(C,10); 
+ema15_20 = EMA(C,20);
+ema15_34 = EMA(C,34); 
+ema15_55 = EMA(C,55); 
+ema15_89 = EMA(C,89);
+ema15_144 = EMA(C,144);
+ema15_200 = EMA(C,200); 
+TimeFrameRestore();
+// in 30 minute 
+TimeFrameSet(2*in15Minute);
+ema30_5 = EMA(C,5); 
+ema30_10 = EMA(C,10); 
+ema30_20 = EMA(C,20);
+ema30_34 = EMA(C,34); 
+ema30_55 = EMA(C,55); 
+ema30_89 = EMA(C,89);
+ema30_144 = EMA(C,144);
+ema30_200 = EMA(C,200); 
+TimeFrameRestore();
+// in 60 minute
+TimeFrameSet(inHourly);
+ema60_5 = EMA(C,5); 
+ema60_10 = EMA(C,10); 
+ema60_20 = EMA(C,20);
+ema60_34 = EMA(C,34); 
+ema60_55 = EMA(C,55); 
+ema60_89 = EMA(C,89);
+ema60_144 = EMA(C,144);
+ema60_200 = EMA(C,200); 
+TimeFrameRestore();
+
+/*
+y0=LastValue(ema5_5); 
+y1=LastValue(ema5_5); 
+x0=BarCount - 100; 
+x1=BarCount - 1; 
+Line = LineArray( x0, y0, x1, y1, 1 ); 
+Plot( Line, "Trend line", colorBlue );
+*/
+ 
+PlotText("EMA5_5" + "  " + WriteVal(LastValue(ema5_5), 1.2), BarCount - 1, LastValue(ema5_5),colorAqua);
+PlotText("EMA5_10" + "  " + WriteVal(LastValue(ema5_10), 1.2), BarCount - 1, LastValue(ema5_10),colorAqua);
+PlotText("EMA5_20" + "  " + WriteVal(LastValue(ema5_20), 1.2), BarCount - 1, LastValue(ema5_20),colorAqua);
+PlotText("EMA5_34" + "  " + WriteVal(LastValue(ema5_34), 1.2), BarCount - 1, LastValue(ema5_34),colorAqua);
+PlotText("EMA5_55" + "  " + WriteVal(LastValue(ema5_55), 1.2), BarCount - 1, LastValue(ema5_55),colorAqua);
+PlotText("EMA5_89" + "  " + WriteVal(LastValue(ema5_89), 1.2), BarCount - 1, LastValue(ema5_89),colorAqua);
+PlotText("EMA5_144" + "  " + WriteVal(LastValue(ema5_144), 1.2), BarCount - 1, LastValue(ema5_144),colorAqua);
+PlotText("EMA5_200" + "  " + WriteVal(LastValue(ema5_200), 1.2), BarCount - 1, LastValue(ema5_200),colorAqua);
+
+PlotText("EMA15_5" + "  " + WriteVal(LastValue(ema15_5), 1.2), BarCount - 1, LastValue(ema15_5),colorRose);
+PlotText("EMA15_10" + "  " + WriteVal(LastValue(ema15_10), 1.2), BarCount - 1, LastValue(ema15_10),colorRose);
+PlotText("EMA15_20" + "  " + WriteVal(LastValue(ema15_20), 1.2), BarCount - 1, LastValue(ema15_20),colorRose);
+PlotText("EMA15_34" + "  " + WriteVal(LastValue(ema15_34), 1.2), BarCount - 1, LastValue(ema15_34),colorRose);
+PlotText("EMA15_55" + "  " + WriteVal(LastValue(ema15_55), 1.2), BarCount - 1, LastValue(ema15_55),colorRose);
+PlotText("EMA15_89" + "  " + WriteVal(LastValue(ema15_89), 1.2), BarCount - 1, LastValue(ema15_89),colorRose);
+PlotText("EMA15_144" + "  " + WriteVal(LastValue(ema15_144), 1.2), BarCount - 1, LastValue(ema15_144),colorRose);
+PlotText("EMA15_200" + "  " + WriteVal(LastValue(ema15_200), 1.2), BarCount - 1, LastValue(ema15_200),colorRose);
+
+PlotText("EMA30_5" + "  " + WriteVal(LastValue(ema30_5), 1.2), BarCount - 1, LastValue(ema30_5),colorYellow);
+PlotText("EMA30_10" + "  " + WriteVal(LastValue(ema30_10), 1.2), BarCount - 1, LastValue(ema30_10),colorYellow);
+PlotText("EMA30_20" + "  " + WriteVal(LastValue(ema30_20), 1.2), BarCount - 1, LastValue(ema30_20),colorYellow);
+PlotText("EMA30_34" + "  " + WriteVal(LastValue(ema30_34), 1.2), BarCount - 1, LastValue(ema30_34),colorYellow);
+PlotText("EMA30_55" + "  " + WriteVal(LastValue(ema30_55), 1.2), BarCount - 1, LastValue(ema30_55),colorYellow);
+PlotText("EMA30_89" + "  " + WriteVal(LastValue(ema30_89), 1.2), BarCount - 1, LastValue(ema30_89),colorYellow);
+PlotText("EMA30_144" + "  " + WriteVal(LastValue(ema30_144), 1.2), BarCount - 1, LastValue(ema30_144),colorYellow);
+PlotText("EMA30_200" + "  " + WriteVal(LastValue(ema30_200), 1.2), BarCount - 1, LastValue(ema30_200),colorYellow);
+
+PlotText("EMA60_5" + "  " + WriteVal(LastValue(ema60_5), 1.2), BarCount - 1, LastValue(ema60_5),colorPaleGreen);
+PlotText("EMA60_10" + "  " + WriteVal(LastValue(ema60_10), 1.2), BarCount - 1, LastValue(ema60_10),colorPaleGreen);
+PlotText("EMA60_20" + "  " + WriteVal(LastValue(ema60_20), 1.2), BarCount - 1, LastValue(ema60_20),colorPaleGreen);
+PlotText("EMA60_34" + "  " + WriteVal(LastValue(ema60_34), 1.2), BarCount - 1, LastValue(ema60_34),colorPaleGreen);
+PlotText("EMA60_55" + "  " + WriteVal(LastValue(ema60_55), 1.2), BarCount - 1, LastValue(ema60_55),colorPaleGreen);
+PlotText("EMA60_89" + "  " + WriteVal(LastValue(ema60_89), 1.2), BarCount - 1, LastValue(ema60_89),colorPaleGreen);
+PlotText("EMA60_144" + "  " + WriteVal(LastValue(ema60_144), 1.2), BarCount - 1, LastValue(ema60_144),colorPaleGreen);
+PlotText("EMA60_200" + "  " + WriteVal(LastValue(ema60_200), 1.2), BarCount - 1, LastValue(ema60_200),colorPaleGreen);
+
+//con1 = IFF(C > e(C,10)) ; 
+//a = Cross(C, EMA(C,10)) 
+//Plot(a, "Cross",   
+TimeFrameRestore();
+_SECTION_END();
+
+//////////////////////////////////////////////
+_SECTION_BEGIN("MACD");
+MACD_Alert = ParamToggle("MACD", "No|Yes", 0);
+m = MACD(12.26); 
+s = Signal(12,26,9);
+b1 = Cross(s,m);
+s1 = Cross(m,s);
+
+Message_buy = "Buy" + "  "  + numtostr(C) + " Spead = " + NumToStr(H - L) + " Volume =   " + NumToStr(V) + "   " + WriteVal(ROC(V, 1), 1.2) + ROC(V, 1) + " " 
++ " \n" + TimeNum() + "    " + Interval() + "  " + "MACD = " + numtostr(m) ;
+Message_sell = "Sell" + "  "  + numtostr(C) + " Spead = " + NumToStr(H - L) + " Volume =   " + NumToStr(V) + "   " + WriteVal(ROC(V, 1), 1.2) + ROC(V, 1) + " " 
++ " \n" + TimeNum() + "    " + Interval() + "  " +  "MACD = " + numtostr(m) ;
+
+if(b1[BarCount -1] == 1)
+	{if(MACD_alert)
+	{ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message_buy); 
+	InternetClose(ih);
+	};
+	}
+if(s1[BarCount -1]== 1)
+	{if(MACD_alert)
+	{ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message_sell); 
+	InternetClose(ih);
+	};
+	}
+_SECTION_END();
+
+
+//////////////////////////////////////
+_SECTION_BEGIN("Manual_expectation_zone");
+zone = ParamToggle("zone", "No|Yes", 0);
+Low_zone = Param("Chan_duoi", 1400 ,1000, 1800, 1,0);
+High_zone = Param("Chan_tren", 1480 ,1000, 1800, 1,0);
+b2 = Cross(L, Low_zone);
+s2 = Cross(H, High_zone);
+Message_buy = "Buy" + "  "  + numtostr(C) + " Spead = " + NumToStr(H - L) + " Volume =   " + NumToStr(V) + "   " + WriteVal(ROC(V, 1), 1.2) + ROC(V, 1) + " " 
++ " \n" + TimeNum() + "    " + Interval() + "  " + "RSI_Alert, " + " rsi = " + numtostr(r) ;
+Message_sell = "Sell" + "  "  + numtostr(C) + " Spead = " + NumToStr(H - L) + " Volume =   " + NumToStr(V) + "   " + WriteVal(ROC(V, 1), 1.2) + ROC(V, 1) + " " 
++ " \n" + TimeNum() + "    " + Interval() + "  " + "RSI_Alert, " + " rsi = " + numtostr(r) ;
+/*
+if(b2[BarCount-1]==1)
+	{if(zone)
+	{ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message_buy); 
+	InternetClose(ih);}
+	}break;}
+if(s2[BarCount-1]==1)
+	{if(zone)
+	{ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message_sell); 
+	InternetClose(ih);
+	};
+	}
+}
+*/
+_SECTION_END();
+
+////////////////////////////////
+_SECTION_BEGIN("EMA");
+period = Param("period", 10, 1,100,1);
+uptrend_strong = IIF(EMA(C,5) > EMA(C,10) > EMA(C,20) > EMA(C,34) > EMA(C,55) > EMA(C,89) > EMA(C,144) > MA(C,200), 1,0);
+downtrend_strong = IIF(EMA(C,5)< EMA(C,10) < EMA(C,20) < EMA(C,34) < EMA(C,55) < EMA(C,89) < EMA(C,144) < MA(C,200), 1,0);
+// Plot( EMA( C, period ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+
+_SECTION_END();
+
+
+/*
+_SECTION_BEGIN("VN30");
+
+VN30_alert = ParamToggle("Vn30", "No|Yes",0);
+index =  "VN30F1M,VN30INDEX,VNINDEX"; 
+vn30 = "VHM,VIC,REE,VJC,BVH,PDR,VRE,VCB,HDB,VNM,NVL,TCH,BID,KDH,MBB,SSI,POW,MWG,PLX,TPB,CTG,HPG,MSN,TCB,FPT,STB,GAS,SBT,PNJ,VPB";
+SetOption("NoDefaultColumns",True);
+// Filter = Status("LastBarInTest");
+ Filter = (Name() == "VN30F1M" OR Name() == "VN30INDEX" OR Name() == "VNINDEX");
+// SetSortColumns( 1 );
+// AddTextColumn(Name(),"Correlation",1.0);
+// Name() == "VN30F1M" OR Name() == "VN30INDEX" OR Name() == "VNINDEX";
+// Ticker1 = Name();
+ 
+for( Col=0; (Ticker2=StrExtract(vn30, Col))!= ""; Col++)
+{
+var = Foreign(Ticker2,"C");
+var1 = Foreign(Ticker2,"L");
+var2 = Foreign(Ticker2,"H");
+var3 = Foreign(Ticker2,"V");
+con1 = IIF(EMA(var,5) > EMA(var,10) > EMA(var,20), 1,IIf(EMA(var,5) < EMA(var,10) < EMA(var,20),-1,0));
+con2 = IIF(var3 > Percentile(var3, 15, 75) OR var3 <= Percentile(var3, 15, 25),1,0);
+con3 = IIf(var > HHV(var2,20) OR var < LLV(var1, 20), 1,0);
+con_buy = C > Ref(C, -1) AND C > Ref(HHV(H,5), -1);
+con_sell = C < Ref(C, -1) AND C < Ref(HHV(H,5), -1); 
+Message1 = Ticker2 + " " + "Trend Alert " + " Close = "  + numtostr(var) + " Spead = " + NumToStr(var2 - var1) + " Volume =   " + NumToStr(var3) + "   " + WriteVal(ROC(var3, 1), 1.2) + ROC(var3, 1) + " " 
++ " \n" + "Time = " +  TimeNum() + " Interval =   " + Interval();
+Message2 = Ticker2 + " " + "Volume Alert " + " Close = "  + numtostr(var) + " Spead = " + NumToStr(var2 - var1) + " Volume =   " + NumToStr(var3) + "   " + WriteVal(ROC(var3, 1), 1.2) + ROC(var3, 1) + " " 
++ " \n" + "Time = " +  TimeNum() + " Interval =   " + Interval();
+Message3 = Ticker2 + " " + "HHV_LLV_Alert" + " Close = "  + numtostr(var) + " Spead = " + NumToStr(var2 - var1) + " Volume =   " + NumToStr(var3) + "   " + WriteVal(ROC(var3, 1), 1.2) + ROC(var3, 1) + " " 
++ " \n" + "Time = " +  TimeNum() + " Interval =   " + Interval();
+
+AddColumn(var,"Close",1.2,colorWhite,IIf(var>Ref(var,-1),colorGreen,colorRed),50);
+AddColumn(V,"Volume",1,colorWhite,IIf((C>=4 AND V>=1.2*MA(V,30) AND C*V>1000000),colorGreen,colorRed),90);
+AddColumn(C*V,"Gia tri GD ",1,colorWhite,colorGreen,90);
+AddtextColumn(WriteIf(Filter,"   BUY",""),"DONG TIEN",1.0,colorWhite,IIf(Filter,colorGreen,colorWhite),100);
+
+
+if(con1[BarCount -1] ==1 OR con1[BarCount -1] == -1)
+{if(VN30_alert)
+	{ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message1); 
+	InternetClose(ih);
+	}
+}
+if(con2[BarCount -1] ==1)
+{if(VN30_alert)
+	{ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message2); 
+	InternetClose(ih);
+	}
+}
+if(con3[BarCount -1] ==1)
+{if(VN30_alert)
+	{ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message3); 
+	InternetClose(ih);
+	}
+}
+}
+_SECTION_END();
+*/
+
+_SECTION_BEGIN("Price");
+Ticker = ParamStr("Symbol", Name() );
+PlotForeign( Ticker, Ticker, ParamColor("Color", colorCycle ), ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
