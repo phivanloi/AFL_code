@@ -49,6 +49,7 @@ con_wbuy =  Cross(C, Ref(LLV(L,5),-1));
 con_sell = C < Ref(HHV(C,5),-1) AND V > Percentile(V, 10, 80);
 con3 = vol AND spread > Percentile(spread, 10, 70) AND C >= O;
 con4 = vol AND spread > Percentile(spread, 10, 70) AND C < O;
+// con5 
 
 Message_buy = "LONG_spread_volume" + " " + Name() + " " + TimeNum() + " " +  ValueWhen(Buy[BarCount-2],C,1) + " SL = "  + (ValueWhen(Buy[BarCount-2],C,1) - ValueWhen(Buy[BarCount-2],C,1) * 0.45 * 0.05 * 0.1) + "  " + "\n" + Interval(2);
 Message_sell = "SHORT_spread_volume" + " " + Name() + " "  + TimeNum() + " " +  ValueWhen(Sell[BarCount-2],C,1) + " SL = "  +(ValueWhen(Sell[BarCount-2],C,1) + ValueWhen(Sell[BarCount-2],C,1) * 0.35 * 0.05 * 0.1) + "  " + "\n" + Interval(2);
