@@ -1,0 +1,12 @@
+tickers = "VN30F1M,VN30INDEX,VINDEX"; 
+vn30 = "VHM,VIC,REE,VJC,BVH,PDR,VRE,VCB,HDB,VNM,NVL,TCH,BID,KDH,MBB,SSI,POW,MWG,PLX,TPB,CTG,HPG,MSN,TCB,FPT,STB,GAS,SBT,PNJ,VPB";
+
+"The last item is " + StrExtract( tickers, -1 ); 
+printf("listing from the end of the list:n"); 
+
+for( item = -1; ( sym = StrExtract( tickers, item ) ) != ""; item-- ) 
+{ 
+  printf( sym + "n" ); 
+ // AddColumn(Close, sym, 1.2);
+} 
+

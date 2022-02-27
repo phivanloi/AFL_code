@@ -1,0 +1,57 @@
+// Vi Du Tin Hieu Mua la MA20 cat MA50 up. Moi nguoi tu thay doi theo dk cua cac ban nhe
+cao=Ref(HHV(C,10),-1);
+thap=Ref(LLV(C,10),-1);
+tl=(cao-thap)/cao*100;
+
+Buy=Cross(MA(C,20),MA(C,50));
+
+_SECTION_BEGIN("Telegram Alerts");
+TelegramAlerts = ParamTrigger("Telegram Alert","Send Alert");
+TelegramAPI_ID = ParamStr("Telegram Bot API Key","xxxxxx");  //Get the Bot API key via BotFather in Telgram
+TelgramCHAT_ID = ParamStr("Telegram Channel ID","@username"); //Channel ID example : @marketcalls_in
+EnableScript("VBScript"); 
+<% 
+Public Sub Telegram(Message_Text)
+sAPI_ID = AFL.Var("TelegramAPI_ID")
+sChat_ID = AFL.Var("TelgramCHAT_ID")
+sMSG = Message_Text
+
+'URL to open....
+sUrl = "https://api.telegram.org/bot" & sAPI_ID & "/sendMessage"
+'POST Request to send.
+sRequest = "text=" & sMSG & "&chat_id=" & sChat_ID
+
+set oHTTP = CreateObject("Microsoft.XMLHTTP")
+oHTTP.open "POST", sUrl,false
+oHTTP.setRequestHeader "Content-Type", "application/x-www-form-urlencoded"
+oHTTP.setRequestHeader "Content-Length", Len(sRequest)
+oHTTP.send sRequest
+HTTPPost = oHTTP.responseText
+
+'Store response 
+'msgbox(objXmlHttpMain.responseText)
+'response.Write (objXmlHttpMain.responseText) 
+End Sub 
+
+%> 
+tg = GetScriptObject(); 
+
+if (LastValue(ValueWhen(Buy,BarIndex())==BarIndex()) AND StaticVarGet(Name()+GetChartID()+"buyAlert")==0 )
+{
+
+
+tg.Telegram("#" + Name() + " Ngày " + Date() + " ( Xem Chart )"
++ "\n" + " Tin Hieu: THEO DOI"
++ "\n" + " Gia Khop : " + BuyPrice
++ "\n" + " Bien Dong Gia: " + WriteVal(((100*(C - Ref(C,-1)))/(Ref(C,-1))),1.2)+" %"
++ "\n" + " Bien Dong Vol: " + WriteVal(((100*(V - ma(V,15)))/(ma(V,15))),1.2)+" %"
++ "\n" + " Gia Tri GD : " + WriteVal(C*V/1000000,1.2) + " Ty"
++ "\n" + " Tich Luy : " + WriteVal(tl,1.2) + " %"+"  (10D)");
+StaticVarSet(Name()+ GetChartID() + "buyAlertBar", LastValue(TimeNum()));
+}
+
+
+if (LastValue(TimeNum()) == StaticVarGet(Name()+GetChartID()+"buyAlertBar"))
+StaticVarSet(Name()+GetChartID()+"buyAlert",1); //alert was triggered, no more alerts on this bar
+else
+StaticVarSet(Name()+GetChartID()+"buyAlert",0); // new bar formed, and alerts can be trigered.

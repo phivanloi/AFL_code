@@ -1,0 +1,8 @@
+DK2 = V>200000;
+DK3 = C>5;
+DK5=MA(V,2)<0.9*MA(Ref(V,-2),5);// tuan dep
+DK6 = MA(Ref(V,-2),5)>1.3*MA(Ref(V,-7),5);
+DK7=C>MA(C,20) AND C>MA(C,5);
+
+Buy = DK2 AND DK3 AND DK6 AND DK5 AND dk7;
+Filter = Buy;

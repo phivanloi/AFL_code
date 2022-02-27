@@ -1,0 +1,221 @@
+BarColor=IIf(C>O,colorBlue,IIf(C<O,colorCustom12,colorBlack));
+GraphXSpace = Param("Zoom",2,1);
+PlotOHLC( Close,  High,  Low,  Close, "", BarColor, styleBar |styleThick );//Price
+//02. Bollinger Bands
+{
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 20, 2, 100, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", ColorRGB(53,60,74) );
+Style = ParamStyle("Style", styleLine | styleNoLabel ) | styleNoLabel;
+Plot( bbt = BBandTop( P, Periods, Width ), "BBTop", colorGrey40, Style ); 
+Plot( bbb = BBandBot( P, Periods, Width ), "BBBot", colorGrey40, Style ); 
+//PlotOHLC( bbt, bbt, bbb, bbb, "", ColorBlend( Color, GetChartBkColor(), 0.8 ), styleNoLabel | styleCloud | styleNoRescale, Null, Null, Null, -1 );
+_SECTION_END();
+}
+
+Length = 14;
+Price = EMA(Close, Length);
+// Keltner 
+kLength = Length;
+kN = 1.5;
+kATR = ATR(kLength);
+kUpper = Price + kN * kATR;
+kLower = Price - kN * kATR;
+ 
+// Bollinger
+bbLength = Length;
+bbN = 2;
+bbStDevValues = StDev(Close, bbLength);
+bbUpper = Price + bbN * bbStDevValues;
+bbLower = Price - bbN * bbStDevValues;
+IsBBSqueeze = bbUpper <= kUpper AND bbLower >= kLower;
+PlotOHLC( bbt,bbt, bbb,bbb, "",IIf(IsBBSqueeze,ColorBlend(colorPaleTurquoise, GetChartBkColor(), 0.8 ),ColorBlend(ColorRGB(53,60,74), GetChartBkColor(), 0.8 )), styleCloud|styleNoRescale,  Null, Null, Null, -1 );
+dkbb=bbt>Ref(bbt,-1)  AND  bbb<Ref(bbb,-1)  AND (Ref(IsBBSqueeze,-1) OR Ref(IsBBSqueeze,-2)) AND NOT IsBBSqueeze;
+_SECTION_END();
+
+//// DK BUY T-VSA
+MA50 = EMA(C,50);
+MA150 = EMA(C,150);
+MA200 = EMA(C,200);
+YrLo = LLV(L,240);
+YrHi = HHV(H,240);
+Con1 = C>MA150 AND C>MA200;
+Con2 = MA150>MA200;
+Con3 = MA200>Ref(MA200,-20);
+Con4 = MA50>MA150 AND MA50>MA200;
+Con5 = C>MA50;
+Con6 = C>1.3*YrLo;
+Con7 = C>0.75*YrHi;
+Bull = Con1 AND Con2 AND Con3 AND Con4 AND Con5 AND Con6 AND Con7;
+bigwhite = C>Ref(C,-1) AND C>O AND C>L+(0.75*(H-L)) AND (H-L)>ATR(10);
+Con1xt = ((H+L)/2)>1.3*YrLo AND Ref(H,-1)<= 1.3*YrLo AND bigwhite;
+Con2xt = ((H+L)/2)>0.75*YrHi AND Ref(H,-1)<= 0.75*YrHi AND bigwhite;
+Con3xt= Bull AND C>EMA(C,30) AND NOT Ref(Bull,-1) AND NOT  Ref(Bull,-2) AND NOT  Ref(Bull,-3) AND bigwhite;
+// BUY - SELL : Theo Minervini
+HiVal = V*C>5000000;
+FilterMIN = Bull AND HiVal AND StrLen(Name())<=6 AND StrRight(Name(),2)!="-F" AND StrRight(Name(),2)!="-P";
+{
+buyfiter=
+C>MA(C,150)
+AND C>MA(C,200)
+AND MA(C,150)>MA(C,200)
+AND MA(C,200) >1.01*LLV(MA(C,200),20)
+AND MA(C,50)>MA(C,150)
+AND MA(C,50)>MA(C,200)
+AND C>1.25*LLV(C,260)
+AND C>0.75*HHV(C,260)
+AND C >EMA(C,50)
+AND C*V>3000000;
+BuyMinervini1= 
+//C>=5 AND 
+C>=O
+AND C>=1.02*Ref(C,-1)
+AND V>=0.8*Ref(V,-1)
+AND V>=Ref(V,-2)
+AND V>=Ref(V,-3)
+AND V>=Ref(V,-4)
+AND V>=Ref(V,-5)
+AND V >= MA(V,30) 
+AND C>= HHV(C,10)
+AND C>= 0.8*HHV(C,20)
+AND C>= 0.8*HHV(C,60)
+AND C>= 0.8*HHV(C,120)
+AND (C- LLV(L,60))/LLV(L,60)>= 0.1
+AND (C- LLV(L,120))/LLV(L,120)>= 0.1
+AND HHV(C,5) <1.1* LLV(C,5)
+AND HHV(C,10) <1.1* LLV(C,10)
+AND (C- LLV(L,10))/LLV(L,10)<= 0.1;
+BuyMinervini2=BuyMinervini1 AND buyfiter;
+Buyminer=BuyMinervini2 AND bigwhite;
+Buyminer_s=Buyminer AND FilterMIN;
+MINNERVINI= Buyminer_s OR Buyminer OR BuyMinervini2;
+
+}
+
+
+// Mua ban Canslim
+{
+mua =  
+(C >= Ref(C,-1)
+AND C >= Ref(C,-2)
+AND C >= Ref(C,-3)
+AND C >= Ref(C,-4) 
+AND C >= Ref(C,-5)
+AND C >= Ref(C,-6)
+AND C >= Ref(C,-7) 
+AND C >= Ref(C,-8)
+AND C >= Ref(C,-9)
+AND C >= Ref(C,-10)
+AND C >= Ref(C,-11) 
+AND C >= Ref(C,-12)
+AND C >= Ref(C,-13)
+AND C >= Ref(C,-14) 
+AND C >= Ref(C,-15)
+//AND C>5
+AND C*V>1000000);
+ ban =  
+     C <= Ref(C,-1)
+AND C <= Ref(C,-2)
+AND C <= Ref(C,-3)
+AND C <= Ref(C,-4)
+AND C <= Ref(C,-5)
+AND C <= Ref(C,-6)
+AND C <= Ref(C,-7)
+AND C <= Ref(C,-8)
+AND C <= Ref(C,-9)
+AND C <= Ref(C,-10)
+AND C <= Ref(C,-11)
+AND C <= Ref(C,-12)
+AND C <= Ref(C,-13)
+AND C <= Ref(C,-14)
+AND C <= Ref(C,-15)
+AND C <= Ref(C,-16)
+AND C <= Ref(C,-17)
+AND C <= Ref(C,-18)
+AND C <= Ref(C,-19)
+AND C <= Ref(C,-20);
+
+Buybuy = ExRem(mua, ban);
+Sellsell = ExRem(ban, mua);
+/////////////
+Covercover= 
+C > 1.02*Ref(H,-1) 
+AND C>=Ref(H,-2)
+AND (V >= 1.3*MA(V,50) OR V >= 1.3*MA(V,15))  
+AND C >= (H + L)/ 2 
+AND C > O
+AND C*V>=1000000
+AND Ref(C,-1)<=1.04*Ref(C,-2)
+AND Ref(C,-2)<=1.04*Ref(C,-3)
+AND Ref(V,-1) <=1.3*MA(V,15)
+AND C>=5
+AND C>MA(C,30)
+AND C >= Ref(C,-2)
+AND C >= Ref(C,-3)
+AND C >= Ref(C,-4) 
+AND C >= Ref(C,-5);
+
+////////////
+ muaxt1 =  
+(C >= Ref(C,-1)
+AND C >= Ref(C,-2)
+AND C >= Ref(C,-3)
+AND C >= Ref(C,-4) 
+AND C>=MA(C,30)
+AND C>1.01*Ref(C,-1)
+AND HHV(C,5) >= HHV(C,15)
+AND Ref(C,-1)<1.04*Ref(C,-2));
+
+muaxt2 =  
+C > Ref(H,-1) AND C > Ref(H,-2) AND C > Ref(H,-3) AND C > Ref(H,-4) AND C*V >1000000 ;
+
+mua_xt1=muaxt1 OR muaxt2;
+
+
+banxt1 =  
+C <= Ref(L,-1)
+AND C <= Ref(L,-2)
+AND C <= Ref(L,-3)
+AND C <= Ref(L,-4);
+
+
+Buy4 = ExRem(mua_xt1, banxt1);
+Sell4 = ExRem(banxt1, mua_xt1);
+
+T_VSA_B4S4_status=WriteIf(Buy4 ,"T-VSA: BUY4 \n",WriteIf(Sell4 ,"T-VSA: SELL4 \n",""));
+
+////////////
+no=Param( "Swing", 5, 1, 55 );
+res=HHV(H,no);
+sup=LLV(L,no);
+tsl=IIf(ValueWhen(IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0))!=0,IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0)),1)==1,sup,res);
+Buyx = Cross(C,tsl) ;
+Sellx = Cross(tsl,C)  ;
+}
+
+Buy=dkbb AND (Buyx OR mua_xt1 OR Covercover OR mua OR MINNERVINI);
+PlotShapes(Buy*shapeUpArrow,colorGreen,0,L,-20);
+//04. CHI BAO MA20 CAT MA50 VA MA20 CAT MA65//CLICK DAU CONG DE MO RONG CODE
+  {
+  _SECTION_BEGIN("CHI BAO MUA BAN MA20-50-65");
+ma20   =MA(C,20);
+ma30   =MA(C,30);            
+ma50   =MA(C,50);   
+ma65   =MA(C,65);  
+ma20ma50up=Cross(ma20,ma50);
+ma20ma65up=Cross(ma20,ma65); 
+PlotShapes(shapeStar*ma20ma50up, colorBlue, 0, L,-20);
+PlotShapes(shapeStar*ma20ma65up, colorBlack, 0, L,-20);
+_SECTION_END();
+}
+
+FilterMIN = Bull AND HiVal AND StrLen(Name())<=6 AND StrRight(Name(),2)!="-F" AND StrRight(Name(),2)!="-P";
+Filter=FilterMIN OR Buy;
+AddColumn(C,"Close",1.2,colorWhite,IIf(C>Ref(C,-1),colorGreen,colorRed),50);
+AddColumn(V,"Volume",1,colorWhite,IIf((C>=4 AND V>=1.2*MA(V,30) AND C*V>1000000),colorGreen,colorRed),90);
+AddColumn(C*V,"Gia tri GD ",1,colorWhite,colorGreen,90);
+AddtextColumn(WriteIf(FilterMIN,"GD2",""),"GIAI DOAN 2",1.0,colorWhite,IIf(FilterMIN,colorGreen,colorWhite),35);
+AddtextColumn(WriteIf(Buy,"BUY",""),"HLK",1.0,colorWhite,IIf(Buy,colorGreen,colorWhite),35);
+

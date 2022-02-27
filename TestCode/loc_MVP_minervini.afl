@@ -1,0 +1,50 @@
+Filter = 
+ 
+C>MA(C,150)
+AND C>MA(C,200)
+AND MA(C,150)>MA(C,200)
+AND MA(C,200) >1.01*LLV(MA(C,200),20)
+AND MA(C,50)>MA(C,150)
+AND MA(C,50)>MA(C,200)
+AND C>1.25*LLV(C,260)
+AND C>0.75*HHV(C,260)
+AND C >EMA(C,50)
+AND C*V>3000000
+
+
+ ;
+Buy= 
+   C>=5
+AND C>=O
+AND C>=1.02*Ref(C,-1)
+AND V>=0.8*Ref(V,-1)
+AND V>=Ref(V,-2)
+AND V>=Ref(V,-3)
+AND V>=Ref(V,-4)
+AND V>=Ref(V,-5)
+AND V >= MA(V,30) 
+
+
+AND C>= HHV(C,10)
+AND C>= 0.8*HHV(C,20)
+AND C>= 0.8*HHV(C,60)
+AND C>= 0.8*HHV(C,120)
+
+AND (C- LLV(L,60))/LLV(L,60)>= 0.1
+AND (C- LLV(L,120))/LLV(L,120)>= 0.1
+
+
+AND HHV(C,5) <1.1* LLV(C,5)
+
+AND HHV(C,10) <1.1* LLV(C,10)
+AND (C- LLV(L,10))/LLV(L,10)<= 0.1
+
+;
+AddColumn( IIf( Buy, 66,1 ), "buy", formatChar, 1, bkcolor =IIf (Buy,colorGreen, colorRed ));
+
+AddColumn(((C - Ref(C,-1))/Ref(C,-1))*100 ,"% Tang gia ");
+AddColumn(C*V,"Gia tri GD ");
+AddColumn(((V - MA(V,50))/MA(V,50))*100 ,"% Dot bien KL");
+
+AddSummaryRows(31, 1.2,4);
+SetSortColumns( -4 ) ;

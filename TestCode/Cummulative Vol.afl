@@ -1,0 +1,37 @@
+_SECTION_BEGIN("Cumulative Volume");
+/*
+To get cumulative Volume for intraday, we need to Sum Volume from the beginning bar of the Day
+
+Example :
+  9:15  - volume(9:15)
+  9:20 - volume(9:15+9:20)
+  9:25 -volume(9:15+9:20+9:25)
+
+1. Get start bar of the day
+2. Get cumulative number of bars from first bar of the day
+3. Use sum function
+*/
+
+BarT = BarIndex() - Nz(ValueWhen(Day()!= Ref(Day(),-1) ,BarIndex()),0) + 1;
+CumVol = Sum(V,BarT);
+GfxSetBkMode(0);
+GfxSelectFont( "Georgia", 12, 800, False );
+GfxSetTextColor( colorYellow );
+GfxTextOut( "CumVol: "+CumVol, 5, 100 );
+_SECTION_END();
+
+timeNow = TimeNum();
+dateNow = DateNum();
+firstBarTime = 090000; // Might use ETH AND RTH so better to determine new day with specific time.
+
+firstBarOfDay = TimeNum() == firstBarTime;
+// Vol_at_1st = ValueWhen(TimeNum() == firstBarTime , V, 1);
+barsSinceFirstBar = BarsSince( firstBarOfDay );
+cumulativeVolumeToday =  Sum( Ref( Volume, 0 ), barsSinceFirstBar );
+GfxSetBkMode(0);
+GfxSelectFont( "Georgia", 12, 800, False );
+GfxSetTextColor( colorAqua );
+GfxTextOut( NumToStr(cumulativeVolumeToday), 300, 100 );
+
+Plot( cumulativeVolumeToday, "cumulativeVolumeToday", colorGreen, styleLine );
+Plot( firstBarOfDay, "First bar", ColorRGB( 75, 75, 75 ), styleArea | styleOwnScale | styleNoLabel | styleNoTitle, 1, 0, 0, -1, 1 );

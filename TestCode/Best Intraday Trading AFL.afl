@@ -1,0 +1,191 @@
+
+//------------------------------------------------------------------------------
+//  Formula Name	:      BEST INTRADAY TRADING AFL for Amibroker by pipschart
+//  Author	:      KrT group
+//  Uploader	:      www.pipschart.com
+//  E-mail		:      info@pipschart.com
+//  Amibroker Blog	:      www.pipschart.com/amibroker
+//  Origin		:      Modified & Collected from different sources.
+//------------------------------------------------------------------------------
+
+_SECTION_BEGIN("KrT group");
+GfxSetBkMode(1);
+X=750;
+Y=1;
+Font=10;
+GfxSelectFont("Impact",Font*2.2, 550);GfxSetTextColor(colorRed);GfxTextOut("KrT group",x,y);
+GfxSelectFont("Impact",Font*2.2, 550);GfxSetTextColor(colorGreen);GfxTextOut("RESEARCH",x+120,Y);
+
+_SECTION_END();
+
+//------------------------------------------------------------------------------
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, High %g, Low %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Signal Panel");
+no=10;
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+s5d=IIf(avn==1,sup,res);
+
+showsl = ParamToggle("Stop Loss Line", "Show|Hide", 0);
+if (showsl == 1)
+{Plot(s5d,"Stop Loss",colorCustom14,styleDots);}
+
+exitlong = Cross(s5d, H);
+PlotShapes(exitlong * shapeNone, colorBlack,0,H,-10);
+exitshort = Cross(L, s5d);
+PlotShapes(exitshort * shapeNone, colorBlack,0,L,-15);
+
+Buy = exitshort;
+Sell = exitlong;
+//Short = Sell;
+//Cover = Buy;
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+//Short = ExRem(Short, Cover);
+//Cover = ExRem(Cover, Short);
+AlertIf( Buy, "", "Buy @ " + C, 1 );
+AlertIf( Sell, "", "Sell @ " + C, 2 );
+
+for(i=BarCount-1;i>1;i--)
+{
+if(Buy[i] == 1)
+{
+entry = C[i];
+sig = "Buy";
+sl = s5d[i];
+tar1 = entry + (entry * .0050);
+tar2 = entry + (entry * .0092);
+tar3 = entry + (entry * .0179);
+
+bars = i;
+i = 0;
+}
+if(Sell[i] == 1)
+{
+sig = "Sell";
+entry = C[i];
+sl = s5d[i];
+tar1 = entry - (entry * .0050);
+tar2 = entry - (entry * .0112);
+tar3 = entry - (entry * .0212);
+
+
+bars = i;
+i = 0;
+}
+}
+Offset = 20;
+Clr = IIf(sig == "Buy", colorLime, colorRed);
+ssl = IIf(bars == BarCount-1, s5d[BarCount-1], Ref(s5d, -1));
+sl = ssl[BarCount-1];
+
+Plot(LineArray(bars-Offset, tar1, BarCount, tar1,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+Plot(LineArray(bars-Offset, tar2, BarCount, tar2,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+Plot(LineArray(bars-Offset, tar3, BarCount, tar3,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+
+Plot(LineArray(bars-Offset, sl, BarCount, sl,1), "", colorDarkRed, styleLine|styleLine, Null, Null, Offset);
+Plot(LineArray(bars-Offset, entry, BarCount, entry,1), "", colorGreen, styleLine|styleLine, Null, Null, Offset);
+
+for (i=bars; i <BarCount;i++)
+{
+PlotText(""+sig+"@"+entry, BarCount-3,entry,Null,colorBlue);
+PlotText("TGT-1@"+tar1,BarCount-4,tar1,Null,Clr);PlotText("TGT-2@"+tar2,BarCount-4,tar2,Null,Clr);PlotText ("TGT-3@"+tar3,BarCount-4,tar3,Null,Clr);
+
+}
+
+messageboard = ParamToggle("Message Board","Show|Hide",1);
+if (messageboard == 1 )
+{
+GfxSelectFont( "Tahoma", 13, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorWhite );
+
+if ( sig =="Buy")
+{
+GfxSelectSolidBrush( colorBlue ); // this is the box background color
+}
+else
+{
+GfxSelectSolidBrush( colorRed ); // this is the box background color
+}
+pxHeight = Status( "pxchartheight" ) ;
+xx = Status( "pxchartwidth");
+Left = 1100;
+width = 310;
+x = 5;
+x2 = 310;
+
+y = pxHeight;
+
+GfxSelectPen( colorGreen, 5); // broader color
+GfxRoundRect( x, y - 142, x2, y , 7, 7 ) ;
+GfxTextOut( Name(),12,y-140);
+GfxTextOut( " Last Traded Price = "+  C , 08,y- 120 );
+GfxTextOut( ( "Signal Panel"),160,y-140);
+GfxTextOut( (" "),27,y-160);
+GfxTextOut( ("Last " + sig + " Signal came " + (BarCount-bars-1) * Interval()/60 + " mins ago"), 13, y-100) ; // The text format location
+GfxTextOut( ("" + WriteIf(sig =="Buy",sig + " @ ",sig + " @") + " : " + entry), 13, y-80);
+GfxTextOut( ("Trailing Stop Loss : " + sl + " (P/L:" + WriteVal(IIf(sig == "Sell",entry-sl,sl-entry), 2.2) + ")"), 13, y-60);
+GfxTextOut( ("TGT:1 : " + tar1), 13, y -40);
+GfxTextOut( ("Current Profit/Loss : " + WriteVal(IIf(sig == "BUY",(C-entry),(entry-C)),2.2)), 40, y-22);;
+
+}
+_SECTION_END();
+
+
+
+_SECTION_BEGIN("Sound Alert");
+AlertIf( Buy, "SOUND C:\\Windows\\Media\\Chord.wav", "Sell " + C,2,1+2,1);
+AlertIf( Sell, "SOUND C:\\Windows\\Media\\tada.wav","Buy " + C,1,1+2,1);
+_SECTION_END();
+
+
+_SECTION_BEGIN("");
+GfxSetOverlayMode(0);
+GfxSelectPen( colorRed, 3 ); 
+GfxSelectSolidBrush( colorLightYellow ); 
+GfxRoundRect( 350, 38,665, 70, 15, 15 ); 
+GfxSetBkMode(1); 
+GfxSelectFont( "Arial", 17.5, 700, False );
+GfxSetTextColor( colorBrown );
+GfxSetTextAlign(0);
+GfxSetTextColor( colorBlack );
+GfxTextOut( " Last Traded Price = "+  BuyPrice , 350, 40);
+_SECTION_END();
+
+
+_SECTION_BEGIN(" Buy Sell Signal Confirm ");
+BarColors = 
+IIf(BarsSince(Buy) < BarsSince(Sell) 
+AND BarsSince(Buy)!=0, colorGreen,
+IIf(BarsSince(Sell) < BarsSince(Buy)
+AND BarsSince(Sell)!=0,  colorRed, colorBlue));
+//Plot the Candlestick charts
+Plot(C, "Close", BarColors,  styleNoTitle | ParamStyle("Style") | GetPriceStyle() ) ;
+_SECTION_END();
+
+_SECTION_BEGIN("Show Up Down Arrow & Price ");
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+AlertIf( Buy, "SOUND C:\\Windows\\Media\\Chord.wav", "Audio alert", 2 );
+AlertIf( Sell, "SOUND C:\\Windows\\Media\\Ding.wav", "Audio alert", 2 );
+
+dist = 1.8*ATR(15);
+  for( i = 0; i < BarCount; i++ ) 
+  { 
+  if( Buy[i] ) PlotText( "Buy@" + L[ i ], i, L[ i ]-dist[i], colorWhite, colorGreen ); 
+  if( Sell[i] ) PlotText( "Sell@" + H[ i ], i, H[ i ]+dist[i], colorWhite, colorRed ); 
+  }
+
+
+PlotShapes( shape, IIf( Buy, colorBlue, colorRed ), 0, IIf( Buy, Low, High )
+);
+
+_SECTION_END();

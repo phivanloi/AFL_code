@@ -1,0 +1,101 @@
+//Color = ParamColor("Color", ColorRGB(52,52,52) );
+//setChartBkColor(Color);
+GraphXSpace = Param("Zoom",2,1);
+/////////////////////////////////////////////////////////////////////////////////////////
+
+
+// 06. mark minervini – trend template (use EMA>MA) p.79
+{
+MA10=EMA(C,10);
+MA20 = EMA(C,20);
+MA50 = EMA(C,50);
+MA150 = EMA(C,150);
+MA200 = EMA(C,200);
+YrLo = LLV(L,240);
+YrHi = HHV(H,240);
+Con1 = C>MA150 AND C>MA200;
+Con2 = MA150>MA200;
+Con3 = MA200>Ref(MA200,-20);
+Con4 = MA50>MA150 AND MA50>MA200;
+Con5 = C>MA50;
+Con6 = C>1.3*YrLo;
+Con7 = C>0.75*YrHi;
+tr3m = 0.4*(((C-Ref(C,-60))/Ref(C,-60))*100);
+tr6m = 0.2*(((C-Ref(C,-120))/Ref(C,-130))*100);
+tr9m = 0.2*(((C-Ref(C,-180))/Ref(C,-180))*100);
+tr12m = 0.2*(((C-Ref(C,-240))/Ref(C,-240))*100);
+IBDrs = tr3m + tr6m + tr9m + tr12m;
+Bull = Con1 AND Con2 AND Con3 AND Con4 AND Con5 AND Con6 AND Con7;
+bigwhite = C>Ref(C,-1) AND C>O AND C>L+(0.75*(H-L)) AND (H-L)>ATR(10);
+set = Foreign("set","c",True);
+rs = C/set;
+rsma = EMA(rs,5);
+diff = rs-rsma;
+diffpct = (diff/rsma)*100;
+//plots
+SetChartOptions(0,chartShowArrows|chartShowDates);
+bullcolor=colorGreen;
+notbullcolor=colorRed;
+//SetBarFillColor( IIf(C>O,ColorRGB(81,100,230), ColorRGB(255,74,74)) ); 
+Plot(C,"Mark Minervini’s Trading System",IIf(Bull,ColorRGB(81,100,230), ColorRGB(255,74,74)),styleCandle);
+Plot(MA10,"",colorOrange);
+Plot(MA20,"",colorGreen);
+Plot(MA50,"",colorBrown);
+Plot(MA150,"",colorDarkYellow,styleLine,Null,Null,0,0,2);
+Plot(MA200,"",colorGrey40,styleLine,Null,Null,0,0,2);
+//Plot(MA150,"",colorBlue);
+//Plot(MA200,"",colorDarkBlue);
+Plot(YrHi,"1 Year High",colorGreen,styleDashed,Null,Null,0,0,2);
+Plot(0.75*YrHi,"",colorBlue,styleDashed);
+Plot(YrLo,"1 Year Low",colorRed,styleDashed,Null,Null,0,0,2);
+Plot(1.3*YrLo,"",colorRed,styleDashed);
+//Plot(IBDrs,"IBD RS" ,colorGrey50,styleLine|styleOwnScale) ;
+//PlotShapes(Buy*shapeUpArrow,colorGreen,0,L,-20);
+//PlotShapes(Sell*shapeDownArrow,colorRed,0,H,-20);
+// Explorer = 1 month stronger than SET + Value that than more than 5M
+Bullstarus=WriteIf(Bull,"Bull","");
+HiVal = V*C>5000000;
+Filter = Bull AND HiVal AND StrLen(Name())<=6 AND StrRight(Name(),2)!="-F" AND StrRight(Name(),2)!="-P";
+AddColumn(Close,"Close");
+AddColumn(Volume,"Volume");
+AddColumn(V*C,"Trading Value");
+AddColumn(IBDrs,"IBD RS (higher = better)",1.0);
+AddColumn(diffpct,"% RS EMA",1.2);
+AddColumn(bigwhite,"big white",1.0);
+SetSortColumns(-6);
+}
+
+//10. Title
+{
+Chg=Ref(C,-1);
+Title =WriteIf(Bull,EncodeColor(ColorRGB(81,100,230)),EncodeColor(ColorRGB(255,74,74)))+"Mark Minervini’s Trading System"+"("+Title =Name()+") - " + " " + EncodeColor
+(colorOrange) + "Date :: "  + Date() +WriteIf(C>O,EncodeColor(colorGreen),WriteIf(C<O,EncodeColor(colorRed),EncodeColor(colorBlack))) +  "  {{INTERVAL}}  " +
+   EncodeColor(colorBlue)+ "   Open:  "+ EncodeColor(colorBlack)+ WriteVal(O,format=1.2) + 
+   EncodeColor(colorBlue)+ "   High:  "+ EncodeColor(colorBlack) + WriteVal(H,format=1.2) +
+   EncodeColor(colorBlue)+ "   Low:  "+ EncodeColor(colorBlack)+ WriteVal(L,format=1.2) + 
+   EncodeColor(colorBlue)+ "   Close:  "+ WriteIf(C> Chg,EncodeColor(colorGreen),EncodeColor
+
+(colorRed))+ WriteVal(C,format=1.2)+  
+   EncodeColor(colorBlue)+ "   Change:  "+ WriteIf(C> Chg,EncodeColor(colorGreen),EncodeColor(colorRed))+ WriteVal(ROC(C,1),format=1.2)+ "%"+
+   EncodeColor(colorBlue)+ "   Volume: "+ EncodeColor(colorBlack)+ WriteVal(V,1)+
+   EncodeColor(colorBlue)+ "   GTGD: "+ EncodeColor(colorBlack)+ WriteVal(V*C,1)
+ ;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+//10. NAME AND FULL NAME//CLICK DAU CONG DE MO RONG CODE
+  {
+_SECTION_BEGIN("NAME AND FULL NAME");
+  GfxSetOverlayMode(0);
+GfxSelectFont("Arial",30, 500);
+GfxSetBkMode(0); // transparent
+GfxSetTextColor( colorCustom3 );
+GfxTextOut("" +Name(), 5, 15);
+  //////////////////
+ GfxSelectFont("Arial",12, 500);
+GfxSetBkMode(0); // transparent
+GfxSetTextColor( colorPaleBlue );
+GfxTextOut("" +FullName(), 130, 30);
+}
+

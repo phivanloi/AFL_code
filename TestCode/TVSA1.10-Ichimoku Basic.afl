@@ -1,0 +1,89 @@
+
+////////////////////
+GraphXSpace = Param("Zoom",2,1);
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_END();
+
+P1 = Param("Tenkan", 9, 2, 200, 1, 0);
+C1 = ParamColor("Tenkan Color", colorGreen);
+CL = (HHV(H,P1)+LLV(L,P1))/2;
+ 
+P2 = Param("Kijun", 26, 2, 200, 1, 0);
+C2 = ParamColor("Kijun Color", colorRed);
+BL = (HHV(H,P2)+LLV(L,P2))/2;
+ 
+C3 = ParamColor("Leading A Color", colorTeal);
+LSA = (CL+BL)/2;
+ 
+P4 = Param("Leading B Span", 52, 2, 200, 1, 0);
+C4 = ParamColor("Leading B Color", colorPink);
+LSB = (HHV(H,P4)+LLV(L,P4))/2;
+ 
+P3 = Param("Leading Span Displacement", 26, 2, 200, 1, 0);
+ 
+P5 = Param("Lagging Displacement", -25, 2, 200, 1, 0);
+P6 = Param("Lagging Displacement", -17, 2, 200, 1, 0);
+C5 = ParamColor("Lagging Color", colorGrey40);
+
+
+Kijun65 = ( HHV( H, 65 ) + LLV( L, 65) )/2;
+Kijun129 = ( HHV( H, 129 ) + LLV( L, 129) )/2;
+
+
+
+Plot(CL,"\nTenkan", C1, styleLine);
+Plot(BL, "Kijun", C2, styleLine);
+//Plot(LSA, "Span A ", C3, styleLine, 1, 0, P3);
+//Plot(LSB, "Span B ", C4, styleLine, 1, 0, P3);
+Plot(C, "Chikou", C5, styleLine, 0, 0, P5);
+Plot(Kijun65,"Kijun65",colorDarkYellow,styleThick);
+Plot(Kijun129,"Kijun129",colorOrange,styleThick);
+PlotOHLC (LSA,LSA,LSB,LSB,"Cloud",IIf(LSA>LSB,ColorRGB( 124, 190, 190 ),ColorRGB( 192, 192, 192 )),styleCloud, 0, 0, P3);
+
+_SECTION_BEGIN("Label");
+ 
+//Magfied Market Price
+GfxSetTextAlign( 6 );// left alignment
+FS=Param("Font Size",16);
+GfxSelectFont("Arial", FS, 700, True );
+GfxSetBkMode(0); // transparent
+GfxSetTextColor( colorLightOrange );
+Hor=Param("Horizonta Position",2000);
+Ver=Param("Vertica Position",18);
+GfxTextOut(""+C, Hor , Ver );
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+FS2=Param("Font Size2",11);
+GfxSelectFont("Arial", FS2,11, 700, True );
+GfxSetBkMode( colorGreen );
+Hor1=Param("Horizontal Position",1000);
+Ver1=Param("Vertical Position",1);  
+//GfxSetTextColor( colorLightOrange );
+//GfxTextOut(""+DD+"  ("+xx+"%)", Hor1 , Ver1+45 ); 
+  
+dec = (Param("Decimals",2,0,7,1)/10)+1;
+
+_SECTION_END();
+
+_SECTION_BEGIN("Mua & Bán");
+
+mua =   C > Ref(H,-1) AND C > Ref(H,-2) AND C > Ref(H,-3) AND C > Ref(H,-4) AND C*V >1000000 ;
+ban = C < Ref(L,-1)AND C < Ref(L,-2)AND C < Ref(L,-3) AND C < Ref(L,-4) ;
+
+Buy = ExRem(mua, ban);
+Sell = ExRem(ban, mua);
+
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorGreen,0,Low,Offset=-10);
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed,0,High,Offset=-10);
+_SECTION_END();
+
+
+
+ 
+

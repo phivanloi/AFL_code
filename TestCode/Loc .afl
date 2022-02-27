@@ -1,0 +1,62 @@
+BarColor=IIf(C>O,colorBlue,IIf(C<O,colorCustom12,colorBlack));
+GraphXSpace = Param("Zoom",2,1);
+PlotOHLC( Close,  High,  Low,  Close, "", BarColor, styleBar |styleThick );//Price
+// Range Calculations //
+r=H-L; //daily range
+Hb=(H+L)/2; //Half Back
+ar=MA(r,30); //avg range
+uwrb=IIf(r>2*ar,1,Null); // ultra wide range bar
+wrb=IIf(r>1.33*ar AND r<2*ar,1,Null); //wide range bar
+////////////////
+cao=Ref(HHV(C,10),-1);
+thap=Ref(LLV(C,10),-1);
+tl=(cao-thap)/cao*100;
+nv=V/MA(V,20);
+stt=WriteIf(tl<5 AND Cross(C,cao) AND nv>1.2,"BreakOut",WriteIf(tl<5 AND Cross(thap,C) AND nv>1.2,"BreakDow",""));
+clr=iIf(tl<5 AND Cross(C,cao) AND nv>1.2,colorGreen,iif(tl<5 AND Cross(thap,C) AND nv>1.2,colorOrange,colorDefault));
+
+Buy=
+C>3 
+AND C>O
+AND C>(H+L)/2
+AND ((C-O)/O)>0.025
+AND C>Ref(C,-1)
+AND C>Ref(HHV(H,5),-1)
+AND H==HHV(H,5)
+AND V>MA(V,15)
+AND V==HHV(V,5)
+AND V > 100000
+AND MA(V,15)>100000
+AND C*V>1000000 
+AND C*V<500000000
+AND (uwrb OR wrb);
+//////////////
+theodoi=
+C>3 
+AND C>O
+AND C>(H+L)/2
+AND ((C-O)/O)>0.025
+AND C>Ref(C,-1)
+AND C>Ref(HHV(H,5),-1)
+AND H==HHV(H,5)
+AND V>0.8*MA(V,15)//Minh chi thay doi phan nay nhu dieu kien cua ban thoi nhe
+AND V==HHV(V,5)
+AND V > 100000
+AND MA(V,15)>100000
+AND C*V>1000000 
+AND C*V<500000000
+AND (uwrb OR wrb);
+
+
+Filter= Buy OR theodoi OR tl<=10;
+
+////////
+PlotShapes(Buy*shapeUpArrow,colorGreen,0,L,-20);
+///////
+AddColumn(C,"Close",1.2,IIf(C>Ref(C,-1),colorBlack,colorRed),colorDefault,50);
+AddColumn(V,"Volume",1,IIf((C>=4 AND V>=1.2*MA(V,30) AND C*V>1000000),colorBlack,colorRed),colorDefault,90);
+AddColumn(C*V,"Gia tri GD ",1,colorBlack,colorDefault,90);
+AddtextColumn(WriteIf(Buy,"        BUY",""),"DONG TIEN",1.2,colorWhite,IIf(Buy,colorGreen,colorDefault),100);
+AddtextColumn(WriteIf(theodoi,"Theo Doi",""),"Theo Doi",1.2,colorWhite,IIf(theodoi,colorGreen,colorDefault),100);
+AddTextColumn(stt,"  Ghi Chu",1.2,colorWhite,clr,80);
+AddColumn(tl,"Tích Luy (%)",1.2,IIf(tl<=10,colorDefault,colorRed),colorDefault,95);

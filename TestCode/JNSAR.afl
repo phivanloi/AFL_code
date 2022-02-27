@@ -1,0 +1,29 @@
+
+
+
+_SECTION_BEGIN("JNSAR"); 
+
+
+
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+
+Period = Param("Length",5,5,100,1);
+
+// JNSAR = (5 days HEma+5Days CEma+5Days LEma)/15
+
+isum = (Sum(ema(High,Period),Period) + Sum(ema(Low,Period),period) + Sum(ema(Close,Period),period));
+
+jnsar = round(isum/15);
+
+buy = Cross(Close, jnsar);
+sell =Cross(jnsar,Close);
+
+Short = Sell;
+Cover = Buy;
+
+color = IIf(C>jnsar,colorGreen,colorRed);
+
+Plot(jnsar,"JNSAR",color,styleDots|styleNoLine|stylethick);
+
+
+_SECTION_END();

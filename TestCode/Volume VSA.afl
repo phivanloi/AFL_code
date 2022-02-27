@@ -1,0 +1,12 @@
+_SECTION_BEGIN("Volume");
+Plot(V,"Vol",IIf(V< Ref(V,-1) AND V<Ref(V,-2),colorIndigo,IIf(C>=Ref(C,-1),colorGreen,colorRed)),styleHistogram+styleThick);
+av=MA(V,30); //avg vol
+uhv=IIf(V>2*av,1,Null); //very high vol
+hV=IIf(V>1.1*av AND V<2*av,1,Null); //high volume
+Lv=IIf(V>0.5*aV AND V<0.9*av,1,Null); //low volume
+ulv=IIf(V<0.5*av,1,Null); //ultra low vol
+Plot(av,"",colorBlue,styleThick);
+PlotOHLC(av,av*2,av,av*2,"",colorPink,styleCloud);
+PlotOHLC(0.5*av,av,0.5*av,av,"",ColorRGB(200,250,50),styleCloud);
+PlotOHLC(0,0.5*av,0,0.5*av,"",colorPink,styleCloud);
+_SECTION_END();

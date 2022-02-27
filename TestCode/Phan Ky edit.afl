@@ -1,0 +1,289 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+PlotOHLC( Close,  High,  Low,  Close, "", IIf(C>O,colorBlue,colorCustom12), styleBar |styleThick );
+_SECTION_END();
+///////////PHAN KY//////////////////////////////////
+_SECTION_BEGIN("Phan Ky RSI 1");
+GraphXSpace=15;
+ n=Param("% Reverse ",20,0,100,1);
+ Buy=Sell=0;
+Var = Zig(RSI(), n); 
+ t= Trough(RSI(), n, 1); 
+ p= Peak(RSI(), n, 1); 
+ x[0] =Var[0];
+ price[0] = C[0];
+ j=0;
+// Bao phan ky vung dinh
+ for ( i=0; i<BarCount; i++) 
+ {
+ if(Var[i] == p[i])
+ {
+ 
+j++;
+ x[j] =Var[i];
+ price[j] =C[i];
+ if(x[j] <x[j-1] && price[j-1]< price[j]) 
+ Sell[i] =1;
+ }
+ }
+// Bao phan ky vung day
+ for ( i=0; i<BarCount; i++) 
+ {
+ if(Var[i] == t[i])
+ {
+ j++;
+ x[j] =Var[i];
+ price[j] =C[i];
+ if(x[j] >x[j-1] && price[j]<price[j-1]) 
+ Buy[i] =1;
+ }
+ }
+RSIsell1=Sell;
+RSIbuy1=Buy;              
+PlotShapes(IIf(RSIbuy1, shapeUpArrow, shapeNone),colorDarkGreen, 0,L, Offset=-15);                     
+PlotShapes(IIf(RSIsell1, shapeDownArrow, shapeNone),colorDarkGreen, 0,H, Offset=-15);
+_SECTION_END();
+
+_SECTION_BEGIN("Phan Ky RSI 2");
+n=Optimize("ZIG",9,5,50,1);
+per=Optimize("rsi",28,5,50,1);
+Buy=Sell=0;
+Var = Zig(RSI(per), n); 
+t= Trough(RSI(per), n, 1); 
+p= Peak(RSI(per), n, 1); 
+x[0] =Var[0];
+price[0] = C[0];
+j=0;
+// Bao phan ky vung day
+for ( i=0; i<BarCount; i++) 
+{
+if(Var[i] == p[i])
+{
+
+j++;
+x[j] =Var[i];
+price[j] =C[i];
+if(x[j] <x[j-1] && price[j-1]< price[j]) 
+Sell[i] =1;
+}
+}
+// Bao phan ky vung day
+for ( i=0; i<BarCount; i++) 
+{
+if(Var[i] == t[i])
+{
+j++;
+x[j] =Var[i];
+price[j] =C[i];
+if(x[j] >x[j-1] && price[j]<price[j-1]) 
+Buy[i] =1;
+}
+}
+RSIsell2=Sell;
+RSIbuy2=Buy;
+PlotShapes(IIf(RSIbuy2, shapeUpArrow, shapeNone),colorDarkGreen, 0,L, Offset=-15);                     
+PlotShapes(IIf(RSIsell2, shapeDownArrow, shapeNone),colorDarkGreen, 0,H, Offset=-15);
+
+_SECTION_BEGIN("Phan Ky MACD");
+r1 = Param( "Fast avg", 12, 2, 200, 1 );
+r2 = Param( "Slow avg", 26, 2, 200, 1 );
+r3 = Param( "Signal avg", 9, 2, 200, 1 );
+r4 = Param( "Wk slow", 17, 2, 200, 1 );
+r5 = Param( "Wk fast", 8, 2, 200, 1 );
+m1=MACD(r1,r2);
+s1=Signal(r1,r2,r3);
+_SECTION_BEGIN("PHAN KY MACD");
+P = Param("Phan Ky MACD", 14, 2, 14, 1);
+VMACD = MACD(p);
+Length = 100; 
+Lapse = 3; 
+fDown = VMACD < Ref(VMACD, -1) & VMACD < Ref(VMACD, 1) & VMACD < 45;
+Div = 0;
+for(i = Length; i < BarCount; i++)
+{
+if(fDown[i])
+{
+k = i-1;
+do
+{
+if(VMACD[k] < VMACD[i] & fDown[i] & fDown[k])
+{
+if(C[k] > C[i] & i-k > Lapse)
+{
+Div[i] = -1;
+}
+k = i-Length;
+}
+else
+k = k-1;
+} while( k > i-Length );
+}
+}
+Buymacd = IIf(Div == 0, 0, 1);
+Buy = Buymacd;
+PlotShapes(Buymacd*shapeUpArrow,colorBlue);
+_SECTION_END();
+
+_SECTION_BEGIN("PHAN KY MACD");
+VMACD2 = Zig(MACD(P),4);
+fUp = VMACD2 > Ref(VMACD2, -1) & VMACD2 > Ref(VMACD2, 1) & VMACD2 <55 ;
+Div = 0;
+for(i = Length; i < BarCount; i++)
+{
+if(fup[i])
+{
+k = i-1;
+do
+{
+if(VMACD2[k] > VMACD2[i] & fup[i] & fup[k])
+{
+if(C[k] < C[i] & i-k > Lapse)
+{
+Div[i] = 1;
+}
+k = i-Length;
+}
+else
+k = k-1;
+} while( k > i-Length );
+}
+
+}
+Sellmacd = IIf(Div == 0, 0, 1);
+Sell = Sellmacd;
+PlotShapes(Sellmacd*shapedownArrow,colorBlue);
+ _SECTION_END();
+ 
+ 
+_SECTION_BEGIN("MACD HISTOGRAM");
+r1 = Param( "Fast avg", 12, 2, 200, 1 );
+r2 = Param( "Slow avg", 26, 2, 200, 1 );
+r3 = Param( "Signal avg", 9, 2, 200, 1 );
+r4 = Param( "Wk slow", 17, 2, 200, 1 );
+r5 = Param( "Wk fast", 8, 2, 200, 1 );
+m1=MACD(r1,r2);
+s1=Signal(r1,r2,r3);
+_SECTION_BEGIN("PHAN KY MACD HISTOGRAM");
+P = Param("Phan Ky MACD HISTOGRAM", 14, 2, 14, 1);
+m2 = Zig(MACD(r1,r2),55);
+s2 = Zig(Signal(r1,r2,r3),55);
+VMACD = m2-s2;
+Length = 100; 
+Lapse = 3; 
+fUp = VMACD > Ref(VMACD, -1) & VMACD > Ref(VMACD, 1) & VMACD >55;
+fDown = VMACD < Ref(VMACD, -1) & VMACD < Ref(VMACD, 1) & VMACD < 45;
+Div = 0;
+for(i = Length; i < BarCount; i++)
+{
+// Bao ban phan ky MACD
+if(fUp[i])
+{
+k = i-1;
+do
+{
+if(VMACD[k] > VMACD[i] & fUp[i] & fUp[k])
+{
+if(C[k] < C[i] & i-k > Lapse)
+{
+Div[i] = 1;
+}
+k = i-Length;
+}
+else
+k = k-1;
+} while( k > i-Length );
+}
+Sell = fUp;
+// Bao mua phan ky MACD
+
+if(fDown[i])
+{
+k = i-1;
+do
+{
+if(VMACD[k] < VMACD[i] & fDown[i] & fDown[k])
+{
+if(C[k] > C[i] & i-k > Lapse)
+{
+Div[i] = -1;
+}
+k = i-Length;
+}
+else
+k = k-1;
+} while( k > i-Length );
+}
+
+}
+BuyHISTOGRAM = IIf(Div == 0, 0, 1);
+Buy = BuyHISTOGRAM;
+PlotShapes(BuyHISTOGRAM*shapeUpArrow,colorDarkGrey,0,L,-20);
+_SECTION_END();
+
+VMACD2 = m2-s2;
+fUp = VMACD2 > Ref(VMACD2, -1) & VMACD2 > Ref(VMACD2, 1) & VMACD2 <55 ;
+Div = 0;
+for(i = Length; i < BarCount; i++)
+{
+if(fup[i])
+{
+k = i-1;
+do
+{
+if(VMACD2[k] > VMACD2[i] & fup[i] & fup[k])
+{
+if(C[k] < C[i] & i-k > Lapse)
+{
+Div[i] = 1;
+}
+k = i-Length;
+}
+else
+k = k-1;
+} while( k > i-Length );
+}
+
+}
+SellHISTOGRAM = IIf(Div == 0, 0, 1);
+Sell = SellHISTOGRAM;
+PlotShapes(SellHISTOGRAM*shapedownArrow,colorDarkGrey,0,H,-20);
+_SECTION_END();
+
+
+PHANKYBUY=RSIbuy1 OR RSIbuy2 OR Buymacd OR BuyHISTOGRAM;
+//PHANKYBUYC= RSIbuy1 + RSIbuy2 + Buymacd + BuyHISTOGRAM;
+PHANKYSELL= RSIsell1 OR RSIsell2 OR Sellmacd OR SellHISTOGRAM;
+PHANKYBUYSELLC= RSIsell1 + RSIsell2 + Sellmacd + SellHISTOGRAM + RSIbuy1 + RSIbuy2 + Buymacd + BuyHISTOGRAM;
+
+//10. NAME AND FULL NAME//CLICK DAU CONG DE MO RONG CODE
+Hor=Param("Horizontal Position",1000,50,1700,50);
+Ver=Param("Vertical Position",0,10,500,20);
+GfxSetOverlayMode(0);
+GfxSelectPen( colorGrey40, 0 ); // data tooltip round border color
+GfxSelectSolidBrush( colorLavender ); // data tooltip color
+GfxRoundRect( Hor, Ver , Hor+200 , Ver+44 , 0, 0 ); // data tooltip size
+GfxRoundRect( Hor, Ver , Hor+150 , Ver+44 , 0, 0 ); // data tooltip size
+GfxSelectSolidBrush( colorGreen ); // data tooltip color
+GfxRoundRect( Hor, Ver+22 , Hor+150 , Ver+44 , 0, 0 ); // data tooltip size
+GfxSelectSolidBrush( colorRed ); // data tooltip color
+GfxRoundRect( Hor+75, Ver+22 , Hor+150 , Ver+44 , 0, 0 ); // data tooltip size
+
+GfxSelectFont("Arial",11, 100);
+GfxSetBkMode(0); // transparent
+GfxSetTextColor( colorBlue );
+GfxTextOut("PHAN KY" , Hor+45, Ver+1);
+GfxSelectFont("Arial",10, 100);
+GfxSetBkMode(0); // transparent
+GfxSetTextColor( colorWhite );
+GfxTextOut("" +Writeif(PHANKYBUY,"BUY","N/A"), Hor+25, Ver+25);
+GfxTextOut("" +Writeif(PHANKYSELL,"SELL","N/A"), Hor+97, Ver+25);
+
+GfxSetOverlayMode(0);
+GfxSelectFont("Arial",20, 500);
+GfxSetBkMode(0); // transparent
+//GfxSetTextColor( colorGreen );
+//GfxTextOut("" +WriteVal(PHANKYBUY,PHANKYBUYC,""), 1565, 2);
+GfxSetTextColor(colorDarkGrey );
+GfxTextOut("" +PHANKYBUYSELLC, Hor+165, Ver+2);
+

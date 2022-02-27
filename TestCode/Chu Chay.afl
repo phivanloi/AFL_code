@@ -1,0 +1,29 @@
+SetChartOptions(0,chartShowArrows|chartShowDates);SetChartBkGradientFill( colorBlue,colorDarkRed);
+
+/******************************************************************************************
+                   CHART TITLES
+***********************************************************************************************/
+k = (GetPerformanceCounter()/100)%256; 
+printf("GetPerformance Counter %g",k);
+
+
+GfxSelectFont("Arial Narrow", 12, 700 ); 
+GfxSetBkMode(1); 
+GfxSetTextColor(colorYellow); 
+GfxTextOut(" Mr-Tuan"+ "    Phone: 0937798534",100+k ,12); 
+GfxSelectFont("Century Goliath",12,500); 
+
+RequestTimedRefresh(1); 
+_SECTION_END();
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// Credit goes to original creator (unknown); got from one of the forums.
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+

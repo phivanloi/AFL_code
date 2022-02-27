@@ -1,0 +1,268 @@
+//Huy Tuan : 0937798537
+// Telegtam ami: https://t.me/amibrokercodevn
+
+_SECTION_BEGIN("HT11 TTCP");
+
+eq = C;
+
+yr = Year();
+mo = Month();
+dy = Day();
+
+YearChange = yr != Ref( yr, 1 );
+MonChange = mo != Ref( mo, 1 );
+
+FirstYr = 0;
+LastYr = 0;
+
+startbar = 0;
+
+mYRange = 5;
+FromYr = Param( "From Year", yr[0] - mYRange, 2000, yr[0], 1 );
+expMonth = ParamToggle("Explore next month","NO|YES",0);
+
+//============== SKIP non-trading bars ==============
+for( i = BarCount-1; i > 0; i-- )
+{
+    if( eq[ i ] && yr[ i ] < FromYr )
+    {
+        startbar = i;
+        break;
+    }
+}
+
+
+////////////////////////////
+// collect yearly / monthly changes in equity
+// into dynamic variables
+////////////////////////////
+
+LastYrValue = eq[ startbar  ];
+LastMoValue = eq[ startbar  ];
+
+MaxNegVal 		= 0;
+MinNegVal 		= -100000000;
+MaxPosVal 		= 0;
+MinPosVal 		= 100000000;
+
+for( i = startbar + 1; i < BarCount; i++ )
+{
+    if( YearChange[ i ] || i == BarCount - 1 )
+    {
+        Chg = 100 * ( -1 + eq[ i ] / LastYrValue );
+        VarSet( "ChgYear" + yr[ i - 1 ], Chg );
+
+        y = IIf( i == BarCount - 1, 0, 1 ) ;
+
+        if( FirstYr == 0 ) FirstYr = yr[ i - 1 ];
+
+        LastYr = yr[ i ];
+
+        LastYrValue = eq[ i ];
+
+    }
+
+    if( MonChange [ i ] || i == BarCount - 1 )
+    {
+        mon = mo[ i - 1 ];
+        Chg = 100 * ( -1 + eq[ i ] / LastMoValue );
+
+        VarSet( "ChgMon" + yr[ i - 1 ] + "-" + mon, Chg );
+        VarSet( "SumChgMon" + mon, Chg + Nz( VarGet( "SumChgMon" + mon ) ) );
+        VarSet( "SumMon" + mon, 1 + Nz( VarGet( "SumMon" + mon ) ) );
+        VarSet( "UPChgMon" + mon, Nz(Chg > 0) + Nz( VarGet( "UPChgMon" + mon ) ) );
+        VarSet( "DOWNChgMon" + mon, Nz(Chg < 0) + Nz( VarGet( "DOWNChgMon" + mon ) ) );
+        VarSet( "PrevPrice" + yr[ i - 1 ] + "-" + mon, LastMoValue );
+        VarSet( "LastPrice" + yr[ i - 1 ] + "-" + mon, eq[ i ] );
+
+        if( Chg < 0 )
+        {
+            if( MinNegVal < Chg ) MinNegVal = Chg;
+            if( MaxNegVal > Chg ) MaxNegVal = Chg;
+        }
+
+        if( Chg > 0 )
+        {
+            if( MinPosVal > Chg ) MinPosVal = Chg;
+            if( MaxPosVal < Chg ) MaxPosVal = Chg;
+        }
+
+        LastMoValue = eq[ i ];
+    }
+}
+
+
+//============== Drawing code & helper functions ==============
+GfxSetOverlayMode( 2 );
+CellHeight = ( Status( "pxheight" ) - 1 ) / ( LastYr - FirstYr + 6 );
+CellWidth = ( Status( "pxwidth" ) - 1 ) / 14;
+GfxSelectFont( "Tahoma", 8.5 );
+GfxSelectSolidBrush( colorWhite );
+GfxRectangle( 0, 0, Status( "pxwidth" ), Status( "pxheight" ) );
+GfxSetBkMode( 1 );
+
+function PrintInCell( string, row, Col )
+{
+    Color =  ColorRGB( IIf( row == 0 || col == 0 || col == 13, 220, 255 ), 255, IIf( row % 2, 255, 220 ) );
+    GfxSelectSolidBrush( Color );
+
+    GfxRectangle( Col * CellWidth,
+                  row * CellHeight, ( Col + 1 ) * CellWidth + 1,
+                  ( row + 1 ) * CellHeight  + 1 );
+    GfxDrawText( string, Col * CellWidth + 1,
+                 row * CellHeight + 1,
+                 ( Col + 1 ) * CellWidth, ( row + 1 ) * CellHeight, 32 + 5 );
+}
+
+function FillColor( Value )
+{
+    UpRed		= 0;
+    UpGreen	= 255;
+    UpBlue		= 0;
+
+    DnRed		= 255;
+    DnGreen	= 0;
+    DnBlue		= 0;
+
+    DarkColor	= 0;
+    LightColor	= 180; //230
+
+    if( Value > 0 )
+    {
+        UpRed = LightColor - int( ( LightColor - ( ( ( MaxPosVal - Value ) * ( LightColor - DarkColor ) ) / ( MaxPosVal - MinPosVal ) ) ) );
+
+        if( Value == 0 ) UpRed = 255;
+
+        UpBlue = UpRed;
+    }
+
+    if( Value < 0 )
+    {
+        DnGreen = LightColor - int( ( LightColor - ( ( ( abs( MaxNegVal ) - abs( Value ) ) * ( LightColor - DarkColor ) ) / ( abs( MaxNegVal ) - abs( MinNegVal ) ) ) ) );
+
+        if( Value == 0 ) DnGreen = 255;
+
+        DnBlue = DnGreen;
+    }
+
+    Color	= IIf( Value == 0, ColorRGB( 255, 255, 0 ), IIf( Value > 0, ColorRGB( UpRed, UpGreen, UpBlue ), ColorRGB( DnRed, DnGreen, DnBlue ) ) );
+    return Color;
+}
+
+function FillColor1( Value )
+{
+	color = IIf(value <= 0.25, colorRed, IIf(value > 0.25 AND value <= 0.5, colorPink, IIf(value > 0.5 AND value <= 0.75, colorLime, colorGreen)));
+	return color;
+}
+
+function PrintInCellValue( val, string, row, Col, format )
+{
+    Color =  FillColor( val ); //ColorRGB( IIf( row == 0 || col == 0 || col == 13, 220, 255 ), 255, IIf( row % 2, 255, 220 ) );
+    GfxSelectSolidBrush( Color );
+
+    GfxRectangle( Col * CellWidth,
+                  row * CellHeight, ( Col + 1 ) * CellWidth + 1,
+                  ( row + 1 ) * CellHeight  + 1 );
+    GfxDrawText( string, Col * CellWidth + 1,
+                 row * CellHeight + 1,
+                 ( Col + 1 ) * CellWidth, ( row + 1 ) * CellHeight, format );
+}
+
+function PrintInCellValue1( val, string, row, Col, format )
+{
+    Color =  FillColor1( val ); //ColorRGB( IIf( row == 0 || col == 0 || col == 13, 220, 255 ), 255, IIf( row % 2, 255, 220 ) );
+    GfxSelectSolidBrush( Color );
+
+    GfxRectangle( Col * CellWidth,
+                  row * CellHeight, ( Col + 1 ) * CellWidth + 1,
+                  ( row + 1 ) * CellHeight  + 1 );
+    GfxDrawText( string, Col * CellWidth + 1,
+                 row * CellHeight + 1,
+                 ( Col + 1 ) * CellWidth, ( row + 1 ) * CellHeight, format );
+}
+
+MonthNames = "Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec";
+
+function DisplayProfitTable( )
+{
+    Header = "Year," + MonthNames + ",Yr%";
+
+    for( Col = 0; ( Colname = StrExtract( Header, Col ) ) != ""; Col++ )
+    {
+        PrintInCell( ColName, 0, Col );
+    }
+
+    Row = 1;
+
+    for( y = LastYr; y >= FirstYr; y-- )
+    {
+        PrintInCell( StrFormat( "%g", y ), Row, 0 );
+
+        ChgYr = VarGet( "ChgYear" + y );
+
+        if( ChgYr || chgYr == 0 )	
+			PrintInCellValue( ChgYr, StrFormat( "%.2f %%", ChgYr ), Row, 13, 37 );
+        else
+			PrintInCellValue( 0, "", Row, 13, 37 );
+
+        for( m = 1; m <= 12; m++ )
+        {
+            Chg = VarGet( "ChgMon" + y + "-" + m );
+            PrevPrice = VarGet( "PrevPrice" + y + "-" + m );
+            LastPrice = VarGet( "LastPrice" + y + "-" + m );
+            
+            if( Chg || Chg == 0 )
+            {
+                PrintInCellValue( Chg, StrFormat( "%.2f %%", Chg ), Row, m, 37 );
+            }
+        }
+
+        Row++;
+    }
+
+    PrintInCell( "Avg", Row, 0 );
+	PrintInCell( "UP", Row+1, 0 );
+    PrintInCell( "DOWN", Row+2, 0 );
+    PrintInCell( "UP %", Row+3, 0 );
+    
+    for( m = 1; m <= 12; m++ )
+    {
+        AvgMo = Nz( VarGet( "SumChgMon" + m ) / VarGet( "SumMon" + m ) ) ;
+        UPChgMon = Nz( VarGet( "UPChgMon" + m ) ) ;
+        DOWNChgMon = Nz( VarGet( "DOWNChgMon" + m ) ) ;
+        PrintInCellValue( AvgMo, StrFormat( "%.1f %%", AvgMo ), Row, m, 37 );
+        PrintInCellValue( UPChgMon, StrFormat( "%g", UPChgMon ), Row+1, m, 37 );
+        PrintInCellValue( DOWNChgMon, StrFormat( "%g", DOWNChgMon ), Row+2, m, 37 );
+        PrintInCellValue1( Nz( VarGet( "UPChgMon" + m ) / VarGet( "SumMon" + m ) ), StrFormat( "%.2f %%", Nz( VarGet( "UPChgMon" + m ) / VarGet( "SumMon" + m ) ) * 100 ), Row+3, m, 37 );
+    }
+}
+
+//============== Main Program ==============
+DisplayProfitTable();
+
+//============== Exploration ==============
+Filter = 1;
+if(expMonth){
+	//current month
+	totYear = LastValue(Year())-FromYr;
+	for(ye = 0; ye <= totYear; ye++){
+		val = VarGet("ChgMon" + (Year()-ye) + "-" + Month());
+		AddColumn(val, "Year-"+(Year()-ye),1.2,IIf(val < 0, colorRed, colorGreen));
+	}
+	AddColumn(Nz(VarGet("UPChgMon" + Month()) / VarGet( "SumMon" + Month()))*100,"UP %");
+} else {
+	//next month
+	totYear = LastValue(Year())-FromYr;
+	for(ye = 0; ye <= totYear; ye++){
+		val = VarGet("ChgMon" + (Year()-ye) + "-" + (Month()+1));
+		AddColumn(val, "Year-"+(Year()-ye),1.2,IIf(val < 0, colorRed, colorGreen));
+	}
+	AddColumn(Nz(VarGet("UPChgMon" + (Month()+1)) / VarGet( "SumMon" + (Month()+1)))*100,"UP %");
+}
+SetSortColumns(-1*(totyear+4));
+AddTextColumn(SectorID(1),"Sector");
+a=Nz(VarGet("UPChgMon" + (Month()+1)) / VarGet( "SumMon" + (Month()+1)))*100;
+b=Nz(VarGet("UPChgMon" + (Month()+2)) / VarGet( "SumMon" + (Month()+2)))*100;
+AddtextColumn(WriteIf(a==100,"Mua",""),"THANG TIEP THEO",1.0,colorBlack,colorDefault,200);
+AddtextColumn(WriteIf(B==100,"Mua",""),"2 THANG TIEP THEO",1.0,colorBlack,colorDefault,200);
+_SECTION_END();

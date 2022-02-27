@@ -1,0 +1,3 @@
+SetChartBkColor(colorWhite);// Nen
+PlotForeign( "vnindex", "vnindex", ParamColor( "Price Color", colorBlue ), styleCandle );
+GraphXSpace = Param("Zoom",2,1);

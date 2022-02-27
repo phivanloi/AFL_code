@@ -1,0 +1,103 @@
+Title = " ";
+SetChartBkColor(colorWhite);// Nen
+BarColor=IIf(C>O,colorBlue,IIf(C<O,colorCustom12,colorBlack));
+GraphXSpace = Param("Zoom",2,1);
+PlotOHLC( Close,  High,  Low,  Close, "", BarColor, styleBar |styleThick );//Price
+_SECTION_BEGIN("UPTrading");
+SetChartBkColor(colorWhite);// Nen
+
+
+Hor=Param("Horizontal Position",10,10,1200,1);
+Ver=Param("Vertical Position",10,30,1000,1);
+X0 = HOR;
+Y0 = VER;
+X1 = 100;
+
+LBClick = GetCursorMouseButtons() == 9;	// Click
+MouseX  = Nz(GetCursorXPosition(1));		// 
+MouseY  = Nz(GetCursorYPosition(1));		//
+
+procedure DrawBut (Text, x1, y1, x2, y2, colorFrom, colorTo)
+{
+	GfxSetOverlayMode(0);
+	GfxSelectFont("Verdana", 9, 700);
+	GfxSetBkMode(1);
+	GfxGradientRect(x1, y1, x2, y2, colorFrom, colorTo);
+	GfxDrawText(Text, x1, y1, x2, y2, 32|1|4|16);
+}
+GfxSetTextColor(colorWhite);
+
+
+	DrawBut ("Note Buy", X0, Y0, X0+X1, Y0+30, colorGreen, colorGreen);
+	CursorInBuyButton = MouseX >= X0 AND MouseX <= X0+X1 AND MouseY >= Y0 AND MouseY <= Y0+30;
+	BuyButtonClick = CursorInBuyButton AND LBClick;
+	if (BuyButtonClick) 
+	{ 
+		DrawBut("Add Uparrow", X0+X1+10, Y0, X0+X1+150, Y0+30,  colorGrey40, colorGrey40);
+		TempBuy = LastValue(DateTime());
+		StaticVarSet(("BuyIndex" + Name()),  TempBuy, 1);
+	}
+
+	DrawBut ("Note Sell", X0, Y0+40, X0+X1, Y0+70, colorRed, colorRed);
+	CursorInSellButton = MouseX >= X0 AND MouseX <= X0+X1 AND MouseY >= Y0+40 AND MouseY <= Y0+70;
+	SellButtonClick = CursorInSellButton AND LBClick;
+	if (SellButtonClick) 
+	{ 
+		DrawBut("Add Downarrow", X0+X1+10, Y0, X0+X1+150, Y0+30,  colorGrey40, colorGrey40);
+		TempSell = LastValue(DateTime());
+		StaticVarSet(("SellIndex" + Name()),  TempSell, 1);
+
+	}
+
+	DrawBut ("Clear Data", X0, Y0+80, X0+X1, Y0+110, colorGrey40, colorGrey40);
+	CursorInClearButton = MouseX >= X0 AND MouseX <= X0+X1 AND MouseY >= Y0+80 AND MouseY <= Y0+110;
+	ClearButtonClick = CursorInClearButton AND LBClick;
+	if (ClearButtonClick) 
+	{ 
+		DrawBut("Clear", X0+X1+10, Y0, X0+X1+75, Y0+30,  colorGrey40, colorGrey40);
+		StaticVarRemove(("BuyIndex" + Name()));
+		StaticVarRemove(("SellIndex" + Name()));
+		StaticVarSetText("firstflag"+Name(), "");
+	}
+
+	BuyTempData = StaticVarGet(("BuyIndex" + Name()));
+	SellTempData = StaticVarGet(("SellIndex" + Name()));
+	Buy = IIF(DateTime() == BuyTempData, 1, 0);
+	Sell = IIF(DateTime() == SellTempData, 1, 0);
+	Buyshape = Buy * shapeUpArrow;
+	SellShape = Sell * shapeDownArrow;
+	PlotShapes( Buyshape, colorBlue, 0, Low );
+	PlotShapes( SellShape, colorRed, 0, High );
+	GraphXSpace = 5;
+_SECTION_END();
+
+_SECTION_BEGIN("Watermark");
+Hor=Param("Horizontal Position",80,1,1200,1);
+Ver=Param("Vertical Position",280,30,1000,1); 
+HTCOL = ParamColor("ColorHT", ColorRGB(48,199,48) );
+HTCOLX = ParamColor("ColorHTX", ColorRGB(128,128,255) );
+HTCOL1=colorBlue;
+//ColorRGB(79,176,255)
+GfxSetOverlayMode(1);
+GfxSelectFont("Tahoma",90, 900);
+GfxSetTextColor( HTCOL );
+GfxSetBkMode(1);
+GfxTextOut( "UP", Hor, Ver+5);
+GfxSetTextColor( HTCOL1 );
+GfxSelectFont("Tahoma",9, 700);
+GfxTextOut( "HUY TUAN : 0937.798.534", Hor, Ver+160);
+GfxSetTextColor( colorGrey40 );
+GfxSelectFont("Tahoma",9, 700);
+GfxTextOut( "CLICK NOTE BUY - SELL", Hor+5, Ver+180);
+GfxSelectPen( HTCOL, 0 ); 
+GfxSelectSolidBrush( HTCOL );
+GfxRoundRect( Hor+10, Ver , Hor+37 , Ver+100 , 0, 0 ); 
+GfxPolygon(Hor+23.5, Ver-20, Hor+57, Ver+30, Hor-10, Ver+30);
+GfxSelectPen( HTCOLX, 0 );
+GfxSelectSolidBrush( HTCOLX);
+GfxRoundRect( Hor+80, Ver+10 , Hor+100 , Ver+40 , 0, 0 ); 
+GfxRoundRect( Hor+105, Ver , Hor+125 , Ver+40 , 0, 0 );
+GfxRoundRect( Hor+130, Ver-10 , Hor+150 , Ver+40 , 0, 0 );
+GfxRoundRect( Hor+155, Ver-20 , Hor+175 , Ver+40 , 0, 0 );
+GfxRoundRect( Hor+180, Ver-30 , Hor+200 , Ver+40 , 0, 0 );
+_SECTION_END();

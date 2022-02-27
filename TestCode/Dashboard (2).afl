@@ -1,0 +1,27 @@
+//HuyTuan: 0937798534
+//https://t.me/amibrokercodevn
+_SECTION_BEGIN("Dashboard");
+
+X0 = 10;
+Y0 = 20;
+
+
+procedure DrawData (Text, x1, y1, x2, y2, colorFrom, colorTo)
+{
+	GfxSetOverlayMode(0);
+	GfxSelectFont("Verdana", 8.5, 700);
+	GfxSetBkMode(1);
+	GfxGradientRect(x1, y1, x2, y2, colorFrom, colorTo);
+	GfxDrawText(Text, x1, y1, x2, y2, 32|1|4|16);
+}
+
+
+DrawData (Name(), X0, Y0, X0+150, Y0+20, colorGrey40, colorGrey40);
+DrawData (Date(), X0+155, Y0, X0+320, Y0+20, colorGrey40, colorGrey40);
+DrawData ("Open : " + Open, X0+325, Y0, X0+450, Y0+20, colorGrey40, colorGrey40);
+DrawData ("Close : " + Close, X0+455, Y0, X0+580, Y0+20, colorGrey40, colorGrey40);
+DrawData ("High : " + High, X0+585, Y0, X0+710, Y0+20, colorGrey40, colorGrey40);
+DrawData ("Low : " + Low, X0+715, Y0, X0+840, Y0+20, colorGrey40, colorGrey40);
+
+
+_SECTION_END();

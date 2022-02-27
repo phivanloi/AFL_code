@@ -1,0 +1,180 @@
+///////////////////////////////////////////////////////////////////////////////
+//	Indicator		:	X-Y Scatter Plot
+///////////////////////////////////////////////////////////////////////////////
+
+// Input Parameters
+nRange   = Param("Range", 500, 30, 1000);
+sForeign = ParamStr("Foreign Symbol", "VNINDEX");
+nProfit  = Param("Profit Zone(%)", 0, 0, 20);
+nLoss    = Param("Loss Zone(%)", 0, 0, 20);
+//nOffSet  = Param("Bars OffSet", 0, 0, 50);
+
+LAST_BAR = BarCount - 1;
+nRange   = Min(nRange, LAST_BAR);
+MARGIN   = 0.1;
+COLOR_LAST_BAR = colorRed;
+COLOR_FIRST_BAR = ColorRGB(128,128,128);
+
+XSeries = C;
+YSeries = Foreign(sForeign, "Close", True);
+
+pxWidth  = Status("pxChartWidth");
+pxHeight = Status("pxChartHeight");
+
+xMin = LLV(XSeries, nRange); xMax = HHV(XSeries, nRange);
+yMin = LLV(YSeries, nRange); yMax = HHV(YSeries, nRange);
+
+xRange = xMax[LAST_BAR] - xMin[LAST_BAR];
+yRange = yMax[LAST_BAR] - yMin[LAST_BAR];
+
+xPxStart = pxWidth * MARGIN;
+yPxStart = pxHeight * MARGIN;
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Returns the price based on the pixel value for the X-Axis.
+///////////////////////////////////////////////////////////////////////////////
+function getX_PixToVal(pxX)
+{
+	return(xMin + ( (pxX - xPxStart)/(pxWidth*(1 - 2*MARGIN))) * xRange);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Returns the price based on the pixel value for the Y-Axis.
+///////////////////////////////////////////////////////////////////////////////
+function getY_PixToVal(pxY)
+{
+	pxY = pxHeight - pxY;
+	return(yMin + ((pxY - yPxStart)/(pxHeight*(1 - 2*MARGIN))) * yRange);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Returns the pixel on the price value for the X-Axis.
+///////////////////////////////////////////////////////////////////////////////
+function getX_ValToPix(valX)
+{
+	return xPxStart[LAST_BAR] + (1 - 2*MARGIN) * pxWidth[LAST_BAR] * (valX - xMin[LAST_BAR])/ xRange[LAST_BAR];
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Returns the pixel on the price value for the Y-Axis.
+///////////////////////////////////////////////////////////////////////////////
+function getY_ValToPix(valY)
+{
+	return (pxHeight - ypxStart[LAST_BAR] - (1 - 2*MARGIN) * pxHeight[LAST_BAR]* (valY - yMin[LAST_BAR])/ yRange[LAST_BAR]);
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Render the scatter points
+///////////////////////////////////////////////////////////////////////////////
+GfxSetBkMode(1);
+for( i = (LAST_BAR - nRange) ; i < BarCount ; i++ )
+{
+	if( i == LAST_BAR )
+	{
+		nPointSize = 5;
+		GfxSelectPen( COLOR_LAST_BAR ); 
+		GfxSelectSolidBrush( COLOR_LAST_BAR );
+	}
+	else if( i == LAST_BAR - nRange )
+	{
+		nPointSize = 5;
+		GfxSelectPen( COLOR_FIRST_BAR ); 
+		GfxSelectSolidBrush( COLOR_FIRST_BAR );
+	}
+	else
+	{
+		nPointSize = 2;
+		GfxSelectPen( colorLightGrey ); 
+		GfxSelectSolidBrush( colorBrown );
+	}
+	GfxCircle(getX_ValToPix(XSeries[i]), getY_ValToPix(YSeries[i]), nPointSize);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Plot the chart border, scale and scale markers
+///////////////////////////////////////////////////////////////////////////////
+GfxSelectFont("Tahoma", 8, 400);
+GfxSelectPen( colorBlack, 1, 2);
+GfxSelectSolidBrush(colorBlack);
+
+GfxMoveTo(xPxStart/2, yPxStart/2);
+GfxLineTo(pxWidth - xPxStart/2, yPxStart/2);
+GfxLineTo(pxWidth - xPxStart/2, pxHeight - yPxStart/2);
+GfxLineTo(xPxStart/2, pxHeight - yPxStart/2);
+GfxLineTo(xPxStart/2, yPxStart/2);
+
+///////////////////////////////////////////////////////////////////////////////
+// Y-Axis scale and scale markers
+///////////////////////////////////////////////////////////////////////////////
+yMarkerLeft = 0.15 * xPxStart;
+yMarkerRight = 0.75 * xPxStart;
+for( i = 0 ; i < 9 ; i++ )
+{
+	yMarker = (pxHeight - yPxStart - i * yPxStart);	
+	GfxMoveTo(yMarkerLeft , yMarker );
+	GfxLineTo(yMarkerRight , yMarker );
+	GfxTextOut(NumToStr(getY_PixToVal(yMarker), 5.2, False), yMarkerLeft , yMarker );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// X-Axis scale and scale markers.
+///////////////////////////////////////////////////////////////////////////////
+GfxSetTextAlign(6);
+xMarkerBottom = pxHeight - 0.5 * yPxStart;
+xMarkerTop = pxHeight - 0.5 * xPxStart;
+for( i = 0 ; i < 9 ; i++ )
+{
+	xMarker = xPxStart + i * xPxStart;	
+	GfxMoveTo(xMarker, xMarkerBottom );
+	GfxLineTo(xMarker, xMarkerTop);
+	GfxTextOut(NumToStr(getX_PixToVal(xMarker), 5.2, False), xMarker, xMarkerBottom);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Chart Header.
+///////////////////////////////////////////////////////////////////////////////
+GfxSelectFont("Tahoma", 16, 700);
+GfxTextOut(Name() + " v/s " + sForeign, pxWidth/2, 0);
+
+GfxSelectFont("Tahoma", 10, 700);
+GfxTextOut(Name(), pxWidth/2, pxHeight - 0.2 * yPxStart);
+
+///////////////////////////////////////////////////////////////////////////////
+// Plot Trade Levels
+///////////////////////////////////////////////////////////////////////////////
+function plotLevels(nLevel, nColor, nWidth, nStyle)
+{
+	xRatio = (1 + nLevel/100) * XSeries[LAST_BAR]/xMin[LAST_BAR];
+	Y1 = Max(YSeries[LAST_BAR] / xRatio, yMin[LAST_BAR]);
+	X1 = (1 + nLevel/100) * XSeries[LAST_BAR] / (YSeries[LAST_BAR]/Y1);
+
+	yRatio = yMax[LAST_BAR]/((1-nLevel/100)*YSeries[LAST_BAR]);
+	X2 = Min(XSeries[LAST_BAR] * yRatio, xMax[LAST_BAR]);
+
+	Y2 = (1-nLevel/100)*YSeries[LAST_BAR] * ( X2 / XSeries[LAST_BAR]);
+
+	GfxSelectPen(nColor, nWidth, nStyle);
+	GfxMoveTo(getX_ValToPix(X1), getY_ValToPix(Y1[LAST_BAR]));
+	GfxLineTo(getX_ValToPix(X2), getY_ValToPix(Y2));
+}
+
+plotLevels(0, colorBlack, 2, 0);
+
+if( nProfit > 0 ) 
+{
+	PlotLevels(nProfit, colorBlue, 1, 1);
+}
+
+if( nLoss > 0 )
+{
+	PlotLevels(-1*nLoss, colorRed, 1, 1);
+}
+GfxSetTextAlign(0);
+sBase = Name() + ": " + NumToStr(C[LAST_BAR], 5.2) + " (" + NumToStr(100*C/Ref(C,-1)-100, 4.2) + "%)";
+sFor = sForeign + ": " + NumToStr(YSeries[LAST_BAR], 5.2) + " (" + NumToStr(100*YSeries/Ref(YSeries,-1)-100, 4.2) + "%)";
+GfxTextOut(sBase, xPxStart/2 + 5, yPxStart/2);
+GfxTextOut(sFor, xPxStart/2 + 5, 3*yPxStart/4);

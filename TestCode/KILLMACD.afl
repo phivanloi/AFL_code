@@ -1,0 +1,214 @@
+_SECTION_BEGIN("MACD1");
+r1 = Param( "Fast avg", 12, 2, 200, 1 );
+r2 = Param( "Slow avg", 26, 2, 200, 1 );
+r3 = Param( "Signal avg", 9, 2, 200, 1 );
+Plot( ml = MACD(r1, r2), StrFormat(_SECTION_NAME()+"(%g,%g)", r1, r2), ParamColor("MACD color", colorBrightGreen ), ParamStyle("MACD style") );
+Plot( sl = Signal(r1,r2,r3), "Signal" + _PARAM_VALUES(), ParamColor("Signal color", colorRed ), ParamStyle("Signal style") );
+Plot( ml-sl, "MACD Histogram", ParamColor("Histogram color", colorBlack ), styleNoTitle | ParamStyle("Histogram style", styleHistogram | styleNoLabel, maskHistogram ) );
+
+Buy= Cross(ml , sl);
+Sell= Cross( sl, ml);
+
+PlotShapes( Buy * shapeUpArrow + Sell * shapeDownArrow, IIf( Buy, colorGreen, colorRed ) ); 
+
+
+_SECTION_END();
+//1m
+ec=WriteIf(EMA(C,5)>EMA(C,13) OR EMA(C,5)<EMA(C,13),"One","x");
+ec2=WriteIf(EMA(C,5)>EMA(C,13) AND EMA(C,5)>EMA(C,20),"On","x");
+ec3=WriteIf(EMA(C,5)<EMA(C,13) AND EMA(C,5)<EMA(C,20),"Oe","x");
+//5m
+TimeFrameSet(in5Minute);
+e5=EMA(C,5);
+e13=EMA(C,13);
+e20=EMA(C,20);
+TimeFrameRestore(); 
+
+e5x5=TimeFrameExpand( e5, in5Minute,expandLast );
+e5x13=TimeFrameExpand( e13, in5Minute,expandLast );
+e5x20=TimeFrameExpand( e20, in5Minute,expandLast );
+
+e5c=WriteIf(e5x5>e5x13 OR e5x5<e5x13,"One","x");
+e5c2=WriteIf(e5x5>e5x13 AND e5x5>e5x20,"On","x");
+e5c3=WriteIf(e5x5<e5x13 AND e5x5<e5x20,"Oe","x");
+
+//15m
+TimeFrameSet(in15Minute);
+e15=EMA(C,5);
+e113=EMA(C,13);
+e120=EMA(C,20);
+TimeFrameRestore(); 
+
+e15x5=TimeFrameExpand( e15, in15Minute,expandLast );
+e15x13=TimeFrameExpand( e113, in15Minute,expandLast );
+e15x20=TimeFrameExpand( e120, in15Minute,expandLast );
+
+e15c=WriteIf(e15x5>e15x13 OR e15x5<e15x13,"One","x");
+e15c2=WriteIf(e15x5>e15x13 AND e15x5>e15x20,"On","x");
+e15c3=WriteIf(e15x5<e15x13 AND e15x5<e15x20,"Oe","x");
+//1h
+TimeFrameSet(inHourly);
+e51=EMA(C,5);
+e131=EMA(C,13);
+e201=EMA(C,20);
+TimeFrameRestore(); 
+
+ehx5=TimeFrameExpand( e51, inHourly,expandLast );
+ehx13=TimeFrameExpand( e131, inHourly,expandLast );
+ehx20=TimeFrameExpand( e201, inHourly,expandLast );
+
+ehc=WriteIf(ehx5>ehx13 OR ehx5<ehx13,"One","x");
+ehc2=WriteIf(ehx5>ehx13 AND ehx5>ehx20,"On","x");
+ehc3=WriteIf(ehx5<ehx13 AND ehx5<ehx20,"Oe","x");
+//4h
+TimeFrameSet(inHourly*4);
+eh51=EMA(C,5);
+eh131=EMA(C,13);
+eh201=EMA(C,20);
+TimeFrameRestore(); 
+
+eh4x5=TimeFrameExpand( eh51, inHourly*4,expandLast );
+eh4x13=TimeFrameExpand( eh131, inHourly*4,expandLast );
+eh4x20=TimeFrameExpand( eh201, inHourly*4,expandLast );
+
+e4hc=WriteIf(eh4x5>eh4x13 OR eh4x5<eh4x13,"One","x");
+e4hc2=WriteIf(eh4x5>eh4x13 AND eh4x5>eh4x20,"On","x");
+e4hc3=WriteIf(eh4x5<eh4x13 AND eh4x5<eh4x20,"Oe","x");
+//d
+TimeFrameSet(inDaily);
+ed5=EMA(C,5);
+ed13=EMA(C,13);
+ed20=EMA(C,20);
+TimeFrameRestore(); 
+
+edx5=TimeFrameExpand( ed5, inDaily,expandLast );
+edx13=TimeFrameExpand( ed13, inDaily,expandLast );
+edx20=TimeFrameExpand( ed20, inDaily,expandLast );
+
+edc=WriteIf(edx5>edx13 OR edx5<edx13,"One","x");
+edc2=WriteIf(edx5>edx13 AND edx5>edx20,"On","x");
+edc3=WriteIf(edx5<edx13 AND edx5<edx20,"Oe","x");
+
+//W
+TimeFrameSet(inWeekly);
+ew5=EMA(C,5);
+ew13=EMA(C,13);
+ew20=EMA(C,20);
+TimeFrameRestore(); 
+
+ewx5=TimeFrameExpand( ew5, inWeekly,expandLast );
+ewx13=TimeFrameExpand( ew13, inWeekly,expandLast );
+ewx20=TimeFrameExpand( ew20, inWeekly,expandLast );
+
+ewc=WriteIf(ewx5>ewx13 OR ewx5<ewx13,"One","x");
+ewc2=WriteIf(ewx5>ewx13 AND ewx5>ewx20,"On","x");
+ewc3=WriteIf(ewx5<ewx13 AND ewx5<ewx20,"Oe","x");
+
+Hor=Param("Horizontal Position",60,1,1200,1);
+Ver=Param("Vertical Position",75,30,1000,1); 
+///1
+GfxSelectFont("Callibri", 10 , 700, True ); 
+GfxSetBkMode( colorWhite ); 
+GfxSetTextColor( colorBlack );
+GfxTextOut("EMA Sig ",Hor, Ver);
+GfxSetTextColor( colorBlack );
+GfxTextOut("1 M ",Hor+72, Ver-15);
+
+if(ec=="One") 
+GfxSelectSolidBrush(colorGold);
+if(ec2=="On") 
+GfxSelectSolidBrush(colorBrightGreen);
+if(ec3=="Oe") 
+GfxSelectSolidBrush(colorRed);
+GfxSelectPen( colorBlack, 1 ); // broader color 
+GfxRectangle( Hor+70,Ver+5,Hor+100,Ver+15 );
+///2
+GfxSetTextColor( colorBlack );
+GfxTextOut("5 M ",Hor+112, Ver-15);
+
+if(e5c=="One") 
+GfxSelectSolidBrush(colorGold);
+if(e5c2=="On") 
+GfxSelectSolidBrush(colorBrightGreen);
+if(e5c3=="Oe") 
+GfxSelectSolidBrush(colorRed);
+GfxRectangle( Hor+110,Ver+5,Hor+140,Ver+15 );
+///3
+GfxSetTextColor( colorBlack );
+GfxTextOut("15 M ",Hor+150, Ver-15);
+
+if(e15c=="One") 
+GfxSelectSolidBrush(colorGold);
+if(e15c2=="On") 
+GfxSelectSolidBrush(colorBrightGreen);
+if(e15c3=="Oe") 
+GfxSelectSolidBrush(colorRed);
+GfxRectangle( Hor+150,Ver+5,Hor+180,Ver+15 );
+///4
+GfxSetTextColor( colorBlack );
+GfxTextOut("1 H ",Hor+193, Ver-15);
+
+if(ehc=="One") 
+GfxSelectSolidBrush(colorGold);
+if(ehc2=="On") 
+GfxSelectSolidBrush(colorBrightGreen);
+if(ehc3=="Oe") 
+GfxSelectSolidBrush(colorRed);
+GfxRectangle( Hor+190,Ver+5,Hor+220,Ver+15 );
+//5
+GfxSetTextColor( colorBlack );
+GfxTextOut("4 H ",Hor+233, Ver-15);
+
+if(e4hc=="One") 
+GfxSelectSolidBrush(colorGold);
+if(e4hc2=="On") 
+GfxSelectSolidBrush(colorBrightGreen);
+if(e4hc3=="Oe") 
+GfxSelectSolidBrush(colorRed);
+GfxRectangle( Hor+230,Ver+5,Hor+260,Ver+15 );
+//6
+GfxSetTextColor( colorBlack );
+GfxTextOut("D ",Hor+280, Ver-15);
+if(edc=="One") 
+GfxSelectSolidBrush(colorGold);
+if(edc2=="On") 
+GfxSelectSolidBrush(colorBrightGreen);
+if(edc3=="Oe") 
+GfxSelectSolidBrush(colorRed);
+GfxRectangle( Hor+270,Ver+5,Hor+300,Ver+15 );
+//7
+GfxSetTextColor( colorBlack );
+GfxTextOut("W ",Hor+320, Ver-15);
+
+if(ewc=="One") 
+GfxSelectSolidBrush(colorGold);
+if(ewc2=="On") 
+GfxSelectSolidBrush(colorBrightGreen);
+if(ewc3=="Oe") 
+GfxSelectSolidBrush(colorRed);
+GfxRectangle( Hor+310,Ver+5,Hor+340,Ver+15 );
+
+/////////////////////////////////
+
+
+_SECTION_BEGIN("macd with color");
+
+r1 = Param( "Fast avg", 12, 2, 200, 1 );
+r2 = Param( "Slow avg", 26, 2, 200, 1 );
+r3 = Param( "Signal avg", 9, 2, 200, 1 );
+
+ml = MACD(r1, r2);
+sl = Signal(r1,r2,r3);
+Hist = ml-sl;
+
+MACUP = Hist > Ref(Hist,-1);
+MACDN = Hist < Ref(Hist,-1);
+
+BarColor  = IIf(MACUP,colorGreen,IIf(MACDN,colorRed,colorBlue ));
+
+
+styleNoTitle | ParamStyle("Histogram style", styleHistogram | styleNoLabel,maskHistogram );
+
+Plot( Hist, "MACD Histogram", BarColor  , styleHistogram  | styleNoLabel );
+Plot(0, "0", colorCustom12 , styleNoLabel );
+_SECTION_END();

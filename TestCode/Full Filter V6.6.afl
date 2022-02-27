@@ -1,0 +1,868 @@
+// mark minervini – trend template (use EMA>MA) p.79
+MA30 = EMA(C,30);
+MA50 = EMA(C,50);
+MA150 = EMA(C,150);
+MA200 = EMA(C,200);
+YrLo = LLV(L,240);
+YrHi = HHV(H,240);
+Con1 = C>MA150 AND C>MA200;
+Con2 = MA150>MA200;
+Con3 = MA200>Ref(MA200,-20);
+Con4 = MA50>MA150 AND MA50>MA200;
+Con5 = C>MA50;
+Con6 = C>1.3*YrLo;
+Con7 = C>0.75*YrHi;
+tr3m = 0.4*(((C-Ref(C,-60))/Ref(C,-60))*100);
+tr6m = 0.2*(((C-Ref(C,-120))/Ref(C,-130))*100);
+tr9m = 0.2*(((C-Ref(C,-180))/Ref(C,-180))*100);
+tr12m = 0.2*(((C-Ref(C,-240))/Ref(C,-240))*100);
+IBDrs = tr3m + tr6m + tr9m + tr12m;
+Bull = Con1 AND Con2 AND Con3 AND Con4 AND Con5 AND Con6 AND Con7;
+bigwhite = C>Ref(C,-1) AND C>O AND C>L+(0.75*(H-L)) AND (H-L)>ATR(10);
+set = Foreign("set","c",True);
+rs = C/set;
+rsma = EMA(rs,5);
+diff = rs-rsma;
+diffpct = (diff/rsma)*100;
+HiVal = V*C>5000000;
+minervini = Bull AND HiVal AND StrLen(Name())<=6 AND StrRight(Name(),2)!="-F" AND StrRight(Name(),2)!="-P";
+giaidoan2=Bull;
+giaidoan1_giaidoan2=Bull AND NOT Ref(Bull,-1);
+////////////////////////////////// O'neil
+
+w12RS  = 0.4*(((C-Ref(C,-96))/Ref(C,-96))*100);
+w24RS    = 0.2*(((C-Ref(C,-168))/Ref(C,-168))*100);
+w36RS   = 0.2*(((C-Ref(C,-252))/Ref(C,-252))*100);
+w48RS = 0.2*(((C-Ref(C,-336))/Ref(C,-336))*100);
+RS_Oneil = w12RS + w24RS + w36RS + w48RS; 
+Uptrend = MA(C, 50)> MA(C, 150) AND MA(C, 50)> MA(C, 200) AND C> MA(C, 150) AND C> MA(C, 200) AND MA(C, 200)> Ref(MA(C,200),-20);
+//////////////////////////////////
+
+ gtdgfilter=IIf(C*V>=10000000,colorGreen,IIf((C*V<10000000 AND C*V >=5000000), ColorRGB(0,128,255),
+			IIf((C*V<5000000 AND C*V >=3000000),colorOrange, IIf((C*V<3000000 AND C*V >=1000000),colorViolet,colorBlack))));
+
+
+// TIN TUONG
+{
+TinTuong=
+(C > Ref(H,-1) AND C > Ref(H,-2) AND C > Ref(H,-3) AND C > Ref(H,-4)
+AND C>=O
+AND C>=1.01*Ref(C,-1)
+AND C>=Ref(C,-2)
+AND V>=Ref(V,-1)
+AND C*V>=1000000
+AND C*V<500000000
+AND Ref(V,-5)>=50000
+AND Ref(V,-10)>=50000
+AND Ref(V,-15)>=50000
+AND Ref(V,-20)>=50000
+AND Ref(C,-1)<=1.04*Ref(C,-2)
+AND Ref(C,-2)<=1.04*Ref(C,-3)
+AND Ref(C,-3)<=1.04*Ref(C,-4)
+AND Ref(V,-1)>=100000
+AND C>1.3*LLV(L,50))
+
+OR 
+(C > 1.01*Ref(C,-1) 
+AND C>=Ref(C,-2)
+AND C*V<500000000
+AND (V >= 1.3*MA(V,50) OR V >= 1.3*MA(V,15))  
+AND MA(V,15)>= 100000 
+AND MA(V,50)>= 100000 
+AND C> MA(C,15) 
+AND V>Ref(V,-1)
+AND C >= (H + L)/ 2 
+AND C > O
+AND C*V>=1000000
+AND C>1.3*LLV(L,50)
+AND Ref(C,-1)<=1.04*Ref(C,-2)
+AND Ref(C,-2)<=1.04*Ref(C,-3)
+AND Ref(C,-3)<=1.04*Ref(C,-4)
+AND Ref(V,-1)>=30000
+AND RSI(14)>=58)
+AND Ref(V,-5)>=50000
+AND Ref(V,-10)>=50000
+AND Ref(V,-15)>=50000
+AND Ref(V,-20)>=50000
+
+OR
+(C > Ref(H,-1) AND C > Ref(H,-2) AND C > Ref(H,-3) AND C > Ref(H,-4)
+AND C>MA(C,15)
+AND Ref(C,-1)>MA(C,15)
+AND C>=O
+AND C>=1.01*Ref(C,-1)
+AND C*V>=1000000
+AND C*V<500000000
+AND C>1.3*LLV(L,50)
+AND V>=Ref(V,-1)AND Ref(V,-5)>=50000
+AND Ref(V,-10)>=50000
+AND Ref(V,-15)>=50000
+AND Ref(V,-20)>=50000)
+
+OR
+(C > 1.01*Ref(C,-1) 
+AND C>=Ref(C,-2)
+AND RSI(14)>60
+AND V >= 1.3*MA(V,30)
+AND V>=0.8*Ref(V,-1)
+AND MA(V,15)>= 50000 
+AND MA(V,50)>= 50000 
+AND C> MA(C,15) 
+AND C >= (H + L)/ 2 
+AND C > O
+AND C*V>=1000000
+AND C*V<500000000
+AND C>1.3*LLV(L,50)
+AND Ref(C,-1)<=1.05*Ref(C,-2)
+AND Ref(V,-5)>=50000
+AND Ref(V,-10)>=50000
+AND Ref(V,-15)>=50000
+AND Ref(V,-20)>=50000)
+
+OR 
+((C > Ref(H,-1) 
+AND C > Ref(H,-2) 
+AND C > Ref(H,-3) 
+AND C > Ref(H,-4)
+AND C>=O
+AND C>=1.02*Ref(C,-1)
+AND Ref(C,-1) <= 1.05*Ref(C,-2)
+AND V>=0.8*Ref(V,-1)
+AND V >= 1.3*MA(V,15) 
+AND C*V>=1000000
+AND C*V<500000000
+AND Ref(V,-5)>=50000
+AND Ref(V,-10)>=50000
+AND Ref(V,-15)>=50000
+AND Ref(V,-20)>=50000)
+OR
+(Ref(RSI(14),-1)<=35
+AND C>1.02*Ref(C,-1)
+AND C*V>=1000000))
+OR
+(  C > Ref(H,-1) 
+AND C > Ref(H,-2) 
+AND C > Ref(H,-3) 
+AND C > Ref(H,-4)
+AND C>=5
+AND C>=O
+AND C*V>=3000000
+AND C*V<500000000
+AND Ref(C,-1)<=1.04*Ref(C,-2)
+AND Ref(C,-2)<=1.04*Ref(C,-3)
+AND C <1.15*LLV(C,10)
+)
+OR
+(
+    C > Ref(H,-1) 
+AND C > Ref(H,-2) 
+AND C > Ref(H,-3) 
+AND C > Ref(H,-4)
+AND Ref(C,-1)<=1.04*Ref(C,-2)
+AND Ref(C,-2)<=1.04*Ref(C,-3)
+AND C>=5
+AND C>=O
+AND C>=1.02*Ref(C,-1)
+AND C>=Ref(C,-2)
+AND V>=Ref(V,-1)
+AND V >= 1.3*MA(V,15) 
+AND C*V>=3000000
+AND C*V<500000000
+AND Ref(V,-5)>=50000
+AND Ref(V,-10)>=50000
+AND Ref(V,-15)>=50000
+AND Ref(V,-20)>=50000
+AND Ref(C,-1)<=1.04*Ref(C,-2)
+AND Ref(C,-2)<=1.06*Ref(C,-3)
+AND Ref(C,-3)<=1.06*Ref(C,-4)
+AND Ref(V,-1)>=100000
+AND C>=5
+AND C>1.3*LLV(L,50)
+AND C <1.15*LLV(C,10)
+)
+
+OR 
+(
+C > 1.02*Ref(C,-1) 
+AND C>=Ref(C,-2)
+AND C*V<500000000
+AND V >= 1.3*MA(V,15)  
+AND MA(V,15)>= 100000 
+AND MA(V,50)>= 100000 
+AND C> MA(C,15) 
+AND V>Ref(V,-1)
+AND C >= (H + L)/ 2 
+AND C > O
+AND C>=5
+AND C*V>=3000000
+AND C>1.3*LLV(L,50)
+AND Ref(C,-1)<=1.04*Ref(C,-2)
+AND Ref(C,-2)<=1.04*Ref(C,-3)
+AND Ref(C,-3)<=1.04*Ref(C,-4)
+AND Ref(V,-1)>=30000
+AND Ref(V,-5)>=50000
+AND Ref(V,-10)>=50000
+AND Ref(V,-15)>=50000
+AND Ref(V,-20)>=50000
+AND C>= 0.8*HHV(C,60)
+AND C> 1.2*LLV(L,60)
+AND C <1.15*LLV(C,10)
+
+)
+OR
+(
+C > Ref(H,-1) 
+AND Ref(C,-1)<=1.04*Ref(C,-2)
+AND Ref(C,-2)<=1.04*Ref(C,-3)
+AND C > Ref(H,-2) 
+AND C > Ref(H,-3) 
+AND C > Ref(H,-4)
+AND C>MA(C,15)
+AND Ref(C,-1)>MA(C,15)
+AND C>=O
+AND C>=5
+AND C>=1.02*Ref(C,-1)
+AND C*V>=3000000
+AND C*V<500000000
+AND C>1.3*LLV(L,50)
+AND V >= 1.3*MA(V,15)
+AND V>=Ref(V,-1)
+AND Ref(V,-5)>=50000
+AND Ref(V,-10)>=50000
+AND Ref(V,-15)>=50000
+AND Ref(V,-20)>=50000
+AND Ref(C,-1)<=1.04*Ref(C,-2)
+AND C <1.15*LLV(C,10)
+
+)
+
+
+OR
+(
+C > 1.02*Ref(C,-1) 
+AND Ref(C,-1)<=1.04*Ref(C,-2)
+AND Ref(C,-2)<=1.04*Ref(C,-3)
+AND C>=Ref(C,-2)
+AND V >= 1.3*MA(V,15)
+AND V>=0.8*Ref(V,-1)
+AND MA(V,15)>= 50000 
+AND MA(V,50)>= 50000 
+AND C> MA(C,15) 
+AND C >= (H + L)/ 2 
+AND C > O
+AND C>=5
+AND C*V>=3000000
+AND C*V<500000000
+AND C>1.3*LLV(L,50)
+AND Ref(C,-1)<=1.05*Ref(C,-2)
+AND Ref(V,-5)>=50000
+AND Ref(V,-10)>=50000
+AND Ref(V,-15)>=50000
+AND Ref(V,-20)>=50000
+AND C>= 0.8*HHV(C,60)
+AND C> 1.2*LLV(L,60)
+AND Ref(C,-1)<=1.04*Ref(C,-2)
+AND C <1.15*LLV(C,10)
+
+)
+OR 
+( 
+C > Ref(H,-1) 
+AND Ref(C,-1)<=1.04*Ref(C,-2)
+AND Ref(C,-2)<=1.04*Ref(C,-3)
+AND C > Ref(H,-2) 
+AND C > Ref(H,-3) 
+AND C > Ref(H,-4)
+AND C>MA(C,15)
+AND Ref(C,-1)>MA(C,15)
+AND C>=O
+AND C>=1.02*Ref(C,-1)
+AND V>=Ref(V,-1)
+AND C>5
+AND C*V>=3000000
+AND V >= 1.3*MA(V,15)
+AND C <1.15*LLV(C,10)
+
+)
+
+OR
+(C > 1.02*Ref(H,-1) 
+AND C>=Ref(H,-2)
+AND (V >= 1.3*MA(V,50) OR V >= 1.3*MA(V,15))  
+AND C >= (H + L)/ 2 
+AND C > O
+AND C*V>=1000000
+AND Ref(C,-1)<=1.04*Ref(C,-2)
+AND Ref(C,-2)<=1.04*Ref(C,-3)
+
+AND C>=5
+AND C>MA(C,30)
+AND C >= Ref(C,-2)
+AND C >= Ref(C,-3)
+AND C >= Ref(C,-4) 
+AND C >= Ref(C,-5)
+AND Ref(V,-1) >=30000
+
+AND C <1.15*LLV(C,10)
+)
+;
+}
+
+
+//TheoDoiTrongPhien
+{
+TheoDoiTrongPhien=(C*V>=1000000
+AND C>=4
+AND C>= 1.01*Ref(C,-1)
+AND MA(V,15) >=100000
+AND Ref(V,-5)>=50000
+AND Ref(V,-10)>=50000
+AND Ref(V,-15)>=50000
+AND Ref(V,-20)>=50000
+AND C*V<5000000000)
+OR
+//tanggia
+(
+C*V>=3000000
+AND C>=5
+AND C> 1.01*Ref(C,-1)
+AND Ref(C,-1) < 1.04*Ref(C,-2)
+AND Ref(C,-2) < 1.04*Ref(C,-1)
+AND LLV(V,50) >50000
+AND C*V<5000000000
+AND C>= (H+L)/2
+AND C <1.15*LLV(C,10)
+)
+OR 
+//break
+(C > 1.02*Ref(H,-1) 
+AND C>=Ref(H,-2)
+AND (V >= 1.3*MA(V,50) OR V >= 1.3*MA(V,15))  
+AND C >= (H + L)/ 2 
+AND C > O
+AND C*V>=1000000
+AND Ref(C,-1)<=1.04*Ref(C,-2)
+AND Ref(C,-2)<=1.04*Ref(C,-3)
+
+AND C>=5
+AND C>MA(C,30)
+AND C >= Ref(C,-2)
+AND C >= Ref(C,-3)
+AND C >= Ref(C,-4) 
+AND C >= Ref(C,-5)
+AND C <1.15*LLV(C,10))
+OR
+//bung no khoi luong
+ (V>=1.3*MA(V,30)
+AND C>=4
+AND C*V >=3000000
+AND C>1.02*Ref(C,-1)
+AND C>=MA(C,30) 
+AND MA(V,30)>=50000
+AND C>=O
+AND Ref(V,-5)>50000
+AND Ref(V,-10)>50000
+AND EMA(C,6)> EMA(C,10)
+AND V> Ref(V,-1)
+AND V> Ref(V,-2))
+;
+
+}
+
+
+ //Sideway
+ {
+ Pfilter = ParamField("Price field",-1);
+Periodfilter = Param("Short Periods", 15, 15, 30, 1 );
+Widthfilter = Param("Short Width", 2, 1, 10, 1 );
+///////////
+ MAX50 = HHV(Ref(C,-1),50);
+Min50 = LLV(Ref(C,-1),50);
+TL1 = MAX50<1.1*Min50; ///Bien do giao dong trong 50 phien phai nho hon 10%
+Max20 = HHV(Ref(C,-1),20);/// Bien do trong 20 phien giao dich phi nho hon 7%
+Min20 = LLV(Ref(C,-1),20);
+TL2 = Max20 <1.07*Min20;
+Max10 = HHV(Ref(C,-1),10);
+Min10 = LLV(Ref(C,-1),10);
+TL3 = Max10<1.04*Min10;///Bien do giao dich co phieu phai nho hon 4
+TL4 = MA(C,10)>MA(C,50);
+VMax5 = HHV(Ref(V,-1),4);///Khoi luong tang dan
+TL5 = V>VMax5*1.4;
+TL6 = 1;
+TL7 = VMax5>50000;///Khoi luong fai lon hon 50K
+TL8 = C>MA(C,50);
+
+ 
+ Sideway=
+ (HHV(C,25)< 1.1*  LLV(C,25)  AND HHV(C,10) <1.07* LLV(C,10) 
+AND C * V >= 1000000
+AND C*V < 500000000
+AND MA(V,30)>=50000
+AND Ref(V,-5)>=50000
+AND Ref(V,-10)>=50000
+AND Ref(V,-20)>=50000
+AND C>MA(C,15)
+AND C>=4)
+OR
+(TL1 AND TL2 AND TL3 AND TL4 AND TL5 AND TL6 AND TL7 AND TL8)
+OR 
+( (C-LLV(L,5))/ LLV(L,5)<=0.1
+AND C>=5
+AND C*V >= 1000000
+AND C>MA(C,30)
+AND MA(V,15)>50000
+AND C<200
+AND HHV(C,5) <1.07* LLV(C,5)
+AND HHV(C,10) <1.1* LLV(C,10)
+AND BBandTop( Pfilter, Periodfilter, Widthfilter )<1.15*BBandBot( Pfilter, Periodfilter, Widthfilter ) 
+AND MA(V,5) < 0.7*MA(V,30))
+ ;
+}
+ 
+ ///BatDay
+ {
+ BatDay=
+ (C*V>=1000000
+AND C>=4
+AND C>= 1.01*Ref(C,-1)
+AND C<MA(C,30)
+AND MA(V,15) >=100000
+AND Ref(V,-5)>=50000
+AND Ref(V,-10)>=50000
+AND Ref(V,-15)>=50000
+AND Ref(V,-20)>=50000
+AND C*V<1000000000
+AND HHV(H,15) >1.2*C )
+
+OR
+
+(C*V>=1000000
+AND C>=4
+AND C<MA(C,30)
+AND MA(V,15) >=100000
+AND Ref(V,-5)>=50000
+AND Ref(V,-10)>=50000
+AND Ref(V,-15)>=50000
+AND Ref(V,-20)>=50000
+AND C*V<1000000000
+AND RSI(14) <=35
+AND HHV(H,20) >1.2*C
+AND C> 1.02*L)
+
+OR 
+ (C*V>=3000000
+AND C>=5
+AND (C-L)/L >=0.02
+AND C<MA(C,30)
+AND MA(V,15) >=100000
+AND C*V<1000000000
+AND HHV(H,20) >1.2*C
+AND Ref(RSI(14),-1) <=35
+AND LLV(V,50) >50000
+AND C <1.15*LLV(C,10))
+
+OR
+(C*V>=5000000
+AND C>=3
+AND (C-L)/L >=0.02
+AND C<MA(C,30)
+AND MA(V,15) >=100000
+AND Ref(V,-5)>=50000
+AND Ref(V,-10)>=50000
+AND Ref(V,-15)>=50000
+AND Ref(V,-20)>=50000
+AND C*V<1000000000
+AND HHV(H,20) >1.2*C
+AND Ref(RSI(14),-1) <=35
+AND Ref(C,-1)<=1.04*Ref(C,-2)
+AND Ref(C,-2)<=1.04*Ref(C,-3))
+;
+}
+ 
+ //MuoiGioToi
+ {
+ MuoiGioToi=(
+C>= 0.7*HHV(C,120)
+AND C>= 0.7*HHV(C,20)
+AND (C- Ref(C,-1))/Ref(C,-1)<= 0.03
+AND (Ref(C,-1)- Ref(C,-2))/Ref(C,-2)<= 0.03
+AND ( Ref(C,-2)-Ref(C,-1))/Ref(C,-1)<= 0.03
+AND ((C - Ref(C,-120))/Ref(C,-120))*100>= 10
+AND ((C - Ref(C,-20))/Ref(C,-20))*100>= 10
+AND C*V >= 1000000
+AND C>=4
+AND Ref(V,-1)>=100000
+AND Ref(V,-5)>=100000
+AND Ref(V,-10)>=100000)
+
+OR 
+( HHV(C,5) <1.055* LLV(C,5)
+AND C * V >= 1000000 
+AND C*V < 500000000
+AND C>= (HHV(C,5)+LLV(C,5))/2
+AND MA(V,30)>=100000
+AND Ref(V,-5)>=100000
+AND Ref(V,-10)>=100000
+AND Ref(V,-20)>=100000
+AND RSI(14)>=40
+AND C>=4
+AND C>MA(C,30))
+ ;
+}
+
+ //Loc mua ban ichimoku
+ {
+p1 = Param( "Turning Line", 9, 5, 20, 1 );//also known as Kijun Sen
+p2 = Param( "Standard Line", 26, 5, 40, 1 );//also known as Tenkan Sen
+p3 = Param( "Delayed Line", 26, 0, 40, 1 );//also known as Chikou Span
+p4 = Param( "Cloud F-Bars", 26, 0, 40, 1 );//also known as Chikou Span
+TL   =(HHV(H,p1)+LLV(L,p1))/2;            // Tenkan-sen
+SL    =(HHV(H,p2)+LLV(L,p2))/2;            // Kijun-sen  
+SpanA =Ref((SL+TL)/2,-p4);    // Senkou Span A / Up Kumo
+SpanB =Ref((HHV(H,2*p2)+LLV(L,2*p2))/2,-p4);   // Senkou Span B  / Down Kumo 
+DL = IIf( Cum( 1 ) <= LastValue( Cum( 1 ) ) - p3, Ref( C,  p3 + 1 ), Null );
+above = IIf(SL>SpanA AND TL>SpanB,1,0);
+within = IIf(SL>SpanA AND TL<SpanB,1,0);
+below = IIf(TL<SpanA AND TL<SpanB,1,0);
+Buyichi = Cross(TL,SL) AND (DL>Close);
+Sellichi = Cross(SL,TL) AND (DL<SL);
+StrongBuy = Buyichi AND above;
+MediumBuy = Buyichi AND within;
+WeakBuy = Buyichi AND below;
+StrongSell = Sellichi AND below;
+MediumSell = Sellichi AND within;
+WeakSell = Sellichi AND above;
+ichibuy=(StrongBuy OR MediumBuy OR WeakBuy);
+ichisell=(StrongSell OR MediumSell OR WeakSell);
+ichibuysell=ichibuy OR ichisell;
+ichibuysellstatus=WriteIf(StrongBuy,"Buy-S",WriteIf(MediumBuy,"Buy-M",WriteIf(WeakBuy,"Buy-W",WriteIf(StrongSell,"Sell-S",WriteIf(MediumSell,"Sell-M",WriteIf(WeakSell,"Sell-W",""))))));
+}
+
+/////CHI BAO MUA BAN MA20-50-65
+ma20   =MA(C,20);            
+ma50   =MA(C,50);   
+ma65   =MA(C,65);  
+ma20ma50up=Cross(ma20,ma50);
+ma20ma65up=Cross(ma20,ma65); 
+ma20ma50dn=Cross(ma50,ma20);
+ma20ma65dn=Cross(ma65,ma20); 
+ma20ma50ma65up=(ma20ma50up OR ma20ma65up);
+ma20ma50ma65dn=ma20ma50dn OR ma20ma65dn;
+ma20ma50ma65=ma20ma50ma65up OR ma20ma50ma65dn;
+ma20ma50ma65status=WriteIf(ma20ma50up,"YTU",WriteIf(ma20ma65up,"DLU",WriteIf(ma20ma50dn,"YTD",WriteIf(ma20ma65dn,"DLD",""))));
+//////// 
+n1=Param("Tich Luy",10,1,100,1);
+n2=Param("Dot bien Vol",20,1,500,1);
+cao=Ref(HHV(C,n1),-1);
+thap=Ref(LLV(C,n1),-1);
+tl=(cao-thap)/cao*100;
+nv=V/MA(V,n2);
+stt=WriteIf(tl<5 AND Cross(C,cao) AND nv>1.2,"BreakOut",WriteIf(tl<5 AND Cross(thap,C) AND nv>1.2,"BreakDow",""));
+clr=iIf(tl<5 AND Cross(C,cao) AND nv>1.2,colorGreen,iif(tl<5 AND Cross(thap,C) AND nv>1.2,colorOrange,colorDefault));
+////////////
+no=Param( "Swing", 5, 1, 55 );
+res=HHV(H,no);
+sup=LLV(L,no);
+tsl=IIf(ValueWhen(IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0))!=0,IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0)),1)==1,sup,res);
+Buyx = Cross(C,tsl) ;
+Sellx = Cross(tsl,C)  ;
+bsx= Sellx OR Buyx;
+
+/////Theo Minervini
+buyMinervinifiter=
+C>MA(C,150)
+AND C>MA(C,200)
+AND MA(C,150)>MA(C,200)
+AND MA(C,200) >1.01*LLV(MA(C,200),20)
+AND MA(C,50)>MA(C,150)
+AND MA(C,50)>MA(C,200)
+AND C>1.25*LLV(C,260)
+AND C>0.75*HHV(C,260)
+AND C >EMA(C,50)
+AND C*V>3000000;
+
+BuyMinervini1= 
+C>=4
+AND C>=O
+AND C>=1.02*Ref(C,-1)
+AND V>=0.8*Ref(V,-1)
+AND V>=Ref(V,-2)
+AND V>=Ref(V,-3)
+AND V>=Ref(V,-4)
+AND V>=Ref(V,-5)
+AND V >= MA(V,30) 
+AND C>= HHV(C,10)
+AND C>= 0.8*HHV(C,20)
+AND C>= 0.8*HHV(C,60)
+AND C>= 0.8*HHV(C,120)
+AND (C- LLV(L,60))/LLV(L,60)>= 0.1
+AND (C- LLV(L,120))/LLV(L,120)>= 0.1
+AND HHV(C,5) <1.1* LLV(C,5)
+AND HHV(C,10) <1.1* LLV(C,10)
+AND (C- LLV(L,10))/LLV(L,10)<= 0.1;
+BuyMinervini2=BuyMinervini1 AND buyMinervinifiter;
+Buyminer=BuyMinervini2 AND bigwhite;
+Buyminer_s=Buyminer AND minervini;
+minervinibuysell=Buyminer OR Buyminer_s;
+minervinibuysellstatus=WriteIf(Buyminer_s,"Buy-s",WriteIf(Buyminer,"Buy-BW",WriteIf(BuyMinervini2,"Buy","")));
+//////////////////
+mua =  
+(C >= Ref(C,-1)
+AND C >= Ref(C,-2)
+AND C >= Ref(C,-3)
+AND C >= Ref(C,-4) 
+AND C >= Ref(C,-5)
+AND C >= Ref(C,-6)
+AND C >= Ref(C,-7) 
+AND C >= Ref(C,-8)
+AND C >= Ref(C,-9)
+AND C >= Ref(C,-10)
+AND C >= Ref(C,-11) 
+AND C >= Ref(C,-12)
+AND C >= Ref(C,-13)
+AND C >= Ref(C,-14) 
+AND C >= Ref(C,-15)
+AND C*V>1000000
+)
+;
+ ban =  
+     C <= Ref(C,-1)
+AND C <= Ref(C,-2)
+AND C <= Ref(C,-3)
+AND C <= Ref(C,-4)
+AND C <= Ref(C,-5)
+AND C <= Ref(C,-6)
+AND C <= Ref(C,-7)
+AND C <= Ref(C,-8)
+AND C <= Ref(C,-9)
+AND C <= Ref(C,-10)
+AND C <= Ref(C,-11)
+AND C <= Ref(C,-12)
+AND C <= Ref(C,-13)
+AND C <= Ref(C,-14)
+AND C <= Ref(C,-15)
+AND C <= Ref(C,-16)
+AND C <= Ref(C,-17)
+AND C <= Ref(C,-18)
+AND C <= Ref(C,-19)
+AND C <= Ref(C,-20)
+ ;
+Buybuy = ExRem(mua, ban);
+Sellsell = ExRem(ban, mua);
+buybuysellsellstatus=Buybuy OR Sellsell;
+////////
+Covercover= 
+C > 1.02*Ref(H,-1) 
+AND C>=Ref(H,-2)
+AND (V >= 1.3*MA(V,50) OR V >= 1.3*MA(V,15))  
+AND C >= (H + L)/ 2 
+AND C > O
+AND C*V>=1000000
+AND Ref(C,-1)<=1.04*Ref(C,-2)
+AND Ref(C,-2)<=1.04*Ref(C,-3)
+AND Ref(V,-1) <=1.3*MA(V,15)
+AND C>MA(C,30)
+AND C >= Ref(C,-2)
+AND C >= Ref(C,-3)
+AND C >= Ref(C,-4) 
+AND C >= Ref(C,-5)
+;
+
+motgio =  
+C >= Ref(H,-1)
+AND C >= Ref(H,-2)
+AND C>=4
+AND Ref(C,-1) * Ref(V,-1) >= 1000000
+AND EMA(C,6)>EMA(C,20)
+AND C*V < 400000000
+AND (
+(V-MA(V,32))/MA(V,32)>=0.05
+OR ((C - Ref(C,-1))/Ref(C,-1))*100>2.9)
+ ;
+//////////////
+
+
+ 
+ ///////////////////////////////
+ dkbuy1= Buybuy AND Buyx; //colorBrightGreen
+ dkbuy2= Buybuy OR Buyx; //colorGreen
+ 
+ /////////////////////////
+ dksell1=Sellsell AND Sellx;
+ dksell2=Sellsell OR  Sellx;
+ 
+ //03. VOLUME Peak than Previous 5 Day VOLUME 
+{
+V5DAY = Ref( V, -1 ) + Ref( V, -2 ) + Ref( V, -3 ) + Ref( V, -4 ) + Ref( V, -5 );
+BuyVP5= V > V5DAY AND C>O ;
+}
+
+//////////////////////////////////////////Bo Loc Anh Tam Dao/////////////////////////////
+////////////////////Filter68- Anh Tâm Ðao////////////
+								DK1 = C > MA (C , 20);
+
+								DK2 = (MACD (12,26) > Signal (12,26,9)) AND (MACD(12,26) > Ref (MACD (12,26), -1));
+
+								TYLETANG = (C-Ref (C,-1))/Ref(C,-1);
+								DK3 = TYLETANG > 0.01;
+
+								GIALONNHAT10 = HHV (Ref(C,-1), 10);
+								GIABENHAT10 = LLV(Ref(C,-1), 10);
+
+								DK4 = GIALONNHAT10 < 1.05*GIABENHAT10; //GIAO DONG TRONG 5%.
+
+								GIABENHAT20 = LLV (Ref(C,-1), 20);
+
+								DK5 = GIABENHAT20*1.15 > C;
+
+								DK_GIA = C > 1.9;
+
+								DK_KL = V > 30000; 
+								dktk = C* MA(V, 20) > 500000;
+
+								Buytd68 = DK1 AND DK2 AND DK3 AND DK4 AND DK5 AND DK_GIA AND DK_KL AND dktk;
+////////////////////Filter86- Anh Tâm Dao///////
+								_SECTION_BEGIN("Loc Mua Ban");
+								FormulaName = "Supe Robot 3in1";
+								prev=AMA2(C,1,0);
+								d=IIf(C>Ref(Max(Max(H,Ref(H,-3)),Max(Ref(H,-1),Ref(H,-2))),-1),Min(Min(L,Ref(L,-3)),Min(Ref(L,-1),Ref(L,-2))),
+								IIf(C<Ref(Min(Min(L,Ref(L,-3)),Min(Ref(L,-1),Ref(L,-2))),-1),Max(Max(H,Ref(H,-3)),Max(Ref(H,-1),Ref(H,-2))),PREV));
+								a=Cross(Close,d);
+								b=Cross(d,Close);
+								state=IIf(BarsSince(a)<BarsSince(b),1,0);
+								s=state>Ref(state,-1);//mua
+								ss=state<Ref(state,-1);//ban
+								sss=state==Ref(state,-1);//w
+						/////////////
+						roboNo = Param("Robo No", 3, 1, 4);
+						minVolume = Param("Min Volume", 20000, 1000, 1000000);
+						function ZeroLagTEMA( array, period )
+{
+						TMA1 = TEMA( array, period );
+						TMA2 = TEMA( TMA1, period );
+						Diff = TMA1 - TMA2;
+						return TMA1 + Diff ;
+}
+						function Check(period, isBuy) {
+						HaClose = (O+H+L+C)/4;
+						HaOpen = AMA( Ref( HaClose, -1 ), 0.5 );
+						HaHigh = Max( H, Max( HaClose, HaOpen ) );
+						HaLow = Min( L, Min( HaClose, HaOpen ) );
+						HaClose = ( HaClose + HaOpen + HaHigh + HaLow )/4;
+						ZLHa = ZeroLagTEMA( HaClose, period );
+						ZLTyp = ZeroLagTEMA( Avg, period );
+	
+						result = Null;
+						if (isBuy > 0)
+						{
+							result = Cross( ZLTyp, ZLHa );
+						}
+						else if (isBuy < 0)
+						{ 
+							result = Cross( ZLHa, ZLTyp );
+						}
+						return result;
+}
+						function Tplus(isBuy) {
+						prev=AMA2(C,1,0);
+						d=IIf(C>Ref(Max(Max(H,Ref(H,-3)),Max(Ref(H,-1),Ref(H,-2))),-1),Min(Min(L,Ref(L,-3)),Min(Ref(L,-1),Ref(L,-2))),
+						IIf(C<Ref(Min(Min(L,Ref(L,-3)),Min(Ref(L,-1),Ref(L,-2))),-1),Max(Max(H,Ref(H,-3)),Max(Ref(H,-1),Ref(H,-2))),PREV));
+						a=Cross(Close,d);
+						b=Cross(d,Close);
+						state=IIf(BarsSince(a)<BarsSince(b),1,0);
+						if (isBuy > 0)
+							result = state>Ref(state,-1);
+						else if (isBuy < 0) 
+							result = state<Ref(state,-1);
+						else result = state==Ref(state,-1);
+	
+						return result;
+}
+						bscore = Check(13, 1) + Check(20, 1) + Check(35, 1) + Check(55, 1)+ Check(65, 1) + Tplus(1);
+						sscore = Check(13, -1) + Check(20, -1) + Check(35, -1) + Check(55, -1)+Check(65, -1) + Tplus(-1);
+
+						Buytd2 = bscore >= roboNo;//cham diem mua
+						Selltd2 = sscore >= roboNo;//cham diem ban
+						Filtertd2 = (V > minVolume) && ((bscore > 0) || (sscore  > 0));
+						
+			muatamdao2=Buytd68 AND s;
+			muatamdao68=Buytd68 AND NOT s;
+			muatamdao86= s AND NOT Buytd68;
+			mua_tamdao_status=WriteIf(muatamdao2,"Buy-S",WriteIf(muatamdao68,"Buy-68",WriteIf(muatamdao86,"Buy-86","")));
+			
+//////////////////////////////////////////
+dkma=MA(C,6)>MA(C,10) 
+	AND MA(C,10)>MA(C,20)
+	AND MA(C,20)>MA(C,50)
+	AND MA(C,50)>MA(C,100)
+	AND MA(C,50)>MA(C,150)
+	AND MA(C,150)>MA(C,200)
+	AND tl<=10;
+DKMA200=C>MA(C,200) AND tl<=10 AND ( Ref(C,-1)<MA(C,200) OR Ref(C,-2)<MA(C,200) OR Ref(C,-3)<MA(C,200) OR Ref(C,-4)<MA(C,200) OR Ref(C,-5)<MA(C,200)) ;
+
+DIEUKIEN_MA_STATUS=WriteIf(dkma AND DKMA200,"MA-MA200",WriteIf(dkma AND NOT DKMA200,"MA",WriteIf(DKMA200 AND NOT dkma,"MA200","")));
+
+
+///FILTER SOURCE
+
+Filter = 
+//C>=4 AND C*V>1000000 AND 
+(TinTuong OR TheoDoiTrongPhien OR Sideway OR BatDay OR MuoiGioToi OR ichibuy OR ichisell OR ma20ma50ma65 OR minervinibuysell OR buybuysellsellstatus OR Covercover 
+OR Buytd68 OR s OR sss OR sss OR Filtertd2);
+// AND StrLen(Name())==3;
+ 
+ /////AddColumn//////
+ {
+ AddColumn(C,"Close",1.2,colorWhite,IIf(C>Ref(C,-1),colorGreen,colorRed),50);
+ AddColumn(V,"Volume",1,colorWhite,IIf((C>=4 AND V>=1.2*MA(V,30) AND C*V>1000000),colorGreen,colorRed),90);
+ AddColumn(C*V,"Gia tri GD ",1,colorWhite,gtdgfilter,90);
+ AddtextColumn(WriteIf(bigwhite,"BW",""),"BW",1.0,colorWhite,IIf(bigwhite,colorGreen,colorWhite),35);//big white
+ AddColumn(nv,"ChgVol",1.2,IIf(ROC(C,1)<0 AND nv>1,colorWhite,IIf(ROC(C,1)>0 AND nv>1,colorWhite,colorBlack)),IIf(ROC(C,1)<0 AND nv>1,colorRed,IIf(ROC(C,1)>0 AND nv>1,colorGreen,colorWhite)),60);
+ AddTextColumn(minervinibuysellstatus, "Minervini", 1,colorWhite,IIf (Buyminer_s,colorGreen,IIf (Buyminer,colordarkGreen,IIf (BuyMinervini2,ColorRGB(0,128,255),colorWhite))),65);
+ AddtextColumn(WriteIf(dkbuy1,"Buy-S",WriteIf(dkbuy2,"Buy-M","")), "Buy", 1,colorWhite, bkcolor =IIf (dkbuy1,colorGreen,IIf (dkbuy2,colorDarkGreen,colorWhite )),50);
+ AddtextColumn(WriteIf(Covercover,"Cover",""), "Cover", 1,colorWhite, bkcolor =IIf (Covercover,ColorRGB(255,49,255), colorWhite ),45);
+ AddtextColumn(WriteIf (dksell1,"Sell-S",WriteIf (dksell2,"Sell-M","" )), "Sell", 1,colorWhite, bkcolor =IIf (dksell1,colorRed,IIf (dksell2,colorDARKRed,colorWhite )),40);
+ AddTextColumn(WriteIf(TinTuong, "TN",""),"TN",1,IIf(TinTuong,colorWhite,colorWhite),IIf (TinTuong,ColorRGB(0,128,255), colorWhite ),30);
+ AddTextColumn(WriteIf(TheoDoiTrongPhien, "TD",""),"TD",1,IIf(TheoDoiTrongPhien,colorWhite,colorWhite),IIf (TheoDoiTrongPhien,ColorRGB(223,0,112), colorWhite ),30);
+ AddTextColumn(WriteIf(Sideway, "SW",""),"SW",1,IIf(Sideway,colorWhite,colorWhite),IIf (Sideway,colorTeal, colorWhite ),30);
+ AddTextColumn(WriteIf(BatDay, "BD",""),"BD",1,IIf(BatDay,colorWhite,colorWhite),IIf (BatDay,ColorRGB(221,0,72), colorWhite ),30);
+ AddTextColumn(WriteIf(MuoiGioToi, "22H",""),"22H",1,IIf(MuoiGioToi,colorWhite,colorWhite),IIf (MuoiGioToi,ColorRGB(179,179,0), colorWhite ),35);
+ AddtextColumn(ichibuysellstatus, "ICHI", 1,IIf(ichisell,colorRed,colorWhite),IIf(ichibuy,colorGreen,IIf (ichisell,colorYellow,colorWhite )),50);
+ AddtextColumn(ma20ma50ma65status, "YT-DL", 1,IIf(ma20ma50ma65dn,colorRed,colorWhite),IIf(ma20ma50ma65up,colorGreen,IIf (ma20ma50ma65dn,colorYellow,colorWhite )),50);
+ AddTextColumn( WriteIf (BuyVP5, "BuyVP5",""),"BuyVP5",1,IIf(BuyVP5,colorWhite,colorWhite),IIf(BuyVP5,colorGreen,colorWhite),60);
+ AddTextColumn( WriteIf (motgio, "1 Gio",""),"Loc1h",1,IIf(motgio,colorWhite,colorWhite),IIf(motgio,colorGreen,colorWhite),50);
+ AddColumn(RSI(14),"RSI",1,IIf(RSI(14)>70,colorWhite,IIf(RSI(14)<30,colorWhite,IIf(RSI(14)<=70 AND RSI(14)>=60,colorWhite,colorWhite))),IIf(RSI(14)>70,colorRed,IIf(RSI(14)<30,colorDarkRed,IIf(RSI(14)<=70 AND RSI(14)>=60,colorGreen, colorGrey40))),40);
+ AddColumn(tl,"TL(%)",1.2,colorWhite,IIf(tl<=10,colorGreen,colorRed),50);
+ 
+ //////////
+ AddtextColumn(WriteIf(giaidoan2,"GD2",""),"GD2-MVN",1.0,colorWhite,IIf(giaidoan2,colorGreen,colorWhite),50);
+ AddtextColumn(WriteIf(giaidoan1_giaidoan2,"GD1-2",""),"GD1-2(MVN)",1.0,colorWhite,IIf(giaidoan1_giaidoan2,colorGreen,colorWhite),50);
+////////Anh Tam Dao
+ AddTextColumn(mua_tamdao_status, "A-Tam Dao", 1,colorWhite,IIf (muatamdao2,colorGreen,IIf (muatamdao68,colordarkGreen,IIf (muatamdao86,ColorRGB(0,128,255),colorWhite))),65); 
+ AddColumn( bscore , "Mua-Score", 1.0, colorGreen );
+ AddColumn( sscore , "Ban-Score", 1.0, colorRed );
+////////////////
+ AddTextColumn(DIEUKIEN_MA_STATUS,"MA",1,colorWhite,IIf (dkma AND DKMA200 ,colorDarkYellow,IIf (dkma AND NOT DKMA200 ,colorCustom3,IIf (DKMA200 AND NOT dkma ,colorPaleBlue, colorWhite ))),100);
+ AddTextColumn( WriteIf (Uptrend, "Uptrend ","Downtrend"),"Trend",1,IIf(Uptrend,colorWhite,colorRed),IIf(Uptrend,colorGreen,colorYellow),75);
+ AddColumn(IBDrs,"RS",1.0,colorBlack,colorWhite,40);//RS Minervini
+ AddColumn(RS_Oneil,"RS-O'neil",1.0,colorBlack,colorWhite,70);
+ AddTextColumn(stt,"Ghi Chu",1.2,colorWhite,clr,65);
+
+ 
+ //AddSummaryRows(16, 1.2,5);
+ AddSummaryRows(31, 1.2,4);
+ SetSortColumns( -4 ) ;
+}
+
+
+ //_SECTION_BEGIN("EOW Exploration");
+// generates weekly net foreign transactions (buy/sell) in millions
+//TimeFrameSet(inDaily);
+//AddColumn( Ref(OpenInt, -4)/1000000, "Mon", 1.3, IIf( Ref(OpenInt,-4)>0, colorGreen, colorRed) );
+//AddColumn( Ref(OpenInt, -3)/1000000, "Tue", 1.3, IIf( Ref(OpenInt,-3)>0, colorGreen, colorRed) );
+//AddColumn( Ref(OpenInt, -2)/1000000, "Wed", 1.3, IIf( Ref(OpenInt,-2)>0, colorGreen, colorRed) );
+//AddColumn( Ref(OpenInt, -1)/1000000, "Thu", 1.3, IIf( Ref(OpenInt,-1)>0, colorGreen, colorRed) );
+//AddColumn( OpenInt/1000000, "Fri", 1.3, IIf( OpenInt>0, colorGreen, colorRed) );
+//total = Ref(OpenInt, -4) + Ref(OpenInt, -3) + Ref(OpenInt, -2) + Ref(OpenInt, -1) + OpenInt;
+//AddColumn( total/1000000, "Total", 1.3, IIf( total>0, colorGreen, colorRed) );
+//TimeFrameRestore();

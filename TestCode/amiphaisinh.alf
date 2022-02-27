@@ -1,0 +1,39 @@
+_SECTION_BEGIN("AmiPhaiSinh");
+//Config parameters
+price=O;
+botid="2";
+
+//start autotrade
+if (Ref(SelectedValue( Buy),-1) AND StaticVarGet(Name()+GetChartID()+"buyAlert")==0 )
+{
+
+ ih1 = InternetOpenURL( "http://localhost:6868/api/trade?symbol=VN30F1M&side=NB&clientId="+botid);
+  if ( ih1 )
+   //PopupWindow( "LONG command has been sent to Entrade for " + Name() + "  " + DateTimeToStr(LastValue(DateTime()), 3), "Ami-Entrade Connect", 10 );
+  {
+ InternetClose(ih1);
+ }
+
+StaticVarSet(Name()+ GetChartID() + "buyAlertBar", LastValue(TimeNum()));
+}
+if (LastValue(TimeNum()) == StaticVarGet(Name()+GetChartID()+"buyAlertBar"))
+StaticVarSet(Name()+GetChartID()+"buyAlert",1); //alert was triggered, no more alerts on this bar
+else
+StaticVarSet(Name()+GetChartID()+"buyAlert",0); // new bar formed, and alerts can be trigered.
+if (SelectedValue( Sell) AND StaticVarGet(Name()+GetChartID()+"sellAlert")==0 )
+{
+
+ ih2 = InternetOpenURL( "http://localhost:6868/api/trade?symbol=VN30F1M&side=NS&clientId="+botid);
+ if ( ih2 )
+ PopupWindow( "SHORT command has been sent to Entrade for " + Name() + "  " + DateTimeToStr(LastValue(DateTime()), 3), "Ami-Entrade Connect", 10 );
+  {
+ InternetClose(ih2);
+ }
+
+StaticVarSet(Name()+ GetChartID() + "sellAlertBar", LastValue(TimeNum()));
+}
+if (LastValue(TimeNum()) == StaticVarGet(Name()+GetChartID()+"sellAlertBar"))
+StaticVarSet(Name()+GetChartID()+"sellAlert",1); //alert was triggered, no more alerts on this bar
+else
+StaticVarSet(Name()+GetChartID()+"sellAlert",0); // new bar formed, and alerts can be trigered.
+_SECTION_END();
