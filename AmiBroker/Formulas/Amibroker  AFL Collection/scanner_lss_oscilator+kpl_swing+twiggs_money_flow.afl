@@ -1,0 +1,106 @@
+/* BOOK "Sniper Trading" by George Angell
+   1. Hypothetical 5-Day PeriodFiv-Day
+            C > RR for buy
+            C < SS for Sell     
+
+   2. LSS Oscillator
+              Red area > Direction Up
+          Grey > Direction None
+              Green > Driect Down     
+*/
+_SECTION_BEGIN("Price");
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+nPrevC1=TimeFrameGetPrice( "C", inDaily, -1);
+nPrevC4=TimeFrameGetPrice( "C", inDaily, -4);
+nPrevH1=TimeFrameGetPrice( "H", inDaily, -1);
+nPrevH2=TimeFrameGetPrice( "H", inDaily, -2);
+nPrevH3=TimeFrameGetPrice( "H", inDaily, -3);
+nPrevH4=TimeFrameGetPrice( "H", inDaily, -4);
+nPrevH5=TimeFrameGetPrice( "H", inDaily, -5);
+nPrevL1=TimeFrameGetPrice( "l", inDaily, -1);
+nPrevL2=TimeFrameGetPrice( "l", inDaily, -2);
+nPrevL3=TimeFrameGetPrice( "l", inDaily, -3);
+nPrevL4=TimeFrameGetPrice( "l", inDaily, -4);
+nPrevL5=TimeFrameGetPrice( "l", inDaily, -5);
+nPrevO1=TimeFrameGetPrice( "O", inDaily, -1);
+//Hypothetical 5-Day PeriodFiv-Day
+nX= (nPrevH1 + nPrevL1 + nPrevC1)/3;
+ 
+nUp = nPrevL1 + (( nPrevH1-nPrevL2)+( nPrevH2-nPrevL3)+( nPrevH3-nPrevL4))/3 ;
+nBuyH = nPrevH1 + (( nPrevH1-nPrevH2)+( nPrevH2-nPrevH3)+( nPrevH3-nPrevH4))/3 ;
+nLLSUp = 2 * nX - nPrevL1 ;
+nRR = (nUp + nBuyH + nPrevH1  + nLLSUp) / 4 ;
+ 
+nDn = nPrevH1 + (( nPrevH2-nPrevL1)+( nPrevH3-nPrevL2)+( nPrevH4-nPrevL3))/3 ;
+nBuyL = nPrevL1 - (( nPrevL2-nPrevL1)+( nPrevL3-nPrevL2)+( nPrevL4-nPrevL3))/3 ;
+nLLSDn = 2 * nX - nPrevH1 ;
+nSS = (nDn + nBuyL + nPrevL1  + nLLSDn) / 4 ;
+Plot( nRR, "RR", colorDarkRed, styleNoTitle );
+Plot( nSS, "SS", colorDarkGreen, styleNoTitle );
+// LSS Oscillator
+nMax1D=Max(nPrevH1,nPrevH2);
+nMax2D=Max(nPrevH3,nPrevH4);
+nMax3D=Max(nMax1D,nMax2D);
+nMaxD=Max(nMax3D,H);//nPrevH5);
+ 
+nMin1D=Max(nPrevL1,nPrevL2);
+nMin2D=Max(nPrevL3,nPrevL4);
+nMin3D=Max(nMin1D,nMin2D);
+nMinD=Max(nMin3D,L);//nPrevL5);
+nXXD  = nMaxD - nPrevC4;
+nYYD = C - nMinD;
+nOscD =(nXXD+nYYD)/((nMaxD-nMinD)*2)*100;
+ 
+ 
+Plot( 1, "", IIf(nOscD>70,colorDarkRed, IIf(nOscD<30, colorDarkGreen, colorLightGrey)), styleOwnScale|styleArea|styleNoLabel, -0.1, 100 );
+
+
+periods = Param( "Periods", 21, 5, 200, 1 );
+TRH=Max(Ref(C,-1),H);
+TRL=Min(Ref(C,-1),L);
+TR=TRH-TRL; 
+ADV=V*((C-TRL)-(TRH-C))/ IIf(TR==0,9999999,TR);
+WV=V+(Ref(V,-1)*0);
+SmV= Wilders(WV,periods);
+SmA= Wilders(ADV,periods);
+
+TMF= IIf(SmV==0,0,SmA/SmV);
+//Plot( TMF, _DEFAULT_NAME(), ParamColor("color", colorCycle ),ParamStyle("Style") );
+
+
+HaClose = (O+H+L+C)/4; 
+HaOpen = AMA( Ref( HaClose, -1 ), .40); 
+HaHigh = Max( H, Max( HaClose, HaOpen ) ); 
+HaLow = Min( L, Min( HaClose, HaOpen ) ); 
+xDiff = (HaHigh - Halow) * IIf(StrFind(Name(),"JPY"),100,10000);
+barcolor = IIf(HaClose >= HaOpen,colorGreen,colorRed);
+//PlotOHLC( HaOpen, HaHigh, HaLow, HaClose, "", barcolor, styleCandle ); 
+// Plot(EMA(HaClose,9),"",colorWhite, styleLine);
+// Plot(EMA(HaClose,18),"",colorBlack, styleLine);
+
+//Copyright Kamalesh Langote. Email:kpl@vfmdirect.com. More details at http://www.vfmdirect.com/kplswing
+//Save indicator as "kplswing.afl" in C: program files > Amibroker > Formulas > Custom folder and then drap and drop on price chart
+no=Param( "Swing", 20, 1, 55 );
+tsl_col=ParamColor( "Color", colorCycle );
+
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+tsl=IIf(avn==1,sup,res);
+
+//Plot(tsl, _DEFAULT_NAME(), tsl_col, styleStaircase); // or styleaArea
+
+//Buy=Cross(C,tsl);
+//Sell=Cross(tsl,C);
+//shape=Buy*shapeUpArrow + Sell*shapeDownArrow;
+//PlotShapes(shape,IIf(Buy,tsl_col,tsl_col),0,IIf(Buy,Low,High));
+
+
+
+Buy=Cross(C,nRR) AND nOscD>70 AND TMF>0 AND C>tsl;
+//Sell=Cross(C,nSS);
+
+

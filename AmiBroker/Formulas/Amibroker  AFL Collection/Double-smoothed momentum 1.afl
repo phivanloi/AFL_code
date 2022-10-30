@@ -1,0 +1,18 @@
+_SECTION_BEGIN("Mom Dbl Smooth");
+// variation
+p=Param("P",7,1,50,0.5);
+x=((C+2*StDev(C,p)-MA(C,p))/(4*StDev(C,p)))*100;
+Slw=Param("Slow",4,1,30,1);
+Pds=Param("Periods",9,1,30,1);
+A = EMA((x-LLV(x,Pds))/(HHV(x,pds)-LLV(x,Pds)),Slw)*100;
+x = EMA((A-LLV(A,pds))/(HHV(A,Pds)-LLV(A,Pds)),Slw)*100;
+Plot(x,"Osc",colorWhite,5);
+b=Param("B",50,5,100,1);
+k=Param("K",60,5,100,1);
+n=0.95;
+r=HHV(x,k);
+e=LLV(x,k);
+Plot(e+(r-e*n),"O/B",4,5);//RED -TOP(SELL)
+Plot(r-(r-e*n),"O/S",5,5);//GREEN-BOT(BUY)
+Plot(IIf(x>e+(r-e*n),100,IIf(x<r-(r-e*n),0,50)),"BL",colorYellow,5);
+_SECTION_END();

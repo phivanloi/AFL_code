@@ -1,0 +1,31 @@
+_SECTION_BEGIN("gad");
+
+n1 = NVI();
+
+nn = MA( n1, 3);
+mm=( n1-nn);
+Plot( mm, _DEFAULT_NAME(), ParamColor("Color1", colorCycle ), ParamStyle("Style1")  );
+
+
+Zero = 0;
+Plot( Zero, "Zero", ParamColor("Color2", colorCycle ), ParamStyle("Style2")  );
+
+
+if( Status("action") == actionCommentary )
+{
+n2 = MA( n1, 10 );
+//
+Plot( n2, _DEFAULT_NAME(), ParamColor("Color", colorCycle ), ParamStyle("Style")  );//Plot( n2, "n", -180 );
+//
+printf("\nCurrent value of NVI is " + WriteVal( NVI() ));
+
+printf("\nThe interpretation of the NVI assumes that on days with decreased Volume, the 'smart money' is quietly taking positions. Thus, the NVI displays what the smart money is doing by showing price action only when Volume is decreasing. NVI is most usefuly as a bull market indicator." );
+printf("\n\nCurrently NVI is "+WriteIf( n1 > n2, "above", "below" )+" its 260 period (one year on daily chart) moving average.");
+printf("\n"+
+WriteIf( n1 > n2, "It crossed above " + 
+WriteVal( BarsSince( Cross( n1, n2 ) ), 1.0 ) + 
+" bars ago. Norman Fosback in 'Stock Market Logic' states that the odds of a bull market are 95 out of 100 when the NVI rises above its one-Year moving average.",
+"This alone does NOT give any useful hint about the future performance of this security."));
+}
+
+_SECTION_END();

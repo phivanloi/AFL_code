@@ -1,0 +1,18 @@
+ret = Study("RE", 1002);
+sup = Study("SU", 1002);
+x=2.5;
+Buy1 = Volume >= x*MA(Volume,50) AND Volume>35000 AND C>=O;
+
+Buy2 = Cross(H, ret) OR Cross(ret, C);
+Buy = (Buy1 OR Buy2) AND Year() >=2007 AND Day()>=8;
+
+Sell = Cross(sup, L) OR Cross(L, sup);
+
+if(LastValue(Buy)==9){
+fh = fopen( "C:\\EagleEye\\Alerts.txt", "aw");
+if( fh )
+{
+fputs( Name() + "\n" , fh );
+fclose( fh );
+}
+}

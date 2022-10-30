@@ -1,0 +1,83 @@
+SetBarsRequired(100000,0);
+GraphXSpace = 3;
+
+
+k = Optimize("K", 0.003, 0, 0.2, 0.001);
+
+Trend[0] = 1;  
+Revers[0] = C[0] - C[0]*k;
+PE[0] = C[0];
+
+for(i = 1; i < BarCount; i++)
+{
+	if(Trend[i-1] == 1)					//Up Trend
+	{
+		if(C[i] > PE[i-1])				// High 
+		{
+			Trend[i] = 1;
+			PE[i] = C[i];
+			Revers[i] = C[i] - C[i]*k;
+		}
+		else
+		{
+			if(C[i] < Revers[i-1])		
+			{
+				Trend[i] = -1;
+				PE[i] = C[i];
+				Revers[i] = C[i] + C[i]*k;
+			}
+			else							
+			{
+				Trend[i] = 1;
+				PE[i] = PE[i-1];
+				Revers[i] = Revers[i-1];
+			}
+		}
+	}
+//======================================
+	else									//Down Trend
+	{
+		if(C[i] < PE[i-1])				// Low
+		{
+			Trend[i] = -1;
+			PE[i] = C[i];
+			Revers[i] = C[i] + C[i]*k;
+		}
+		else
+		{
+			if(C[i] > Revers[i-1])		 
+			{
+				Trend[i] = 1;
+				PE[i] = C[i];
+				Revers[i] = C[i] - C[i]*k;
+			}
+			else							
+			{
+				Trend[i] = -1;
+				PE[i] = PE[i-1];
+				Revers[i] = Revers[i-1];
+			}
+		}
+	}
+}
+
+Plot(Revers, "NRTR WATR", IIf(Trend == 1, 27, 4), 4);
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}}
+Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" 
+{{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+Plot( C, "", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+Buy=Cross(C,Revers);
+Sell=Cross(Revers,C);
+Cover=Buy;
+Short = Sell;
+Filter=Buy OR Sell;
+PlotShapes(Buy*shapeHollowUpTriangle,colorPink, 0, Low, Offset =-35);
+PlotShapes(Buy*shapeDigit8,colorAqua, 0, Low, Offset =-50);
+PlotShapes(Sell*shapeHollowDownTriangle,colorCustom12, 0, High, Offset =-10);
+PlotShapes(Sell*shapeDigit8,colorRed, 0, High, Offset =25);
+AddColumn( IIf(Buy,1,IIf(Sell,-1,0)) ,"12",1.0,colorBlack,IIf(Sell,colorGreen,IIf(Sell,colorRed,colorBlack)));
+
+
+_SECTION_END();

@@ -1,0 +1,8 @@
+Buyperiods=Param("Breakout periods best is usually 18",18,1,100,1,1);
+Sellperiods=Param("Exit Breakout",1,1,100,1,1);
+Buy= C>Ref(HHV(H,Buyperiods),-1);
+Sell= L<Ref(LLV(L,Sellperiods),-1);
+
+inlong=Flip(Buy,Sell);
+Cover=Buy;
+Buy=inlong;

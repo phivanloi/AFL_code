@@ -1,0 +1,34 @@
+_SECTION_BEGIN("Watch-MA520");
+
+/*
+WATCH        : Jika Candle break up MA 20
+BUY          : Jika Candle Close diatas MA 20, dgn volume transaksi harian diatas rata2 MA20 nya
+WARNING      : Jika Candle break down MA 5
+SELL         : Jika Candle Close dibawah MA 5, dgn volume transaksi harian diatas rata2 MA20 nya
+*/
+
+WATCH = Cross(C,MA(C, 20)) ;
+Buy = Cross(C,MA(C, 20)) AND Volume > MA(V,20);
+WARNING = Cross( MA(C, 5),C); 
+Sell = Cross( MA(C, 5),C) AND Volume > MA(V,20); 
+
+Filter = (WATCH OR Buy OR WARNING OR Sell) AND Volume > 5000 ; 
+
+AddColumn(WATCH,"WATCH");
+AddColumn(Buy,"Buy");
+AddColumn(WARNING,"WARNING");
+AddColumn(Sell,"Sell");
+
+PlotShapes(IIf( Sell==1, shapeDownArrow, shapeNone), ParamColor( "Color", colorCycle ), 0,High, Offset=-25);
+PlotShapes(IIf( Buy==1, shapeUpArrow , shapeNone), ParamColor( "Color", colorCycle ), 0,Low, Offset=-25);
+
+PlotShapes(IIf( WARNING== 1, shapeHollowDownArrow, shapeNone), ParamColor( "Color", colorCycle ), 0,High, Offset=-25);
+PlotShapes(IIf( WATCH==1, shapeHollowUpArrow , shapeNone), ParamColor( "Color", colorCycle ), 0,Low, Offset=-25);
+
+P = ParamField("Price field",-1);
+Plot( MA( P, 5 ),_DEFAULT_NAME( ), ParamColor( "Ma5", colorCycle ), ParamStyle("Style") ); 
+
+Q = ParamField("Price field",-1);
+Plot( MA( Q, 20 ),_DEFAULT_NAME( ), ParamColor( "Ma20", colorCycle ), ParamStyle("Style") );
+
+_SECTION_END();

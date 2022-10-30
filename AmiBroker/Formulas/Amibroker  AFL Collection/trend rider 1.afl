@@ -1,0 +1,95 @@
+_SECTION_BEGIN("ATRtrading");
+SetChartBkColor( colorBlack ) ;
+period = Param("Period", 13, 1, 240, 1);
+mult = Param("Multiplier", 1.7, 1, 240, 0.1);
+ 
+f=ATR(period);
+
+VS[0] = Close[0];
+trend[0] = 0;
+HighC[0]=0;
+Lowc[0]=0;
+
+for( i = period+1; i < BarCount; i++ )
+{
+
+vs[i] = vs[i-1];
+trend[i] = trend[i-1];
+highC[i] = HighC[i-1];
+lowc[i] = lowc[i-1];
+
+if ((trend[i]>=0) && ( C[i] <VS[i] ))
+{
+trend[i] =-1;
+HighC[i] = C[i];
+lowc[i] = C[i];
+}
+
+if ((trend[i]<=0) && (C[i] >VS[i]))
+{
+trend[i]=1;
+HighC[i] = C[i];
+lowc[i] = C[i];
+}
+
+if (trend[i]==-1)
+{
+if (C[i]<lowc[i]) lowc[i] = C[i];
+VS[i]= lowc[i]+ (mult*f[i]);
+}
+
+
+if (trend[i]==1)
+{
+if (C[i]>HighC[i]) HighC[i] = C[i];
+VS[i]= HighC[i]-(mult*f[i]);
+}
+
+}
+
+
+Buy2=Cross(Trend,0);
+Sell2=Cross(0, Trend);
+
+Plot(Close,"Close",colorBlue,styleCandle);
+Plot(VS, "Vol Stop",IIf(trend==1,10,11 ),styleThick);
+
+_SECTION_BEGIN("macd rsi");
+EMA3 = EMA(RSI(14),3);
+ema27 = EMA(RSI(14),27); 
+
+diff = ema3-EMA27;
+ema_short = EMA(diff,Param("short ema",3,1,20,1));
+EMA_Long = EMA(diff,Param("long ema",5,1,20,1));
+
+Col_rsi = IIf (EMA_long > Ref(EMA_long,-1),colorBlue,colorRed);
+//Plot (EMA_short,"diff in rsi1",colorYellow,styleThick);
+//Plot (EMA_long,"diff in rsi5",Col_rsi,styleThick);
+//Plot (0,"",colorWhite,styleThick);
+
+Buy1 = Cross (EMA_short,EMA_long);
+Sell1 = Cross (EMA_long, EMA_short);
+Short1 = Sell1;
+Cover1 = Buy1;
+
+PlotShapes (shapeHollowSmallUpTriangle*Buy1,colorWhite);
+PlotShapes (shapeHollowSmallDownTriangle*Sell1,colorWhite);
+_SECTION_END();
+target = Param ("target",10,2,50,0.5);
+uP_band = Vs + target;
+Lw_band = VS- target;
+Plot (UP_band,"long target", colorGreen,styleThick+styleDashed);
+Plot (LW_band,"short target", colorRed,styleThick+styleDashed);
+mkol = IIf( Trend==1, 10, 11);
+Plot(5, "ribbon", mkol, styleOwnScale|styleArea|styleNoLabel, 0, -5); // Weekly trend
+Buy = Cross(Close,VS) AND Col_rsi==colorBlue;
+Short = Cross(VS,Close) AND Col_rsi==colorRed;
+Sell = Short ;
+Cover = Buy ;
+PlotShapes (shapeUpTriangle*Buy,colorYellow);
+PlotShapes (shapeDownTriangle*Sell,colorYellow);
+
+
+shape = Buy2 * shapeUpArrow + Sell2 * shapeDownArrow;
+PlotShapes( shape, IIf( Buy2, colorGreen, colorRed ), 0, IIf( Buy2, Low-f, High+f));
+_SECTION_END();

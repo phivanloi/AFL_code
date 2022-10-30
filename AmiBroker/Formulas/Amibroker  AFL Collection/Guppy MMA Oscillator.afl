@@ -1,0 +1,20 @@
+//Source = Leon Wilson, www.wilsontechstats.com/software/MMAConstruction.htm
+//AFL Translation = Mubashar Virk, mavirk@gmail.com
+
+Trigger = Param("Trigger",21,1,55,1);
+
+Short1=(EMA(Close,3)+EMA(Close,5)+
+EMA(Close,8)+EMA(Close,10)+
+EMA(Close,12)+EMA(Close,15));
+
+LONG2 =(EMA(Close,30)+EMA(Close,35)+
+EMA(Close,40)+EMA(Close,45)+
+EMA(Close,50)+EMA(Close,60));
+
+GuppyMMAOscillator = ((Short1-Long2)/Long2)*100;
+
+Plot (GuppyMMAOscillator, "Guppy MMA Oscillator", colorRed);
+
+Plot (EMA(GuppyMMAOscillator, Trigger), "Trigger", colorBrightGreen);
+
+Plot (0, "", colorWhite, styleNoLabel);

@@ -1,0 +1,65 @@
+// tskp_mediumma,tskp_mediumup,tskp_mediumdown
+_SECTION_BEGIN("ABKPMedium");
+ 
+parmMediumUpColor = ParamColor( "Up Color", colorBlue );
+parmMediumUpStyle = ParamStyle("Up Style", styleHistogram+styleThick+styleNoLabel,maskAll);
+parmMediumDnColor = ParamColor( "Down Color", colorRed );
+parmMediumDnStyle = ParamStyle("Down Style", styleHistogram+styleThick+styleNoLabel,maskAll);
+parmMediumMAColor = ParamColor( "MA Color", colorBlack ); 
+parmMediumMAStyle = ParamStyle("MA Style", styleLine+styleThick+styleNoLabel, maskAll);
+parmPlotXA = ParamList("Plot MediumMA Crosses", "None|All|Some", 0);
+parmXAUpColor = ParamColor("XA Up Color", colorBlue);
+parmXADnColor = ParamColor("XA Dn Color", colorRed); 
+SetBarsRequired(350, -1);
+dummy = E_TSKPMEDIUM(Close);
+KPMediumUp = tskp_mediumup;
+KPMediumDn = tskp_mediumdown;
+KPMediumMA = tskp_mediumma;
+Plot( KPMediumUp, "MediumUp",parmMediumUpColor , parmMediumUpStyle);
+Plot(KPMediumDn , "MediumDown",parmMediumDnColor , parmMediumDnStyle );
+Plot(KPMediumMA , "MediumMA", parmMediumMAColor , parmMediumMAStyle );
+// Plot Medium Crossovers
+switch( parmPlotXA )
+{
+	case "None":
+		break;
+	case "All":
+		PlotShapes( IIf( Cross( KPMediumMA, KPMediumUp) OR Cross( KPMediumMA, KPMediumDn), shapeSmallDownTriangle, shapeNone),  parmXADnColor,  0, KPMediumMA, -12);
+		PlotShapes( IIf( Cross(KPMediumDn, KPMediumMA)OR Cross( KPMediumUp, KPMediumMA), shapeSmallUpTriangle, shapeNone),  parmXAUpColor , 0, KPMediumMA, -12);
+		break;
+	case "Some":
+		PlotShapes( IIf( Cross( KPMediumMA, KPMediumUp) AND KPMediumUp != 0, shapeSmallDownTriangle, shapeNone),  parmXADnColor,  0, KPMediumMA, -12);
+		PlotShapes( IIf( Cross(KPMediumDn, KPMediumMA) AND KPMediumDN != 0, shapeSmallUpTriangle, shapeNone),  parmXAUpColor , 0, KPMediumMA, -12);
+		break;
+}
+_SECTION_END();
+
+_SECTION_BEGIN("ABKPFast2");
+/* KPFast2 Bias
+	Plot either as a line OR as a ribbon
+*/
+//tskp_fast2val1, tskp_fast2val2
+parmFast2Style = ParamStyle("Fast2", styleHistogram+styleNoLabel, maskAll);
+parmFast2Color1  = ParamColor("Fast2_1 color", colorBlue);
+parmFast2Color2 = ParamColor("Fast2_2 color", colorRed);
+parmRibbon = ParamToggle("Plot as ribbon", "No|Yes" , 0);
+parmRibbonUpColor =ParamColor( "Fast2 ribbon color Up", ColorRGB(167, 224, 243) );
+parmRibbonDnColor =ParamColor( "Fast2 ribbon color Dn", ColorRGB(255, 192, 203) );
+parmRibbonSize = Param("Ribbon size", 1, 0.5, 10, 0.5);
+SetBarsRequired(350, -1);
+
+//calculations
+dummy =  E_TSKPFAST2(Open,High,Low,Close,Volume);
+KPFast21 = tskp_Fast2val1;
+KPFast22 = tskp_Fast2val2;
+
+//Plots
+if(parmRibbon == 0)
+{
+	Plot( KPFast21, "Fast2_1", parmFast2Color1 , parmFast2Style ); 
+	Plot( KPFast22, "Fast2_2", parmFast2Color2, parmFast2Style ); 
+
+}
+else
+	Plot( parmRibbonSize, StrFormat("Fast21(%g%,%g%)", SelectedValue(KPFast21), SelectedValue(KPFast22 ) ), IIf(KPFast21> 0, parmRibbonUpColor, parmRibbonDnColor) , styleArea |  styleNoLabel | styleOwnScale , 0, 10);
+_SECTION_END();

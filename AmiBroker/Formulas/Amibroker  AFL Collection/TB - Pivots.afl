@@ -1,0 +1,94 @@
+//|------------------------------------------------------------------
+//|Tradingbasis.com - Pivot Points
+//|Version:1.4   22-June-2006
+//|Copyright © 2005, Tradingbasis.com
+//|http://www.tradingbasis.com
+//|e-mail: support@tradingbasis.com
+//|------------------------------------------------------------------
+SetChartOptions(0,chartShowDates|chartShowArrows|chartLogarithmic|chartWrapTitle);
+#pragma nocache
+#include  <\TBInc\Tradingbasis_f0.afl>
+
+_SECTION_BEGIN("Main Parameters");
+PivotTF = ParamList("Time Frame",List = "15 min,Hourly,4 Hour,Daily,Weekly",3);
+TF = 
+IIf(PivotTF == "15 min",in15Minute,
+IIf(PivotTF == "Hourly",inHourly,
+IIf(PivotTF == "4 Hour",inHourly*4,
+IIf(PivotTF == "Daily",inDaily,
+IIf(PivotTF == "Weekly",inWeekly,Null)))));
+PivotTyp = ParamList("Calculation Method", List = "Regular,Woodies FIB,Woodies"); 
+PivotLineMode = ParamToggle("Plot Pivot as entirely Line","Off,On",1);
+LineMode = ParamToggle("Plot entirely Lines","On,Off",1);
+Shadow = ParamToggle("Plot Shadow","Off,On",0);
+Titledisplay = ParamToggle("Display Title Information","Horizontal,Vertical",0);
+_SECTION_END();
+
+_SECTION_BEGIN("Styles");
+PivotStyle = ParamStyle("Pivot",styleThick|styleDots,maskAll)+styleNoTitle;
+LineStyle = ParamStyle("S/R Lines",styleThick,maskAll)+styleNoTitle;
+_SECTION_END();
+
+_SECTION_BEGIN("Colors");
+R12Shadow = ParamColor("Resistance Shadow",ColorRGB(188,129,139));
+Rcolor = ParamColor("Resistance",colorRed);
+RPcolor = ParamColor("Rising Pivot",colorBrightGreen);
+FPcolor = ParamColor("Falling Pivot",ColorRGB(242,26,139));
+Scolor = ParamColor("Support",colorGreen);
+S12Shadow = ParamColor("Support Shadow",ColorRGB(108,162,115));
+BackgroundColor = ParamColor("Background",colorBlack);
+_SECTION_END();
+
+for( i=0; i<10; i++){if( StrExtract(List, i) == PivotTyp ) PivottypValue = i;} 
+
+AddPivotlevels (PivottypValue,TF);
+
+if( Status("action") == actionCommentary ) 
+{   
+printf("\n\n"+"S1 = " + WriteVal(S1)  )+
+printf("\n"+"S2 = " + WriteVal(S2)  )+
+printf("\n"+"S3 = " + WriteVal(S3)  )+
+printf("\n\n"+"PP = " + WriteVal(PP)  )+
+printf("\n\n"+"R1 = " + WriteVal(R1)  )+
+printf("\n"+"R2 = " + WriteVal(R2)  ); 
+printf("\n"+"R3 = " + WriteVal(R3)  ); 
+}
+
+if(Shadow)
+{
+style1 = styleArea+styleNoLabel+styleNoTitle;
+S2_even = IIf(S2_even>0,S2_even,Null);
+Plot(R2,"R2",R12Shadow,style1);
+Plot(R1,"R1",BackgroundColor,style1);
+Plot(S1,"S1",S12Shadow,styleArea+styleNoTitle);
+Plot(S2,"",BackgroundColor,style1);
+}
+#include  <\TBInc\Tradingbasis_1.afl>
+PlotPivotLevels(LineMode,PivotLineMode,SColor,RColor,RPColor,FPColor,LineStyle,PivotStyle);
+
+digits = IIf(C>10,1.2,1.4);
+digits = LastValue(digits);
+
+if(Titledisplay){
+Title = "Tradingbasis.com - Pivot Points" +default_title +
+",Calculation Time Frame = "+PivotTF + "  " +
+EncodeColor(Rcolor)+"\nR3 = " + WriteVal(R3,digits)+
+EncodeColor(Rcolor)+"\nR2 = " + WriteVal(R2,digits)+
+EncodeColor(Rcolor)+"\nR1 = " + WriteVal(R1,digits)+
+EncodeColor(IIf(LastValue(ppflip),RPcolor,FPcolor))+"\nPP = " + WriteVal(PP,digits)+
+EncodeColor(Scolor)+"\nS1 = " + WriteVal(S1,digits)+
+EncodeColor(Scolor)+"\nS2 = " + WriteVal(S2,digits)+
+EncodeColor(Scolor)+"\nS3 = " + WriteVal(S3,digits);
+}
+else
+{
+Title = "Tradingbasis.com - Pivot Points" +default_title +
+", Calculation Time Frame = "+PivotTF + ",  " +
+EncodeColor(Scolor)+"S1 = " + WriteVal(S1,digits)+", "+
+EncodeColor(Scolor)+"S2 = " + WriteVal(S2,digits)+", "+
+EncodeColor(Scolor)+"S3 = " + WriteVal(S3,digits)+", "+
+EncodeColor(IIf(LastValue(ppflip),RPcolor,FPcolor))+"PP = " + WriteVal(PP,digits)+", "+
+EncodeColor(Rcolor)+"R1 = " + WriteVal(R1,digits)+", "+
+EncodeColor(Rcolor)+"R2 = " + WriteVal(R2,digits)+", "+
+EncodeColor(Rcolor)+"R3 = " + WriteVal(R3,digits)+"  ";
+}

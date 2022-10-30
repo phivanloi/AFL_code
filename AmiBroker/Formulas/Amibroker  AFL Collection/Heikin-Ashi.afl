@@ -1,0 +1,8 @@
+_SECTION_BEGIN("Heikin");
+SetChartOptions(0,chartShowDates|chartShowArrows|chartLogarithmic|chartWrapTitle);
+HaClose = (O+H+L+C)/4;
+HaOpen = AMA( Ref( HaClose, -1 ), 0.5 );
+HaHigh = Max( H, Max( HaClose, HaOpen ) );
+HaLow = Min( L, Min( HaClose, HaOpen ) );
+PlotOHLC( HaOpen, HaHigh, HaLow, HaClose, "Modified " + Name(), colorRose, styleCandle );
+_SECTION_END();

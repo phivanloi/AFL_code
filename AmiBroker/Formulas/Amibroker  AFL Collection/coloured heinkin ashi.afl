@@ -1,0 +1,18 @@
+HaC =EMA((O+C+H+L)/4,3); 
+HaO = AMA( Ref( HaC, -1 ), 0.8 ); 
+HaH = Max( H, Max( HaC, HaO ) ); 
+HaL = Min( L, Min( HaC, HaO ) );
+
+e1=EMA(C,21);e2=MA(C,26);
+ehh=e1>e2 ; ell=e1<e2 ;
+ri= (e1+e2)/2;Colri=IIf(ehh,colorBlue,colorRed);
+
+SetBarFillColor(IIf(Hac>Hao,colorBlue,colorRed));
+Colcan=IIf(Hac>ri,colorBlue,colorRed);
+PlotOHLC( HaO, HaH, HaL, HaC, "" + Name(), colcan, styleCandle | styleNoLabel );
+PlotOHLC(e1,e2,e1,e2,"",Colri,styleCloud);
+//Plot(e1,"",colorBlue);
+//Plot(e2,"",colorRed);
+
+//Plot(Ref(PH,1), "UpPivot", ParamColor("UpPivot Color",colorRed), ParamStyle("UpPivot Style", styleDashed));
+//Plot(Ref(PL,1), "DownPivot",ParamColor("DownPivot Color",colorBlue), ParamStyle("DownPivot Style", styleDashed));

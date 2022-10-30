@@ -1,0 +1,4 @@
+fa = 2;
+sa=10;
+Buy   = Cross( EMA(C, fa), EMA(C,sa) );
+Sell  = Cross( EMA(C, sa), EMA(C, fa));

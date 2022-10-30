@@ -1,0 +1,30 @@
+//BB trading by Dimaz
+//rev 0.1 outlines
+
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 100, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), Color, Style ); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), Color, Style ); 
+DisplayBBColor=ParamToggle("Display BB Color","No,Yes",1);
+ColorBB=ParamColor("BB color",ColorRGB(236,236,236));
+if (DisplayBBColor==1) PlotOHLC(Null,BBandTop( P, Periods, Width ),BBandBot( P, Periods, Width ),Null,"",ColorBB,styleCloud+styleNoLabel);
+_SECTION_END();
+
+_SECTION_BEGIN("BB Trading by Dimaz");
+Sell=Cross(BBandTop( P, Periods, Width ),P);
+Buy=Cross(P,BBandBot( P, Periods, Width ));
+displayArrow=ParamToggle("Display Arrow","No|Yes",1);
+if (displayArrow==1) PlotShapes(IIf(Sell, shapeHollowDownArrow , shapeNone), colorRed, 0, Low, Offset=-50);
+if (displayArrow==1) PlotShapes(IIf(Buy, shapeHollowUpArrow , shapeNone), colorRed, 0, Low, Offset=-50);
+_SECTION_END();

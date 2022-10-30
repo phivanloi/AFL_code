@@ -1,0 +1,12 @@
+PlotForeign("ranbaxy","ranbaxy",colorRed,styleCandle | styleOwnScale);
+
+_SECTION_BEGIN("Price chart with independent style");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +
+WriteVal( V, 1.0 ) +
+" {{VALUES}}", 
+O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+
+Plot( C, "Close", ParamColor("Color", colorBlack ), 
+ParamStyle("Style",styleNoTitle|styleCandle,maskAll) );
+_SECTION_END();

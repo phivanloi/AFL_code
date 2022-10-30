@@ -1,0 +1,28 @@
+smap = Param("SMA Length", 9,5,20,1);
+WMAp = Param("WMA Length", 45,9,75,1);
+rpds = Param("RSI Length", 14,3,50,1);
+
+/*
+smap = Optimize("SMA Length", 9,5,20,1);
+WMAp = Optimize("WMA Length", 45,9,75,1);
+rpds = Optimize("RSI Length", 14,3,50,1);
+*/
+
+p1 = MA( C, smap); //9-period on price (MA)
+p2 = WMA( C, WMAp); //45-period on price (WMA)
+
+r1 = MA( RSI(rpds), smap); //9-period on RSI (MA)
+r2 = WMA( RSI(rpds), WMAp); //45-Period on RSI (WMA)
+
+up = p1 > p2 AND r1 > r2; //trend is up
+dn = p1 < p2 AND r1 < r2; //trend is down
+sup = p1 > p2 AND r1 < r2; //trend is sideways to up
+sdn = p1 < p2 AND r1 > r2; //trend is sideways to down
+
+Color = IIf(up, colorLime, IIf(dn, colorRed, IIf(sup, colorLightBlue, IIf(sdn, colorOrange, 0))));
+
+Plot(RSI(rpds), "RSI("+rpds+")",Color, styleThick);
+Plot(r1, "", colorLightYellow, styleThick | styleDashed );
+Plot(r2, "", colorTan);
+PlotGrid(30, colorLightGrey);
+PlotGrid(70, colorLightGrey);

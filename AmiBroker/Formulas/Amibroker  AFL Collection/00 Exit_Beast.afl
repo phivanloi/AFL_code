@@ -1,0 +1,27 @@
+_SECTION_BEGIN("%BB7-1");
+p=7;
+x=((C+2*StDev(C,p)-MA(C,p))/(4*StDev(C,p)))*100;
+BBColor = IIf( x < 40, colorRed, IIf( x > 40, colorWhite, colorYellow));
+Plot( 60, "", BBColor, styleArea|styleOwnScale|styleNoLabel, 0, 100); //60
+//Plot( 101,"",colorBlack,styleOwnScale|styleArea|styleNoLabel,0, 100 );
+_SECTION_END();
+
+_SECTION_BEGIN("CCI9-2");
+CCIColor = IIf( CCI(8) < 0, colorRed, IIf( CCI(9) > 0, colorWhite, colorBrightGreen));
+Plot( 80, "", CCIColor, styleArea|styleOwnScale|styleNoLabel, 0, 100);
+//Plot( 81,"",colorBlack,styleOwnScale|styleArea|styleNoLabel,0, 100 );
+_SECTION_END();
+
+_SECTION_BEGIN("Exit_Beast-3");
+
+EntrylookbackPeriod = Param("Lookback period", 9, 1, 30);
+EntryATRperiod = Param("ATR Percent", 1.9, 0, 10);
+
+EntrySignal = C > ( LLV( L, EntrylookbackPeriod ) + EntryATRperiod * ATR( 10 ) );
+ExitSignal = C < ( HHV( H, 20 ) - 1.5 * ATR( 10 ) );
+Color = IIf( EntrySignal, colorWhite, IIf( ExitSignal, colorRed, colorBlue ));
+
+Plot( 100, "", Color, styleArea|styleOwnScale|styleNoLabel, 0, 100); //100
+
+_N(Title="");
+_SECTION_END();

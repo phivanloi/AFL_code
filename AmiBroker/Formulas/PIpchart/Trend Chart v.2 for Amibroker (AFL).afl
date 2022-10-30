@@ -1,0 +1,72 @@
+//------------------------------------------------------------------------------
+//  Formula Name	:      Trend Chart v.2 for Amibroker afl by pipschart
+//  Author	:      KrT group
+//  Uploader	:      www.pipschart.com
+//  E-mail		:      info@pipschart.com
+//  Amibroker Blog	:      www.pipschart.com/amibroker
+//  Origin		:      Modified & Collected from different sources.
+//------------------------------------------------------------------------------
+
+_SECTION_BEGIN("KrT group");
+GfxSetBkMode(1);
+X=750;
+Y=1;
+Font=10;
+GfxSelectFont("Impact",Font*2.2, 550);GfxSetTextColor(colorRed);GfxTextOut("KrT group",x,y);
+GfxSelectFont("Impact",Font*2.2, 550);GfxSetTextColor(colorGreen);GfxTextOut("RESEARCH",x+120,Y);
+
+_SECTION_END();
+
+//------------------------------------------------------------------------------
+
+
+//Candles or bars colored by trend
+//identifying trends with EMA and MACD
+
+
+Period = Optimize("Period", 17, 2, 200, 1);
+EMACALC = EMA(C, Period);
+
+cond1 = Close > EMACALC AND MACD() > Signal();
+cond2 = Close > EMACALC AND MACD() < Signal() OR Close < EMACALC AND MACD() > Signal();
+cond3 = Close < EMACALC AND MACD() < Signal();
+ 
+ 
+ 
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+SetBarFillColor(IIf(Cond1,ParamColor("Candle UP Color", colorGreen),IIf(Cond3,ParamColor("Candle Down Color", colorRed),colorYellow)));
+ Plot(C,"\nPrice",IIf(cond1,ParamColor("Wick UP Color", colorDarkGreen),IIf(cond3,ParamColor("Wick Down Color", colorDarkRed),colorYellow)),64,0,0,0,0);
+//Plot( C, "Close", ParamColor("Color", colorgreen ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+
+//============== TITLE ==============
+_SECTION_BEGIN("Title");
+
+
+
+Title = EncodeColor(colorGold)+ "GRAFICO BASICO" + EncodeColor(colorRose)+" (" +  Name() + ") " + EncodeColor(colorGold)+ Interval(2) + 
+ "  " + Date() +" " +" •  Open "+WriteVal(O,1.20)+"  •  "+"High "+WriteVal(H,1.20)+"  •  "+"Low "+WriteVal(L,1.20)+"  •  "+
+"Close "+WriteVal(C,1.20)+"  • Variação R$ = " +WriteVal(C-Ref(C,-1),1.20,0)+"  • Variação % = " +WriteVal((C-Ref(C,-1))*100/Ref(C,-1),1.2)+ "%  •  Volume = "+ WriteVal(V,1.0);
+
+ 
+
+upbar = COND1;
+downbar = COND3;
+ 
+/* Colourized price bars drawn here */
+Graph0 = Close;
+Graph0Style = 64;//number 64 = candlestick or 128 = bar;
+ 
+barcolor = IIf( downbar, 4, IIf( upbar, 5, 42 ) );//number 4 = red, number 5 = green and number 42 = yellow;
+Graph0BarColor = ValueWhen( barcolor != 0, barcolor );
+
+ 
+ _SECTION_END();
+ 
+ Plot(EMACALC, "EMACALC", colorWhite, styleLine,0,0,0,0,2);
+
+
+

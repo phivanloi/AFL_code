@@ -1,0 +1,12 @@
+_SECTION_BEGIN("Loc CK");
+Buy = Cross(EMA(C,12),EMA(C,26))
+AND RSI(14) > 60
+AND MACD(12,26) >0;
+
+Filter = Buy;
+
+AddColumn(C,"Close Price");
+AddColumn(V,"Volume today");
+AddColumn(MA(V,20),"Vol TB 20 phien");
+AddColumn(RSI(14),"RSI");
+AddColumn(MACD(12,26),"MACD");

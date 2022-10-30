@@ -1,0 +1,65 @@
+// Downloaded From https://www.WiseStockTrader.com
+//---------- Heikin Ashi Easy System
+//Based on the System by Mark Douglas
+//AFL by Felippe Miranda
+
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+_SECTION_END();
+
+
+_SECTION_BEGIN("Heikin Ashi ");
+
+HaClose = (O+H+L+C)/4; 
+HaOpen = AMA( Ref( HaClose, -1 ), .30); 
+HaHigh = Max( H, Max( HaClose, HaOpen ) ); 
+HaLow = Min( L, Min( HaClose, HaOpen ) ); 
+barcolor = IIf(HaClose >= HaOpen,colorGreen,colorRed);
+PlotOHLC( HaOpen, HaHigh, HaLow, HaClose, "", barcolor, styleCandle );
+// Plot PAC 
+PacUP=(MA(HaHigh,5));
+PacDW=(MA(HaLow,5));
+Plot(PacUP, "",colorOrange, styleLine | styleThick);
+Plot(PacDW, "",colorOrange, styleLine | styleThick);
+_SECTION_END();
+// -- Plot basic candle chart
+PlotOHLC(Open, High, Low, Close,"C ", colorYellow, styleLine | styleThick);
+GraphXSpace = 7;
+_SECTION_END();
+
+_SECTION_BEGIN("SAR");
+acc = Param("Acceleration", 0.02, 0, 1, 0.001 );
+accm = Param("Max. acceleration", 0.2, 0, 1, 0.001 );
+Plot( SAR( acc, accm ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style", styleDots | styleNoLine, maskDefault | styleDots | styleNoLine ) );
+_SECTION_END();
+
+	
+//Plot the following formula on the second pane
+
+_SECTION_BEGIN("HaRSI");
+Plot(32," ", colorRed,styleLine|styleThick);
+Plot(50," ", colorGreen,styleLine|styleThick);
+Plot(68," ", colorRed,styleLine|styleThick);
+a = DEMA(RSI(13),2);
+Plot(a, "HaRSIPL - RSI Price Line", colorGreen, styleThick); 
+_SECTION_END();
+
+
+//Plot the following formula on the third pane 
+_SECTION_BEGIN("Dynamic Traders Index");
+a = DEMA(RSI(13),2);
+b = MA(a,7);
+bh = DEMA(a,34)+2*(StDev(a,34));
+bl = DEMA(a,34)-2*(StDev(a,34));
+bm = (bh+bl)/2;
+
+Plot(a, "TDI - Traders Dynamic Index ", colorGreen, styleThick); 
+Plot(b,"TSL", colorRed, styleThick);
+
+Plot( bh , "", colorBlue, styleThick);
+Plot( bl , "", colorBlue, styleThick);
+Plot( bm , "", colorYellow, styleThick);
+_SECTION_END()
+//The rules are described on the Mark Douglas work “Why The Easy System ?” 

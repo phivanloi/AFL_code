@@ -1,0 +1,29 @@
+_SECTION_BEGIN("B");
+
+// MACD indicator,
+//MODIFIED=CASONI
+
+
+PeriodFast = Param( "Fast EMA", 12, 2, 200, 1 );
+PeriodSlow = Param( "Slow EMA", 26, 2, 200, 1 );
+PeriodSignal = Param( "Signal EMA", 9, 2, 200, 1 );
+MACDInd = MACD(PeriodFast, PeriodSlow );
+SigInd = Signal(PeriodFast, PeriodSlow , PeriodSignal );
+HistInd = MACDInd - SigInd ;
+_N( macdStr = WriteVal( PeriodFast, 1.0 )+","+WriteVal( PeriodSlow , 1.0 ) );
+_N( sigStr = macdStr + ","+WriteVal( PeriodSignal , 1.0 ) );
+Plot( MACDInd, "MACD", colorBrightGreen);
+Plot( SigInd , "SIGNAL", colorRed);
+Buy=  MACDIND > SigIND;
+Sell= MACDIND < SigIND;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); 
+PlotShapes( shapeHollowUpArrow* Buy , colorBrightGreen ,0);
+PlotShapes( shapeHollowDownArrow* Sell, colorRed ,0);
+Plot(0,"",colorDarkBlue,styleLine);
+
+Filter = Buy OR Sell;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); 
+AddTextColumn(FullName(),"Name");
+AddColumn( Buy, "BUY" );
+AddColumn( Sell, "SELL" );
+_SECTION_END();

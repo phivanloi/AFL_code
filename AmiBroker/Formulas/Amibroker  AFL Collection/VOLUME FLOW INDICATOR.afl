@@ -1,0 +1,64 @@
+// You can choose from one of the following types of tests
+// 1 - VFI level (weekly)
+// 2 - Divergence
+// 3 - Break from base
+// 4 - MA crossover
+TestType = Param("TestType", 1, 1, 4, 1 );
+function VFI( Period, VCoef )
+{
+ Coef = 0.2;
+ inter = log( Avg ) - log( Ref( Avg, -1 ) );
+ Vinter = StDev(inter, 30 );
+ Cutoff = Coef * Vinter * Close;
+ Vave = Ref( MA( V, Period ), -1 );
+ Vmax = Vave * Vcoef;
+ Vc = Min( V, VMax );
+ MF = Avg - Ref( Avg, -1 );
+ VCP = IIf( MF > Cutoff, VC, IIf ( MF < -Cutoff, -VC, 0 ) );
+ VFIv = Sum( VCP , Period )/Vave;
+ VFIv = EMA( VFIv, 3 );
+ return VFIv;
+}
+// use 26 weeks for test 1, and 130 days otherwise
+Period = IIf( TestType == 1, 26, 130 );
+VCoef = 2.5;
+VF = VFI( Period, VCoef );
+if( TestType == 1 )
+{
+ // VFI level (weekly)
+ Buy = EMA( VF, 7 ) > 0.01;
+ Sell = EMA( VF, 7 ) < 0;
+}
+if( TestType == 2 )
+{
+ // VFI divergence
+ D1 = 120; //Optimize( "DivDays", 120, 50, 300, 1 );
+ P1 = VF + abs( Lowest( VF ) ) + 10;
+ LRSI = LinRegSlope( P1, D1 ) / abs( Ref( P1, -D1 ) ) * 100;
+ LRS = LinRegSlope( C, D1 ) / abs( Ref( C, -D1 ) ) * 100;
+ DIVERG = LRSI - LRS;
+ DIVERG = EMA( DIVERG, 3 ) * 100;
+ Buy = Ref( Diverg, -1 ) > 100 AND Diverg < Ref( Diverg, -1 ) AND LRSI > 0;
+ Sell = Diverg < 0 OR LRSI < 0;
+}
+if( TestType == 3 )
+{
+ // VFI break from base
+ Buy = VF > -2 AND LinRegSlope( VF, 20 ) > 0.1 AND
+       VF > EMA( VF, 40 ) AND
+       LinRegSlope( C, 30 ) < Ref( C, -30 ) * 0.6 / 100 AND
+       LinRegSlope( C, 30 ) > 0;
+ Sell = VF < -2 OR LinRegSlope( VF, 20 ) < -0.8;
+}
+if( TestType == 4 )
+{
+ // VFI MA crossover
+ SMA = EMA( VF, Optimize("SMA", 11, 2, 20, 1 ) );
+ LMA = EMA( VF, Optimize("LMA", 25, 10, 40, 1 ) );
+ Buy = Cross( SMA, LMA );
+ Sell = Cross( LMA, SMA );
+}
+// Position sizing
+// uncomment 2 lines below to invest max 20% to single security
+// PositionSize = -20;
+// SetOption("MaxOpenPositions", 5 );

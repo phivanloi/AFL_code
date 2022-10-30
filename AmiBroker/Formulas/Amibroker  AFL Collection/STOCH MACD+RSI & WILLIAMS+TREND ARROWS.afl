@@ -1,0 +1,65 @@
+_SECTION_BEGIN("STOCHRSI3");
+/* CCT StochRSI
+**
+** Originally developed by Steve Karnish 
+** http://www.cedarcreektrading.com
+**
+** AFL translation by Tomasz Janeczko
+**
+** Set scaling: Custom 0..100
+** Grid: 30/70
+*/
+
+period = 13;
+Graph0=100*( ( RSI( period ) - LLV( RSI( period ) , period ) ) / ( ( HHV( RSI(
+period ) , period ) ) - LLV(RSI( period ), period ) ) );
+
+/* Fix by James Sutter 1/26/04
+** EMA 3 added according to CCT formula page.
+** RSI period set to 8.
+** New indicator settings
+** Use grid lines: "+10/90"
+** Use "Limits", AND "Show Dates".
+** To make custom grid lines for
+** each stock add horizontal drawing
+** lines to graphs as needed.
+*/
+
+period = 24;
+Graph0=100*EMA(( ( RSI( period ) - LLV( RSI( period ) , period ) ) / ( ( HHV( RSI( period ) , period ) ) - LLV(RSI( period ), period ) ) ), 3 );
+
+UpperLine = 90;
+LowerLine = 10;
+
+r = RSI(24);
+StoRSI = EMA(( r - LLV( r, 24 )) / (( HHV( r, 24 )) - LLV( r, 24 )), 3 ) * 100;
+Plot( StoRSI , "StoRSI", colorBlack, styleThick);
+GraphXSpace = 2;
+_SECTION_END();
+
+_SECTION_BEGIN("StochMACD");
+StochMACD=100*(MACD()-LLV(MACD(),14))/(HHV(MACD(),14)-LLV(MACD(),14));
+Plot(StochMACD,"StochMACD",colorBrightGreen,styleThick);
+Plot(90,"",colorRed,styleLine);
+Plot(50,"",colorYellow,styleDashed);
+Plot(10,"",colorRed,styleLine);
+
+_SECTION_END();
+
+_SECTION_BEGIN("William's +");
+R = ((HHV(H,14) - C) /(HHV (H,14) -LLV (L,14))) *-100;
+Plot(R, "Williams %R", colorYellow, styleThick,styleOwnScale);
+Plot(-10,"",colorRed,styleLine);
+Plot(-90,"",colorRed,styleLine);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Trend arrow");
+n= Param("No. of Bars",3,2,8,1);
+TrendUp = H > Ref(HHV(H,n),-1);
+TrendDn = L < Ref(LLV(L,n),-1);
+TrendUp = ExRem(TrendUp,TrendDn);
+TrendDn = ExRem(TrendDn,TrendUp);
+PlotShapes(TrendUp*shapeUpArrow,colorWhite);
+PlotShapes(TrendDn*shapeDownArrow,colorBlack);
+_SECTION_END();

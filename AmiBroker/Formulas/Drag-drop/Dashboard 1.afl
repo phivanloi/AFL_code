@@ -1,0 +1,155 @@
+// Downloaded From https://www.WiseStockTrader.com
+///////////////////BY TRAN VAN KHAI - CODE EDIT AND COLLECT FROM INTERNET - 20201104/////////////////////
+// Collected From https://www.WiseStockTrader.com
+// Collected From Drawing code & ASK & BID PRICE functions
+// AND OTHER SOURCES
+////////////////////////////////////////////////
+BDboard = ParamToggle( "Bid Vs Ask Board", "Show|Hide", 1 );
+
+Yhor=Param("Horizontal Position",1,0.001,1,0.001);
+Yver=Param("Vertical Position",0, -15, 100, 1);
+//Yfont5 = Param("Font Size",0,-0.01,1,0.001);
+
+
+Yx1 = Status("pxchartleft") ;  // left side of chart
+Yy1 = Status("pxcharttop"); // top side of chart
+Yx2 = Status("pxchartright"); // right side of chart
+Yy2 = Status("pxchartbottom"); // bottom side ofthe chart
+Yx3 = Status("pxchartwidth"); // boarder type size
+Yy3 = Status("pxchartwidth"); // boarder type size
+
+// Downloaded From https://www.WiseStockTrader.com
+_SECTION_BEGIN( "Bid Vs Ask Dashboard" );
+TextHighlight = ParamToggle( "Text Highlight", "No|Yes", 1 );
+HighlightTime = Param( "Text highlight (sec.)", 3, 1, 20, 1 );
+HighlightColor = ParamColor( "Highlight color", colorRose );
+ChartID = GetChartID();
+Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+	//StaticVarSet("0PriceSave" + Name(), 0);
+    //Voltemp = StaticVarSet("0VolumeSave" + Name(),0);  
+CellHeight = 20;
+CellWidth = 100;
+function PrintInCell( string, row, Col, Color ) 
+{
+//RandomColor = ColorHSB( mtRandom() * 255, 255, 255 );
+//Color =  RandomColor;
+
+ GfxSelectSolidBrush(Color);
+ GfxRectangle( Col * CellWidth, 
+                    row * CellHeight, (Col + 1 ) * CellWidth + 1, 
+                    (row + 1 ) * CellHeight  + 1); 
+ GfxDrawText( string, Col * CellWidth + 1, 
+                    row * CellHeight + 1, 
+                    (Col + 1 ) * CellWidth, (row + 1 ) * CellHeight, 32+5 ); 
+} 
+
+if( BDboard == 1 )
+{
+    Bid = GetRTData( "BidSize" ); //IIf((H==L),0,V*(C-L)/(H-L));
+    BidPrice = GetRTData( "Bid" );
+    Ask = GetRTData( "AskSize" ); //IIf((H==L),0,V*(H-C)/(H-L));
+    AskPrice = GetRTData( "Ask" );
+    LastPrice = GetRTData( "Last" );
+    LastTradeVolume = GetRTData( "TradeVolume" );
+    
+    
+    Pricetemp = StaticVarGet("0PriceSave" + Name());  
+    Voltemp = StaticVarGet("0VolumeSave" + Name());  
+    
+    PerformanceCounterBefore = Nz( StaticVarGet( "PerformanceCounterBefore" + ChartID ) );
+    PerformanceCounterNow = GetPerformanceCounter() / 1000;
+    ElapsedSeconds =  PerformanceCounterNow - PerformanceCounterBefore;
+    //ExtraHighlight = 0;
+
+
+Colorhead =  ColorRGB(42,42,42);
+Color = colorGrey40;
+Ttl_col=int(Yx3/CellWidth);
+Ttl_row=int(Yy3/CellHeight);
+    
+    row = Param( "row", 0, 0, Ttl_row, 1 );
+    col = Param( "col", 0, 0,Ttl_col, 1 );
+
+GfxSetOverlayMode( 0 );
+GfxSelectFont( "Tahoma", 8.5 ); 
+GfxSetBkMode( 1 );
+
+if (TextHighlight AND (Pricetemp != LastPrice OR Voltemp != LastTradeVolume))
+    {
+        StaticVarSet( "PerformanceCounterBefore" + ChartID, PerformanceCounterNow );
+        PerformanceCounterNow = GetPerformanceCounter() / 1000;
+        ElapsedSeconds =  PerformanceCounterNow - PerformanceCounterBefore;
+           
+if (Pricetemp < LastPrice)
+GfxSetTextColor(colorGreen);
+else 
+if (Pricetemp > LastPrice)
+GfxSetTextColor(colorRed);
+else 
+GfxSetTextColor(colorOrange);
+
+}
+
+if( TextHighlight AND ElapsedSeconds <= HighlightTime) 
+{
+Color = HighlightColor;
+}
+
+    PrintInCell(  "Bid = " + BidPrice , row+0,col+0,Colorhead );
+	PrintInCell(  "Price", row+0,col+1,Colorhead);
+	PrintInCell(  "Volume", row+0,col+2,Colorhead );
+	PrintInCell(  "Ask = " + AskPrice, row+0,col+3,Colorhead  );
+
+    PrintInCell(  "" + NumToStr(Bid,8.0), row+1,col+0,colorBlue  );
+	PrintInCell(  "" + LastPrice, row+1,col+1,Color );
+	PrintInCell(  "" + LastTradeVolume, row+1,col+2,Color );
+	PrintInCell(  "" + NumToStr(Ask,8.0) , row+1,col+3,colorOrange  );
+
+StaticVarSet("0PriceSave" + Name(), LastPrice);
+StaticVarSet("0VolumeSave" + Name(), LastTradeVolume);
+//GfxSetOverlayMode( 0 );
+}
+
+_SECTION_END();
+
+_SECTION_BEGIN("Price Line Marker");
+ //Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+// the following drawing lines code is adapted from a post found in the AmiBroker Community forum:
+// https://forum.amibroker.com/t/help-with-iif-function-in-a-loop-horizontal-lines-with-labels-how-to-check-if-the-code-is-efficient/7187/10
+// added some logic to draw the lines only till the end of each intraday session
+fvbi = Status( "firstvisiblebarindex" );
+lvbi = Status( "lastvisiblebarindex" );
+pxchr = Status( "pxchartright" );
+LVBI = LastVisibleValue( BarIndex() );
+
+
+i= BarCount - 1;
+Colorm =  colorYellow;
+PriceLevel = ParamField("PriceField", field = 3 ); 
+Spot = EndValue(PriceLevel);
+
+GfxSetOverlayMode( 0 );
+//GfxSetZOrder(-1);
+GfxSelectFont( "Arial narrow", 9, 700, False );
+//RandomColor = ColorHSB( mtRandom() * 255, 255, 255 );
+//Spot = C[i];
+GfxSetCoordsMode( 1 );
+GfxSelectPen( Colorm, 0, 2 );
+GfxSelectSolidBrush( Colorm );
+GfxCircle( i, Spot, -3 );
+GfxMoveTo( i, Spot );
+GfxLineTo( Min( i + 5, lvbi ), Spot );
+
+
+GfxSetCoordsMode( 2 );
+//GfxMoveTo( i, Spot );
+GfxLineTo(Yx2, Spot );
+
+
+    GfxSetCoordsMode( 2 );
+    GfxSetTextColor( Colorm );      
+    GfxTextOut( "" + Spot, pxchr - 50, Spot );
+
+_SECTION_END();
+ 
+ Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 

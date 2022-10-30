@@ -1,0 +1,39 @@
+//DynamicSR 
+ iPeriods = Param("iPeriods",5 ,1, 100,1); 
+
+ DayValue = Day(); 
+ NewDay[0] = 1; 
+
+ for( i = 1; i < BarCount; i++) 
+ { 
+ if (DayValue[i] == DayValue[i-1]) 
+ NewDay[i] = 0; 
+ else 
+ NewDay[i] = 1; 
+ } 
+
+ BarsSinceOpen = BarsSince(NewDay); 
+
+ PeriodToUse = IIf (BarsSinceOpen < iPeriods, BarsSinceOpen + 1, iPeriods); 
+
+ Dynamic_R = HHV(H,PeriodToUse); 
+ Dynamic_S = LLV(L,PeriodToUse); 
+
+ Dynamic_R = IIf(H >= Dynamic_R, H, Dynamic_R); 
+ Dynamic_S = IIf(L <= Dynamic_S ,L,Dynamic_S); 
+ DynamicRange = Dynamic_R - Dynamic_S; 
+ fib1 = Dynamic_S + .24 * DynamicRange; 
+ // fib2 = Dynamic_S + .38 * DynamicRange; 
+ fib3 = Dynamic_S + .50 * DynamicRange; 
+ // fib4 = Dynamic_S + .62 * DynamicRange; 
+ fib5 = Dynamic_S + .76 * DynamicRange; 
+
+Plot(Close,"",IIf(C>=O,colorBrightGreen,colorRed),styleCandle);
+ Plot(Dynamic_R,"DR",colorRed,styleLine,styleThick); 
+ Plot(Dynamic_S,"DS",colorBlue,styleLine,styleThick); 
+
+ Plot(fib1,"Fib1", colorDarkGreen,1|styleLine); 
+ // Plot(fib2,"F2", colorBrown,1|styleDashed); 
+ Plot(fib3,"Fib3", colorGrey40,1|styleLine); 
+ // Plot(fib4,"F4", colorDarkYellow,1|styleDashed); 
+ Plot(fib5,"Fib5", colorDarkGreen,1|styleLine);

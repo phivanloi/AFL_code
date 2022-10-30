@@ -1,0 +1,44 @@
+function SigomPcnt()
+{
+    yom = 100 * ( C - Ref( MA( C, 25 ), 12 ) )/Ref( MA( C, 25 ), 12 );
+    avyom = MA( yom, 50 );
+    varyom = MA( yom ^ 2, 50 ) - avyom ^ 2;
+    som = Ref( sqrt( varyom ), -12 );
+    return MA( som, 25 );
+}
+function UCI( period )
+{
+    period2 = floor( period / 2 ); // divide original period by 2
+    period4 = floor( period / 4 ); // half
+    sigom = SigomPcnt();
+    yme = 100 * ( EMA( C, period4 ) - EMA( C, period2 ))/EMA( C, period2 );
+    ymes = TSF( yme, 6 );
+    return 100 * ymes / sigom;
+}
+function CenteredUCI( period )
+{
+    period2 = floor( period / 2 ); // divide original period by 2
+    period4 = floor( period / 4 ); // half
+    sigom = SigomPcnt();
+    ym = 100 * ( Ref( MA( C, period2 ), period4 ) -
+         Ref( MA( C, period ), period2 ) ) /
+         Ref( MA( C, period ), period2 );
+    return 100 * ym / sigom;
+}
+period = Param("period", 25, 25, 100, 2 );
+IsCentered = ParamToggle("Centered?", "No|Yes");
+grid = IIf( period >= 100, 150, IIf( period >= 50, 100, 50 ) );
+SetChartOptions( 0, 0, 0 );
+if( IsCentered )
+{
+   Plot( x = CenteredUCI( period ), "Centered UCI(" + period + ")",
+         ParamColor("Color", colorRed) );
+}
+else
+{
+   Plot( x = UCI( period ), "UCI(" + period + ")",
+         ParamColor("Color", colorRed) );
+}
+PlotGrid( grid );
+PlotGrid( 0 );
+PlotGrid( -grid );

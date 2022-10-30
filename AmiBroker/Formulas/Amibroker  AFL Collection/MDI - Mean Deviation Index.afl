@@ -1,0 +1,7 @@
+r = Param( "First Smoothing Periods", 32, 1, 100, 1 );
+s = Param( "Second Smoothing Periods", 12, 1, 100, 1 );
+
+MD = EMA(C - EMA(C,r),s);
+
+Plot(MD, "MDI("+r+","+s+")", colorRed);
+PlotGrid(0, colorLightGrey);

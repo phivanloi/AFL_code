@@ -1,0 +1,9 @@
+Filter = H < Ref(H,-1) AND Ref(H,-1) < Ref(H,-2) AND(MA(Close,10)) > (EMA(Close,30)) AND Close > (EMA(Close,30)) AND Close < (MA(Close,10)) AND ADX(10) > 20 AND Close > (MA(Close,200)) AND C>10 AND (MA(Volume,60))>150000;
+
+AddColumn( Close, "Close " );
+AddColumn( Volume, "Volume " );
+AddColumn((MA(Volume, 60)),"Avg Volume");
+
+
+//This is the code which will Explore and find stocks meeting the criteria for the TAZ Swing Trading Method which is explained at http://www.swing-trade-stocks.com 
+

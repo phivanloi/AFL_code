@@ -1,0 +1,3 @@
+fa = EMA(C,13) - EMA(C,144);
+
+Plot( FA, _DEFAULT_NAME(), ParamColor("color", colorCycle ), ParamStyle("Style") );

@@ -1,0 +1,434 @@
+// PIBD DIDIFF Strategy
+// Developed by James Pujals 2005
+// PIBD DIDIFF LE-LX and SE-SX Strategy
+
+//========================================
+// INPUTS
+Periods=10; // number of periods to calculate Directional Movement Indicator
+DiffTriggerBuy = 10; // when ((DiDiff - LowestDiff) >= DiffTriggerBuy) then BUY
+DiffTriggerSell = 10; // when ((HighestDiff - DIDIFF) >= DiffTrigger) then SELL
+DiffTriggerShort = -5; // when (DiDiff <= DiffTriggerShort) then SHORT
+DiffTriggerBuyToCover = -5; // when (DIDIFF >= DiffTriggerBuyToCover) then BUY TO COVER
+TrailingAmountMethod = 2; // 0=disabled,1=TrailingAmountDollar,2=TrailingAmountPercent
+TrailingAmountDollar = 1.00; // The dollar amount subtracted from the close on open and the high thereafter to establish the StopLossPrice
+TrailingAmountPercent = 5.0; // Percentage of the close on open and the high thereafter to establish the StopLossPrice
+TrailingATRMethod = 1; // 0=disabled,1=ATR Variable,2=ATR Fixed
+TrailingATRPeriods = 10; // The number of periods to calculate ATR
+TrailingATRMultiplier = 2; // The number of ATRs used to calculate StopLossPrice
+LookForLongPositions = 1; // 0=false, 1=true
+LookForShortPositions = 0; // 0=false, 1=true
+CloseOnLastBar = 0; // 0=false, 1=true
+
+//========================================
+// VARIABLES
+LowestDiff = 0; // Lowest DiDiff over number of periods
+HighestDiff = 0; // Highest DiDiff over number of periods
+NumTrades = 0; // Number of long and short trades
+NumBarsSinceLastExit = 0; // Number of bars since last trade exit
+NumBarsSinceLastEntry = 0;  // Number of bars since last trade entry
+OpenPosIndex = 0; // Array index of last open position trade
+MarketPosition = 0; // 0=Not in Market, 1=Long, -1=Short, 99=Limit Order
+TotalProfit = 0; // Total accumulation of profit
+TradeProfit = 0; // Current profit for this trade
+MaxTradeProfit = 0; // Maximum Profit reached for this trade
+StopLossPrice = 0; // Stop Loss Price failsafe of when to get out of the trade
+TradesWon = 0; // Number of winning trades
+TradesLost = 0; // Number of losing trades
+ProfitWon = 0; // Total profit from winning trades
+ProfitLost = 0; // Total profit from losing trades
+TempValue = 0; // Temp variable
+TrailingATRValue = 0; // used to hold the ATR * TrailingATRMultiplier value
+StopLossPriceATR = 0; // Stop Loss Price using ATR method
+ATRValues = 0; // temporary variable to hold ATR() values
+
+//========================================
+// INITIALIZATIONS
+// set array values to 0
+for(i=0;i < BarCount;++i)
+{
+	BuyStatus[i] = 0; // 0=closed,1=position opened
+	SellStatus[i] = 0; // 0=open,1=position closed
+
+	LE[i] = 0; // open price
+	LX[i] = 0; // close price
+	LXType[i] = 0; // 0=not sold, 1=DiffTriggerSell, 2=StopLossPrice, 3=StopLossPriceATR, 9=CloseOnLastBar
+
+	SE[i] = 0; // open price
+	SX[i] = 0; // close price
+	SXType[i] = 0; // 0=not sold, 1=DiffTriggerSell, 2=StopLossPrice, 3=StopLossPriceATR, 9=CloseOnLastBar
+
+	MaxTradeProfit[i] = 0; // Max Profit achieved for current trade
+	PosProfit[i] = 0; // Profit made
+}
+
+// Using Directional Movement, compute the True Directional Movement which is the difference between DI Plus and DIMinus
+DIDIFF = PDI(Periods) - MDI(Periods);
+// MovAvg used to see the closing price is in the direction of the trend
+MovAvg = MA(Close,10);
+
+//========================================
+// PROCESS LOOP
+for(i=Periods;i < BarCount;++i)
+{
+	if (MarketPosition == 0)
+	{
+		// if not in the market then look for a position
+
+		// after the first trade increment NumBarsSinceLastExit
+		if (NumTrades > 0) ++NumBarsSinceLastExit;
+
+		//====================
+		// LONG POSITION
+		if (LookForLongPositions == 1)
+		{
+			// init Lowest Diff with last Diff within Periods range
+			LowestDiff = DIDIFF[i-1];
+		
+			if (NumTrades == 0 OR NumBarsSinceLastExit > Periods)
+			{
+				// if no trades have been made yet or NumBarsSinceLastExit > Periods then 
+				// find LowestDiff across Periods range
+				for(n=(i-Periods); n < (i-1); ++n)
+				{
+					if (LowestDiff > DIDIFF[n]) LowestDiff = DIDIFF[n];
+				}
+			}
+			else
+			{
+				// find LowestDiff across NumBarsSinceLastExit range
+				for(n=i-NumBarsSinceLastExit; n < i; ++n)
+				{
+					if (LowestDiff > DIDIFF[n]) LowestDiff = DIDIFF[n];
+				}
+			}
+
+			// has the DiffTriggerBuy been reached and the closing price is in the direction of the trend, if so then open position
+			if ( ( (DIDIFF[i] - LowestDiff) >= DiffTriggerBuy AND Close[i] >= MovAvg[i]) OR (NumTrades == 0 AND DIDIFF[i] > DiffTriggerBuy))
+			{
+				BuyStatus[i] = 1;
+				LE[i] = Close[i];
+				OpenPosIndex = i;
+				++NumTrades;
+				NumBarsSinceLastEntry = 0;
+				MarketPosition = 1; // 1=Long Position
+
+				if (TrailingAmountMethod > 0)
+				{
+					if (TrailingAmountMethod == 1)
+						TempValue = (Close[i] - TrailingAmountDollar);
+					else
+						TempValue = (Close[i] * (1.0 - (TrailingAmountPercent/100.0)));
+
+					StopLossPrice = TempValue;
+				}
+
+				if (TrailingATRMethod > 0)
+				{
+					ATRValues = ATR(TrailingATRPeriods);
+					TrailingATRValue = (ATRValues[i] * TrailingATRMultiplier);
+					StopLossPriceATR = Close[i] - TrailingATRValue;
+				}
+			}
+		}
+
+		//====================
+		// SHORT POSITION
+		if (LookForShortPositions == 1)
+		{
+			// if not in the market then look for a position
+			if (MarketPosition == 0)
+			{
+				// has the DiffTriggerBuy been reached, if so then open position
+				// when DiDiff <= DiffTriggerShort then DIMinus is dominant
+				if ( DIDIFF[i] <= DiffTriggerShort )
+				{
+					BuyStatus[i] = 1;
+					SE[i] = Close[i];
+					OpenPosIndex = i;
+					++NumTrades;
+					NumBarsSinceLastEntry = 0;
+					MarketPosition = -1;
+
+					if (TrailingAmountMethod > 0)
+					{
+						if (TrailingAmountMethod == 1)
+							TempValue = (Close[i] + TrailingAmountDollar);
+						else
+							TempValue = (Close[i] * (1.0 + (TrailingAmountPercent/100.0)));
+
+						StopLossPrice = TempValue;
+					}
+	
+					if (TrailingATRMethod > 0)
+					{
+						ATRValues = ATR(TrailingATRPeriods);
+						TrailingATRValue = (ATRValues[i] * TrailingATRMultiplier);
+						StopLossPriceATR = Close[i] + TrailingATRValue;
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		// increment the NumBarsSinceLastEntry
+		++NumBarsSinceLastEntry;
+
+		//====================
+		// LONG POSITION
+		if (LookForLongPositions == 1)
+		{
+			if (MarketPosition == 1)
+			{
+				// calculate current open position TradeProfit
+				TradeProfit = High[i] - LE[OpenPosIndex];
+
+				// recalculate MaxTradeProfit
+				if (MaxTradeProfit[i] < TradeProfit) MaxTradeProfit[i] = TradeProfit;
+
+				// check Close On Last Bar
+				if ((CloseOnLastBar == 1) AND (i == (BarCount-1)) AND (MarketPosition > 0))
+				{
+						LXType[i] = 9; // 9=CloseOnLastBar
+						LX[i] = Close[i];
+						MarketPosition = 0; // 0=Not in Market
+				}
+
+				// check StopLoss - if LowPrice <= StopLossPrice then sell position
+				if (TrailingAmountMethod > 0 AND MarketPosition > 0)
+				{
+					if (Low[i] <= StopLossPrice)
+					{
+						// check for gap down
+						if (High[i] < StopLossPrice) StopLossPrice = Open[i];
+	
+						LXType[i] = 2; // 2=StopLossPrice
+						LX[i] = StopLossPrice;
+						MarketPosition = 0; // 0=Not in Market
+					}
+				}
+
+				if (TrailingATRMethod > 0 AND MarketPosition > 0)
+				{
+					if (Low[i] <= StopLossPriceATR)
+					{
+						// check for gap down
+						if (High[i] < StopLossPriceATR) StopLossPriceATR = Open[i];
+
+						LXType[i] = 3; // 3=StopLossPriceATR
+						LX[i] = StopLossPriceATR;
+						MarketPosition = 0; // 0=Not in Market
+					}
+				}
+
+				// if still in the market after StopLossPrice check then check DiffTriggerSell
+				if (MarketPosition != 0)
+				{
+					// init Highest Diff with last Diff within Periods range
+					HighestDiff = DIDIFF[i-1];
+
+					if (NumBarsSinceLastEntry > Periods)
+					{
+						// if NumBarsSinceLastEntry > Periods then 
+						// find HighestDiff across Periods range
+						for(n=i-Periods; n < i; ++n)
+						{
+							if (HighestDiff < DIDIFF[n]) HighestDiff = DIDIFF[n];
+						}
+					}
+					else
+					{
+						// find LowestDiff across NumBarsSinceLastEntry range
+						for(n=i-NumBarsSinceLastEntry; n < i; ++n)
+						{
+							if (HighestDiff < DIDIFF[n]) HighestDiff = DIDIFF[n];
+						}
+					}
+
+					// has the DiffTriggerSell been reached, if so then sell position
+					if ((HighestDiff - DIDIFF[i]) >= DiffTriggerSell ) 
+					{
+						LXType[i] = 1; // 1=DiffTriggerSell
+						LX[i] = Close[i];
+						MarketPosition = 0; // 0=Not in Market
+					}
+				}
+
+				// position is closed then calc trade stats
+				if (MarketPosition == 0)
+				{
+					// calculate trade stats
+					SellStatus[i] = 1;
+					NumBarsSinceLastExit = 0;
+					PosProfit[i] = LX[i] - LE[OpenPosIndex];
+					TotalProfit = TotalProfit + PosProfit[i];
+					if (PosProfit[i] > 0)
+					{
+						++TradesWon;
+						ProfitWon = ProfitWon + PosProfit[i];
+					}
+					else
+					{
+						++TradesLost;
+						ProfitLost = ProfitLost + PosProfit[i];
+					}
+				}
+				else
+				{
+					if (TrailingAmountMethod > 0)
+					{
+						// if still in the market then recalculate StopLossPrice
+						if (TrailingAmountMethod == 1)
+							TempValue = (High[i] - TrailingAmountDollar);
+						else
+							TempValue = (High[i] * (1.0 - (TrailingAmountPercent/100.0)));
+
+						if ( TempValue > StopLossPrice)
+							StopLossPrice = TempValue;
+					}
+
+					if (TrailingATRMethod > 0)
+					{
+						if (TrailingATRMethod == 1)
+						{
+							ATRValues = ATR(TrailingATRPeriods);
+							TrailingATRValue = (ATRValues[i] * TrailingATRMultiplier);
+						}	
+
+						StopLossPriceATR = High[i] - TrailingATRValue;
+					}
+				}
+			}
+		}
+
+		//====================
+		// SHORT POSITION
+		if (LookForShortPositions == 1)
+		{
+			if (MarketPosition == -1)
+			{
+				// calculate current open position TradeProfit
+				TradeProfit = SE[OpenPosIndex] - Low[i];
+
+				// recalculate MaxTradeProfit
+				if (MaxTradeProfit[i] < TradeProfit) MaxTradeProfit[i] = TradeProfit;
+
+				// check Close On Last Bar
+				if ((CloseOnLastBar == 1) AND (i == (BarCount-1)) AND (MarketPosition > 0))
+				{
+						SXType[i] = 9; // 9=CloseOnLastBar
+						SX[i] = Close[i];
+						MarketPosition = 0; // 0=Not in Market
+				}
+
+				// check StopLoss - if LowPrice <= StopLossPrice then sell position
+				if (TrailingAmountMethod > 0 AND MarketPosition > 0)
+				{
+					if (High[i] >= StopLossPrice)
+					{
+						// check for gap up
+						if (Low[i] > StopLossPrice) StopLossPrice = Open[i];
+	
+						SXType[i] = 2; // 2=StopLossPrice
+						SX[i] = StopLossPrice;
+						MarketPosition = 0;
+					}
+				}
+
+				if (TrailingATRMethod > 0 AND MarketPosition > 0)
+				{
+					if (High[i] >= StopLossPriceATR)
+					{
+						// check for gap down
+						if (Low[i] > StopLossPriceATR) StopLossPriceATR = Open[i];
+
+						SXType[i] = 3; // 3=StopLossPriceATR
+						SX[i] = StopLossPriceATR;
+						MarketPosition = 0;
+					}
+				}
+
+				// if still in the market after StopLossPrice check then check DiffTriggerSell
+				if (MarketPosition != 0)
+				{
+					// has the DiffTriggerBuyToCover been reached, if so then sell position
+					if (DIDIFF[i] >= DiffTriggerBuyToCover ) 
+					{
+						SXType[i] = 1; // 1=DiffTriggerSell
+						SX[i] = Close[i];
+						MarketPosition = 0;
+					}
+				}
+
+				if (MarketPosition == 0)
+				{
+					// calculate trade stats
+					SellStatus[i] = 1;
+					NumBarsSinceLastExit = 0;
+					PosProfit[i] = SE[OpenPosIndex] - SX[i];
+					TotalProfit = TotalProfit + PosProfit[i];
+					if (PosProfit[i] > 0)
+					{
+						++TradesWon;
+						ProfitWon = ProfitWon + PosProfit[i];
+					}
+					else
+					{
+						++TradesLost;
+						ProfitLost = ProfitLost + PosProfit[i];
+					}
+				}
+				else
+				{	
+					if (TrailingAmountMethod > 0)
+					{
+						// if still in the market then recalculate StopLossPrice
+						if (TrailingAmountMethod == 1)
+							TempValue = (Low[i] + TrailingAmountDollar);
+						else
+							TempValue = (Low[i] * (1.0 + (TrailingAmountPercent/100.0)));
+	
+						if ( TempValue > StopLossPrice)
+							StopLossPrice = TempValue;
+					}
+
+					if (TrailingATRMethod > 0)
+					{
+						if (TrailingATRMethod == 1)
+						{
+							ATRValues = ATR(TrailingATRPeriods);
+							TrailingATRValue = (ATRValues[i] * TrailingATRMultiplier);
+						}	
+
+						StopLossPriceATR = Low[i] + TrailingATRValue;
+					}
+				}
+			}
+		}
+	}
+}
+
+//========================================
+// setup Scan and Explorer conditions
+Buy=BuyStatus;
+Sell=SellStatus;
+Filter=Buy OR Sell; 
+
+//========================================
+// Displayed in Explorer Results
+AddColumn(Buy,"BUY");
+AddColumn(Sell,"SELL");
+AddColumn(LE,"LE");
+AddColumn(LX,"LX");
+AddColumn(LXType,"LXType");
+AddColumn(SE,"Short");
+AddColumn(SX,"BuyToCover");
+AddColumn(SXType,"SXType");
+AddColumn(PosProfit,"PosProfit");
+AddColumn(MaxTradeProfit,"MaxTradeProfit");
+AddColumn(NumTrades,"NumTrades");
+AddColumn(TradesWon,"TradesWon");
+AddColumn(TradesLost,"TradesLost");
+AddColumn(TotalProfit,"TotalProfit"); 
+AddColumn(ProfitWon,"ProfitWon");
+AddColumn(ProfitLost,"ProfitLost");

@@ -1,0 +1,20 @@
+e	=	EMA(C,13); 
+ee	=	EMA(EMA(C,13),9);
+color	=	IIf(e > ee, colorBlue, colorRed);
+p	=	Peak(C,2,2);
+t	=	Trough(C,2,2);
+
+Buy	=	e > ee AND C > p; 
+Sell	=	ee > e AND C < t; 
+
+Buy	=ExRem(Buy, Sell);
+Sell=ExRem(Sell, Buy);
+
+Plot(e,  "", color, styleLine);
+Plot(ee, "", color,styleLine);
+Plot(C,"",colorGreen,styleCandle);
+Plot(p, "", colorBlueGrey, styleDashed | styleStaircase);
+Plot(t, "", colorLime, styleDashed | styleStaircase);
+
+PlotShapes(shapeUpArrow*Buy, color, 0, L);
+PlotShapes(shapeDownArrow*Sell, color, 0, H);

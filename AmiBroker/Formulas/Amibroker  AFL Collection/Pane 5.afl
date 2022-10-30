@@ -1,0 +1,14 @@
+_SECTION_BEGIN("MACD");
+SetChartBkColor( ParamColor("background",colorBlack) ); 
+A2 = Param("EMA1",12,200,1,0);
+A3 = Param("EMA2",26,200,1,0);
+
+A1=EMA(C,A2)-EMA(C,A3); 
+BBtop=BBandTop(A1,10,1); 
+BBbot=BBandBot(A1,10,1);
+Color=IIf(a1<0 AND a1>Ref(a1,-1), colorLime,IIf(a1>0 AND a1>Ref(a1,-1),colorBrightGreen,IIf(a1>0 AND a1<Ref(a1,-1),colorCustom16,colorRed)));
+Plot(a1,"MACD",color,styleDots+styleLine);
+Plot(BBtop,"BBtop",colorDarkGreen,styleDashed);
+Plot(BBbot,"BBbot",colorDarkRed,styleDashed);
+Plot(0,"",31,1);
+_SECTION_END();

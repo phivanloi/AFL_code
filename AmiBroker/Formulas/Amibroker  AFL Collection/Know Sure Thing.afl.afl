@@ -1,0 +1,14 @@
+/*
+** Daily, Short term KST 
+** AFL formula by Tomasz Janeczko 
+*/
+
+p1 = MA( ROC(Close,10), 10);
+p2 = MA( ROC( Close, 15), 10 );
+p3 = MA( ROC( Close, 20), 10 ) ;
+p4 = MA( ROC( Close, 30), 15);
+
+kst = p1 + 2 * p2 + 3 * p3 + 4 * p4;
+ 
+Graph0 = kst / 10;
+  

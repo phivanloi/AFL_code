@@ -1,0 +1,76 @@
+/*  STRUT.afl  ---  Don Carlson 3/7/2007
+
+Money can generally be made when the STRUT (blue line) is moving up.
+
+Also, use the STRUT oscillator to determine Market Risk of RUT					
+ X-OverBought..18....2 Std Dev	)  When STRUT reaches 12.3	Start Selling 	
+ Over Bought....9....1 Std Dev	)		
+ Avg Mkt........0	....?.?<<-- Current STRUT	
+ Over Sold.....-9...-1 Std Dev )	When STRUT reaches -13.2  Start Buying	
+ X-OverSold...-18...-2 Std Dev	)		
+
+	
+*/
+
+SetBarsRequired(100000, 100000);
+symb	= ParamStr("Symbol", "") ;
+if (symb != "")	SetForeign(symb);
+
+SetChartBkColor(ParamColor("Outer panel color ",colorLightGrey)); // color of outer border 
+SetChartBkGradientFill( ParamColor("Inner panel color upper half", colorLightGrey),ParamColor("Inner panel color lower half",  colorPaleBlue)); // color of inner panel
+SetChartOptions(0, chartShowDates, chartGridMiddle);
+
+//SetForeign("^RUT");
+
+stoPer 		= 53;
+stoSmooth 		= 49;
+trigger 		= 28;
+
+Low1			= LLV(C,stoPer);
+High1			= HHV(C,stoPer);
+DStoc			= (EMA(100*(Close - Low1)/(High1 - Low1),stoSmooth));
+SignalLine 	=  EMA(DStoc, trigger);
+histogram 	=  Dstoc - SignalLine ;
+Plot(0.00,"",colorBlack,styleLine,styleThick);
+Buy = Histogram > 0.0;
+Sell = Histogram < 0.0;
+Buy = ExRem(Buy, Sell);
+Sell = ExRem(Sell, Buy);
+PlotShapes(Buy*shapeUpArrow+Sell*shapeDownArrow, IIf(Buy, colorBrightGreen, colorRed), 0, Histogram, -15);
+Plot(DStoc - 50, 		"      DSTOCH - 50", 	colorBlue, styleNoLabel);
+Plot(SignalLine-50, 	"      SIGNAL - 50", 	colorRed, 	styleNoLabel);
+
+if(SelectedValue(DStoc-50.0 > 0.0))
+Plot(Histogram ,		"      HISTO", 		colorAqua, 	styleNoLabel|styleHistogram);
+else
+{
+Plot(Histogram ,		"      HISTO", 		colorPink, 	styleNoLabel|styleHistogram);
+}
+
+if(SelectedValue(Histogram > 0.0))
+Title = EncodeColor(colorBlue)+ Name() + " - " + Date() + 
+":   O: "+WriteVal(O, 1.2) + "   H: "+WriteVal(H, 1.2) + "   L: "+WriteVal(L, 1.2)  + "   C: "+WriteVal(C, 1.2) + 
+"\n    General Mkt Signal --- Ruttr --- Stochastic - 53, 49, 28      "+
+"\n    Money can generally be made when the STRUT (blue line) is moving up."+
+			"\n    "+EncodeColor(colorBlue)+"DSTOCH = "+WriteVal(DStoc,1.2)+
+			"    "+EncodeColor(colorRed)+"SIGNAL  = "+WriteVal(SignalLine,1.2)+
+			"    "+EncodeColor(colorBlue)+"HISTOGRAM = "+ WriteVal(Histogram,1.2)+"      ";
+else
+{
+Title = EncodeColor(colorRed) + Name() + " - " + Date() + 
+":   O: "+WriteVal(O, 1.2) + "   H: "+WriteVal(H, 1.2) + "   L: "+WriteVal(L, 1.2)  + "   C: "+WriteVal(C, 1.2) + 
+"\n    General Mkt Signal --- Ruttr --- Stochastic - 53, 49, 28      "+
+"\n    Money can generally be made when the STRUT (blue line) is moving up."+
+			"\n    "+EncodeColor(colorBlue)+"DSTOCH = "+WriteVal(DStoc,1.2)+
+			"    "+EncodeColor(colorRed)+"SIGNAL  = "+WriteVal(SignalLine,1.2)+
+			"    "+EncodeColor(colorRed)+"HISTOGRAM = "+ WriteVal(Histogram,1.2)+"      ";
+}
+
+
+
+GraphXSpace = 5;
+
+Filter = 1;
+
+AddColumn(Close,"Close");
+AddColumn(Histogram,"Histo");

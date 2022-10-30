@@ -1,0 +1,91 @@
+
+ #pragma nocache
+ blankRightBars = 5; //insert actual blank right bars specified in Preferences 
+ barsInView = Status("lastvisiblebarindex") - Status("firstvisiblebarindex") - blankRightBars;
+ Offset = Param("Offset Bar", 0.95, 0, 1, 0.01);
+ textOffset = BarCount - (Offset * barsInView); 
+
+
+ TimeFrameSet( inDaily) ; 
+ HaClose =EMA((O+H+L+C)/4,3); 
+ HaOpen = AMA( Ref( HaClose, -1 ), 0.5 ); 
+ HaHigh = Max( H, Max( HaClose, HaOpen ) ); 
+ HaLow = Min( L, Min( HaClose, HaOpen ) ); 
+ X=Haopen<Ref( Haopen,-1) OR AlmostEqual( Haopen,Ref(Haopen,-1));
+ Color = IIf( Haopen > Haclose, colorRed, IIf( X,7,14));
+ Plot(20,"", Color,styleHistogram|styleOwnScale|styleNoLabel, 0, 100 );
+ Plot( 21,"",colorBlack,styleOwnScale|styleArea|styleNoLabel,0, 100 );
+ PlotText("DAILY TREND", textoffset, 81.05, colorWhite);
+ CondB=Haopen > Haclose;CONDS=Haopen < Haclose;
+ event1=condS;
+ PlotShapes( IIf(event1 ,shapeDigit1,0) ,5, 0,81.0);
+ event2=CondB;
+ PlotShapes( IIf(event2 ,shapeDigit1,0) , 4, 0,81.0);
+
+
+
+ TimeFrameRestore();
+ TimeFrameSet( inWeekly) ;
+ HaClose =EMA((O+H+L+C)/4,3); 
+ HaOpen = AMA( Ref( HaClose, -1 ), 0.5 ); 
+ HaHigh = Max( H, Max( HaClose, HaOpen ) ); 
+ HaLow = Min( L, Min( HaClose, HaOpen ) ); 
+ X=Haopen<Ref( Haopen,-1) OR AlmostEqual( Haopen,Ref(Haopen,-1));
+ Color = IIf( Haopen > Haclose, colorRed, IIf( X,7,14));
+ Plot(40,"", Color, styleHistogram|styleOwnScale|styleNoLabel, 0, 100 );
+ Plot( 41,"",colorBlack,styleOwnScale|styleArea|styleNoLabel,0, 100 );
+ PlotText(" WEEKLY TREND", textoffset, 81.20, colorWhite);
+ CondB1=Haopen > Haclose;CONDS1=Haopen < Haclose;
+ event3=condS1;
+ PlotShapes( IIf(event3 ,shapeDigit2,0) ,5, 0,81.20);
+ event4=CondB1;
+ PlotShapes( IIf(event4 ,shapeDigit2,0) , 4, 0,81.2);
+
+
+ TimeFrameRestore();
+ TimeFrameSet( 10*inDaily) ; 
+ HaClose =EMA((O+H+L+C)/4,3); 
+ HaOpen = AMA( Ref( HaClose, -1 ), 0.5 ); 
+ HaHigh = Max( H, Max( HaClose, HaOpen ) ); 
+ HaLow = Min( L, Min( HaClose, HaOpen ) );
+ X=Haopen<Ref( Haopen,-1) OR AlmostEqual( Haopen,Ref(Haopen,-1));
+ Color2 = IIf( Haopen > Haclose, colorRed, IIf( X,7,14));
+ Plot(60,"", Color2, styleHistogram|styleOwnScale|styleNoLabel, 0, 100 );
+ Plot( 61,"",colorBlack,styleOwnScale|styleArea|styleNoLabel,0, 100 );
+ PlotText("2 WEEK TREND", textoffset, 81.40, colorWhite);
+ CondB2=Haopen > Haclose;CONDS2=Haopen < Haclose;
+ event4=condS2;
+ PlotShapes( IIf(event4 ,shapeDigit3,0) ,5, 0,81.40);
+ event5=CondB2;
+ PlotShapes( IIf(event5 ,shapeDigit3,0) , 4, 0,81.4);
+
+
+ TimeFrameRestore();
+ TimeFrameSet(20*inDaily) ;
+ HaClose =EMA((O+H+L+C)/4,3); 
+ HaOpen = AMA( Ref( HaClose, -1 ), 0.5 ); 
+ HaHigh = Max( H, Max( HaClose, HaOpen ) ); 
+ HaLow = Min( L, Min( HaClose, HaOpen ) );
+ X=Haopen<Ref( Haopen,-1) OR AlmostEqual( Haopen,Ref(Haopen,-1));
+ Color4 = IIf( Haopen > Haclose, colorRed, IIf( X,7,14));
+ Plot(80,"", Color4, styleHistogram|styleOwnScale|styleNoLabel, 0, 100 );
+ Plot( 81,"",colorBlack,styleOwnScale|styleArea|styleNoLabel,0, 100 );
+ PlotText("MONTHLY TREND", textoffset, 81.55, colorWhite);
+ CondB3=Haopen > Haclose;CONDS3=Haopen < Haclose;
+ event6=condS3;
+ PlotShapes( IIf(event6 ,shapeDigit4,0) ,5, 0,81.65);
+ event7=CondB3;
+ PlotShapes( IIf(event7 ,shapeDigit4,0) , 4, 0,81.65);
+
+ TimeFrameRestore();
+ Sell=CondB AND CondB1 AND CondB2 OR Condb3;
+ Buy= CondS AND CondS1 AND CondS2 OR Conds3;
+ //Cover= Cond1 AND Cond2 OR Cond2 AND Cond3 OR Cond1 AND Cond3 ;
+ //Sell= Cond4 AND Cond5 OR Cond5 AND Cond6 OR Cond4 AND Cond6;
+ Buy=ExRem (Buy,Sell);Sell=ExRem(Sell,Buy);
+ PlotShapes(shapeCircle*Buy, colorGreen,0,81.85);
+ PlotShapes(shapeCircle*Sell, colorRed,0,81.85);
+ GraphXSpace = 15; 
+
+ //......................................
+ _SECTION_END();

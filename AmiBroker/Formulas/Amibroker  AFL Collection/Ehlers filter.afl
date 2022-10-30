@@ -1,0 +1,15 @@
+// Calculate normalized Ehlers filter (7-bar)
+C1 = Ref( C, -1 ); C2 = Ref( C, -2 );
+C3 = Ref( C, -3 ); C4 = Ref( C, -4 );
+C5 = Ref( C, -5 ); C6 = Ref( C, -6 );
+Ehlers =
+-0.2632 * C6 - 0.1579 * C5 +
+-0.0526 * C4 + 0.3158 * C3 +
+ 0.5789 * C2 + 0.4737 * C1 +
+ 0.1053 * C;
+// Calculate moving trend 7-bar
+MovTrend7 = LinearReg( Close, 7 );
+// plot moving trend, moving average and price bars
+Plot( Ehlers, "Ehlers", colorBlue, styleThick );
+Plot( MovTrend7, "MovTrend", colorRed, styleThick );
+Plot( Close, "Price", colorBlack, styleBar) ;

@@ -1,0 +1,61 @@
+/* SWING- TRADING*/
+global O, H, L, C;
+	O1 = Ref(O,-1);O2 = Ref(O,-2);
+	H1 = Ref(H,-1);H2 = Ref(H,-2);
+	L1 = Ref(L,-1);L2 = Ref(L,-2);
+	C1 = Ref(C,-1);C2 = Ref(C,-2);
+
+Cond1 = Cross( MACD( 12, 26 ), Signal( 12, 26, 9 ) ) <=3OR MACD( 12, 26 ) > 0.5
+AND ( MACD( 12, 26 )>Signal( 12, 26, 9 ) ) ;
+Cond2 =RSIa( Close, 9 ) > 40  ;
+
+Cond3=Cross( StochK( 14, 3 ), StochD( 14, 3, 3 ) ) OR(StochK( 14, 3 ) > (
+StochD( 14, 3, 3 ) )) OR ( StochK( 14, 3 )>25) ;
+Cond4 = ( Cross( PDI(), MDI() ) ) OR( Cross( PDI(), ADX( 14 ) ) )AND ( PDI()>
+MDI() ) AND ( PDI()> ADX( 14 )) ; 
+
+Cond5=ROC( Close, 10) > 0.5;
+Cond6=  CCIa( Close, 14 ) > 50;
+Cond7= ((C>O) AND
+((C-O)/(.001+H-L)>.6)) OR
+ (C>O AND H==C AND
+O==L) OR
+ (C>O AND
+C==H)OR
+ (C>O AND
+O==L)  OR ((O1>C1) AND
+(C>O) AND (C>= O1) AND (C1>= O) AND ((C-O)>(O1-C1))) OR 
+GapUp()OR ((O1>C1) AND (C>O)
+AND (C<= O1) AND (C1<= O) AND ((C-O)<(O1-C1)))
+OR ((O2>C2)
+AND (C1>O1) AND (C1<= O2) AND (C2<= O1) AND ((C1-O1)<(O2-C2)) AND (C>O) AND
+(C>C1) AND (O>O1))OR 
+ ((C1<O1) AND
+(((O1+C1)/2)<C) AND (O<C) AND (O<C1) AND (C<O1) AND
+((C-O)/(.001+(H-L))>0.6)) ;
+
+
+
+Buy=Cond1 AND Cond2 AND Cond3 AND Cond4 AND Cond5 AND Cond6 AND Cond7;
+
+
+/*
+The MACD crosses below the Signal on or after the previous 3 bars */
+
+Cond10 = ( Cross( Signal( 12, 26, 9 ), MACD( 12, 26 ) ) )OR
+   MACD( 12, 26 ) > Ref( Signal( 12, 26, 9 ) * -2, -1 );
+Cond11=  Cross( StochD( 14, 3, 3 ), StochK( 14, 3 ) );
+/*Cond12=Cross( ADX( 14 ), PDI() )OR  Cross( MDI(), PDI() ) OR Cross( MDI(),
+ADX( 14 ) )OR( (PDI()>MDI()) OR (PDI()>ADX(14)))OR MDI()<ADX( 14 ) >PDI() ;*/
+Cond13 = ROC( Close, 10 ) < 25  AND RSIa( Close, 14 ) < 70 AND  CCIa( Close, 14
+) < 100;
+
+Cond14 =  (O>C AND H==O AND C>L) OR(O>C AND
+(O-C)/(.001+H-L)>.6) OR (O>C AND (H==O AND
+C==L) OR (O>C AND C==L)OR( C>O AND C==H)OR(((H-L)>4*(O-C)) AND
+((H-C)/(.001+H-L)>= 0.75) AND ((H-O)/(.001+H-L))>= 0.75)); 
+
+Sell=Cond10 AND Cond11 AND Cond13/* AND Cond12*/ AND Cond14 ;
+
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ), 0, IIf( Buy, Low, High ));

@@ -1,0 +1,4 @@
+periods = 15;
+mprice = (High + Low)/2;
+Plot(scNLEF(scMp(),periods),"",colorGreen,1);
+Plot(C,"",colorRose,64);

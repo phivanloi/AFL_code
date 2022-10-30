@@ -1,0 +1,4 @@
+mamPeriod = 13;
+mam = 100*(Close/MA(Close, (2*mamPeriod) +1) -1);
+Plot(mam,"MAM-13",colorSkyblue,8);
+Plot(0,"",colorYellow,1);

@@ -1,0 +1,23 @@
+//|------------------------------------------------------------------
+//|Tradingbasis.com - Intraday volatility 
+//|Version:1.3  10-May-2005
+//|Copyright © 2005, Tradingbasis.com
+//|http://www.tradingbasis.com
+//|e-mail: support@tradingbasis.com
+//|------------------------------------------------------------------
+
+pds = Param("Periods",100,2,1000,1);
+IV = ((H/tbMp())-1)*100;//%
+IV_abs= H/tbMp();
+IV_abs_AVG = MA(IV_abs,pds);
+
+Filter = BarIndex()==LastValue(BarIndex()) AND NOT GroupID()==253;
+
+//Filter = MA(V*C,50)>500000 & MA(IV,50)>2 & IV <99;
+AddColumn(C,"Close");
+AddColumn(MA(V,50),"ma(V,50)",1);
+AddColumn(MA(IV,5),"IV 5");
+AddColumn(MA(IV, 10),"IV 10");
+AddColumn(MA(IV, 50),"IV 50");
+AddColumn(MA(IV,100),"IV 100");
+AddTextColumn(FullName(),"Full name");

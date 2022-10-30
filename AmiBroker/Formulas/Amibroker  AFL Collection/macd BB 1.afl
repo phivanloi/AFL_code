@@ -1,0 +1,50 @@
+_SECTION_BEGIN("macd BB");
+
+ 
+A2=MACD(3,34); 
+BBtop=BBandTop(A2,5,.5); 
+BBbot=BBandBot(A2,5,.5);
+Color=IIf(a2 > bbtop, colorBlue,IIf(a2 < bbbot, colorRed,colorYellow));
+bbtop_col = IIf (BBtop > Ref(BBtop,-1),colorBlue,colorRed);
+bbbot_col = IIf (BBbot > Ref(BBbot,-1),colorBlue,colorRed);
+Plot(a2,"",color,styleLine);
+Plot(BBtop,"",BBtop_col,styleDashed);
+Plot(BBbot,"",BBbot_col,styleDashed);
+Plot(0,"",31,1);
+Buy_macd = a2 > bbtop;
+Sell_macd = a2 < bbbot;
+//PlotShapes(Buy*shapeHollowSmallUpTriangle,colorYellow);
+//PlotShapes(Sell*shapeHollowSmallDownTriangle,colorYellow);
+//Plot(6, "", Color, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+_SECTION_END();
+
+_SECTION_BEGIN("RSI BB");
+
+ 
+A1=EMA(RSI(5),21); 
+BBtop=BBandTop(A1,5,.5); 
+BBbot=BBandBot(A1,5,.5);
+Color=IIf(a1 > bbtop, colorBlue,IIf(a1 < bbbot, colorRed,colorYellow));
+bbtop_col = IIf (BBtop > Ref(BBtop,-1),colorBlue,colorRed);
+bbbot_col = IIf (BBbot > Ref(BBbot,-1),colorBlue,colorRed);
+//Plot(a1,"",color,styleLine);
+//Plot(BBtop,"",BBtop_col,styleDashed);
+//Plot(BBbot,"",BBbot_col,styleDashed);
+//Plot(50,"",31,1);
+Buy_rsi = a1 > bbtop;
+Sell_rsi = a1 < bbbot;
+Buy = Buy_rsi AND Buy_macd;
+Sell = Sell_RSI AND Sell_macd;
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+PlotShapes(Buy*shapeHollowSmallUpTriangle,colorYellow);
+PlotShapes(Sell*shapeHollowSmallDownTriangle,colorYellow);
+Plot(6, "", IIf(Buy_macd,colorGreen,IIf(Sell_macd,colorRed,colorYellow)), styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+_SECTION_END();
+
+_SECTION_BEGIN("EMA1");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), colorGreen, ParamStyle("Style") ); 
+_SECTION_END();

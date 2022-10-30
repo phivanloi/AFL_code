@@ -1,0 +1,33 @@
+//============================================candle sticks=======================
+Up_MACD_TRIX = MACD( 3, 11 ) > Signal(3,11,16);
+
+Down_MACD_TRIX =  MACD( 3, 11 ) < Signal(3,11,16);
+
+Colormacd = IIf(Up_MACD_TRIX,colorLime,IIf(Down_MACD_TRIX,colorRed,colorCustom12)); 
+
+
+//PlotOHLC( Open, High, Low, Close, "", Colormacd, styleBar ); 
+
+//PlotOHLC( 1.01*Open, 1.01*High, 1.01*Low, 1.01*Close, "", Colormacd, styleCandle ); 
+PlotOHLC( Open, High, Low, Close, "", Colormacd, styleCandle ); 
+
+/************************************************** **
+Initial Stoploss - lowest "low" of the last n bars
+************************************************** ***/
+lookbackPeriod = Param("Lookback period", 2, 2, 30);
+Plot(LLV(L,lookbackPeriod), "Testing", ParamColor( "Long", colorGrey40));
+
+/************************************************** *****
+Breakeven Stoploss - Open + brokerage% of open
+************************************************** ******/
+brokeragePercentage = Param("Brokerage Percentage", 1, 0.1, 5, 0.1);
+Plot(O + O*(brokeragePercentage/100) , "Testing", ParamColor( "Long", colorYellow ));
+
+/************************************************** **
+Trailing Stoploss - a% below nth highest high
+************************************************** ***/
+lookbackPeriod = Param("Lookback period", 10, 2, 30);
+stoplossPercentage = Param("Stoploss Percentage", 5, 0.2, 10, 0.2);
+
+Plot(HHV(H,lookbackPeriod) - HHV(H,lookbackPeriod) * (stoplossPercentage / 100), "Bullish SL", ParamColor( "Long", colorGrey40));
+Plot(LLV(L,lookbackPeriod) + LLV(L,lookbackPeriod) * (stoplossPercentage / 100), "Bearish SL", ParamColor( "Short", colorGrey40));

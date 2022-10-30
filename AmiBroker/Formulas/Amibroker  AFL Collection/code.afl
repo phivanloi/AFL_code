@@ -1,0 +1,61 @@
+_SECTION_BEGIN("Stochastic_30_MINS");
+periods = Param( "Periods", 8, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 4, 1, 200, 1 );
+Dsmooth = Param( "%D avg", 3, 1, 200, 1 );
+
+TimeFrameSet(in1Minute * 30);
+k30 = StochK( periods , Ksmooth);
+d30 = StochD( periods , Ksmooth, DSmooth );
+TimeFrameRestore();
+
+K = TimeFrameExpand(k30, in1Minute * 30);
+D = TimeFrameExpand(d30, in1Minute * 30);
+
+Hi = IIf(k > d, k, d);
+Lo = IIf(k < d, k, d);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Stochastic %D");
+periods1 = Param( "Periods1", 8, 1, 200, 1 );
+Ksmooth1 = Param( "%K avg", 4, 1, 200, 1 );
+Dsmooth1 = Param( "%D avg", 3, 1, 200, 1 );
+U = StochK( periods1 , Ksmooth1);
+T = StochD( periods1 , Ksmooth1, DSmooth1 );
+
+_SECTION_END();
+
+_SECTION_BEGIN("ema5,13sound");
+x = EMA(Close,5);
+y = EMA(Close,13);
+Plot(EMA(Close,5),"",colorBrightGreen,styleLine);
+Plot(EMA(Close,13),"",colorRed,styleLine);
+XR=(EMA(Close,5) * (2 / 6 - 1) - EMA(Close,13) * (2 / 11 - 1)) / (2 / 6 - 2 / 11);
+Title = Name() + " " + Date()+" " + EncodeColor( colorBlue ) +"THE PRIDE system, (BUY-SELL GREEN ARROW-GREEN CIRCLE), (SHORT-COVER RED ARROW-RED CIRCLE)- When fast Stochastic reverses from it's upward move, curves downwards AND crosses the slow line from above, Sell half of the units.
+if the next bar goes below the Low of the previous bar, exit completely, otherwise keep a tight trailing stoploss AND enjoy the continuing bull market" +EncodeColor( colorRed )
++ " O " + O + " H " + H + " L " + L + " C "+ C + "\n";
+Plot(C,"SIMPLE TRADING SYSTEM",IIf(C>Ref(C,-1),colorLime,colorOrange),styleCandle);
+Buy=((K > D) AND (U > T) AND (U < 75 AND T < 75) AND (x>=y));
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorBrightGreen, 0,L, Offset=-15);
+Sell=Cross(T,U) OR (T>=U);
+PlotShapes(IIf(Sell, shapeHollowSmallCircle, shapeNone),colorBrightGreen, 0,H, Offset=30);
+Short=((D > K) AND (T > U) AND (U > 25 AND T > 25) AND (y>=x));
+PlotShapes(IIf(Short, shapeDownArrow, shapeNone),colorRed, 0,H, Offset=-15);
+Cover=Cross(U,T) OR (T<=U);
+PlotShapes(IIf(Cover, shapeHollowSmallCircle, shapeNone),colorRed, 0,L, Offset=-30);
+AlertIf( Buy, "SOUND C:\\Windows\\Media\\Windows XP Startup.wav", "Audio alert", 2 );
+AlertIf( Short, "SOUND C:\\Windows\\Media\\Ringin.wav", "Audio alert", 2 );
+AlertIf( Cover, "SOUND C:\\Windows\\Media\\Windows XP Startup.wav", "Audio alert", 2 );
+AlertIf( Sell, "SOUND C:\\Windows\\Media\\Ringin.wav", "Audio alert", 2 );
+
+_SECTION_END();
+
+_SECTION_BEGIN("Stochastic %D");
+periods = Param( "Periods", 8, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 4, 1, 200, 1 );
+Dsmooth = Param( "%D avg", 3, 1, 200, 1 );
+Plot( StochD( periods , Ksmooth, DSmooth ),"",colorRed,styleLine);
+Plot( StochK( periods , Ksmooth),"",colorBrightGreen,styleLine);
+
+
+_SECTION_END();

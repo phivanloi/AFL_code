@@ -1,0 +1,11 @@
+function Correl( x, y, number )
+{
+nom= MA( x * y, number ) - MA( x, number ) * MA( y, number );
+denom = sqrt( MA( x ^ 2, number ) - MA( x, number ) ^ 2 ) *
+sqrt( MA( y ^ 2, number ) - MA( y, number ) ^ 2 );
+return nom/denom;
+}
+
+Graph0=Correlation( C, Ref( H, -2 ), 10 ); // built-in
+
+Graph1=Correl( C, Ref( H, -2 ), 10 ); // re-coded;

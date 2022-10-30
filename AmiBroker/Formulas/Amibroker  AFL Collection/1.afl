@@ -1,0 +1,80 @@
+_SECTION_BEGIN("1");
+//---- heikin ashi
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+HaClose = (O+H+L+C)/4; 
+HaOpen = AMA( Ref( HaClose, -1 ), 0.5 ); 
+HaHigh = Max( H, Max( HaClose, HaOpen ) ); 
+HaLow = Min( L, Min( HaClose, HaOpen ) ); 
+barcolor = IIf(HaClose >= HaOpen,colorGreen,colorRed);
+PlotOHLC( HaOpen, HaHigh, HaLow, HaClose, "", barcolor, styleCandle ); 
+
+H1 = TimeFrameGetPrice("H", inDaily, -1);		// yesterdays high
+L1 = TimeFrameGetPrice("L", inDaily, -1);		//				low
+C1= TimeFrameGetPrice("C", inDaily, -1);		//				close
+DayO = TimeFrameGetPrice("O", inDaily);			// current day open
+
+
+// PIVOT Calculation
+P = ( H1+ L1 + C1 )/3;
+S1 = (2*P)-H1;
+R1 = (2*P)-L1;
+S2 = P -(H1 - L1);
+S3 = S1 - (H1-L1); 
+R2 = P +(H1 - L1);
+R3 = R1 +(H1-L1);
+
+// PIVOT mid points
+MIDR1 = (P+R1)/2;
+MIDR2 = (R1+R2)/2;
+MIDR3 = (R2+R3)/2;
+MIDS1 = (P+S1)/2;
+MIDS2 = (S1+S2)/2;
+MIDS3 = (S2+S3)/2;
+
+
+Plot(R1, "",colorRed,styleLine+styleNoLabel);
+Plot(R2, "",colorRed,styleLine+styleNoLabel);
+Plot(R3, "",colorRed,styleLine+styleNoLabel);
+
+Plot(P, "",colorYellow,styleLine+styleNoLabel);
+
+Plot(S1, "",colorDarkBlue,styleLine+styleNoLabel);
+Plot(S2, "",colorDarkBlue,styleLine+styleNoLabel);
+Plot(S3, "",colorDarkBlue,styleLine+styleNoLabel);
+
+Plot(MIDR1, "",colorRed,styleDashed+styleNoLabel);
+Plot(MIDR2, "",colorRed,styleDashed+styleNoLabel);
+Plot(MIDR3, "",colorRed,styleDashed+styleNoLabel);
+
+Plot(MIDS1, "",colorBlue,styleDashed+styleNoLabel);
+Plot(MIDS2, "",colorBlue,styleDashed+styleNoLabel);
+Plot(MIDS3, "",colorBlue,styleDashed+styleNoLabel);
+
+Plot(H1, "",colorBlue,styleDots+styleNoLabel);
+Plot(L1, "",colorRed,styleDots+styleNoLabel);
+Plot(C1, "",colorBlack,styleDots+styleNoLabel);
+
+// text section
+
+"HIGH /LOW /CLOSE = " +H +" / "+ L+" / "+ C +"\n";
+"H1 /L1 /C1 = " +H1 +" / "+ L1+" / "+ C1 +"\n";
+
+"R3 = " +R3;
+"midr3 = " +MIDR3;
+"R2 = " +R2;
+"midr2 = " +MIDR2;
+"R1 = " +R1;
+"midr1 = " +MIDR1;
+"*************";
+"p = " +p;
+"*************";
+"mids1 = " +MIDS1;
+"S1 = " +S1;
+"mids2 = " +MIDS2;
+"S2 = " +S2;
+"mids3 = " +MIDS3;
+"S3 = " +S3;
+
+
+
+_SECTION_END();

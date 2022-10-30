@@ -1,0 +1,8 @@
+setupb = IIf(Ref(C,-1)<Ref(EMA(C,55),-1) AND C>EMA(C,55),1,0);
+setups = IIf(Ref(C,-1)>Ref(EMA(C,55),-1) AND C<EMA(C,55),1,0);
+
+Buy = Ref(setupb,-1) > 0 AND C > EMA(C,55);
+Sell = Ref(setups,-1) > 0 AND C < EMA(C,55);
+
+Plot(C,"Close",colorBlack,styleCandle);
+Plot(EMA(C,55),"ema",colorGreen);

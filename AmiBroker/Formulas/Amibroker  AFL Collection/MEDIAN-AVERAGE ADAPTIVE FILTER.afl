@@ -1,0 +1,23 @@
+Price = ( H + L ) /2;
+Threshold = 0.002;
+Smooth = (Price + 2 * Ref( Price, -1 ) + 2 * Ref( Price, -2 ) + Ref( Price, -3 ) )/6;
+Length = 39;
+Value3 = 0.2;
+AvgLength = 39;
+for( Length = 39; Length >= 3; Length = Length - 2 )
+
+{
+   alpha = 2 / ( Length + 1 );
+   Value1 = Median( Smooth, Length );
+   Value2 = AMA( Smooth, alpha );
+   Value3 = Nz( abs( Value1 - Value2 )/Value1 );
+   AvgLength = IIf( Value3 > Threshold, Length, AvgLength );
+}
+
+alpha = 2 / (AvgLength + 1);
+
+Filt = AMA( Smooth, alpha );
+
+Plot( C, "Price", colorBlack, styleCandle );
+
+Plot( Filt, "Filt", colorRed );

@@ -1,0 +1,21 @@
+_SECTION_BEGIN("CCI");
+CCI_col = IIf(CCI(14) > Ref(CCI(14),-1), colorGreen,colorRed);
+Plot( CCI( 14 ), "CCI", CCI_col, styleThick  );
+Plot(80,"",colorWhite,styleDashed);
+Plot(0,"",colorRed,styleDashed);
+Plot(-80,"",colorWhite,styleDashed);
+Plot(EMA(CCI(14),3),"",colorYellow,styleThick);
+Plot(EMA(CCI(14),20),"",colorBlue,styleThick);
+
+Cc = CCI(14);
+PlotOHLC( Cc,Cc,80,Cc, "", IIf( Cc > 0, colorGreen, colorRed ), styleCloud | styleClipMinMax, -80, 80 ); 
+
+
+Buy = Cross(Cc,80);
+
+Sell = Cross(-80,Cc);
+
+PlotShapes (Buy*shapeUpArrow,colorRed); 
+PlotShapes (Sell*shapeDownArrow,colorRed);
+  
+_SECTION_END();

@@ -1,0 +1,22 @@
+_SECTION_BEGIN("Correlation Table");
+// Downloaded From https://www.WiseStockTrader.com
+// eCorrelationTable.afl
+WLNum = Param("WatchlistNr",0,0,255,1);
+CorrPd = 21;
+list = GetCategorySymbols( categoryWatchlist, WLNum);
+SetOption("NoDefaultColumns",True);
+
+Filter = DateNum()==Status("rangetodate");
+//SetSortColumns( 2 );
+AddTextColumn(Name(),"Corr("+NumToStr(Corrpd,1.0)+")",1.0,width=70);
+Ticker1= Name();
+
+for( Col=0; (Ticker2=StrExtract( List, Col))!= ""; Col++)
+{
+ Var2 = Foreign(Ticker2,"C");
+ Corr = Correlation( C/Ref(C,-1), Var2/Ref(Var2,-1), CorrPd);
+ Color = IIf(Corr>0.5, colorLime, IIf(Corr>0,colorBrightGreen,IIf(Corr<-0.5, colorRed,IIf(Corr<0,colorOrange,colorWhite))));
+ Color = IIf(Ticker1==Ticker2, 1, color);
+ AddColumn( Corr, Ticker2, 1.3, 1, Color,width=60);
+}
+_SECTION_END();

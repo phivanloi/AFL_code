@@ -1,0 +1,8 @@
+_SECTION_BEGIN("RAVI");
+P1 = Param("Short Period",7, 1,100,1);
+P2 = Param("Long Period",65,1,100,1);
+L1=Param("Threshold",4,2,10,1);
+RAVI=abs (100*(MA(C,P1) - MA(C,P2))/(MA(C,P2)));
+Plot( ravi,"RAVI("+P1+","+P2+")",4,1);
+Plot(L1, "",colorGrey40);
+_SECTION_END();

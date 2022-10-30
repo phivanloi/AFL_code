@@ -1,0 +1,13 @@
+Buy = WillR(10)>Ref(WillR(10),-1) AND
+ADX(14)>Ref(ADX(14),-1) AND 
+AD()>Ref(AD(),-1) AND
+CMF(14)>Ref(CMF(14),-1) AND
+CCI(14)>Ref(CCI(14),-1) AND
++DI()>Ref(+DI(),-1) AND
+RSI(9)>Ref(RSI(9),-1) AND
+Stoch(5,3)>Ref(Stoch(5,3),-1) AND
+MACD()> Ref(MACD(),-1) AND
+C>Ref(C,-1) AND
+V>Ref(V,-1) AND
+V>100000 AND
+C>50.00

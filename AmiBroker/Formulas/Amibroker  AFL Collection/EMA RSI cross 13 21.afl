@@ -1,0 +1,13 @@
+_SECTION_BEGIN("EMA RSI cross 13 21");
+per1 = Param("EMA1",13,13,13);
+per2 = Param("EMA2",21,21,21);
+EMA1 = EMA(RSI(),per1);
+EMA2 = EMA(RSI(),per2);
+Plot(EMA1 , "",colorGreen);
+Plot(EMA2 , "", colorRed);
+Buy = Cross(Ema1,Ema2);
+PlotShapes(shapeUpArrow*Buy,colorGreen,0);
+
+Sell = Cross(Ema2,Ema1);
+PlotShapes(shapeDownArrow*Sell,colorRed,0);
+_SECTION_END();

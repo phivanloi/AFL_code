@@ -1,0 +1,28 @@
+Plot(C,"",colorWhite,styleCandle);
+j = Param ("Band avg",20,5,25,1);
+k = Param("band dev outer",2.25,0.25,4,0.25);
+m = Param("band dev inner",1,0.25,2,0.25);
+
+bbtop225 = BBandTop(Close,j,k);
+bbbot1 = BBandBot(Close,j,k);
+bbtop1 = BBandTop(Close,j,m);
+bbbot225 = BBandBot(Close,j,m);
+PlotOHLC (bbtop225,bbtop225,bbtop1,bbtop1,"",colorDarkGrey,styleCloud);
+PlotOHLC (bbbot225,bbbot225,bbbot1,bbbot1,"",colorDarkGrey,styleCloud);
+IIf(Ref(H,-1) > Ref(bbtop225,-1), Sl = Ref(H,-1) AND Sell = C ,0);
+IIf(Ref(L,-1) < Ref(bbbot225,-1), Sl = Ref(L,-1) AND Buy = C ,0);
+
+_SECTION_BEGIN("Price");
+//Buy=ExRem(Buy,Sell);
+//Sell = ExRem(Sell,Buy);
+dist = 1.5*ATR(10); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "Buy\n@" + C[ i ] , i, L[ i ]-dist[i], colorBlack,colorGreen ); 
+if( Sell[i] ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorBlack, colorRed ); 
+
+} 
+
+PlotShapes( Buy * shapeUpTriangle + Sell * shapeDownTriangle, IIf( Buy, colorYellow, colorYellow ) );
+_SECTION_END();

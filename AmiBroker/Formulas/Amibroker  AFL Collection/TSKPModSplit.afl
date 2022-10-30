@@ -1,0 +1,1 @@
+Plot( E_TSKPMODSPLIT(High,Low,Close) , _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style", style=styleNoLabel) ); 

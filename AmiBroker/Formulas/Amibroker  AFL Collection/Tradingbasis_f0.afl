@@ -1,0 +1,439 @@
+//|------------------------------------------------------------------
+//|Tradingbasis.com - include file
+//|Version:1.1   29-May-2006
+//|Copyright © 2003, Tradingbasis.com
+//|http://www.tradingbasis.com
+//|e-mail: support@tradingbasis.com
+//|------------------------------------------------------------------
+
+procedure AddparamUsefromChart(_default)
+{
+global UsefromChart;
+global InChart;
+global InAA;
+InChart = Status("Action") == 1; 
+InAA = Status("Action") >= 3;
+if(inAA){Usefromchart = ParamToggle("Use Parameters from chart","No|Yes",_default);}
+}
+
+function TaioColor(Mode,upLevel,dnLevel,up_color,RangePcolor,RangeNcolor,dn_color,SingleColor)
+{
+global Upbar_col;
+global Dnbar_col;
+upbar = C>=O; dnbar = C<O;
+Taio = 100*tbTysc()/tbTysf(tbTyse(abs(tbTysd())));
+TaioUp = Taio>upLevel & Taio>Ref(Taio,-1);
+TaioDn = Taio<-dnLevel & Taio<Ref(Taio,-1);
+TaioRp = Taio>0 & Taio<=UpLevel;
+TaioRn = Taio<0 & Taio>=DnLevel;
+Defaultcolor = RangeNcolor;
+if(mode==0){
+pricecolor = 
+IIf(upbar,upbar_col,IIf(dnbar,dnbar_col,Defaultcolor));
+}
+if(mode==1){
+pricecolor = 
+IIf(TaioUp,up_color,IIf(TaioDn,dn_color,
+IIf(Taio>0 AND NOT TaioUP,RangePcolor,IIf(Taio<0 AND NOT TaioDn,RangeNcolor,Defaultcolor))));
+}
+if(mode==2){
+pricecolor = 
+IIf(Taio>upLevel,up_color,IIf(Taio<-dnLevel,dn_color,
+IIf(TaioRp,RangePcolor,IIf(TaioRn,RangeNcolor,Defaultcolor))));
+}
+if(mode==3){
+pricecolor = 
+IIf(Taio>Ref(Taio,-1),up_color,IIf(Taio<Ref(Taio,-1),dn_color,RangeNcolor));
+}
+if(mode==4){
+pricecolor = 
+IIf(Taio>0,up_color,IIf(Taio<0,dn_color,RangeNcolor));
+}
+if(mode==5){
+pricecolor = singlecolor;
+}
+return pricecolor;
+}
+
+function KAMA(P,Period)
+{
+Direction = P - Ref(P,-period);
+Volatility = Sum(abs(P-Ref(P,-1)),period);
+Volatility =IIf(Volatility>0,Volatility,0.00001);
+ER = abs(Direction/Volatility);
+FastSC = 2/(2 + 1);
+SlowSC = 2/(30 + 1);
+SSC = ER * (FastSC - SlowSC) + SlowSC;
+Constant = SSC^2;
+return AMA( P, Constant );
+}
+
+procedure AddAvgTypeParam(type)
+{
+global AvgText;global AvgType;global AvgTextname;
+ParamAverage = 
+ParamList("Type", 
+List = "1 - GMA,2 - SMA,3 - EMA,4 - WMA,5 - DEMA,6 - TEMA,7 - WILDERS,8 - LINEAR REGRESSION,9 - TIME SERIES FORECAST,10 - KAMA",type-1); 
+for( i=0; i<10; i++) 
+{if( StrExtract(List, i) == ParamAverage ) AvgType = i+1;}
+AvgTextname = 
+WriteIf(AvgType == 1,"GMA",
+WriteIf(AvgType == 2,"SMA",
+WriteIf(AvgType == 3,"EMA",
+WriteIf(AvgType == 4,"WMA",
+WriteIf(AvgType == 5,"DEMA",
+WriteIf(AvgType == 6,"TEMA",
+WriteIf(AvgType == 7,"WILDERS",
+WriteIf(AvgType == 8,"LINEARREG",
+WriteIf(AvgType == 9,"TSF",
+WriteIf(AvgType == 10,"KAMA",""))))))))));
+AvgText = " - "+ AvgTextname;
+}
+
+procedure Average(array,period,type)
+{
+Value = 
+IIf(Type == 1,GMA(Array,Period),
+IIf(Type == 2,MA (Array,Period),
+IIf(Type == 3,EMA(Array,Period),
+IIf(Type == 4,WMA(Array,Period),
+IIf(Type == 5,DEMA(Array,Period),
+IIf(Type == 6,TEMA(Array,Period),
+IIf(Type == 7,Wilders(Array,Period),
+IIf(Type == 8,LinearReg(Array,Period),
+IIf(Type == 9,TSF(Array,Period),
+IIf(Type == 10,KAMA(Array,Period),Null))))))))));
+return Value;
+}
+
+procedure AddAverage(SectionText,DefaultPeriod,DefaultType,Defaultshift,Defaultcolor,Defaultstyle)
+{
+global TBAverage_switch;
+global TBAverage;
+_SECTION_BEGIN(SectionText); 
+TBAverage_switch = ParamToggle("On/Off", "Off|On",0);
+AddAvgTypeParam(DefaultType);
+P = ParamField("Price field");
+Period = Param("Periods",DefaultPeriod,2,250,1);
+Shift = Param("Shift",Defaultshift,-50,50,1);
+TBAverage = Average(P,Period,AvgType);
+TBAverage_style = ParamStyle("Style",Defaultstyle,maskAll);
+TBAverage_color = ParamColor("Color",Defaultcolor);
+
+	if(TBAverage_switch)
+	{
+	Plot(TBAverage,_DEFAULT_NAME()+AvgText,TBAverage_color,TBAverage_style|styleNoRescale,Null,Null,shift);
+	_SECTION_END(); 
+	}
+}
+
+function STC(Cycle,SH,LG,type)
+{
+Typical = ( H + L + C ) /3;
+MCD= Average(typical,SH,type) - Average(typical,LG,type); 
+ST = ((MCD-LLV(MCD,Cycle)) / (HHV(MCD,Cycle)-LLV(MCD,Cycle))) *100; 
+return Average(ST,Cycle/2,type);
+}
+
+procedure STCp(Cycle,SH,LG)
+{
+global TC;
+global MA1;
+global MA2;
+Typical = ( H + L + C ) /3;
+MCD= EMA( typical,MA1) - EMA( typical,MA2); 
+ST = ((MCD-LLV(MCD,Cycle)) / (HHV(MCD,Cycle)-LLV(MCD,Cycle))) *100; 
+return EMA(ST,Cycle/2);
+}
+
+
+procedure AddICHIMOKU(p1,p2,p3) 
+{ 
+   global TL; 
+   global SL; 
+   global DL; 
+   global Span1; 
+   global Span2; 
+   TL = ( HHV( H, p1 ) + LLV( L, p1) )/2;//also known as Kijun Sen
+   SL = ( HHV( H, p2 ) + LLV( L, p2 ) )/2;//also known as Tenkan Sen
+   DL = IIf(Cum(1)<=LastValue(Cum(1))-p2,Ref( C, p3+1 ),Null);//also known as Chikou Span 
+   Span1 = Ref( ( TL + SL )/2, -p2+1 ); 
+   Span2 = Ref( (HHV( H, 2*p2) + LLV(L, 2*p2))/2, -p2+1); 
+} 
+
+function TaioTF(Multiplier)
+{
+TimeFrameSet(Multiplier*Interval());
+Taio = 100*tbTysc()/tbTysf(tbTyse(abs(tbTysd())));
+TimeFrameRestore();
+Taio = TimeFrameExpand(Taio,Multiplier*Interval(),expandFirst);
+return Taio;
+}
+
+//Channel
+procedure AddChannel(array1,array2,period,risk,shift,mode)
+{
+global ChannelHigh; global ChannelMiddle; global ChannelLow;
+global SLLongWithoutFlip; global SLShortWithoutFlip;
+global SLTrend;
+global SLLong; global SLShort;
+global SLUp; global SLDn;
+global SLLongTrigger; global SLShortTrigger;
+
+ChannelHigh =HHV(Ref(array1,Shift),period);
+ChannelLow = LLV(Ref(array2,Shift),period);
+ChannelMiddle = ChannelLow + (ChannelHigh - ChannelLow)/2;
+SLUp = ChannelLow+Risk*(ChannelHigh-ChannelLow);
+SLDn = ChannelHigh-Risk*(ChannelHigh-ChannelLow);
+if(mode)
+{
+Up = Cross(H,Ref(SLDn,-1));
+Up = Up OR H>Ref(SLDn,-1) AND Ref(H,-1)>Ref(SLDn,-1)AND NOT L<Ref(SLDn,-1);
+Dn = Cross(Ref(SLup,-1),L);
+Dn = Dn OR L<Ref(SLUp,-1) AND Ref(L,-1)<Ref(SLUp,-1)AND NOT H>Ref(SLUp,-1);
+SLTrend = Flip(UP,DN);
+}
+else
+{
+SLTrend = Flip(Cross(C,Ref(SLDn,-1)),Cross(Ref(SLup,-1),C));
+}
+SLTrend = IIf(SLTrend>0,1,-1);
+SLLong = IIf(SLTrend>0,HighestSince(SLTrend>0 AND Ref(SLTrend,-1)<1,SLUp),Null);
+SLShort = IIf(SLTrend<1,LowestSince(SLTrend<1 AND Ref(SLTrend,-1)>0,SLDn),Null);
+SLLongTrigger = SLTrend == 1 AND Ref(SLTrend,-1)==0;
+SLShortTrigger = SLTrend == 0 AND Ref(SLTrend,-1) == 1;
+}
+
+function PlotSignalText (Condition,Text,AdText,AdTextArray,Distance,Array,TextColor,BGColor)
+{
+Val = (-1*Distance) * ATR(10);
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Condition[i] AND AdText[i] ) PlotText( Text + "\n@" + AdTextArray[ i ], i, Array[ i ]-Val[i], TextColor,BGColor); 
+if( Condition[i] &!  AdText[i] ) PlotText( Text, i, Array[ i ]-Val[i], TextColor,BGColor); 
+} 
+}
+
+procedure AddPivotlevels (Pivottyp,TF)
+{
+global Pivottype;
+global TF;
+global H1;
+global L1;
+global C1;
+global R;
+global x;
+global ppflip;
+
+TimeFrameSet(TF);
+H1 = Ref(H,-1);
+L1 = Ref(L,-1);
+C1 = Ref(C,-1);
+O = O;
+R = H1 - L1;// range
+x = Cum(1); 
+
+global PP;
+global S1;global S2;global S3;
+global R1;global R2;global R3;
+Pivottyp = Pivottyp + 1;
+if (Pivottyp == 1)//Regular pivots
+{
+PP = (L1 + H1 + C1)/3;
+S1 = (2 * PP) - H1;
+S2 = PP - (H1 - L1);
+S3 = L1 - 2 * (H1 - PP);
+R1 = (2 * PP) - L1;
+R2 = PP + (H1 - L1);
+R3 = 2 * (PP - L1) + H1;
+}
+
+if (Pivottyp == 2)//Woodies FIB pivots
+{
+PP = (H1 + L1 + O + O) / 4;
+S1 = PP - (R * 0.38);
+S2 = PP - (R * 0.62);
+S3 = Null;
+R1 = PP + (R * 0.38);
+R2 = PP + (R * 0.62);
+R3 = Null;
+}
+ 
+if (Pivottyp == 3)//Woodies pivots
+{
+PP = (H1 + L1 + O + O) / 4;
+S1 = (2 * PP) - H1;
+S2 = PP - (H1 - L1);
+S3 = Null;
+R1 = (2 * PP) - L1;
+R2 = PP + (H1 - L1);
+R3 = Null;
+}
+
+global even;
+global odd;
+global	PP_even; 
+global	S1_even; 
+global	S2_even; 
+global	S3_even; 
+global	R1_even; 
+global	R2_even; 
+global	R3_even; 
+global	PP_odd; 
+global	S1_odd; 
+global	S2_odd; 
+global	S3_odd; 
+global	R1_odd; 
+global	R2_odd; 
+global	R3_odd; 
+
+
+even = frac(x/2) == 0;
+odd = frac(x/2) == 0.5;
+
+PP_even = IIf(even,PP,Null); 
+S1_even = IIf(even,S1,Null); 
+S2_even = IIf(even,S2,Null); 
+S3_even = IIf(even,S3,Null); 
+R1_even = IIf(even,R1,Null); 
+R2_even = IIf(even,R2,Null); 
+R3_even = IIf(even,R3,Null); 
+
+
+PP_odd = IIf(odd,PP,Null); 
+S1_odd = IIf(odd,S1,Null); 
+S2_odd = IIf(odd,S2,Null); 
+S3_odd = IIf(odd,S3,Null); 
+R1_odd = IIf(odd,R1,Null); 
+R2_odd = IIf(odd,R2,Null); 
+R3_odd = IIf(odd,R3,Null); 	
+
+TimeFrameRestore();
+
+PP = TimeFrameExpand(PP,TF,expandFirst);
+S1 = TimeFrameExpand(S1,TF,expandFirst);
+S2 = TimeFrameExpand(S2,TF,expandFirst);
+S3 = TimeFrameExpand(S3,TF,expandFirst);
+R1 = TimeFrameExpand(R1,TF,expandFirst);
+R2 = TimeFrameExpand(R2,TF,expandFirst);
+R3 = TimeFrameExpand(R3,TF,expandFirst);
+
+even = TimeFrameExpand(even,TF,expandFirst);
+odd  = TimeFrameExpand(Odd,TF,expandFirst);
+
+PP_even = TimeFrameExpand(PP_even,TF,expandFirst);
+S1_even = TimeFrameExpand(S1_even,TF,expandFirst);
+S2_even = TimeFrameExpand(S2_even,TF,expandFirst);
+S3_even = TimeFrameExpand(S3_even,TF,expandFirst);
+R1_even = TimeFrameExpand(R1_even,TF,expandFirst);
+R2_even = TimeFrameExpand(R2_even,TF,expandFirst);
+R3_even = TimeFrameExpand(R3_even,TF,expandFirst);
+
+PP_odd = TimeFrameExpand(PP_odd,TF,expandFirst);
+S1_odd = TimeFrameExpand(S1_odd,TF,expandFirst);
+S2_odd = TimeFrameExpand(S2_odd,TF,expandFirst);
+S3_odd = TimeFrameExpand(S3_odd,TF,expandFirst);
+R1_odd = TimeFrameExpand(R1_odd,TF,expandFirst);
+R2_odd = TimeFrameExpand(R2_odd,TF,expandFirst);
+R3_odd = TimeFrameExpand(R3_odd,TF,expandFirst);
+ppflip = Flip(PP>Ref(PP,-1),PP<Ref(PP,-1));
+}
+
+procedure PlotPivotLevels(LineMode,PivotLineMode,SColor,RColor,RPColor,FPColor,LineStyle,PivotStyle)
+{
+SR3style = styleNoRescale;
+if(LineMode)
+{
+Plot(S1_even,"S1",Scolor,LineStyle);
+Plot(S2_even,"S2",Scolor,LineStyle);
+Plot(S3_even,"S3",Scolor,LineStyle+SR3style);
+Plot(R1_even,"R1",Rcolor,LineStyle);
+Plot(R2_even,"R2",Rcolor,LineStyle);
+Plot(R3_even,"R3",Rcolor,LineStyle+SR3style);
+Plot(PP_even,"PP",IIf(ppflip,RPcolor,FPcolor),PivotStyle|styleNoLabel);
+Plot(PP_odd,"PP",IIf(ppflip,RPcolor,FPcolor),PivotStyle|styleNoLabel);
+Plot(S1_odd,"S1",Scolor,LineStyle);
+Plot(S2_odd,"S2",Scolor,LineStyle);
+Plot(S3_odd,"S3",Scolor,LineStyle+SR3style);
+Plot(R1_odd,"R1",Rcolor,LineStyle);
+Plot(R2_odd,"R2",Rcolor,LineStyle);
+Plot(R3_odd,"R3",Rcolor,LineStyle+SR3style);
+}
+else
+{
+Plot(S1,"S1",Scolor,LineStyle);
+Plot(S2,"S2",Scolor,LineStyle);
+Plot(S3,"S3",Scolor,LineStyle+SR3style);
+Plot(PP,"PP",IIf(ppflip,RPcolor,FPcolor),PivotStyle);
+Plot(R1,"R1",Rcolor,LineStyle);
+Plot(R2,"R2",Rcolor,LineStyle);
+Plot(R3,"R3",Rcolor,LineStyle+SR3style);
+}
+
+if(PivotLineMode)
+{
+Plot(PP,"PP",IIf(ppflip,RPcolor,FPcolor),PivotStyle);
+}
+}
+
+procedure Addmaincolumns(part,width){
+if(part==1 AND width = 1){
+AddColumn(C,"Close",0,IIf(C>Ref(C,-1),colorGreen,IIf(C<Ref(C,-1),colorRed,colorBlue)));
+AddColumn(ROC(C,1),"Gain %",0,IIf(C>Ref(C,-1),colorGreen,IIf(C<Ref(C,-1),colorRed,colorBlue)));
+AddColumn(V,"Volume",1.0,IIf(V>Ref(V,-1)AND C>Ref(C,-1),colorGreen,IIf(V>Ref(V,-1)AND C<Ref(C,-1),colorRed,colorBlue)),colorDefault);
+}
+}
+
+procedure Adddefaultcolumns(part,width){
+global Buy; global Sell; global Short;global Cover; 
+if(part==1 AND width = 1){
+Addmaincolumns(1,1);}
+if(part==2 AND width = 1){
+Addmaincolumns(1,1);
+AddColumn(IIf(Buy, 66,IIf(Sell, 83,Null )),"Buy/Sell",formatChar,IIf(Buy,colorGreen,IIf(Sell,colorRed,colorDefault)),colorDefault,width = 60);
+}
+if(part==3 AND width = 1){
+Addmaincolumns(1,1);
+AddColumn(IIf(Buy, 66,IIf(Sell, 83,Null )),"Buy/Sell",formatChar,IIf(Buy,colorGreen,IIf(Sell,colorRed,colorDefault)),colorDefault,width = 60);
+AddColumn(IIf(Cover, 67,IIf(Short, 83,Null )),"Short/Cover",formatChar,IIf(Cover,colorGreen,IIf(Short,colorRed,colorDefault)),colorDefault,width = 60);
+}
+}
+
+procedure AddAlertParam(DefaultAudio,DefaultEmail,DefaultBarComplete)
+{
+global Audio;
+global EMAil;
+global BarComplete;
+_SECTION_BEGIN("Alerts"); 
+Audio = ParamToggle("Audio","Off|On",DefaultAudio); 
+Email = ParamToggle("Email","Off|On",DefaultEmail); 
+BarComplete = ParamToggle("Bar Complete","Off|On",DefaultBarComplete); 
+_SECTION_END();
+}
+
+procedure AddAlert(Condition,Audio,Email,Text,Type,BarComplete)
+{
+LastDateTime = LastValue(DateTime());
+Cond = IIf(BarComplete,Ref(Condition,-1),Condition);
+
+if(Audio AND NOT Email) 
+{
+AlertIf(Cond,"SOUND C:\\Windows\\Media\\Ding.wav",Text,Type);
+}
+if(Email AND NOT Audio) 
+{
+AlertIf(Cond,"EMAIL",Text,Type); 
+}
+if(Audio AND Email AND LastDateTime>Nz(StaticVarGet("AlertFlag"+Type+Name() ))) 
+{
+StaticVarSet("AlertFlag"+Type+Name(),LastDateTime);
+AlertIf(Cond,"SOUND C:\\Windows\\Media\\Ding.wav",Text,Type,8,1);
+AlertIf(Cond,"EMAIL",Text,Type,8,1); 
+}
+}
+
+//Variables
+DefaultAlertText = ", \nClose =   "+WriteVal(C);
+InChart = Status("Action") == 1; 
+InAA = Status("Action") >= 3;
+Taio = 100*tbTysc()/tbTysf(tbTyse(abs(tbTysd())));

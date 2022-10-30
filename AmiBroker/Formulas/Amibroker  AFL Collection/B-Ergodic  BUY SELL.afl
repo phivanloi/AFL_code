@@ -1,0 +1,24 @@
+_SECTION_BEGIN("B");
+/*Ergodic Oscillator */
+/*Coded by Prakash Shenoi */
+/*MODFIED=CASONI*/
+
+x=Param(" Average 1",10,2,32);
+y=Param(" Average 2",5,3,12);
+erg=(EMA(EMA(C-O,x),y)/EMA(EMA(H-L,x),y))*100;
+Sg=EMA(erg,10);
+Plot (erg,"Ergodic Oscillator ",colorBrightGreen,styleThick);
+Plot (Sg,"Signal",colorRed,styleThick);
+Plot(0,"",colorWhite,styleDashed);
+Buy=  ERG > SG;
+Sell= SG  > ERG;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); 
+PlotShapes( shapeUpArrow* Buy , colorBrightGreen ,0);
+PlotShapes( shapeDownArrow* Sell, colorRed ,0);
+GraphXSpace=10; 
+Filter = Buy OR Sell;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); 
+AddTextColumn(FullName(),"Name");
+AddColumn( Buy, "BUY" );
+AddColumn( Sell, "SELL" );
+_SECTION_END();

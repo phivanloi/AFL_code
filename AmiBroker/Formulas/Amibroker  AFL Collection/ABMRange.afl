@@ -1,0 +1,26 @@
+/* TSKPMRange as Indicator or as ribbon */
+SetBarsRequired(350, -1);
+
+//user parameters
+parmUpColor =ParamColor( "MMange Color Up", ColorRGB(167, 224, 243) );
+parmDwnColor =ParamColor( "MRange Color Dwn", ColorRGB(255, 192, 203) );
+parmRibbon = ParamToggle("PLot as ribbon", "No|Yes");
+parmRibbonSize = Param("Ribbon Size", 1 , 0.5, 10, 0.5);
+
+//KP indicators
+tightstop = E_TSKPTIGHTSTOP(High,Low,Close);
+stopline = E_TSKPSTOPLINE(High,Low,Close);
+
+mp = 0.5 * (High + Low);
+
+//calculation
+MRangeColor = IIf(mp > StopLine AND mp > tightstop, parmupColor, IIf(mp < stopline AND mp < tightstop, parmDwnColor, colorWhite) );
+//plot
+if(parmRibbon == 0)
+{
+Plot( 0, "MRange0", MRangeColor, styleNoDraw );
+Plot( 1, "MRange1", MrangeColor, styleNoLabel + styleArea + styleHistogram );
+}
+else
+	Plot( parmRibbonSize, "MRange", MRangeColor, styleArea |  styleNoLabel | styleOwnScale , 0, 10);
+ 

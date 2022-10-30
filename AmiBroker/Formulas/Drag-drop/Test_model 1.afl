@@ -1,0 +1,47 @@
+_SECTION_BEGIN("Test_model");
+
+
+// Thu thap them du lieu Trend tang
+/*
+1. EMA(5,10,20,34,55)
+2. Volume
+3. HHV, ADX (PDI), 
+
+*/
+// Viec can lam: Visual 30 Ticker VN30 vs 
+Filter = 1;
+TimeFrameSet(in15minute);
+Name() == "VN30F1M" ;
+Plot(C,"\nPrice",IIf(C>O,ParamColor("Wick UP Color", colorCustom9),IIf(C<=O,ParamColor("Wick Down Color", colorCustom5),colorLightGrey)),64,0,0,0,0);
+//Plot(C - Foreign("VN30INDEX", "C", True);
+
+emac1 = IIF(EMA(C, 5) > EMA(C,10) > EMA(C, 20) > EMA(C,34) > EMA(C,55),1,0) ;
+emac2 = IIF(EMA(C, 5) < EMA(C,10) < EMA(C, 20) < EMA(C,34) < EMA(C,55),0,1) ;
+self_corr = Correlation(C, Ref(C,-5),20);
+corr_ATR10 = Correlation(H-L,ATR(10),100);
+corr_ATR20 = Correlation(H-L,ATR(20),100);
+corr_vn30 = Correlation(C, Foreign("VN30INDEX", "C", True),100);
+atr1 = ATR(10);
+atr2 = ATR(20);
+
+
+AddColumn(O,"Open"); 
+AddColumn(H,"High"); 
+AddColumn(L,"Low"); 
+AddColumn(C,"Close"); 
+AddColumn(V,"Volume",1.0); 
+AddColumn(C*V,"Value",1.0); 
+AddColumn(H-L,"Spread", 1.2);
+AddColumn(atr1,"Spread_ATR10", 1.2);
+AddColumn(atr2,"Spread_ATR20", 1.2);
+AddColumn(emac1, "EMA1", 1.2);
+AddColumn(emac2, "EMA2", 1.2); 
+AddColumn(self_corr, "self_corr", 1.2);
+AddColumn(corr_vn30, "corr_VN30", 1.2); 
+AddColumn(corr_ATR10, "corr_ATR10", 1.2);
+AddColumn(corr_ATR20, "corr_ATR20", 1.2); 
+
+
+
+
+_SECTION_END();

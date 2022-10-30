@@ -1,0 +1,19 @@
+Plot(Close,"Close",2,styleCandle);
+of=1;
+n=100;
+Hh=HHV(H,n);
+Ll=LLV(L,n);
+
+p1=ll+(hh-ll)*0.5;
+p2=ll+(hh-ll)*0.382;
+p3=ll+(hh-ll)*0.618;
+p4=ll+(hh-ll)*0.236;
+p5=ll+(hh-ll)*0.786;
+
+Plot(p1, "p1:",7,styleDashed);
+Plot(p2, "p1:",5,styleDashed);
+Plot(p3, "p1:",5,styleDashed);
+Plot(p4, "p1:",10,styleDashed);
+Plot(p5, "p1:",10,styleDashed);
+Plot(Hh, "p1:",13,styleDashed);
+Plot(Ll, "p1:",13,styleDashed);

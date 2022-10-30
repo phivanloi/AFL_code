@@ -1,0 +1,30 @@
+_SECTION_BEGIN("Absolute Strength Index[1].afl");
+   /*Developed by Tudor Marcelin - Art Invest*/
+
+n=10; /*period*/
+
+    A=0;
+    M=0;
+    D=0;
+
+  for( i = 0; i < 10; i=i+1 ) 
+{
+
+    A=IIf(Ref(Close, - i)>Ref(Close, - i-1), A+(Ref(Close, - i)/Ref(Close, - i-1))-1,A);
+
+    M=IIf(Ref(Close, - i)==Ref(Close, - i-1), M+1/n,M);
+
+    D=IIf(Ref(Close, - i)<Ref(Close, - i-1), D+(Ref(Close, - i-1)/Ref(Close, - i))-1,D);
+        
+ }  
+ ASI=IIf (D+M/2==0, 100, 100-100/(1+(A+M/2)/(D+M/2)));
+
+
+  Plot(ASI,"ASI10",colorDarkBlue); 
+  
+  Plot(50,"",colorBlack,styleLine);
+  PlotGrid(70,colorDarkBlue);    
+  PlotGrid(30,colorRed);  
+
+GraphXSpace = 3;
+_SECTION_END();

@@ -1,0 +1,36 @@
+_SECTION_BEGIN("Elder");
+
+macShort = Param("MACD Short MA",12,1,100,1);
+macLong = Param("MACD Long MA",26,1,100,1);
+macSmooth = Param("MACD Smoothing Period",9,1,100,1);
+EMAp = Param("Short EMA",13,1,40,1);
+macTime = Param("Time Ratio",1,22,1);
+macShort = macShort*macTime;
+macLong = macLong*macTime;
+macSmooth = macSmooth*macTime;
+EMAvg = EMAp*MacTime;
+//{ do long impulse next }
+mac = EMA(C,macShort)-EMA(C,macLong);
+MacSig = EMA(mac,macSmooth);
+macplot = (mac-MacSig);
+impulse = IIf(macplot >= Ref(macplot,-macTime), 1,0)+IIf(Close > EMA(Close,EMAp),1,0)-1;
+
+//Plot(impulse, "", colorRed);
+//PlotGrid(0, colorLightGrey);
+
+Color = IIf(impulse == 0, colorBlue, IIf(impulse < 0, colorRed, IIf(impulse > 0, colorGreen, 0)));
+
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );
+_N( Title = StrFormat( "{{NAME}} - " + SectorID( 1 ) + " - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", color, styleBar | styleNoTitle | ParamStyle( "Style" ) | GetPriceStyle() );
+
+if ( ParamToggle( "Tooltip shows", "All Values|Only Prices" ) )
+{
+    ToolTip = StrFormat( "Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: " + NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 ) ) );
+}
+/*
+if(impulse>0,1,0);  { Buy OK}
+if(impulse<0,1,0);  { Sell OK}
+if(impulse=0,1,0); { Either OK }
+0.0;  { Zero Line }*/
+_SECTION_END();

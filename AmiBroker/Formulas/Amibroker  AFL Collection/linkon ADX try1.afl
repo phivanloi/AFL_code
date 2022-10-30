@@ -1,0 +1,21 @@
+/* Create date: 14 Jan 2009
+The ADX of the current bar is greater than the ADX of 1 bar ago */
+
+Buy = ADX( 14 ) > Ref( ADX( 14 ), -1 )
+AND Ref( ADX( 14 ), -1 ) > Ref( ADX( 14 ), -2 )
+AND Ref( ADX( 14 ), -2 ) > Ref( ADX( 14 ), -3 )
+/* Create date: 14 Jan 2009
+The DI+ of the current bar is greater than the DI+ of 1 bar ago */
+
+AND PDI() > Ref( PDI(), -1 )
+
+/* Create date: 14 Jan 2009
+The DI- of the current bar is less than the DI- of 1 bar ago */
+
+AND MDI() < Ref( MDI(), -1 );
+
+Sell = ADX( 14 ) > Ref( ADX( 14 ), -1 )
+AND PDI() < Ref( PDI(), -1 )
+AND MDI() > Ref( MDI(), -1 );
+
+

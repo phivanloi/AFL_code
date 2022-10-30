@@ -1,0 +1,25 @@
+Us = BarsSince(Sum(H>Ref(H,-1),2)==2);
+Ds = BarsSince(Sum(L<Ref(L,-1),2)==2);
+Hc = HighestSince(Us==0,H,1);
+Lc = LowestSince(Ds==0,L,1);
+Sd1 = IIf(Us==0,IIf((L!=Lc) AND (Ref(L,-1)!=Lc),1,0),IIf(Ds==0,IIf((H!=HC) AND (Ref(H,-1)!=Hc),-1,0),0));
+Sd2 = IIf(Sd1==1, IIf(Ref(BarsSince(Sd1==1),-1) >Ref(BarsSince(Sd1==-1),-1),1,0), IIf(Sd1==-1,IIf(Ref(BarsSince(Sd1==1),-1) < Ref(BarsSince(Sd1==-1),-1),-1,0),0));
+TD1 = ValueWhen(Sd2!=0,Sd2,1);
+
+
+
+//{Gann-Trend 4/27/99}
+Sd =  TD1 ;
+//{Swing Change High}
+Sch = IIf(Sd==1 AND Ref(sd,-1)==-1,1,0);
+//{Swing Change Low}
+Scl = IIf(Sd==-1 AND Ref(Sd,-1)==1,1,0);
+//{Peak Value}
+Pv = IIf(Scl==1,HighestSince(Sch==1,H,1),0);
+//{Trough Value}
+Tv = IIf(Sch==1,LowestSince(Scl==1,L,1),0);
+//{Trend Direction}
+Td = IIf(H>ValueWhen(Pv>0,Pv,1),1,IIf(L<ValueWhen(Tv>0,Tv,1),-1,0));
+//{UpTrend=1 DownTrend =-1}
+Tdv=ValueWhen(Td!=0,Td,1);
+Plot(Tdv,"Gann Trend", colorRed);

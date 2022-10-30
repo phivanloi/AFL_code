@@ -1,0 +1,22 @@
+_SECTION_BEGIN("Vortex Oscillator");
+
+// Vortex Indicator
+// S&C Traders Tips Jan 2010
+SetChartBkColor(colorBlack);
+//SetBarsRequired(sbrAll);
+period = Param("Period", 21, 2 );
+VMP = Sum( abs( H - Ref( L, -1 ) ), period );
+VMM = Sum( abs( L - Ref( H, -1 ) ), period );
+STR = Sum( ATR( 10 ), period );
+
+VIP = VMP / STR;
+VIM = VMM / STR;
+K1=VIP-VIM;
+K=TEMA(K1,7);
+ifish=EMA(EMA(EMA(EMA(K,3),3),3),3);
+Color=IIf(ifish>0,IIf(ifish>Ref(ifish,-1),colorGreen,colorYellow),IIf(ifish>Ref(ifish,-1),colorBlue,colorRed));
+Plot(ifish," Vortex Oscillator ",Color,styleLine | styleHistogram, maskHistogram);
+Plot(0,"",colorYellow,styleDashed);
+
+
+_SECTION_END();

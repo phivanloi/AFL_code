@@ -1,0 +1,1054 @@
+//-----------------------------------------------------------------------------
+//
+//     FT-Utilities7
+//
+//     Bruce Robinson - 2/4/05
+//
+//================================================
+//	   Updated 8/18/05	Renamed to FT-Utilities7a.ini after
+//     Slight modifications by Bill Barnard - mainly to place the FT
+//	   drive spec in every FT function call and code. Thus, if the FT drive
+//     is determined in AFL, it can be specified in these functions, and
+//     the various locations on different users' systems is handled automatically.
+//
+//	   Also added two functions, ABPutFnu() and ABGetFnu() which are slightly
+//     modified versions of FTPutFnu() and FTGetFnu() designed to work with
+//     FNU files in a subdirectory of AB, AmiBroker\ABFNUs\. This is for AB
+//     users who do not use FT.
+//=================================================
+//
+//     Define the script to provide VBScript utility functions to perform the
+//     following operations -
+//
+//          FTGetSig - import a FastTrack signal file
+//          FTGetSigVars - import FastTrack buy and sell signals
+//                         (for rotational trading)
+//          FTPutSig - export signals to a FastTrack signal file
+//          FTMsgBox - output a message from AFL
+//          FTRunTrade - execute a Trade script
+//          FTRunTradeFR - execute a Tradefr script
+//          FTRunBat - execute a batch file
+//          FTGetFNU - import from a FT FNU file
+//          FTPutFNU - export to a FT FNU file
+//          ABGetFNU - import an FNU file from AB	<<<<<<<<<<<<<<<< new by BB
+//          ABPutFNU - export to an FNU file to AB	<<<<<<<<<<<<<<<< new by BB
+//          FTGetFam - return a CSV list of family members
+//          FTFamAnd - And two family CSV strings
+//          FTFamOr -  Or two family CSV strings
+//          FTFamAndNot - AndNot two family CSV strings
+//
+//     Define the following AFL functions -
+//
+//          FTFamAvg - returns an equal weighted family average of a
+//                     FT family
+//
+//     The default drive for FT must be defined since the current drive
+//     for Amibroker may be different.
+//
+//-----------------------------------------------------------------------------
+
+EnableScript("vbscript");
+
+<%
+
+
+'------------------------------------------------------------------------------
+
+'
+' Define the default drive for FT
+'
+
+'Drive = "C:"  //	no longer used; Drive is an argument in all necessary places
+
+'
+' Common routine used by FTGetSig AND FTGetSigVars to import the FT Signal
+' file into defined arrays for use by the calling routine.
+
+function FTGetSigVect(Drive, FileName, DateArray, byref BuyVect, byref SellVect )
+
+       ' Get the full file path
+       TempName = FileName
+       FilePath = GetFilePath(Drive, TempName, "\ft\sig\", ".sig")
+       if FilePath = "" Then
+            FTGetSigVect = 1
+            Exit function
+       End if
+
+       ' Create the Object needed for file I/O
+		Set fso = CreateObject("Scripting.FileSystemObject")
+
+       ' Open the file AND test the result
+       On Error Resume Next
+       Err.Clear
+       Set f = fso.OpenTextFile( FilePath, 1 )
+       if Err.Number = 53 Then
+       	for i = LBound(DateArray) to UBound(DateArray)
+			 BuyVect(i) = 0
+			 SellVect(i) = 0
+       	Next
+       	BuyVect(LBound(DateArray)) = 1
+       	SellVect(LBound(DateArray)) = 0
+
+		' Close the file AND release the Object
+		f.Close()
+		Set fso = nothing
+		' Set A good return Code
+       	FTGetSig = 0
+       	Exit function
+      End if
+
+       if Err.Number <> 0 Then
+            ' Set the return Code to the OpenTextFile error
+            FTGetSigVect = Err.Number
+            MsgBox("Error - Open signal file failed - " + FileName)
+            Exit function
+       End if
+
+	   ' Zero the Buy AND Sell vector entries
+	   for i = LBound(DateArray) to UBound(DateArray)
+			 BuyVect(i) = 0
+			 SellVect(i) = 0
+       Next
+
+       ' Skip the FT Signal file identifier
+       f.SkipLine
+
+       ' Loop through the Signal file entries
+       Index = LBound(DateArray)
+       do while f.AtEndOfStream <> True
+
+             ' Read the Line AND Convert the Date
+             Line = f.Readline
+             SigType = Left(Line, 1)
+             FTMonth = Mid(Line, 3, 2)
+             FTDay = Mid(Line, 6, 2)
+             FTYear = Mid(Line, 9, 4)
+             AmiDate = (FTYear - 1900) * 10000 + FTMonth * 100 + FTDay
+
+             ' if the FT Signal Date >= Index Date, then search
+             if AmiDate >= DateArray(Index) Then
+                   ' Loop through the Amibroker Signal Arrays from the Last index point
+                   for i = Index to Ubound(DateArray)
+                         if DateArray(i) = AmiDate Then
+  		                       if SigType = "B" Then
+                                     ' FT Buy
+                                     BuyVect(i) = 1
+                               End if
+							   if SigType = "S" Then
+                                     ' FT Sell
+                                     SellVect(i) = 1
+                                     'SellVect(i) = -1
+                               End if
+                               Index = i + 1
+                               Exit for
+                         else
+                         	   if DateArray(i) > AmiDate Then
+						       		'  Data is for a tick Date NOT present in DateArray
+                         	   		Exit for
+                         	   else
+                               		Index = i + 1
+                               End if
+                         End if
+                   Next
+             End if
+
+       Loop
+
+       ' Close the file AND release the Object
+		f.Close()
+		Set fso = nothing
+
+       ' Set A good return Code
+       FTGetSigVect = 0
+
+End function
+
+'---------------------------------------
+'
+' FTGetSig - imports A FastTrack Signal file
+'
+' It is Called As in the following example -
+'
+'     script = GetScriptObject();
+'     rc = script.FTGetSig("C:", "RUTVOL", DateNum());
+'
+' if it is Called with A blank Signal file Name, the Code will
+' prompt for the file Name.
+'
+
+
+function FTGetSig(Drive, FileName, DateArray )
+
+		' Get the arrays that we will store the results in
+		BuyVect = AFL.var("Close")
+		SellVect = AFL.var("Close")
+
+	   ' Get the FT signals
+	   rc = FTGetSigVect(Drive, FileName, DateArray, BuyVect, SellVect)
+	   if rc <> 0 Then
+	   		FTGetSig = 1
+	   		Exit function
+	   End if
+
+       ' Set the Amibroker Variable
+		AFL.var("Buy") = BuyVect
+		AFL.var("Sell") = SellVect
+       ' Set the reverse Signals in Case the system is Long AND Short
+        AFL.var("Short") = SellVect
+        AFL.var("Cover") = BuyVect
+
+       ' Set A good return Code
+       FTGetSig = rc
+
+End function
+
+'---------------------------------------
+'
+' FTGetSigVars - imports A FastTrack Signal file AND place results in
+'                defined variables
+'
+' It is Called As in the following example -
+'
+'     script = GetScriptObject();
+'     rc = script.FTGetSigVars("C:", "RUTVOL", DateNum(), "buyarray", "sellarray");
+'
+' if it is Called with A blank Signal file Name, the Code will
+' prompt for the file Name.
+'
+
+function FTGetSigVars(Drive, FileName, DateArray, BuyVarName, SellVarName)
+
+		' Get the arrays that we will store the results in
+		BuyVect = AFL.var("Close")
+		SellVect = AFL.var("Close")
+
+		rc = FTGetSigVect(Drive, FileName, DateArray, BuyVect, SellVect)
+		AFL.var(BuyVarName) = BuyVect
+		AFL.var(SellVarName) = SellVect
+
+end function
+
+'---------------------------------------
+'
+' FTPutSig - exports A FastTrack Signal file
+'
+' It is Called As in the following example -
+'
+'     script = GetScriptObject();
+'     rc = script.FTPutSig("C:", "RUTVOL", DateNum());
+'
+' if it is Called with A blank Signal file Name, the Code will
+' prompt for the file Name.
+'
+
+function FTPutSig(Drive, FileName, DateArray)
+
+       ' Get the full file path
+       TempName = FileName
+       FilePath = GetFilePath(Drive, TempName, "\ft\sig\", ".sig")
+       if FilePath = "" Then
+            FTPutSig = 1
+            Exit function
+       End if
+
+       ' Create the Object needed for file I/O
+		Set fso = CreateObject("Scripting.FileSystemObject")
+
+       ' Create the file OR Open An existing file
+       On Error Resume Next
+       Err.Clear
+       Set f = fso.CreateTextFile(FilePath, True)
+       if Err.Number <> 0 Then
+            ' Set the return Code to the CreateTextFile error
+            FTPutSig = Err.Number
+            MsgBox("Error - Create signal file failed")
+            Exit function
+       End if
+
+       ' Get the arrays that we will store the results in
+		BuyArray = AFL.var("Buy")
+		SellArray = AFL.var("Sell")
+
+       ' Output the Signal file Header
+       'txt	= """314 AmiBroker " & Now""
+       f.WriteLine("""314 AmiBroker " & Now & """")
+
+       ' Loop thru the Signal Array entries
+       for i = LBound(DateArray) to UBound(DateArray)
+             if (BuyArray(i) > 0) Xor (SellArray(i) > 0) Then
+                   if BuyArray(i) > 0 Then
+                         Action = "B,"
+                   End if
+                   if SellArray(i) > 0 Then
+                         Action = "S,"
+                   End if
+                   ' Convert the Amibroker Date to FT format
+                   AmiDate = DateArray(i)
+                   AmiYear = int(DateArray(i) / 10000)
+                   AmiDate = AmiDate - AmiYear * 10000
+                   AmiMonth = int(AmiDate / 100)
+                   AmiDate = AmiDate - AmiMonth * 100
+                   AmiDay = int(AmiDate)
+                   Line = Action + Right(Cstr(AmiMonth + 100), 2) + "/" + Right(Cstr(AmiDay + 100), 2) + "/" + Cstr(AmiYear + 1900)
+                   f.WriteLine(Line)
+ 				End if
+             ' if both the Buy AND Sell Are True, skip the Date
+       Next
+
+       ' Close the file AND release the Object
+		f.Close()
+		Set fso = nothing
+
+       ' Set A good return Code
+       FTPutSig = 0
+
+End function
+
+'---------------------------------------
+'
+' This is A Helper function for to form A full file path.  It prompts for
+' A file file Name if One is NOT specified.
+'
+
+function GetFilePath(Drive, FileName, Dir, Ext)
+
+       ' if the file Name is blank, prompt for the Signal
+       if FileName = "" Then
+             FileName = InputBox("FastTrack " + UCase(Ext) + " File Name - ")
+       End if
+
+       ' if A blank was entered, terminate the routine with bad return Code
+       if FileName = "" Then
+             GetFilePath = ""
+             Exit function
+       End if
+
+       ' Get the full path to the FT file
+       FileName = Trim(FileName)
+       if Right(FileName, 4) <> Ext Then
+             FileNameExt = FileName + Ext
+       End if
+
+       ' Form the full path AND return
+       GetFilePath = Drive + Dir + FileNameExt
+
+End function
+
+'---------------------------------------
+'
+' This is a useful little function to output debug information AND interrupt
+' the execution of an AFL script
+'
+
+function FTMsgBox(String)
+
+       MsgBox(String)
+       FTMsgBox = 0
+
+End function
+
+'---------------------------------------
+
+'
+' These three functions Are utilized to set the Parameters to Call the
+' Helper function for A Trade, TradeFR, OR batch file execution
+'
+
+function FTRunTrade(INIFile, Parms, Silent, Run)
+
+       if Run <> 0 Then
+             FTRunTrade = RunShell("trade ", INIFile, ".INI", Parms, Silent)
+       else
+             FTRunTrade = 0
+       End if
+
+End function
+
+function FTRunTradeFR(INIFile, Parms, Silent, Run)
+
+       if Run <> 0 Then
+             FTRunTradeFR = RunShell("tradefr ", INIFile, ".INI", Parms, Silent)
+       else
+             FTRunTradeFR = 0
+       End if
+
+End function
+
+function FTRunBat(BATFile, Parms, Silent, Run)
+
+       if Run <> 0 Then
+             FTRunBat = RunShell("", BATFile, ".BAT", Parms, Silent)
+       else
+             FTRunBat = 0
+       End if
+
+End function
+
+'---------------------------------------
+'
+' This is the Helper function that runs the Command shell to execute Trade,
+' TradeFR, OR A batch file
+'
+
+function RunShell(CallType, FileName, Ext, Parms, Silent)
+
+       set WSHShell = CreateObject("WScript.Shell")
+
+       FileName = Trim(UCase(FileName))
+       if Right(FileName, 4) = EXT Then
+             FileName = Mid(FileName, 1, Len(FileName) - 4)
+       End if
+
+       Ext = Trim(UCase(Ext))
+       if Ext <> ".BAT" Then
+             CmdLine = "%comspec% /c " + CallType + " """ + FileName + Ext + """ " + Parms + " >" + """" + FileName + ".txt"" "
+       else
+             CmdLine = "%comspec% /c " + CallType + " """ + FileName + Ext + """ "
+       End if
+
+       ' MsgBox(CmdLine)
+       rc = WSHShell.Run(CmdLine, 7, True)
+
+       if Silent = 0 AND Ext <> ".BAT" AND rc = 0 Then
+             CmdLine = "notepad " + """" + FileName + ".txt"" "
+             ' MsgBox(CmdLine)
+             rc = WSHShell.Run(CmdLine, 1, True)
+       End if
+
+       RunShell = rc
+
+End function
+
+'---------------------------------------
+'
+' FTGetFNU - imports A FastTrack FNU file
+'
+' It is Called As in the following example -
+'
+'     script = GetScriptObject();
+'     rc = script.FTGetFNU("C:", "AFLVariable", "TEST", DateNum());
+'
+' if it is Called with A blank AFL variable Name, the code
+' will use the Close value.  if called with A blank FNU Name,
+' the Code will prompt for the file Name.
+'
+
+function FTGetFNU(Drive, VarName, FileName, DateArray)
+
+       ' Get the full file path
+       TempName = FileName
+       FilePath = GetFilePath(Drive, TempName, "\ft\", ".fnu")
+       if FilePath = "" Then
+            FTGetFNU = 1
+            Exit function
+       End if
+
+       ' Create the Object needed for file I/O
+		Set fso = CreateObject("Scripting.FileSystemObject")
+
+       ' Open the file AND test the result
+       On Error Resume Next
+       Err.Clear
+       Set f = fso.OpenTextFile( FilePath, 1 )
+       if Err.Number <> 0 Then
+            ' Set the return Code to the OpenTextFile error
+            FTGetFNU = Err.Number
+            MsgBox("Error - Open FT FNU file failed - " + FileName)
+            Exit function
+       End if
+
+       ' Get the Variables that we will store the results in
+       if VarName = "" Then
+            VarName = "Close"
+       End if
+		QuoteArray = AFL.var(VarName)
+
+        ' Skip the FT file identifiers
+       f.SkipLine
+       f.SkipLine
+
+       ' Loop through the file entries
+       Index = LBound(DateArray)
+       do while f.AtEndOfStream <> True
+
+             ' Read the Line AND Convert the Date
+             Line = f.Readline
+             ' if Date is in quotes, shift Left
+             if Left(Line, 1) = """" Then
+                  Line = Mid(Line, 2, 80)
+             End if
+             FTMonth = Mid(Line, 1, 2)
+             FTDay = Mid(Line, 4, 2)
+             FTYear = Mid(Line, 7, 4)
+             AmiDate = (FTYear - 1900) * 10000 + FTMonth * 100 + FTDay
+
+             ' if the FT Date >= Index Date, then search
+             if AmiDate >= DateArray(Index) Then
+                   ' Loop through the Amibroker Arrays from the Last index point
+                   for i = Index to UBound(DateArray)
+                         if DateArray(i) = AmiDate Then
+                               Line = Mid(Line, 11, 80)
+                               ' Position On the quote Value
+                               if Left(Line, 1) = """" Then
+                                    Line = Mid(Line, 3, 80)
+                               else
+                                    Line = Mid(Line, 2, 80)
+                               End if
+                               Line = Mid(Line, 1, Instr(1, Line, ",") - 1)
+                               QuoteArray(i) = CSng(Line)
+                               Index = i + 1
+                               Exit for
+                         else
+                         	   if DateArray(i) > AmiDate Then
+						       		'  Data is for a tick Date NOT present in DateArray
+                         	   		Exit for
+                         	   else
+                               		' Zero the Array entries that Are skipped
+                               		QuoteArray(i) = 0
+                               		Index = i + 1
+                               End if
+                         End if
+                   Next
+             else
+             '  Data is for a tick Date NOT present in DateArray
+             End if
+       Loop
+
+       ' Set the Amibroker Variable
+		AFL.var(VarName) = QuoteArray
+
+       ' Close the file AND release the Object
+		f.Close()
+		Set fso = nothing
+
+       ' Set A good return Code
+       FTGetFNU = 0
+
+End function
+
+'---------------------------------------
+'
+' FTPutFNU - exports to A FastTrack FNU file
+'
+' It is Called As in the following example -
+'
+'     script = GetScriptObject();
+'     rc = script.FTPutFNU("C:", "AFLVariable", "Description", "FNU_name", DateNum());
+'
+' if it is Called with A blank AFL variable Name, the code
+' will use the Close value.  if called with A blank FNU Name,
+' the Code will prompt for the file Name.
+'
+
+function FTPutFNU(Drive, VarName, Description, FileName, DateArray)
+
+       ' Get the full file path
+       TempName = Left(FileName, 5)
+       FilePath = GetFilePath(Drive, TempName, "\ft\", ".fnu")
+       if FilePath = "" Then
+            FTPutFNU = 1
+            Exit function
+       End if
+
+       ' Create the Object needed for file I/O
+		Set fso = CreateObject("Scripting.FileSystemObject")
+
+       ' Create the file OR Open An existing file
+       On Error Resume Next
+       Err.Clear
+       Set f = fso.CreateTextFile(FilePath, True)
+       if Err.Number <> 0 Then
+            ' Set the return Code to the CreateTextFile error
+            FTPutFNU = Err.Number
+            MsgBox("Error - Create FT FNU file failed - " + FileName)
+            Exit function
+       End if
+
+       ' Get the Variables that we will store the results in
+
+       ticker = FileName
+       Set OAB = CreateObject("Broker.Application")
+       if VarName = "" OR FileName = "" Then
+            VarName = "Close"
+            Ticker = OAB.ActiveDocument.Name
+       End if
+
+		' Get the full Name then truncate the ticker if necessary
+       Set OStocks = OAB.Stocks
+       Set OStock = OStocks.Item(CStr(Ticker))
+       FName = OStock.FullName
+
+       Set OAB = nothing
+       Set OStocks = nothing
+		Set OStock = nothing
+
+		QuoteArray = AFL.var(VarName)
+
+       ' Output the FNU file Header
+       f.WriteLine(Ticker)
+       if Description = "" Then									'<<<<<<< changed by BB to allow input of desription
+       	Description = "Amibroker FNU output - " + FName	'<<<<<<< changed by BB to allow input of desription
+      End if 														'<<<<<<< changed by BB to allow input of desription
+       f.WriteLine(Description)									'<<<<<<< changed by BB to allow input of desription
+       'f.WriteLine("Amibroker FNU output - " + FName)
+
+       ' Added by BB to get rid of zero values at start of file, but allow zero AND negative values later in file.
+       ' Later decided NOT to do it this way, but left in place, but commented out,  for future reference.
+       'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+       '' Loop thru the Array entries until a non-zero result is found
+	 'for i = LBound(DateArray) to UBound(DateArray)
+	 '	 j = i
+	 '	 if QuoteArray(i) <> 0 Then
+	 '	  	exit for
+	 '      End if
+     	 'Next
+       'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+       ' Loop thru the Array entries
+       j = LBound(DateArray)
+       for i = j to UBound(DateArray)
+	       if NOT IsEmpty(QuoteArray(i)) Then  ' <<<<<<< changed by BB to allow zero AND negative values
+             'if QuoteArray(i) > 0 Then
+                   ' Convert the Amibroker Date to FT format
+                   AmiDate = DateArray(i)
+                   AmiYear = int(DateArray(i) / 10000)
+                   AmiDate = AmiDate - AmiYear * 10000
+                   AmiMonth = int(AmiDate / 100)
+                   AmiDate = AmiDate - AmiMonth * 100
+                   AmiDay = int(AmiDate)
+                   Line = Right(Cstr(AmiMonth + 100), 2) + "/" + Right(Cstr(AmiDay + 100), 2) + "/" + Cstr(AmiYear + 1900)
+                   Line = Line + "," + CStr(QuoteArray(i)) + ",0"
+                   f.WriteLine(Line)
+             End if
+       Next
+
+       ' Close the file AND release the Object
+		f.Close()
+		Set fso = nothing
+
+       ' Set A good return Code
+       FTPutFNU = 0
+
+End function
+
+'---------------------------------------
+'
+' ABGetFNU - imports A FastTrack FNU file from the AmiBroker\ABFNUs\ directory
+'
+' It is Called As in the following example -
+'
+'     script = GetScriptObject();
+'     rc = script.ABGetFNU("AFLVariable", "FnuName", DateNum());
+'
+' if it is Called with A blank AFL variable Name, the code
+' will use the Close value.  if called with A blank FNU Name,
+' the Code will prompt for the file Name.
+'
+
+function ABGetFnu(VarName, FileName, DateArray)
+
+       ' Get the full file path
+       TempName = FileName
+       FilePath = GetFilePath("", TempName, "ABFNUs\", ".fnu")
+       if FilePath = "" Then
+            ABGetFnu = 1
+            Exit function
+       End if
+
+       ' Create the Object needed for file I/O
+		Set fso = CreateObject("Scripting.FileSystemObject")
+
+       ' Open the file AND test the result
+       On Error Resume Next
+       Err.Clear
+       Set f = fso.OpenTextFile( FilePath, 1 )
+       if Err.Number <> 0 Then
+            ' Set the return Code to the OpenTextFile error
+            ABGetFnu = Err.Number
+            MsgBox("Error - Open AB FNU file failed - " + FileName)
+            Exit function
+       End if
+
+       ' Get the Variables that we will store the results in
+       if VarName = "" Then
+            VarName = "Close"
+       End if
+		QuoteArray = AFL.var(VarName)
+
+        ' Skip the FT file identifiers
+       f.SkipLine
+       f.SkipLine
+
+       ' Loop through the file entries
+       Index = LBound(DateArray)
+       do while f.AtEndOfStream <> True
+
+             ' Read the Line AND Convert the Date
+             Line = f.Readline
+             ' if Date is in quotes, shift Left
+             if Left(Line, 1) = """" Then
+                  Line = Mid(Line, 2, 80)
+             End if
+             FTMonth = Mid(Line, 1, 2)
+             FTDay = Mid(Line, 4, 2)
+             FTYear = Mid(Line, 7, 4)
+             AmiDate = (FTYear - 1900) * 10000 + FTMonth * 100 + FTDay
+
+             ' if the FT Date >= Index Date, then search
+             if AmiDate >= DateArray(Index) Then
+                   ' Loop through the Amibroker Arrays from the Last index point
+                   for i = Index to UBound(DateArray)
+                         if DateArray(i) = AmiDate Then
+                               Line = Mid(Line, 11, 80)
+                               ' Position On the quote Value
+                               if Left(Line, 1) = """" Then
+                                    Line = Mid(Line, 3, 80)
+                               else
+                                    Line = Mid(Line, 2, 80)
+                               End if
+                               Line = Mid(Line, 1, Instr(1, Line, ",") - 1)
+                               QuoteArray(i) = CSng(Line)
+                               Index = i + 1
+                               Exit for
+                         else
+                         	   if DateArray(i) > AmiDate Then
+						       		'  Data is for a tick Date NOT present in DateArray
+                         	   		Exit for
+                         	   else
+                               		' Zero the Array entries that Are skipped
+                               		QuoteArray(i) = 0
+                               		Index = i + 1
+                               End if
+                         End if
+                   Next
+             else
+             '  Data is for a tick Date NOT present in DateArray
+             End if
+       Loop
+
+       ' Set the Amibroker Variable
+		AFL.var(VarName) = QuoteArray
+
+       ' Close the file AND release the Object
+		f.Close()
+		Set fso = nothing
+
+       ' Set A good return Code
+       ABGetFnu = 0
+
+End function
+
+'---------------------------------------
+'
+' ABPutFNU - exports to A FastTrack FNU file to the AmiBroker\ABFNUs\ directory
+'
+' It is Called As in the following example -
+'
+'     script = GetScriptObject();
+'     rc = script.ABPutFNU("AFLVariable", "Description", "FNU_name", DateNum());
+'
+' if it is Called with A blank AFL variable Name, the code
+' will use the Close value.  if called with A blank FNU Name,
+' the Code will prompt for the file Name.
+'
+
+function ABPutFnu(VarName, Description, FileName, DateArray)
+
+       ' Get the full file path
+       TempName = Left(FileName, 5)
+       FilePath = GetFilePath("", TempName, "ABFNUs\", ".fnu")
+       if FilePath = "" Then
+            ABPutFnu = 1
+            Exit function
+       End if
+
+       ' Create the Object needed for file I/O
+		Set fso = CreateObject("Scripting.FileSystemObject")
+
+       ' Create the file OR Open An existing file
+       On Error Resume Next
+       Err.Clear
+       Set f = fso.CreateTextFile(FilePath, True)
+       if Err.Number <> 0 Then
+            ' Set the return Code to the CreateTextFile error
+            ABPutFnu = Err.Number
+            MsgBox("Error - Create AB FNU file failed")
+            Exit function
+       End if
+
+       ' Get the Variables that we will store the results in
+
+       ticker = FileName
+       Set OAB = CreateObject("Broker.Application")
+       if VarName = "" OR FileName = "" Then
+            VarName = "Close"
+            Ticker = OAB.ActiveDocument.Name
+       End if
+
+		' Get the full Name then truncate the ticker if necessary
+       Set OStocks = OAB.Stocks
+       Set OStock = OStocks.Item(CStr(Ticker))
+       FName = OStock.FullName
+
+       Set OAB = nothing
+       Set OStocks = nothing
+		Set OStock = nothing
+
+		QuoteArray = AFL.var(VarName)
+
+       ' Output the FNU file Header
+       f.WriteLine(Ticker)
+       if Description = "" Then										'<<<<<<< changed by BB to allow input of desription
+	        	Description = "Amibroker FNU output - " + FName	'<<<<<<< changed by BB to allow input of desription
+	       End if 														'<<<<<<< changed by BB to allow input of desription
+	        f.WriteLine(Description)									'<<<<<<< changed by BB to allow input of desription
+       'f.WriteLine("Amibroker FNU output - " + FName)
+
+       ' Added by BB to get rid of zero values at start of file, but allow zero AND negative values later in file.
+	 ' Later decided NOT to do it this way, but left in place, but commented out,  for future reference.
+	 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	 '' Loop thru the Array entries until a non-zero result is found
+	 'for i = LBound(DateArray) to UBound(DateArray)
+	 '	 j = i
+	 '	 if QuoteArray(i) <> 0 Then
+	 '	  	exit for
+	 '      End if
+		 'Next
+	  'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+	  ' Loop thru the Array entries
+	  j = LBound(DateArray)
+	  for i = j to UBound(DateArray)
+	       if NOT IsEmpty(QuoteArray(i)) Then  ' <<<<<<< changed by BB to allow zero AND negative values
+             'if QuoteArray(i) > 0 Then
+                   ' Convert the Amibroker Date to FT format
+                   AmiDate = DateArray(i)
+                   AmiYear = int(DateArray(i) / 10000)
+                   AmiDate = AmiDate - AmiYear * 10000
+                   AmiMonth = int(AmiDate / 100)
+                   AmiDate = AmiDate - AmiMonth * 100
+                   AmiDay = int(AmiDate)
+                   Line = Right(Cstr(AmiMonth + 100), 2) + "/" + Right(Cstr(AmiDay + 100), 2) + "/" + Cstr(AmiYear + 1900)
+                   Line = Line + "," + CStr(QuoteArray(i)) + ",0"
+                   f.WriteLine(Line)
+             End if
+       Next
+
+       ' Close the file AND release the Object
+		f.Close()
+		Set fso = nothing
+
+       ' Set A good return Code
+       ABPutFnu = 0
+
+End function
+
+'---------------------------------------
+'
+'  This routine gets a CSV string Of the members Of a FT family
+'
+'  This is a program to read the contents of the FT family file AND place it in a
+'  CSV list for Amibroker to parse.  It is a hack using the TextStream object of
+'  VBScript.  It should continue to work as long as the Skip function skips over
+'  the EOF character if it is even present in the text before the member table.
+
+
+function FTGetFam(Drive, FamName)
+
+	 Set fso = CreateObject("Scripting.FileSystemObject")
+       On Error Resume Next
+       Err.Clear
+		'  Assume the standard path to FT on Drive.  The Complication is
+		'  that FT families Can reside in One Of three directories -
+		'       FT definitions
+		'       User definitions
+		'       Stock family definitions
+       Err.Clear
+       Set f = fso.OpenTextFile(Drive & "\\ft\\FTDEF\\" & FamName & ".fam")
+       if Err.Number <> 0 Then
+	       Err.Clear
+			Set f = fso.OpenTextFile(Drive & "\\ft\\USERDEF\\" & FamName & ".fam")
+			if Err.Number <> 0 Then
+		       Err.Clear
+				Set f = fso.OpenTextFile(Drive & "\\ft\\FT4WIN\\sftdef\\" & FamName & ".fam")
+				if Err.Number <> 0 Then
+					MsgBox("Family  " + FamName + "  not found")
+					FTGetFam = ""
+      				Exit function
+				End if
+			End if
+       End if
+		'  Skip Over the misc. family info
+		taboffset = 116
+		rc = f.Skip(taboffset)
+		'  Read the first member
+		List = f.Read(5)
+		'  MAke sure that we Have One
+		if List = "" then
+			FTGetFam = ""
+			exit function
+		end if
+		' Skip Over the reserved pad
+		pad = f.Read(14)
+		' Get all Of the symbols up to 5000
+		for i = 1 to 5000
+			' Check for actual end Of file
+			if (f.atendofstream) then
+				exit for
+			end if
+			' Read the ticker symbol
+			tick = f.Read(5)
+			' Skip Over the reserved pad
+			rc = f.Skip(14)
+			' if the symbol is NOT Null then append it
+			if (tick <> "") then
+				List = List & "," & RTrim(tick)
+			else
+				exit for
+			end if
+		next
+
+		' return the CSV restuls
+		FTGetFam = List
+
+end function
+
+'------------------------------------------------------------------------------
+
+%>
+
+//------------------------------------------------------------------------------
+//
+//  Routine to calculate the equivalent of the family average of a FT family.
+//  This produces an equity curve that represents the unweighted average of the
+//  the daily gains.  Note that this is equivalent to equal investments in the
+//  members that are rebalanced daily.
+//
+//------------------------------------------------------------------------------
+
+function FTFamAvg(str)
+{
+
+	STARTEQ			= 100;
+
+	gaintotal			= Close - Close;
+	count				= Close - Close;
+
+	script        = GetScriptObject();
+	famlist       = script.FTGetFam(str);
+
+	//  Loop thru the tickers in the watch list
+	for (i = 0; (member = StrExtract(famlist, i)) != ""; i++)
+	{
+		ticker				= Foreign(member, "Close");
+		gainfactor			= IIf(IsEmpty(Ref(ticker, -1)), Null, ROC(ticker, 1) / 100);
+
+		gaintotal			= gaintotal + IIf(IsEmpty(gainfactor), 0, gainfactor);
+		count				= count + IIf(IsEmpty(gainfactor), 0, 1);
+	}
+
+	//  Get average gain for the days in the range - assume rebalance
+	famavg				= gaintotal / count;
+	famavg				= IIf(IsEmpty(famavg), 0, Famavg) * Ref(Status("barinrange"), -1);
+	//  Math trick - antilog of sum of logs of gain factors = product of gain factors
+	res					= exp(Cum(log(famavg + 1))) * STARTEQ;
+
+	return res;
+}
+
+
+//------------------------------------------------------------------------------
+//
+//  These routines implement the Trade family functions of And, Or, and AndNot.
+//  They are designed to operate on CSV strings of the family members and
+//  produce a CSV string result.  This is done to allow cascading of results.
+//  The FTGetFam function from this library can be used to populate the strings.
+//
+//------------------------------------------------------------------------------
+
+function FTFamAnd(fam1str, fam2str)
+{
+	script			= GetScriptObject();
+
+
+	//  More efficient to search the longer list
+	famlist1		= fam1str;
+	famlist2	    = fam2str;
+	if (StrLen(famlist1) > StrLen(famlist2))
+	{
+		famlist1		= fam2str;
+		famlist2	    = fam1str;
+	}
+
+	res				= "";
+
+
+	//  Loop through the shorter list
+	for (i = 0; (member = StrExtract(famlist1, i)) != ""; i++)
+	{
+		found			= StrFind(famlist2, member);
+		if (found)
+			if (StrLen(res) == 0)
+				res			= member;
+			else
+				res			= res + "," + member;
+	}
+
+	return res;
+}
+
+
+function FTFamOr(fam1str, fam2str)
+{
+	//  More efficient to search the longer list
+	famlist1		= fam1str;
+	famlist2	    = fam2str;
+	if (StrLen(famlist1) > StrLen(famlist2))
+	{
+		famlist1		= fam2str;
+		famlist2	    = fam1str;
+	}
+
+	res				= famlist2;
+
+	//  Loop through the shorter list
+	for (i = 0; (member = StrExtract(famlist1, i)) != ""; i++)
+	{
+		found			= StrFind(famlist2, member);
+		if (found == 0)
+			if (StrLen(res) == 0)
+				res			= member;
+			else
+				res			= res + "," + member;
+	}
+
+	return res;
+}
+
+
+function FTFamAndNot(fam1str, fam2str)
+{
+	script			= GetScriptObject();
+
+	//  Can't switch order for AndNot operation
+	famlist1		= fam1str;
+	famlist2	    = fam2str;
+
+	res				= "";
+
+
+	//  Loop through the shorter list
+	for (i = 0; (member = StrExtract(famlist1, i)) != ""; i++)
+	{
+		found			= StrFind(famlist2, member);
+		if (found == 0)
+			if (StrLen(res) == 0)
+				res			= member;
+			else
+				res			= res + "," + member;
+	}
+
+	return res;
+}
+
+//

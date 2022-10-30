@@ -1,0 +1,226 @@
+_SECTION_BEGIN("advancesuppresibuysell");
+///////////////////////////////////////////////////////////////////////////////////////////
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} ,{{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot(C, "", IIf(O>=C, colorOrange, colorGreen),styleCandle);
+
+SetChartBkGradientFill( ParamColor("Inner panel upper",colorBlack),ParamColor("Inner panel lower",colorBlack));
+_N(Title = EncodeColor(colorWhite)+StrFormat(" {{NAME}} - {{INTERVAL}} {{DATE}} Open:%g, Close:%g ,{{VALUES}}",O,C ));
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+Plot(EMA(C,13),"",colorYellow);
+/////////////////////////////////////////////////////////////
+
+per1=Param ("per1", 0.325,0.1,50,0.10);
+
+per=per1;
+x = Cum(1);
+s1=L;
+s11=H;
+pS = TroughBars( s1, per, 1 ) == 0;
+endt= SelectedValue(ValueWhen( pS, x, 1 ));
+startt=SelectedValue(ValueWhen( pS, x, 2 ));
+dtS =endt-startt;
+endS = SelectedValue(ValueWhen( pS, s1, 1 ) );
+startS = SelectedValue( ValueWhen( pS, s1, 1 ));
+aS = (endS-startS)/dtS;
+bS = endS;
+trendlineS = aS * ( x -endt ) + bS;
+g3= IIf(x>startt-10,trendlineS,-1e10);
+Plot(g3,"",colorRed,styleDashed);
+
+pR = PeakBars( s11, per, 1 ) == 0;
+endt1= SelectedValue(ValueWhen( pR, x, 1 ));
+startt1=SelectedValue(ValueWhen( pR, x, 2 ));
+dtR =endt1-startt1;
+endR = SelectedValue(ValueWhen( pR, s11, 1 ) );
+startR = SelectedValue( ValueWhen( pR, s11, 1 ));
+aR = (endR-startR)/dtR;
+bR = endR;
+trendlineR = aR * ( x -endt1 ) + bR;
+g4= IIf(x>startT1-10,trendlineR,-1e10);
+Plot(g4,"",colorGreen,styleDashed);
+//////////////////////////////////////////////////////////////////////////////////////////////////
+perc=per1;
+x=BarIndex();xx=SelectedValue(x);
+t1=SelectedValue(ValueWhen(PeakBars(C,perc)==0,x)) ;
+H1=SelectedValue(ValueWhen(PeakBars(C,perc)==0,C)) ;
+t11=SelectedValue(ValueWhen(TroughBars(C,perc)==0, x));
+H11=SelectedValue(ValueWhen(TroughBars(C,perc)==0, C));
+g=t1>t11;
+shape=IIf(g,shapeDownArrow*(x==t1),shapeUpArrow*(x ==t11));
+Color=IIf(g,colorRed,colorGreen);
+PlotShapes(shape,color);
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+per=per1;
+
+x = Cum(1);
+s1=C;
+s11=C;
+pS = TroughBars( s1, per, 1 ) == 0;
+endt= SelectedValue(ValueWhen( pS, x, 1 ));
+startt=SelectedValue(ValueWhen( pS, x, 2 ));
+dtS =endt-startt;
+endS = SelectedValue(ValueWhen( pS, s1, 1 ) );
+startS = SelectedValue( ValueWhen( pS, s1, 2 ));
+aS = (endS-startS)/dtS;
+bS = endS;
+trendlineS = aS * ( x -endt ) + bS;
+g3= IIf(x>startt-10,trendlineS,-1e10);
+Plot(g3,"",colorRed,styleThick);
+
+pR = PeakBars( s11, per, 1 ) == 0;
+endt1= SelectedValue(ValueWhen( pR, x, 1 ));
+startt1=SelectedValue(ValueWhen( pR, x, 2 ));
+dtR =endt1-startt1;
+endR = SelectedValue(ValueWhen( pR, s11, 1 ) );
+startR = SelectedValue( ValueWhen( pR, s11, 2 ));
+aR = (endR-startR)/dtR;
+bR = endR;
+trendlineR = aR * ( x -endt1 ) + bR;
+g4= IIf(x>startT1-10,trendlineR,-1e10);
+Plot(g4,"",colorGreen,styleThick);
+//////////////////////////////////////////////////////////////////////////////
+
+//z_ZigZagValid
+// ******** CHARTING
+per=Param ("per1", 0.325,0.1,50,0.10);
+
+PercentChange = per;
+mystartbar = SelectedValue(BarIndex()); // FOR GRAPHING
+
+mystartbardate = LastValue(ValueWhen(mystartbar == BarIndex(), DateNum(),1));
+
+InitialValue = LastValue(ValueWhen(mystartbardate == DateNum(), C , 1 ) ) ;
+Temp1 = IIf(BarIndex() >= mystartbar, InitialValue, Null) ;
+Plot(Temp1, " ", colorBlack,styleLine);
+Plot((1+(LastValue(PercentChange)/100))*(Temp1), " ", colorGreen, styleLine) ;
+Plot((1-(LastValue(PercentChange)/100))*(Temp1), " ", colorRed, styleLine) ;
+
+ZZ = Zig(C,LastValue(PercentChange)) ;
+PivotLow = Ref(IIf(Ref(ROC(ZZ,1),-1) < 0 AND ROC(ZZ,1) > 0, 1, Null),1);
+PivotHigh = Ref(IIf(Ref(ROC(ZZ,1),-1) > 0 AND ROC(ZZ,1) < 0, 1, Null),1);
+
+PlotShapes( shapeCircle*PivotLow, colorGreen,0, L, -20) ;
+PlotShapes( shapeCircle*PivotHigh,colorRed,0,H, 20) ;
+
+Buy_Valid = IIf(C>(1+(LastValue(PercentChange)/100))*(ValueWhen(PivotLow, C,
+1))
+AND ROC(ZZ,1) > 0,1,0);
+Sell_Valid = IIf(C<(1-(LastValue(PercentChange)/100))*(ValueWhen(PivotHigh, C,
+1))
+AND ROC(ZZ,1) < 0,1,0);
+
+Buy_Valid = ExRem(Buy_Valid,Sell_Valid);
+Sell_Valid = ExRem(Sell_Valid,Buy_Valid);
+
+PlotShapes( shapeUpArrow*Buy_Valid, colorGreen,0, L, -20);
+PlotShapes( shapeDownArrow*Sell_Valid, colorRed,0,H, -20) ;
+
+BarColors =
+IIf(BarsSince(Buy_Valid) < BarsSince(Sell_Valid)
+AND BarsSince(Buy_Valid)!=0, colorGreen,
+IIf(BarsSince(Sell_Valid) < BarsSince(Buy_Valid)
+AND BarsSince(Sell_Valid)!=0, colorRed, colorBlue));
+
+Plot(C, " ", BarColors, styleCandle ) ;
+Plot(ZZ," ", colorLightGrey,styleLine|styleThick);
+Plot(ZZ," ", BarColors,styleDots|styleNoLine);
+
+Title = Name() + " " + Date() + WriteIf(PivotLow, " Up Pivot
+","")+WriteIf(PivotHigh," Down Pivot ","")+ WriteIf(Buy_Valid, " Buy Point ",
+"") + WriteIf(Sell_Valid, " Sell Point ", "") ;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+x = Cum(1);
+s1=C;
+s11=C;
+pS = TroughBars( s1, per, 1 ) == 0;
+endt= SelectedValue(ValueWhen( pS, x, 1 ));
+startt=SelectedValue(ValueWhen( pS, x, 2 ));
+dtS =endt-startt;
+endS = SelectedValue(ValueWhen( pS, s1, 1 ) );
+startS = SelectedValue( ValueWhen( pS, s1, 2 ));
+aS = (endS-startS)/dtS;
+bS = endS;
+trendlineS = aS * ( x -endt ) + bS;
+g3= IIf(x>startt-10,trendlineS,-1e10);
+Plot(g3,"",colorRed,styleThick);
+
+pR = PeakBars( s11, per, 1 ) == 0;
+endt1= SelectedValue(ValueWhen( pR, x, 1 ));
+startt1=SelectedValue(ValueWhen( pR, x, 2 ));
+dtR =endt1-startt1;
+endR = SelectedValue(ValueWhen( pR, s11, 1 ) );
+startR = SelectedValue( ValueWhen( pR, s11, 2 ));
+aR = (endR-startR)/dtR;
+bR = endR;
+trendlineR = aR * ( x -endt1 ) + bR;
+g4= IIf(x>startT1-10,trendlineR,-1e10);
+Plot(g4,"",colorGreen,styleThick);
+_SECTION_END();
+
+_SECTION_BEGIN("Triangle search");
+/* 20 day __Triangle Search
+This is a scan for triangles using highest high and lowest low over a chosen
+period, then next high over a chosen period after these HHV and LLV. Then the
+order of the highs and lows are to be in alternate order. This will pick up
+ascending, descending and eqaul triangles. Variable d1 is the number of days to
+search for the last highest high, and d2 is the gap after this HH to start
+searching for the next HH after the first. Similarly for the lowest lows
+The variables w? represent the highs, and z? are the lows.
+Graham Kavanagh*/
+
+Filter=Close>1;
+d1=20;
+d2=4;
+
+z1=HHV(High,d1);
+za1=HHVBars(High,d1);
+zb1=za1-d2;
+z2=HHV(High,zb1);
+za2=HHVBars(High,zb1);
+w1=LLV(Low,d1);
+wa1=LLVBars(Low,d1);
+wb1=wa1-d2;
+w2=LLV(Low,wb1);
+wa2=LLVBars(Low,wb1);
+
+aa1=LastValue(High);
+aa2=LastValue(Low);
+
+
+
+
+Buy= ((z1>=z2 AND w2>w1) OR(z1>z2 AND w2>=w1)) AND za1>za2 AND wa1>wa2 AND
+((za1>wa1 AND wa1>za2 AND za2>wa2) OR (wa1>za1 AND za1>wa2 AND wa2>za2)) AND
+aa1<z2 AND aa2>w2 AND Ref(Volume,-za1) > MA(Volume,d2) AND
+Ref(MA(Close,d1),-za1) > Ref(MA(Close,d1),-2*za1) AND MA(Close,d1) >
+Ref(MA(Close,d1),-2*za1);
+
+//PlotShapes(z1*shapeDownArrow,colorRed, 0, High, Offset =-40);
+//PlotShapes(z1*shapeDigit1,colorRed, 0, High, Offset =55);
+//PlotShapes(z2*shapeDownArrow,colorRed, 0, High, Offset =-10);
+//PlotShapes(z2*shapeDigit2,colorRed, 0, High, Offset =25);
+
+//PlotShapes(w1*shapeUpArrow,colorBrightGreen, 0, Low, Offset =0);
+//PlotShapes(w1*shapeDigit1,colorBrightGreen, 0, Low, Offset =-15);
+//PlotShapes(w2*shapeUpArrow,colorGreen, 0, Low, Offset =-35);
+//PlotShapes(w2*shapeDigit2,colorGreen, 0, Low, Offset =-50);
+ 
+
+
+NumColumns = 8;
+
+Column0 = z1;
+Column1 = z2;
+Column2 = w1;
+Column3 = w2;
+Column4 = za1;
+Column5 = za2;
+Column6 = wa1;
+Column7 = wa2;
+_SECTION_END();

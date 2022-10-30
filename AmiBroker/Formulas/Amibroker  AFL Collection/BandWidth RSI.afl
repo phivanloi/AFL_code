@@ -1,0 +1,10 @@
+Ind_P = Param( "Base Indicator Periods", 14, 2, 200, 1 );
+P = RSI(14);
+Periods = Param("Periods", 20, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+ 
+indBBW = BBandTop(P, 20, 2) - BBandBot(P, 20, 2); 
+Plot(indBBW, "BandWidth_RSI("+Ind_P+","+Periods+", "+Width+")", ParamColor("color", colorCycle ), ParamStyle("Style") );
+
+PlotGrid(80, colorLightGrey);
+PlotGrid(20, colorLightGrey);

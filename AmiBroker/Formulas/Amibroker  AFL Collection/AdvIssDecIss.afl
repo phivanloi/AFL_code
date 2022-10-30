@@ -1,0 +1,8 @@
+// AdvIssDecIss.afl
+//
+AdvIss = AdvIssues();
+DecIss = DecIssues();
+
+AdvDecOsc = ( AdvIss - DecIss ) / ( AdvIss + DecIss );
+Plot( C, "C", colorRose, styleCandle );
+Plot( AdvDecOsc, "AD", colorGreen, styleLine | styleOwnScale );

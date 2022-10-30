@@ -1,0 +1,74 @@
+/* Demand Index */
+/* Steve Wiser at slwiserr@erols.com */
+/* Exploration, System and indicator */
+
+GraphMax=9;
+
+A=(H+L+2*C);
+B=EMA((HHV(H,2)-LLV(L,2)),19);
+BuyP= 
+/*{BuyPower}*/
+ V/EMA(V,19) * ((A>=Ref(A,-1)) +(A<Ref(A,-1)) / exp((0.375 * (A+Ref(A,-1)) /B ) *(Ref(A,-1)-A) / A));
+
+SellP = 
+/*{SellPressure}*/ 
+V/EMA(V,19) * ((A<=Ref(A,-1)) + (A>Ref(A,-1)) / exp((0.375 * (A+Ref(A,-1)) / B ) * (A-Ref(A,-1)) / Ref(A,-1)));
+
+
+mabp=EMA(BuyP,19);       
+masp=EMA(SellP,19);        /*{smooth Selling Pressure}*/
+divsor=IIf(mabp>masp,mabp,masp);         /*{BP:SP ratio}*/
+divend=IIf(mabp<masp,mabp,masp);       /*{biggest=divisor}*/
+var2=1-(divend/divsor);                               /*{adjust ratio to plot in}*/
+var3=IIf( (masp>mabp) , -var2 , var2  )  ;       /*{range -100 to 100}*/
+var4=var3*100;  
+Graph1 = var4;
+Graph1Style=5;
+
+var5=MA(var4,30);
+Graph2=var5;;
+Graph2Style=5;
+Graph2Color=6;
+
+/*  Zero Line  */
+Graph0=0;
+
+
+Buy=Cross(var4,var5); /* originally var5 was a zero */
+Sell=Cross(0,var4);
+
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+
+Short=Sell;
+Cover=Buy;
+
+Filter= (Buy == 1 OR Sell == 1)  ;
+NumColumns = 7;
+Column0 =  IIf(Buy == 1, 1, IIf(Sell == 1, -1, 0 )  );
+Column0Format = 1.0;
+Column0Name = "B/S";
+Column1 = C;
+Column1Name = "Close       ";
+Column1Format = 1.2;
+Column2 = MA(V,17);
+Column2Name = "17 Ma Vol   ";
+Column2Format = 1.0;
+Column3 = MA(C,17)/MA(C,50);
+Column3Name = "% 17/50 ";
+Column3Format = 1.2;
+Column3Format = 1.2;
+Column4= MA(C,17);
+Column4Name="17 C ma";
+Column4Format = 1.2;
+Column4= MA(C,50);
+Column4Name="50 C ma";
+Column4Format = 1.2;
+Column5=ROC(var4,2);
+Column5Name="ROC DI";
+Column5Format=1.2;  
+Column6=Cum(1);
+Column6Name = "#Bars";
+Column6Format = 1.0;
+
+/*  End of Exploration Code. */

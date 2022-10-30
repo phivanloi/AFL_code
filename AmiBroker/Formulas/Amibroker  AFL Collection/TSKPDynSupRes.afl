@@ -1,0 +1,5 @@
+sw = E_TSKPSWINGLINE(High,Low,Close);
+// tskp_sw, tskp_swmean,tskp_swupper,tskp_swlower
+Plot( tskp_swmean, "Mean", ParamColor( "MeanColor", colorDarkGreen ), ParamStyle("MeanStyle",styleNoLabel) ); 
+Plot( tskp_swupper, "Resistance", ParamColor( "ResistanceColor", colorDarkGreen ), ParamStyle("ResistanceStyle",styleNoLabel) ); 
+Plot( tskp_swlower, "Support", ParamColor( "SupportColor", colorDarkGreen ), ParamStyle("SupportStyle",styleNoLabel) ); 

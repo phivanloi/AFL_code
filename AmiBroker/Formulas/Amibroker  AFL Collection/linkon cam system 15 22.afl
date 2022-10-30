@@ -1,0 +1,325 @@
+
+GfxSelectFont("Times New Roman", 10, 700, True );  
+//GfxTextOut("cz col blue / red, sw blue/grey, angle of cci ", 300 , 20 );
+style = IIf(ParamList("Chart style", "styleCandle|styleBar")=="styleCandle",64,128+4); 
+SHowband = ParamToggle("band", "Yes|No");
+SHowEMA34 = ParamToggle("EMA", "Yes|No");
+SHowGuppy = ParamToggle("Guppy red", "No|Yes");
+SHowchannel = ParamToggle("Regression Channel", "No|Yes"); 
+SHowGuppy2 = ParamToggle("Guppy blue", "No|Yes");
+SHowcam = ParamToggle("CAM", "No|Yes");
+SHowcam_all = ParamToggle("cam rest", "No|Yes");
+
+//===========================================================================
+_SECTION_BEGIN("Auto trendline1");
+/*
+
+trend channel development 
+Edward Pottasch, nov 2004
+
+*/
+
+
+per = 15; per = Param( "period", 15, 1, 500, 1);
+
+mm = C;
+
+x = Cum(1);
+lastx = LastValue(x); 
+selv = SelectedValue(x);
+
+aaa = LinRegIntercept(mm, per);
+bbb = LinRegSlope(mm, per);
+
+daa = SelectedValue(ValueWhen(x, aaa, 1));
+dbb = SelectedValue(ValueWhen(x, bbb, 1));
+
+xx = IIf(x > selv - per AND x <= selv, x - (selv - per),Null);
+
+yy = daa + dbb * xx;
+
+dhh = abs(H - yy);
+dll = abs(L - yy);
+dtt = Max(dhh,dll);
+
+wd = SelectedValue(HHV(dtt,per));
+if(showChannel ==True)
+{
+
+SetChartOptions(0, chartShowDates);
+GraphXSpace = 5;
+
+//Plot(C,"",colorWhite,64);
+Plot(yy, "LinReg", colorBlue );
+Plot(yy + wd, "Upper Boundary", colorRed, 4 );
+Plot(yy - wd, "Lower Boundary", colorBrightGreen, 4 );
+_SECTION_END();
+
+};
+
+//===========================================================================
+
+if(ShowEMA34 == False)
+{
+//PlotOHLC(JurikJMA( Close, 5, 0), JurikJMA( Close, 5, 0)+0.04, JurikJMA( Close, 5, 0)-0.04, JurikJMA( Close, 5, 0),"",IIf(JurikJMA( Close, 5, 0) > Ref(JurikJMA( Close, 5, 0),-1),colorGreen,colorRed), styleCloud); 
+piv = (Close+ High + Low + Ref(C,-1))/4 ;
+
+Plot(JurikJMA( piv, 9, 0),"",IIf(JurikJMA( piv, 9, 0) > Ref(JurikJMA( piv, 9, 0),-1),colorBrightGreen,colorRed),styleThick);
+Plot(JurikJMA( piv, 34, 0),"",IIf(JurikJMA( piv, 34, 0) > Ref(JurikJMA( piv, 34, 0),-1),colorBrightGreen,colorRed),styleThick);
+Plot(JurikJMA( piv, 33, 0),"",IIf(JurikJMA( piv, 33, 0) > Ref(JurikJMA( piv, 33, 0),-1),colorBrightGreen,colorRed),styleThick+styleNoLabel);
+Plot(JurikJMA( piv, 35, 0),"",IIf(JurikJMA( piv, 35, 0) > Ref(JurikJMA( piv, 35, 0),-1),colorBrightGreen,colorRed),styleThick+styleNoLabel);
+//PlotOHLC(EMA( piv, 34 ),IIf(EMA( piv, 35 ) > EMA( piv, 33 ),EMA( piv, 35 ),EMA( piv, 33 )),IIf(EMA( piv, 35 )<EMA( piv, 33 ),EMA( piv, 35 ),EMA( piv, 33 )),EMA( piv, 34 ),"",IIf(EMA( piv, 34 ) > MA(EMA( piv, 34 ),3),colorDarkGreen,colorDarkRed),styleCloud); 
+//PlotOHLC(EMA( Close, 20 ),IIf(EMA( Close, 21 ) > EMA( Close, 19 ),EMA( Close, 21 ),EMA( Close, 19 )),IIf(EMA( Close, 21 )<EMA( Close, 19 ),EMA( Close, 21 ),EMA( Close, 19 )),EMA( Close, 20 ),"",IIf(EMA( Close, 20 ) > MA(EMA( Close, 20 ),3),colorDarkBlue,colorOrange),styleCloud); 
+
+};
+
+
+_SECTION_BEGIN("ADX"); 
+
+//Plot (C,Date ()+" close",1,style); //ENABLE THIS TO HAVE CANDLES AS WELL
+
+Col_bar = IIf(CCI(14) > 100, colorBrightGreen, IIf(CCI(14) < -100,colorRed,IIf(EMA(CCI(14),2) > Ref(EMA(CCI(14),2),-1),colorDarkGreen,colorDarkRed)));
+Plot(Close,"price",col_bar,style);
+
+_SECTION_END(); 
+
+if(Showguppy2 == True)
+{
+_SECTION_BEGIN("guppy");
+e3 = JurikJMA(piv,3,0); 
+e5 = JurikJMA(piv,5,0);
+e8 = JurikJMA(piv,8,0);
+e10 = JurikJMA(piv,10,0);
+e12 = JurikJMA(piv,12,0); 
+e15 = JurikJMA(piv,14,0);
+
+
+Plot (e3,"",colorBlue,styleThick+styleNoLabel);
+Plot (e5,"",colorBlue,styleThick+styleNoLabel);
+Plot (e8,"",colorBlue,styleThick+styleNoLabel);
+Plot (e10,"",colorBlue,styleNoLabel);
+Plot (e12,"",colorBlue,styleNoLabel);
+Plot (e15,"",colorBlue,styleNoLabel);
+
+
+
+};
+
+if(Showguppy == True)
+{
+e30 = JurikJMA(piv,30,0);
+e35 = JurikJMA(piv,35,0);
+e40 = JurikJMA(piv,40,0);
+e45 = JurikJMA(piv,45,0);
+e50 = JurikJMA(piv,50,0);
+e55 = JurikJMA(piv,55,0);
+e60 = JurikJMA(piv,60,0);
+
+Plot (e30,"",colorYellow,styleThick+styleNoLabel);
+Plot (e35,"",colorRed,styleNoLabel+styleThick);
+Plot (e40,"",colorRed,styleNoLabel+styleThick);
+Plot (e45,"",colorRed,styleNoLabel+styleThick);
+Plot (e50,"",colorRed,styleNoLabel+styleThick);
+Plot (e55,"",colorRed,styleNoLabel+styleThick);
+Plot (e60,"",colorRed,styleNoLabel+styleThick);
+
+
+};
+
+
+_SECTION_BEGIN("BB"); 
+bb2top = BBandTop(Close,20,2.25);
+bb1top = BBandTop(Close,20,1);
+bb2bot = BBandBot(Close,20,2.25);
+bb1bot = BBandBot(Close,20,1);
+
+if(ShowBAND == False)
+{
+Plot (bb2top,"",IIf(bb2top > Ref(bb2top,-1) AND bb2bot < Ref(bb2bot,-1),colorBlue,colorGrey40));
+Plot (bb2bot,"",IIf(bb2top > Ref(bb2top,-1) AND bb2bot < Ref(bb2bot,-1),colorBlue,colorGrey40));
+PlotOHLC(bb2top,bb2top,bb1top,bb1top,"",colorDarkGrey,styleCloud); 
+PlotOHLC(bb1bot,bb1bot,bb2bot,bb1bot,"",colorDarkGrey,styleCloud);
+};
+
+_SECTION_END();
+
+
+_SECTION_END();
+
+
+
+_SECTION_BEGIN("SIMPLE_D-CAMS_SHOW");
+//---- pivot points 
+
+DayH = TimeFrameGetPrice("H", inDaily, -1);// yesterdays high 
+DayL = TimeFrameGetPrice("L", inDaily, -1);//low 
+DayC = TimeFrameGetPrice("C", inDaily, -1);//close 
+DayO = TimeFrameGetPrice("O", inDaily);// current day open 
+HiDay = TimeFrameGetPrice("H", inDaily); 
+LoDay = TimeFrameGetPrice("L", inDaily);
+
+TimeFrameSet( inDaily );
+
+R6 = (DayH / DayL) * DayC * 1.002;
+R5 = (DayH / DayL) * DayC;
+R4 = (((DayH / DayL) + 0.83) / 1.83) * DayC;
+R3 = ( ( (DayH / DayL) + 2.66) / 3.66) * DayC;
+R2 = ( ( (DayH / DayL) + 4.5) / 5.5) * DayC;
+R1 = ( ( (DayH / DayL) + 10) / 11) * DayC;
+ 
+S1 = (2- ( ( (DayH / DayL) + 10) / 11)) * DayC;
+S2 = (2-( (DayH / DayL) + 4.5) / 5.5) * DayC;
+S3 = (2-(( DayH / DayL) + 2.66) / 3.66) * DayC;
+S4 = (2-( (DayH / DayL) + 0.83) / 1.83) * DayC;
+S5 = (2-( DayH / DayL)) * DayC;
+S6 = (2-( DayH / DayL)) * DayC * 0.998;
+
+R4Color = colorOrange;
+R3Color = colorOrange;
+S4Color = colorDarkGreen;
+S3Color = colorDarkGreen;
+R5Color=colorGold;
+R2Color=colorDarkRed;
+R1Color=colorRed;
+S1Color=colorGreen;
+S2Color=colorBrightGreen;
+S5Color=colorAqua;
+
+style = styleLine + styleNoRescale ; 
+if(ShowCAM == True)
+{
+Plot(R4, "R4",R4Color,Style);
+Plot(R3, "R3",R3Color,style);
+Plot(S3, "S3",S3Color,style);
+Plot(S4, "S4",S4Color,style);
+};
+
+
+if(ShowCAM_all == True)
+{
+Plot(R5, "R5",R5Color,style);
+Plot(R2, "R2",R2Color,styleLine);
+Plot(R1, "R1",R1Color,styleLine);
+Plot(S1, "S1",S1Color,styleLine);
+Plot(S2, "S2",S2Color,styleLine);
+Plot(S5, "S5",S5Color,style); 
+
+};
+
+ToolTip=StrFormat("Open: %g\nHigh: %g\nLow: %g\nClose: %g (%.1f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1)));
+TimeFrameRestore();
+_SECTION_END();
+
+
+
+_SECTION_BEGIN("pivot calc");
+
+
+//++++++++++++++++++==========
+
+_SECTION_BEGIN("Floor Top");
+
+hcl=(O+H+L+C)/4;
+Ho=AMA(Ref(hcl,-1),0.5);
+HH=Max(H,Max(hcl,Ho));
+HL=Min(L,Min(hcl,Ho));
+
+trader = (hcl-Ho);
+VarRedLine = WMA(trader,5);
+VarBlueLine = MA(trader,8);
+Per = Param("MA Periods",15,3,50,1);
+HDCPeriods = per;
+bbbot = BBandBot( trader, HDCPeriods, 2 );
+bbtop = BBandTop( trader, HDCPeriods, 2 );
+
+VarAMA = 0.1;
+hcl2=(H+L+C)/3;
+Ho2=AMA(Ref(hcl2,-1),VarAMA); 
+HH2=Max(H,Max(hcl2,Ho2));
+HL2=Min(L,Min(hcl2,Ho2));
+trader2 = hcl2-Ho2;
+
+Color_floor = IIf(trader2 > bbtop, colorBrightGreen, IIf(trader2 < bbbot, colorRed,IIf(trader2 > Ref(trader2,-1), colorDarkGreen,colorDarkRed)));
+_SECTION_END();
+//++++++++++++++++++==========
+_SECTION_BEGIN("Linkon's RSI");
+
+period = 14;
+StoRSI =EMA(100*( ( RSI( period ) - LLV( RSI( period ) , period ) ) / ( ( HHV( RSI( period ) , period ) ) - LLV(RSI( period ), period ) ) ),3);
+bbtop = BBandTop(storsi,5,0.5);
+bbbot = BBandBot(storsi,5,0.5);
+sto_col = IIf(storsi > BBtop OR storsi > EMA(storsi,5), colorGreen, IIf(storsi < bbbot OR storsi < EMA(storsi,5),colorRed, colorBlack));
+_SECTION_END();
+
+_SECTION_BEGIN("MACD");
+
+SetChartBkColor( colorBlack ) ;
+f = 9;
+s = 34; 
+a1 = JurikJMA( Close, f, 0)-JurikJMA( Close, s, 0);
+BBtop=BBandTop(A1,5,.5); 
+BBbot=BBandBot(A1,5,.5);
+MACD_col=IIf(a1 > BBtop, colorGreen,IIf(a1 < bbbot,colorRed,colorBlack));
+
+MACD_diff = a1;
+
+
+_SECTION_END();
+
+_SECTION_BEGIN("adi");
+Length=Param( "JDX Length ", 14, 0, 100);
+ad = JurikDMX( Length);
+adplus = JurikDMXPlus( Length);
+adminus = JurikDMXMinus( Length);
+ad_pm_diff = adplus - adminus;
+ad_diff = ad - Ref(ad,-1);
+adplus_diff = adplus - Ref(adplus,-1);
+adminus_diff = adminus - Ref(adminus,-1);
+
+
+_SECTION_END();
+
+//==============================
+                
+
+
+
+Title =   Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "
+
++ "Vol= "+ WriteVal(V) +WriteIf ( V > MA(V,26) ,EncodeColor(colorGreen)+"  UP "+ (V/MA(V,26))*100 + " %", EncodeColor(colorRed)+"  DOWN "+ (V/MA(V,26))*100 + " %")+ EncodeColor(colorLightBlue) 
++ EncodeColor(colorYellow)+   " Yesterday's High : "+ EncodeColor(colorWhite)+DayH + EncodeColor(colorYellow)+   "    Yesterday's Low : "+ EncodeColor(colorWhite)+DayL
+
++ EncodeColor(colorBrightGreen)+   "\n            Hi: "+ EncodeColor(colorWhite)+H
++ EncodeColor(colorRed)+   "-            SL for Short: "+ EncodeColor(colorWhite)+(yy+WD)
+
++ EncodeColor(colorYellow)+   "\n   Op: "+ EncodeColor(colorWhite)+O+ EncodeColor(colorAqua)+   "Cl: "+ EncodeColor(colorBrightGreen)+C
++ EncodeColor(colorRed)+   "\n            Lo: "+ EncodeColor(colorWhite)+L
++ EncodeColor(colorBrightGreen)+   "-            SL for Long: "+ EncodeColor(colorWhite)+(yy-WD)
++" \n "
+
++EncodeColor(colorGreen) +   "\n JMX plus          : "+ adplus + WriteIf(adplus > Ref(adplus,-1), EncodeColor(colorGreen)+ "     : UP by : "+ adplus_diff, EncodeColor(colorRed)+"     : Down by : "+ adplus_diff)
+
++ EncodeColor(colorRed)   +   "\n JMX minus         : "+ adminus + WriteIf(adminus > Ref(adminus,-1), EncodeColor(colorRed)+ "     : UP by : "+ adminus_diff, EncodeColor(colorGreen)+"     : Down by : "+ adminus_diff)
+
++ EncodeColor(colorYellow)+  "\n Diff P-M          : "+ WriteIf( ad_pm_diff > 0, EncodeColor(colorGreen),EncodeColor(colorRed))+ ad_pm_diff
+
+
++ EncodeColor(colorWhite)   +   "\n JMX all         : "+ ad + WriteIf(ad > Ref(ad,-1), EncodeColor(colorGreen)+ "     : UP by : "+ ad_diff, EncodeColor(colorRed)+"     : Down by : "+ ad_diff)
+
++   "\n "
+
+
+
++ EncodeColor(colorWhite)+   
+"\n JMACD(5,34)  : "+ WriteIf( macd_col == colorGreen, EncodeColor(colorBrightGreen)+ "^   UP   ^","")  +WriteIf( MACD_col == colorRed, EncodeColor(colorRed)+ "^   DOWN   ^","")+WriteIf(MACD_diff >0,EncodeColor(colorGreen)+MACD_diff,EncodeColor(colorRed)+MACD_diff)
++" \n "
+//+ EncodeColor(colorWhite)+   
+//"\n STO RSI        : "+ WriteIf( sto_col == colorGreen, EncodeColor(colorBrightGreen)+"^   UP   ^"+storsi,"") +WriteIf( sto_col == colorRed, EncodeColor(colorRed)+"^   DOWN   ^"+storsi,"")
++ EncodeColor(colorWhite)+   
+"\n Floor_roof     :  "+ trader2 + WriteIf( Color_floor == colorBrightGreen, EncodeColor(colorBrightGreen)+"^   Stay LONG only   ^","") + WriteIf( Color_floor == colorDarkGreen , EncodeColor(colorBrightGreen)+"^   UP   ^","")  + WriteIf( Color_floor == colorDarkRed , EncodeColor(colorRed)+"^   DOWN   ^","") + WriteIf( Color_floor ==colorRed, EncodeColor(colorRed)+"^   Stay SHORT only   ^","")
+
+
+;
+
+_SECTION_END();

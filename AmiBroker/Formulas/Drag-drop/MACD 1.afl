@@ -1,0 +1,68 @@
+_SECTION_BEGIN("MACD");
+r1 = Param( "Fast avg", 12, 2, 200, 1 );
+r2 = Param( "Slow avg", 26, 2, 200, 1 );
+r3 = Param( "Signal avg", 9, 2, 200, 1 );
+r4 = Param( "Wk slow", 17, 2, 200, 1 );
+r5 = Param( "Wk fast", 8, 2, 200, 1 );
+m1=MACD(r1,r2);
+s1=Signal(r1,r2,r3);
+GraphXSpace =20;
+mycolor=IIf(m1<0 AND m1>s1, 51,IIf(m1>0 AND m1>s1,colorLime,IIf(m1>0 AND m1<s1,colorOrange,colorRed)));
+Plot( m1, StrFormat(_SECTION_NAME()+"(%g,%g)", r1, r2), mycolor,ParamStyle("MACD style") );
+Plot( s1 ,"Signal" + _PARAM_VALUES(), ParamColor("Signal color", colorBlue ), ParamStyle("Signal style") );
+histcolor = IIf((m1-s1)-Ref((m1-s1),-1)> 0, colorLime, colorRed ); 
+Cover = Cross( m1, s1 );
+Short = Cross( s1, m1 );
+PlotShapes(IIf(Cover,shapeUpArrow,shapeNone) ,colorCustom12);
+PlotShapes(IIf(Short,shapeDownArrow,shapeNone),colorCustom12);
+TimeFrameSet( inDaily );// weekly 
+m1w=MACD(r4,r5);
+s1w=Signal(r4,r5,r3);
+kp=m1w-s1w;
+kph=Ref(kp,-1);
+TimeFrameRestore(); 
+kw=TimeFrameExpand( kp, inDaily ); // expand for display 
+khw=TimeFrameExpand( kph, inDaily ); // expand for display 
+mw=TimeFrameExpand( m1w, inDaily ); // expand for display 
+sw=TimeFrameExpand( s1w, inDaily ); // expand for display 
+hcolor=IIf(mw<0 AND mw>sw, 51,IIf(mw>0 AND mw>sw,colorLime,IIf(mw>0 AND mw<sw,colorOrange,colorRed)));
+gcolor=IIf(kw>khw,IIf(kw>0,colorDarkYellow,colorYellow),IIf(kw>0,colorSkyblue,colorBlue));
+//Plot( 2,"Wkly MACD ribbon",hcolor,styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+//Plot( 2,"Ribbon",gcolor,styleOwnScale|styleArea|styleNoLabel, -0.4, 40,-0.6 );
+Plot( m1-s1, "MACD Histogram",  mycolor, styleHistogram | styleThick| styleOwnScale  ); 
+_SECTION_END();
+_SECTION_BEGIN("Price");
+Title = EncodeColor(colorYellow)+ FullName()+"("+Name()+") - " + "Hotline :" + EncodeColor(colorRed)+ " 0372.095.129" + EncodeColor(colorYellow)+ " - Website :  "+ EncodeColor(colorRed)+"Nududo.com" + EncodeColor(colorWhite) + " - " + Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +"\n" +EncodeColor(colorWhite) +"Mo cua-"+O+"  "+"Cao-"+H+"  "+"Thap-"+L+"  "+
+"Dong cua-"+C+"  "+ "Khoi Luong= "+ WriteVal(V);
+_SECTION_BEGIN("Magnified Market Price");
+FS=Param("Font Size",35,11,100,1);
+GfxSelectFont("Times New Roman", 28, 700, italic = True, underline = False, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor( ParamColor("Color",colorCustom9) );
+Hor=Param("Horizontal Position",220,1,1200,1);
+Ver=Param("Vertical Position",1,1,1,1);
+GfxTextOut(""+C,Hor-150 , Ver+25 );
+GfxTextOut( Name(), Hor,Ver-50 );
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+GfxSelectFont("Times New Roman", 10, 700, italic =True, underline = False, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor(ParamColor("Color",colorCustom9) );
+GfxTextOut(""+DD+" ("+xx+"%)", Hor-150, Ver+65 );
+GfxSelectFont("arial", 18 );
+GfxSetTextColor(ParamColor("dong",colorCustom8) );
+GfxSetTextAlign( 6 );// center alignment
+GfxSetTextColor( ColorRGB( 255, 255, 0 ) );
+GfxSetBkMode(0); // transparent
+GfxSelectFont("UVN But Long 1", Status("pxheight")/45 );
+GfxTextOut( "App TBI XI", Status("pxwidth")/2, Status("pxheight")/16 );
+GfxTextOut( "MACD", Status("pxwidth")/2, Status("pxheight")/10.5 );
+GfxSelectFont("UVN But Long 1", Status("pxheight")/45 );
+GfxTextOut( "Hotline : 0372.095.129 - Website : Nududo.com" , Status("pxwidth")/2, Status("pxheight")/8 );
+GfxSetTextColor( colorLightGrey );
+GfxSelectFont("UVN But Long 1", Status("pxheight")/50 );
+GfxTextOut( FullName() , Status("pxwidth")/1.2, Status("pxheight")/11 );
+GfxTextOut( "("+Name()+") " , Status("pxwidth")/1.2, Status("pxheight")/8 );
+_SECTION_END();

@@ -1,0 +1,11 @@
+_SECTION_BEGIN("CTI");
+function ChandeTrendIndex( Periods )
+{
+ return ln(C/Ref(C,-Periods))/(StDev(ln(C/Ref(C,-1)),Periods)*sqrt(Periods));
+}
+
+Plot( ChandeTrendIndex( Param("Periods", 50, 1, 100 ) ),
+		_DEFAULT_NAME(),
+		ParamColor("Color", ColorCycle ) );
+Plot( 1, "Trending Line", colorBlue, styleDashed|styleNoLabel );
+_SECTION_END();

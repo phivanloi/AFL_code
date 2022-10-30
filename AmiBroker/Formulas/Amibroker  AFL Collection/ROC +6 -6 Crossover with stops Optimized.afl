@@ -1,0 +1,25 @@
+//ROC +6/-6 Crossover with stops ***Optimized***
+
+//Enters long/short when Price rate of change goes below/above the -6/+6 signal levels. Trades are exited when the oscillator goes back over the signal line.
+
+//Note: Run Optimization first, insert optimized figure in ( pds= )and (pds2=) statements, then ( // ) out optimization lines, click on backtest.
+
+
+pds=12;
+pds2=6;
+
+pds=Optimize("pds",12,8,16,4);
+pds2=Optimize("pds2",6,5,7,1);
+
+Buy=Ref(ROC(C,pds),-1) < -pds2 AND ROC(C,pds) >= -pds2;
+Sell=ROC(C,pds) < -pds2 OR Ref(ROC(C,pds),-1) > pds2 AND ROC(C,pds) <= pds2;
+Short=Ref(ROC(C,pds),-1) > pds2 AND ROC(C,pds) <= pds2;
+Cover=ROC(C,pds) > pds2 OR Ref(ROC(C,pds),-1) < -pds2 AND ROC(C,pds) >= -pds2;
+
+Filter=Buy OR Sell OR Short OR Cover;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); Short=ExRem(Short,Cover); Cover=ExRem(Cover,Short);
+
+AddColumn(Buy,"Buy");
+AddColumn(Sell,"sell");
+AddColumn(Short,"short");
+AddColumn(Cover,"cover");

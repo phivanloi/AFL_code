@@ -1,0 +1,34 @@
+diff = EMA(RSI(9),21)-EMA(RSI(9),39);
+
+bbtop = BBandTop(diff,5,0.5);
+bbbot = BBandBot(diff,5,0.5);
+
+
+Plot(diff,"d",IIf(diff > bbtop,colorBrightGreen,IIf(diff < bbbot,colorRed,colorYellow)),styleDots);
+//Plot(Ref(diff,-1),"",colorBlue,styleDashed);
+Plot(0,"",colorDarkGrey,styleNoLabel);
+Hi = IIf(diff < bbbot,bbbot,IIf(diff > bbtop,diff,bbtop));
+Lo = IIf(diff > bbtop, bbtop, IIf(diff < bbbot,diff,bbbot));
+Plot(EMA(diff,2),"",IIf(diff > EMA(diff,2), colorBlue,colorDarkBlue), styleDashed+styleThick+styleNoLabel);
+Plot(EMA(diff,3),"",IIf(diff > EMA(diff,3), colorBlue,colorDarkBlue),styleDashed+styleThick+styleNoLabel);
+Plot(EMA(diff,4),"",IIf(diff > EMA(diff,4), colorBlue,colorDarkBlue),styleDashed+styleThick+styleNoLabel);
+Plot(EMA(diff,5),"",IIf(diff > EMA(diff,5), colorBlue,colorDarkBlue),styleDashed+styleThick+styleNoLabel);
+Plot(EMA(diff,6),"",IIf(diff > EMA(diff,6), colorBlue,colorDarkBlue),styleDashed+styleThick+styleNoLabel);
+Plot(EMA(diff,7),"",IIf(diff > EMA(diff,7), colorBlue,colorDarkBlue),styleDashed+styleThick+styleNoLabel);
+Plot(EMA(diff,8),"",IIf(diff > EMA(diff,8), colorBlue,colorDarkBlue),styleDashed+styleThick+styleNoLabel);
+
+//Plot(bbtop,"",colorWhite,styleDashed+styleNoLabel);
+//Plot(bbbot,"",colorWhite,styleDashed+styleNoLabel);
+//PlotOHLC(diff,Hi,Lo,diff,"",IIf(diff > bbtop,colorGreen,IIf(diff < bbbot,colorRed,colorYellow)),styleCloud);
+Title = 
+EncodeColor(colorWhite)+
+"Price  ::::::::::::::::: Oscillator ::::::  Trade "+"\n"+
+EncodeColor(colorRed)+
+"Higher High ::::: Lower High ::: SELL" +"\n"+
+EncodeColor(colorBrightGreen)+
+"Lower Low ::::::: Higher High :: BUY" +"\n"+
+EncodeColor(colorRed)+
+"Lower High :::::: Lower High ::: SELL" +"\n"+
+EncodeColor(colorBrightGreen)+
+"Lower Low ::::::: Higher Low ::: Buy" 
+; 

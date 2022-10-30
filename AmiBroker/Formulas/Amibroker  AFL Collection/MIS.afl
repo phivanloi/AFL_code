@@ -1,0 +1,83 @@
+/*_SECTION_BEGIN("Appel's ROC");
+
+x = ROC (C, 5);
+y = ROC (C, 15);
+z = ROC (C, 25);
+
+A = x + y + z;
+
+Plot (A, "Appel's ROC", colorRed);
+
+Plot (4, "", colorBlack, styleNoLabel, styleDashed);
+
+Buy = Cross (A,4);
+Sell = Cross (4,A);
+Filter = Buy OR Sell;
+
+AddColumn( Buy, "Buy", 1);
+AddColumn(Sell, "Sell", 1);
+AddColumn(Close,"Close",1.2);
+AddColumn(Volume,"Volume",1.0);
+
+/Developed by Tudor Marcelin - Art Invest/
+
+n=10; /period/
+
+A=0;
+M=0;
+D=0;
+
+for( i = 0; i < 10; i=i+1 )
+{
+
+A=IIf(Ref(Close, - i)>Ref(Close, - i-1), A+(Ref(Close, - i)/Ref(Close, - i-1))-1,A);
+
+M=IIf(Ref(Close, - i)==Ref(Close, - i-1), M+1/n,M);
+
+D=IIf(Ref(Close, - i)<Ref(Close, - i-1), D+(Ref(Close, - i-1)/Ref(Close, - i))-1,D);
+
+}
+ASI=IIf (D+M/2==0, 100, 100-100/(1+(A+M/2)/(D+M/2)));
+
+
+Plot(ASI,"ASI10",colorDarkBlue);
+
+Plot(50,"",colorBlack,styleLine);
+PlotGrid(70,colorGreen);
+PlotGrid(30,colorRed);
+
+GraphXSpace = 3;*/
+
+_SECTION_BEGIN("Rapid RSI");
+//Rapid RSI
+//
+Period=Param("Period",14,2,100);
+Diff=C-Ref(C,-1);
+
+Up=Max(Diff,0);
+Dn=Max(-Diff,0);
+
+UpSum=Sum(Up,Period);
+DnSum=Sum(Dn,Period);
+
+RS=IIf(DnSum!=0,UpSum/DnSum,100);
+
+RapidRSI=100-100/(1+RS);
+
+Plot(RapidRSI,"RapidRSI"+Period,colorRed);
+/*
+rel spread strength
+//Relative Spread Strength
+//
+RSPeriod=Param("RSI Period",5,1,100);
+E1Period=Param("E1 Period",10,1,100);
+E2Period=Param("E2 Period",40,1,200);
+
+E1=MA(C,E1Period);
+E2=MA(C,E2Period);
+Spread=E1-E2;
+RS=RSIa(Spread,RSperiod);
+Smooth=MA(RS,5);
+
+
+Plot(Smooth,"Relative Spread Strength",colorRed);*/

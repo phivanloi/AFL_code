@@ -1,0 +1,19 @@
+MaxGraph = 10;
+/* blue lines */
+Graph0= MA( Close, 3 );
+Graph1= MA( Close, 5 );
+Graph2= MA( Close, 8 );
+Graph3 = MA( Close, 12 );
+Graph4 = MA( Close, 15 );
+Graph0Style = Graph1Style = Graph2Style = Graph3Style =Graph4Style = 1;
+Graph0Color = Graph1Color = Graph2Color = Graph3Color =Graph4Color = 7;
+
+/* red lines */
+Graph5= MA( Close, 30 );
+Graph6= MA( Close, 35 );
+Graph7= MA( Close, 40 );
+Graph8 = MA( Close, 45 );
+Graph9 = MA( Close, 50 );
+Graph5Style = Graph6Style = Graph7Style = Graph8Style =Graph9Style = 1;
+Graph5Color = Graph6Color = Graph7Color = Graph8Color =Graph9Color = 5;
+

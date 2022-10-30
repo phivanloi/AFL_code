@@ -1,0 +1,19 @@
+// Settings
+PositionSize = -25; //Optimize ("pos.size",-20, -100, -5, 5); 
+SetTradeDelays(1, 1, 1, 1);
+BuyPrice = Open;
+SellPrice = Open; //try to sell at the end of the day
+ApplyStop( stopTypeLoss, stopModePercent, 10); //Optimize ("stop.loss", 6, 1, 20, 1));
+ApplyStop( stopTypeTrailing, stopModePercent, 50); //Optimize ("stop.trail", 50, 2, 60, 2));
+
+ClosePrice = C < 90; //Optimize ("close.price", 90, 10, 120, 5);
+ShortMA = MA (Close, 11); //Optimize ("shortMA", 7, 4, 14, 1));
+LongMA = MA(Close,76); //Optimize ("LongMA", 65, 50, 80, 2));
+xravi = (100 * (ShortMA-LongMA)/LongMA);
+ravi = IIf (xravi<0,-xravi,xravi);
+
+ADXtrigger = ADX (18) > 45; //Optimize ("ADX.level", 45, 5, 50, 5);
+RAVIBuyTrigger = Ravi > 30; //Optimize ("ravi.buy", 10, 10, 50, 2);
+RAVISellTrigger = Ravi < 17; //Optimize ("ravi.sell", 5, 2, 50, 5);
+Buy = RaviBuyTrigger AND ADXTrigger AND ClosePrice; //Optimize ("ravi.num", 10, 2, 50, 2);
+Sell = RaviSellTrigger;

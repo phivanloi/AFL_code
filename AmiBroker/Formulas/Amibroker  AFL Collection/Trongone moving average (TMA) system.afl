@@ -1,0 +1,9 @@
+// enter if open is greater than yesterday's 34 day MA.
+Buy = Open > Ref( MA( C, 34 ), -1 )
+AND Ref( V, -1 ) > 100000000 // yesterdays volume > 100mil
+AND Open - Ref( Close, -1 ) < 0;// overnight session < $0
+BuyPrice = Open;
+Sell = Buy; // sell the same day on close
+SellPrice = Close;
+SetOption("AllowSameBarExit", True ); // exit same EOD bar
+SetPositionSize( 1000, spsShares ); // pos size 1K shares

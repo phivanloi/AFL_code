@@ -1,0 +1,2 @@
+x = 100 * StDev(C,10) / EMA(C,10);
+Plot(x,"x",colorRed,styleThick);

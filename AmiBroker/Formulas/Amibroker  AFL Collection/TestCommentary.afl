@@ -1,0 +1,54 @@
+osInitialize();
+
+table = osTabCreate();
+osTabAddColumn( "my first column", 1, table );
+osTabAddColumn( "my second column2", 2, table, 30 );
+
+for( i = 0; i < 100; i++ )
+{
+  osTabSetNumber( 200*LastValue( Random() ), i, 0, table );
+  osTabSetString( "Test string (" + WriteVal(i) +") ", i, 1, table );
+}
+
+Output = "";
+for( i = 0; i < 100; i++ )
+{
+  Output = Output  + osTabGet( i, 0, table ) + ", " + osTabGet( i, 1 , table ) + "\n";
+}
+
+Output;
+
+osTabSave("test.bin", table );
+osTabDelete( table );
+
+"SAVE/LOAD -----";
+table2 = osTabCreate();
+osTabLoad("test.bin", table2 );
+
+Output = "";
+for( i = 0; i < 100; i++ )
+{
+  Output = Output  + osTabGet( i, 0, table2 ) + ", " +  osTabGet( i, 1 , table2 ) + "\n";
+}
+
+Output;
+
+"EXPORT/IMPORT/SORT -----";
+osTabExport( "test.txt", ",", table2 );
+osTabDelete( table2 );
+
+// MUST create and define columns in
+// the table prior to importing !
+table3 = osTabCreate();
+osTabAddColumn( "my first column", 1, table3 );
+osTabAddColumn( "my second column2", 2, table3, 30 );
+osTabImport("test.txt", ",", table3 );
+
+osTabSort(table3,0 ); // SORT BY FIRST COLUMN
+Output = "";
+for( i = 0; i < 100; i++ )
+{
+  Output = Output  + osTabGet( i, 0, table3 ) + ", " +  osTabGet( i, 1 , table3 ) + "\n";
+}
+
+Output;

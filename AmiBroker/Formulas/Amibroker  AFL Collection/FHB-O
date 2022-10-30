@@ -1,0 +1,457 @@
+//prepared by Vinod k. iyer
+pShowtradeLines = ParamToggle("Show 1000 H/L Lines", "No|Yes", 1);
+pShowRangeLines = ParamToggle("Show Day H/L Lines", "No|Yes", 0);
+SetChartOptions(0,chartShowArrows|chartShowDates|chartWrapTitle|chartHideQuoteMarker);
+Limit=Param(" Trade Till (Hour)(Min)(Sec)",153000,103000,153000,100);
+since=(TimeNum() >= 095959 AND TimeNum()<= Limit) AND (DateNum()==LastValue(DateNum()));
+since1=(TimeNum() >= 090000 AND TimeNum()<= Limit) AND (DateNum()==LastValue(DateNum()));
+autoHL = ParamToggle("AUTO 1st Hr H/L?", "No|Yes", 1);
+FHHL=Param(" Manual High Value",0,0,10000,0.01);
+FLLL=Param(" Manual Low Value",0,0,10000,0.01);
+
+
+inv=Param("INVEST CAPITAL", 25000,1000, 1000000, 500 );
+
+PlotOHLC(Open,High,Low,Close,"", IIf(CCI(14) > ((Ref(CCI(14),-1)+Ref(CCI(14),-2))/2),colorAqua,colorBrown) , styleCandle|styleThick);
+_SECTION_BEGIN("Volume");
+Plot( Volume, _DEFAULT_NAME(), IIf( C > O, ParamColor("Up Color", colorGreen ), ParamColor("Down Color", colorRed ) ), ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick | styleNoLabel, maskHistogram  ), 2 );
+
+_SECTION_END();
+
+TimeFrameSet(in1Minute);
+
+FH_Range   = (TimeNum() >= 090000 AND TimeNum()<= 100000) AND (DateNum()==LastValue(DateNum()));
+FH_Prices  = High * FH_Range;
+FH_Marker  = BarsSince(FH_Range>0);
+
+//Find number of bars in 60 minutes 
+Num_Bars   = 3600 / Interval(1);  
+
+isAll = True;
+isRth =  TimeNum() >= 084500 AND TimeNum() <= 100000;
+isdRth =  TimeNum() >= 084500 AND TimeNum() <= 160000;
+aRthL = IIf(isRth, L, 1000000);
+
+aRthH = IIf(isdRth, H, Null);
+aRthLd = IIf(isdRth, L, 1000000);
+DayH = TimeFrameCompress( aRthH, inDaily, compressHigh );
+DayH = TimeFrameExpand( DayH, inDaily, expandFirst );
+DayL = TimeFrameCompress( aRthLd, inDaily, compressLow );
+DayL = TimeFrameExpand( DayL, inDaily, expandFirst );
+
+
+FHH1        = Ref(HHV(High*FH_Range,Num_Bars),-FH_Marker);
+FHL1 = TimeFrameCompress( aRthL, inDaily, compressLow );
+FHL1 = TimeFrameExpand( FHL1, inDaily, expandFirst );
+
+FHH=IIf(autoHL==1,FHH1,FHHL);
+FHL=IIf(autoHL==1,FHL1,FLLL);
+
+btp=fhh+((fhh-fhl)*75/100);
+stp=fhl-((fhh-fhl)*75/100);
+TimeFrameRestore();
+//line plot basics
+Bars       = BarsSince(TimeNum() >= 084500 AND TimeNum() < 100000) ;// AND DateNum()==LastValue(DateNum());
+x0         = BarCount-LastValue(Bars);
+x1         = BarCount-1;
+DayHline=LineArray(x0,LastValue(DayH),x1,LastValue(DayH),0);
+DayLline=LineArray(x0,LastValue(DayL),x1,LastValue(DayL),0);
+FHH_Line   = LineArray(x0,LastValue(FHH),x1,LastValue(FHH),0);
+FHL_Line   = LineArray(x0,LastValue(FHL),x1,LastValue(FHL),0);
+btpline=LineArray(x0,LastValue(btp),x1,LastValue(btp),0);
+stpline=LineArray(x0,LastValue(stp),x1,LastValue(stp),0);
+perc=(fhh-fhl);
+rrr=IIf((since & perc<=(fhl*1.5/100)),perc,0);
+
+Plot(IIf(pShowRangeLines,DayHline,Null),"",colorYellow,styleLine|styleNoRescale);
+Plot(IIf(pShowRangeLines,DayLline,Null),"",colorYellow,styleLine|styleNoRescale);
+Plot(IIf(pShowtradeLines,FHH_Line,Null),"1000H",IIf(FH_Range==1,Null,colorBrightGreen),styleDots|styleNoRescale);
+Plot(IIf(pShowtradeLines,FHL_Line,Null),"1000L",IIf(FH_Range==1,Null,colorRed),styleDots|styleNoRescale);
+Plot(IIf(pShowtradeLines,btpLine,Null),"sell",IIf(FH_Range==1,Null,colorBrightGreen),styleDashed|styleNoRescale);
+Plot(IIf(pShowtradeLines,stpLine,Null),"cover",IIf(FH_Range==1,Null,colorRed),styleDashed|styleNoRescale);
+
+dy=ParamToggle("NR calc for", "RT SCAN|EOD SCAN", 0);
+
+//nr7 / nr1 /nr8
+TimeFrameSet(inDaily);
+High1=IIf(O>H,O,H);
+Low1=IIf(O<L,O,L);
+rang=High1-Low1;
+nr7=(rang==LLV(rang,7));
+nr8=(Ref(nr7,-1)  AND rang==LLV(rang,8));
+InsideBar = Inside() ;
+nri=(nr7 AND InsideBar);
+G=C>O;
+R=C<O;
+TGN7=nr7 & G;
+TRN7=nr7 & R;
+TGN8=nr8 & G;
+TRN8=nr8 & R;
+TGN7i=nri & G;
+TRN7i=nri & R;
+YGN7=Ref(TGN7,-1);
+YRN7=Ref(TRN7,-1);
+YGN8=Ref(TGN8,-1);
+YRN8=Ref(TRN8,-1);
+YGN7i=Ref(TGN7i,-1);
+YRN7i=Ref(TRN7i,-1);
+GN7=IIf(dy,tgn7,ygn7);
+rN7=IIf(dy,trn7,yrn7);
+GN8=IIf(dy,tgn8,ygn8);
+rN8=IIf(dy,trn8,yrn8);
+GN7i=IIf(dy,tgn7i,ygn7i);
+rN7i=IIf(dy,trn7i,yrn7i);
+dy1=IIf(dy==1,(gn7 | rn7 | gn8|rn8|gn7i|rn7i),0);
+
+TimeFrameRestore();
+
+Buy=IIf((since & perc<=(fhl*1.5/100)),Cross(H,fhh) | Cross(C,fhh),0);
+Short=IIf((since & perc<=(fhl*1.5/100)),Cross(fhl,L) | Cross(fhl,C),0);
+
+readyb=IIf((since & perc<=(fhl*1.5/100)),Cross(H,(fhh-(fhh*0.5/100))) | Cross(C,(fhh-(fhh*0.5/100))),0);
+readys=IIf((since & perc<=(fhl*1.5/100)),Cross((fhl+(fhl*0.5/100)),L) | Cross((fhl+(fhl*0.5/100)),C),0);
+Filter=Buy | Short | dy1 |readyb |readys;
+
+//shapes
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorWhite,0,L,-25 );
+PlotShapes(IIf(Short,shapeDownArrow,shapeNone),colorOrange,0,H,-25 );
+//AddColumn(rrr,"<1.5%",1.2);
+AddColumn( IIf(readyb, 82 , IIf(readys, 82,01 )), "RDY", formatChar, colorWhite, bkcolor= IIf(readys,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy, 66 , IIf(Short, 83,01 )), "GO", formatChar, colorWhite, bkcolor= IIf(Short,colorDarkRed,colorDarkGreen) );
+//AddColumn( IIf(dy==0, 82, IIf(dy==1, 69,01 )), "E-eod &  R-RT", formatChar, colorWhite, bkcolor= IIf(dy==1,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(dy==1 & gn7, 55, IIf(dy==1 & rn7, 55,01 )), "NR7", formatChar, colorWhite, bkcolor= IIf(dy==1 & rn7,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(dy==1 & gn8, 56, IIf(dy==1 & rn8, 56,01 )), "NR8", formatChar, colorWhite, bkcolor= IIf(dy==1 & rn8,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(dy==1 & gn7i, 73, IIf(dy==1 & rn7i, 73,01 )), "NR7i", formatChar, colorWhite, bkcolor= IIf(dy==1 & rn7i,colorDarkRed,colorDarkGreen) );
+Lotsize=round((inv*5.5)/fhh);
+
+Chg=Ref(C,-1);
+red=(since1 & (C<O | C==O));
+green=(since1 & (C>O | C==O));
+Reds=Cum(Red);
+Greens=Cum(Green);
+redr=IIf(red,O-C,0);
+greenr=IIf(green,C-O,0);
+Candles=Cum(red + green);
+Os=Sum(redr,Candles);
+ws=Sum(greenr,Candles);
+_SECTION_BEGIN("Volatility");
+periods= Param("Periods", 10, 2, 100 );
+function ChaikinVolatility( periods )
+{
+ return ROC( EMA( High - Low, periods ), periods );
+}
+_SECTION_END();
+TimeFrameSet(in5Minute);
+//TimeFrameSet(in5Minute);
+since5=(TimeNum() >= 090000 AND TimeNum()<= 153000) AND (DateNum()==LastValue(DateNum()));
+Candles5=(since5 & (C<O | C>O | C==O));
+Candles51=Cum(Candles5);
+HaClose0 =EMA((O+H+L+C)/4,3); 
+HaOpen0 = AMA( Ref( HaClose0, -1 ), 0.5 ); 
+HaHigh0 = Max( H, Max( HaClose0, HaOpen0 ) ); 
+HaLow0 = Min( L, Min( HaClose0, HaOpen0 ) ); 
+CondB=Haopen0<Haclose0;CONDS=Haopen0 >Haclose0;
+TimeFrameRestore();
+
+
+_SECTION_BEGIN("2");
+//Compress= Param("Compression",3,0.20,100,0.10); 
+TimeFrameSet(in15Minute);
+since15=(TimeNum() >= 090000 AND TimeNum()<= 153000) AND (DateNum()==LastValue(DateNum()));
+Candles15=(since15 & (C<O | C>O | C==O));
+Candles115=Cum(Candles15);
+HaClose1 =EMA((O+H+L+C)/4,3); 
+HaOpen1 = AMA( Ref( HaClose1, -1 ), 0.5 ); 
+HaHigh1 = Max( H, Max( HaClose1, HaOpen1 ) ); 
+HaLow1 = Min( L, Min( HaClose1, HaOpen1 ) ); 
+CondB1=Haopen1 < Haclose1;CONDS1=Haopen1 >Haclose1;
+TimeFrameRestore();
+
+_SECTION_BEGIN("3");
+//Compress= Param("Compression",6,0.20,100,0.10); 
+TimeFrameSet(in15Minute*2);
+since2=(TimeNum() >= 090000 AND TimeNum()<= 153000) AND (DateNum()==LastValue(DateNum()));
+Candles2=(since2 & (C<O | C>O | C==O));
+Candles12=Cum(Candles2);
+HaClose2 =EMA((O+H+L+C)/4,3); 
+HaOpen2 = AMA( Ref( HaClose2, -1 ), 0.5 ); 
+HaHigh2 = Max( H, Max( HaClose2, HaOpen2 ) ); 
+HaLow2 = Min( L, Min( HaClose2, HaOpen2 ) ); 
+CondB2=Haopen2 < Haclose2;CONDS2=Haopen2 > Haclose2;
+TimeFrameRestore();
+
+
+_SECTION_BEGIN("4");
+//Compress= Param("Compression",12,0.20,100,0.10); 
+TimeFrameSet(inHourly);
+since3=(TimeNum() >= 090000 AND TimeNum()<= 153000) AND (DateNum()==LastValue(DateNum()));
+Candles3=(since3 & (C<O | C>O | C==O));
+Candles13=Cum(Candles3);
+HaClose3 =EMA((O+H+L+C)/4,3); 
+HaOpen3 = AMA( Ref( HaClose3, -1 ), 0.5 ); 
+HaHigh3 = Max( H, Max( HaClose3, HaOpen3) ); 
+HaLow3 = Min( L, Min( HaClose3, HaOpen3 ) ); 
+CondB3=Haopen3 < Haclose3;CONDS3=Haopen3 > Haclose3;
+TimeFrameRestore();
+
+Title= EncodeColor(colorWhite)+  Date() + "   Tick = " + EncodeColor(5) + Interval()+
+EncodeColor(55)+ "   Open:  "+ EncodeColor(colorWhite)+ WriteVal(O,format=1.2) + 
+   EncodeColor(55)+ "   High:  "+ EncodeColor(colorWhite) + WriteVal(H,format=1.2) +
+   EncodeColor(55)+ "   Low:  "+ EncodeColor(colorWhite)+ WriteVal(L,format=1.2) + 
+   EncodeColor(55)+ "   Close:  "+ WriteIf(C> Chg,EncodeColor(colorBrightGreen),EncodeColor(colorRed))+ WriteVal(C,format=1.2)+  
+   EncodeColor(55)+ "   Change:  "+ WriteIf(C> Chg,EncodeColor(colorBrightGreen),EncodeColor(colorRed))+ WriteVal(ROC(C,1),format=1.2)+ "%"+
+                          
+   EncodeColor(55)+ "   Volume: "+ EncodeColor(colorWhite)+ WriteVal(V,1)+EncodeColor(colorYellow) + "        Lotsize:  "+WriteVal(Lotsize,1)+"        Lotsize/2:  "+WriteVal((Lotsize/3)*2,1)+"        Lotsize/3:  "+WriteVal(Lotsize/3,1)+ WriteIf(rrr, "       Range%  "+(rrr)+"  ","")+"\n"+
+EncodeColor(colorYellow)+
+Comm2=("heikin 5m  :   ")+
+WriteIf(LastValue(Condb),EncodeColor(colorBrightGreen)+"+Up",
+WriteIf(LastValue(Conds),EncodeColor(colorRed)+"-Down",EncodeColor(colorLightYellow)+"< Flat >"))+"\n"+
+EncodeColor(colorYellow)+
+
+Comm2=("heikin 15m  :   ")+
+WriteIf(LastValue(Condb1),EncodeColor(colorBrightGreen)+"+Up",
+WriteIf(LastValue(Conds1),EncodeColor(colorRed)+"-Down",EncodeColor(colorLightYellow)+"< Flat >"))+"\n"+
+EncodeColor(colorYellow)+
+
+Comm2=("heikin 30m  :   ")+
+WriteIf(LastValue(Condb2),EncodeColor(colorBrightGreen)+"+Up",
+WriteIf(LastValue(Conds2),EncodeColor(colorRed)+"-Down",EncodeColor(colorLightYellow)+"< Flat >"))+"\n"+
+EncodeColor(colorYellow)+
+
+Comm2=("heikin 1Hr  :   ")+
+WriteIf(LastValue(Condb3),EncodeColor(colorBrightGreen)+"+Up",
+WriteIf(LastValue(Conds3),EncodeColor(colorRed)+"-Down",EncodeColor(colorLightYellow)+"< Flat >"))+"\n"+
+
+
+Comm2=("Trend:      ")+
+WriteIf(Greens>Reds,EncodeColor(colorBrightGreen)+"+Up",
+WriteIf(Reds>Greens,EncodeColor(colorRed)+"-Down",EncodeColor(colorLightYellow)+"< Flat >"))+"\n"+
+EncodeColor(colorRed) +
+WriteIf(Reds, "Reds:  "+(reds)+"  ","")+"\n"+
+EncodeColor(colorBrightGreen) +
+WriteIf(Greens, "Greens:  "+(greens)+"  ","")+"\n"+
+EncodeColor(colorRed) +
+Comm2=("Red Range:  ")+
+WriteVal(Os, 1.2)+"\n"+
+EncodeColor(colorBrightGreen) +
+Comm2=("Green Range:  ")+
+WriteVal(Ws, 1.2)+"\n"+
+EncodeColor(colorRed) +
+WriteIf(ChaikinVolatility( periods )<0, "Chaikin:  "+(ChaikinVolatility( periods )
+)+"  ","")+"\n"+
+EncodeColor(colorBrightGreen) +
+WriteIf(ChaikinVolatility( periods )>0
+, "Chaikin:  "+(ChaikinVolatility( periods ))+"  ","");
+//patterns
+
+_SECTION_BEGIN("Pattern Alerts");
+SRbS = ParamToggle("S/R broken","Off,On",1);
+SRcS = ParamToggle("S/R confirmed","Off,On",1);
+PjabS = ParamToggle("Price just above/below","Off,On",1);
+_SECTION_END();
+
+_SECTION_BEGIN("Pattern Parameters");
+PlotP1P2 = ParamToggle("Plot P1/P2 Shapes","Off,On",0);
+P1Shape = Param("P1 Shape Typ",35,0,50,1);//default 35
+P2Shape = Param("P2 Shape Typ",37,0,50,1);//default 37
+Parallellinesswitch = ParamToggle("Plot Parallel Lines","Off,On",0);
+DisRange = Param("Plot Parallel Lines Trigger",300,0,1000,20);
+
+_SECTION_BEGIN("Pattern Styles");
+Style_SL= ParamStyle("Support",styleLine+styleThick,maskDefault)+styleNoRescale;
+Style_RL= ParamStyle("Resistance",styleLine+styleThick,maskDefault)+styleNoRescale;
+Style_PHL= ParamStyle("Parallel Support",styleLine+styleDashed,maskDefault)+styleNoRescale;
+Style_PLL= ParamStyle("Parallel Resistance",styleLine+styleDashed,maskDefault)+styleNoRescale;
+_SECTION_END();
+
+
+_SECTION_BEGIN("Pattern Selection");
+AscTs = ParamToggle("Ascending Triangle","Off,On",1);
+DscTs = ParamToggle("Descending Triangle","Off,On",1);
+STs = ParamToggle("Symmetrically Triangle","Off,On",1);
+ETs = ParamToggle("Expanding Triangle","Off,On",1);
+RWs = ParamToggle("Rising Wedge","Off,On",1);
+FWs = ParamToggle("Falling Wedge","Off,On",1);
+UTs = ParamToggle("Up Trend","Off,On",1);
+DTs = ParamToggle("Down Trend","Off,On",1);
+Ranges = ParamToggle("Range","Off,On",1);
+NonDefinedPatterns = ParamToggle("Not defined Patterns","Off,On",1);
+_SECTION_END();
+//calcs
+HH = HHV(H,20);
+LL = LLV(L,20);
+Mid = LL+((HH-LL)/2);
+Div = 100-(HH/(0.01*Mid));
+Per = LastValue(abs(Div));
+Hp1 = Ref(H,-1);Hp2 = Ref(H,-2);Hp3 = Ref(H,-3);Hp4 = Ref(H,-4);Hp5 = Ref(H,-5);Hp6 = Ref(H,-6);
+Lp1 = Ref(L,-1);Lp2 = Ref(L,-2);Lp3 = Ref(L,-3);Lp4 = Ref(L,-4);Lp5 = Ref(L,-5);Lp6 = Ref(L,-6);
+Hf1 = Ref(H,1);Hf2 = Ref(H,2);Hf3 = Ref(H,3);Hf4 = Ref(H,4);Hf5 = Ref(H,5);Hf6 = Ref(H,6);
+Lf1 = Ref(L,1);Lf2 = Ref(L,2);Lf3 = Ref(L,3);Lf4 = Ref(L,4);Lf5 = Ref(L,5);Lf6 = Ref(L,6);
+x = Cum(1);
+divx = LastValue(x)-x;
+
+//Tops
+A = H;
+Top1 = A > Hf2 & A > Hf1 & A > Hp1 & A > Hp2 & divx>2;
+Top2 = A > Hf3 & A > Hf2 & A ==Hf1 & A > Hp1 & A > Hp2 & divx>3 ;
+Top3 = A > Hf4 & A > Hf3 & A ==Hf2 & A >=Hf1 & A > Hp1 & A > Hp2 & divx>4;
+Top4 = A > Hf5 & A > Hf4 & A ==Hf3 & A >=Hf2 & A >=Hf1 & A > Hp1 & A > Hp2 & divx>5;
+Top5 = A > Hf6 & A > Hf5 & A ==Hf4 & A >=Hf3 & A ==Hf2 & A >=Hf1 & A > Hp1 & A >Hp2 & divx>6;
+Top = Top1 OR Top2 OR Top3 OR Top4 OR Top5;
+TopHigh = ValueWhen(Top,H);
+TopX = ValueWhen(Top,X);
+
+//Valleys
+A = L;
+Valley1 = A < Lf2 & A <= Lf1 & A <= Lp1 & A < Lp2 & divx>2;
+Valley2 = A < Lf3 & A < Lf2 & A == Lf1 & A < Lp1 & A < Lp2 & divx>3;
+Valley3 = A < Lf4 & A < Lf3 & A == Lf2 & A <= Lf1 & A < Lp1 & A < Lp2 & divx>4;
+Valley4 = A < Lf5 & A < Lf4 & A == Lf3 & A <= Lf2 & A <= Lf1 & A < Lp1 & A < Lp2 & divx>5;
+Valley5 = A < Lf6 & A < Lf5 & A == Lf4 & A <= Lf3 & A == Lf2 & A <= Lf1 & A < Lp1 & A < Lp2 & divx>6;
+Valley = Valley1 OR Valley2 OR Valley3 OR Valley4 OR Valley4 OR Valley5;
+ValleyLow = ValueWhen(Valley,L);
+ValleyX = ValueWhen(Valley,X);
+x = Cum(1);
+xb = LastValue(ValueWhen(Valley,x,1));
+xa = LastValue(ValueWhen(Valley,x,2));
+yb = LastValue(ValueWhen(Valley,L,1));
+Ya = LastValue(ValueWhen(Valley,L,2));
+xab_log = log(yb/yA)/(xb-xa);
+SL = exp((x-xb)*xab_log)*yb;
+RocSL = ROC(SL,1);
+xd = LastValue(ValueWhen(top,x,1));
+xc = LastValue(ValueWhen(top,x,2));
+yd = LastValue(ValueWhen(top,H,1));
+Yc = LastValue(ValueWhen(top,H,2));
+xcd_log = log(yd/yc)/(xd-xc);
+RL = exp((x-xd)*xcd_log)*yd;
+RocRL = ROC(RL,1);
+
+//LPL
+Low_Value = LastValue(Ref(LLV(L,xd-xc),-(x-xd)));
+x2 = LastValue(ValueWhen(L==Low_Value & x>xc & x<xd,x));
+PLL = IIf(LastValue(x)-x2>5,exp((x-x2)*xcd_log)*Low_Value,-1e10);
+
+//HPL
+Hi_Value = LastValue(Ref(HHV(H,xb-xa),-(x-xb)));
+x3 = LastValue(ValueWhen(H==Hi_Value & x>xa & x<xb,x));
+PHL = IIf(LastValue(x)-x3>5,exp((x-x3)*xab_log)*Hi_Value,-1e10);
+
+//Channels
+AvgRoc = abs(MA(ROC(C,1),100));
+Threshold_parallel = 15;
+Threshold_Trend = 0.001*per;
+SLabs = SL-Ref(SL,-1); RLabs = RL-Ref(RL,-1);
+ROC2SL = (SLabs/C)*100; ROC2RL = (RLabs/C)*100;
+RSL = ROC2SL > Threshold_Trend; FlatSL = abs(ROC2SL) < Threshold_Trend; FSL = ROC2SL < -Threshold_Trend;
+RRL = ROC2RL > Threshold_Trend; FlatRL = abs(ROC2RL) < Threshold_Trend; FRL = ROC2RL < -Threshold_Trend;
+parallel= abs(((RocSL/RocRL)-1)*100)<Threshold_parallel;
+UT= RSL AND RRL AND parallel;
+DT= FSL AND FRL AND parallel;
+DT_UT = IIf (DT,-1,IIf(UT,1,0));
+Rangeee = parallel AND FlatSL AND FlatRL;
+Xm = xb-xa >4 & xd-xc >4; //x-min.distance - optional
+AscT= FlatRL & RSL;// & xa<xd & xc<xb;// & Xm;
+DscT= FlatSL & FRL;// & xa<xd & xc<xb;// & Xm;
+AT_DT= IIf(AscT,1,IIf(DscT,-1,0));
+ST = RSL & FRL & RL>SL;//& xa<xd & xc<xb;// & Xm;
+ET = RRL & FSL & RL>SL;//& xa<xd & xc<xb;// & Xm;//abs(ROCSL/ROCRL)<3 - optional
+ST_ET = IIf(ST,1,IIf(ET,-1,0));
+RW = RRL & RSL & RocSL>RocRL & SL>RL AND NOT parallel;// & Xm;
+FW = FSL & FRL & RocRL<RocSL & SL<RL AND NOT parallel;// & Xm;
+RW_FW = IIf (RW,1,IIf(FW,-1,0));
+Distance = 0.5*ATR(14);
+
+//Support line signals
+Sup_break = Cross(SL,C) & X>XB;
+Sup_pricejustabove = L<SL+Distance & L>SL & X>XB;
+Sup_confirmed = L<=SL & C>SL & X>XB;
+
+//Resistance line signals
+Res_break = Cross(C,RL) & X>XD;
+Res_pricejustbelow = H>RL-Distance & H<RL & X>XD;
+Res_confirmed = H>=RL & C<RL & X>XD;
+
+//Parallel lower line signals
+PLL_break = Cross(PLL,C);
+PLL_pricejustabove = L<PLL+Distance & L>PLL;
+PLL_confirmed = L<=PLL & C>PLL;
+
+//Parallel higher line signals
+PHL_break = Cross(C,PHL);
+PHL_pricejustbelow = H>PHL-Distance & H<PHL;
+PHL_confirmed = H>=PHL & C<PHL;
+SupSignals = Sup_break | Sup_pricejustabove | Sup_confirmed;
+ResSignals = Res_break | Res_pricejustbelow | Res_confirmed;
+PLLSignals = PLL_break | PLL_pricejustabove | PLL_confirmed;
+PHLSignals = PHL_break | PHL_pricejustbelow | PHL_confirmed;
+//BS = Sup_confirmed OR Res_break;
+//SS = Res_confirmed OR Sup_break;
+BS = Sup_confirmed OR Sup_pricejustabove OR Res_break;
+SS = Res_confirmed OR Res_pricejustbelow OR Sup_break;
+NS = Sup_pricejustabove OR Res_pricejustbelow;
+PatternDirection =
+IIf(AscT|FW|UT,1,
+IIf(DscT|RW|DT,-1,
+IIf(ST|ET|Rangeee,0,0)));
+
+
+//Display Cond. fix when Chart is compl.zoomed out
+PLLd = abs((LastValue(C)/LastValue(PLL))-1)<0.01*DisRange;
+PHLd = abs((LastValue(C)/LastValue(PHL))-1)<0.01*DisRange;
+barvisible = Status("barvisible");
+firstvisiblebar = barvisible & NOT
+Ref(barvisible,-1);
+HHvisible = LastValue(HighestSince(firstvisiblebar,High));
+LLvisible = LastValue(LowestSince(firstvisiblebar,Low));
+RaH = HHvisible *1.05; //Range High
+RaL = LLVisible *0.95; //Range Low
+
+//Anyline_zero
+AnZ= ya==0 OR yb==0 OR yc==0 OR yd==0;
+SL_plot = IIf(x>=xa & SL>RaL & SL<RaH & NOT AnZ,SL,IIf(x>=xa & RaL==0 & NOT AnZ,SL,-1e10));
+RL_plot = IIf(x>=xc & RL>RaL & RL<RaH & NOT AnZ,RL,IIf(x>=xc & RaL==0 & NOT AnZ,RL,-1e10));
+PLL_plot = IIf(x-x2>=0 & abs(LastValue(L/PLL)-1) <abs(LastValue((DisRange/1000)*ATR(14))) & PLL>RaL & PLL<RaH & NOT AnZ,PLL,IIf(x-x2>=0 & RaL==0 & PLLd & abs(LastValue(L/PLL)-1) <abs(LastValue((DisRange/1000)*ATR(14)))& NOT AnZ,PLL,-1e10));
+PHL_plot = IIf(x-x3>=0 & abs(LastValue(H/PHL)-1) <abs(LastValue((DisRange/1000)*ATR(14))) & PHL>RaL & PHL<RaH & NOT AnZ,PHL,IIf(x-x3>=0 & RaL==0 & PHLd & abs(LastValue(H/PHL)-1) <abs(LastValue((DisRange/1000)*ATR(14)))& NOT AnZ,PHL,-1e10));
+
+///////////Begin Ploting Part////////////
+
+LastBar = Cum(1) == LastValue(Cum(1));
+Plot(SL_plot ," SL" ,colorCustom13,Style_SL+styleNoTitle);
+Plot(RL_plot ," RL" ,colorCustom12,Style_RL+styleNoTitle);
+Plot(IIf(Parallellinesswitch,PLL_plot,-1e10)," PLL",colorCustom13,Style_PLL+styleNoTitle);
+Plot(IIf(Parallellinesswitch,PHL_plot,-1e10)," PHL",colorCustom12,Style_PHL+styleNoTitle);
+
+// Shading
+BEGIN=Min(xa,xc);
+TRS = IIf(x>BEGIN-1,SL,-1e10);
+TRR = IIf(x>BEGIN-1,RL,-1e10);
+trr = IIf(trr>0,trr,Null);
+yVal=IIf(trs > trr,trr,trs);
+yval = IIf(yval>0,yval,Null);
+GraphZOrder = 0;
+if(Version()>4.75){
+//PlotOHLC(0,trr,yval,0,"",Shadowcolor,styleCloud+styleNoLabel);
+}
+/*
+///////////End Ploting Part////////////
+DefinedPatterns = AscT | DscT | ST | ET | RW | FW | UT | DT;
+Filter = BarIndex()==LastValue(BarIndex()) AND NOT GroupID()==253;
+Filter = Filter AND
+(AscT AND AscTs)| (DscT AND DscTs)| (ST AND STs)|
+(ET AND ETs)| (RW AND RWs)| (FW AND FWs)|
+(UT AND UTs)| (DT AND DTs)|(Rangeee AND Ranges)|
+(SupSignals AND NonDefinedPatterns AND NOT DefinedPatterns)|
+(ResSignals AND NonDefinedPatterns AND NOT DefinedPatterns);
+// | PLLSignals | PHLSignals | Trade Variables
+*/
+//Shapes
+if(PlotP1P2){
+PlotShapes(IIf(x==xa & NOT AnZ,P1Shape,shapeNone),Color_SL,0,SL,-13 );
+PlotShapes(IIf(x==xc & NOT AnZ,P1Shape,shapeNone),Color_RL,0,H,13 );
+}
+//end pattern
+/////////////////////////////////////////////////////////////////
+_SECTION_END();
+
+_SECTION_END();

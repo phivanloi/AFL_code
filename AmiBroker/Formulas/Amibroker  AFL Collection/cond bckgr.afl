@@ -1,0 +1,43 @@
+_SECTION_BEGIN("Conditional Chart Background");
+//by detwo of traderjj.com
+P = ParamField("Price field", 3);
+Periods = Param("Periods MA", 21, 2, 300, 1);
+Buycond = C > MA(C, Periods);
+bgmode = ParamToggle("Single Background Color","YES|NO", 1);
+for(i = 0; i < BarCount; i++)
+{
+ if(Buycond[i])
+   bgcolor[i] =  ParamColor("Background Color Top Buy", colorGreen);
+ else
+   bgcolor[i] =  ParamColor("Background Color Top Sell", colorRed);
+
+ if(bgmode)
+   SetChartBkGradientFill( bgcolor[i], ParamColor("Background Color Bottom", colorWhite), bgcolor[i] );
+ else
+   SetChartBkGradientFill( bgcolor[i], bgcolor[i], bgcolor[i] );
+}
+
+SetChartOptions(0, chartShowArrows|chartShowDates);
+SetChartBkColor( ParamColor("Background Color Axes", colorBlack) ); 
+
+upcolor     = ParamColor("Up Bar color ", colorWhite);
+downcolor   = ParamColor("Down Bar color ", colorBlack);
+Coloutline  = ParamColor("(Out-)Line Color", colorBlack);
+barcolor    = IIf(Close > Ref(Close, -1), upcolor, downcolor);
+gps         = GetPriceStyle();
+style       = gps | styleNoTitle | styleThick;
+
+SetBarFillColor(barcolor);
+if(gps == styleBar)
+  Plot( C, " " , barcolor, style ); 
+
+else
+  Plot( C, " " , Coloutline, style ); 
+
+Colortitle  = ParamColor("Color of Title", colorBlack);
+_N(Title = StrFormat(EncodeColor(Colortitle) + Name() + " - {{INTERVAL}} - {{DATE}} Open=%g, Hi=%g, Lo=%g, Close=%g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+_SECTION_END();
+
+_SECTION_BEGIN("EMA");
+Plot( EMA( P, Periods ), _DEFAULT_NAME()+"("+periods+")", ParamColor( "Color MA", colorBlack ), ParamStyle("Style MA") ); 
+_SECTION_END();

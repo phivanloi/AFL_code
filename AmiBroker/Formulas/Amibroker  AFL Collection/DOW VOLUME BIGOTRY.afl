@@ -1,0 +1,230 @@
+// DOW VOLUME BIGOTRY
+// Gerard Carey  - Sat 12 April 2008
+/* The problem I have with Volume is that my TA has consistently 
+failed to come up with a useful volume indicator. One that would 
+consistently confirm entry signals from other sources. 
+
+I think most of us would agree that, in the short term, prices can 
+change without significant increases in volume. You would think 
+that logic, let alone common sense, would therefore suggest, even 
+to someone as slow as I, that trying to create a useful short term 
+volume indicator is impossible, a downright stupid thing to even 
+attempt, and a complete waste of time. 
+Me - an impossibly stupid timewaster? 
+Some things are hard to deny.
+
+So I started out afresh to solve this Volume indicator dilemma by 
+trolling thru various books and Net sources looking to gather and 
+then to distill the collective wisdom on volume. 
+The collective wisdom that I found had already been distilled,
+by Charles Dow.
+
+I found the following somewhere.
+
+"When price movements are accompanied by high volume, Dow believed 
+this represented the "true" market view. If many participants are 
+active in a particular security, and the price moves significantly 
+in one direction, Dow maintained that this was the direction in 
+which the market anticipated continued movement. To him, it was a 
+signal that a trend is developing"
+
+Obviously what I should be doing is trying to do is to identify 
+this trend creating/sustaining volume. I'm sure others have 
+done it, but I wanted to do it myself, so I'd understand it clearly. 
+I'd looked at Chaikin and Twigg and all the other volume indicators 
+but I didn't understand, couldn't get their gist, couldn't find 
+their intrinsic value. 
+
+Now Mr Dow had given me the basic premise I'd been looking for. 
+I needed to identify the volume that creates and sustains the 
+predominant price trend.
+
+Being a bit of a numbskull when it comes to AFL, I approach any 
+new indicator as follows. 
+I have a section of a price chart that I know particularly well. 
+It displays a strong stable uptrend where I once had a series of 
+good pullback trades, one after another, bang bang bang. 
+Trades which, with the benefit of hindsight and experience, I now 
+consider almost "sure thing" trades.
+Ater coding or copying a new indicator I plot it in a pane under 
+this price chart. Then I check to see what this new indicator is 
+doing at the time of these "sure thing" pullback trades. If it 
+doesn't agree or provide new insights, I dump it and move on.
+
+I'll use my "sure things" process to test this new volume indicator.
+It's a simple approach that works for me. 
+I can't/don't grasp new concepts readily. 
+I need to be beat over the head with them, several times, on succesive days. 
+
+I wanted an oscillator based on a Dow's simple premise. One that 
+didn't mess me about, that I didn't have to spend a lot of time 
+analysing, and that told me one way or the other, how bullish or 
+how bearish.
+I wanted an oscillator that made up its damn mind and showed me. 
+I wanted a Volume Bigot.  
+
+Ok, I started start coding the contention, that progressively higher 
+closing prices and the amount of volume that accompanies them signify 
+bullish market sentiment, and vice versa.
+
+So the Dow Volume Bigot would separate Volume into BULLISH, 
+IIf(Close>=Ref(Close,-1),Volume,0);    // an oft used calculation 
+
+and BEARISH elements.
+IIf(Close<=Ref(Close,-1),Volume,0);    
+
+Where Close is the same as yesterdays Close, the volume is by definition 
+neither bullish nor bearish, but it's still volume and I'm damned if 
+I'm going to exclude it, and I can't satisfactorily explain why, except 
+to say that it all belongs, so it must all belong.
+So, as you can see by the "=" being inserted above, I included it in 
+both calculations.
+*/
+
+// I next set up the Period Parameter (more about the selected setting later)
+periods = Param("Periods", 34, 1, 200, 1 ) ; 
+
+/* and utilised Sum() to total the bull and bear Volume over the number 
+of days/bars that I specified. */
+
+BulldayVol= ( Sum( IIf( C>=Ref(C,-1), V, 0), periods)) / periods ;
+BeardayVol= ( Sum( IIf( Ref(C,-1)>=C, V, 0), periods)) / periods ;
+
+/* I then manipulated the formula to get an oscillator. Don't get hung up 
+trying to understand this. It's just a method of combining and displaying 
+bullish & bearsish Volume data as an oscillator. Not that Important! */
+
+TheDowVolumeBigot= 100-(100/(1+(BulldayVol/BearDayVol)))-50;
+
+/* IMO the MOST important level on any indicator is the neutral level, 
+where bullishness equates to bearishness. I like it to be in the middle 
+of the pane. It's just easy on the eyes. In the DVB it is at Zero.*/
+
+Plot(TheDowVolumeBigot,"       THE DOW VOLUME BIGOT   ",1,4+styleNoLabel);
+/* I plot the DVB line in bold black so it is prominent. I do this to 
+ensure I don't view the indicator as just as a "bull/bear area" oscillator. 
+The Black Bigot line has inherent qualities of its own. I now get some value 
+by occaisionally plotting trendlines on it and looking for trend line breaks, 
+as well as divergence. */
+
+/* I plot the DVB again as a histogram with green for >0 (bullish) and 
+red for <0 (bearish) */  
+Colour= IIf(TheDowVolumeBigot>0,8,4);
+Plot( TheDowVolumeBigot,"",Colour,2);
+
+Plot(0,"",colorGrey50,styleNoLabel); // The important Neutral level
+
+// The method of displaying the DVB gives precise action levels. 
+Plot(10,"",colorGrey50); Plot(-10,"",colorGrey50);
+Plot(20,"",colorGrey50); Plot(-20,"",colorGrey50);
+
+/* Now back to figuring the correct periods parameter that will specify 
+the predominant trend. OK, so now I've got the DVB on a pane and I'm trial 
+dialing the period parameter. 
+After checking out many different periods I got to trying 34 as I reckon 
+that price being above its MA(C,34) is a reasonable indication of the 
+predominant trend being positive, and lotsa folks seem to use 34 for various 
+reasons. Worth a try. 
+Then before I'd even got to check out the "sure thing" trades something 
+hit me right between the eyes. Wallop. Diverence.
+
+ 
+
+I've got a volume indicator showing divergence. Bearish volume (ie below zero) 
+steadily getting less bearish before price finally bottoms then turns up. 
+
+I slapped the Dow Waves indicator underneath. It's a cracker at finding divergence. Sure enough, there it was again, identified even earlier.  
+Blimey Charlie, I think we're on the right track. 
+
+Lets zoom out now and have a look at a trend.
+
+ 
+
+The downtrend, at the end of which the divergence was noted, was preceeded by a 
+classic uptrend - its start denoted by price breaking to new highs in Sept.
+The ensuing price rise was accompanied by significant increases in volume - displayed clearly by the DVB, and not so clearly, if at all, by the standard volume histogram.
+
+NB. 
+This is where I now get my major assistance from the Dow Volume Bigot.
+I get assistance with position size.
+Now you could just use the DVB as part of your entry selection proceedure 
+and leave it at that. But we know, or should do, how important it is that 
+we need to win more on our winners than we lose on our loosers.
+
+With the benefit of hindsight I'm looking at the chart above and saying to myself,
+"Look At That Volume! If I had my time again wouldn't I just be loading 
+up for BIG GAME for those four "sure thing" pullback trades noted with 
+green arrows on Dow Waves pane. Then it's back to regular position size 
+for the three grey arrow trades when bullish volume has faded but a trade 
+is still indicated".
+
+Instead of having had six good trades and one small loser, I would have had 
+four great trades, two good trades, and one small loser.
+
+The Maturing Trend
+Ok let's look at Trend Maturation with the Dow Volume Bigot.
+The DVB shows enthusiatic buyers in action in the first third of the trend. 
+Big institutions and traders saw price breaking to new highs and got established early on in the trend - the trend they were helping to create. 
+Remember our basic contention that trends can't be created or survive 
+without a supply of enthusiastic buyers? We can see them arriving! 
+Pullback traders like me and late arrivals helped maintain the trend 
+but didn't provide enough volume to maintain it for much longer. 
+Two thirds of the way thru the trend we can see it's strength fading. 
+Our trend is maturing.
+Divergence again? Look at those DVB peaks and compare them 
+to the peaks on the price chart.
+
+Note also how the DVB breaks down thru zero into Bear territory in concert 
+with the red predominant Medium-Term trend on the Dow Waves indicator.
+Obviously the word to abandon ship has gone out and everyone is jumping.
+Contrast this with the lag in the DVB crossing back up thru zero as 
+compared to the red Medium-Term Dow Wave. Although the DVB divergence gives 
+us an early indication of trend change our sailors are generally much 
+slower in gaining the confidence to climb back on board.
+
+I'll get around to checking out whether this "out in a hurry - back in more slowly" is a regular occurrence as the findings may give some insight into 
+the "Volume leads Price / Price leads Volume" debate.
+
+The Quick and Easy Interpretation
+Remember how I said I wanted an indicator that I didn't have to spend a lot 
+of time analysing. Looking at proposed entry spots on many charts has brought 
+me to a pretty basic conclusion.
+When the DVB is over 10 it means the situation is solidly bullish. 
+And obviously if it is over 20 it's extreemly bullish.
+Vice versa for the bearish situation.
+That's the quick and easy interpretation.
+You may also obtain further info by using trendlines, and looking for divergence and patterns.
+
+Evaluation Suggestions
+Plot the DVB in a pane under some of your prior trades. Then ask yourself if 
+the info provided would have affected your decision making. Both as to the entry itself and as regards position size.
+
+Plot it under the Index you consider most represents your market.
+Do you gain any new insights into the overall Bullish/Bearish nature of the market?
+
+Finally, let's remember and re-evaluate from our charts, Dow's assertion.
+
+If many participants are active in a particular security, and the price 
+moves significantly in one direction, this is the direction in which 
+the market anticipates continued movement.
+
+Notes
+All I've really done is to total up the bull & bear volume for 34 days/bars 
+and display it as an oscillator. 
+Simple really. Easy to understand. No confusing mathematical hijinks.
+
+I feel I should apologise for the staggered way in which the formula is presented but I needed you to think your way thru it so you'd understand it thoroughly, because when it comes to indicators, Understanding and Interpretation is everything.
+Probably should apologise for repeating myself a few times also.
+And for blathering on somewhat.
+You should be able to copy/paste the complete contents of this document 
+into the AmiBroker Formula Editor so the indicator can be displayed and 
+the interpretation saved with it. The charts will disappear. And you can 
+delete any of my blather you don't want.
+I'll include the document in the Files section also.
+
+I hope all this guff-n-waffle is of some value to you in your trading 
+if only in leading to a better understanding of Volume.
+
+Best of luck, Regards, and Good Trading
+Gerard
+*/

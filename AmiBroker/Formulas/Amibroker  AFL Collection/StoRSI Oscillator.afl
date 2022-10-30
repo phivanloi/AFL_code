@@ -1,0 +1,13 @@
+
+/* Added trigger level lines and made code a little more efficient */
+
+UpperLine = 90;
+LowerLine = 10;
+
+PlotGrid(90, colorLightGrey);
+PlotGrid(10, colorLightGrey);
+
+r = RSI(8);
+StoRSI = EMA(( r - LLV( r, 8 )) / (( HHV( r, 8 )) - LLV( r, 8 )), 3 ) * 100;
+Plot( StoRSI , "StoRSI", colorRed, styleLine);
+GraphXSpace = 2;

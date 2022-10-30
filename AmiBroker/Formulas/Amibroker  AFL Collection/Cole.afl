@@ -1,0 +1,81 @@
+/* COLE.AFL v 1.00 17/10/2001
+/* Cole Trading Method
+/* Developed by Roger Cole
+/* From Technical Analysis of Stocks and Commodities, V8:12 (460-463), by Alan Friedman
+/* Indicator developed and coded by Marek Chlopek, October 2001
+/* Support from Tomasz Janeczko and Amibroker Mailing List members - THANKS!!! */
+
+/* ************************************************************************** */
+/* Cole Trading Method description
+/* A up signal is formed when a stock makes three Rally Days in a row with larger volume on each day
+/* A down signal is formed when a stock makes three Reaction Days in a row with larger volume on each day
+/* Inside and Outside Days are ignored */
+
+/* ************************************************************************** */
+/* Cole Trading Method Indicator development description
+/* Cole Trading Method measures two independent signals: day status (Rally, Reaction, Inside, Outside) and volume,
+/* therefore two independent sub-indicators have been implemented:
+/* ColeDay - counts number of days in a row when Rally (positive) or Reaction (negative)
+/* ColeVolume - counts number of days with higher volume, always positive */
+
+/* ************************************************************************** */
+/* Cole's Trading Day Status definition */
+RY  = H >  Ref(H, -1) AND L >= Ref(L, -1); // Rally Day
+RX  = H <= Ref(H, -1) AND L <  Ref(L, -1); // Reaction Day
+IN  = H <= Ref(H, -1) AND L >= Ref(L, -1); // Inside Day
+OUT = H >  Ref(H, -1) AND L <  Ref(L, -1); // Outside Day
+
+VolRY = Ref(V, - BarsSince(RY));
+VolRX = Ref(V, - BarsSince(RX));
+RYwithVol  = RY  AND V > IIf(RY, Ref(VolRY, -1), VolRY);  // Rally Day with Volume
+RXwithVol  = RX  AND V > IIf(RX, Ref(VolRX, -1), VolRX);  // Reaction Day with Volume
+
+/* ************************************************************************** */
+/* ColeDay - counts number of Rally Days in a row (positive) or Reaction Days in a row (negative)
+/* When Rally ColeDay increases by 1 unless the first Rally Day then ColeDay = 1
+/* When Reaction ColeDay decreases by 1 unless the first Reaction Day then ColeDay = -1
+/* When Inside Day or Outside Day then ColeDay stays unchanged */
+PeriodRY = BarsSince(NOT RY);
+PeriodRX = BarsSince(NOT RX);
+ColeDay  = ValueWhen(RX OR RY, Sum(RY, PeriodRY) - Sum(RX, PeriodRX));
+
+/* ************************************************************************** */
+/* ColeVolume - counts number of days with higher volume, always positive
+/* When volume higher than previous day volume ColeVolume increases by 1
+/* When volume lower previous day volume then ColeVolume = 1
+/* When Inside Day or Outside Day then ColeVolume stays unchanged */
+PeriodV    = BarsSince(V < Ref(V, -1) AND (RX OR RY));
+ColeVolume = ValueWhen(RX OR RY, Sum (RX+RY, PeriodV) +1);
+
+/* ************************************************************************** */
+/* Trading Signals in Cole Trading Method
+/* Buy Signal  - when a stock makes three Rally Days in a row with larger volume on each day
+/* Sell Signal - when a stock makes three Reaction Days in a row with larger volume on each day */
+Buy   = ColeDay >= 3  AND ColeVolume >= 3;
+Sell  = ColeDay <= -3 AND ColeVolume >= 3;
+Cover = Buy;
+Short = Sell;
+
+/* ************************************************************************** */
+/* Graphic presentation in Amibroker */
+MaxGraph = 2;
+Graph0 = ColeDay;
+Graph1 = ColeVolume;
+Title = Name() + " - ColeDay = " + WriteVal(Graph0, 1.0) + "; ColeVolume = " + WriteVal(Graph1, 1.0);
+
+/* ************************************************************************** */
+/* Exploration in Amibroker */
+Filter = 1;
+NumColumns = 9;
+Column0 = H;		Column0Name = "H";		Column0Format = 1.2;
+Column1 = L;		Column1Name = "L";		Column1Format = 1.2;
+Column2 = V;		Column2Name = "V";		Column2Format = 1.0;
+Column3 = RY;		Column3Name = "RY";		Column3Format = 1.0;
+Column4 = RX;		Column4Name = "RX";		Column4Format = 1.0;
+Column5 = IN;		Column5Name = "IN";		Column5Format = 1.0;
+Column6 = OUT;		Column6Name = "OUT";		Column6Format = 1.0;
+Column7 = ColeDay;	Column7Name = "ColeDay";	Column7Format = 1.0;
+Column8 = ColeVolume;	Column8Name = "ColeVolume";	Column8Format = 1.0;
+
+/* ************************************************************************** */
+/* END COLE Indicator Formula */

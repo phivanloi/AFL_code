@@ -1,0 +1,68 @@
+/* Rainbow Oscillator */
+/* July 1997 TASC Traders Tips*/
+/* Coded by Anthony Faragasso */
+
+MaxGraph =16;
+
+avg1= Max (MA(C,2),
+           Max (MA(MA(C,2),2),
+           Max (MA(MA(MA(C,2),2),2),
+           Max (MA(MA(MA(MA(C,2),2),2),2),
+           Max(MA(MA(MA(MA(MA(C,2),2),2),2),2),
+           Max(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),
+           Max(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2),
+           Max(MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2),2),
+           Max(MA(MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2),2),2),
+           MA(MA(MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2),2),2),2))))))))));;;;;;;;;
+       
+
+
+avg2 = Min(MA(C,2),
+            Min(MA(MA(C,2),2),
+            Min(MA(MA(MA(C,2),2),2),
+            Min(MA(MA(MA(MA(C,2),2),2),2),
+            Min(MA(MA(MA(MA(MA(C,2),2),2),2),2),
+            Min(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),
+            Min(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2),
+            Min(MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2),2),
+            Min(MA(MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2),2),2),
+            MA(MA(MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2),2),2),2))))))))));;;;;;;;;;
+
+               /*     Rainbow Oscillator */
+
+  Graph0 =   100 * (Close - ((MA(C,2)+
+                    MA(MA(C,2),2)+
+                    MA(MA(MA(C,2),2),2) + MA(MA(MA(MA(C,2),2),2),2) +
+                    MA(MA(MA(MA(MA(C,2),2),2),2),2) +
+                    MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2) + 
+                    MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2)+
+                    MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2),2)+
+                    MA(MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2),2),2)+
+                    MA(MA(MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2),2),2),2))
+                    /10))/(HHV(C,10)-LLV(C,10));
+
+                     
+
+                /*  Lower Rainbow Band */
+
+Graph1 = -100  *( avg1 - avg2) /
+                    (HHV(C,10) - LLV(C,10));
+
+               /*     Upper Rainbow Band */
+
+Graph2 =  100 * (avg1 - avg2) /
+                    (HHV(C,10) - LLV(C,10));
+
+Graph0Style = 3;
+Graph2Style = Graph1Style = 1;
+Graph2Color = Graph1Color =3;
+Graph3 = 0;
+Graph3Color =8;
+
+downbar =Graph0 <Ref( Graph3,-1);
+upbar = Graph0 > Ref(Graph3,-1);
+barcolor = IIf( downbar,4, IIf( upbar, 6, 0 )  );
+Graph0BarColor = ValueWhen( barcolor != 0, barcolor );
+
+
+Title = Name() +" Rainbow Oscillator : "+WriteVal(Graph0,format=1.2) +" % ";

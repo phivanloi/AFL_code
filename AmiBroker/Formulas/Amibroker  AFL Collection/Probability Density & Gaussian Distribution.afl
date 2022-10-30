@@ -1,0 +1,228 @@
+///////////////////////////////////////////////////////////////////////////////
+//	Name		:	Probability Density & Gaussian Distribution
+// 	Description	:	Visual representation of distribution of the data-series
+//				(e.g. Price, Price Change, LogNormal Price Change etc).
+//				Identify whether the series exhibits normal Gaussian 
+//				distribution.
+//	Author		:	Adheer Pai (adheer at gmail dot com)
+//	History		:	1.0 (Original Release - July 08, 2009)
+///////////////////////////////////////////////////////////////////////////////
+
+// The input series for plotting the Probability Density and Gaussian Distribution
+// Use the array SERIES or replace accordingly.
+
+SERIES = ln(C/Ref(C,-1));
+
+// Constants
+PI 		 		 	= 3.14159;
+SHOW_BELL_CURVE  = "Show";
+HIDE_BELL_CURVE  = "Hide";
+
+// AFL Inputs
+nSample 	 = Param("DataSet Size", 500, 100, 1000);
+nSegments 	 = Param("Density Segments", 15, 10, 20);
+bGauss		 = ParamList("Gaussian Curve", SHOW_BELL_CURVE + "|" + HIDE_BELL_CURVE, 0);
+nPrecision = Param("Precision Digits", 5, 0, 6);
+nPrecision = 8 + nPrecision / 10;
+
+// Constants - system and derived.
+nBarIndex 	= SelectedValue(BarIndex());
+nFirstValidBar = -1;
+for( i = 0 ; i < BarCount ; i++ )
+{
+	if( !IsEmpty(SERIES[i]) )
+	{
+		nFirstValidBar = i;
+		break;
+	}
+}
+nSample = Max(Min(nBarIndex - nFirstValidBar , nSample),1);
+
+//DataSize = 0;									// Number of samples (it should be same as nPeriod)
+arrMean  = MA(SERIES, nSample );
+arrMax   = HHV(SERIES, nSample );
+arrMin   = LLV(SERIES, nSample );
+arrSDev  = StDev(SERIES, nSample );
+
+currMax  = arrMax[nBarIndex];			// Maximum of the range.
+currMin  = arrMin[nBarIndex];			// Minimum of the range.
+Mu		 = arrMean[nBarIndex];			// Mean (Mu)
+Sigma	 = arrSDev[nBarIndex];			// Standard Deviation of the Range (Sigma)
+
+rangeOfBar = (currMax-currMin) / nSegments;	// The range of each distribution bar.			
+barFrequency = 0;									// Occurances within each bar.
+MaxFrequency = 0;									// Highest number of occurrances.
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Graphics parameters
+///////////////////////////////////////////////////////////////////////////////
+pxWidth  = Status("pxChartWidth");
+pxHeight = Status("pxChartHeight");
+pxMargin = 30;
+SetChartBkGradientFill( colorLightGrey, colorLavender); 
+
+
+///////////////////////////////////////////////////////////////////////////////
+// DisplayBorder
+// Displays the charting borders.
+///////////////////////////////////////////////////////////////////////////////
+function DisplayBorder()
+{
+    GfxSelectPen(colorBrown, 1, styleDashed );
+    GfxMoveTo(pxMargin, pxMargin); GfxLineTo(pxMargin, pxHeight - pxMargin);	
+    GfxLineTo(pxWidth - pxMargin, pxHeight - pxMargin);	
+    GfxLineTo(pxWidth - pxMargin, pxMargin); GfxLineTo(pxMargin, pxMargin);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// computeSigmaBandDistribution
+// Computes the % distribution withing the specified sigma band 
+// bounded by minvalue and maxvalue.
+///////////////////////////////////////////////////////////////////////////////
+function computeSigmaBandDistribution(MinValue, MaxValue)
+{
+    nCount = 0;
+    for( i = nBarIndex ; i > nBarIndex - nSample && i >= 0 ; i-- )
+    {
+        if( SERIES[i] >= MinValue && SERIES[i] <= MaxValue)
+        {
+            nCount++;
+        }
+    }
+    return 100 * nCount / nSample ;
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// getGaussianValue
+// Function to compute the Gaussian distribution value(Y) for a given value 
+// of X. (non-scaled).
+///////////////////////////////////////////////////////////////////////////////
+function getGaussianValue(inputValue)
+{
+        // Steps to compute normal Gaussian distribution.
+    // 1) Compute (x - mu) squared, multiply it by -1
+    step_1 = -1 * (( inputValue - Mu ) ^ 2);
+    // 2) Compute twice of (sigma squared).
+    step_2 = 2 * (Sigma*Sigma);
+    // 3) Divide 1 by 2, and get the exp
+    step_3 = exp(step_1/step_2);
+    // 4) Now, divide step 3 by sigma.
+    step_4 = step_3 / Sigma;
+    // 5) Now, divide step 4 by square-root of ( 2 x PI );
+    step_5 = step_4 / sqrt(2*PI);
+
+    return (step_5);
+};
+
+
+
+
+DisplayBorder();
+
+// Compute the arithmetic mean, minimum and maximum of the price series
+// Compute the frequency of occurrances 
+for( nIndex = nBarIndex ; nIndex > (nBarIndex - nSample ) && nIndex >= 0; nIndex --)
+{
+    nCurrIndex = int((SERIES[nIndex]- currMin)/rangeOfBar);
+    nCurrIndex = Max(Min(nSegments-1, nCurrIndex),0);
+    barFrequency[nCurrIndex]++;
+    MaxFrequency = Max(MaxFrequency, barFrequency[nCurrIndex]);
+}
+
+// Now display the frequency of occurrances - aka distribution
+GfxSetBkMode(1); GfxSelectFont("Verdana", 8, 800); GfxSetTextAlign(6); GfxSetTextColor(colorRed);
+pxScaleX = (pxWidth - 2 * pxMargin)/nSegments;
+pxScaleY = 0.9*(pxHeight - 2 * pxMargin) / MaxFrequency;
+for( i = 0 ; i < nSegments; i++ )
+{
+    pxStartX = pxMargin + i * pxScaleX;
+    pxEndX = pxStartX + pxScaleX;
+    pxStartY = pxMargin + barFrequency[i] * pxScaleY;
+    GfxGradientRect(pxStartX, pxHeight - pxStartY , pxEndX, pxHeight - pxMargin, ColorRGB(70,255,255), ColorRGB(70,20,255));	
+    GfxTextOut(NumToStr(100*barFrequency[i]/nSample , 4.2) + "%", (pxStartX+pxScaleX/2), pxHeight - pxStartY - 15);	
+}
+
+
+// Now plot the mean and the standard-deviation bars range.
+pxScaleX_PixelsPerPriceUnit = (pxWidth - 2 * pxMargin) / (currMax - currMin);
+
+meanLineX = pxMargin + (Mu - currMin) * pxScaleX_PixelsPerPriceUnit;
+GfxSelectPen(colorBlue, 2, 3 ); 
+GfxMoveTo(meanLineX, pxMargin); GfxLineTo(meanLineX, pxHeight - pxMargin);
+GfxTextOut("Mean", meanLineX, pxHeight - pxMargin);
+GfxTextOut(NumToStr(Mu, nPrecision), meanLineX, pxHeight - pxMargin/3);
+for( i = 1 ; i <= 6 ; i++ )
+{
+    // Now plot the Mean +/- 1-StDev
+   sDevBand = pxMargin + (Mu + i*Sigma- currMin) * pxScaleX_PixelsPerPriceUnit;
+   if( sDevBand < pxWidth - pxMargin )
+	{
+       GfxSelectPen(ColorRGB(128,128,128), 1, 4 ); GfxMoveTo(sDevBand , pxMargin);	GfxLineTo(sDevBand , pxHeight - pxMargin);
+		GfxTextOut("+" + NumToStr(i,1.0) + " SD", sDevBand, pxHeight - pxMargin);
+		GfxTextOut(NumToStr(Mu + i*sigma, nPrecision), sDevBand, pxHeight - pxMargin/3);
+	}
+   sDevBand = pxMargin + (Mu - i*Sigma- currMin) * pxScaleX_PixelsPerPriceUnit;
+	if( sDevBand > pxMargin )
+	{	   
+    	GfxSelectPen(ColorRGB(128,128,128), 1, 4 ); GfxMoveTo(sDevBand , pxMargin);	GfxLineTo(sDevBand , pxHeight - pxMargin);
+		GfxTextOut("-" + NumToStr(i,1.0) + " SD", sDevBand, pxHeight - pxMargin);
+		GfxTextOut(NumToStr(Mu - i*sigma, nPrecision), sDevBand, pxHeight - pxMargin/3);
+	}
+}	
+
+// Legend and data information.
+GfxSetBkMode(1); GfxSetTextAlign(0 | 24); GfxSelectFont("Verdana", 8, 400); GfxSetTextColor(colorBlue);
+GfxTextOut("Latest  = " + NumToStr(SERIES[nBarIndex], nPrecision), pxMargin + 10, pxMargin + 15);
+GfxTextOut("Mean  = " + NumToStr(Mu, nPrecision), pxMargin + 10, pxMargin + 30);
+GfxTextOut("Sigma = " + NumToStr(Sigma, nPrecision), pxMargin + 10, pxMargin + 45);
+
+// Now display the distribution of the first 10 standard deviations or less.
+nLastPixelY = pxMargin + 60;
+for( numOfStDevs = 1 ; numOfStDevs <= 10 ; numOfStDevs ++ )
+{
+    nCount = computeSigmaBandDistribution(Mu - numOfStDevs * Sigma, Mu + numOfStDevs * Sigma);
+    GfxTextOut(NumToStr(numOfStDevs, 1.0) + "-Sigma = " + NumToStr(nCount,5.2) + "%", pxMargin + 10, nLastPixelY);
+    nLastPixelY = nLastPixelY + 15;
+    if( nCount >= 100 ) numOfStDevs = 100;
+}
+
+currLineX = pxMargin + (SERIES[nBarIndex] - currMin) * pxScaleX_PixelsPerPriceUnit;
+GfxSelectPen(colorGreen, 2, 3 ); 
+GfxMoveTo(currLineX , pxMargin); GfxLineTo(currLineX , pxHeight - pxMargin);
+GfxSetTextAlign(6); GfxSetTextColor(colorGreen);
+GfxTextOut("Latest", CurrLineX, pxMargin/2);
+
+
+/////////////////////////////////////////////////////////////////////////////////
+// Display the Gaussian Distribution if requested by the user.
+/////////////////////////////////////////////////////////////////////////////////
+if( bGauss == SHOW_BELL_CURVE )
+{
+   // Now display the normal distribution curve based on sigma and mu.
+   graphStepX = (CurrMax - Mu) / Max(100, pxWidth-2*pxMargin);	
+	if( graphStepX != 0 )
+	{
+    	Gaussian_Maxima = 0;
+    	for( x = CurrMin ; x <= CurrMax ; x = x + graphStepX)
+    	{
+       	Gaussian_Maxima = Max(Gaussian_Maxima, getGaussianValue(x));			
+    	}
+
+    	pxGaussianScaleY = 0.9*(pxHeight - 2 * pxMargin) / Gaussian_Maxima;
+    	GfxSelectPen(colorOrange, 2, 0);
+    	for( x = CurrMin ; x <= CurrMax ; x = x + graphStepX)
+    	{
+       	gaussianValue = getGaussianValue(x);
+        	pxPointX = ( x - CurrMin ) * pxScaleX_PixelsPerPriceUnit + pxMargin;
+        	pxPointY = pxHeight - ( gaussianValue - 0 ) * pxGaussianScaleY - pxMargin;
+        	if( x == CurrMin )
+        	{
+            	GfxMoveTo(pxPointX, pxPointY);
+        	}			
+        	GfxLineTo(pxPointX, pxPointY);
+    	}
+	}
+}

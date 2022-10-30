@@ -1,0 +1,1276 @@
+/*
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+// 
+// Vier 4P Analisys AFL ver.1.0
+// Written and modified by Anton Wibowo
+// Mailing list: http://finance.groups.yahoo.com/group/amibroker-4-bei/
+//
+// Thanks to: Mr. Vierjamal, Mr. Danny, & Mr. Dendo
+// also thanks to: Mr. Medi, Mr. Suryo, Mr. Andrei, & Mr. Dimas
+// who kindly introduce me to Technical Analisys and AFL Script
+// on Indonesia Direct Investor's Club Workshop & Training
+//
+// This script is free to use and to modify for your own purpose
+// 
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+// 
+// AFL script ini dibuat berdasar prinsip 4P Mr. Vierjamal - Indonesia Direct Investor's Club
+// Sebagian kode saya tulis sendiri setelah mempelajari bahasa AFL selama 3 hari dan sebagian lagi diambil dari 
+// AFL Library di http://www.amibroker.com/library/
+// Tujuan script ini adalah hanya dengan menggunakan satu file AFL, analisa lengkap prinsip 4P sudah dapat dilakukan.
+//
+// Ide awal pembuatan script ini terbersit pada saat sesi AmiBroker Advanced Training, Plaza Oktroi - Kemang, 14 Juni 2008.
+//
+// Begitu banyak file custom AFL script yang harus di-copy padahal masing-masing file hanya memiliki satu fungsi saja.
+// Disamping ribet, juga membuat bingung, memilih yang mana yang harus digunakan.
+// Kenapa tidak digabung saja menjadi hanya satu file AFL, tetapi memiliki banyak fungsi sekaligus.
+//
+// AFL script dibawah ini memuat sekaligus 13 charts yang penampilannya dapat dipilih langsung dari parameter.  
+// Masing-masing chart berdiri sendiri dan dapat ditampilkan atau disembunyikan satu persatu atau seluruhnya.
+// Proses kustomisasi warna pun dipermudah dimana warna dapat diganti-ganti via parameter.
+// Dengan demikian, cukup dengan bantuan hanya satu file AFL ini saja, analisa teknikal Vier 4P mudah dilakukan.
+//
+// Khusus untuk Volume, Stochastic, ADX, dan MACD chart, teks skala "terpaksa" harus dihilangkan.
+// Salah satu kelemahan AFL adalah tidak dapat membuat "new pane" (panel baru) dibawah chart yang sudah dibuat.
+// Akibat hal ini, Volume, Stochastic, ADX, dan MACD chart "dipaksa" untuk dibuat dalam satu panel dengan price chart
+// sehingga teks skala disamping kanan "terpaksa" harus dihilangkan agar tidak membingungkan.
+// 
+// Tujuan adanya Volume, Stochastic, ADX, dan MACD chart disini sebatas hanya untuk mengetahui peningkatan-
+// -penurunan di Volume chart, oversold-overbought di Stochastic chart, serta deteksi cross di ADX dan MACD chart.
+// Sehingga meskipun teks skala dihilangkan, tidak berpengaruh material terhadap analisa chart.
+//
+// Script AFL ini belum dilengkapi dengan fasilitas Scanning dan Explore.
+// Untuk proses Scanning dan Explore bisa digunakan AFL script yang telah dibuat oleh Mr. Medi, Mr. Suryo, 
+// Mr. Andrei, dan Mr. Dimas
+//
+// AFL Script ini masih jauh dari sempurna dan mungkin terdapat kesalahan atau kekurangan disana-sini.
+// Saran dan komentar perbaikan dipersilahkan via http://finance.groups.yahoo.com/group/amibroker-4-bei/ 
+//
+// Akhir kata, semoga dengan adanya AFL script ini dapat membantu banyak pihak.
+//
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+*/
+
+_SECTION_BEGIN("Pilihan Charts");
+
+PriceChart				=	ParamToggle("Price Chart", "Show|Hide",1);
+VolumeGraph 			=	ParamToggle("Volume Graph", "Hide|Show",1);
+AdvancedTrendLines	=	ParamToggle("Support Resistance", "Show|Hide",0);
+StochsK 				=	ParamToggle("Stochastic %K", "Show|Hide",0);
+Bollinger				=	ParamToggle("Bollinger Band", "Hide|Show",1);
+Parabolic				=	ParamToggle("Parabol SAR", "Hide|Show",1);
+Jimberg				=	ParamToggle("Jimberg Indicator", "Hide|Show",1);
+ZigZag					=	ParamToggle("Zig Zag Indicator", "Hide|Show",1);
+SMA359					=	ParamToggle("SMA 3+5+9 Cross", "Hide|Show",1);
+SMA52060				=	ParamToggle("SMA 5+20+60 Cross", "Hide|Show",1);
+SMA10EMA30				=	ParamToggle("VLong Cross", "Hide|Show",1);
+MACD_Cross 			= 	ParamToggle("MACD Cross", "Hide|Show",1);
+ADXLines				=	ParamToggle("ADX Cross", "Hide|Show",1);
+thefPlot				=	ParamToggle("fon plot", "Hide|Show",1);
+_SECTION_END();
+
+/*
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+*/
+
+
+
+
+
+_SECTION_BEGIN("Volume");
+Plot(  IIf(VolumeGraph, Null, Volume), "Volume Graph", IIf( C > O, ParamColor("Up  Color", colorGreen ), ParamColor("Down Color", colorRed ) ), styleHistogram | styleThick | styleNoRescale | styleOwnScale );
+_SECTION_END();
+
+
+
+/*
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+*/
+
+
+
+_SECTION_BEGIN("Support Resistance");
+
+function GetXSupport(Lo, Percentage, Back)
+{
+ return ((BarCount - 1) - LastValue(TroughBars(Lo, Percentage,Back)));
+}
+function GetYSupport(Lo, Percentage, Back)
+{
+ return (LastValue(Trough(Lo, Percentage, back)));
+}
+
+function GetXResistance(Hi, Percentage, Back)
+{
+ return ((BarCount - 1) -LastValue(PeakBars(Hi, Percentage, Back)));
+}
+function GetYResistance(Hi, Percentage, Back)
+{
+ return (LastValue(Peak(Hi, Percentage, Back)));
+}
+function TD_Supply(P)
+{
+	return ( P > Ref(P, 1) AND P > Ref(P, -1) AND P > Ref(C, -2));
+}
+function TD_Demand(P)
+{
+	return ( P < Ref(P, 1) AND P < Ref(P, -1) AND P < Ref(C, -2));
+}
+
+
+Percentage 	= Param("Percentage", 1.5, 0.01, 100. ,0.01);
+DrawAllLines 	= ParamToggle("Draw All Lines?", "No|Yes");
+Lines 			= Param("Lines?", 1, 1, BarCount-2);
+DrawR 			= ParamList("Resistance Points", "Off|High to High|High to Low", 1);
+DrawS 			= ParamList("Support Points", "Off|Low to Low|Low to High", 1);
+ShowTDP 		= ParamToggle("Show TD Pionts", "No|Yes", 1);
+AllOrDownR 	= ParamToggle("Resistance Direction", "All|Down");
+AllOrUpS 		= ParamToggle("Support Direction", "All|Up");
+ShowSR			= ParamToggle("Show Vert S/R","No|Yes", 1);
+SRPer			= Param("S/R Percentage", 3, 1);
+SRBack			= Param("S/R Back", 5, 1);
+SpLineColor 	= ParamColor("Support Line", colorAqua);
+RsLineColor 	= ParamColor("Resistance Line", colorRose);
+TopTrendColor	= ParamColor("Top Trend Line", ColorRGB(255,0,255));
+BtLineColor 	= ParamColor("Bot Trend Line", colorYellow);
+TopCircle 		= ParamColor("Top Circle", colorLightOrange);
+BtCircle 		= ParamColor("Bot Circle", colorLime);
+
+
+
+str = "";
+Res = Sup = 0;
+Con = 1;
+Main = C;
+Con = ConS = ConR = 1;
+
+if(DrawS=="Low to Low")
+{
+	Support1 = L;
+	Support2 = L;
+}
+else
+{
+	Support1 = L;
+	Support2 = H;
+}
+if(DrawR=="High to High")
+{
+	Resistance1 = H;
+	Resistance2 = H;
+}
+else
+{
+	Resistance1 = H;
+	Resistance2 = L;
+}
+
+if(AdvancedTrendLines AND DrawAllLines)
+for(i = 2; i<=Lines+1; i++)
+{
+	if(AdvancedTrendLines AND DrawS!="Off")
+	{
+		x0 = GetXSupport(Support1, Percentage, i);
+		x1 = GetXSupport(Support2, Percentage, i-1);
+		y0 = GetYSupport(Support1, Percentage, i);
+		y1 = GetYSupport(Support2, Percentage, i-1);
+		x = LineArray(x0, y0, x1, y1, 1);
+		if(AllOrUpS) ConS = StrToNum(NumToStr(y0 < y1));
+		if(Con AND ConS)
+			Plot(x, "", IIf(LastValue(C) < LastValue(x), TopTrendColor,BtLineColor),styleLine|styleThick);
+	}
+	if(AdvancedTrendLines AND DrawR!="Off")
+	{
+		x0 = GetXResistance(Resistance1, Percentage, i);
+		x1 = GetXResistance(Resistance2, Percentage, i-1);
+		y0 = GetYResistance(Resistance1, Percentage, i);
+		y1 = GetYResistance(Resistance2, Percentage, i-1);
+		x = LineArray(x0, y0, x1, y1, 1);
+		if(AllOrDownR) ConR = y0 > y1;
+		if(Con AND ConR)
+			Plot(x, "",  IIf(LastValue(C) < LastValue(x), TopTrendColor,BtLineColor),styleLine|styleThick);
+	}
+}
+else
+{
+	if(AdvancedTrendLines AND DrawS!="Off")
+	{
+		x0 = GetXSupport(Support1, Percentage, Lines+1);
+		x1 = GetXSupport(Support2, Percentage, Lines);
+		y0 = GetYSupport(Support1, Percentage, Lines+1);
+		y1 = GetYSupport(Support2, Percentage, Lines);
+		x = LineArray(x0, y0, x1, y1, 1 );
+		Sup = LastValue(LinRegSlope(x, Lines+1));
+		if(AllOrUpS) ConS = y0 < y1;
+		if(Con AND ConS)
+			Plot(x, "", IIf(LastValue(C) < LastValue(x), TopTrendColor,BtLineColor),styleLine|styleThick);
+	}
+	if(AdvancedTrendLines AND DrawR!="Off")
+	{
+		x0 = GetXResistance(Resistance1, Percentage, Lines+1);
+		x1 = GetXResistance(Resistance2, Percentage, Lines);
+		y0 = GetYResistance(Resistance1, Percentage, Lines+1);
+		y1 = GetYResistance(Resistance2, Percentage, Lines);
+		x = LineArray(x0, y0, x1, y1, 1 );
+		Res = LastValue(LinRegSlope(x, Lines+1));
+		if(AllOrDownR) ConR = y0 > y1;
+		if(Con AND ConR)
+			Plot(x, "",  IIf(LastValue(C) < LastValue(x), TopTrendColor,BtLineColor),styleLine|styleThick);
+	}
+str = "\nR Slope=("+Res+"), S Slope=("+Sup+")";
+}
+
+
+
+
+if(AdvancedTrendLines AND ShowTDP)
+{
+	PlotShapes(TD_Supply(H)*shapeDigit0, TopCircle, 0, H, H*.001);
+	PlotShapes(TD_Demand(L)*shapeDigit0, BtCircle, 0, L, -L*.001);
+}
+if(AdvancedTrendLines AND ShowSR)
+{
+	for(i=1; i<=SRBack; i++)
+	{
+		x0 = GetXSupport(L, SRPer, i);
+		x1 = BarCount-1;
+		y0 = GetYSupport(L, SRPer, i);
+		x = LineArray(x0, y0, x1, y0, 0);
+		Plot(x, "", IIf(LastValue(C) > x, SpLineColor, RsLineColor),styleLine|styleDashed|styleThick);
+		x0 = GetXResistance(H, SRPer, i);
+		y0 = GetYResistance(H, SRPer, i);
+		x = LineArray(x0, y0, x1, y0, 0);
+		Plot(x, "", IIf(LastValue(C) > x, SpLineColor, RsLineColor),styleLine|styleDashed|styleThick);
+
+	}
+}
+
+
+_SECTION_END();
+
+
+/*
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+*/
+
+
+_SECTION_BEGIN("Stochastic %K");
+StochasticLine 	= ParamColor("Stochastic Line", colorGold );
+OverSold 			= ParamColor("OverSold", colorRed );
+OverBought 		= ParamColor("OverBought", colorGreen );
+
+if (StochsK == 1) {
+SetChartOptions(0,0,ChartGrid30 | ChartGrid70 );
+r = StochK(14) ;
+Plot( r, "StochK", StochasticLine, styleNoRescale|styleOwnScale|styleNoLabel );
+PlotOHLC( r,r,50,r, "", IIf( r > 50, OverSold, OverBought ), styleCloud | styleNoRescale|styleOwnScale|styleNoLabel|styleClipMinMax ); 
+}
+
+_SECTION_END();
+
+
+
+/*
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+*/
+
+
+
+
+
+_SECTION_BEGIN("Bollinger Band");
+
+DisplayBBColor=ParamToggle("Display BB Color","No,Yes",0);
+BollPeriods = Param("Periode", 20, 0, 200, 1);
+Width = Param("Std. Dev.", 2, 0, 10, 0.05 );
+ColorBB=ParamColor("BB color",ColorRGB(64,0,0));
+
+Plot(IIf(Bollinger,Null,BBandTop( C, BollPeriods, Width )),"BBTop" + _PARAM_VALUES(), ParamColor("Color", colorDarkRed ), styleThick+styleNoLabel);
+Plot(IIf(Bollinger,Null,BBandBot( C, BollPeriods, Width )),"BBBot" + _PARAM_VALUES(), ParamColor("Color", colorDarkRed ), styleThick+styleNoLabel);
+
+if (Bollinger == 0 AND DisplayBBColor == 0) {
+PlotOHLC(Null,BBandTop( C, BollPeriods, Width ),BBandBot( C, BollPeriods, Width ),Null,"",ColorBB,styleCloud+styleNoLabel);
+}
+
+_SECTION_END();
+
+
+/*
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+*/
+
+
+_SECTION_BEGIN("Parabolic SAR");
+
+IAF = 0.02;       // acceleration factor
+MaxAF = 0.2;     // max acceleration
+psar = Close;		// initialize
+long = 1;        // assume long for initial conditions
+af = IAF;         // init acelleration factor
+ep = Low[ 0 ];   // init extreme point
+hp = High [ 0 ];
+lp = Low [ 0 ];
+
+for( i = 2; i < BarCount; i++ )
+{
+	if ( long )
+	{
+		psar [ i ] = psar [ i-1 ] + af * ( hp - psar [ i-1 ] );
+	}
+	else
+	{
+		psar [ i ] = psar [ i-1 ] + af * ( lp - psar [ i-1 ] );
+	}
+
+	reverse =  0;
+	//check for reversal
+	if ( long )
+	{
+		if ( Low [ i ] < psar [ i ]  )
+		{
+			long = 0; reverse = 1; // reverse position to Short
+			psar [ i ] =  hp;       // SAR is High point in prev trade
+			lp = Low [ i ];
+			af = IAF;
+		}
+	}
+	else
+	{
+		if ( High [ i ] > psar [ i ]  )
+		{
+			long = 1; reverse = 1;        //reverse position to long
+			psar [ i ] =  lp;
+			hp = High [ i ];
+			af = IAF;
+		}
+	}
+
+	if ( reverse == 0 )
+	{
+		if ( long )
+		{
+			if ( High [ i ] > hp ) 
+			{
+				hp = High [ i ]; 
+				af = af + IAF; 
+				if( af > MaxAF ) af = MaxAF; 
+			}
+             
+			if( Low[ i - 1 ] < psar[ i ] ) psar[ i ] = Low[ i - 1 ];
+			if( Low[ i - 2 ] < psar[ i ] ) psar[ i ] = Low[ i - 2 ];
+		}
+       else
+		{
+			if ( Low [ i ] < lp )  
+			{ 
+				lp = Low [ i ]; 
+				af = af + IAF; 
+				if( af > MaxAF ) af = MaxAF; 
+			}	
+				
+			if( High[ i - 1 ] > psar[ i ] ) psar[ i ] = High[ i - 1 ];
+			if( High[ i - 2 ] > psar[ i ] ) psar[ i ] = High[ i - 2 ];
+
+		}
+	}
+}
+
+Plot(IIf(Parabolic,Null,psar),"SAR", ParamColor("Parabolic", colorSkyblue), styleDots | styleNoLine | styleThick | styleNoLabel);
+
+_SECTION_END();
+
+
+/*
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+*/
+
+_SECTION_BEGIN("Jimberg");
+
+
+// -- what will be our lookback range for the hh and ll?
+farback=Param("How Far back to go",100,50,5000,10);
+nBars = Param("Number of bars", 12, 5, 40);
+
+Rata2Terendah = LLV( L, 20 )  + 2 * ATR( 10 );
+Rata2Tertinggi = HHV( H, 20 ) - 2 * ATR( 10 );
+
+EntrySignal = C > Rata2Terendah ; 
+ExitSignal = C < Rata2Tertinggi ; 
+
+TrailStop = HHV( C - 2 * ATR(10), 15 ); 
+ProfitTaker = EMA( H, 13 ) + 2 * ATR(10); 
+
+Color = IIf( EntrySignal, ParamColor("EntrySignal", colorGreen), IIf( ExitSignal, ParamColor("ExitSignal", colorRed), ParamColor("Signal", colorGrey50) )); 
+
+/* plot price chart and stops */ 
+Plot( IIf(Jimberg, Null , TrailStop), "Trailing stop", ParamColor("Trailing stop", colorBrown), styleThick | styleLine  ); 
+Plot( IIf(Jimberg, Null , ProfitTaker), "Profit taker", ParamColor("Profit taker", colorLime), styleThick ); 
+
+Buy = Cross( C,TrailStop);
+Sell = Cross(TrailStop,C);
+
+PlotShapes(IIf(Jimberg, Null , IIf(Buy, shapeUpTriangle , shapeNone)), ParamColor("Up Triangle", colorGreen), 0, Low, Offset=-50);
+PlotShapes(IIf(Jimberg, Null , IIf(Sell, shapeDownTriangle, shapeNone)), ParamColor("Down Triangle", colorRed), 0,High, Offset=-50);
+
+IIf(Jimberg, Null , AlertIf( Buy, "SOUND C:\\Windows\\Media\\Ding.wav", "BUY " + C,1,1+2+4+8,1));
+IIf(Jimberg, Null , AlertIf( Sell, "SOUND C:\\Windows\\Media\\Ding.wav","SELL " + C,2,1+2+4+8,1));
+
+
+dist = 1.5*ATR(10);
+
+for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] AND Jimberg == 0 ) PlotText( "Buy\n@" + C[ i ], i, L[ i ]-dist[i], colorBrightGreen );
+if( Sell[i] AND Jimberg == 0 ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorRed, colorYellow );
+} 
+
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( IIf(Jimberg,Null,shape), IIf( Buy, colorGreen, colorRed ), 0, IIf(Buy, -20, 20) );
+GraphXSpace = 10;
+
+
+
+/* plot color ribbon */ 
+Plot( IIf(Jimberg, Null , 2), "", Color, styleArea | styleOwnScale | styleNoLabel, -0.1, 50 );
+
+PivotColor = ParamColor("Pivot", colorYellow);
+
+/* **********************************                                                        
+
+Code to automatically identify pivots
+
+********************************** */
+
+
+if(Jimberg == 0) {
+PlotOHLC( Open, High, Low, Close, "Close" ,color, styleCandle); 
+}
+
+if(Jimberg == 0) {
+
+GraphXSpace=7;
+
+// -- Create 0-initialized arrays the size of barcount
+
+aHPivs = H - H;
+
+aLPivs = L - L;
+
+// -- More for future use, not necessary for basic plotting
+
+aHPivHighs = H - H;
+
+aLPivLows = L - L;
+
+aHPivIdxs = H - H;
+
+aLPivIdxs = L - L;
+
+nHPivs = 0;
+
+nLPivs = 0;
+
+lastHPIdx = 0;
+
+lastLPIdx = 0;
+
+lastHPH = 0;
+
+lastLPL = 0;
+
+curPivBarIdx = 0;
+
+// -- looking back from the current bar, how many bars 
+
+// back were the hhv and llv values of the previous 
+
+// n bars, etc.?
+
+aHHVBars = HHVBars(H, nBars);
+
+aLLVBars = LLVBars(L, nBars);
+
+aHHV = HHV(H, nBars);
+
+aLLV = LLV(L, nBars);
+
+// -- Would like to set this up so pivots are calculated back from
+
+// last visible bar to make it easy to "go back" and see the pivots
+
+// this code would find. However, the first instance of 
+
+// _Trace output will show a value of 0
+
+aVisBars = Status("barvisible");
+
+nLastVisBar = LastValue(Highest(IIf(aVisBars, BarIndex(), 0)));
+
+_TRACE("Last visible bar: " + nLastVisBar);
+
+// -- Initialize value of curTrend
+
+curBar = (BarCount-1);
+
+curTrend = "";
+
+if (aLLVBars[curBar] < 
+
+aHHVBars[curBar]) {
+
+curTrend = "D";
+
+}
+
+else {
+
+curTrend = "U";
+
+}
+
+// -- Loop through bars. Search for 
+
+// entirely array-based approach
+
+// in future version
+
+for (i=0; i<farback; i++) {
+
+curBar = (BarCount - 1) - i;
+
+// -- Have we identified a pivot? If trend is down...
+
+if (aLLVBars[curBar] < aHHVBars[curBar]) {
+
+// ... and had been up, this is a trend change
+
+if (curTrend == "U") {
+
+curTrend = "D";
+
+// -- Capture pivot information
+
+curPivBarIdx = curBar - aLLVBars[curBar];
+
+aLPivs[curPivBarIdx] = 1;
+
+aLPivLows[nLPivs] = L[curPivBarIdx];
+
+aLPivIdxs[nLPivs] = curPivBarIdx;
+
+nLPivs++;
+
+}
+
+// -- or current trend is up
+
+} else {
+
+if (curTrend == "D") {
+
+curTrend = "U";
+
+curPivBarIdx = curBar - aHHVBars[curBar];
+
+aHPivs[curPivBarIdx] = 1;
+
+aHPivHighs[nHPivs] = H[curPivBarIdx];
+
+aHPivIdxs[nHPivs] = curPivBarIdx;
+
+nHPivs++;
+
+}
+
+// -- If curTrend is up...else...
+
+} 
+
+// -- loop through bars
+
+} 
+
+// -- Basic attempt to add a pivot this logic may have missed
+
+// -- OK, now I want to look at last two pivots. If the most 
+
+// recent low pivot is after the last high, I could
+
+// still have a high pivot that I didn't catch
+
+// -- Start at last bar
+
+curBar = (BarCount-1);
+
+candIdx = 0;
+
+candPrc = 0;
+
+lastLPIdx = aLPivIdxs[0];
+
+lastLPL = aLPivLows[0];
+
+lastHPIdx = aHPivIdxs[0];
+
+lastHPH = aHPivHighs[0];
+
+if (lastLPIdx > lastHPIdx) {
+
+// -- Bar and price info for candidate pivot
+
+candIdx = curBar - aHHVBars[curBar];
+
+candPrc = aHHV[curBar]; 
+
+if (
+
+lastHPH < candPrc AND
+
+candIdx > lastLPIdx AND
+
+candIdx < curBar) {
+
+
+// -- OK, we'll add this as a pivot...
+
+aHPivs[candIdx] = 1;
+
+// ...and then rearrange elements in the 
+
+// pivot information arrays
+
+for (j=0; j<nHPivs; j++) {
+
+aHPivHighs[nHPivs-j] = aHPivHighs[nHPivs-
+
+(j+1)];
+
+aHPivIdxs[nHPivs-j] = aHPivIdxs[nHPivs-(j+1)];
+
+}
+
+aHPivHighs[0] = candPrc ;
+
+aHPivIdxs[0] = candIdx;
+
+nHPivs++;
+
+} 
+
+} else {
+
+
+// -- Bar and price info for candidate pivot
+
+candIdx = curBar - aLLVBars[curBar];
+
+candPrc = aLLV[curBar]; 
+
+if (
+
+lastLPL > candPrc AND
+
+candIdx > lastHPIdx AND
+
+candIdx < curBar) {
+
+
+// -- OK, we'll add this as a pivot...
+
+aLPivs[candIdx] = 1;
+
+// ...and then rearrange elements in the 
+
+// pivot information arrays
+
+for (j=0; j<nLPivs; j++) {
+
+aLPivLows[nLPivs-j] = aLPivLows[nLPivs-(j+1)];
+
+aLPivIdxs[nLPivs-j] = aLPivIdxs[nLPivs-(j+1)];
+
+}
+
+aLPivLows[0] = candPrc;
+
+aLPivIdxs[0] = candIdx;
+
+nLPivs++;
+
+}
+
+}
+
+// -- Dump inventory of high pivots for debugging
+
+/*
+
+for (k=0; k<nHPivs; k++) {
+
+_TRACE("High pivot no. " + k
+
++ " at barindex: " + aHPivIdxs[k] + ", " 
+
++ WriteVal(ValueWhen(BarIndex()==aHPivIdxs[k], 
+
+DateTime(), 1), formatDateTime)
+
++ ", " + aHPivHighs[k]);
+
+}
+
+*/
+
+// -- OK, let's plot the pivots using arrows
+
+PlotShapes( IIf(Jimberg, Null , IIf(aHPivs==1, shapeHollowDownTriangle, shapeNone)), PivotColor, 0,High, Offset=-50);
+
+PlotShapes( IIf(Jimberg, Null , IIf(aLPivs==1, shapeHollowUpTriangle , shapeNone)), PivotColor, 0, Low, Offset=-50);
+
+
+dist = 1.5*ATR(10);
+
+for( i = 0; i < BarCount; i++ )
+{
+if( aLPivs[i] AND Jimberg == 0 ) PlotText( "Buy\n@" + C[ i ], i, L[ i ]-dist[i], colorGreen, colorSkyblue );
+if( aHPivs[i] AND Jimberg == 0 ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorRed, colorSkyblue );
+} 
+
+
+
+ 
+IIf(Jimberg, Null , AlertIf( aHPivs==1, "SOUND C:\\Windows\\Media\\Ding.wav","WATCH" + C,0,1+2+4+8,1));
+IIf(Jimberg, Null , AlertIf( aLPivs==1, "SOUND C:\\Windows\\Media\\Ding.wav","WATCH" + C,0,1+2+4+8,1));
+
+}
+_SECTION_END();
+
+/*
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+*/
+
+
+
+
+_SECTION_BEGIN("Zig Zag Indicator");
+//------------------------------------------------------------------------------
+//
+//  Formula Name:    Zig Zag Indicator with Valid Entry and Exit Points
+//  Author/Uploader: Eric Tangen
+//  Updated:			Agus N (Dec 2007) 
+//  E-mail:          
+//  Date/Time Added: 2004-04-21 21:37:30
+//  Origin:          self
+//  Keywords:        Zig Zag, Pivot Points, Pivot High, Pivot Low
+//  Level:           basic
+//  Flags:           indicator
+//  Formula URL:     http://www.amibroker.com/library/formula.php?id=353
+//  Details URL:     http://www.amibroker.com/library/detail.php?id=353
+//
+//------------------------------------------------------------------------------
+//
+//  The Zig Zag indicator identifies pivot points but looks into the future -
+//  (beyond the right edge of the chart) to do this. This indicator plots a dot
+//  at the pivot point and an arrow at the bar when the pivot becomes known.
+//  The price bars are colored red for a pivot downtrend, green for a pivot
+//  uptrend, and blue at the known pivot point. Three addional horizontal lines
+//  are plotted and tied to the selected bar - the current close and +/- x%
+//  from the current close. The x% is the same % used in the Zig Zag function.
+//
+//------------------------------------------------------------------------------
+
+//z_ZigZagValid
+// ******** CHARTING 
+
+
+PercentChange = 3;
+mystartbar = SelectedValue(BarIndex());  // FOR GRAPHING
+
+mystartbardate = LastValue(ValueWhen(mystartbar == BarIndex(), DateNum(),1));
+
+InitialValue = LastValue(ValueWhen(mystartbardate == DateNum(), C , 1 ) ) ;
+Temp1 = IIf(BarIndex() >= mystartbar, InitialValue, Null) ;
+Plot( IIf(ZigZag,Null,Temp1), " ", ParamColor("Close Price", colorLightYellow),styleLine);
+Plot(( IIf(ZigZag,Null,1+(LastValue(PercentChange)/100))*(Temp1)), " ", ParamColor("Resistance", colorPink), styleLine) ;
+Plot(( IIf(ZigZag,Null,1-(LastValue(PercentChange)/100))*(Temp1)), " ", ParamColor("Support", colorPaleGreen), styleLine) ;
+
+ZZ = Zig(C,LastValue(PercentChange)) ; 
+PivotLow = Ref(IIf(Ref(ROC(ZZ,1),-1) < 0 AND ROC(ZZ,1) > 0, 1, Null),1);
+PivotHigh = Ref(IIf(Ref(ROC(ZZ,1),-1) > 0 AND ROC(ZZ,1) < 0, 1, Null),1);
+
+PlotShapes(  IIf(ZigZag,Null,shapeCircle*PivotLow), ParamColor("Pivot Low", colorPaleGreen),0, L, -20) ; 
+PlotShapes(  IIf(ZigZag,Null,shapeCircle*PivotHigh),ParamColor("Pivot High", colorPink),0,H, 20) ;
+
+Buy_Valid = IIf(C>(1+(LastValue(PercentChange)/100))*(ValueWhen(PivotLow, C, 1))AND ROC(ZZ,1) > 0,1,0); 
+Sell_Valid = IIf(C<(1-(LastValue(PercentChange)/100))*(ValueWhen(PivotHigh, C, 1))AND ROC(ZZ,1) < 0,1,0); 
+
+Buy_Valid = ExRem(Buy_Valid,Sell_Valid);
+Sell_Valid = ExRem(Sell_Valid,Buy_Valid);
+
+Filter = PivotLow OR PivotHigh;
+AddColumn( PivotLow, "UpPoint", 1 );
+AddColumn( PivotHigh, "DownPoint", 1 );
+
+
+PlotShapes(  IIf(ZigZag,Null,shapeUpArrow*Buy_Valid), ParamColor("Up Arrow", colorAqua),0, L, -20); 
+PlotShapes(  IIf(ZigZag,Null,shapeDownArrow*Sell_Valid), ParamColor("Down Arrow", colorLightOrange),0,H, -20) ;
+
+BarColors = 
+IIf(BarsSince(Buy_Valid) < BarsSince(Sell_Valid) 
+AND BarsSince(Buy_Valid)!=0, ParamColor("Bar Colors1", colorGreen),
+IIf(BarsSince(Sell_Valid) < BarsSince(Buy_Valid)
+AND BarsSince(Sell_Valid)!=0,  ParamColor("Bar Colors2", colorGold), ParamColor("Bar Colors3", colorBlue)));
+
+Plot( IIf(ZigZag,Null,C), " ", BarColors,  styleBar|styleNoLabel ) ; 
+Plot( IIf(ZigZag,Null,ZZ)," ", ParamColor("Trend Line", colorTurquoise),styleLine|styleThick);
+Plot( IIf(ZigZag,Null,ZZ)," ", BarColors,styleDots|styleNoLine|styleNoLabel);
+
+
+dist = 1.5*ATR(10);
+
+for( i = 0; i < BarCount; i++ )
+{
+if( Buy_Valid[i] AND ZigZag == 0 ) PlotText( "Buy\n@" + C[ i ], i, L[ i ]-dist[i], colorBrightGreen );
+if( Sell_Valid[i] AND ZigZag == 0 ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorRed, colorYellow );
+} 
+
+shape = Buy_Valid * shapeUpArrow + Sell_Valid * shapeDownArrow;
+PlotShapes( IIf(ZigZag,Null,shape), IIf( Buy_Valid, colorGreen, colorRed ), 0, IIf(Buy_Valid, -20, 20) );
+GraphXSpace = 10;
+
+
+
+
+_SECTION_END();
+
+
+/*
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+*/
+
+
+
+
+_SECTION_BEGIN("SMA 3+5+9 Cross");
+
+SMA3_Line = ParamToggle("SMA3 Line", "Hide|Show",1);
+SMA5_Line = ParamToggle("SMA5 Line", "Hide|Show",1);
+SMA9_Line = ParamToggle("SMA9 Line", "Hide|Show",1);
+CrossArrow_35 = ParamToggle("CrossArrow-3+5", "Hide|Show",1);
+CrossArrow_39 = ParamToggle("CrossArrow-3+9", "Hide|Show",1);
+CrossArrow_59 = ParamToggle("CrossArrow-5+9", "Hide|Show",1);
+CrossArrow_359 = ParamToggle("CrossArrow-3+5+9", "Hide|Show",1);
+
+SMA3LineColor = ParamColor("SMA3 Line Color", colorAqua);
+SMA5_LineColor = ParamColor("SMA5 Line Color", colorPink);
+SMA9LineColor = ParamColor("SMA9 Line Color", ColorRGB(204,68,102));
+
+BuyArrow_35 = ParamColor("Buy 3-5", colorGold);
+SellArrow_35 = ParamColor("Sell 3-5", colorLightGrey);
+BuyArrow_39 = ParamColor("Buy 3-9",  colorPaleTurquoise);
+SellArrow_39 = ParamColor("Sell 3-9",  colorLightBlue);
+BuyArrow_59 = ParamColor("Buy 5-9",  colorPink);
+SellArrow_59 = ParamColor("Sell 5-9",  ColorRGB(204,68,102));
+BuyArrow_359 = ParamColor("Buy 3-5-9",  colorGreen);
+SellArrow_359 = ParamColor("Sell 3-5-9",  colorRed);
+
+BuyTextColor_35 = ParamColor("Buy 3-5",  colorPink);
+SellTextColor_35 = ParamColor("Sell 3-5",  colorDarkRed);
+SellTextBgr_35 = ParamColor("Sell 3-5 Bg",  colorYellow);
+
+BuyTextColor_39 = ParamColor("Buy 3-9",  colorGold);
+SellTextColor_39 = ParamColor("Sell 3-9",  colorDarkBlue);
+SellTextBgr_39 = ParamColor("Sell 3-9 Bg",  colorLavender);
+
+BuyTextColor_59 = ParamColor("Buy 5-9",  colorAqua);
+SellTextColor_59 = ParamColor("Sell 5-9",  colorDarkRed);
+SellTextBgr_59 = ParamColor("Sell 5-9 Bg",  colorWhite);
+
+BuyTextColor_359 = ParamColor("Buy 3-5-9 Text",  colorBrightGreen);
+SellTextColor_359 = ParamColor("Sell 3-5-9",  colorDarkRed);
+SellTextBgr_359 = ParamColor("Sell 3-5-9 Bg",  colorYellow);
+
+
+//SMA Line
+if(SMA359 == 0 OR SMA3_Line == 0) {
+Plot(MA(Close,3),"SMA3 Line",SMA3LineColor, styleLine);
+}
+if(SMA359 == 0 OR SMA5_Line == 0) {
+Plot(MA(Close,5),"SMA5 Line",SMA5_LineColor, styleLine);
+}
+if(SMA359 == 0 OR SMA9_Line == 0) {
+Plot(MA(Close,9),"SMA9 Line",SMA9LineColor, styleLine);
+}
+
+//SMA_CrossArrow_35
+if(SMA359 == 0 OR CrossArrow_35 == 0) {
+Buy=Cross(MA(Close,3), MA(Close,5));
+Sell=Cross(MA(Close,5), MA(Close,3));
+dist = 1.5*ATR(10);
+for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] ) PlotText( "Buy-35\n@" + C[ i ], i, L[ i ]-dist[i], BuyTextColor_35 );
+if( Sell[i] ) PlotText( "Sell-35\n@" + C[ i ], i, H[ i ]+dist[i], SellTextColor_35, SellTextBgr_35 );
+}
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, BuyArrow_35, SellArrow_35 ), 0, IIf( Buy, Low, High ), -20 );
+}
+
+//SMA_CrossArrow_39
+if(SMA359 == 0 OR CrossArrow_39 == 0) {
+Buy=Cross(MA(Close,3), MA(Close,9));
+Sell=Cross(MA(Close,9), MA(Close,3));
+dist = 1.5*ATR(10);
+for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] ) PlotText( "Buy-39\n@" + C[ i ], i, L[ i ]-dist[i], BuyTextColor_39 );
+if( Sell[i] ) PlotText( "Sell-39\n@" + C[ i ], i, H[ i ]+dist[i], SellTextColor_39, SellTextBgr_39 );
+}
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, BuyArrow_39, SellArrow_39 ), 0, IIf( Buy, Low, High ), -20 );
+}
+
+
+//SMA_CrossArrow_59
+if(SMA359 == 0 OR CrossArrow_59 == 0) {
+Buy=Cross(MA(Close,5), MA(Close,9));
+Sell=Cross(MA(Close,9), MA(Close,5));
+dist = 1.5*ATR(10);
+for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] ) PlotText( "Buy-59\n@" + C[ i ], i, L[ i ]-dist[i], BuyTextColor_59 );
+if( Sell[i] ) PlotText( "Sell-59\n@" + C[ i ], i, H[ i ]+dist[i], SellTextColor_59, SellTextBgr_59 );
+}
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, BuyArrow_59, SellArrow_59 ), 0, IIf( Buy, Low, High ), -20 );
+}
+
+
+//SMA_CrossArrow_359
+if(SMA359 == 0 OR CrossArrow_359 == 0) {
+Buy=Cross(MA(Close,3), MA(Close,5)) AND Cross(MA(Close,3), MA(Close,9)) AND Cross(MA(Close,5), MA(Close,9));
+Sell=Cross(MA(Close,5), MA(Close,3)) AND Cross(MA(Close,9), MA(Close,3)) AND Cross(MA(Close,9), MA(Close,5));
+dist = 1.5*ATR(10);
+for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] ) PlotText( "Buy-359\n@" + C[ i ], i, L[ i ]-dist[i], BuyTextColor_359 );
+if( Sell[i] ) PlotText( "Sell-359\n@" + C[ i ], i, H[ i ]+dist[i], SellTextColor_359, SellTextBgr_359 );
+}
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, BuyArrow_359, SellArrow_359 ), 0, IIf( Buy, Low, High ), -30 );
+GraphXSpace = 10;
+
+}
+
+
+
+_SECTION_END();
+
+
+
+/*
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+*/
+
+
+
+
+
+
+_SECTION_BEGIN("SMA 5+20+60 Cross");
+
+SMA5a_Line = ParamToggle("SMA5 Line", "Hide|Show",1);
+SMA20_Line = ParamToggle("SMA20 Line", "Hide|Show",1);
+SMA60_Line = ParamToggle("SMA60 Line", "Hide|Show",1);
+CrossArrow_520 = ParamToggle("CrossArrow-5+20", "Hide|Show",1);
+CrossArrow_560 = ParamToggle("CrossArrow-5+60", "Hide|Show",1);
+CrossArrow_2060 = ParamToggle("CrossArrow-20+60", "Hide|Show",1);
+CrossArrow_52060 = ParamToggle("CrossArrow-5+20+60", "Hide|Show",1);
+
+SMA5aLineColor = ParamColor("SMA5 Line Color", colorAqua);
+SMA20LineColor = ParamColor("SMA20 Line Color", colorPink);
+SMA60LineColor = ParamColor("SMA60 Line Color", ColorRGB(204,68,102));
+
+BuyArrow_520 = ParamColor("Buy 5-20", colorGold);
+SellArrow_520 = ParamColor("Sell 5-20", colorLightGrey);
+BuyArrow_560 = ParamColor("Buy 5-60",  colorPaleTurquoise);
+SellArrow_560 = ParamColor("Sell 5-60",  colorLightBlue);
+BuyArrow_2060 = ParamColor("Buy 20-60",  colorPink);
+SellArrow_2060 = ParamColor("Sell 20-60",  ColorRGB(204,68,102));
+BuyArrow_52060 = ParamColor("Buy 5-20-60",  colorGreen);
+SellArrow_52060 = ParamColor("Sell 5-20-60",  colorRed);
+
+BuyTextColor_520 = ParamColor("Buy 5-20",  colorPink);
+SellTextColor_520 = ParamColor("Sell 5-20",  colorDarkRed);
+SellTextBgr_520 = ParamColor("Sell 5-20 Bg",  colorYellow);
+
+BuyTextColor_560 = ParamColor("Buy 5-60",  colorGold);
+SellTextColor_560 = ParamColor("Sell 5-60",  colorDarkBlue);
+SellTextBgr_560 = ParamColor("Sell 5-60 Bg",  colorLavender);
+
+BuyTextColor_2060 = ParamColor("Buy 20-60",  colorAqua);
+SellTextColor_2060 = ParamColor("Sell 20-60",  colorDarkRed);
+SellTextBgr_2060 = ParamColor("Sell 20-60 Bg",  colorWhite);
+
+BuyTextColor_52060 = ParamColor("Buy 5-20-60 Text",  colorBrightGreen);
+SellTextColor_52060 = ParamColor("Sell 5-20-60",  colorDarkRed);
+SellTextBgr_52060 = ParamColor("Sell 5-20-60 Bg",  colorYellow);
+
+
+
+
+//SMA Line
+if(SMA52060 == 0 OR SMA5a_Line == 0) {
+Plot(MA(Close,5),"SMA5 Line",SMA5aLineColor, styleLine);
+}
+if(SMA52060 == 0 OR SMA20_Line == 0) {
+Plot(MA(Close,20),"SMA20 Line",SMA20LineColor, styleLine);
+}
+if(SMA52060 == 0 OR SMA60_Line == 0) {
+Plot(MA(Close,60),"SMA60 Line",SMA60LineColor, styleLine);
+}
+
+//SMA_CrossArrow_520
+if(SMA52060 == 0 OR CrossArrow_520 == 0) {
+Buy=Cross(MA(Close,5), MA(Close,20));
+Sell=Cross(MA(Close,20), MA(Close,5));
+dist = 1.5*ATR(10);
+for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] ) PlotText( "Buy-520\n@" + C[ i ], i, L[ i ]-dist[i], BuyTextColor_520 );
+if( Sell[i] ) PlotText( "Sell-520\n@" + C[ i ], i, H[ i ]+dist[i], SellTextColor_520, SellTextBgr_520 );
+}
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, BuyArrow_520, SellArrow_520 ), 0, IIf( Buy, Low, High ), -20 );
+}
+
+//SMA_CrossArrow_560
+if(SMA52060 == 0 OR CrossArrow_560 == 0) {
+Buy=Cross(MA(Close,5), MA(Close,60));
+Sell=Cross(MA(Close,60), MA(Close,5));
+dist = 1.5*ATR(10);
+for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] ) PlotText( "Buy-560\n@" + C[ i ], i, L[ i ]-dist[i], BuyTextColor_560 );
+if( Sell[i] ) PlotText( "Sell-560\n@" + C[ i ], i, H[ i ]+dist[i], SellTextColor_560, SellTextBgr_560 );
+}
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, BuyArrow_560, SellArrow_560 ), 0, IIf( Buy, Low, High ), -20 );
+}
+
+
+//SMA_CrossArrow_2060
+if(SMA52060 == 0 OR CrossArrow_2060 == 0) {
+Buy=Cross(MA(Close,20), MA(Close,60));
+Sell=Cross(MA(Close,60), MA(Close,20));
+dist = 1.5*ATR(10);
+for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] ) PlotText( "Buy-2060\n@" + C[ i ], i, L[ i ]-dist[i], BuyTextColor_2060 );
+if( Sell[i] ) PlotText( "Sell-2060\n@" + C[ i ], i, H[ i ]+dist[i], SellTextColor_2060, SellTextBgr_2060 );
+}
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, BuyArrow_2060, SellArrow_2060 ), 0, IIf( Buy, Low, High ), -20 );
+}
+
+
+//SMA_CrossArrow_52060
+if(SMA52060 == 0 OR CrossArrow_52060 == 0) {
+Buy=Cross(MA(Close,5), MA(Close,20)) AND Cross(MA(Close,5), MA(Close,60)) AND Cross(MA(Close,20), MA(Close,60));
+Sell=Cross(MA(Close,20), MA(Close,5)) AND Cross(MA(Close,60), MA(Close,5)) AND Cross(MA(Close,60), MA(Close,20));
+dist = 1.5*ATR(10);
+for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] ) PlotText( "Buy-52060\n@" + C[ i ], i, L[ i ]-dist[i], BuyTextColor_52060 );
+if( Sell[i] ) PlotText( "Sell-52060\n@" + C[ i ], i, H[ i ]+dist[i], SellTextColor_52060, SellTextBgr_52060 );
+}
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, BuyArrow_52060, SellArrow_52060 ), 0, IIf( Buy, Low, High ), -30 );
+GraphXSpace = 10;
+
+}
+
+
+
+_SECTION_END();
+
+
+
+/*
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+*/
+
+
+_SECTION_BEGIN("SMA10 + EMA30 Cross");
+
+SMA10_LineShow = ParamToggle("SMA10 Line", "Hide|Show",1);
+EMA30_LineShow = ParamToggle("EMA30 Line", "Hide|Show",1);
+CrossArrow_SMA10EMA30 = ParamToggle("CrossArrow-SMA10+EMA30", "Hide|Show",1);
+SMA10LineColor = ParamColor("SMA10 Color", colorRose);
+EMA30LineColor = ParamColor("EMA30 Color", colorTeal);
+BuyTextColor = ParamColor("Buy Text",  colorBrightGreen);
+SellTextColor = ParamColor("Sell Text",  colorRed);
+SellTextBgr = ParamColor("Sell Text Bg",  colorYellow);
+BuySMA10EMA30 = ParamColor("Buy Arrow", colorBrightGreen);
+SellSMA10EMA30 = ParamColor("Sell Arrow", colorLightYellow);
+
+//SMA Line 
+
+if(SMA10EMA30 == 0 || SMA10_LineShow == 0) {
+Plot(MA(Close,10),"SMA10 Line",SMA10LineColor, styleLine);
+} 
+
+
+if(SMA10EMA30 == 0 || EMA30_LineShow == 0) {
+Plot(EMA(Close,30),"EMA30 Line",EMA30LineColor, styleLine);
+}
+
+
+//CrossArrow_SMA10_EMA30
+
+if(SMA10EMA30 == 0 || CrossArrow_SMA10EMA30 == 0) {
+
+Buy=Cross(MA(Close,10), EMA(Close,30));
+Sell=Cross(EMA(Close,30), MA(Close,10));
+
+dist = 1.5*ATR(10);
+
+for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] ) PlotText( "Buy\n@" + C[ i ], i, L[ i ]-dist[i], BuyTextColor );
+if( Sell[i] ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], SellTextColor, SellTextBgr );
+} 
+
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, BuySMA10EMA30, SellSMA10EMA30 ), 0, IIf( Buy, Low, High ), -30 );
+GraphXSpace = 10;
+}
+
+_SECTION_END();
+
+
+
+/*
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+*/
+
+
+
+_SECTION_BEGIN("MACD Cross");
+
+DivUpLine = ParamColor("Up Divergence", colorBrightGreen);
+DivDnLine = ParamColor("Down Divergence", colorRed);
+
+MACDLine = ParamColor("MACD Line", colorGreen);
+SignalLine = ParamColor("Signal Line", colorDarkRed);
+
+
+Buy = Cross( MACD(), Signal() );
+Sell = Cross( Signal(), MACD() );
+
+dist = 1.5*ATR(10);
+
+for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] AND MACD_Cross == 0 ) PlotText( "Buy\n@" + C[ i ], i, L[ i ]-dist[i], colorBrightGreen ); 
+if( Sell[i] AND MACD_Cross == 0 ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorRed, colorYellow );
+} 
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( IIf(MACD_Cross,Null,shape), IIf( Buy, ParamColor("Buy MACD Cross", colorBrightGreen), ParamColor("Sell MACD Cross", colorRed) ), 0, IIf(Buy, -20, 20) );
+GraphXSpace = 10;
+
+
+
+Plot( IIf(MACD_Cross,Null,C),"",1,128);
+
+//Plot(C,"",1,128);
+// Plot the Trade Lines
+Sig = Buy OR Sell;
+y0 = 0;
+y1 = C[0];
+TPrice = C;
+FirstVisibleBar = Status( "FirstVisibleBar" );
+Lastvisiblebar = Status( "LastVisibleBar" );
+for( b = Firstvisiblebar; b <= Lastvisiblebar AND b < BarCount; b++)
+{
+if( Buy[b] ) Co = DivDnLine;
+if( Sell[b] ) Co = DivUpLine;
+if(Sig[b])
+{
+x0 = y0;
+x1 = y1;
+y0 = b;
+y1 = TPrice[b];
+Plot( IIf(MACD_Cross,Null,LineArray(x0,x1,y0, y1)),"",Co,1);
+}
+}
+
+
+Plot( IIf(MACD_Cross,Null,MACD()),"MACD LineColor",MACDLine,styleLine|styleNoLabel);
+Plot( IIf(MACD_Cross,Null,Signal()),"Signal LineColor",SignalLine,styleLine|styleNoLabel);
+
+
+dynamic_color = IIf( MACD() > 0, MACDLine, SignalLine );
+Plot( IIf(MACD_Cross,Null,MACD()), "My MACD", dynamic_color, styleHistogram | styleThick |styleNoLabel  );
+
+
+
+_SECTION_END();
+
+
+/*
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+*/
+
+
+_SECTION_BEGIN("ADX Cross");
+
+
+P1 			= 	Param("Period",10,0,100,1);
+
+ADX_Up = ParamColor("ADX Up Color", colorGreen);
+ADX_Down = ParamColor("ADX Dn Color", colorDarkRed);
+DI_Plus = ParamColor("+DI Color", colorBrightGreen);
+DI_Min = ParamColor("-DI Color", colorRed);
+ADX_Buy = ParamColor("Buy ADX Cross", colorBrightGreen);
+ADX_Sell = ParamColor("Sell ADX Cross", colorRed);
+
+
+MyPDI		=	PDI(P1);//Positive Directional Indicator
+MyMDI		= 	MDI(P1);//Negative Directional Indicator (Minus)
+MyADX		=	ADX(P1);//Average Directional Movement Index
+
+col = IIf( MyADX > Ref( MyADX, -1 ), ADX_Up, ADX_Down );
+
+Plot( IIf(ADXLines, Null, MyPDI),"+DI",DI_Plus, styleLine|styleNoLabel|styleOwnScale,5);
+
+Plot( IIf(ADXLines, Null,MyMDI),"-DI",DI_Min, styleLine|styleNoLabel|styleOwnScale,5);
+
+Plot( IIf(ADXLines, Null,MyADX),"ADX",col, styleLine|styleNoLabel|styleOwnScale,5);
+
+
+Buy = Cross( MyPDI, MyMDI );
+Sell = Cross( MyMDI, MyPDI );
+
+dist = 1.5*ATR(10);
+
+for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] AND ADXLines == 0 ) PlotText( "Buy\n@" + C[ i ], i, L[ i ]-dist[i], colorBrightGreen );
+if( Sell[i] AND ADXLines == 0 ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorRed, colorYellow );
+} 
+
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( IIf(ADXLines,Null,shape), IIf( Buy, ADX_Buy, ADX_Sell ), 0, IIf(Buy, 10, 10) );
+GraphXSpace = 20;
+
+
+_SECTION_END();
+
+
+
+/*
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+*/
+
+

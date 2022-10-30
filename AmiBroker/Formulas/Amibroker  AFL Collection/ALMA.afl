@@ -1,0 +1,36 @@
+SetChartOptions(2,chartShowDates);
+GraphXSpace=5;
+Plot(C,"",1,64);
+
+function ALMA ( input, range, Offset, sigma )
+{
+local m, rs, w, r, sw, sr;
+sw = 0;
+sr = 0;
+
+m = floor( Offset * (range - 1) );
+s = range / sigma;
+
+for( i = 0; i < range; i++ )
+{
+im = i - m;
+
+w = exp( - ( im * im )/ ( 2* s * s ) );
+
+r = w * Ref( input, - range + i + 1);
+
+sw += w;
+sr += r;
+}
+
+return sr / sw;
+}
+
+input=ParamField("Pricefield");
+range=Param("Range",6,1,50,1);
+Offset=Param("Offset",0.6,0.01,2,0.01);
+sigma=Param("sigma",4,1,20,1);
+x=ALMA(C,range,Offset,sigma);
+//Col=IIf(x>Ref(x,-1),colorBlue,colorRed);
+Plot(x,"",colorBlue,styleThick);
+

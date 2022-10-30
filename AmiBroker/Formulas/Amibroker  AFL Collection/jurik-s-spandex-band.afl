@@ -1,0 +1,30 @@
+SetChartBkGradientFill( ParamColor("Inner panel upper",colorBlack),ParamColor("Inner panel lower",colorBlack));
+Title =EncodeColor( colorWhite) + " Spandex Band   " + EncodeColor(36)+  Title = Name() + "     " + EncodeColor(36) + Date() ;
+HalfLife	= Param("channel halflife", 4.5, 0, 10, 0.1, 0);
+ChanLen	= Param("channel length", 1, 1, 100, 1, 0);
+
+shrink		= 2^(-HalfLife);
+shrink2	= 1 - shrink;
+
+topChan[0]	= High[0];
+botChan[0]	= Low[0];
+
+HH	= HHV(High, ChanLen);
+LL	= LLV(Low, Chanlen); 
+
+for( i = 1; i < BarCount; i++ ) {
+	topChan[i] = shrink * H[i] + shrink2 * topChan[i-1] ;
+	botChan[i] = shrink * L[i] + shrink2 * botChan[i-1] ;
+	if (HH[i] >= topChan[i])	topChan[i] = HH[i];
+	if (LL[i] <= botChan[i])	botChan[i] = LL[i];
+	}
+
+Plot(topChan,"spandex top", colorRed, styleThick);
+Plot(botChan,"spandex bot", colorRed, styleThick);
+Plot(C,"",colorBrightGreen,styleCandle);
+for( i = 1; i < BarCount; i++ ) { 
+	if (HH[i] >= topChan[i-1])			topChan[i] = HH[i];
+	else							    	topChan[i] = shrink * HH[i] + shrink2 * topChan[i-1] ;
+	if (LL[i] <= botChan[i-1])			botChan[i] = LL[i];
+	else							    	botChan[i] = shrink * LL[i] + shrink2 * botChan[i-1] ;
+	}

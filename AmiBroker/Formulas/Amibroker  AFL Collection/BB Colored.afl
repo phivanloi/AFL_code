@@ -1,0 +1,12 @@
+_SECTION_BEGIN("BBands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 100, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorLightGrey );
+Style = ParamStyle("Style");
+BT= BBandTop( P, Periods, Width ); 
+BL= BBandBot( P, Periods, Width ); 
+Plot(BT,"BBTop", colorLightGrey,styleLine);
+Plot(BL,"BBbot", colorLightGrey,styleLine);
+PlotOHLC( 0, BT, BL, 0, "Cloud", colorLightYellow, styleCloud );
+_SECTION_END();

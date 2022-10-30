@@ -1,0 +1,3 @@
+fim = (H-L)/V;
+
+Plot(fim, "",4);

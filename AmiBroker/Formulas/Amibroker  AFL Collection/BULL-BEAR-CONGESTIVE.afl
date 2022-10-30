@@ -1,0 +1,11 @@
+/*BULL-BEAR-CONGESTIVE*/
+K=EMA((H+L+C)/3,10);
+S1=2*(K-Ref(K,-1))/(K+Ref(K,-1));
+RS=100*EMA(S1,3);
+values16 = abs(rs)<=1;
+values17=rs>1;
+values18=rs<-1;
+AddToComposite(Values16,"~rscongestion","V");
+AddToComposite(Values17,"~rsbullish","V");
+AddToComposite(Values18,"~rsbearish","V");
+Buy=0;

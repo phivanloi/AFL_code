@@ -1,0 +1,74 @@
+// NRTR_WATR 
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}}    ** 
+"+"{{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+
+
+SetBarsRequired(200,0);
+GraphXSpace = 5;
+
+
+k = Param("K", 1.5, 1, 5, 0.1);
+Per = Param("ATR", 3, 1, 30, 0.50);
+
+
+WATR = WMA(H-L, Per);
+
+revers = k * WATR;
+
+Trend = 1;  
+NW[0] = 0;  
+
+
+for(i = 1; i < BarCount; i++)
+{
+ if(Trend[i-1] == 1)                //Up Trend
+ {
+  if(C[i] < NW[i-1])                 
+  {
+   Trend[i] = -1;                   
+   NW[i] = C[i] + Revers[i];        //  NW
+  }
+  else                              
+  {
+   Trend[i] = 1;
+   if((C[i] - Revers[i]) > NW[i-1]) //  NW
+   {
+    NW[i] = C[i] - Revers[i]; 
+   }
+   else
+   {
+    NW[i] = NW[i-1];
+   }
+  } 
+ }
+//======================================
+ if(Trend[i-1] == -1)               //Down Trend
+ {
+  if(C[i] > NW[i-1])                
+  {
+   Trend[i] = 1;                    
+   NW[i] = C[i] - Revers[i];        //  NW
+  }
+  else                              
+  {
+   Trend[i] = -1;
+   if((C[i] + Revers[i]) < NW[i-1]) //  NW
+   {
+    NW[i] = C[i] + Revers[i]; 
+   }
+   else
+   {
+    NW[i] = NW[i-1];
+   }
+  }
+ }
+}
+
+
+Plot(C, "C", 2, 64);
+Plot(NW, "NRTR WATR -wma", IIf(Trend == 1, 27, 4), 4);
+Buy=Cover=Cross(C,nw);
+Sell=Short=Cross(nw,C);
+PlotShapes((Buy*1)+(Sell*2),IIf(Buy,colorGreen,colorRed) ); 
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+

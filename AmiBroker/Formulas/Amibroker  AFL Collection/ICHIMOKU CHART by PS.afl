@@ -1,0 +1,27 @@
+/* ICHIMOKU CHART */
+
+/* AFL code by Prakash Shenoi */
+
+SL=(HHV(H,26)+LLV(L,26))/2;
+TL=(HHV(H,9)+LLV(L,9))/2;
+DL=Ref(C,25);
+Sp1=Ref((SL+TL)/2,-25);
+Sp2=Ref((HHV(H,52)+LLV(L,52))/2,-25);
+MaxGraph=6;
+Graph0=C;
+Graph0Style=styleCandle;
+Graph0Color=1;
+Graph1=SL;
+Graph1Color=3;
+Graph2=TL;
+Graph2Color=4;
+Graph3=DL;
+Graph3Color=32;
+Graph4=Sp1;
+Graph4Color=5;
+Graph5=Sp2;
+Graph5Color=6;
+Graph1Style=Graph2Style= styleLine | styleThick;
+Graph3Style=Graph4Style= styleLine | styleThick;
+Graph5Style=styleLine | styleThick;
+Title=Name ()+ "  Ichimoku Chart  " + WriteVal ( Graph0,format=1.2); 

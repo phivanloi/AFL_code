@@ -1,0 +1,17 @@
+function detrend(P)
+{
+d=P;
+d2=P*0;
+dt=P*0;
+for(i=13;i<BarCount;i++)
+{
+ d[i] = 0.912*P[i]+0.088*d[i-6];
+ d2[i] = (d[i] - d[i-6]) + (1.2*d2[i-6] - 0.7*d2[i-12]); 
+ dt[i]=(d2[i-12]-d2[i-6])+(d2[i]-d2[i-6]);
+}
+
+return dt;
+}
+
+Price = (H+L)/2;
+Plot(detrend(Price), "Detrend", colorRed, styleLine);

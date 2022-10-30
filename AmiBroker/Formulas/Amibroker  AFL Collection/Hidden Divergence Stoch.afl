@@ -1,0 +1,109 @@
+_SECTION_BEGIN("Hidden Divergence Bearish+Bullish");
+/* Detecting double tops */
+
+/////////////////////////////////////////////////////BEARISH HD /////////////////////////////////////////////////
+
+percdiff = 0.5; /* peak detection threshold */
+//fwdcheck = 5; /* forward validity check */
+//mindistance = 10;
+//validdiff = percdiff/400;
+PK= Peak( H, percdiff, 1 ) == High;
+
+x = Cum( 1 );
+PPK1 = Peak( H, percdiff, 1 );//Price Peak1 
+PPK2 = Peak( H, percdiff, 2 );//Price Peak2 
+
+//peakdiff = ValueWhen( PK, H, 1 )/ValueWhen( PK, H, 2 );
+//doubletop = PK AND abs( peakdiff - 1 ) < validdiff AND (XPK1 - XPK2)>mindistance AND High > HHV( Ref( H, fwdcheck ), fwdcheck - 1 );
+//Buy = doubletop;
+//Sell = 0;
+//Filter=Buy;
+//WriteIf( Highest( doubletop ) == 1, "AmiBroker has detected some possible
+//double top patterns for " + name() + "\nLook for green arrows on the price
+//chart.", "There are no double top patterns for " + name() );
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+periods = Param( "Periods", 14, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 3, 1, 200, 1 );
+SD=StochK(14,3);
+SK=StochD(14,3,3);
+
+PKST= Peak( SD, 10, 1 ) == SD;
+
+
+
+PB2=PeakBars( H, percdiff, 2 );//BARS since Peak2
+SDP2=Ref(SD,-PB2);//value of Stoch(8,3) ,PB2 bars ago or at price Peak2
+
+PB1=PeakBars( H, percdiff, 1 );//BARS since Peak1
+SDP1=Ref(SD,-PB1);//value of Stoch(8,3), PB1 bars ago or at price Peak1
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////// BULLISH  HD  /////////////////////////////////////////////////////////////////////
+//percdiff = 0.11; /* peak detection threshold */
+//fwdcheck = 5; /* forward validity check */
+//mindistance = 10;
+//validdiff = percdiff/400;
+TR= Trough( L, percdiff, 1 ) == Low;
+
+x = Cum( 1 );
+PTR1 = Trough( L, percdiff, 1 );//Price Trough1
+PTR2 = Trough( L, percdiff, 2 );//Price Trough2
+
+TRST= Trough(SD, 10, 1 ) == SD;
+
+
+
+TB2=TroughBars( L, percdiff, 2 );//BARS since Trough2
+SDT2=Ref(SD,-TB2);//value of Stoch(8,3) ,TB2 bars ago or at price Trough2
+
+TB1=TroughBars( L, percdiff, 1 );//BARS since Trough1
+SDT1=Ref(SD,-TB1);//value of Stoch(8,3), TB1 bars ago or at price Trough1
+
+
+BuyHDS=PTR1>0.95*PTR2 AND PTR1<1.02*PTR2 AND SDT1<0.8*SDT2 AND Cross(SD,SK);
+SellHDS=PPK1<=1.05*PPK2 AND PPK1>=.98*PPK2 AND SDP1>1.2*SDP2 AND Cross(SK,SD);
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+PlotShapes(SellHDS*shapeDownTriangle,colorRed, 0, High, Offset =-40);
+PlotShapes(SellHDS*shapeDigit7,colorRed, 0, High, Offset =55);
+//PlotShapes(SellHDS*shapeDownTriangle,colorDarkRed, 0, High, Offset =-10);
+//PlotShapes(SellHDS*shapeDigit2,colorDarkRed, 0, High, Offset =25);
+
+
+PlotShapes(BuyHDS*shapeUpTriangle,colorBrightGreen, 0, Low, Offset =0);
+PlotShapes(BuyHDS*shapeDigit7,colorBrightGreen, 0, Low, Offset =-15);
+//PlotShapes(BuyHDS*shapeUpTriangle,colorGreen, 0, Low, Offset =-35);
+//PlotShapes(BuyHDS*shapeDigit2,colorGreen, 0, Low, Offset =-50);
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+Filter=SellHDS OR BuyHDS;
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+PK=(PPK1-PPK2)*100/PPK2;  //Price % diff betwwen P1  and P2
+TR=(PTR1-PTR2)*100/PTR2;  //Price % diff betwwen T1  and T2
+
+STP=(SDP1-SDP2)*100/SDP2; //Percent Stoch at P1 high over Stoch at  P2
+STT=(SDT1-SDT2)*100/SDT2; //Percent Stoch at T1 high over Stoch at  T2
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+AddColumn(IIf(SellHDS,-1,IIf(BuyHDS,1,0)) ,"HD",1.2,colorWhite,IIf(SellHDS,colorRed,IIf(BuyHDS,colorDarkGreen,colorBlue)));
+AddColumn(IIf(SellHDS,PPK2,IIf(BuyHDS,PTR2,0)) ,"P2/T2",1.2,colorWhite,IIf(SellHDS,colorRed,IIf(BuyHDS,colorDarkGreen,colorBlue)));
+AddColumn(IIf(SellHDS,PPK1,IIf(BuyHDS,PTR1,0)) ,"P1/T1",1.2,colorWhite,IIf(SellHDS,colorRed,IIf(BuyHDS,colorDarkGreen,colorBlue)));
+AddColumn(IIf(SellHDS,SDP2,IIf(BuyHDS,SDT2,0)) ,"StochP2/T2",1.2,colorWhite,IIf(SellHDS,colorRed,IIf(BuyHDS,colorDarkGreen,colorBlue)));
+AddColumn(IIf(SellHDS,SDP1,IIf(BuyHDS,SDT1,0)) ,"StochP1/T1",1.2,colorWhite,IIf(SellHDS,colorRed,IIf(BuyHDS,colorDarkGreen,colorBlue)));
+
+AddColumn(IIf(SellHDS,PK,IIf(BuyHDS,TR,0)) ,"PrDiff%",1.2,colorWhite,IIf(SellHDS,colorRed,IIf(BuyHDS,colorDarkGreen,colorBlue)));
+AddColumn(IIf(SellHDS,STP,IIf(BuyHDS,STT,0)) ,"StoDiff%",1.2,colorWhite,IIf(SellHDS,colorRed,IIf(BuyHDS,colorDarkGreen,colorBlue)));
+AddColumn(IIf(SellHDS,PB2,IIf(BuyHDS,TB2,0)) ,"BarsSinceP2/T2",1.2,colorWhite,IIf(SellHDS,colorRed,IIf(BuyHDS,colorDarkGreen,colorBlue)));
+AddColumn(IIf(SellHDS,PB1,IIf(BuyHDS,TB1,0)) ,"BarsSinceP1/T1",1.2,colorWhite,IIf(SellHDS,colorRed,IIf(BuyHDS,colorDarkGreen,colorBlue)));
+
+//AddColumn(PPR,"P1/P2",1.2,colorWhite,IIf(PPR<1,colorDarkYellow,colorBlue));
+//AddColumn(STPH ,"Stoch%High",1.2,colorWhite,IIf(STPH>2,colorDarkRed,IIf(STPH>1.5,colorRed,IIf(STPH>1.1,colorDarkYellow,colorBlue))));
+
+//AddColumn(IN1, "IN1",1);
+
+_SECTION_END();

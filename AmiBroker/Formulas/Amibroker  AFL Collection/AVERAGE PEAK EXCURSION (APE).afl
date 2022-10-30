@@ -1,0 +1,17 @@
+N = 20;
+NumBarsPerYear = 253; // approx. number of bars per year (EOD data)
+PE0 = 100 * Max( H - O, O - L )/O;
+// orig. formulation (as in the article
+// looks into the future bars
+PEN = 100 * Max( HHV( Ref( H, N ), N ) - O, O - LLV( Ref( L, N ), N ) )/O;
+// you may prefer to use modified formula
+// that does not look into future
+// (just uncomment the line below)
+// PEN = 100 * Max( HHV( H, N ) - O, O - LLV( L, N ) )/O;
+APE0 = MA( PE0, NumBarsPerYear );
+APEN = MA( PEN, NumBarsPerYear );
+Alpha = ln( APEN/APE0 ) / ln ( N );
+AddColumn( APE0, "A0" );
+AddColumn( Alpha, "Alpha" );
+AddColumn( APEN/APE0, "APEN/APE0" );
+Filter = Status("lastbarinrange");

@@ -1,0 +1,31 @@
+_SECTION_BEGIN("Price");
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo
+%g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) )
+));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle |
+ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+ 
+_SECTION_BEGIN("Colored Bollinger Bands");
+pr=Param( "Period",20,0,100,1);
+P = ParamField("Price field",-1);
+Style = ParamStyle("Style") | styleNoRescale | styleNoLabel |styleDashed;
+BBT=BBandTop(P,pr,2);
+BBB=BBandBot(P,pr,2);
+topcond = (Cross(BBT,C)OR C>BBT)AND Ref(C, -1)> BBT;
+botcond = ( Cross(C,BBB))AND Ref(C, -1 < BBB);
+bbtcolor = IIf( BBT> Ref (BBT, -1), colorDarkGreen,colorRed );
+bbbcolor = IIf( BBB > Ref (BBB, -1), colorDarkGreen,colorRed );
+Plot( BBT, "BBTop" + _PARAM_VALUES(), bbtcolor, styleLine|styleThick); 
+Plot( BBB, "BBBot" + _PARAM_VALUES(), bbbcolor, styleLine|styleThick ); 
+PlotOHLC( BBT,BBT,BBB,BBB, "", ParamColor("Color",colorRose),styleCloud );
+Buy=botcond;
+Sell=topcond ;
+// If you feel there are too many arrows you can un-comment the next twolines.
+//Buy=ExRem(Buy,Sell);
+//Sell=ExRem(Sell,Buy);
+PlotShapes(shapeUpArrow * Buy, colorGreen, 0, L, - 10);
+PlotShapes(shapeDownArrow * Sell, colorRed, 0, H, - 10);
+ _SECTION_END();

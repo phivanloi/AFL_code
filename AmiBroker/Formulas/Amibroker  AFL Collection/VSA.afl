@@ -1,0 +1,226 @@
+_SECTION_BEGIN("Volume Analysis");
+
+////////////////////////////////////////////////////////////////////////////////////
+//
+// Volume Analysis Studies
+//
+// this code studies price/volume based on information from
+//
+//   * Master the Markets,
+//   * http://www.traderji.com/
+//   * http://www.traderslaboratory.com/
+//
+// I do not claim responsibility or liability for how this code is used. 
+// If you change the code in any way, please send me an updated copy of 
+// the changes to:
+//
+//   tcoates_au@hotmail.com
+//
+////////////////////////////////////////////////////////////////////////////////////
+
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+////////////////////////////////////////////////////////////////////////////////////
+//
+// constants
+//
+////////////////////////////////////////////////////////////////////////////////////
+
+numDays = 14;
+dwWideSpread = 1.8;
+dwNarrowSpread = 0.8;
+dwSpreadMiddle = 0.5;
+dwHighClose = 0.7;
+dwLowClose = 0.3;
+
+volNumDays = 14;
+dwUltraHighVol = 2;
+dwVeryHighVol = 1.75; // was 1.8
+dwHighVol = 1.7; // was 1.8
+dwLowVol = 0.8; // was 0.8
+////////////////////////////////////////////////////////////////////////////////////
+//
+// Classify each bar...
+//
+////////////////////////////////////////////////////////////////////////////////////
+
+
+upBar = C > Ref(C,-1);
+downBar = C < Ref(C,-1);
+closeEqual = int(C*100) == int(Ref(C,-1)*100);
+spread = H-L;
+avgRange = Sum(spread, numDays) / numDays;
+wideRange = spread >= (dwWideSpread * avgRange);
+narrowRange = spread <= (dwNarrowSpread * avgRange);
+testHighClose = L + (spread * dwHighClose);
+testLowClose = L + (spread * dwLowClose);
+testCloseMiddle = L + (spread * dwSpreadMiddle);
+
+upClose = C > testHighClose;
+downClose = C < testLowClose;
+downClose12 = C < testCloseMiddle;
+middleClose = C >= testLowClose AND C <= testHighClose;
+
+avgVolume = MA(V, volNumDays);
+
+highVolume = V > (avgVolume * dwHighVol); 
+veryHighVolume = V > (avgVolume * dwVeryHighVol);
+ultraHighVolume = V > (avgVolume * dwUltraHighVol);
+LowVolume = V < (avgVolume * dwLowVol); 
+
+narrowBar1 = spread < Ref(spread,-1);
+HH = H > Ref(H,-1);
+LL = L < Ref(L,-1);
+LH = H < Ref(H,-1);
+
+////////////////////////////////////////////////////////////////////////////////////
+//
+// direction and title
+//
+////////////////////////////////////////////////////////////////////////////////////
+
+ColorScheme = Param( "Color Scheme", 0, 0, 1, 1);
+
+////////////////////////////////////////////////////////////////////////////////////
+//
+// Basic patterns...
+//
+//
+//see also:
+//
+// http://www.traderslaboratory.com/forums/151/vsa-volume-spread-analysis-1369-28.html
+// http://www.traderslaboratory.com/forums/151/vsa-volume-spread-analysis-1369-7.html#post13343
+//
+////////////////////////////////////////////////////////////////////////////////////
+
+testVolLow2 = (V < Ref(V,-1)) AND (V < Ref(V,-2));
+testVolHigh2 = (V > Ref(V,-1)) AND (V > Ref(V,-2));
+
+upThrustBar = downClose AND HH AND (NOT narrowRange) AND (H > Ref(HHV(H,4),-1)) ; //(C == L) AND; 
+//upThrustBar = wideRange AND downClose12 AND highVolume AND HH;
+basicNoDemandBar = (upBar OR closeEqual) AND narrowRange AND testVolLow2;
+noDemandBar = basicNoDemandBar AND (NOT highVolume);// AND (middleClose OR downClose);
+
+basicNoSupplyBar = downBar AND downClose AND narrowBar1 AND testVolLow2;
+noSupplyBar = basicNoSupplyBar AND narrowRange;
+
+absorption = Ref(downbar, -1) AND Ref(highVolume, -1) AND upBar;
+support = Ref(downBar,-1) AND (NOT Ref(downClose,-1)) AND Ref(highVolume,-1) AND upBar;
+
+stoppingVolume = Ref(downBar,-1) AND Ref(highVolume,-1) AND (NOT downClose) AND (NOT downBar);
+testBar = narrowRange AND (L < Ref(L,-1)) AND testVolLow2 AND (C > testCloseMiddle);
+//rallyEnd = (Ref(highVolume,-1) AND Ref(upBar,-1) AND wideRange AND downBar) OR 
+//	(narrowRange AND highVolume AND H > Ref(HHV(H, 250), -1));
+
+
+////////////////////////////////////////////////////////////////////////////////////
+//
+// Strength and Weakness
+//
+////////////////////////////////////////////////////////////////////////////////////
+
+weakness1 = downBar AND downClose AND C < Ref(L,-1);
+weakness = upThrustBar
+    OR noDemandBar ;
+	//OR (narrowRange AND (H > Ref(H,-1)) AND highVolume) 
+	//OR (Ref(highVolume,-1) AND Ref(upBar,-1) AND downBar AND (H < Ref(H,-1)));
+
+////////////////////////////////////////////////////////////////////////////////////
+//
+// Display stuff goes here!
+//
+////////////////////////////////////////////////////////////////////////////////////
+
+EntrySignal = C > ( LLV( L, 20 ) + 2 * ATR( 10 ) );
+ExitSignal = C < ( HHV( H, 20 ) - 2 * ATR( 10 ) );
+
+Color0 = IIf(wideRange, colorBlue, 
+	IIf( narrowRange, colorLightBlue, 
+	IIf( upBar, colorGreen, 
+	IIf( downBar, colorRed, colorDarkGrey))));
+Color1 = IIf( EntrySignal, colorGreen, 
+	IIf( ExitSignal, colorRed, colorBlack));
+Color = IIf(ColorScheme == 0, Color0, Color1);
+
+posY = 0;
+negY = -12;
+
+//PlotShapes( shapeSmallCircle*noDemandBar, colorOrange,0, H, posY);
+//posY = IIf(noDemandBar, posY+8, posY);
+PlotShapes( shapeSmallDownTriangle*weakness, colorBrown, 0, H, posY) ;
+posY = IIf(weakness, posY+8, posY);
+PlotShapes( shapeSmallSquare*upThrustBar, colorRed, 0, H, posY) ;
+posY = IIf(weakness, posY-12, posY);
+
+PlotShapes( shapeSmallUpTriangle*stoppingVolume, colorGreen,0, L, negY);
+negY = IIf(stoppingVolume , negY-8, negY);
+//PlotShapes( shapeSmallCircle*support , colorGreen,0, L, negY) ;
+//negY = IIf(support, negY-8, negY);
+PlotShapes( shapeSmallCircle*noSupplyBar, colorPlum,0, L, negY);
+negY = IIf(noSupplyBar, negY-8, negY);
+PlotShapes( shapeSmallCircle*testBar , colorAqua,0, L, negY);
+negY = IIf(testBar , negY-8, negY);
+
+
+
+Plot( C, "Close", Color, styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+
+////////////////////////////////////////////////////////////////////////////////////
+//
+// trend direction...
+//
+////////////////////////////////////////////////////////////////////////////////////
+
+
+longTermAvg = int(EMA(C, 200) * 100);
+medTermAvg = int(EMA(C, 50) * 100);
+shortTermAvg = int(EMA(C, 10) * 100);
+
+Dir = EncodeColor(colorBlack) + "Volume: " + 
+	WriteIf(ultraHighVolume , "Ultra High", 
+	WriteIf(veryHighVolume , "Very High", 
+	WriteIf(highVolume , "High", 
+	WriteIf(lowVolume , "Low", "Average")))) +  " " +
+
+	// spread
+
+	EncodeColor(colorBlack) + "Spread: " + 
+		WriteIf(wideRange , EncodeColor(colorBlue) + "Wide",  
+		WriteIf(narrowRange , EncodeColor(colorLightBlue) + "Narrow", 
+			EncodeColor(colorBlack) + "Average")) + ", " +
+
+	EncodeColor(colorBlack) + "Close: " + 
+		WriteIf(upClose , EncodeColor(colorGreen) + "Up", 
+		WriteIf(downClose , EncodeColor(colorRed) + "Down", 
+		EncodeColor(colorBlack) + "Middle")) + EncodeColor(colorBlack) + ",\n" + 
+
+	EncodeColor(colorBlack) + "Long Term: " + 
+		WriteIf(longTermAvg < Ref(longTermAvg,-1), 
+			EncodeColor(colorRed) + "Down", 
+			WriteIf(longTermAvg == Ref(longTermAvg ,-1), 
+				EncodeColor(colorBlack) + "Flat", 
+			EncodeColor(colorGreen) + "Up")) + 
+	EncodeColor(colorBlack) + ", " + "Med Term: " + 
+		WriteIf(medTermAvg < Ref(medTermAvg ,-1), 
+			EncodeColor(colorRed) + "Down", 
+			WriteIf(medTermAvg == Ref(medTermAvg ,-1), 
+				EncodeColor(colorBlack) + "Flat", 
+			EncodeColor(colorGreen) + "Up")) + 
+	EncodeColor(colorBlack) + ", " + "Short Term: " + 
+		WriteIf(shortTermAvg < Ref(shortTermAvg,-1), 
+			EncodeColor(colorRed) + "Down", 
+			WriteIf(shortTermAvg == Ref(shortTermAvg,-1), 
+				EncodeColor(colorBlack) + "Flat", 
+			EncodeColor(colorGreen) + "Up")) + 
+	EncodeColor(colorBlack);
+
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%)", 
+	O, H, L, C, SelectedValue( ROC( C, 1 ) )) + "\n" + Dir);
+_SECTION_END();
+
+_SECTION_BEGIN("EMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 200, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();

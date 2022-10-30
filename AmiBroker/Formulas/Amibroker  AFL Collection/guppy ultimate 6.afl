@@ -1,0 +1,260 @@
+_SECTION_BEGIN("guppy");
+e3 = EMA(Close,3); 
+e5 = EMA(Close,5);
+e8 = EMA(Close,8);
+e10 = EMA(Close,10);
+e12 = EMA(Close,12); 
+e15 = EMA(Close,15);
+
+e30 = EMA(Close,30);
+e35 = EMA(Close,35);
+e40 = EMA(Close,40);
+e45 = EMA(Close,45);
+e50 = EMA(Close,50);
+e55 = EMA(Close,55);
+e60 = EMA(Close,60);
+
+Plot (e3,"",IIf(Close > e3, colorAqua,colorBlue),styleThick+styleNoLabel);
+Plot (e5,"",IIf(Close > e5, colorAqua,colorBlue),styleThick+styleNoLabel);
+Plot (e8,"",IIf(Close > e8, colorAqua,colorBlue),styleThick+styleNoLabel);
+Plot (e10,"",IIf(Close > e10, colorAqua,colorBlue),styleNoLabel);
+Plot (e12,"",IIf(Close > e12, colorAqua,colorBlue),styleNoLabel);
+Plot (e15,"",IIf(Close > e15, colorAqua,colorBlue),styleNoLabel);
+
+Plot (e30,"",colorYellow,styleThick);
+Plot (e35,"",colorRed,styleNoLabel+styleThick);
+Plot (e40,"",colorRed,styleNoLabel+styleThick);
+Plot (e45,"",colorRed,styleNoLabel+styleThick);
+Plot (e50,"",colorRed,styleNoLabel+styleThick);
+Plot (e55,"",colorRed,styleNoLabel+styleThick);
+Plot (e60,"",colorRed,styleNoLabel+styleThick);
+Plot(Close,"",IIf(PDI(Param("ADX range",14,2,24,1))> MDI(Param("ADX range",14,2,24,1)),colorBrightGreen,colorRed),styleCandle);
+_SECTION_END();
+
+
+_SECTION_BEGIN("Fibo for all bars");
+
+TimeFrameSet( inDaily ); 
+DH=Ref(H,-1); 
+DL=Ref(L,-1);
+DC=Ref(C,-1);
+
+
+pd = (O+ DH+ DL + DC )/4;
+sd1 = (2*pd)-DH;
+sd2 = pd -(DH - DL);
+sd3 = Sd1 - (DH-DL); 
+rd1 = (2*pd)-DL;
+rd2 = pd +(DH -DL);
+rd3 = rd1 +(DH-DL);
+
+H4 =  (dH - dL) * 1.1 / 2 + dC;
+H3 = (dH - dL) * 1.1 / 4 + dC;
+h2 = (dH - dL) * 1.1 / 6 + dC;
+H1 = (dH - dL) * 1.1 / 12 + dC;
+L1 = dC - (dH - dL) * 1.1 / 12;
+L2 = dC - (dH - dL) * 1.1 / 6;
+L3 = dC - (dH - dL) * 1.1 / 4;
+L4 = dC - (dH - dL) * 1.1 / 2 ;
+
+
+
+//Plot (pd,"Pivot",colorBlue,styleDots);
+//Plot (rd1," R1 ",35,styleDots);
+//Plot (rd2," R2 ",35,styleDots);
+//Plot (rd3," R3 ",35,styleDots);
+
+//Plot (sd1," S1 ",4,styleDots);
+//Plot (Sd2," S2 ",4,styleDots);
+//Plot (Sd3," S3 ",4,8+16);
+/*
+style = IIf(ParamList("Chart style", "styleCandle|styleBar")=="styleCandle",64,128+4);
+Plot (C,Date ()+" close",1,style); //ENABLE THIS TO HAVE CANDLES AS WELL
+*/
+TimeFrameRestore();
+
+tgt_up = H4*5/1000 + H4;
+tgt_up2 = H4*10/1000 + H4;
+tgt_dn = L4-L4*5/1000;
+tgt_dn2 = L4-L4*10/1000;
+
+Title = EncodeColor(colorWhite)+ "LINKON'S PIVOT TRADING SYSTEM" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "
+//+ WriteIf(Col_action==colorGreen, EncodeColor(colorGreen)+"stay LONG","")+ WriteIf(Col_action==colorRed, EncodeColor(colorRed)+"stay SHORT","")+  WriteIf(Col_action==colorBlack, EncodeColor(colorYellow)+"No Trend","")+"\n"
++ "Vol= "+ WriteVal(V) +WriteIf ( V > MA(V,26) ,EncodeColor(colorGreen)+"  UP "+ (V/MA(V,26))*100 + " %", EncodeColor(colorRed)+"  DOWN "+ (V/MA(V,26))*100 + " %")
++ EncodeColor(colorGreen)+   "\n H4 : "+ EncodeColor(colorWhite)+H4+ EncodeColor(colorGreen)+   "    tgt : "+ EncodeColor(colorWhite)+tgt_up +EncodeColor(colorGreen)+   "    tgt2 : "+ EncodeColor(colorWhite)+tgt_up2 
++ EncodeColor(colorGreen)+   "\n H3 : "+ EncodeColor(colorWhite)+H3 
++ EncodeColor(colorGreen)+   "\n H2 : "+ EncodeColor(colorWhite)+H2 
++ EncodeColor(colorGreen)+   "\n H1 : "+ EncodeColor(colorWhite)+H1+ EncodeColor(colorGreen)+   "`            Hi: "+ EncodeColor(colorWhite)+H
++ EncodeColor(colorBlue)+   "\n Pivot : "+ EncodeColor(colorWhite)+pd + EncodeColor(colorYellow)+   "`   Op: "+ EncodeColor(colorWhite)+O+ EncodeColor(colorAqua)+   "Cl: "+ EncodeColor(colorBrightGreen)+C
++ EncodeColor(colorRed)+   "\n L1 : "+ EncodeColor(colorWhite)+L1+ EncodeColor(colorRed)+   "`            Lo: "+ EncodeColor(colorWhite)+L
++ EncodeColor(colorRed)+   "\n L2 : "+ EncodeColor(colorWhite)+L2
++ EncodeColor(colorRed)+   "\n L3 : "+ EncodeColor(colorWhite)+L3
++ EncodeColor(colorRed)+   "\n L4 : "+ EncodeColor(colorWhite)+L4+ EncodeColor(colorRed)+      "     tgt : "+ EncodeColor(colorWhite)+tgt_dn + EncodeColor(colorRed)+      "     tgt2 : "+ EncodeColor(colorWhite)+tgt_dn2
+;
+
+_SECTION_END();
+
+Plot(6, "", IIf(PDI(7) > MDI(7) AND PDI(7) > 30,colorGreen,IIf (MDI(7) > PDI(7) AND MDI(7) > 30,colorRed,colorYellow)), styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+
+_SECTION_BEGIN("shiree FPSR");
+// Get Previous Day's close, Low and High
+Prev_Close = TimeFrameGetPrice( "C", inDaily, -1, expandFirst) ;
+Prev_Low = TimeFrameGetPrice( "L", inDaily, -1, expandFirst) ;
+Prev_High = TimeFrameGetPrice( "H", inDaily, -1, expandFirst) ;
+Today = LastValue(Day( ) );
+
+
+//////////////////////////////30 MT STRATEGY /////////////////////////////////////////////////////////////
+BS=(Prev_High-Prev_Low)/3;
+
+
+Y=R30=Prev_Close+BS;
+X=S30=Prev_Close-BS;
+
+BSColor = colorBlue;
+//Plot(X,"",colorBlue,styleThick|styleNoLabel); 
+//Plot(Y,"",colorBlue,styleThick|styleNoLabel);
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+Show_Prev = ParamToggle( "Display Pivots", "No|Yes", 1);
+////////////////////// FPSR AS BUNCH OF LINES/////////////////////////////////////////////////////////////
+XY=Y-X;
+Z1=X+0.0025*XY;
+Z2=X+0.0050*XY;
+Z3=X+0.0075*XY;
+Z4=X+0.0100*XY;
+Z5=X+0.0125*XY;
+Z6=X+0.0150*XY;
+Z7=X+0.0175*XY;
+Z8=X+0.0200*XY;
+Z9=X+0.0225*XY;
+Z0=X+0.0250*XY;
+
+Z11=Y-0.0025*XY;
+Z12=Y-0.005*XY;
+Z13=Y-0.0075*XY;
+Z14=Y-0.01*XY;
+Z15=Y-0.0125*XY;
+Z16=Y-0.0150*XY;
+Z17=Y-0.0175*XY;
+Z18=Y-0.02*XY;
+Z19=Y-0.0225*XY;
+Z20=Y-0.025*XY;
+
+
+//ColorR=ColorRGB(150,20,100);
+ColorXY=ParamColor("XY", colorYellow);
+////////////////////////////////////////////////////////////////////////////
+if(Show_Prev)
+{
+Plot(IIf(Today == Day(),Z1, Null), "Z1", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z2, Null),"Z2", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z3, Null),"Z3", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z4, Null),"Z4", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z5, Null),"Z5", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z6, Null),"Z6", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z7, Null),"Z7", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z8, Null),"Z8", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z9, Null),"Z9", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z0, Null),"Z0", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+
+Plot(IIf(Today == Day(),Z11, Null),"Z11", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z12, Null),"Z12", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z13, Null),"Z13", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z14, Null),"Z14", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z15, Null),"Z15", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z16, Null),"Z16", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z17, Null),"Z17", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z18, Null),"Z18", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z19, Null),"Z19", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z20, Null),"Z20", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);}
+
+_SECTION_END();
+
+
+
+_SECTION_BEGIN("SIMPLE_D-CAMS_SHOW");
+//---- pivot points 
+
+DayH = TimeFrameGetPrice("H", inDaily, -1);// yesterdays high 
+DayL = TimeFrameGetPrice("L", inDaily, -1);//low 
+DayC = TimeFrameGetPrice("C", inDaily, -1);//close 
+DayO = TimeFrameGetPrice("O", inDaily);// current day open 
+HiDay = TimeFrameGetPrice("H", inDaily); 
+LoDay = TimeFrameGetPrice("L", inDaily);
+
+
+TimeFrameSet( inDaily );
+
+R6 = (DayH / DayL) * DayC * 1.002;
+R5 = (DayH / DayL) * DayC;
+R4 = (((DayH / DayL) + 0.83) / 1.83) * DayC;
+R3 = ( ( (DayH / DayL) + 2.66) / 3.66) * DayC;
+R2 = ( ( (DayH / DayL) + 4.5) / 5.5) * DayC;
+R1 = ( ( (DayH / DayL) + 10) / 11) * DayC;
+ 
+S1 = (2- ( ( (DayH / DayL) + 10) / 11)) * DayC;
+S2 = (2-( (DayH / DayL) + 4.5) / 5.5) * DayC;
+S3 = (2-(( DayH / DayL) + 2.66) / 3.66) * DayC;
+S4 = (2-( (DayH / DayL) + 0.83) / 1.83) * DayC;
+S5 = (2-( DayH / DayL)) * DayC;
+S6 = (2-( DayH / DayL)) * DayC * 0.998;
+
+
+ShowR5 = ParamToggle("R5", "No|Yes");
+R5Color=ParamColor( "R5Color", colorDarkGrey );
+ShowR4 = ParamToggle("R4", "No|Yes");
+R4Color=ParamColor( "R4Color", colorBrightGreen );
+ShowR3 = ParamToggle("R3", "No|Yes");
+R3Color=ParamColor( "R3Color", colorBrightGreen );
+ShowR2 = ParamToggle("R2", "No|Yes");
+R2Color=ParamColor( "R2Color", colorGrey40 );
+ShowR1 = ParamToggle("R1", "No|Yes");
+R1Color=ParamColor( "R1Color", colorGrey40 );
+
+ShowS1 = ParamToggle("S1", "No|Yes");
+S1Color=ParamColor( "S1Color", colorGrey40 );
+ShowS2 = ParamToggle("S2", "No|Yes");
+S2Color=ParamColor( "S2Color", colorGrey40 );
+ShowS3 = ParamToggle("S3", "No|Yes");
+S3Color=ParamColor( "S3Color", colorRed );
+ShowS4 = ParamToggle("S4", "No|Yes");
+S4Color=ParamColor( "S4Color", colorRed );
+ShowS5 = ParamToggle("S5", "No|Yes"); 
+S5Color=ParamColor( "S5Color", colorDarkGrey );
+
+//Shadowcolor = ParamColor("Shadow",ColorRGB(40,30,20));
+//Shadowcolor1 = ParamColor("Shadow1",ColorRGB(20,30,20));
+//Shadowcolor2 = ParamColor("Shadow2",ColorRGB(30,40,0));
+
+//style = styleDots | styleThick + styleNoRescale ; 
+style = styleLine + styleNoRescale ; 
+
+if(ShowR5 == True)
+Plot(R5, "R5",R5Color,style);
+if(ShowR4 == False) 
+Plot(R4, "R4",R4Color,Style);
+if(ShowR3 == False)
+Plot(R3, "R3",R3Color,style);
+if(ShowR2 == True) 
+Plot(R2, "R2",R2Color,styleLine);
+if(ShowR1 == True)
+Plot(R1, "R1",R1Color,styleLine);
+
+if(ShowS1 == True)
+Plot(S1, "S1",S1Color,styleLine);
+if(ShowS2 == True)
+Plot(S2, "S2",S2Color,styleLine);
+if(ShowS3 == False)
+Plot(S3, "S3",S3Color,style);
+if(ShowS4 == False) 
+Plot(S4, "S4",S4Color,style);
+if(ShowS5 == True) 
+Plot(S5, "S5",S5Color,style); 
+
+ToolTip=StrFormat("Open: %g\nHigh: %g\nLow: %g\nClose: %g (%.1f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1)));
+TimeFrameRestore();
+_SECTION_END();

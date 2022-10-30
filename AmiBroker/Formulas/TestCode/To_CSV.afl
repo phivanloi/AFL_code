@@ -1,0 +1,37 @@
+fmkdir( "C:\\SaveData" );
+Buy = Status( "barinrange" );
+
+for( i = 0; i < BarCount; i++ )
+if( Buy[i] )
+{
+  //fh = fopen( "C:\\SaveData\\intraday.csv", "a");//if we want to export all data in a single file//
+  //fh = fopen( "C:\\SaveData\\"+Name()+".txt", "a");// if we want to export data in an individual file// 
+    fh = fopen( "C:\\SaveData\\"+Name()+".csv", "a");// if we want to export data in an individual file//
+  if( fh ) 
+   { 
+     y = Year(); 
+     m = Month(); 
+     d = Day(); 
+     r = Hour();
+     e = Minute();
+   
+   for( i = 0; i < BarCount; i++ )
+   if( Buy[i] )
+
+   { 
+      fputs( Name() + "," , fh );
+      ds = StrFormat("%02.0f/%02.0f/%02.0f,", 
+                     y[ i ], m[ i ], d[ i ] ); 
+      fputs( ds, fh ); 
+     
+      ts = StrFormat("%02.0f:%02.0f,", 
+                     r[ i ],e[ i ]); 
+      fputs( ts, fh ); 
+
+     qs = StrFormat("%g,%g,%g,%g,%1.0f\n", 
+                     O[ i ],H[ i ],L[ i ],C[ i ],V[ i ] );
+      fputs( qs, fh );
+   }
+   fclose( fh );
+   }
+}

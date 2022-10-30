@@ -1,0 +1,126 @@
+// Day la chuong trinh dau tien
+
+
+_SECTION_BEGIN("ICHIMOKU");
+// 1. Input------------------------
+tenkan=Param("Tenkan",9,9,20,1);
+kijun=Param("Kijun",17,9,50,1);
+spanBPeriod = Param("Span B Period",26,9,60,1);
+forward = Param("Shift BAck/Forward", 26,9,60,1);
+TKcolor = ParamColor("Tenkan color",colorCustom12);
+KJcolor = ParamColor("Kijun color",colorBlue);
+// 2. Calculation condition setup
+TK = (HHV(H,tenkan)+LLV(L,tenkan))/2;
+KJ=(HHV(H,kijun)+LLV(L,kijun))/2;
+SpanA = ((KJ+TK)/2);
+SpanB = (HHV(H,spanBPeriod)+LLV(L, spanBPeriod))/2;
+// swords dow
+TKDown = TK<Ref(TK,-1);
+KJDown = KJ<Ref(KJ,-1);
+//swords up
+TKUp = TK>Ref(TK,-1);
+KJUp = KJ>Ref(KJ,-1);
+// 3. Indicator
+SetChartOptions(0,chartShowArrows|chartShowDates);
+//SetChartBkGradientFill(ParamColor("BgTop",colorBlack),ParamColor("BgBottom",colorBlack));
+Plot(TK,"TK",TKcolor,styleThick);
+Plot(KJ,"KJ",KJcolor,styleThick);
+Plot(C,"",colorGreen,styleThick,Null,Null,-forward);//chiku
+Plot(C,"",colorBlack,GetPriceStyle());
+
+Plot(SpanA, "SpanA", colorAqua, styleThick,0,0,forward);
+Plot(SpanB, "SpanB", colorGreen, styleThick,0,0,forward);
+PlotOHLC(SpanA,SpanB,SpanA,SpanB,"",IIf(SpanA>SpanB,colorLime,colorLightOrange),styleCloud|4096,0,0,26);
+//
+
+/// Chien luoc
+mua = IIf(C>=O, 1,0);
+ban= IIf(C<O, 1,0);
+LucCau=mua*V;
+LucCung=ban*V;
+period=Param("chuky",4,3,10,1);
+LucCau10 = MA(LucCau,period);
+LucCung10 = MA(LucCung,period);
+LucCungCau10=(LucCau10-LucCung10);
+//// xac dinh 
+uptrend = LucCungCau10>0 AND RSI(14)>54;
+downtrend = LucCungCau10<0 AND RSI(14)<46;
+sideway= RSI(14)<=54 AND RSI(14)>=46
+OR (LucCungCau10<0 AND RSI(14)>54)
+OR (LucCungCau10>0 AND RSI(14)<46);
+
+////
+UpperCloud = Ref(Max(SpanA,SpanB),-forward);
+LowerCloud = Ref(Min(SpanA,SpanB),-forward);
+//chien luoc cu
+Buy= TK>Ref(TK,-1) AND KJ>Ref(KJ,-1) 
+AND LucCungCau10 >0;
+Sell = Cross(LowerCloud,C);
+period=Param("chuky",4,3,10,1);
+//Chien luoc moi
+
+	// Remove redundant signals
+Buy= ExRem (Buy,Sell);
+Sell = ExRem (Sell,Buy);
+
+// Plot signals
+Version(6.17);  //Code is Compatible with 6.17 and Higher
+Message = "[Thong bao]:";
+//TelegramAlerts = ParamTrigger("Telegram Alert","Send Alert");
+TelegramAPI_ID = ParamStr("Telegram Bot API Key","1333859675:AAFTmHzM54SIGgzrHajwbiCY1G_mv0bJ2uw");  //Get the Bot API key via BotFather in Telgram
+TelgramCHAT_ID = ParamStr("Telegram Channel ID","@phukhangami");  //Channel ID example : @marketcalls_in
+
+Message1="Buy@";
+Message2="Sell@";
+
+//AlertIf(Buy,"EXEC https://api.telegram.org/bot"+TelegramAPI_ID+"/sendMessage?chat_id="+TelgramCHAT_ID+"&text=+"+Message1+C,"",1,4+8);  // Your buy or sell condition
+//AlertIf(Sell,"EXEC https://api.telegram.org/bot"+TelegramAPI_ID+"/sendMessage?chat_id="+TelgramCHAT_ID+"&text=+"+Message2+C,"",1,4+8);  // Your buy or sell condition
+//if(Buy[BarCount-1])
+//{
+//ih = InternetOpenURL("https://api.telegram.org/bot"+TelegramAPI_ID+"/sendMessage?chat_id="+TelgramCHAT_ID+"&text="+Message1 ); 
+//InternetClose(ih);
+//}
+//ih = InternetOpenURL("https://api.telegram.org/bot"+TelegramAPI_ID+"/sendMessage?chat_id="+TelgramCHAT_ID+"&text="+Message1 ); 
+//InternetClose(ih);
+
+dist = 2*ATR(10);
+flat=0;
+for( i = 0; i < BarCount; i++ )
+{
+
+          
+if( Buy[i] ) {
+           PlotText( "Buy@" + C[ i ],i, L[ i ]-dist[i], colorBlue );
+           
+if(i==BarCount-1) { Filter =Buy[i];
+			flat++;
+					if(flat<5) {
+					ih = InternetOpenURL("https://api.telegram.org/bot"+TelegramAPI_ID+"/sendMessage?chat_id="+TelgramCHAT_ID+
+					"&text="+Message1+Name() + ":" +C[i]); 
+					InternetClose(ih);
+								}
+					if(flat>=30) flat=0;
+					}
+			}
+if( Sell[i] ) {
+			PlotText( "Sell@" + C[ i ], i, H[ i ]+dist[i], colorRed );
+			if(i==BarCount-1) {
+			flat++;
+					if(flat<3) {
+					ih = InternetOpenURL("https://api.telegram.org/bot"+TelegramAPI_ID+"/sendMessage?chat_id="+TelgramCHAT_ID+
+					"&text="+Message2+Name() + ":" + C[i]); 
+					InternetClose(ih);
+								}
+					if(flat>=30) flat=0;
+			
+                   }
+              }
+}
+PlotShapes (IIf(Buy,shapeUpArrow,shapeNone),colorBlue,0,L,offset=-20);
+PlotShapes (IIf(sell,shapeDownArrow,shapeNone),colorRed,0,H,offset=-30);
+
+
+
+
+//Plot( trend, "Trend", IIf(uptrend, colorBrightGreen,IIf(downtrend,colorRed,colorWhite)));
+_SECTION_END();

@@ -1,0 +1,14 @@
+FastEMA = EMA(C,5);;
+SlowEMA = EMA(C,13);
+MACDEMA = EMA(C,1);
+
+x = EMA((FastEMA -SlowEMA )/SlowEMA,1) ;
+Plot(x, "", colorTan,4);
+
+PlotGrid(0.045, colorLime);
+PlotGrid(0.030, colorLime);
+PlotGrid(0.015, colorLime);
+PlotGrid(0, colorLightGrey);
+PlotGrid(-0.045, colorRed);
+PlotGrid(-0.030, colorRed);
+PlotGrid(-0.015, colorRed);

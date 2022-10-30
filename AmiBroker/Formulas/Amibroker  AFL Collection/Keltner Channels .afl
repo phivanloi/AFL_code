@@ -1,0 +1,20 @@
+// Keltner Channels are constructed similar to Bollinger Bands
+// around a moving average +/- volatility.
+// The difference is in the measurement of volatility. 
+// Bollinger uses standard deviation. MA(Close,20) +/- #STDs
+// Keltner uses ATR (Average True Range). MA(Close,20) +/- #ATRs
+// Keltner channels may be easier to use for detecting oversold / overbought conditions
+
+
+
+Length = 20; Num_ATRs = 2;
+// Length and Num_ATRs parameters should be personalized for your preferred settings.
+
+Mov_Avg = MA(C,Length);
+KUP   = Mov_Avg + Num_ATRs * ATR(Length);
+KDOWN = Mov_Avg - Num_ATRs * ATR(Length);
+
+
+Plot (KUP,"KUP",1,1);
+Plot (KDown,"Kdown",1,1);
+Plot (Mov_Avg,"Mov_Avg",6,1);

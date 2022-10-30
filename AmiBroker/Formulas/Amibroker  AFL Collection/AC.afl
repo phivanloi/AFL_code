@@ -1,0 +1,97 @@
+/* Exploration, System and Indicator */
+//    Author: Steve Wiser
+//   Email address: slwiserr@erols.com
+//   May 5, 2001 */
+
+/*
+
+If the momentum is with us (it is above zero and we are buying,
+or below zero and we are selling), we want to enter aggressively and we need only two green
+bars for a buy (two red bars for a sell). If the momentum is against us (it is below zero and we
+are buying, or above zero and we are selling), we want confirmation so we require one extra
+bar. In this case, we would require three red bars to sell above the zero line and three green
+bars to buy below the zero line.
+
+1. A buy signal is created when there are two consecutive histogram bars with higher highs
+than the most recent lowest low (a down peak).
+2. A buy stop is placed one tick above the high of the price bar, which corresponds (in the
+same time frame) to the second higher high.
+3. A second buy signal cannot be created until the histogram moves at least one bar lower,
+creating a red bar. A new buy signal can then be created after two higher (green) bars.
+4. In the software, this is easy to spot because it requires at least one red bar followed by two
+green bars on the AC histogram.
+
+These are the AC rules for buying when the histogram is "crossing" the zero line from below
+to above (negative to positive):
+1. A buy signal is created if the AC histogram down peak is below the zero line and crosses
+the line on the second or third bar after the down peak. When that happens and the current
+"indicator" bar in the histogram is above the zero line, you need only two higher highs.
+2. IT IS IMPORTANT TO UNDERSTAND THAT CROSSING THE ZERO LINE IS NOT A
+SIGNAL ON THE AC HISTOGRAM. (Crossing the zero line is a signal only on the AO
+chart.)
+3. Crossing the zero line on the histogram chart only changes the number of green bars (higher
+highs) that you need for a buy signal. The reason behind reducing the number of histogram
+bars after crossing the zero line is that the momentum is now in your favor and you want to
+get in OR add to your position as quickly as possible.
+
+
+With the AC, you cannot have a buy if the bar is red, and you cannot have a sell if
+the bar is green.
+Important: Perform the sell/buy in the bar following the signal bar (the current bar).
+You cannot have a sell signal with a current green bar on the AC histogram.
+You cannot have a buy signal with a current red bar on the AC histogram.
+*/
+
+//outsidebar = Outside();
+//insidebar = H <= Ref(H,-1) AND L >= Ref(L,-1);
+//upbar = H > Ref(H,-1) AND L >= Ref(L, -1);
+//downbar = L < Ref(L,-1) AND H <= Ref(H,-1);
+//barcolor=IIf(outsidebar, 1, 
+//               IIf(downbar,   4, 
+//               IIf(upbar,        5, 
+//               IIf(insidebar,6, 0 ) ) ) );
+
+
+var1=MA( Avg , 34);
+var2=MA( Avg,5);
+var3=var2-var1;
+var4=MA(var3-MA(var3,5),5);
+
+up = Var4 > Ref(Var4,-1);
+down = Var4 < Ref(Var4,-1);
+
+Graph0=var4;
+Graph0Style=2+4;
+Graph1=Wilders(var4,5);
+Graph1Style=5;
+Graph0Name = "AC";
+Graph0BarColor = IIf(up, colorGreen, colorRed);
+
+
+up = Var4 > Ref(Var4,-1);
+down = Var4 < Ref(Var4,-1);
+
+//3 bars buy when in positive territory:
+AllAbove0 = Ref(Var4,-3) > 0 AND Ref(Var4,-2) > 0 AND Ref(Var4,-1) > 0;
+SellA = Ref(up,-3) AND Ref(down,-2) AND Ref(down,-1) AND down AND AllAbove0;
+
+//2 bars sell. If in negative territory or crossed below 0:
+AllBelow0 = Ref(Var4,-3) < 0 AND Ref(Var4,-2) < 0 AND Ref(Var4,-1) > 0;
+CrossBelow0 = (Ref(Var4,-2) > 0 AND Ref(Var4,-1) < 0) OR (Ref(Var4,-1) > 0 AND Var4 < 0);
+SellB = Ref(up,-2) AND Ref(down,-1) AND down AND (AllBelow0  OR CrossBelow0);
+
+CrossAbove0 = (Ref(Var4,-2) < 0 AND Ref(Var4,-1) > 0) OR (Ref(Var4,-1) < 0 AND Var4 > 0);
+//3 bars buy when in negative territory:
+BuyA = Ref(down,-3) AND Ref(up,-2) AND Ref(up,-1) AND up AND AllBelow0;
+//2 bars buy. If in positive territory or crossed above 0:
+BuyB = Ref(down,-2) AND Ref(up,-1) AND up AND (AllAbove0 OR CrossAbove0);
+
+Buy = BuyA OR BuyB;
+Sell = SellA OR SellB;
+
+PlotShapes( IIf(Buy ,shapeUpArrow,0) ,colorGreen, 0, IIf(Var4 < 0, Var4, 0),-12);
+PlotShapes( IIf(Sell ,shapeDownArrow,0) ,colorRed, 0, IIf(Var4 < 0, Var4, 0),12);
+
+//Commentary
+WriteIf(Buy, "Place Buy Stop to buy 1 unit if price rises to " + WriteVal(H+0.01)+" or higher. (AC+)",
+WriteIf(Sell, "Place Sell Stop to sell 1 unit if price falls to " + WriteVal(L-0.01)+" or lower. (AC-)",""));

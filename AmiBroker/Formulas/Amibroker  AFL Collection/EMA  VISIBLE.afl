@@ -1,0 +1,27 @@
+_SECTION_BEGIN("Visible EMA_5_13");
+periods = Param( "Periods", 7, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 10, 1, 200, 1 );
+Dsmooth = Param( "%D avg", 4, 1, 200, 1 );
+TimeFrameSet(in1Minute * 5);
+K5 = StochK( periods , Ksmooth);
+D5 = StochD( periods , Ksmooth, DSmooth );
+TimeFrameRestore();
+TimeFrameSet(in1Minute * 30);
+K30 = StochK( periods , Ksmooth);
+D30 = StochD( periods , Ksmooth, DSmooth );
+TimeFrameRestore();
+
+EM5=EMA(C,5);
+EM13=EMA(C,13);
+Plot(EM5, "EMA5", colorRed, styleThick );
+Plot(EM13, "EMA13", colorGreen, styleThick );
+//Plot(K5, "K5", colorRed, styleThick );
+//Plot(D5, "D5", colorGreen styleThick );
+//Plot(K30, "K30", colorRed, styleThick );
+//Plot(D30, "D30", colorGreen, styleThick );
+//Buy=k30>d30 AND EM5>EM13 AND Cross(K5,D5);
+//Sell=k30<d30 AND EM5<EM13 AND Cross(D5,K5);
+//Filter=Buy OR Sell;
+//AddColumn(IIf(Buy,1,IIf(Sell,-1,0)) ,"BS",1.0,colorBlack,IIf(Buy,colorGreen,IIf(Sell,colorRed,colorBlack)));
+
+_SECTION_END();

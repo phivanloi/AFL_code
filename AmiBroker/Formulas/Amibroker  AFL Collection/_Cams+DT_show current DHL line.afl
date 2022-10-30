@@ -1,0 +1,134 @@
+_SECTION_BEGIN("Price+FPSR+ZG+WW+StoDiv+CCI+");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorPink ), styleNoTitle | styleCandle ); 
+
+
+
+
+//////////////////////////////////////////////////  DP TOGGLE ///////////////////////////////////////////////////////
+
+
+
+
+Show_Prev = ParamToggle( "Display Pivots", "No|Yes", 1);
+ 
+// Get Previous Day's close, Low and High
+DayC=Prev_Close = TimeFrameGetPrice( "C", inDaily, -1, expandFirst) ;
+DayL=Prev_Low = TimeFrameGetPrice( "L", inDaily, -1, expandFirst) ;
+DayH=Prev_High = TimeFrameGetPrice( "H", inDaily, -1, expandFirst) ;
+Today = LastValue(Day( ) );
+P = (Prev_High + Prev_Low + Prev_Close)/ 3;
+
+
+R6 = (DayH / DayL) * DayC * 1.002;
+R5 = (DayH / DayL) * DayC;
+R4 = (((DayH / DayL) + 0.83) / 1.83) * DayC;
+R3 = ( ( (DayH / DayL) + 2.66) / 3.66) * DayC;
+R2 = ( ( (DayH / DayL) + 4.5) / 5.5) * DayC;
+R1 = ( ( (DayH / DayL) + 10) / 11) * DayC;
+ 
+S1 = (2- ( ( (DayH / DayL) + 10) / 11)) * DayC;
+S2 = (2-( (DayH / DayL) + 4.5) / 5.5) * DayC;
+S3 = (2-(( DayH / DayL) + 2.66) / 3.66) * DayC;
+S4 = (2-( (DayH / DayL) + 0.83) / 1.83) * DayC;
+S5 = (2-( DayH / DayL)) * DayC;
+S6 = (2-( DayH / DayL)) * DayC * 0.998;
+//////////////////////////////  FPSR  30 MT STRATEGY /////////////////////////////////////////////////////////////
+
+//TimeFrameSet( inDaily );
+
+BS=(Prev_High-Prev_Low)/3;
+Y=Prev_Close+BS;
+X=Prev_Close-BS;
+
+
+MULT=0.0003;
+
+
+YT=Y+MULT*Y;
+YB=Y-MULT*Y;
+
+XT=X+MULT*X;
+XB=X-MULT*X;
+
+
+//PlotOHLC( 0, Prev_High ,Prev_Low ,Prev_Low, "", HLColor, styleCloud|styleNoLabel);
+HLColor = ColorRGB(70,70,70);
+
+if(Show_Prev)
+{Plot(IIf(Today == Day(),R5, Null), "R5", ParamColor("R5", colorBlue),styleDots|styleThick|styleNoRescale);
+Plot(IIf(Today == Day(),R4, Null), "R4", ParamColor("R4",colorLightBlue),styleDashed|styleThick|styleNoRescale);
+Plot(IIf(Today == Day(),R3, Null), "R3", ParamColor("R3",colorLightBlue),styleDashed|styleThick|styleNoRescale);
+Plot(IIf(Today == Day(),R2, Null), "R2", ParamColor("R2", colorDarkRed),styleDots|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),R1, Null), "R1", ParamColor("R1",colorDarkRed),styleDashed|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),P, Null), "P", ParamColor("P",colorYellow),styleDashed|styleThick|styleNoRescale);
+Plot(IIf(Today == Day(),S1, Null), "S1", ParamColor("S1", colorDarkGreen),styleDots|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),S2, Null), "S2", ParamColor("S2",colorDarkGreen),styleDashed|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),S3, Null), "S3", ParamColor("S3",colorBrightGreen),styleDashed|styleThick|styleNoRescale);
+Plot(IIf(Today == Day(),S4, Null), "S4", ParamColor("S4", colorBrightGreen),styleDashed|styleThick|styleNoRescale );
+Plot(IIf(Today == Day(),S5, Null), "S5", ParamColor("S5", colorDarkGreen),styleDashed|styleThick|styleNoRescale);
+
+
+
+Plot(IIf(Today == Day(), Prev_High, Null), "Prev_High", ParamColor(" Prev_High", HLColor),styleDots|styleThick|styleNoRescale );
+Plot(IIf(Today == Day(), Prev_Low, Null), "Prev_Low", ParamColor(" Prev_Low", HLColor),styleDots|styleThick|styleNoRescale );
+}
+
+
+/////////////////////////////////////EMA 34  10 /////////////////////////////////////////////////////////////////
+
+B10=EMA(C,18);
+MULT=0.0003;
+TB10 = B10+MULT*B10;
+BB10 = B10-MULT*B10;
+PlotOHLC( 0, TB10 , BB10 , BB10 , "", colorCustom13, styleCloud | styleNoLabel);
+
+
+
+
+B34=EMA(C,34);
+MULT=0.0003;
+TB34 = B34+MULT*B34;
+BB34 = B34-MULT*B34;
+PlotOHLC( 0, TB34 , BB34 , BB34 , "EMA34", colorDarkRed, styleCloud | styleNoLabel);
+
+//////////////////////////////  DAY HILO SHADOW /////////////////////////////////////////////////////////////
+
+
+BSColor = ColorRGB(80,80,80);
+HLColor = ColorRGB(20,20,40);
+//PlotOHLC( 0, Prev_High ,Prev_Low ,Prev_Low, "", HLColor, styleCloud|styleNoLabel);
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////  DOUBLE TOP //////////////////////////////////////////
+
+
+/* Detecting double tops */
+percdiff = 5; /* peak detection threshold */
+fwdcheck = 5; /* forward validity check */
+mindistance = 10;
+validdiff = percdiff/400;
+PK= Peak( H, percdiff, 1 ) == High;
+
+x = Cum( 1 );
+XPK1 =  ValueWhen( PK, x, 1 ); 
+XPK2 = ValueWhen( PK, x, 2 ); 
+
+peakdiff = ValueWhen( PK, H, 1 )/ValueWhen( PK, H, 2 );
+doubletop = PK AND abs( peakdiff - 1 ) < validdiff AND (XPK1 - XPK2)>mindistance AND High > HHV( Ref( H, fwdcheck ), fwdcheck - 1 );
+SellDT = doubletop;
+Buy = 0;
+//Filter=SellDT;
+WriteIf( Highest( doubletop ) == 1, "AmiBroker has detected some possible
+double top patterns for " + name() + "\nLook for green arrows on the price
+chart.", "There are no double top patterns for " + name() );
+
+
+
+PlotShapes(SellDT*shapeHollowDownTriangle,colorPink, 0, High, Offset =-25);
+PlotShapes(SellDT*shapeDigit0,colorPink, 0, High, Offset =40);
+PlotShapes(SellDT*shapeDigit0,colorPink, 0, High, Offset =50);
+
+_SECTION_END();
+

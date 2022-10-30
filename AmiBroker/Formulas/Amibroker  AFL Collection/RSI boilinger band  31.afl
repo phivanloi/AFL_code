@@ -1,0 +1,28 @@
+_SECTION_BEGIN("RSI BB");
+
+ 
+A1=EMA(RSI(5),13); 
+BBtop=BBandTop(A1,5,.5); 
+BBbot=BBandBot(A1,5,.5);
+Color=IIf(a1 > bbtop, colorBlue,IIf(a1 < bbbot, colorRed,colorYellow));
+bbtop_col = IIf (BBtop > Ref(BBtop,-1),colorBlue,colorRed);
+bbbot_col = IIf (BBbot > Ref(BBbot,-1),colorBlue,colorRed);
+Plot(a1,"",color,styleLine);
+Plot(BBtop,"",BBtop_col,styleDashed);
+Plot(BBbot,"",BBbot_col,styleDashed);
+Plot(50,"",31,1);
+Buy = a1 > bbtop;
+Sell = a1 < bbbot;
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+PlotShapes(Buy*shapeHollowSmallUpTriangle,colorYellow);
+PlotShapes(Sell*shapeHollowSmallDownTriangle,colorYellow);
+Plot(6, "", Color, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+_SECTION_END();
+
+_SECTION_BEGIN("EMA1");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END(); 

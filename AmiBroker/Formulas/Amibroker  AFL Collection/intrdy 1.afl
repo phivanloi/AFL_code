@@ -1,0 +1,96 @@
+prev=AMA2(C,1,0);
+
+d=IIf(C>Ref(Max(Max(H,Ref(H,-20)),Max(Ref(H,-10),Ref(H,-15))),-1),Min(Min(L,Ref(L,-20)),Min(Ref(L,-10),Ref(L,-15))),
+IIf(C<Ref(Min(Min(L,Ref(L,-20)),Min(Ref(L,-10),Ref(L,-15))),-1),Max(Max(H,Ref(H,-20)),Max(Ref(H,-10),Ref(H,-15))),PREV));
+
+a=Cross(Close,d);
+b=Cross(d,Close);
+
+state=IIf(BarsSince(a)<BarsSince(b),1,0);
+s=state>Ref(state,-1);
+ss=state<Ref(state,-1);
+sss=state==Ref(state,-1);
+col=IIf(state == 1 ,51,IIf(state ==0,4,1));
+
+Plot(C,"",Col,64);
+PlotShapes( shapeUpArrow* s ,6,0,L); 
+PlotShapes( shapeDownArrow *ss ,4,0,H);
+
+Filter = s OR ss OR sss ;
+
+//AddColumn(C,"close",1.2);
+//AddColumn( IIf( s, 66,1 ), "buy", formatChar, 1, bkcolor =IIf (s,colorYellow, colorPink ));
+//AddColumn( IIf( Ss, 83,1 ), "sell", formatChar, 1, bkcolor =IIf (Ss,colorPink, colorYellow ));
+//AddColumn( IIf( sss, 87,1 ), "wait", formatChar, 1, bkcolor =IIf (sss,colorYellow, colorRed ));
+
+_SECTION_BEGIN("");
+_N(Title = "{{NAME}} - {{INTERVAL}} {{DATE}}: "+_DEFAULT_NAME()+" : {{OHLCX}} {{VALUES}}" 
++"\n"+EncodeColor(colorBlue)+
+WriteIf(s," stop="+EncodeColor(16)+WriteVal(L+.75*ATR(5),1.2)+" ,","")+
+WriteIf(ss," stop="+EncodeColor(16)+WriteVal(Ref(H+.75*ATR(5), -1),1.2)+",","")+ 
+WriteIf( sss ,"No trading signals today.",""));
+
+
+
+_SECTION_BEGIN("swing1");
+no=20;
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+supres=IIf(avn==1,sup,res);
+
+a=Cross(C,supres);
+b=Cross(supres,C);
+
+style = a * styleStaircase + b * styleStaircase;
+
+PlotShapes(a,style, IIf(a,colorBrightGreen,colorRed), 0, IIf(a,Low,High));
+
+_SECTION_END();
+
+
+
+_SECTION_BEGIN("trend");
+uptrend=PDI(10)>MDI(10)AND Signal(29)<MACD(13);
+downtrend=MDI(10)>PDI(10)AND Signal(29)>MACD(13);
+
+
+Plot( 4, /* defines the height of the ribbon in percent of pane width */"ribbon",
+IIf( uptrend, colorBrightGreen, IIf( downtrend, colorRed, 0 )), /* choose color */
+styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+
+_SECTION_END();
+
+//d = Close > Ref( ChandelierHL(ATR(3),20), -1);
+//e =Close < Ref( ChandelierHL(ATR(3),20), -1);
+//f = Close < Ref( ChandelierHL(ATR(3),20), -1);
+//g = Close > Ref( ChandelierHL(ATR(3),20), -1);
+
+Buy = s AND a AND uptrend ;
+Short = ss AND b AND downtrend ;
+Sell = ss AND b AND downtrend ;
+Cover = s AND a AND uptrend ;
+
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+Cover=ExRem(Cover,Short);
+Short=ExRem(Short,Cover);
+
+Filter=Buy OR Sell;
+Filter= Cover OR Short;
+
+//AddColumn( Buy, "Buy", 1);
+//AddColumn(Sell, "Sell", 1);
+//AddColumn(Close,"Close",1.2);
+//AddColumn(Volume,"Volume",1.0);
+
+// Plot the Buy and Sell arrows.
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes(shape, IIf(Buy,colorGreen,colorRed), 0, IIf(Buy,Low,High));
+
+Plot(supres,"Swing",colorBlack,styleStaircase);
+
+//SetChartBkGradientFill( ParamColor("BgTop", ColorRGB( 172,172,172 )),
+
+//ParamColor("BgBottom", ColorRGB( 172,172,172 )),ParamColor("titleblock",ColorRGB( 172,172,172 ))); 

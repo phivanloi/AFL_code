@@ -1,0 +1,65 @@
+_SECTION_BEGIN("GANN 9");
+a=Param("Price",5143,1,6000,1);
+
+m=0.125;
+
+b=a^(1/2);
+
+x2=floor(b);
+x1=x2-1;
+x3=x2+1;
+
+// Generating Gann Square //
+
+for(i=1;i<=8;i++)
+{
+	   g[i]=(x1+m*i)^2;
+		
+}
+
+for(i=9;i<=16;i++)
+{
+		j=i-8;
+	   g[i]=(x2+m*j)^2;
+
+}
+
+for(i=17;i<=24;i++)
+{
+		k=i-16;
+	   g[i]=(x3+m*k)^2;
+
+}
+
+// Plotting gann lines //
+
+for(m=2;m<=24;m++)
+{
+		if((g[m]<=a)AND(g[m+1]>a))
+          {   z=m;
+				t=Param("Resistance Step No.",1,1,24,1);
+				u=Param("Support Step No.",1,1,z,1);
+
+				Plot(g[z],"",colorRed, styleThick | styleDashed); 
+
+			// Go short bellow red line with stop loss at green line and for targets look at the support lines // 
+
+				Plot(g[z+1],"",colorGreen, styleThick | styleDashed);
+
+			// Go long above green line with stop loss at red line and for targets look at the resistance lines // 
+				
+										
+				for(n=z+2;n<=z+1+t;n++)
+					{	g[n]=g[n]*0.9995;
+						Plot(g[n],"",colorBlue, styleThick |styleDashed );
+					}
+					
+				for(n=z-1;n>=z-u;n--)
+					{	g[n]=g[n]*1.0005;
+						Plot(g[n],"",colorBlue, styleThick |styleDashed);
+					}
+             }
+			
+				
+}	
+_SECTION_END();

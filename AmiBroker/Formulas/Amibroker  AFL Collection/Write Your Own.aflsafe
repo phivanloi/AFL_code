@@ -1,0 +1,146 @@
+/*							Write Your Own.afl - Bill Barnard, 2/11/06
+	This is to be used as an include file for SIGNAL STUDY.afl or the entire contents are to be
+	pasted into SIGNAL OPTIMIZE.afl. Read discussion (first parameter) in SIGNAL STUDY.afl 	*/
+
+AA		=  (Status("action")==3 OR Status("action")==4 OR Status("action")==5);	//	= 1 in AA
+if (AA)	sigSelect = "Write Your Own";
+if (sigSelect=="Write Your Own")	{
+
+if (AA)	//	if this code is being used in AA
+{
+  	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	Current		= ParamToggle("Use Current Symbol?", "Using Symbol named just below for Indicator,Using Current Symbol for Indicator");
+	indicSym		= ParamStr("Indicator Symbol", "RUT-I");
+	param1		= Optimize("period1",  14, 2, 24, 2);
+	param2		= Optimize("period2", 1, 1, 51, 5);
+	param3		= 60;//Optimize("Buy Line",  60, 1, 99, 1);
+	param4		= 40;//Optimize("Sell Line",  40, 1, 99, 1);
+	param6		= 1;//Optimize("AveTyp",  1, 0, 5, 1);
+	param8		= ParamToggle("Include Foreign Arrays for Buy/Sell Calculation?", "Using only WYO indicator for B / S - click to change,"+
+								"Including Foreign Arrays for B / S- click to change", 0);
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+}
+
+//	if this code is being used for an indicator, retrieve stored param information
+if (Status("action")==1)
+{
+	WYOParamsList		= "";
+	WYOParamsFileName	= "ConfigFiles\\WYOParams"+GetChartID()+".bf";
+
+	fh 							= fopen( WYOParamsFileName, "r");
+	if( fh )
+	{
+		while( ! feof( fh ) )
+		{
+			WYOParamsList = fgets( fh );
+		}
+		fclose( fh );
+	}
+
+	q0		=		IIf(WYOParamsList !="", 	StrToNum(StrExtract(WYOParamsList,  0	)), 0	 		);//	Current
+	q1		= WriteIf(WYOParamsList !="", 				  StrExtract(WYOParamsList,   1), 	"RUT-I"	);//	indicSym
+	q2		=		IIf(WYOParamsList !="", 	StrToNum(StrExtract(WYOParamsList,  2	)), 14	 		);//	param1
+	q3		=		IIf(WYOParamsList !="", 	StrToNum(StrExtract(WYOParamsList,  3	)), 1			);//	param2
+	q4		=		IIf(WYOParamsList !="", 	StrToNum(StrExtract(WYOParamsList,  4	)), 60	 		);//	param3
+	q5		=		IIf(WYOParamsList !="", 	StrToNum(StrExtract(WYOParamsList,  5	)), 40	 		);//	param4
+	q6		=		IIf(WYOParamsList !="", 	StrToNum(StrExtract(WYOParamsList,  6	)), 0			);//	param5
+	q7		=		IIf(WYOParamsList !="", 	StrToNum(StrExtract(WYOParamsList,  7	)), 1	 		);//	param6
+	q8		=		IIf(WYOParamsList !="", 	StrToNum(StrExtract(WYOParamsList,  8	)), 0			);//	param7
+	q9		=		IIf(WYOParamsList !="", 	StrToNum(StrExtract(WYOParamsList,  9	)), 0	 		);//	param8
+
+
+	_SECTION_BEGIN("INDICATOR PARAMETERS");
+	Current		= ParamToggle("Write Your Own -                   Use Current Symbol?",
+						"Symbol below makes Indicator - click to change,Current Symbol makes Indicator - click to change", q0);
+	IndicString	= ParamStr("Write Your Own -                          Indicator Symbol", "Indicator Symbol---"+q1);
+	indicSym		= StrMid(StrToUpper(IndicString), 19, 5) ;
+	param1		= Param("Write Your Own -                                        Period1",  q2, 1, 100, 1);
+	param2		= Param("Write Your Own -                                        Period2", q3, 1, 100, 1);
+	param3		= q4;//Param("Write Your Own -                                          Level1",  q4, -100, 100, 1);
+	param4		= q5;//Param("Write Your Own -                                          Level2",  q5, 1, 99, 1);
+	param5		= q6;
+	param6		= q7;//ParamList("Write Your Own -                              Average Type", "Simple Moving Average,"+
+	//							"Exponential Moving Average,Double Moving Average,Triple Moving Average,"+
+	//							"Weighted Moving Average,Till3 Moving Average", q7);
+	//param6		= 	IIf(param6=="Simple Moving Average", 0, IIf(param6=="Exponential Moving Average", 1,
+	//					IIf(param6=="Double Moving Average", 2, IIf(param6=="Triple Moving Average", 3,
+	//					IIf(param6=="Weighted Moving Average", 4, 5)))));
+	param7		= q8;
+	param8		= ParamToggle("Include Foreign Arrays for Buy/Sell Calculation?", "Using only WYO indicator for B / S - click to change,"+
+								"Including Foreign Arrays for B / S- click to change", q9);
+	_SECTION_END();
+}
+
+//	Buy/Sell rules start here
+
+aveStr	= "MA,EMA,DEMA,TEMA,WMA,Till3";
+aveType 	= StrExtract(aveStr, Param6);
+
+ind1		= IIf(current, Close, Foreign(indicSym, "Close"));
+Nam		= WriteIf(current, Name(), indicSym);		Name1	= Nam;	
+indError	= IIf(IsNull(ind1), 1, 0);
+indicSym	= WriteIf(indError, "", indicSym);
+indstart	= param1 + param2;
+
+ind2		= RSIa(ind1, Param1);							Name2	= "RSI ("+Param1+")"+w2(ind2);
+ind1		= Null;	// through with it - no plot
+ind5		= Ref(ind2, -Param2);								Name5	= "RSI "+Param2+" days ago"+w2(ind5)+nl(1);
+
+Buy		= IIf(BarIndex() > indstart, Cross(ind2, ind5), 0);
+Sell		= IIf(BarIndex() > indstart, Cross(ind5, ind2), 0);
+
+BS1 = SS1 = BS2 = SS2 = BS3 = SS3 = BS4 = SS4 = BC = SC = 1;
+
+if (Param8) 
+{
+	BS1		= Foreign("RSXBC", "Close");
+	SS1		= Foreign("RSXSC", "Close");
+	BS2		= Foreign("RMXBC", "Close");
+	SS2		= Foreign("RMXSC", "Close");
+	//BS3		= Foreign("RRSBC", "Close");
+	//SS3		= Foreign("RRSSC", "Close");
+	//BS4		= Foreign("RRCBC", "Close");
+	SS4		= Foreign("RRCSC", "Close");
+
+	BC			= BS1 AND BS2 AND BS3 AND BS4;
+	SC			= SS1 AND SS2 AND SS3 AND SS4;
+	Name8	= Name8 + ec(colorRed) + "      Incl. Foreign";
+}
+
+BuyCond	= Flip(Buy, Sell) AND BC;
+SellCond	= Flip(Sell, Buy) AND SC;
+
+Buy		= ExRem(BuyCond, SellCond);
+Sell		= ExRem(SellCond, BuyCond);
+
+//	Buy/Sell rules end here
+
+if (Status("action")==1)	// if this code is being used for an indicator
+{
+	//	make an initiation file to store params
+	WYOParamsList = ""+
+		Current		+","+
+		indicSym		+","+
+		param1		+","+
+		param2		+","+
+		param3		+","+
+		param4		+","+
+		param5		+","+
+		param6		+","+
+		param7		+","+
+		param8		+","+
+		"";
+
+	fh 	= fopen( WYOParamsFileName, "w");
+	if( fh )
+	{
+		fputs(WYOParamsList, fh);
+		fclose( fh );
+	}
+}
+
+}

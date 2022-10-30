@@ -1,0 +1,13 @@
+ /// AFBI Channel System /// 
+FixV=6; 
+x=MA(((H+L)/2)+(O-C),5); 
+i=DEMA(x,5); 
+j=(x+StDev(x,FixV))+ATR(2)/1.5; 
+k=(x-StDev(x,FixV))-ATR(2)/1; 
+color=IIf(BarsSince(Cross(k,C))> 
+BarsSince(Cross(C,j)), colorBrightGreen,colorRed); 
+Plot(C,"",Color,64); 
+Plot(J,"J",colorGreen); 
+Plot(K,"K",colorDarkRed); 
+Title=Name()+" "+Date()+" "+EncodeColor(colorSkyblue)+" AFBI Channel System "+EncodeColor(colorYellow)+" Vol="+NumToStr(Volume,1.0)+" "+" O="+Open+" H="+HHV(H,1)+" L="+LLV(L,1)+" 
+Close="+ Close+""+"("+numtostr((Close-ref(C,-1))/ref(c,-1)*100,1.2)+" %)";

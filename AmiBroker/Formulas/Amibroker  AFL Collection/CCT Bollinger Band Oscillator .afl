@@ -1,0 +1,12 @@
+/* CCT Bollinger Band Oscillator 
+**
+** Originally developed by Steve Karnish 
+** http://www.cedarcreektrading.com
+**
+** AFL translation by Tomasz Janeczko
+**
+** Set scaling: Automatic
+** Grid: Middle, Level 0
+*/
+
+Graph0= 100 * ( C + 2*StDev( C, 21) - MA( C, 21 ) ) / ( 4 * StDev( C, 21 ) );

@@ -1,0 +1,110 @@
+//------------------------------------------------------------------------------
+//  Formula Name	:      EMA10 & EMA 20 5 Min Trading System AFL for Amibroker by pipschart
+//  Author	:      KrT group of limited
+//  Uploader	:      www.pipschart.com
+//  E-mail		:      info@pipschart.com
+//  Amibroker Blog	:      www.pipschart.com/amibroker
+//  Video Channel	:      www.youtube.com/pipschart
+//  Origin		:      Modified & Collected from different sources.
+//------------------------------------------------------------------------------
+
+
+
+_SECTION_BEGIN("KrT group");
+
+ // Gfx Set Graphic 
+GfxSetBkMode(1); 
+X=750;
+Y=8;
+Font=10;
+GfxSelectFont("Impact",Font*2.2, 550);GfxSetTextColor(colorRed);GfxTextOut("KrT group",x,y);
+GfxSelectFont("Impact",Font*2.2, 550);GfxSetTextColor(colorGreen);GfxTextOut("RESEARCH",x+120,Y);
+
+_SECTION_END();
+
+//------------------------------------------------------------------------------
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates); // Set chart pane options
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+_SECTION_END();
+PositionSize = MarginDeposit=1; // Fixed Variable in Ami, tim hieu them
+
+// Calculate Yesterdays close
+YC = TimeFrameGetPrice("C",inDaily,-1);   // Lay gia dong cua theo ngay
+
+Plot(yc,"YC",colorWhite,styleLine);
+
+
+TimeFrameSet( inHourly); // Set Timeframe to 1 Hour and Calculate 20 Moving average Hourly
+
+ mah_20 = MA(C,20);
+ 
+ TimeFrameRestore(); // restore time frame to original
+TimeFrameSet( in5Minute);// Set the timeframe to 5 Min 
+ ma5_10 = EMA( C, 10 ); // Calculate 10 EMA 5 Min
+ ma5_20 = EMA(C,20);     // Calculate 20 EMA 5 Min
+ 
+TimeFrameRestore(); // restore time frame to original
+
+
+/// Tong hop ca duong MA theo Hourly, 5min
+Plot( TimeFrameExpand( mah_20, inHourly), "20 MA 60 Min", colorGreen ); // Plot 20 MA Hourly
+Plot( TimeFrameExpand( ma5_10, in5Minute), "10 EMA 5 Min", colorWhite,styleDots); // Plot 10 EMA 5 Mi 
+Plot( TimeFrameExpand( ma5_20, in5Minute), "20 EMA 5 Min", colorRed,styleDots );  // Plot 20 EMA 5 Minutes
+
+
+// Phuong phap giao dich
+Buy =  TimeFrameExpand( ma5_10, in5Minute) > TimeFrameExpand( ma5_20, in5Minute) // Buy Formula
+        AND C > yc AND C > TimeFrameExpand( mah_20, inHourly) // & Gia dong cua > Gia dong cua hom qua 
+        // & Gia dong cua > MA20 theo gio
+             AND TimeNum() > 093000 AND TimeNum() < 151500; // Bat dau tu 9h30 den 15h15
+           
+
+
+Short=  TimeFrameExpand( ma5_10, in5Minute) < TimeFrameExpand( ma5_20, in5Minute) // Short Formula
+        AND C < yc AND C < TimeFrameExpand( mah_20, inHourly)
+        AND TimeNum() > 093000 AND TimeNum() < 151500;
+       
+       
+
+// Buy - Sell , Short - Cover
+sell=Short OR TimeNum() > 152400; 
+
+Cover=Buy OR TimeNum() > 152400;
+
+//removes excessive signals:
+//returns 1 on the first occurence of "true" signal in Array1
+//then returns 0 until Array2 is true even if there are "true" signals in Array1 
+
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+short=ExRem(Short,Cover);
+Cover=ExRem(cover,short);
+
+/*
+works as a flip/flop device or "latch" (electronic/electric engineers will know what I mean)
+returns 1 from the first occurence of "true" signal in Array1
+until a "true" occurs in Array2 which resets the state back to zero
+unil next "true" is detected in Array1... 
+*/
+
+Long=Flip(Buy,Sell);
+Shrt=Flip(Short,Cover);
+
+btest = ValueWhen(Buy,C);
+
+BuyPrice=ValueWhen(Buy,C);
+SellPrice=ValueWhen(Sell,C);
+ShortPrice=ValueWhen(Short,C);
+CoverPrice=ValueWhen(Cover,C);
+
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45);
+PlotShapes(IIf(Short, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+PlotShapes(IIf(Short, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+PlotShapes(IIf(Short, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+PlotShapes(IIf(sELL, SHAPESTAR, shapeNone),colorgreen, 0,H, Offset=45);
+PlotShapes(IIf(Cover, SHAPESTAR, shapeNone),colorred, 0,l, Offset=-45);

@@ -1,0 +1,18 @@
+ /// Chaloke Reaction Trend System /// 
+
+XX=(H+L+C)/3; 
+BB=2*XX-H; 
+SS=2*XX-L; 
+HBOP=2*XX-2*L+H; 
+LBOP=2*XX-2*H+L; 
+color=IIf(BarsSince(Cross(H,Ref(HBOP,-1)))> 
+BarsSince(Cross(Ref(LBOP,-1),L)),colorRed , colorBrightGreen); 
+Plot(C,"",Color,64); 
+Plot(XX,"",colorYellow); 
+Plot(BB,"",colorLime); 
+Plot(SS,"",colorPink); 
+Plot(HBOP,"",colorGreen); 
+Plot(LBOP,"",colorDarkRed); 
+
+Title=Name()+" "+Date()+" "+EncodeColor(colorSkyblue)+" Chaloke RTS System "+EncodeColor(colorYellow)+" Vol="+NumToStr(Volume,1.0)+" "+" O="+Open+" H="+HHV(H,1)+" L="+LLV(L,1)+" 
+Close="+ Close+""+"("+numtostr((Close-ref(C,-1))/ref(c,-1)*100,1.2)+" %)";

@@ -1,0 +1,23 @@
+p1 = Param("Short period", 12, 3, 50, 1);
+p2 = Param("Long period", 26, 5, 100, 1);
+p3 = Param("Signal period", 9, 3, 25, 1);
+
+EMAshort = EMA(C, p1);
+EMA2 = EMA( EMAshort, p1);
+Diff = EMAshort - EMA2;
+ZLEMAshort = EMAshort + Diff;
+
+EMAlong = EMA(C, p2);
+EMA2 = EMA(EMAlong, p2);
+Diff = EMAlong - EMA2;
+ZLEMAlong = EMAlong + Diff;
+
+ZLMACD = ZLEMAshort - ZLEMAlong;
+
+EMA1 = EMA(ZLMACD, p3);
+EMA2 = EMA(EMA1, p3);
+Diff = EMA1 - EMA2;
+ZLSignal = EMA1 + Diff;
+
+Plot(ZLMACD, "zero lag MACD", colorGreen,styleThick);
+Plot(ZLSignal, "zero lag Signal", colorRed,styleThick);

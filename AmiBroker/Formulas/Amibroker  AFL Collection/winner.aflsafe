@@ -1,0 +1,9 @@
+
+y=StochD();
+z=BarsSince(y<Ref(y,-1));
+Short=z==5 AND y>Optimize("y",77,70,90,1);
+d=Optimize("d",7,5,10,1);
+Cover=Ref(Short,-d);
+Plot(C,"",1,64);
+PlotShapes(shapeDownArrow*Short,colorRed);
+PlotShapes(shapeUpArrow*Cover,colorBrightGreen);

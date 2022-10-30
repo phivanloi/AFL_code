@@ -1,0 +1,33 @@
+_SECTION_BEGIN("EMA Stoch"); 
+
+// Written by xytise@gmail.com for inditraders forum as per poster request
+// Version 0.2 (c) 24th September 2011, 9:10pm
+// http://www.inditraders.com/amibroker/5322-ema-stochastic.html 
+  
+Plot(Param("TopLine",20,0,100),"",ParamColor("Level-color",colorViolet), ParamStyle ( "Level-style" ,styleDashed |styleNoTitle | styleNoRescale ) ); 
+Plot(Param("BottomLine",80,0,100) ,"",ParamColor("Level-color",colorViolet), ParamStyle ( "Level-style" ,styleDashed |styleNoTitle | styleNoRescale ) ); 
+
+//Stochastic %D 
+  
+periods = Param( "Periods", 15, 1, 65, 1 ); 
+Ksmooth = Param( "%K avg", 3, 1, 65, 1 ); 
+Dsmooth = Param( "%D avg", 3, 1, 65, 1 ); 
+SD=StochD( periods , Ksmooth, DSmooth );
+Plot( SD ,"Stochastic %D "+"("+periods+","+Ksmooth+","+DSmooth+")", colorRed, styleLine );  
+  
+//Stochastic %K 
+  
+periods = Param( "Periods", 15, 1, 65, 1 ); 
+Ksmooth = Param( "%K avg", 3, 1, 65, 1 ); 
+SK=StochK( periods , Ksmooth); 
+Plot( SK ,"Stochastic %K "+"("+periods+","+Ksmooth+")", colorBlue, styleLine ); 
+
+//Stochastic %D and %K Moving Average
+
+MAper1 = Param( "MA Period 1", 15, 1, 65, 1 ); 
+MAper2 = Param( "MA Period 2", 13, 1, 65, 1 ); 
+MASD=MA(SD,MAper1);
+MASK=MA(SD,MAper2);  
+Plot( MASD ,"MA(Stochastic %D "+"("+periods+","+Ksmooth+","+DSmooth+")"+MAper1+")", colorBrightGreen, styleLine|styleThick );  
+Plot( MASK ,"MA(Stochastic %D "+"("+periods+","+Ksmooth+","+DSmooth+")"+MAper2+")", colorYellow, styleLine|styleThick );  
+_SECTION_END();

@@ -1,0 +1,55 @@
+_SECTION_BEGIN("Trend Bars");
+x = MA(C,4); //4-day MA
+y = MA(C,9); //9-day MA
+z = MA(C,18); // 18-day MA
+
+sideways = IIf(y > z AND x < y,1,0); 
+sideways1 = IIf(y < z AND x > y,1,0);
+upt = IIf(x > y AND y > z,1,0);
+dnt = IIf(x < y AND y < z,1,0);
+
+Color = IIf(sideways OR sideways1, colorLightBlue, IIf(upt, colorLime, IIf(dnt, colorRed,0)));
+
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );
+_N( Title = StrFormat( "{{NAME}} - " + SectorID( 1 ) + " - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", color, styleBar | styleNoTitle | ParamStyle( "Style" ) | GetPriceStyle() );
+
+if ( ParamToggle( "Tooltip shows", "All Values|Only Prices" ) )
+{
+    ToolTip = StrFormat( "Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: " + NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 ) ) );
+}
+_SECTION_END();
+
+_SECTION_BEGIN("Elders Impulse");
+macShort = Param("MACD Short MA",12,1,100,1);
+macLong = Param("MACD Long MA",26,1,100,1);
+macSmooth = Param("MACD Smoothing Period",9,1,100,1);
+EMAp = Param("Short EMA",13,1,40,1);
+macTime = Param("Time Ratio",1,22,1);
+macShort = macShort*macTime;
+macLong = macLong*macTime;
+macSmooth = macSmooth*macTime;
+EMAvg = EMAp*MacTime;
+//{ do long impulse next }
+mac = EMA(C,macShort)-EMA(C,macLong);
+MacSig = EMA(mac,macSmooth);
+macplot = (mac-MacSig);
+impulse = IIf(macplot >= Ref(macplot,-macTime), 1,0)+IIf(Close > EMA(Close,EMAp),1,0)-1;
+
+//Plot(impulse, "", colorRed);
+//PlotGrid(0, colorLightGrey);
+
+a = IIf(impulse>0,1,0);  //{ Buy OK}
+b = IIf(impulse<0,1,0);  //{ Sell OK}
+state=IIf(BarsSince(a)<BarsSince(b),1,0);
+
+Longs=state==1;
+shorts=state==0;
+
+
+Buy = state>Ref(state,-1);
+Sell = state<Ref(state,-1);
+
+PlotShapes( IIf(Buy, shapeSmallCircle,0) , colorLime,0,L,-10);
+PlotShapes( IIf(Sell, shapeSmallCircle,0) , colorOrange,0,H,10);
+_SECTION_END();

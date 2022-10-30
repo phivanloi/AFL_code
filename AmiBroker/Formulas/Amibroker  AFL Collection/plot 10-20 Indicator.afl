@@ -1,0 +1,4 @@
+_SECTION_BEGIN("TenTwentyValue");
+TenTwentyValue = HHV(H,20)-LLV(L,20);
+Plot(TenTwentyValue,"10/20 Value",colorRed,styleLine);
+_SECTION_END();

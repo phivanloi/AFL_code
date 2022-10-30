@@ -1,0 +1,29 @@
+EntrySignal = C > ( LLV( L, 20 ) + 2 * ATR( 10 ) );
+ExitSignal = C < ( HHV( H, 20 ) - 2 * ATR( 10 ) );
+Color = IIf( EntrySignal, colorBlue, IIf( ExitSignal, colorOrange, colorGrey50 ));
+TrailStop = HHV( C - 2 * ATR(10), 15 );
+ProfitTaker = EMA( H, 13 ) + 2 * ATR(10);
+/* plot price chart and stops */
+Plot( TrailStop, "Trailing stop", colorBrown, styleLine | styleLine );
+Plot( ProfitTaker, "Profit taker", colorLime, styleLine );
+Plot( C, "Price", Color, styleCandle | styleThick );
+/* plot color ribbon */
+Plot( 1, "", Color, styleArea | styleOwnScale | styleNoLabel, -0.1, 50 );
+BanlanceSignal = ( LLV( L, 20 ) + 2 * ATR( 10 ) );
+Plot( BanlanceSignal, "BanlanceSignal", colorYellow, styleLine | styleLine );
+
+TYP=(High + Low + 2*Close)/4;
+CI=(TYP-MA(TYP,14))/(0.015*StDev(TYP,14));
+EM2=EMA(CI,5);
+
+// Sigma
+Var1=EMA((Close-Ref(Close,-5))/Ref(Close,-5),5);
+Var2=EMA((Close-Ref(Close,-20))/Ref(Close,-20),3);
+Var3=EMA((Close-Ref(Close,-30))/Ref(Close,-30),3);
+
+G1= EMA(Var1,5);
+G2= EMA(Var2,20);
+G3= EMA(Var3,30);
+
+Buy=EM2<-80 AND EM2>Ref(EM2,-1) AND Ref(EM2,-1)<=Ref(EM2,-2)AND G1>Ref(G1,-1);
+PlotShapes( IIf( Buy, shapeDigit0, shapeNone ), colorBrightGreen ,layer = 0, yposition = C, offset = -20 );

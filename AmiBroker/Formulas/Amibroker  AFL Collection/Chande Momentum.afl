@@ -1,0 +1,10 @@
+_SECTION_BEGIN("Chande Momentum");
+Period=6;
+SumUp=Sum(IIf(C>Ref(C,-1),C-Ref(C,-1),0),Period);
+SumDwn=Sum(IIf(C<Ref(C,-1),Ref(C,-1)-C,0),Period);
+CMO=100*(SumUp-SumDwn)/(SumUp+SumDwn);
+GraphXSpace=5;
+Plot(CMO,"Chande Momentum Oscillator",15,1);
+Plot(70,"",3,1);
+Plot(-80,"",3,1);
+_SECTION_END();

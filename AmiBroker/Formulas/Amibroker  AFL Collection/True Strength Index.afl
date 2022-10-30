@@ -1,0 +1,9 @@
+u=3;
+r=5;
+s=8;
+
+x=100*EMA(EMA(ROC(C,u),r),s)/EMA(EMA(abs(ROC(C,u)),r),s);
+
+Plot(x,"TSI",IIf(x>Ref(x,-1),colorGreen,colorRed),styleHistogram);
+Plot(MA(x,5),"MA of TSI",colorYellow,1);
+

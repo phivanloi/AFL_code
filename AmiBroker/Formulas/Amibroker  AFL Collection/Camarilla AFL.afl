@@ -1,0 +1,45 @@
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("camarilla levels");
+//---- pivot points
+DayH = TimeFrameGetPrice("H", inDaily, -1);		// yesterdays high
+DayL = TimeFrameGetPrice("L", inDaily, -1);		//				low
+DayC = TimeFrameGetPrice("C", inDaily, -1);		//				close
+DayO = TimeFrameGetPrice("O", inDaily);			// current day open
+
+// camarilla pivots
+if ( True )
+{
+R = DayH - DayL;	  // range
+PP = (DayH + DayL + DayO + DayO) / 4 ;
+R4 = (R * 1.1/2)+DayC;
+R3 = (R * 1.1/4)+DayC;
+S3 = DayC-(R * 1.1/4);
+S4 = DayC- (R * 1.1/2);
+}
+
+Plot(R4, "",colorGreen,styleDots+styleNoLine);
+Plot(S4, "",colorDarkBlue,styleDots+styleNoLine);
+Plot(R3, "R3",colorRed,styleDots+styleNoLine);
+Plot(S3, "S3",colorDarkBlue,styleDots+styleNoLine);
+Plot(PP, "",colorYellow,styleLine);
+
+
+//----
+Title = Name()+" Camarilla"+Date()+ EncodeColor(colorRed)+ "   R3  "+WriteVal(R3,1.2)+EncodeColor(colorGreen)+  "  S3  "+ WriteVal(S3,1.2)+"\n"+EncodeColor(colorGreen)+"  Long Breakout above  "+WriteVal(R4,1.2)+"\n"+EncodeColor(colorRed)+"  Short breakout below  "+WriteVal(S4,1.2) 
++"\n"+EncodeColor(colorGreen)+" If Rangebound buy close to  "+ WriteVal(S3,1.2)+
+"\n"+EncodeColor(colorRed)+" If Rangebound short close to  "+ WriteVal(R3,1.2);
+
+
+Filter=1;
+AddColumn(C,"cmp",1.2);
+AddColumn(R3,"R3",1.2);
+AddColumn(R4,"R4",1.2);
+AddColumn(S3,"S3",1.2);
+AddColumn(S4,"S4",1.2);
+_SECTION_END();

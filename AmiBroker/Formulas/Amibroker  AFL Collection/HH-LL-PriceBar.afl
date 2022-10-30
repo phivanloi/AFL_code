@@ -1,0 +1,19 @@
+_SECTION_BEGIN("Price");
+
+upbar = C > Ref( H, -1 );
+downbar = C < Ref( L, -1 );
+
+/* Colourized price bars drawn here */
+Graph0 = Close;
+Graph0Style = 128;
+
+barcolor = IIf( downbar, 4, IIf( upbar, 5, 1 ) );
+Graph0BarColor = ValueWhen( barcolor != 0, barcolor );
+// Only allowed in recent Beta
+//SetBarFillColor = ValueWhen( barcolor != 0, barcolor );
+
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

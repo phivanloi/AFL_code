@@ -1,0 +1,26 @@
+Plot(C,"",IIf(C>Ref(C,-1),colorCustom9,colorRed),styleCandle);
+
+Buy = Cross( MA(C,40), MA(C,50) );
+sell = Cross( MA(C,50), MA(C,40) );
+PlotShapes( shapeUpArrow * Buy, colorCustom3, 0,Low);
+PlotShapes( shapedownArrow * Sell, colorCustom3, 0,Low);
+
+if (LastValue(ValueWhen(Ref(Buy,-1),BarIndex())==BarIndex()) AND StaticVarGet(Name()+GetChartID()+"buyAlert")==0 )
+{
+SendEmail("Bao mua ","Co phieu: "+Name(),1);
+StaticVarSet(Name()+ GetChartID() + "buyAlertBar", LastValue(TimeNum()));
+}
+if (LastValue(TimeNum()) == StaticVarGet(Name()+GetChartID()+"buyAlertBar"))
+StaticVarSet(Name()+GetChartID()+"buyAlert",1); //Canh bao mua da xuat hien thi khong day tin hieu vao email.
+else
+StaticVarSet(Name()+GetChartID()+"buyAlert",0); //Canh bao mua moi xuat hien thi se day vao email.
+if (LastValue(ValueWhen(Ref(Sell,-1),BarIndex())==BarIndex()) AND StaticVarGet(Name()+GetChartID()+"sellAlert")==0 )
+{
+SendEmail("Bao ban","Co phieu: "+Name(),0);
+StaticVarSet(Name()+ GetChartID() + "sellAlertBar", LastValue(TimeNum()));
+}
+if (LastValue(TimeNum()) == StaticVarGet(Name()+GetChartID()+"sellAlertBar"))
+StaticVarSet(Name()+GetChartID()+"sellAlert",1); //Canh bao ban da xuat hien thi khong day tin hieu vao email.
+else
+StaticVarSet(Name()+GetChartID()+"sellAlert",0); //Canh bao ban moi xuat hien thi se day vao email.
+_SECTION_END();

@@ -1,0 +1,25 @@
+_SECTION_BEGIN("Donchian Channel");
+// Plots a 20 period Donchian channel
+
+pds=20;
+DU =HHV(Ref(H,-1),pds);
+DM = LLV(Ref(L,-1),pds);
+DL = (DU+DM)/2;
+
+
+Plot(DU,"DU",colorBlue,styleLine);
+Plot(Close,"close",colorWhite,styleLine);
+Plot(DM,"DM",colorGreen,styleLine);
+Plot(DL,"DL",colorRed,styleLine);  
+_SECTION_END();
+
+Plot (C, "Close", IIf(Close > Open, colorGreen, colorRed), styleBar);
+
+Buy = Cross (Ref (C, -1), Ref(DU,-1));
+PlotShapes(shapeUpArrow*Buy,colorGreen);
+Sell = Cross (Ref (C, -1), Ref(DL, -1));
+PlotShapes(shapeDownArrow*Sell,colorRed);
+//for Long Entry AND Short Exit, set “Price” field to:
+//HiLevel(@,20)[–1]
+//for Short Entry AND Long Exit, set “Price” field to:
+//LoLevel(@,20)[–1]

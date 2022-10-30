@@ -1,0 +1,70 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("camarilla levels");
+//---- pivot points
+DayH = TimeFrameGetPrice("H", inDaily, -1);		// yesterdays high
+DayL = TimeFrameGetPrice("L", inDaily, -1);		//				low
+DayC = TimeFrameGetPrice("C", inDaily, -1);		//				close
+DayO = TimeFrameGetPrice("O", inDaily);			// current day open
+
+// camarilla pivots
+if ( True )
+{
+R = DayH - DayL;	  // range
+PP = (DayH + DayL + DayO + DayO) / 4 ;
+R4 = (R * 1.1/2)+DayC;
+R3 = (R * 1.1/4)+DayC;
+S3 = DayC-(R * 1.1/4);
+S4 = DayC- (R * 1.1/2);
+}
+
+Plot(R4, "",colorGreen,styleDots+styleNoLine);
+Plot(R3, "R3",colorRed,styleDots+styleNoLine);
+
+Plot(S3, "S3",colorLightBlue,styleDots+styleNoLine);
+Plot(S4, "",colorBlue,styleDots+styleNoLine);
+
+Plot(PP, "",colorDarkYellow,styleDots+styleNoLine);
+
+Buy2=Cross(C,S3);
+Sell2=Cross(R3,C);
+
+Buy3=Cross(C,R3);
+Sell3=Cross(S3,C);
+
+BuyBO=Cross(C,R4);
+SellBO=Cross(S4,C);
+Buy=Buy2 OR Buy3 OR BuyBO;
+Sell=Sell2 OR Sell3 OR SellBO;
+///////////////////////////////SIGNALS///////////////////////////////////////////////////////////////////
+shape = Buy * shapeUpTriangle + Sell* shapeDownTriangle;
+ 
+AlertIf( Sell, "SOUND C:\\Windows\\Media\\ringout.wav", "Audio alert", 2 ); 
+AlertIf( Buy, "SOUND C:\\Windows\\Media\\ringout.wav", "Audio alert", 2 ); 
+PlotShapes( shape, IIf( Buy, colorYellow, colorCustom12 ),0, IIf( Buy, Low, 
+ High ) ); 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Filter=Buy2 OR Sell2 OR Buy3 OR Sell3 OR  BuyBO OR SellBO; 
+
+AddColumn( IIf(Buy2,2,IIf(Sell2,-2,Null)) ,"2",1.0,colorBlack,IIf(Buy2,colorGreen,IIf(Sell2,colorRed,colorBlack)));
+AddColumn( IIf(Buy3,3,IIf(Sell3,-3,Null)) ,"3",1.0,colorBlack,IIf(Buy3,colorGreen,IIf(Sell3,colorRed,colorBlack)));
+AddColumn( IIf(BuyBO,4,IIf(SellBO,-4,Null)) ,"BO",1.0,colorBlack,IIf(BuyBO,colorGreen,IIf(SellBO,colorRed,colorBlack)));
+
+
+
+
+
+
+//----
+Title = Name()+" Camarilla"+Date()+ EncodeColor(colorRed)+ "   R3  "+WriteVal(R3,1.2)+EncodeColor(colorGreen)+  "  S3  "+ WriteVal(S3,1.2)+"\n"+EncodeColor(colorGreen)+"  Long Breakout above  "+WriteVal(R4,1.2)+"\n"+EncodeColor(colorRed)+"  Short breakout below  "+WriteVal(S4,1.2) 
++"\n"+EncodeColor(colorGreen)+" If Rangebound buy close to  "+ WriteVal(S3,1.2)+
+"\n"+EncodeColor(colorRed)+" If Rangebound short close to  "+ WriteVal(R3,1.2);
+
+
+
+_SECTION_END();

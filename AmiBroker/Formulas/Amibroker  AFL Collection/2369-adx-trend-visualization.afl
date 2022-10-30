@@ -1,0 +1,35 @@
+_SECTION_BEGIN("ADX");
+SetChartOptions(0,0,0,1,1);
+
+range = Param("Periods", 14, 2, 200, 1 );
+ad = ADX(range);
+pd = PDI(range);
+md = MDI(range);
+
+falling = ROC( ad, 2 ) < 0;
+
+// 0 - week, 1 - medium, 2 - strong
+strength = IIf( ad < 15 OR ( ad < 25 AND falling ), 0,
+           IIf( ad < 25 OR ( ad < 35 AND falling ), 1,
+                2 ) );
+
+pTrendBullStrong =  ParamColor( "Bullish Strong", colorDarkGreen );
+pTrendBearStrong =  ParamColor( "Bearish Strong", colorDarkRed);
+pTrendBullMedium =  ParamColor( "Bullish Medium", colorGreen );
+pTrendBearMedium =  ParamColor( "Bearish Medium ", colorRed );
+
+pNoTrend =  ParamColor( "NoTrend", colorLavender );
+
+color = IIf(
+	strength > 0 , IIf( 
+		pd >= md AND strength == 1,pTrendBullMedium,
+		IIf(pd >= md AND strength == 2, pTrendBullStrong,
+			IIf(pd < md AND strength == 1,pTrendBearMedium,pTrendBearStrong
+		        )
+		)
+	 ),
+	pNoTrend 
+);
+
+Plot( ad, _DEFAULT_NAME(), color, ParamStyle("ADX style", styleThick)); 
+_SECTION_END();

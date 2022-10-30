@@ -1,0 +1,141 @@
+aa=TEMA(RSI(20),14);
+bb=MA(aa,50);
+
+
+Buy=Cross(aa,bb) AND C>MA(C,50);
+Sell= Cross(bb,aa);
+Short=Cross(bb,aa) AND C<MA(C,50);;
+
+Cover=Cross(aa,bb);;
+Buy = ExRem( Buy, Sell );
+Sell = ExRem( Sell, Buy );
+Short=ExRem(Short,Cover);
+Cover=ExRem(Cover,Short);
+
+PlotShapes(IIf(Buy,shapeUpTriangle,shapeNone),colorGreen);
+PlotShapes(IIf(Sell,shapeDownTriangle,shapeNone),colorRed);
+PlotShapes(IIf(Short,shapeHollowDownTriangle,shapeNone),colorRed);
+PlotShapes(IIf(Cover,shapeHollowUpTriangle,shapeNone),colorDarkGreen);
+
+
+
+
+
+
+_SECTION_BEGIN("EMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 5, 2, 200, 1, 10 );
+// Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+
+
+
+Plot(EMA( P, Periods ), _DEFAULT_NAME(), 
+IIf(EMA( P, Periods ) > Ref(EMA( P, Periods ),-1),ParamColor("Rising EMA", colorBlue),ParamColor("Falling EMA", colorRed)));
+
+
+
+
+_SECTION_END();
+
+_SECTION_BEGIN("MA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 5, 2, 200, 1, 10 );
+// Plot( MA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+
+
+
+Plot(MA( P, Periods ), _DEFAULT_NAME(), 
+IIf(MA( P, Periods ) > Ref(MA( P, Periods ),-1),ParamColor("Rising MA", colorBlue),ParamColor("Falling MA", colorRed)));
+
+
+
+
+_SECTION_END();
+
+_SECTION_END();
+
+_SECTION_BEGIN("WMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 5, 2, 200, 1, 10 );
+// Plot( WMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+
+
+
+Plot(WMA( P, Periods ), _DEFAULT_NAME(), 
+IIf(WMA( P, Periods ) > Ref(WMA( P, Periods ),-1),ParamColor("Rising WMA", colorBlue),ParamColor("Falling WMA", colorRed)));
+
+
+
+
+_SECTION_END();
+
+
+
+
+_SECTION_BEGIN("TEMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 5, 2, 200, 1, 10 );
+// Plot( TEMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+
+
+
+Plot(TEMA( P, Periods ), _DEFAULT_NAME(), 
+IIf(TEMA( P, Periods ) > Ref(TEMA( P, Periods ),-1),ParamColor("Rising TEMA", colorBlue),ParamColor("Falling TEMA", colorRed)));
+
+
+
+
+_SECTION_END();
+
+_SECTION_BEGIN("DEMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 5, 2, 200, 1, 10 );
+// Plot( DEMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+
+
+
+Plot(DEMA( P, Periods ), _DEFAULT_NAME(), 
+IIf(DEMA( P, Periods ) > Ref(DEMA( P, Periods ),-1),ParamColor("Rising DEMA", colorBlue),ParamColor("Falling DEMA", colorRed)));
+
+
+
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("TSF");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 5, 2, 200, 1, 10 );
+// Plot( TSF( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+
+
+
+Plot(TSF( P, Periods ), _DEFAULT_NAME(), 
+IIf(TSF( P, Periods ) > Ref(TSF( P, Periods ),-1),ParamColor("Rising TSF", colorBlue),ParamColor("Falling TSF", colorRed)));
+
+
+
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("Wilders");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 5, 2, 200, 1, 10 );
+// Plot( Wilders( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+
+
+
+Plot(Wilders( P, Periods ), _DEFAULT_NAME(), 
+IIf(Wilders( P, Periods ) > Ref(Wilders( P, Periods ),-1),ParamColor("Rising Wilders", colorBlue),ParamColor("Falling Wilders", colorRed)));
+
+
+
+
+_SECTION_END();
+
+_SECTION_BEGIN("Price1");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

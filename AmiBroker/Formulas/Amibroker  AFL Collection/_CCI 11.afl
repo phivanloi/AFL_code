@@ -1,0 +1,267 @@
+_SECTION_BEGIN("MPNEW");
+PlotOHLC(O,H,L,C,"Price",IIf(C>O,colorGreen,colorRed),styleCandle);
+
+Den = Param("Density", 1, 0.1, 10, 0.1);
+percent=Param("Value Area", 70, 1, 100, 1);
+Type=ParamList("Type","Price Profile|Volume Profile");
+ViewTPOCount= ParamToggle("Show TPO Count", "No|Yes",1);
+
+EnMP2= ParamList("MarketProfile","Solid|Lines");
+styleLines = ParamStyle("Style", styleLine, maskAll);
+
+Period= ParamList("Base","Hourly|Daily|Weekly|Monthly",1);
+
+if(Period=="Hourly"){
+BarsInDay = BarsSince(Hour() != Ref(Hour(), -1));Bot = TimeFrameGetPrice("L", inHourly, 0);Top = TimeFrameGetPrice("H", inHourly, 0);Vol = TimeFrameGetPrice("V", inHourly, 0);
+}
+
+if(Period=="Daily" OR Interval()==3600){
+BarsInDay = BarsSince(Day() != Ref(Day(), -1));Bot = TimeFrameGetPrice("L", inDaily, 0);Top = TimeFrameGetPrice("H", inDaily, 0);Vol = TimeFrameGetPrice("V", inDaily, 0);
+}
+
+if(Period=="Weekly"  ){
+BarsInDay = BarsSince(DayOfWeek() < Ref( DayOfWeek(), -1 ));Bot = TimeFrameGetPrice("L", inWeekly, 0);Top = TimeFrameGetPrice("H", inWeekly, 0);Vol = TimeFrameGetPrice("V", inWeekly, 0);
+}
+
+if(Period=="Monthly" OR Interval()==5 * 24 * 3600  OR Interval()==24 * 3600 ){
+BarsInDay = BarsSince(Month() != Ref(Month(), -1));Bot = TimeFrameGetPrice("L", inMonthly, 0);Top = TimeFrameGetPrice("H", inMonthly, 0);Vol = TimeFrameGetPrice("V", inMonthly, 0);
+}
+
+relTodayRange = 0;
+x=0;
+basey=0;
+basex=0;
+newday=0;
+total=0;
+shiftup=0;
+shiftdn=0;
+Line=Null;
+Voloumeunit=0;
+
+
+Range =  (Top-Bot);
+FirstVisibleBar = Status( "FirstVisibleBar" );
+Lastvisiblebar = Status( "LastVisibleBar" );
+
+
+for (  i = FirstVisibleBar; i <Lastvisiblebar AND i<BarCount-1; i++  )
+{
+	if(BarsInDay[i]==0)
+	{
+
+		//////////////////////////////////
+poc=0;pocj=0;
+midrange = int(relTodayRange/2)+1;
+
+
+for (j=1; j<= relTodayRange+1 ; j++) 
+	{
+		if(poc < x[j])
+		{
+		poc=x[j]; pocj=j;}
+		else if(poc == x[j])
+			{
+			if (abs(midrange-j)< abs(midrange-pocj)){
+			poc = x[j]; pocj = j; 
+			}
+		}
+  
+	}
+
+for ( n = 1; n <= relTodayRange; n++ )
+	{
+		total[n]=x[n]+total[n-1];
+	}
+
+Value_area=(total[relTodayRange]*percent)/100;
+
+
+for ( a = 1; a <= relTodayRange; a++ )
+{
+	if(pocj-a>0 AND pocj+a<relTodayRange)
+	{
+		if(poc+total[pocj+a]-total[pocj]+(total[pocj]-poc)-total[pocj-(a+1)]>=Value_area) {shiftup=a; shiftdn=a; break;}
+	 	}	
+		else if(pocj-a<1 ) 
+		{
+		if(poc+total[pocj+a]-total[pocj]+(total[pocj]-poc)>=Value_area){shiftup=a; shiftdn=pocj; break;}		
+   		}
+		else if(pocj+a>relTodayRange ) 
+		{
+		if(poc+total[relTodayRange]-total[pocj]+(total[pocj]-poc)-total[pocj-(a+1)] >=Value_area){shiftup=floor(relTodayRange)-pocj; shiftdn=a+1; break;}		
+   	}
+}
+
+Vah = LineArray(baseX[i], baseY+(pocj+shiftup)*den, i, baseY+(pocj+shiftup)*den);
+Val = LineArray(baseX[i], baseY+(pocj-shiftdn)*den, i, baseY+(pocj-shiftdn)*den);
+pocline=LineArray(basex,basey+pocj*den,i,basey+pocj*den);
+
+Vahn = LineArray(i, baseY+(pocj+shiftup)*den, BarCount, baseY+(pocj+shiftup)*den);
+Valn = LineArray(i, baseY+(pocj-shiftdn)*den, BarCount, baseY+(pocj-shiftdn)*den);
+
+StaticVarSet("Vahn",Vahn);
+StaticVarSet("Valn",Valn);
+
+Plot(pocline,"",ParamColor("Color_POC_Line",colorYellow),styleLine|styleNoRescale);
+Plot(Vah,"",ParamColor("Color_VAH_Line", colorBlueGrey),styleLine|styleNoRescale);
+Plot(Val,"",ParamColor("Color_VAL_Line", colorBlueGrey),styleLine|styleNoRescale);
+
+PlotText(""+(basey+pocj*den),baseX[i],basey+pocj*den,colorBlack,colorWhite);
+PlotText(""+(baseY+(pocj+shiftup)*den),baseX[i],baseY+(pocj+shiftup)*den,colorBlack,colorWhite);
+PlotText(""+(baseY+(pocj-shiftdn)*den),baseX[i],baseY+(pocj-shiftdn)*den,colorBlack,colorWhite);
+
+
+for (p = 0; p <= relTodayRange+1; p++)
+{
+	if(P>0){
+	line = LineArray(baseX, baseY+p*Den, baseX+x[p], baseY+p*Den);
+	line2 = LineArray(baseX, baseY+(p-1)*Den, baseX+x[p-1], baseY+(p-1)*Den);
+
+	if (EnMP2 == "Solid"){
+	PlotOHLC( Line,  Line,  Line2, Line2, "",IIf(p>(pocj+shiftup),ParamColor("Color_Above_VA",   colorGrey40),IIf(p<=(pocj+shiftup)AND p>(pocj-shiftdn),ParamColor("Color_VA", colorBlueGrey),ParamColor("Color_Below_VA",  colorGrey40))) ,styleCloud|styleNoRescale|styleNoLabel);
+	}
+	}
+	if (EnMP2 == "Lines"){
+	Plot(line,"",IIf(p>(pocj+shiftup),ParamColor("Color_Above_VA",  colorGrey40),IIf(p<=(pocj+shiftup)AND p>=(pocj-shiftdn),ParamColor("Color_VA", colorBlueGrey),ParamColor("Color_Below_VA",   colorGrey40))) , styleLines|styleNoLabel);
+	}
+}
+
+
+
+//===============
+
+
+//================
+///////////////////
+
+basex=0;
+		x=0;
+		Basex=i;
+		baseY=Bot[i];
+		relTodayRange=Range[i]/Den;
+		Voloumeunit=Vol[i]/LastValue(BarsInDay);
+
+	}
+
+	for (j=0; j<= relTodayRange ; j++) 
+	{	
+		if (L[i] <= Bot[i]+j*Den AND H[i] >= Bot[i]+j*Den  ) 
+		{
+			if(Type=="Price Profile"){x[j]=x[j]+1;}
+			else if(Type=="Volume Profile"){x[j]=x[j]+round(V[i]/Voloumeunit);}
+		}
+	}
+}
+
+
+//////////////////////////////////
+poc=0;pocj=0;
+midrange = int(relTodayRange/2)+1;
+
+for (j=1; j<= relTodayRange+1 ; j++) 
+	{
+		if(poc < x[j])
+		{
+		poc=x[j]; pocj=j;}
+		else if(poc == x[j])
+			{
+			if (abs(midrange-j)< abs(midrange-pocj)){
+			poc = x[j]; pocj = j; 
+			}
+		}
+  
+	}
+
+for ( n = 1; n <= relTodayRange; n++ )
+	{
+		total[n]=x[n]+total[n-1];
+	}
+
+Value_area=(total[relTodayRange]*percent)/100;
+
+
+for ( a = 1; a <= relTodayRange; a++ )
+{
+	if(pocj-a>0 AND pocj+a<relTodayRange)
+	{
+		if(poc+total[pocj+a]-total[pocj]+(total[pocj]-poc)-total[pocj-(a+1)]>=Value_area) {shiftup=a; shiftdn=a; break;}
+	 	}	
+		else if(pocj-a<1 ) 
+		{
+		if(poc+total[pocj+a]-total[pocj]+(total[pocj]-poc)>=Value_area){shiftup=a; shiftdn=pocj; break;}		
+   		}
+		else if(pocj+a>relTodayRange ) 
+		{
+		if(poc+total[relTodayRange]-total[pocj]+(total[pocj]-poc)-total[pocj-(a+1)] >=Value_area){shiftup=floor(relTodayRange)-pocj; shiftdn=a+1; break;}		
+   	}
+}
+
+Vah = LineArray(baseX[i], baseY+(pocj+shiftup)*den, i, baseY+(pocj+shiftup)*den);
+Val = LineArray(baseX[i], baseY+(pocj-shiftdn)*den, i, baseY+(pocj-shiftdn)*den);
+pocline=LineArray(basex,basey+pocj*den,i,basey+pocj*den);
+
+Plot(pocline,"",ParamColor("Color_POC_Line",colorYellow),styleLine|styleNoRescale);
+Plot(Vah,"",ParamColor("Color_VAH_Line", colorBlueGrey),styleLine|styleNoRescale);
+Plot(Val,"",ParamColor("Color_VAL_Line", colorBlueGrey),styleLine|styleNoRescale);
+
+PlotText(""+(basey+pocj*den),baseX[i],basey+pocj*den,colorBlack,colorWhite);
+PlotText(""+(baseY+(pocj+shiftup)*den),baseX[i],baseY+(pocj+shiftup)*den,colorBlack,colorWhite);
+PlotText(""+(baseY+(pocj-shiftdn)*den),baseX[i],baseY+(pocj-shiftdn)*den,colorBlack,colorWhite);
+
+
+
+for (p = 0; p <= relTodayRange+1; p++)
+{
+	line = LineArray(baseX, baseY+p*Den, baseX+x[p], baseY+p*Den);
+	if (EnMP2 == "Lines") 
+	{
+	Plot(line,"",IIf(p>(pocj+shiftup),ParamColor("Color_Above_VA",  colorGrey40),IIf(p<=(pocj+shiftup)AND p>=(pocj-shiftdn),ParamColor("Color_VA", colorBlueGrey),ParamColor("Color_Below_VA",   colorGrey40))) , styleLines|styleNoLabel);
+	}
+	if (EnMP2 == "Solid")
+		if(P>0){
+		line2 = LineArray(baseX, baseY+(p-1)*Den, baseX+x[p-1], baseY+(p-1)*Den);
+	{
+	PlotOHLC( Line,  Line,  Line2, Line2, "",IIf(p>(pocj+shiftup),ParamColor("Color_Above_VA",   colorGrey40),IIf(p<=(pocj+shiftup)AND p>(pocj-shiftdn),ParamColor("Color_VA", colorBlueGrey),ParamColor("Color_Below_VA",  colorGrey40))) ,styleCloud|styleNoRescale|styleNoLabel);
+	}
+	
+	}
+}
+
+_SECTION_END();
+
+Plot(StaticVarGet("vahn"),"",colorWhite,styleLine);
+Plot(StaticVarGet("valn"),"",colorWhite,styleLine);
+
+DayO = TimeFrameGetPrice("O", inDaily); // current day open
+
+Vah1=StaticVarGet("vahn");
+Val1=StaticVarGet("valn");
+// mp rules here  ajax
+P80B = DayO<VaL1 AND Cross(Ref(C,-1),VAL1) AND O>VAL1 AND TimeNum()<=100000 ;
+P80S = DayO>VaH1 AND Cross(VAH1,Ref(C,-1)) AND O<VAH1 AND TimeNum()<=100000 ;
+PlotShapes(IIf(P80B,shapeDigit8,shapeNone),colorBrightGreen,0,L,-10);
+PlotShapes(IIf(P80S,shapeDigit8,shapeNone),colorRed,0,H,10);
+
+Buy = P80B; 
+Sell = Cross(H,VaH1);
+Short = P80S;
+Cover = Cross(VaL1,L);
+
+Filter = P80B OR P80S;
+
+Color = IIf(P80B,colorGreen,colorRed);
+AddColumn(VAH,"VAH",1.0,colorWhite,Color);
+
+AddColumn(IIf(P80B,1,IIf(P80S,-1,Null)),"80 rule",1.0,colorWhite,Color);
+//PlotShapes(IIf(DayO<VaL1 AND BuyLq,shapeDigit9,shapeNone),colorGreen,0,L,-10);
+//PlotShapes(IIf(DayO>VaH1 AND SellHq,shapeDigit9,shapeNone),colorRed,0,H,10);
+
+Buy_HL =  DayO < VAH1 AND DayO > VAL1 AND Cross(L,VAL1);
+Sell_HL =  DayO < VAH1 AND DayO > VAL1 AND Cross(VAH1,H);
+//PlotShapes(IIf(Buy_HL,shapeDigit1,shapeNone),colorGreen,0,L,-10);
+//PlotShapes(IIf(Sell_HL,shapeDigit1,shapeNone),colorRed,0,H,10);
+
+Buy_HL =  DayO < VAH1 AND DayO > VAL1 AND Cross(L,VAL1);
+Sell_HL =  DayO < VAH1 AND DayO > VAL1 AND Cross(VAL1,C);
+//PlotShapes(IIf(Buy_HL,shapeDigit2,shapeNone),colorGreen,0,L,-10);
+//PlotShapes(IIf(Sell_HL,shapeDigit2,shapeNone),colorRed,0,H,10);

@@ -1,0 +1,131 @@
+_SECTION_BEGIN("Indicator price rsi  levels");
+// RSI Levels - appplied to Price Chart shows how far 
+// tomorrow's closing price has to move in order for  
+// the RSI to cross the 70, 50 & 30 levels. 
+
+pd = Param("Periods",6,5,144,1);
+//variable = optimize("my optimization var", 9, 2, 20, 1 ); 
+//pd = Optimize("RSI",6,1,50,1);
+pds = 2*pd-1;//     (Adjustment for Wilders MA) 
+aa = Close-Ref(Close,-1); 
+uu = EMA(Max(0,aa),pds); 
+dd=  EMA((Max(0,0-aa)),pds); 
+
+rf = IIf(C>2,1000,10000); 
+
+c1 = Param("Upper Level",70,50,90,1); 
+qq1 =100/(100-c1)-1; 
+ff1 = qq1*dd-uu; 
+ff2 = ff1/qq1; 
+f1 = Max(ff1,ff2); 
+UL = Close + f1*(pds-1)/2; 
+UL = IIf(UL>C,floor(UL*rf),ceil(UL*rf))/rf; 
+
+c2 = Param("Equilibrium",50,50,50,0);  
+
+qq2 =100/(100-c2)-1;// [=1] 
+ff = dd-uu; 
+MM = Close + ff*(pds-1)/2; 
+MM = IIf(MM>C,floor(MM*rf),ceil(MM*rf))/rf; 
+
+c3 = Param("Lower Level",30,10,50,1); 
+qq3 =100/(100-c3)-1; 
+ff1 = qq3*dd-uu; 
+ff2 = ff1/qq3; 
+f3 = Min(ff1,ff2); 
+LL = Close + f3*(pds-1)/2; 
+LL = IIf(LL>C,floor(LL*rf),ceil(LL*rf))/rf; 
+
+band = Param("band width",2.5,0,15,0.5);
+band = Optimize("band width",2.5,0,15,0.5);
+
+mmu = MM+band;
+mmd = MM-band;
+
+//Plot(UL,"",29,1); 
+//Plot(MM,"MM",29,32); 
+Plot(MMU,"MU",colorYellow,32); 
+Plot(MMD,"MD",colorYellow,32); 
+//Plot(LL,"",29,1); 
+Cbr = IIf (Close > MMU AND Open > MMU, colorBlue, IIf(Close < MMD AND Open < MMD,colorRed,colorYellow)); 
+//Cbr = IIf(UL<C,colorBlue,IIf(LL>C,colorRed,IIf(MM>C,colorPink,colorAqua))); 
+PlotOHLC(O,H,L,C,"",cbr,styleCandle); 
+
+Buy = Cross(Close, mmu);
+Sell = Cross(mmd,Close);
+
+Cover =Buy;
+Short = Sell;
+//Short = Cross(Close,mmd);
+//Cover = Cross(mmd,Close);
+
+PlotShapes(shapeUpTriangle*Buy,colorWhite,0,L,-15);
+PlotShapes(shapeDownTriangle*Sell,colorYellow,0,H,-15);
+//PlotShapes(shapeCircle*Cover,colorYellow,0,L,-15);
+//PlotShapes(shapeDownArrow*Short,colorWhite,0,H,-15);
+
+
+
+
+X=Cross( C,LL);
+Y=Cross(UL,C);
+
+Buy1= X ;
+Sell1= Y ;
+
+PlotShapes(shapeUpArrow*Buy1,colorBlue,0,L,-15);
+PlotShapes(shapeDownArrow*Sell1,colorBlue,0,H,-15);
+
+Filter=Buy1 OR Sell1 ;
+AddTextColumn(FullName(),"Name");
+AddColumn(1,"Buy");
+AddColumn(Sell1,"sell");
+
+
+Title = Name() + "  -  RSI(" + WriteVal(pd,0.0) + ")  -  Close=" +  WriteVal(Close,0.3) + "    UL=" +  WriteVal(UL,0.4) + "    MM=" +  WriteVal(MM,0.4) + "    LL=" +  WriteVal(LL,0.4); 
+_SECTION_END();
+
+"plotted pivots \n
+Plotted the avarage as a bars \n
+";
+
+//source http://www.traderji.com/amibroker/24404-help-amibroker-forumla-afl-saintjis-going-60min-flow-practice-2.html
+
+// Written by Abhay (aad on www.traderji.com)
+
+// Previous version 1.0 on 28.07.2008.
+// Current Version 1.1 on 31.07.2008.
+
+///////////////////////////////////////////////////////////
+///// Major changes done from previous version 1.0 : //////
+
+// The method of pivot definition is changed. 
+// Now it does not use zig() or related functions anywhere.
+
+// Stoploss line error, that it moves in both directions after a position is taken,
+// is removed. Now stoploss lines are unidirectional.
+
+// To protect profit on long positions, SELL is triggered either when trailing buy stop
+// is hit OR when previous lower pivot is cracked. Fresh long position will be initiated 
+// if uptrend continues after previous high pivot is cracked.   
+
+///////////////////////////////////////////////////////////
+
+
+// This is simple YET powerful pivot based trading system.
+// Used only for intraday. Not suitable for EOD data.
+// Designed for continuous trading. i.e. short=sell and cover=buy
+// When long, watch crack of close in green line ONLY. Ignore red line.
+// When short, watch crack of close in red line ONLY. Ignore green line.
+// You will have to tweak the parameters as per your trading style.
+
+// Warning : 	I have tried to develop this method from Saint's Pivot Based System (www.traderji.com) 
+// 		However, it is very well possible that its performance is not as per actual system
+// 		suggested by Saint due to programming errors and inadequate knowledge level at my end.
+// Warning : 	Traders are advised to trade on their own, knowing very well that it is their money.
+
+_SECTION_BEGIN("Price1");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

@@ -1,0 +1,131 @@
+/* code start */
+
+/*
+Definition of 3 different standard deviation measurements.
+SD_pop is the population or biased version, similar to AFL StDev.
+SD_sam is the sample or non-biased version which Kase describes in
+her book and assumedly uses in her indicators.
+SD_nnc is the non-centered version in which not the distances
+between the values and the mean are squared but instead the values
+themselves. Though not formally a standard deviation it appears used
+by traders especially for measuring short-term volatility in strong
+trends.
+*/
+
+function SD_pop(input,n)
+{ return sqrt( (n*Sum(input^2,n)-(Sum(input,n))^2) / n^2 ); }
+
+function SD_sam(input,n)
+{ return sqrt( (n*Sum(input^2,n)-(Sum(input,n))^2) / (n^2-n) ); }
+
+function SD_nnc(input,n)
+{ return sqrt( Sum(input^2,n) / n ); }
+
+/* Set your preferred standard deviation measurement SD */
+//function SD(input,n) { return SD_pop(input,n); }
+function SD(input,n) { return SD_sam(input,n); }
+//function SD(input,n) { return SD_nnc(input,n); }
+
+/* Set minimum and maximum lookbacks */
+minLB = 8;
+maxLB = 65;
+
+/* Set percentiles for PeakOut lines using numbers between 1 and 99
+*/
+PCcycl = 98;
+PChist = 90;
+
+/* Definition of Kase PeakOscillator KPO */
+
+function Kup(n)
+{ return log(H/Ref(L,-n)); }
+
+function Kdn(n)
+{ return log(Ref(H,-n)/L); }
+
+function Kvol(n)
+{ return SD(log(Ref(C,-1)/C), n); }
+
+function KSDIup(n)
+{ return Kup(n)/(Kvol(n)*sqrt(n)); }
+
+function KSDIdn(n)
+{ return Kdn(n)/(Kvol(n)*sqrt(n)); }
+
+maxKSDIup = 0;
+for (i=minLB;i<=maxLB;i++)
+{ maxKSDIup = IIf(KSDIup(i)>maxKSDIup,KSDIup(i),maxKSDIup); }
+
+maxKSDIdn = 0;
+for (i=minLB;i<=maxLB;i++)
+{ maxKSDIdn = IIf(KSDIdn(i)>maxKSDIdn,KSDIdn(i),maxKSDIdn); }
+
+KPO = maxKSDIup - maxKSDIdn;
+
+/* Definition of PeakOut lines POmax and POmin */
+
+UPcycle = minLB;
+for (i=minLB+1;i<=maxLB;i++)
+{ UPcycle = IIf(KSDIup(i)==maxKSDIup,i,UPcycle); }
+
+DNcycle = minLB;
+for (i=minLB+1;i<=maxLB;i++)
+{ DNcycle = IIf(KSDIdn(i)==maxKSDIdn,i,DNcycle); }
+
+function f(x)
+{ return sqrt(-2*log(1-x)) ; }
+
+function g(x)
+{ return f(x) - (2.515517 + 0.802853*f(x) + 0.010328*f(x)^2) / (1 +
+1.432788*f(x) + 0.189269*f(x)^2 + 0.001308*f(x)^3) ; }
+
+function NDSINV(x)
+{ return IIf(0<x AND x<0.5, -g(1-x), IIf(0.5<=x AND x<1, g(x),
+0)) ; }
+
+if (PCcycl<1) PCcycl=1;
+if (PCcycl>99) PCcycl=99;
+if (PChist<1) PChist=1;
+if (PChist>99) PChist=99;
+
+THcycl = NDSINV(0.5*(PCcycl/100+1));
+THhist = NDSINV(0.5*(PChist/100+1));
+
+CYCL = IIf(KPO>=0,UPcycle,DNcycle);
+MNcycl = MA(KPO,CYCL);
+SDcycl = SD(KPO,CYCL);
+Vcycl1 = MNcycl + THcycl*SDcycl;
+Vcycl2 = MNcycl - THcycl*SDcycl;
+POcycl = IIf(KPO>0,Vcycl1,IIf(KPO<0,Vcycl2,0));
+
+HIST = BarIndex()-maxLB+1;
+MNhist = MA(KPO,HIST);
+SDhist = SD(KPO,HIST);
+Vhist1 = MNhist + THhist*SDhist;
+Vhist2 = MNhist - THhist*SDhist;
+POhist = IIf(KPO>0,Vhist1,IIf(KPO<0,Vhist2,0));
+
+POmax = IIf(abs(POcycl)>abs(POhist),POcycl,POhist);
+POmin = IIf(abs(POcycl)<abs(POhist),POcycl,POhist);
+
+/* KPO, POmax & POmin plots */
+
+/* uncomment and/or alter this line to plot smoothed KPO */
+KPO = WMA(Nz(KPO),3);
+
+GraphXSpace = 3;
+
+Plot(POmax,"PeakOutMAX",colorRed,styleLine);
+Plot(POmin,"PeakOutMIN",colorBlue,styleLine);
+
+Col = IIf(abs(KPO)>=abs(POmax) AND Ref(abs(KPO),1)<Ref(abs
+(POmax),1),colorViolet,IIf(abs(KPO)>=abs(POmin) AND Ref(abs(KPO),1)
+<Ref(abs(POmin),1),colorPink,colorGreen));
+Plot(KPO,"KPeakOsc",Col,styleHistogram|styleThick);
+
+/* UPcycle & DNcycle plots, for use in separate pane */
+
+//Plot(UPcycle,"UPcycle",colorGreen,styleLine|styleDots);
+//Plot(DNcycle,"DNcycle",colorRed,styleLine|styleDots);
+
+/* code end */

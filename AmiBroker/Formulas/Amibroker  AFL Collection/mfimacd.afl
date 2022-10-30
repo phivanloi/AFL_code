@@ -1,0 +1,14 @@
+col = IIf( EMA( MFI(14) ,12)-EMA( MFI(14) ,26)> Ref( EMA( MFI(14) ,12)-EMA( MFI(14) ,26), -1 ), colorBrightGreen, colorRed ); 
+Plot( EMA( MFI(14) ,12)-EMA( MFI(14) ,26), "abosliman2005m",col , 5 ); 
+col22 = IIf( MA(EMA( MFI(14) ,12)-EMA( MFI(14) ,26),5)> Ref( MA(EMA( MFI(14) ,12)-EMA( MFI(14) ,26),5), -1 ), colorBrightGreen, colorRed ); 
+
+Plot( MA(EMA( MFI(14) ,12)-EMA( MFI(14) ,26),5), "abosliman",col22 , 5 ); 
+Plot(12, "", 4); 
+Plot(0, "", 1); 
+Plot(-12, "",colorBrightGreen); 
+
+ST2= GMA( EMA( MFI(14) ,12)-EMA( MFI(14) ,26),5); 
+
+ST3= GMA(ST2,5);  
+
+PlotOHLC( ST2,ST2,ST3,ST2, "StochK", IIf( ST2> ST3, 6, 9), styleCloud  );

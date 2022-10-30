@@ -1,0 +1,92 @@
+_SECTION_BEGIN("MACDPrediction");
+/*
+An MACD, Signal Cross is, in general, a bullish Signal.
+Since it comes with a significant delay, it would be important to anticipate
+this Cross. Some days before the Cross, we often see an MACD turning point. It
+is interesting to investigate the related conditions AND use them before the end
+of the session.
+The following AFL code will give the necessary next ROC for a higher MACD
+value.
+
+The principle of the code is simple : We suppose that the next ROC changes
+from -25% to +25% AND we calculate the necessary ROC for a higher MACD.
+Example1 : On Oct29 [point P1] AMZN would have a higher MACD if the next ROC
+would be more than +1.30%. The next Day, Nov1, AMZN closed at +2.80% AND the
+MACD was higher indeed. It was known [AND almost safe] before the end of the
+Nov1 session, that AMZN was gaining more than +1.30%.
+Example2 : On Jan4 [point P2] the ^NDX needed a +2.70% to change the MACD
+downtrend. The most probable was to see lower MACD values...
+*/
+SetBarsRequired(10000,0);
+function EMAn ( Cnext , r3)
+{
+return ( 2 * Cnext + ( r3 - 1 ) * EMA ( C , r3 ) ) / ( r3 + 1 );
+}
+function MACDn ( Cnext , r1 , r2 )
+{
+return EMAn ( Cnext ,r1 ) - EMAn ( Cnext , r2 );
+}
+r1 = Param( "Fast avg", 12, 2, 200, 1 );
+r2 = Param( "Slow avg", 26, 2, 200, 1 );
+r3 = Param( "Signal avg", 9, 2, 200, 1 );
+
+det = 500;
+perc = 25/100;
+Clast = SelectedValue ( C );
+Plot( ml = MACD(r1, r2), StrFormat(_SECTION_NAME()+"(%g,%g)", r1,r2), ParamColor("MACD color", colorRed ), ParamStyle("MACD style") );
+Plot( sl = Signal(r1,r2,r3), "Signal" + _PARAM_VALUES(), ParamColor("Signal color", colorBlue ), ParamStyle("Signal style") );
+Plot( ml-sl, "MACD Histogram", IIf(ml-sl > 0,colorBrightGreen,colorRed ), styleNoTitle | ParamStyle("Histogram style",styleHistogram | styleNoLabel, maskHistogram ));
+
+det = 500 ;
+perc = 25/100 ;
+Clast = SelectedValue ( C );
+
+Plot( ml = MACD(r1, r2), StrFormat(_SECTION_NAME()+"(%g,%g)", r1, r2), ParamColor("MACD color", colorRed ), ParamStyle("MACD style") );
+Plot( sl = Signal(r1,r2,r3), "Signal" + _PARAM_VALUES(), ParamColor("Signal color", colorBlue ), ParamStyle("Signal style") );
+Plot( ml-sl, "MACD Histogram", IIf(ml-sl > 0,colorBrightGreen,colorRed ), styleNoTitle | ParamStyle("Histogram style",styleHistogram | styleNoLabel, maskHistogram ));
+MACDlast = SelectedValue(MACD());
+Buy= Cross(MACD(12,26),Signal(12,26,9));
+Sell = Cross( Signal(12, 26, 9), MACD(12,26) );
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone) ,colorBrightGreen);
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed);
+
+SIGNALlast = SelectedValue ( Signal ( ) );
+Title = Name ( ) + ", " + Date ( ) + ", MACD=" + WriteVal ( MACDlast )+ ",Signal=" + WriteVal ( SignalLAST ) +"\nThe nextMACD will be higher if the next ROC will be > ";
+Cnextmin = ( 1 - perc ) * Clast ;Cnextmax = ( 1 + perc ) * Clast;
+step = ( Cnextmax - Cnextmin ) / det;
+nextROC1 = -100 * perc;
+nextROC2 = -100 * perc;
+for ( Cnext = Cnextmin ; Cnext <= Cnextmax ; Cnext = Cnext + step )
+{
+X = MACDn ( Cnext , 12 , 26 );
+Y = EMA ( X , 9 );
+MACDnext = SelectedValue ( X );
+SIGNALnext = SelectedValue ( Y );
+NextROC = 100 * ( -1 + Cnext / Clast );
+NextROC0 = 100 * ( -1 + Cnext / Clast );
+if ( macdnext < SignalLAST )
+{
+NextROC1 = NextROC;
+}
+if ( MACDnext < MACDlast )
+{
+nextROC2 = nextROC0;
+}
+}
+Title = Title + WriteIf ( NextRoc2 >= 0.1 , "+" , "" ) + WriteVal ( NextROC2 ,1.2 ) + "%" + "\nThe nextMACD will be above the lastSIGNAL if the next ROC will be > " + WriteIf ( NextRoc1 >= 0.1 , "+" , "" ) + WriteVal ( nextROC1 , 1.2)+"%" ;
+Plot ( 0 ,"", colorBlack ,styleDashed );
+_SECTION_END();
+
+
+Filter = C <25 AND C >2 AND C> Ref(C,-1)AND Volume > 100000;// AND NOT (IndustryID() == 34 OR IndustryID() ==36);
+
+Result = WriteIf(Buy,"Buy","Sell");
+AddTextColumn( WriteIf(Buy,"Buy", "Sell" ) ,"TRADE",5,IIf(Buy,colorYellow, colorWhite), IIf(Buy, colorDarkGreen, colorDarkRed) );
+AddTextColumn(IndustryID(1) ,"     Industry Sector      ", 25.0, colorWhite, colorBlue);
+AddColumn( Close, "Close", 1.2, IIf( ROC(C, 1 ) >= 0, colorDarkGreen,colorRed ),50 );
+AddColumn(Ref(Close,-1),"Y-Close",1.2, IIf( ROC(Ref(C,-1),1)>=0,colorDarkGreen, colorRed ),50 );
+AddColumn( Volume, "Volume", 10.0, IIf( ROC(V, 1 ) >= 0,colorDarkGreen, colorRed ) );
+AddColumn( ROC( Close, 1 ), "ROC(1)", 1.2, IIf( ROC(C, 1 ) >= 0,colorDarkGreen, colorRed));
+AddColumn(NextROC1,"NextROC",1.2,colorYellow,colorRed );
+AddColumn(NextROC2,"NextROCO",1.2,colorWhite, colorBrown);
+

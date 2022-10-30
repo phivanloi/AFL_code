@@ -1,0 +1,45 @@
+////  Vchart
+//This was converted from code created for TradeStation by Mark W. Helweg of ValueCharts.com
+VarNumbars = Param("Number of Bars",5,2,1000,1);
+Color = Param("Bar Color",colorBlue);
+Top = Param("Top Chart Line",8);
+TopMid = Param("Top Mid Chart Line",4);
+BottomMid = Param("Bottom Mid Chart Line",-4);
+Bottom = Param("Bottom Chart Line",-8);
+Plot(Top,"Top Chart Line",colorRed);
+Plot(TopMid,"Top Mid Chart Line",colorLightGrey);
+Plot(BottomMid,"Bottom Mid Chart Line",colorLightGrey);
+Plot(Bottom,"Bottom Chart Line",colorRed);
+
+LRange = 0;
+	VarP = round(VarNumBars/5);
+if (VarNumBars > 7) 
+{
+	VarA=HHV(H,VarP)-LLV(L,VarP);
+	VarR1 = IIf(VarA==0 AND VarP==1,abs(C-Ref(C,-Varp)),VarA);
+	VarB=Ref(HHV(H,VarP),-VarP+1)-Ref(LLV(L,VarP),-VarP);
+	VarR2 = IIf(VarB==0 AND VARP==1,abs( Ref(C,-VarP)-Ref(C,-Varp*2) ),VarB);
+	VarC=Ref(HHV(H,VarP),-VarP*2)-Ref(LLV(L,VarP),-VarP*2);
+	VarR3 = IIf(VarC == 0 AND VarP==1,abs(Ref(C,-Varp*2)-Ref(C,-Varp*3)),VarC);  
+	VarD = Ref(HHV(H,VarP),-VarP*3)-Ref(LLV(L,VarP),-VarP*3);
+	VarR4 = IIf(VarD == 0 AND VarP==1,abs(Ref(C,-Varp*3)-Ref(C,-Varp*4)),VarD);	
+	VarE = Ref(HHV(H,VarP),-VarP*4)-Ref(LLV(L,VarP),-VarP*4);
+	VarR5 = IIf(VarE == 0 AND VarP==1,abs(Ref(C,-Varp*4)-Ref(C,-Varp*5)),VarE);	
+	LRange=((VarR1+VarR2+VarR3+VarR4+VarR5)/5)*.2;
+};
+
+
+CDelta = abs(C - Ref(C,-1));
+if (VarNumBars <=7)
+{
+	Var0 = IIf(CDelta > (H-L) OR H==L,CDelta,(H-L));
+	LRange = MA(Var0,5)*.2;
+}
+MidBarAverage = MA( (H+L)/2,VarNumbars);
+VOpen = (Open- MidBarAverage)/LRange;
+VHigh = (High-MidBarAverage)/LRange;
+VLow = (Low-MidBarAverage)/LRange; 
+VClose = (Close-MidBarAverage)/LRange; 
+PlotOHLC(VOpen,VHigh,VLow,VClose,"ValueChart",color,styleLine | styleThick ,-12,12);
+Title= Name() + " " + WriteVal( DateTime(), formatDateTime )+
+	"\nVOpen " + VOpen + "\n"+ " VHigh "+ VHigh + "\n"+ " VLow " + Vlow  + "\n"+ " VClose " + VClose;

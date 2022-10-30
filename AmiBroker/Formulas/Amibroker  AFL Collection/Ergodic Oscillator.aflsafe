@@ -1,0 +1,11 @@
+/*Ergodic Oscillator */
+
+/*Coded by Prakash Shenoi */
+
+x=Param(" Average 1",11,2,32);
+y=Param(" Average 2",4,3,12);
+erg=(EMA(EMA(C-O,x),y)/EMA(EMA(H-L,x),y))*100;
+Sg=EMA(erg,5);
+Plot (erg,"Ergodic Oscillator ",styleLine,1);
+Plot (Sg,"Signal",colorRed,styleLine,1);
+GraphXSpace=3; 

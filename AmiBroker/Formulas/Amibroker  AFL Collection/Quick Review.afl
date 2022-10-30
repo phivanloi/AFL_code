@@ -1,0 +1,13 @@
+CloseUP = C > Ref(C,-1);
+Closedown = C < Ref(C,-1);
+
+txtclrup = IIf(Closeup,
+colorDarkGreen,IIf(Closedown,colorRed,colorBlack));
+bkclr = IIf(Closeup,
+5,IIf(closedown,colorPink,colorWhite));
+Filter =1;
+
+AddColumn(C,"close",1.2);
+AddColumn(Ref(C,-1),"Ystrdy close",1.2);
+AddTextColumn(WriteIf(Closeup,"UP",WriteIf(Closedown,"DOWN","same")),"up/down",1.2,
+txtclrup, bkclr);

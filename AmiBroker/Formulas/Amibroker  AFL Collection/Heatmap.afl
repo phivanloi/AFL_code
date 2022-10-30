@@ -1,0 +1,825 @@
+_SECTION_BEGIN("Heatmap V1.0");
+/*
+====================================================================
+ SYMBOL HEATMAP V1.0 FOR AMIBROKER BY JORGEN WALLGREN, FEBRUARY 2009
+====================================================================
+First of all, I would like to thank AmiBroker's Support. Then a special 
+Thank You goes to Herman van en Bergen and Dennis Brown. But not to 
+forget all of you that have uploaded your code to the AFL Library, 
+which I studied and learned some AFL programming. Thank You All!
+====================================================================
+INSTRUCTIONS/INFORMATION:
+This code was written using AmiBroker 5.20.
+
+I will try to keep this short, and if you have any Questions, Bug Reports, 
+Suggestions for Improvements or Cool Sorting Options- please contact me: 
+jorgen dot wallgren at gmail dot com. Saying that, I do not guarantee that
+I will come with future updates of this program.
+
+The Heatmap can be used in many ways: as a reference tool or simply as 
+an intraday trading tool. It can also in some cases replace/complement 
+Explorations.
+
+You can use this Heatmap for any collection of symbols you have, as 
+long as the minimum amount is 2 x 2 = 4 AND the maximum amount 
+10 x 10 = 100 symbols. With other words, the amount of symbols you 
+need to have in your list are: 4, 9, 16, 25, 36, 49, 64, 81 or 100. 
+If you have for example only 30 symbols and set the Number of Rows/Columns 
+to 36, you will have 6 white fields displaying no data. If you have more 
+than 100 symbols, the Heatmap will only display the first 100.
+
+GETTING STARTED:
+First thing to do is to go to the AmiBroker menu, Tools, Preferences, Intraday and set
+"Realtime chart refresh interval [sec]" to 0 or max 1.
+
+Open a blank chart and drag and drop this file into it. Adjust the chart, so 
+you have an even rectangle. Otherwise the symbols boxes will not be a perfect 
+square. Right click the chart and choose Parameters. Set the "Ticker Category", 
+"List Number" and the "Number of Rows/Columns" Parameters. You should now see 
+your symbols in the Heatmap. If you do not see any symbols, there is probably 
+something wrong with your configuration. Check again and make sure that 
+you point the Heatmap to the right symbol folder.
+
+ADDITIONAL SETTINGS:
+"Font": allows you to configure the font used by the Heatmap. But make 
+sure your Windows OS already has the font installed.
+
+"RT interval (Sec)":  sets the RT Interval you want (0 to 60 seconds), and 
+will be used if you set the "Refresh By" option as "Set Interval". What it 
+means is basically that the Heatmap will only update the data every X seconds 
+in order to preserve resources. This is especially important if you have lots 
+of symbols and use shorter periods.
+
+"Refresh By": has three otions- "Set RT Interval" (as mentioned above), 
+"By Period" or "Manual". "By Period" will update your Heatmap data every new period. 
+Period the chart is set to, that is. "Manual" will only update the Heatmap when
+you press the "REFRESH NOW" Trigger button. Good to have if your database is very
+big. For example 100 symbols with 250,000 1 min-bars of history/stock, can take more 
+than 10 seconds to process if you have it configured for 100 symbols (depending also 
+on your PC configuration).
+
+"Manual Refresh": By clicking the "REFRESH NOW" button the Heatmap will refresh the data.
+This Trigger button is the only way to update the data when the "Refresh By" option is set
+to "Manual". But "REFRESH NOW" can be used at any time, independent of the "Refresh By"
+setting.
+
+"Sorting": set to "On" the Heatmap will sort the Symbols according to the 
+"Sort By" setting and the calculated performances. Set it to "OFF", and you 
+will get an alphabetical list of the symbols- assuming that they are in 
+alphabetical order in your Market/ Group/ Sector/ Industry/ Watchlist/ Favorite/ Index list.
+
+"Highlight Favourites": This option will highlight, in the Heatmap, those 
+symbols you put in the Favorites Folder- if they are in your Heatmap of course. 
+You can also add and remove symbols to the Favorites Folder using the Heatmap: 
+Right Mouse Click will add the symbol. Middle Mouse Click will remove the symbol. 
+
+"Sort By": I have added a list of different options, such as Volume, ADX Trend etc. 
+This setting basically set what type of data you want the Heatmap to show you. 
+Please edit this list and add your own options. The current list is there more 
+as examples and might not always be accepted industry standards. 
+
+"Create Composite": will enable/disable calculations for Composite data based upon 
+your symbol folder. If you don't use it, swith it off since you will then save execution time.
+
+"Clear Composite": Will clear you Composite data.
+
+NOTE on Composite Options: It will allow you to create other indicators using the total 
+data from your symbols list and basically leverage on the data collection by the Heatmap. 
+For example:
+
+TotalOpen		= Foreign("~MGComp", "O");
+TotalClose 	= Foreign("~MGComp", "C");
+TotalVolume	= Foreign("~MGComp", "V");
+TotalHigh		= Foreign("~MGComp", "H");
+TotalLow		= Foreign("~MGComp", "L");
+PlotOHLC( TotalOpen, TotalHigh, TotalLow, TotalClose, "", colorBlack, styleCandle);
+ 
+Will plot your own simple index for your symbol collection. Another example: If you are 
+trading NASDAQ 100 stocks, you can create a NASDAQ 100 volume indicator.
+
+The remaining settings are for the "Sort By" option calculations. Most of the examples 
+I have put in are obvious or easy to figure out by looking at the code. But one option 
+worth mention is the "Bulls n Bears". This is a Heikin-Ashi calculation with a 2 moving 
+averages- which will give Buy and Sell signals (also use in "Buy/Sell"). The way I use 
+it in this option, is to display which symbols are in 'uptrend' and which are in a 'downtrend'. 
+The number displayed is the number of bars since the 'trend' started. 
+One of my personal favorites! :-) 
+
+Please keep in mind that some of these demo calculations are source dependent and in this code
+release- it's configured to work with IQFeed.
+
+You can at any time click with your mouse on a symbol and the chart will be updated accordingly. 
+But in the chart window, we have the Heatmap! The solution is simply to add a normal price chart 
+in another chart sheet- in the same window. Or you can set the Symbol Link between the Heatmap 
+window and another window chart, which then will display a price chart for the symbol you clicked.
+
+You can have multiple Heatmap windows open and running at the same time.  But keep in mind that 
+the more symbols you have, the more PC power is required by the Heatmap. This can be solved by 
+setting different Sorting Options at different RT Intervals.  Keep in mind that the shorter 
+period setting you have for the window, the more data to collect and calculate and therefore 
+taking more time and power. I am using 1 and 5 minutes period settings with the NASDAQ 100 symbols 
+and it works great. Worth mention is that I keep my live trading database very small- 5000 bars.
+Then 5 minutes period is of course faster than 1 minute period.
+
+====================================================================
+ KNOWN ISSUES/PROBLEMS:
+====================================================================
+1.) This Heatmap will not work with the Interactive Broker's data feed. You will most probably 
+get the following error message: 
+"Backfill timed-out due to IB throttling Retrying in 99 seconds...". 
+
+====================================================================
+ FINAL WORD:
+====================================================================
+I am not a programmer and have just learned how to create my own code for AmiBroker and this is 
+my first real attempt to do so. Therefore by using this Heatmap, you agree that it is at your 
+own risk and that I am not responsible if the performance of this program happens to negatively 
+affect your trading results. Be careful out there! :-)
+====================================================================
+====================================================================
+*/
+
+IndicatorOnOff	= ParamToggle("Heatmap","Off|On", 1);
+
+Category 			= "";
+function ParamCategory()
+{
+ global CategoryList; // This is the main category where we look for our list
+ CategoryList		= "Market   ,Group    ,Sector   ,Industry ,Watchlist,Favorite ,Index    ";
+ Tickercategory	= ParamList("Ticker category", "Market|Group|Sector|Industry|Watchlist|Favorite|Index");
+ Category 			= TickerCategory;
+ TickerCategory	= (StrFind( CategoryList, Tickercategory)-1)/10;
+ return TickerCategory;
+}
+
+function ParamListNum( Category )
+{
+ global ListNum;
+	ListNum 		= Param("List Number", 1, 0, 63, 1);
+ return ListNum;
+}
+
+EnableTextOutput(False); 
+Title 				= "";
+TickerCategory 	= ParamCategory();
+TickerListNum 	= ParamListNum(TickerCategory);
+CategoryListOK	= IIf(StrLen(CategoryGetSymbols(TickerCategory, TickerListNum)) > 0, 1, 0);
+NumRowColumn 		= Param("Number of Rows/Columns:", 10, 2, 10, 1);
+Font				= ParamList("Font:","Arial|Calibri|Futura|Tahoma|Times New Roman");
+BasePeriod 		= Param( "RT Interval (Sec):", 30, 0, 60, 1 );
+RefreshBy 			= ParamList("Refresh By:", "Set RT Interval|By Period|Manual", 2);
+ManualRefresh		= ParamTrigger( "Manual Refresh:", "REFRESH NOW"); 
+SortingOnOff		= ParamToggle("Sorting:","Off|On", 1);
+FavoritesOnOff	= ParamToggle("Highlight Favourites:","Off|On", 1);
+SortBy 			= ParamList("Sort By:", "Close Listing|Change %|Volume|Dollar Volume|Total Volume|Close|Index Match|Bulls n Bears|ADX Trend|Spread", 1);
+CompositeOnOff	= ParamToggle("Create Composite:","OFF|ON", 0);
+ClearComposite	= ParamTrigger("Clear Composite:","CLEAR");
+CheckPeriod		= Param("Bars To Check (Index Match):", 24, 1, 390);
+NumBarsToAverage	= Param("Bars To Check (Price Move):", 8, 1, 21, 1);
+Range				= Param("Periods (ADX Trend):", 14, 1, 34, 1);
+HAPeriod			= Param("Hekin-Ashi Periods (Several):", 18, 1, 34, 1);
+ParamTotal			= IndicatorOnOff +TickerCategory+TickerListNum+IndicatorOnOff+NumRowColumn+SortingOnOff+CheckPeriod+NumBarsToAverage;
+
+global Prefix, Suffix, SgnFlag, format, TrendAngle;
+SgnFlag 		= 1;
+TotalScore		= 0;
+MouseFlag 		= 0;
+TimeStamp 		= 0;
+ExecuteTime 	= 0;
+NumTickers		= NumRowColumn^2;
+Trigger 		= 0;
+DoRefresh 		= 0;
+BackGroundColor	= 0;
+
+EnableScript("JScript");
+ <%
+ function SetChartTicker(newTicker)
+{
+ AB = new ActiveXObject("Broker.Application");
+ AB.ActiveDocument.Name = newTicker;
+ return 1;
+}
+ %>
+
+function GetSymbols()
+{
+ TickerList = "";
+ SymbolList = CategoryGetSymbols(TickerCategory, TickerListNum);
+
+ for(n = 0; n < NumTickers; n++)
+	{
+	 Ticker 		= StrExtract(SymbolList,n);
+	 TickerList 	= TickerList + Ticker + ",";
+	}
+ return TickerList;
+}
+
+function GetSecondNum()
+{
+    Time 		= Now( 4 );
+    Seconds 	= int( Time % 100 );
+    Minutes 	= int( Time / 100 % 100 );
+    Hours 		= int( Time / 10000 % 100 );
+    SecondNum = int( Hours * 60 * 60 + Minutes * 60 + Seconds );
+    return SecondNum;
+}
+
+if(ClearComposite)
+ {
+	AddToComposite(0,"~MGComp","X",atcFlagDeleteValues|atcFlagCompositeGroup|atcFlagEnableInIndicator);
+	AddToComposite(0,"~MGCount","X",atcFlagDeleteValues|atcFlagCompositeGroup|atcFlagEnableInIndicator);
+ }
+
+global SVKey;
+SVKey = NumToStr(GetChartID(),1.0,False);
+
+procedure xStaticVarSet( SName, SValue )
+{
+ global SVKey;
+ InIndicator = Status("Action") == 1;
+ if( InIndicator ) StaticVarSet(Sname+SVKey, Svalue);
+}
+function xStaticVarGet( SName )
+{
+ global SVKey;
+ if( IsNull( Var = StaticVarGet(Sname+SVKey) ) ) Var = 0;;
+ return Var;
+}
+procedure xStaticVarSetText( SName, SValue )
+{
+ global SVKey;
+ InIndicator = Status("Action") == 1;
+ if( InIndicator ) StaticVarSetText(Sname+SVKey, Svalue);
+}
+function xStaticVarGetText( SName )
+{
+ global SVKey;
+ return StaticVarGetText(Sname+SVKey);
+}
+
+//====================================================================
+// FUNCTIONS USED FOR FINDING SYMBOLS MOVING WITH THE INDEX AND TRENDS:
+// THESE CALCULATIONS ARE CONFIGURED FOR IQFEED.
+//====================================================================
+function ZeroLagTEMA( array, HAperiod ) 
+{ 
+ TMA1 		= TEMA( array, HAperiod ); 
+ TMA2 		= TEMA( TMA1, HAperiod ); 
+ Diff 		= TMA1 - TMA2; 
+ return TMA1 + Diff ; 
+} 
+
+function HekinAshi(Code)
+{   
+ if(Code == 0){ //Asking for the data for the NASDAQ Index:
+	NSQClose 	= Foreign( "NDX.X", "Close" );
+	NSQOpen 	= Foreign( "NDX.X", "Open" );
+	NSQHigh 	= Foreign( "NDX.X", "High" );
+	NSQLow 	= Foreign( "NDX.X", "Low" );
+	HaClose	= (NSQOpen+NSQHigh+NSQLow+NSQClose)/4;
+	HighV 		=  NSQHigh; LowV = NSQLow;
+ 	ZLTyp 		= ZeroLagTEMA((NSQHigh+NSQLow+NSQClose)/3, HAPeriod); }
+ else { //Asking for the data for the Symbol:
+	HaClose 	= (O+H+L+C)/4; 
+	HighV 		=  High; LowV = Low;
+	ZLTyp 		= ZeroLagTEMA(Avg, HAPeriod); }
+
+ // Heikin-Ashi code: 
+ HaOpen 	= AMA( Ref( HaClose, -1 ), 0.5 ); 
+ HaHigh 	= Max( HighV, Max( HaClose, HaOpen ) ); 
+ HaLow 	= Min( LowV, Min( HaClose, HaOpen ) ); 
+ HaClose	= (HaClose + HaOpen + HaHigh + HaLow)/4; 
+
+ ZLHa 		= ZeroLagTEMA(HaClose, HAPeriod); 
+ 
+ // Buy and Sell Heikin-Ashi Signals:
+ BuySymb	= Cross( ZLTyp, ZLHa ); 
+ SellSymb	= Cross( ZLHa, ZLTyp ); 
+ StatusBuy= Flip(BuySymb, SellSymb); 
+
+ if(Code == 0 OR Code == 1)
+		Value = StatusBuy;
+ if(Code == 3)
+		Value = IIf(BuySymb, 1, IIf(SellSymb, -1, 0));
+
+	return Value;
+}
+
+//====================================================================
+// FUNCTION WHERE TO PUT THE SORTING OPTIONS
+//====================================================================
+function GetScore(Ticker )
+{
+if(SortBy == "Close Listing"){
+	Prefix	= "$";
+	Suffix	= "";
+	SgnFlag= 0;
+	format	= 1.2;
+	Value 	= Close;}
+
+if(SortBy == "Change %"){
+	C1 		= SelectedValue(TimeFrameGetPrice( "C", inDaily, -1 ));
+	Value 	= ((LastValue(Close)/C1)-1)* 100;
+	Prefix	= "";
+	Suffix	= "%";
+	SgnFlag= 0;
+	format	= 1.2;}
+
+if(SortBy == "Volume")
+	{ 
+	Value = IIf(Close < Open, -Volume, Volume);
+	Prefix	= "";
+	Suffix	= "";
+	SgnFlag= 1;
+	format	= 1.0;
+	}
+
+if(SortBy == "Dollar Volume")
+	{ 
+	Value = IIf(Close < Open, Close * (-Volume/1000), Close * (Volume/1000));
+	Prefix	= "";
+	Suffix	= "";
+	SgnFlag= 1;
+	format	= 1.0;
+	}
+
+if(SortBy == "Total Volume"){
+	Bars_so_far_today = 1 + BarsSince( Day() != Ref(Day(), -1));
+	Value	= Sum(Volume, Bars_so_far_today);
+	Prefix	= "";
+	Suffix	= "";
+	SgnFlag= 0;
+	format	= 1.0;
+}
+
+if(SortBy == "Close"){
+	Prefix	= "$";
+	Suffix	= "";
+	SgnFlag= 0;
+	format	= 1.2;
+	Value = IIf(Close > Open, Close, -Close);}
+
+if(SortBy == "Index Match"){
+	StatusBuyI	= HekinAshi(0);
+	StatusBuy	= HekinAshi(1);
+	Match 		= 0;
+	for (i = BarCount - CheckPeriod; i < BarCount; i++ )
+		 Match = IIf( StatusBuyI == StatusBuy, 1, 0);
+	Match 	= Sum(Match, CheckPeriod); 
+	Prefix	= "";
+	Suffix	= "%";
+	SgnFlag= 0;
+	format	= 1.0;
+	Value 	= (Match/CheckPeriod) * 100;}
+
+if(SortBy == "Bulls n Bears"){
+	Statusbuy	= HekinAshi(1);
+	value = Trend = IIf(StatusBuy, 1, 0);
+
+	if(LastValue(Trend) == 0)
+		for(i = BarCount-1; Statusbuy[i] == 0; i--)
+			Value = BarCount - i;
+	else
+		for(i = BarCount-1; Statusbuy[i] == 1; i--)
+			Value = BarCount - i;
+	Prefix	= "";
+	Suffix	= "";
+	SgnFlag= 1;
+	format	= 1.0;
+	Value 	= IIf(StatusBuy, Value, -1 * Value);}
+
+if(SortBy == "ADX Trend"){
+	// Trend Angle is my own idea, but it works for me: 
+	TrendAngle	 = 100* atan( (Zig(ADX(Range), 1) - Ref(Zig(ADX(Range), 1), -1 ) ) / 5 );
+if(LastValue(TrendAngle) > 15){
+	ADXBuy		= IIf(ADX(Range) > Ref(ADX(Range), -1) AND PDI(Range) > MDI(Range), 1, 0);
+	ADXSell	= IIf(ADX(Range) > Ref(ADX(Range), -1) AND PDI(Range) < MDI(Range), 1, 0);
+	Prefix		= "";
+	Suffix		= "";
+	SgnFlag	= 1;
+	format		= 1.1;
+	//Value = IIf(ADXBuy, TrendAngle, IIf(ADXSell, -1* TrendAngle, 0));}
+	Value = IIf(ADXBuy, ADX(Range), IIf(ADXSell, -1* ADX(Range), 0));}
+else
+	Value = 0;
+}
+
+if(SortBy == "Spread"){
+	Prefix	= "$";
+	Suffix	= "";
+	SgnFlag= 0;
+	format	= 1.2;
+ 	Value 	= GetRTDataForeign("Ask", Ticker) - GetRTDataForeign("Bid", Ticker);}
+
+xStaticVarSetText("Prefix", Prefix); 
+xStaticVarSetText("Suffix", Suffix); 
+xStaticVarSet("SgnFlag", SgnFlag);
+xStaticVarSet("format", format);
+
+return Value;
+}
+//====================================================================
+// SYMBOL SCORE STRING SORTING PROCEDURE:
+// Modification of original coding ("Ranking and sorting stocks") done 
+// by Herman van en Bergen and posted on the AFL Library. The Composite
+// code is also Herman's creation.
+// Thank you Herman!
+//====================================================================
+procedure getPositionScores(TickerListNum, NumTickers)
+{
+	global TopTickerList, TopTickerClose, TickerList, TopTickerScore, TopTickerNum, TotalScore, MaxNegVal, MinNegVal, MaxPosVal, MinPosVal;
+	TotalScore		= 0;
+	TickerList		= GetSymbols();
+	CompTickers	= "";
+	MaxNegVal 		= 0;
+	MinNegVal 		= -100000000;
+	MaxPosVal 		= 0;
+	MinPosVal 		= 100000000;
+	TickerClose	= TickerScores = Tickerindex = 0;
+
+	// Create zero-based Scores array in wrt to current data
+	for( n = 0; (Ticker = StrExtract(TickerList, n)) != ""; n++)
+		{
+		SetForeign(Ticker);
+		Temp 	= LastValue(GetScore(Ticker));
+		SClose = LastValue(Close);
+		TotalScore	= TotalScore + abs(temp);
+
+	if(CompositeOnOff){ //This will add extra processing time, so swith it off if you do not need it:
+       G=1;
+       AddToComposite(G*O,"~MGComp","O",atcFlagDeleteValues|atcFlagCompositeGroup|atcFlagEnableInIndicator);
+       AddToComposite(G*H,"~MGComp","H",atcFlagDeleteValues|atcFlagCompositeGroup|atcFlagEnableInIndicator);
+       AddToComposite(G*L,"~MGComp","L",atcFlagDeleteValues|atcFlagCompositeGroup|atcFlagEnableInIndicator);
+       AddToComposite(G*C,"~MGComp","C",atcFlagDeleteValues|atcFlagCompositeGroup|atcFlagEnableInIndicator);
+       AddToComposite(G*V,"~MGComp","V",atcFlagDeleteValues|atcFlagCompositeGroup|atcFlagEnableInIndicator);
+       AddToComposite(G*1,"~MGCount","X",atcFlagDeleteValues|atcFlagCompositeGroup|atcFlagEnableInIndicator);
+       CompTickers = CompTickers + Ticker +"\n";}
+
+		if(temp < 0){
+		if(MinNegVal < temp) MinNegVal = temp;
+		if(MaxNegVal > temp) MaxNegVal = temp;}
+
+		if(temp > 0){
+		if(MinPosVal > temp) MinPosVal = temp;
+		if(MaxPosVal < temp) MaxPosVal = temp;}
+
+		RestorePriceArrays();
+		TickerScores[n] 	= Temp;
+		TickerIndex[n] 	= n;
+		TickerClose[n]	= SClose;
+		}
+
+	TickerCount= n;
+	TopTickerList  = TopTickerClose = TopTickerNum = TopTickerScore = Toptickerlist 	= "";
+	i = 0; 
+
+if(SortingOnOff AND TotalScore > 0)
+{		
+	// Sort Tickers by rank
+	for(i = n; i > 0; i--)
+		{
+		for (j = 1; j < i; j++)
+			{
+			if (TickerScores[j-1] > TickerScores[j])
+				{
+				temp 				= TickerScores[j-1]; 
+				TickerScores[j-1]	= TickerScores[j];
+				TickerScores[j] 	= temp;
+				temp 				= TickerIndex[j-1]; 
+				TickerIndex[j-1]	= TickerIndex[j];
+				TickerIndex[j] 	= temp;
+				}
+			}
+		}
+
+	for(n = TickerCount-1; n > -1; n--)
+		{
+		T5[i++] 			= TickerIndex[n];
+		Ticker 			= StrExtract(Tickerlist,T5[i-1]);
+		SClose				= NumToStr(TickerClose[T5[i-1]],1.2,0);
+		Score  			= NumToStr(TickerScores[n],1.2,0);
+		TickerNum 			= NumToStr(TickerIndex[n],1.0,0);
+		TopTickerList 	= TopTickerList + Ticker + ",";
+		TopTickerClose	= TopTickerClose + SClose + ",";
+		TopTickerScore 	= TopTickerScore + Score +",";
+		TopTickerNum 		= TopTickerNum + TickerNum +",";
+		}
+}
+else //But if we do not want to sort the Tickers, then we need to do this:
+{	for(n = 0; n < 100; n++)
+		{
+		Ticker 		  	= StrExtract(Tickerlist,n);
+		SClose				= NumToStr(TickerClose[n],1.2,0);
+		Score  			= NumToStr(TickerScores[n],1.2,0);
+		TickerNum 			= NumToStr(TickerIndex[n],1.0,0);
+		TopTickerList 	= TopTickerList + Ticker + ",";
+		TopTickerClose	= TopTickerClose + SClose + ",";
+		TopTickerScore 	= TopTickerScore + Score +",";
+		TopTickerNum 		= TopTickerNum + TickerNum +",";
+		}
+}
+xStaticVarSet("TotalScore", TotalScore);
+xStaticVarSet("MinNegVal", MinNegVal);
+xStaticVarSet("MaxNegVal", MaxNegVal);
+xStaticVarSet("MinPosVal", MinPosVal);
+xStaticVarSet("MaxPosVal", MaxPosVal);
+xStaticVarSetText("TopTickerList", TopTickerList); 
+xStaticVarSetText("TopTickerClose", TopTickerClose); 
+xStaticVarSetText("TopTickerScore", TopTickerScore); 
+StaticVarSetText("CompTickers",CompTickers); 
+//Let you retrieve the list of Tickers in the Composite from other Indicators.
+xStaticVarSet("BackGroundColor", colorWhite);
+}
+//====================================================================
+// DEFINE THE COLORS FOR THE SYMBOL RECTANGLES:
+// Higher positive value = green, Lower positive value = light green
+// Higher negative value = red  , Lower negative value = pink
+//====================================================================
+function FillColor(Value)
+{
+UpRed		= 0;
+UpGreen	= 255;
+UpBlue		= 0;
+DnRed		= 255;
+DnGreen	= 0;
+DnBlue		= 0;
+DarkColor	= 0;
+LightColor	= 230;
+
+if(Value >= 0)
+{
+	UpRed = LightColor - int((LightColor -(((MaxPosVal-Value)*(LightColor-DarkColor))/(MaxPosVal-MinPosVal))));
+	if(Value == 0) UpRed = 255;
+	UpBlue = UpRed;
+}
+if(Value <= 0)
+{ 
+	DnGreen = LightColor - int((LightColor -(((abs(MaxNegVal)-abs(Value))*(LightColor-DarkColor))/(abs(MaxNegVal)-abs(MinNegVal)))));
+	if(Value == 0) DnGreen = 255;
+	DnBlue = DnGreen;
+}
+
+Color	= IIf(Value >= 0, ColorRGB(UpRed, UpGreen, UpBlue), ColorRGB(DnRed, DnGreen, DnBlue));
+return Color;
+}
+//====================================================================
+// CHECK WHICH SYMBOL IS CLICKED AND ACTION:
+//====================================================================
+function SymbolClick(px, py, Flag)
+{
+	x2	= Status("pxchartright");
+	y2 	= Status("pxchartbottom");
+
+if(px <= x2 AND py <= y2)
+ {
+	SymbolIndex = (int((px/(x2/NumRowColumn))) + 1) + int((py/(y2/NumRowColumn)) ) * NumRowColumn;
+	Symbol 	= StrExtract(TopTickerList, SymbolIndex-1);
+
+ 	if(Flag == 3 AND px <= x2 AND py <= y2) //Middle Mouse button.
+	 	CategoryRemoveSymbol( Symbol, categoryFavorite, 0); 
+
+ 	if(Flag == 2 AND px <= x2 AND py <= y2) //Right Mouse button.
+	 	CategoryAddSymbol(Symbol, categoryFavorite, 0);
+
+	if(Flag == 2 OR Flag == 3)
+		{
+		// This will update the Favorite Folder, but it's an "Overkill"!
+		// and shouldn't probably be used. But here it is:	
+		AB = CreateObject("Broker.Application");
+		AB.RefreshAll();
+		}
+
+	if(Flag == 1){ // Left Mouse button.
+   		script = GetScriptObject();
+  		script.SetChartTicker(Symbol);}
+ 	//xStaticVarSet("MouseFlag", 1); //Uncomment this one, if you want any clicks on the Heatmap result in a refresh.
+ } 
+}
+//====================================================================
+// MOUSE BUTTON CALL BACKS 
+//====================================================================
+function MyOnLMouseButton(px, py)
+{ 
+	SymbolClick(px, py, 1);
+}
+
+function MyOnRMouseButton(px, py) 
+{ 
+	SymbolClick(px, py, 2);
+} 
+
+function MyOnMMouseButton(px, py) 
+{ 
+	SymbolClick(px, py, 3);
+} 
+//====================================================================
+// EVENT HANDLER 
+//====================================================================
+function MyEventHandler() 
+{ 
+	local b, px, py; 
+	b = GetCursorMouseButtons(); 
+
+	// retrieve co-ordinates in pixel units 
+	px = GetCursorXPosition(1); 
+	py = GetCursorYPosition(1); 
+
+	if( b & 8 ) 
+	{ 
+  	 // not-null means clicked in THIS (current) window
+  	 if( b & 1 ) MyOnLMouseButton(px, py); 
+  	 if( b & 2 ) MyOnRMouseButton(px, py); 
+   	 if( b & 4 ) MyOnMMouseButton(px, py); 
+	} 
+} 
+//====================================================================
+// CAN SWITCH OFF THE INDICATOR, SINCE IT'S VERY POWER HUNGRY!
+// BUT THE REFRESH TIME CAN ALSO BE SET: 1- 300 SECONDS.
+//====================================================================
+if( Status("Action") == 1 )
+{
+
+if ( IndicatorOnOff AND CategoryListOK )
+{
+ Value 		= 0;
+ Prefix		= "";
+ Suffix		= "";
+ SgnFlag		= 0;
+ format		= 0;
+//====================================================================
+// GET STATIC VALUES, CHECK IF ANYTHING UPDATED AND REFRESH ACCORDINGLY
+//====================================================================
+ RefreshFlag 		= 0;
+ Prefix 			= xStaticVarGetText("Prefix"); 
+ Suffix 			= xStaticVarGetText("Suffix"); 
+ SgnFlag			= xStaticVarGet("SgnFlag");
+ format			= xStaticVarGet("format");
+
+ TotalScore 		= xStaticVarGet("TotalScore");
+ MinNegVal 		= xStaticVarGet("MinNegVal");
+ MaxNegVal 		= xStaticVarGet("MaxNegVal");
+ MinPosVal 		= xStaticVarGet("MinPosVal");
+ MaxPosVal			= xStaticVarGet("MaxPosVal");
+ TopTickerList 	= xStaticVarGetText("TopTickerList"); 
+ TopTickerClose	= xStaticVarGetText("TopTickerClose"); 
+ TopTickerScore	= xStaticVarGetText("TopTickerScore");
+
+ TimePeriod = Interval();
+// Must update as soon as we change a parameter, sort criteria or period:
+ if((ParamTotal != xStaticVarGet("ParamTotal")) OR (SortBy != xStaticVarGetText("SortBy")) 
+    	OR (BasePeriod != xStaticVarGet("BasePeriod")) OR (TimePeriod != xStaticVarGet("TimePeriod")) OR xStaticVarGet("MouseFlag"))
+ {
+  RefreshFlag = 1;
+  xStaticVarSet("ParamTotal", ParamTotal);
+  xStaticVarSetText("SortBy", SortBy); 
+  xStaticVarSet("BasePeriod", BasePeriod);
+  xStaticVarSet("TimePeriod", TimePeriod);
+  xStaticVarSet("MouseFlag", 0);
+ }
+
+TimeFrame = Interval();
+SecNumber = GetSecondNum();
+Newperiod = SecNumber % TimeFrame == 0;
+SecsLeft	= SecNumber - int( SecNumber / TimeFrame ) * TimeFrame;
+SecsToGo	= TimeFrame - SecsLeft;
+
+if(RefreshBy == "Set RT Interval")
+{
+	RTSecToNextPeriod	= SecsToGo % BasePeriod;
+	UpdatePeriod 		= BasePeriod;
+}
+else
+if(RefreshBy == "By Period")
+{
+	RTSecToNextPeriod	= SecsToGo;
+	UpdatePeriod 		= TimeFrame;
+}
+else
+if(RefreshBy == "Manual")
+{
+	RTSecToNextPeriod	= "N/A";
+	UpdatePeriod 		= "Manual";
+}
+
+if(ManualRefresh)
+	RefreshFlag = 1;
+
+if(xStaticVarGet("DoRefresh")) 
+{
+if(NumTickers < BarCount)
+{
+ xStaticVarSet("DoRefresh", False);
+ GetPerformanceCounter(True);
+ getPositionScores(TickerListNum, NumTickers);
+ xStaticVarSet("ExecuteTime", GetPerformanceCounter());
+}
+else
+	PopupWindow( "Please check your data source, or decrease the number of Rows/Columns", "Heatmap Error- Subscript out of range!", 5, -1, -1 ); 
+}
+
+if(RefreshBy == "Set RT Interval")
+	RequestTimedRefresh(BasePeriod);
+if(IIf(RefreshBy == "Set RT Interval", Status("Redrawaction")  OR RefreshFlag OR NOT BasePeriod, 
+  (NewPeriod AND NOT RefreshBy == "Manual")  OR RefreshFlag))
+	xStaticVarSet("Trigger", True);
+
+if(xStaticVarGet("Trigger"))
+{
+ Time = NumToStr(Now(4) , 1.0, 0);
+ if(StrLen(Time)== 4) Time = "00"+Time;
+ if(StrLen(Time)== 5) Time = "0"+Time;
+ Hours 	= StrLeft(Time, 2);
+ Minutes	= StrMid(Time, 2, 2);
+ Seconds	= StrRight(Time, 2);
+ xStaticVarSetText("TimeStamp", Hours+":"+Minutes+":"+Seconds);
+
+xStaticVarSet("DoRefresh",True); // this queues the refresh operation for the next pass through the code
+xStaticVarSet("Trigger", False);
+xStaticVarSet("BackGroundColor", ColorRGB(255, 255, 150));
+}
+
+SetChartBkColor(Nz(xStaticVarGet("BackGroundColor")));
+//====================================================================
+// THE GRAPHIC PRESENTATION:
+//====================================================================
+ x2			= Status("pxchartright");
+ y2 		= Status("pxchartbottom");
+ PenColor 	= colorBlack;
+ TxtColor	= colorBlack;
+
+ Width 	= x2 / sqrt(NumTickers);
+ Hight		= y2 / sqrt(NumTickers);
+ StartX	= 1;
+ StartY	= 1;
+
+ PointSize	= Width/7;
+ Weight	= 100;
+ GfxSelectPen(PenColor, 2); 
+ GfxSetTextColor(TxtColor); 
+ GfxSelectFont(Font, PointSize, Weight); 
+ GfxSetBkMode(1);
+ 
+ OriginalSuffix = Suffix; OriginalFormat = Format;
+
+ for( i = 0; i < NumRowColumn; i++ ) 
+ {
+ 	for(e=0; e < NumRowColumn; e++)
+   	{
+		Symbol 	= StrExtract(TopTickerList, i + (e * NumRowColumn));
+		ForClose	= StrExtract( TopTickerClose, i + (e * NumRowColumn));
+		Value2 	= StrToNum(StrExtract(TopTickerScore, i + (e * NumRowColumn)));
+		Sgn = IIf(SgnFlag < 1, 1, IIf( Value2 > 0, 1, -1));
+		PenWidth = 1;
+
+		if(FavoritesOnOff){
+		// If the Symbol is in the Favourites folder, make the rectangle line thick:
+		Favourites = CategoryGetSymbols(categoryFavorite, 0);
+		PenWidth = IIf(StrFind(","+Favourites+",", ","+Symbol+",") > 0, 4, 1);
+		GfxSelectPen(PenColor,PenWidth);}
+		GfxSelectSolidBrush(FillColor(Value2));
+       
+		// Make big numbers over 1 Million, display with suffix "M":
+		if(abs(Value2) >= 1000000) 
+			{ Value2 = Value2/1000000; Suffix = "M"+ OriginalSuffix; Format = 1.2; }
+		else { Suffix = OriginalSuffix; Format = OriginalFormat; }
+
+		DollarSign	= "$";
+		Result 	= NumToStr(Sgn * Value2, Format,1);
+		// But if we don't have any data to display:
+		if(Symbol == ""){ Symbol = ""; DollarSign = ""; Result = ""; Prefix = ""; Suffix = ""; ForClose = "No Data";}
+		
+		// If we run Real Time, then we want to display that:
+		if( RefreshBy == "Set RT Interval" AND BasePeriod == 0){ UpdatePeriod = "RT"; RTSecToNextPeriod = "RT";}
+
+		GfxRoundRect( StartX + (i * Width), StartY + (e * Hight), Width * (i+1), Hight * (e+1), 15, 15 );
+		if(SortBy == "Close" OR SortBy == "Close Listing")
+			PlotInformation = Symbol+"\r"+ DollarSign + ForClose;
+		else
+			PlotInformation = Symbol+"\r"+ DollarSign + ForClose + "\r"+ Prefix + Result + Suffix;
+		GfxDrawText(PlotInformation, StartX + (i * Width), 5 + StartY + (e * Hight), Width * (i+1), Hight * (e+1), 1);
+	} 
+
+	GfxSelectFont(Font, 10, Weight);
+	GfxDrawText(Category + "\n"+ ListNum +"\n" + "\n" +"Sort By:" + "\n" + SortBy + "\n" + "\n" + "Refresh:" + "\n" + UpdatePeriod + "\n"+ "\n" + "Next Update:" 
+					+ "\n" + RTSecToNextPeriod + "\n" + "\n" + "Last Update:" + "\n" +  xStaticVarGetText("TimeStamp")+ "\n" + "\n" 
+					+ "Execute Time:" + "\n" + xStaticVarGet("ExecuteTime")  , x2+4, (y2 - 335)/2, x2+59, y2, 17);
+	GfxSelectFont(Font, PointSize, Weight);
+	}
+}
+else if( !CategoryListOK ) 
+ {
+ Title = "\n"+
+ "Category: "+Category+"\n"+
+ "List Name: "+NumToStr(ListNum, 1.0, 1)+"\n"+
+ "Category or List Empty or NOT Found!";
+ }
+else if( NOT IndicatorOnOff)
+ {
+  Title ="\n"+
+ "The Heatmap is switched off.";
+ }
+if(IndicatorOnOff AND CategoryListOK)
+	MyEventHandler(); 
+}
+
+_SECTION_END();

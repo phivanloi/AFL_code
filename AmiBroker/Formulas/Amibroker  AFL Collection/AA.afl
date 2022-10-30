@@ -1,0 +1,38 @@
+//Buy Signals 
+
+Condition1 = C > Dropline AND Ref(C,-1) < Ref(Dropline, -1); 
+Cond1=StochK( ) - Ref(StochK() ,-1) >1; 
+Cond2=MACD() > Ref(MACD(),- 1); 
+Cond6=StochD( )<25; 
+Cond7=BarsSince( Cond6) <=7; 
+
+//Sell Signals 
+
+Condition10 = C < Increase AND Ref(C,-1) > Ref(Increase, -1); 
+Cond11=StochK( ) - Ref(StochK() ,-1) < 1; 
+Cond12=MACD( ) < Ref(MACD(),- 1); 
+Cond16=StochD( )>75; 
+Cond17=BarsSince( Cond16) <=7; 
+
+//Buy and Sell orders 
+
+Buy = BarsSince(Condition 1) <=5 AND Cond1 AND Cond7; 
+Sell = BarsSince(Condition 10) <=5 AND cond11 AND Cond17; 
+
+//Short and Cover conditions 
+
+Short = Sell; 
+Cover=Buy; 
+
+Graham wrote the code for the Condition1 AND Condition10. It plots an 
+arrow on the graph so I know that it works. I have checked the 
+stochastic AND MACD for the Buy in question AND these are the 
+figures: 
+
+3/10 Stok = 20.06 
+3/13 Stok = 26.42 
+3/14 Stok = 34.98 
+
+3/13 MACD = -1.74 
+3/14 MACD = -1.54 
+3/14 Green up arrow 

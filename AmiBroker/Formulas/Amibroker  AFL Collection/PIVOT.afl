@@ -1,0 +1,18 @@
+_SECTION_BEGIN("PIVOT");
+P = (H + L + C) / 3;
+R1 = (P * 2) - L;
+S1 = (P * 2) - H;
+R2 = P + (R1 - S1); // P + (H - L)
+S2 = P - (R1 - S1); // P - (H - L)
+R3 = H + 2*(P - L);
+S3 = L - 2*(H - P);
+Plot(C,"C",colorWhite,styleCandle);
+Displace=1;
+Plot(R3,"R3",colorRed,styleDots|styleNoLine,0,0,Displace);
+Plot(R2,"R2",colorRed,styleDots|styleNoLine,0,0,Displace);
+Plot(R1,"R1",colorRed,styleDots|styleNoLine,0,0,Displace);
+Plot(P,"P",colorBlue,styleStaircase,0,0,Displace);
+Plot(S1,"S1",colorGreen,styleDots|styleNoLine,0,0,Displace);
+Plot(S2,"S2",colorGreen,styleDots|styleNoLine,0,0,Displace);
+Plot(S3,"S3",colorGreen,styleDots|styleNoLine,0,0,Displace);
+_SECTION_END();

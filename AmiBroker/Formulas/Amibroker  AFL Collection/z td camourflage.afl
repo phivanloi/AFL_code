@@ -1,0 +1,28 @@
+SetTradeDelays( 1, 1, 1, 1 );
+Plot(C,"",1,64);
+//LL = 5;
+//HH = 5;
+//RiskPerc = 3;
+
+LL = Optimize("LL",5,2,50,1);
+HH = Optimize("HH",5,2,50,1);
+RiskPerc = Optimize("RiskPerc",3,2,50,1);
+
+Buy = Close < Ref(Close,-1) AND Low < Ref( LLV(Low,LL),-1) AND Close > Open AND Close > (Low + ((H - L)*0.5));
+BuyPrice = C;
+Sell = C = Low * (1 - .01*RiskPerc);
+SellPrice = C;
+Short = Close > Ref(Close,-1) AND High > Ref( HHV(High,HH),-1) AND Close < Open AND Close < (Low + ((H - L)*0.5));
+ShortPrice = C;
+Cover =  C = High * (1 + .01*RiskPerc);
+CoverPrice = C;
+
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+Short=ExRem(Short,Cover);
+Cover=ExRem(Cover,Short);
+
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone) ,colorBrightGreen,0);
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed,0);
+PlotShapes(IIf(Cover,shapeUpArrow,shapeNone) ,colorBlue,0);
+PlotShapes(IIf(Short,shapeDownArrow,shapeNone),colorBlack,0);

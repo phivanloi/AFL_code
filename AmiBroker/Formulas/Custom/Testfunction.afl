@@ -1,0 +1,11 @@
+function margin(minp ,maxp)
+{
+	if(Name() == "VN30F1M")
+	{
+		TimeFrameSet(inDaily);
+		result = C[BarCount - 0] * 0.05 ;
+		
+	} 
+
+	return result;
+}

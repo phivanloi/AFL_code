@@ -1,0 +1,18 @@
+_SECTION_BEGIN("");
+x=((MA(Close,3)+MA(Close,5)+
+MA(Close,8)+MA(Close,10)+
+MA(Close,12)+MA(Close,15))-
+(MA(Close,30)+MA(Close,35)+
+MA(Close,40)+MA(Close,45)+
+MA(Close,50)+MA(Close,60)))*10;
+
+y=(MA((MA(Close,3)+MA(Close,5)+
+MA(Close,8)+MA(Close,10)+
+MA(Close,12)+MA(Close,15))-
+(MA(Close,30)+MA(Close,35)+
+MA(Close,40)+MA(Close,45)+
+MA(Close,50)+MA(Close,60)),8))*10;
+
+Plot(x,"GUPPY??Short-Long",colorYellow);
+Plot(y,"Smooth_Short-Long",colorRed);
+//EMA (V, 20) >=40000;

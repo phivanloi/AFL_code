@@ -1,0 +1,39 @@
+//3 Gradient Color
+
+_SECTION_BEGIN("3 color gradient");
+
+priceAxesWidth=0;
+dateAxesHeight=0;
+TitleHeight=0;
+
+pxwidth = Status("pxwidth");
+pxheight = Status("pxheight");
+
+chartwidth = pxwidth-priceAxesWidth;
+chartheight = pxheight-dateAxesHeight;
+
+topColor=ParamColor("topColor",ColorRGB(207,254,240) );
+centerColor=ParamColor("centerColor", ColorRGB(249,236,164));
+botColor=ParamColor("BottomColor", ColorRGB( 253,223,196));
+priceAxesColor=ParamColor("priceAxesColor", colorWhite );
+dateAxesColor=ParamColor("dateAxesColor", colorWhite);
+
+relPos=Param("centerPosition%",50,0,100,1)/100;
+centerHeight=chartheight*Param("centerHeight%",10,0,100,1)/100;
+x0=0;
+y0=Max(TitleHeight,chartheight*relPos-centerHeight/2);
+x1=chartwidth;
+y1=Min(chartheight,chartheight*relPos+centerHeight/2);
+
+GfxSetBkMode( 1 );
+GfxSetOverlayMode(1);
+GfxGradientRect(0,0,chartwidth,TitleHeight, colorWhite ,colorWhite);
+GfxGradientRect(chartwidth,0,pxwidth,pxheight, priceAxesColor
+,priceAxesColor);
+GfxGradientRect(0,chartheight,chartwidth,pxheight, dateAxesColor
+,dateAxesColor);
+GfxGradientRect(x0,y0,x1,y1, CenterColor ,CenterColor );
+GfxGradientRect(0,TitleHeight,chartwidth, y0,topColor, CenterColor );
+GfxGradientRect(0,y1,chartwidth, chartheight,  CenterColor ,botColor);
+
+_SECTION_END();

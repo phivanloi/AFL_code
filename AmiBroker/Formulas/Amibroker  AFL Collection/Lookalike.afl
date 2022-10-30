@@ -1,0 +1,35 @@
+_SECTION_BEGIN("ETP Exploration");
+P = ParamField("Price field",-1);
+Periods = Param("Bollinger", 10, 2, 100, 1 );
+Width = Param("Width",0.52, 0, 10, 0.05 );
+Plot(BBandTop(P,Periods,Width),"BBTop",colorBlack,styleLine|styleThick|styleDots); 
+Plot(BBandBot(P,Periods,Width),"BBBot",colorDarkRed,styleLine|styleThick|styleDots);
+
+Buy = Cross(C, BBandTop(P,Periods,Width));
+Sell = Cross(BBandBot(P,Periods,Width),C);
+
+BG = IIf(Buy, colorPaleGreen, IIf(Sell, colorRose, colorDefault));
+FG = IIf(Buy, colorDarkGreen, IIf(Sell, colorDarkRed, colorDefault));
+
+Trigger = WriteIf(Buy, "Buy", "") + WriteIf(Sell, "Sell", "");
+
+
+
+Filter = Buy OR Sell;
+
+
+
+SetOption("NoDefaultColumns", True);
+
+AddTextColumn(Name(), "Symbol", 77, FG, BG, 85);
+AddColumn(DateTime(), "Date", formatDateTime, FG, BG,1);
+AddColumn(TimeNum() ,"Time",1, FG, BG,75);
+AddColumn(V/Ref(V,-1)*100,"Increase in Vol",1, FG, BG, 40);
+AddColumn( C, "Close",0, FG, BG, 55);
+
+AddColumn(V, "Volume",1, FG, BG, 55);
+
+
+AddColumn( Buy, "Buy", 1);
+AddColumn( Sell, "Sell", 1);
+SetSortColumns( -3 ); 

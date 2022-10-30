@@ -1,0 +1,73 @@
+/*The Relative Slope Trendlines
+Note: Very strong buy-sell signal when RS crosses zero
+*/
+
+
+D1=Param("D1",10,0,100,1);
+KUP=EMA((H+L+C)/3,D1)+EMA(H-L,D1);
+KDOWN=EMA((H+L+C)/3,D1)-EMA(H-L,D1);
+K=EMA((H+L+C)/3,D1);
+S1=2*(K-Ref(K,-1))/(K+Ref(K,-1));
+varEMA = Param("EMA",3,0,100,1);
+RS=10+100*EMA(S1,VarEMA);
+
+x = Cum(1);
+per = 1;
+s1=rs;
+s11=rs;
+pS = TroughBars( s1, per, 1 ) == 0;
+endt= LastValue(ValueWhen( pS, x, 1 ));
+startt=LastValue(ValueWhen( pS, x, 2 ));
+dtS =endt-startt;
+endS = LastValue(ValueWhen( pS, s1, 1 ) );
+startS = LastValue( ValueWhen( pS, s1, 2 ));
+aS = (endS-startS)/dtS;
+bS = endS;
+trendlineS = aS * ( x -endt ) + bS;
+pR = PeakBars( s11, per, 1 ) == 0;
+endt1= LastValue(ValueWhen( pR, x, 1 ));
+startt1=LastValue(ValueWhen( pR, x, 2 ));
+dtR =endt1-startt1;
+endR = LastValue(ValueWhen( pR, s11, 1 ) );
+startR = LastValue( ValueWhen( pR, s11, 2 ));
+aR = (endR-startR)/dtR;
+bR = endR;
+trendlineR = aR * ( x -endt1 ) + bR;
+
+// Plotting
+VarMA5 = MA(RS,5);
+MaxGraph = 8;
+Plot(RS,"",IIf(RS>10,colorBrightGreen,IIf(RS<10,colorRed,colorWhite)),styleThick);
+//Plot(VarMA5,"",colorBlack,styleThick);
+Plot(VarMA5,"",IIf(VarMA5>Ref(VarMA5,-1),colorYellow,colorBlack),styleThick);
+//Plot(ROC(RS),"",colorBlack,styleThick | styleOwnScale);
+Plot(IIf(x>startt-10,trendlineS,-1e10),"",colorYellow,styleDots);
+Plot(IIf(x>startT1-10,trendlineR,-1e10),"",colorDarkRed,styleDots);
+Plot(8,"",colorGreen,styleThick);
+Plot(9,"",colorGreen,styleThick);
+Plot(10,"",colorBlack,styleThick);
+Plot(11,"",colorRed,styleThick);
+Plot(12,"",colorRed,styleThick);
+GraphXSpace= 1;
+Title ="RS - Price " + WriteIf(InWatchList(11),"(Ticker may be SHORTED)","");
+
+/*
+As an indicator, it presents excellent divergences with Close graph, anticipating
+trend reversals.
+It is also valuable for classification of stocks, according to their maximum and minimum
+RS values.
+
+The Relative Slope transformation should be applied to positive arrays. If for example we want to have the Relative Slope of the Slow Stochastic, we may write
+F=StochD();
+K=EMA(F,10);
+S1=2*(K-REF(K,-1))/(K+REF(K,-1));
+RS=100*EMA(S1,3);
+since StochD() is always positive.
+For a Relative slope of MACD(), Roc() and other quantities with negative values, the graph is strange and useless. These negative arrays should be first transformed to positive, example
+MACD1=1000+MACD();
+K=EMA(MACD1,10);
+S1=2*(K-REF(K,-1))/(K+REF(K,-1));
+RS=100*EMA(S1,3);
+*/
+
+

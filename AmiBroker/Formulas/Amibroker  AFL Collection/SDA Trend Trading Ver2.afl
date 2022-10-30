@@ -1,0 +1,71 @@
+_SECTION_BEGIN("SDA2 Channel Trading System ver 2.0");
+
+/* Coded By : Rajandran R
+   WebSite: www.marketcalls.in 
+
+Earlier during October 26th, 2010 SDA2 Trend Trading System  is introduced in marketcalls.
+After revising my old strategy( which contains too many flaws in the system) releasing the 
+newer Version of SDA2 Trend trading system(Version 2.0).This Version is more optimized for 
+Long Only Signals (Short Signals are treated as exit from the long position AND stay away 
+from the market). In the older Version the SDA2 trading system wont perform good if there 
+is any gap up OR gap down in the trading instrument. The new Version overcomes those flaw 
+AND it is more optimized towards those Gap Up/Gap Down.  */
+
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+trailing=0;
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+SetTradeDelays( 1, 1, 1, 1 );
+BuyPrice = Open;
+SellPrice = Open;
+
+Derived=WMA(WMA(WMA(((H+L)/2)+(O-C),2),2),2); 
+i=WMA(Derived,3); 
+Upper=(Derived+StDev(Derived,7))+ATR(2)/1.5; 
+Lower=(Derived-StDev(Derived,7))-ATR(2)/1; 
+
+color=IIf(BarsSince(Cross(Lower,Low))> 
+BarsSince(Cross(C,Upper)), colorBrightGreen,colorRed); 
+Plot(C,"",color,64); 
+Plot(Upper,"upper band",colorGreen); 
+Plot(Lower,"lower band",colorDarkRed); 
+
+/* Buy or Sell Condition */
+Buy = Cross(Close,Upper);
+Sell = Cross(Lower,Low);
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+Cover=Buy;
+Short=Sell;
+
+
+Filter = Buy OR Sell;
+/* Exploration Parameters */
+AddTextColumn( FullName(), "Company Name" );
+AddColumn( Buy, "Buy", 1 );
+AddColumn( Sell, "Sell", 1 );
+AddColumn( C, "Close", 1.3 );
+AddColumn( H, "High", 1.3 );
+AddColumn( Lower, "Lower Band", 1.3 );
+AddColumn( Upper, "Upper Band", 1.3 );
+
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+
+
+_SECTION_END();
+
+/*_SECTION_BEGIN("WaterMark");
+GfxSetOverlayMode(1);
+GfxSelectFont("Tahoma", Status("pxheight")/12 );
+GfxSetTextAlign( 6 );// center alignment
+GfxSetTextColor( ColorHSB( 42, 42, 42 ) );
+GfxSetBkMode(0); // transparent
+GfxTextOut( "Budget 2012", Status("pxwidth")/4, Status("pxheight")/4 ); //you can change your own display name
+GfxSelectFont("Tahoma", Status("pxheight")/12 );
+GfxTextOut( " www.marketcalls.in", Status("pxwidth")/4, Status("pxheight")/4+90 ); //you can change your own display name
+_SECTION_END(); */

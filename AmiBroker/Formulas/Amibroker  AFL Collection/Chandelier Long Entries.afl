@@ -1,0 +1,5 @@
+factor = Param("Chandelier Factor",3.0,0.0,20.0,0.1); 
+ATRDAYS = Param("ATR Days",22,5,50,1);
+CLEN = High-factor*ATR(ATRDAYS);
+
+Plot( CLEN, "Long Entries("+factor+","+ATRDAYS+")", ParamColor("color", colorCycle ), ParamStyle("Style") );

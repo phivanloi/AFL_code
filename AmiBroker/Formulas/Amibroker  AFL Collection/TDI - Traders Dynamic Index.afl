@@ -1,0 +1,35 @@
+r = RSI(13);
+Plot(R, "RSI(13)", colorRed);
+
+PlotGrid(32, colorLightGrey);
+PlotGrid(50, colorLightGrey);
+PlotGrid(68, colorLightGrey);
+
+TSL = MA(R,7);
+Plot(TSL, "Trade Signal Line", colorLime);
+
+PL = MA(R,2);
+Plot(PL, "Price Line", colorPink, styleThick | styleDashed);
+
+//Market Base Line (MBL): the Sum of the High AND Low limits of the volatility band (VB) (a 34 period MA on the array, I think), divided by two:
+UpZone = (MA(r,34) + (1.6185 * StDev(R,34)));
+DnZone = (MA(r,34) - (1.6185 * StDev(R,34)));
+MdZone = ((UpZone + DnZone)/2);
+
+Plot(MdZone, "MBL", colorLightBlue, styleThick);
+Plot(upZone, "VB,Up", 2);
+Plot(dnZone, "VB, Dn, DZ", 2);
+
+
+//haClose > PAC High = Buy
+//haClose < PAC Low = Sell
+Buy = R > TSL;
+Sell = R < TSL;
+//RSI AND TSL crossing means Exit
+Buy = R > MdZone;
+Sell = R < MdZone;
+//Market reversals when MBL hits 32 OR 68
+//RSI > VB means add a Second Buy
+//RSI < VB means add a Second Sell
+//RSI crosses Inside VB means probable Exit
+//It's all based on whether haClose is Outside the PAC AND the RSI crosses TSL, MBL, VB.

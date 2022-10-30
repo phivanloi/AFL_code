@@ -1,0 +1,38 @@
+
+
+_SECTION_BEGIN("Price");
+
+//Plot( CCI( 14 ), "CCI", colorRed, styleThick  );
+//Plot(80,"",colorWhite,styleDashed);
+//Plot(0,"",colorRed,styleDashed);
+//Plot(-80,"",colorWhite,styleDashed);
+
+Cc = CCI(14);
+Buy = Cross(Cc,80);
+Sell = Cross(-80,Cc);
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+Plot( C, "Close", colorWhite, styleCandle ); 
+
+dist = 1.5*ATR(10); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "Buy\n@" + C[ i ], i, L[ i ]-dist[i], colorGreen ); 
+if( Sell[i] ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorRed ); 
+} 
+
+PlotShapes( Buy * shapeUpArrow + Sell * shapeDownArrow, IIf( Buy, colorGreen, colorRed ) );
+COLORZ = IIf (CC > Ref(CC,-1) OR CC > 80,colorBlue,IIf (CC < Ref(CC,-1) OR CC < -80,colorRed,colorYellow)); 
+Plot( 2, /* defines the height of the ribbon in percent of pane width */
+"Ribbon",colorZ,styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+
+_SECTION_END();
+
+_SECTION_BEGIN("TSKPDynSupRes");
+sw = E_TSKPSWINGLINE(High,Low,Close);
+// tskp_sw, tskp_swmean,tskp_swupper,tskp_swlower
+Plot( tskp_swmean, "Mean", ParamColor( "MeanColor", colorDarkGreen ), ParamStyle("MeanStyle",styleNoLabel) ); 
+Plot( tskp_swupper, "Resistance", ParamColor( "ResistanceColor", colorDarkGreen ), ParamStyle("ResistanceStyle",styleNoLabel) ); 
+Plot( tskp_swlower, "Support", ParamColor( "SupportColor", colorDarkGreen ), ParamStyle("SupportStyle",styleNoLabel) ); 
+_SECTION_END();

@@ -1,0 +1,94 @@
+_SECTION_BEGIN("Revesalexplorer");
+// Downloaded From https://www.WiseStockTrader.com
+//Exp-Reversal v.1.0
+
+/*Explore to select stocks that get Bullish Reversal Signals
+Bullish Reversal is based on CandleStick which is basically looking
+reversal up after the previous decline.
+Or in other words, Buy On Weekness or Buy On Dip
+These signals are sorted by RSI from low to high.
+As is known, the lower the RSI the price reduction is in, and vice versa.
+
+There are 2 parameters / variables that we can set:
+1. RSI Max: Maximum RSI allowed, the default value is 45
+2. Malue Min: Average value of 20 days in Rp. Billion, the default value is Rp. 3 billion
+This is to filter out enough liquid stocks
+*/
+
+C1 = Ref(C,-1);
+C2 = Ref(C,-2);
+A1 = Ref(Avg,-1);
+A2 = Ref(Avg,-2);
+A3 = Ref(Avg,-3);
+A4 = Ref(Avg,-4);
+A5 = Ref(Avg,-5);
+O1 = Ref(O,-1);
+O2 = Ref(O,-2);
+
+Condition1 = ((A1 < A2) AND (A2 < A3) AND (A1 < A4)); //AND (A3 < A4) ) ;//OR ( A1 < A3);
+Condition2 = (C1 <= O1) AND (C2 <= O2);
+ConditionDown = Condition1 AND Condition2;
+Condition3 = (A1 > A2) AND (A2 > A3) AND (A1 > A4) ;
+Condition4 = (C1 >= O1) AND (C2 >= O2);
+ConditionUp = Condition3 AND Condition4;
+
+DibawahMA20 = C < MA(C,20);
+DiatasMA20  = C > MA(C,20);
+
+//HammerItem =
+BodyI = O - C;
+TailI = C - L;
+HammerItem = (O==H) AND (C < O) AND (TailI >= 2*BodyI);
+
+//HammerPutih =
+BodyP = C - O;
+TailP = O - L;
+HammerPutih = (C==H) AND (C > O) AND (TailP >= 2*BodyP);
+
+Hammer = HammerPutih OR HammerItem;// Syarat Candlestick Bullish dan Bearish Reversal
+Doji = O == C;
+BodiPutih = C > O ;//AND (TailI < BodyI) ;
+BodiItem = C < O ;//AND (TailP < BodyP);
+
+BullishReversal = Doji OR BodiPutih OR Hammer;
+BearishReversal = Doji OR BodiItem OR Hammer;
+
+SyaratBullishR = ConditionDown AND BullishReversal ;
+SyaratBearishR = ConditionUp  AND BearishReversal ;
+
+// Likuiditas
+AvgPrice=(O+H+L+C)/4;
+DV=AvgPrice*V;
+DVMil = DV / 1000000000;
+
+MADV20 = MA( DV, 20 );
+MADV20Mil = MADV20 / 1000000000;
+
+FV = DVMil / Ref(MADV20Mil,-1) ;
+
+// Tick dan Harga Beli
+/*
+Tick =  IIf (C<200,1,
+		IIf (C>=200 AND C<500,2,
+		IIf (C>=500 AND C<2000,5,
+		IIf (C>=2000 AND C<5000,10,25))))
+*/		
+Tick =  IIf(C<=500,1,
+		IIf(C>500 AND C<=5000,5,25));
+B1 = C+tick;
+
+// Parameter - Variable
+
+RSIMax = Param ("RSI Maximal", 45, 10, 60, 1);
+ValueMin = Param ("Value Min (Rp. Mil)", 3, 0.5, 6, 0.5);
+
+Filter = SyaratBullishR AND MADV20Mil > 5 AND RSI() < RSIMax ;// AND Aux2 > 0; 
+AddColumn (RSI(),"RSI",1.2, colorBlack);
+AddColumn (DVMil,"Val-Mil",1.2,IIf(DVMil > 10, colorBlue,IIf (DVMil >4 AND DVMil <=10,colorGreen,colorBlack)));
+AddColumn (C,"Close",1.0, colorBlack);
+AddColumn (B1,"Sell Price",1.0, colorBlack);
+//Selisih = ((Ref(C,1) - C ) / C )*100;
+//AddColumn (Deviation,"% Today",1.2, colorBlack);
+AddColumn (Ref(ROC(C,1),1),"% Today",1.2, IIf(Ref(ROC(C,1),1)>=0 ,colorBlack, colorRed));
+SetSortColumns(3);
+_SECTION_END();

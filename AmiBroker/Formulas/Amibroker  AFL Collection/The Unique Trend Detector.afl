@@ -1,0 +1,42 @@
+/*** The Unique Trend Detector ***/
+/*This is very simple Trend Detector, only looking the color we can know the trend, and buy or sell following the arrow.
+author by Chynthia, march,24 ,2010.
+   */
+SetChartOptions( 0, chartShowArrows|chartShowDates );
+
+_SECTION_BEGIN("The Unique Tren Detector");
+/*** The Unique Trend Detector ***/
+A = (H+C+L)/3;
+B=MA(A,5)-EMA(A,34);
+D = EMA(A,34)-MA(A,5);
+Bcolor=IIf(B>D,10,11);
+Dcolor=IIf(D<B,10,11);
+Up = B > D;
+down = B < D;
+Buy = Cross(B,D);
+Sell = Cross(D,B);
+Plot(B,"B ",Bcolor,styleLine|styleThick);
+Plot(D,"D ",Dcolor,styleLine|styleThick);
+Plot(B,"",Bcolor,styleHistogram|styleThick);
+Plot(D,"",Dcolor,styleHistogram|styleThick);
+Plot(0,"",colorYellow,styleLine);
+mkol = IIf( Up==1, 10, 11);
+Plot(5, "", mkol, styleOwnScale|styleArea|styleNoLabel, 0, -5); // Weekly trend
+PlotShapes(IIf(Sell, shapeDownArrow , shapeNone), colorRed);
+PlotShapes(IIf(Buy, shapeUpArrow , shapeNone), colorGreen);
+strWeekday = StrMid("---sunday---Monday--TuesdayWednesday-Thursday--Friday--Saturday", SelectedValue(DayOfWeek())*9,9);
+
+//===============================
+Title = EncodeColor(colorBrightGreen)+ "@.Chynthia Unique Trend Detector " +EncodeColor(colorWhite)+ " - " + FullName()+" ({{NAME}})"+ " - "+EncodeColor(colorRed)+ Interval(2) +
+EncodeColor(colorBrightGreen)+"   -  "+strWeekday + "  - " +EncodeColor(colorWhite) +  Date() +"\n" +EncodeColor(colorYellow) +"Close= "+C+
+StrFormat(" (%.1f : %.1f%%)", C-Ref(C, -1), SelectedValue(ROC(C,1)))+"  "+ "Vol= "+ WriteVal(V,1.0)+
+("\n Trend: ")+WriteIf(Up,EncodeColor(colorLime)+"  Up ",EncodeColor(colorRed)+"  Down ")+EncodeColor(colorYellow)+" Position: "+WriteIf(Up,EncodeColor(colorLime)+
+"  Long ",EncodeColor(colorRed)+"  Short ")+EncodeColor(colorLime)+"\n "+
+WriteIf (Buy , "Hi ...Buy and GO LONG / Reverse Signal at "+C+"  ","")+EncodeColor(colorRed)+
+WriteIf (Sell , "Hi...Sell (Short) and EXIT LONG / Reverse Signal at "+C+"  ","");
+_SECTION_END();
+_SECTION_BEGIN("Background");
+	SetChartBkColor(ParamColor("Outer panel",colorBlack)); // color of outer border 
+	SetChartBkGradientFill( ParamColor("Inner panel upper",colorBlack),ParamColor("Inner panel lower",colorBlack));
+	tchoice=Param("Title Selection ",2,1,2,1);
+_SECTION_END();

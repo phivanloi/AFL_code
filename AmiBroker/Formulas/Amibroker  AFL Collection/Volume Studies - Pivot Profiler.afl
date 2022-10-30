@@ -1,0 +1,167 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+
+NoDemand = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)<=Ref((H-L),-1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND C>Ref(C,1) AND H>=Ref(H,1);
+NoSupply = L<Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)<=Ref((H-L),-1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND C<Ref(C,1) AND L<=Ref(L,1);
+
+NoDemand2 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)>Ref((H-L),-1) AND C==O AND C>Ref(C,1) AND H>=Ref(H,1) AND V<Ref(V,-1) AND V<Ref(V,-2);
+NoSupply2 = L<Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)>Ref((H-L),-1) AND C==O AND C<Ref(C,1) AND L<=Ref(L,1) AND V<Ref(V,-1) AND V<Ref(V,-2);
+
+NoDemand3 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)>Ref((H-L),-1) AND C==H AND C>Ref(C,1) AND H>=Ref(H,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoDemand2==0;
+NoSupply3 = L<Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)>Ref((H-L),-1) AND C==L AND C<Ref(C,1) AND L<=Ref(L,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoSupply2==0;
+
+NoDemand4 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)>Ref((H-L),-1) AND C==((H-L)*0.5)+L AND C>Ref(C,1) AND H>=Ref(H,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoDemand2==0;
+NoSupply4 = L<Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)>Ref((H-L),-1) AND C==((H-L)*0.5)+L AND C<Ref(C,1) AND L<=Ref(L,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoSupply2==0;
+
+NoDemand5 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)>Ref((H-L),-1) AND C==L AND C>Ref(C,1) AND H>=Ref(H,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoDemand2==0;
+NoSupply5 = L<Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)>Ref((H-L),-1) AND C==H AND C<Ref(C,1) AND L<=Ref(L,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoSupply2==0;
+
+NoDemand6 = C>Ref(C,-1) AND (H-L)<Ref((H-L),-1) AND C>Ref(C,1) AND H>=Ref(H,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoDemand==0;
+NoSupply6 = C<Ref(C,-1) AND (H-L)<Ref((H-L),-1) AND C<Ref(C,1) AND L<=Ref(L,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoSupply==0;
+
+NoDemand7 = C>Ref(C,-1) AND (H-L)==Ref((H-L),-1) AND C==O AND C>Ref(C,1) AND H>=Ref(H,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoDemand==0;
+NoSupply7 = C<Ref(C,-1) AND (H-L)==Ref((H-L),-1) AND C==O AND C<Ref(C,1) AND L<=Ref(L,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoSupply==0;
+
+NoDemand8 = C>Ref(C,-1) AND (H-L)==Ref((H-L),-1) AND C==H AND C!=O AND C>Ref(C,1) AND H>=Ref(H,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoDemand==0;
+NoSupply8 = C<Ref(C,-1) AND (H-L)==Ref((H-L),-1) AND C==L AND C!=O AND C<Ref(C,1) AND L<=Ref(L,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoSupply==0;
+
+NoDemand9 = C>Ref(C,-1) AND (H-L)==Ref((H-L),-1) AND C==((H-L)*0.5)+L AND C!=O AND C>Ref(C,1) AND H>=Ref(H,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoDemand==0;
+NoSupply9 = C<Ref(C,-1) AND (H-L)==Ref((H-L),-1) AND C==((H-L)*0.5)+L AND C!=O AND C<Ref(C,1) AND L<=Ref(L,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoSupply==0;
+
+NoDemand10 = C>Ref(C,-1) AND (H-L)==Ref((H-L),-1) AND C==L AND C!=O AND C>Ref(C,1) AND H>=Ref(H,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoDemand==0;
+NoSupply10 = C<Ref(C,-1) AND (H-L)==Ref((H-L),-1) AND C==H AND C!=O AND C<Ref(C,1) AND L<=Ref(L,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoSupply==0;
+
+NoDemand11 = C==Ref(C,-1) AND (H-L)<Ref((H-L),-1) AND C==O AND C>Ref(C,1) AND H>=Ref(H,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoDemand==0;
+NoSupply11 = C==Ref(C,-1) AND (H-L)<Ref((H-L),-1) AND C==O AND C<Ref(C,1) AND L<=Ref(L,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoSupply==0;
+
+NoDemand12 = C==Ref(C,-1) AND (H-L)<Ref((H-L),-1) AND C==H AND C!=O AND C>Ref(C,1) AND H>=Ref(H,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoDemand==0;
+NoSupply12 = C==Ref(C,-1) AND (H-L)<Ref((H-L),-1) AND C==L AND C!=O AND C<Ref(C,1) AND L<=Ref(L,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoSupply==0;
+
+NoDemand13 = C==Ref(C,-1) AND (H-L)<Ref((H-L),-1) AND C==((H-L)*0.5)+L AND C!=O AND C>Ref(C,1) AND H>=Ref(H,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoDemand==0;
+NoSupply13 = C==Ref(C,-1) AND (H-L)<Ref((H-L),-1) AND C==((H-L)*0.5)+L AND C!=O AND C<Ref(C,1) AND L<=Ref(L,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoSupply==0;
+
+NoDemand14 = C==Ref(C,-1) AND (H-L)<Ref((H-L),-1) AND C==L AND C!=O AND C>Ref(C,1) AND H>=Ref(H,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoDemand==0;
+NoSupply14 = C==Ref(C,-1) AND (H-L)<Ref((H-L),-1) AND C==H AND C!=O AND C<Ref(C,1) AND L<=Ref(L,1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND NoSupply==0;
+
+NoDemand15 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)<=Ref((H-L),-1) AND C>=Ref(C,-1) AND C==O AND C==Ref(C,1) AND C>Ref(C,2) AND H>=Ref(H,1) AND H>=Ref(H,2) AND V<Ref(V,-1) AND V<Ref(V,-2);
+NoSupply15 = L<Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)<=Ref((H-L),-1) AND C<=Ref(C,-1) AND C==O AND C==Ref(C,1) AND C<Ref(C,2) AND L<=Ref(L,1) AND L<=Ref(L,2) AND V<Ref(V,-1) AND V<Ref(V,-2);
+
+NoDemand16 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)<=Ref((H-L),-1) AND C>=Ref(C,-1) AND C==H AND C!=O AND C==Ref(C,1) AND C>Ref(C,2) AND H>=Ref(H,1) AND H>=Ref(H,2) AND V<Ref(V,-1) AND V<Ref(V,-2);
+NoSupply16 = L<Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)<=Ref((H-L),-1) AND C<=Ref(C,-1) AND C==L AND C!=O AND C==Ref(C,1) AND C<Ref(C,2) AND L<=Ref(L,1) AND L<=Ref(L,2) AND V<Ref(V,-1) AND V<Ref(V,-2);
+
+NoDemand17 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)<=Ref((H-L),-1) AND C>=Ref(C,-1) AND C==((H-L)*0.5)+L AND C!=O AND C==Ref(C,1) AND C>Ref(C,2) AND H>=Ref(H,1) AND H>=Ref(H,2) AND V<Ref(V,-1) AND V<Ref(V,-2);
+NoSupply17 = L<Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)<=Ref((H-L),-1) AND C<=Ref(C,-1) AND C==((H-L)*0.5)+L AND C!=O AND C==Ref(C,1) AND C<Ref(C,2) AND L<=Ref(L,1) AND L<=Ref(L,2) AND V<Ref(V,-1) AND V<Ref(V,-2);
+
+NoDemand18 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)<=Ref((H-L),-1) AND C>=Ref(C,-1) AND C==L AND C!=O AND C==Ref(C,1) AND C>Ref(C,2) AND H>=Ref(H,1) AND H>=Ref(H,2) AND V<Ref(V,-1) AND V<Ref(V,-2);
+NoSupply18 = L<Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)<=Ref((H-L),-1) AND C<=Ref(C,-1) AND C==H AND C!=O AND C==Ref(C,1) AND C<Ref(C,2) AND L<=Ref(L,1) AND L<=Ref(L,2) AND V<Ref(V,-1) AND V<Ref(V,-2);
+
+NoDemand19 = H>Ref(H,-1) AND L>=Ref(L,-1) AND C==O AND C>Ref(C,1) AND H>=Ref(H,1) AND V==Ref(V,-1) AND V<Ref(V,-2);
+NoSupply19 = L<Ref(L,-1) AND H<=Ref(H,-1) AND C==O AND C<Ref(C,1) AND L<=Ref(L,1) AND V==Ref(V,-1) AND V<Ref(V,-2);
+
+NoDemand20 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)<=Ref((H-L),-1) AND C==H AND C!=O AND C>Ref(C,1) AND H>=Ref(H,1) AND V==Ref(V,-1) AND V<Ref(V,-2);
+NoSupply20 = L<Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)<=Ref((H-L),-1) AND C==L AND C!=O AND C<Ref(C,1) AND L<=Ref(L,1) AND V==Ref(V,-1) AND V<Ref(V,-2);
+
+NoDemand21 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)<=Ref((H-L),-1) AND C==((H-L)*0.5)+L AND C!=O AND C>Ref(C,1) AND H>=Ref(H,1) AND V==Ref(V,-1) AND V<Ref(V,-2);
+NoSupply21 = L<Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)<=Ref((H-L),-1) AND C==((H-L)*0.5)+L AND C!=O AND C<Ref(C,1) AND L<=Ref(L,1) AND V==Ref(V,-1) AND V<Ref(V,-2);
+
+NoDemand22 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)<=Ref((H-L),-1) AND C==L AND C!=O AND C>Ref(C,1) AND H>=Ref(H,1) AND V==Ref(V,-1) AND V<Ref(V,-2);
+NoSupply22 = L<Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)<=Ref((H-L),-1) AND C==H AND C!=O AND C<Ref(C,1) AND L<=Ref(L,1) AND V==Ref(V,-1) AND V<Ref(V,-2);
+
+NoDemand23 = H>Ref(H,-1) AND L>=Ref(L,-1) AND C==O AND C>Ref(C,1) AND H>=Ref(H,1) AND V<Ref(V,-1) AND V==Ref(V,-2);
+NoSupply23 = L<Ref(L,-1) AND H<=Ref(H,-1) AND C==O AND C<Ref(C,1) AND L<=Ref(L,1) AND V<Ref(V,-1) AND V==Ref(V,-2);
+
+NoDemand24 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)<=Ref((H-L),-1) AND C==H AND C!=O AND C>Ref(C,1) AND H>=Ref(H,1) AND V<Ref(V,-1) AND V==Ref(V,-2);
+NoSupply24 = L<Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)<=Ref((H-L),-1) AND C==L AND C!=O AND C<Ref(C,1) AND L<=Ref(L,1) AND V<Ref(V,-1) AND V==Ref(V,-2);
+
+NoDemand25 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)<=Ref((H-L),-1) AND C==((H-L)*0.5)+L AND C!=O AND C>Ref(C,1) AND H>=Ref(H,1) AND V<Ref(V,-1) AND V==Ref(V,-2);
+NoSupply25 = L<Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)<=Ref((H-L),-1) AND C==((H-L)*0.5)+L AND C!=O AND C<Ref(C,1) AND L<=Ref(L,1) AND V<Ref(V,-1) AND V==Ref(V,-2);
+
+NoDemand26 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)<=Ref((H-L),-1) AND C==L AND C!=O AND C>Ref(C,1) AND H>=Ref(H,1) AND V<Ref(V,-1) AND V==Ref(V,-2);
+NoSupply26 = L<Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)<=Ref((H-L),-1) AND C==H AND C!=O AND C<Ref(C,1) AND L<=Ref(L,1) AND V<Ref(V,-1) AND V==Ref(V,-2);
+
+NoDemand27 = H>Ref(H,-1) AND L>=Ref(L,-1) AND C==O AND C>Ref(C,1) AND H>=Ref(H,1) AND V==Ref(V,-1) AND V==Ref(V,-2);
+NoSupply27 = L<Ref(L,-1) AND H<=Ref(H,-1) AND C==O AND C<Ref(C,1) AND L<=Ref(L,1) AND V==Ref(V,-1) AND V==Ref(V,-2);
+
+NoDemand28 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)<=Ref((H-L),-1) AND C==H AND C!=O AND C>Ref(C,1) AND H>=Ref(H,1) AND V==Ref(V,-1) AND V==Ref(V,-2);
+NoSupply28 = L<Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)<=Ref((H-L),-1) AND C==L AND C!=O AND C<Ref(C,1) AND L<=Ref(L,1) AND V==Ref(V,-1) AND V==Ref(V,-2);
+
+NoDemand29 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)<=Ref((H-L),-1) AND C==((H-L)*0.5)+L AND C!=O AND C>Ref(C,1) AND H>=Ref(H,1) AND V==Ref(V,-1) AND V==Ref(V,-2);
+NoSupply29 = L<Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)<=Ref((H-L),-1) AND C==((H-L)*0.5)+L AND C!=O AND C<Ref(C,1) AND L<=Ref(L,1) AND V==Ref(V,-1) AND V==Ref(V,-2);
+
+NoDemand30 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)<=Ref((H-L),-1) AND C==L AND C!=O AND C>Ref(C,1) AND H>=Ref(H,1) AND V==Ref(V,-1) AND V==Ref(V,-2);
+NoSupply30 = L<Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)<=Ref((H-L),-1) AND C==H AND C!=O AND C<Ref(C,1) AND L<=Ref(L,1) AND V==Ref(V,-1) AND V==Ref(V,-2);
+
+FNoDemand = (NoDemand OR NoDemand2 OR NoDemand3 OR NoDemand3 OR NoDemand4 OR NoDemand5 OR NoDemand6 OR NoDemand7 OR NoDemand8 OR NoDemand9 OR NoDemand10 OR
+  NoDemand11 OR NoDemand12 OR NoDemand13 OR NoDemand14 OR NoDemand15 OR NoDemand16 OR NoDemand17 OR NoDemand18 OR NoDemand18 OR NoDemand20 OR NoDemand21 OR
+  NoDemand22 OR NoDemand23 OR NoDemand24 OR NoDemand25 OR NoDemand26 OR NoDemand27 OR NoDemand28 OR NoDemand29 OR NoDemand30);
+
+FNoSupply = (NoSupply OR NoSupply2 OR NoSupply3 OR NoSupply3 OR NoSupply4 OR NoSupply5 OR NoSupply6 OR NoSupply7 OR NoSupply8 OR NoSupply9 OR NoSupply10 OR
+  NoSupply11 OR NoSupply12 OR NoSupply13 OR NoSupply14 OR NoSupply15 OR NoSupply16 OR NoSupply17 OR NoSupply18 OR NoSupply18 OR NoSupply20 OR NoSupply21 OR
+  NoSupply22 OR NoSupply23 OR NoSupply24 OR NoSupply25 OR NoSupply26 OR NoSupply27 OR NoSupply28 OR NoSupply29 OR NoSupply30);
+
+
+VolAve = MA(V,30);
+spread = H-L;
+Mp = L + ((H-L)/2);
+WRB = (spread > Ref(spread,-1)) AND (spread > Ref(spread,-2)) AND (spread > Ref(spread,-3));
+
+EffortU1 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)==Ref((H-L),-1) AND
+  O<=((H-L)*0.1)+L AND C>=((H-L)*0.9)+L AND C>Ref(C,-1) AND Mp>Ref(H,-1)
+  AND V>Ref(V,-1) AND V>VolAve AND V<=2*VolAve AND WRB=1;
+
+EffortD1 = L>Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)==Ref((H-L),-1) AND 
+ O>=((H-L)*0.9)+L AND C<=((H-L)*0.1)+L AND C<Ref(C,-1) AND Mp<Ref(L,-1) 
+ AND V>Ref(V,-1) AND V>VolAve AND V<=2*VolAve AND WRB=1;
+
+EffortU2 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)>Ref((H-L),-1) AND 
+  O<=((H-L)*0.2)+L AND C>=((H-L)*0.8)+L AND C>Ref(C,-1) AND Mp>=Ref(H,-1) 
+  AND V>Ref(V,-1) AND V>2*VolAve AND V<=4*VolAve AND WRB=1 AND C<Ref(C,1);
+
+EffortD2 = L>Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)>Ref((H-L),-1) AND 
+  O>=((H-L)*0.8)+L AND C<=((H-L)*0.2)+L AND C<Ref(C,-1) AND Mp<=Ref(L,-1) 
+  AND V>Ref(V,-1) AND V>2*VolAve AND V<=4*VolAve AND WRB=1 AND C>Ref(C,1);
+
+EffortU3 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)==Ref((H-L),-1) AND 
+  O<=((H-L)*0.1)+L AND C>=((H-L)*0.9)+L AND C>Ref(C,-1) AND Mp>Ref(H,-1)
+  AND V>Ref(V,-1) AND V>2*VolAve AND V<=4*VolAve AND WRB=1 AND C<Ref(C,1);
+
+EffortD3 = L>Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)==Ref((H-L),-1) AND 
+  O>=((H-L)*0.9)+L AND C<=((H-L)*0.1)+L AND C<Ref(C,-1) AND Mp<Ref(L,-1)
+  AND V>Ref(V,-1) AND V>2*VolAve AND V<=4*VolAve AND WRB=1 AND C>Ref(C,1);
+
+EffortU4 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)>Ref((H-L),-1) AND
+  O<=((H-L)*0.2)+L AND C>=((H-L)*0.8)+L AND C>Ref(C,-1) AND Mp>=Ref(H,-1)
+  AND V<VolAve AND V>Ref(V,-1) AND V>Ref(V,-2) AND WRB=1;
+
+EffortD4 = L>Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)>Ref((H-L),-1) AND 
+  O>=((H-L)*0.8)+L AND C<=((H-L)*0.2)+L AND C<Ref(C,-1) AND Mp<=Ref(L,-1)
+  AND V<VolAve AND V>Ref(V,-1) AND V>Ref(V,-2) AND WRB=1;
+
+EffortU5 = H>Ref(H,-1) AND L>=Ref(L,-1) AND (H-L)==Ref((H-L),-1) AND 
+  O<=((H-L)*0.1)+L AND C>=((H-L)*0.9)+L AND C>Ref(C,-1) AND Mp>Ref(H,-1)
+  AND V>VolAve AND V>Ref(V,-1) AND Ref(V,-1)>Ref(V,-2) AND WRB=1;
+
+EffortD5 = L>Ref(L,-1) AND H<=Ref(H,-1) AND (H-L)==Ref((H-L),-1) AND 
+  O>=((H-L)*0.9)+L AND C<=((H-L)*0.1)+L AND C<Ref(C,-1) AND Mp<Ref(L,-1) 
+  AND V>VolAve AND V>Ref(V,-1) AND Ref(V,-1)>Ref(V,-2) AND WRB=1;
+
+EffortUp = EffortU1 OR EffortU2 OR EffortU3 OR EffortU4 OR EffortU5;
+EffortDown = EffortD1 OR EffortD2 OR EffortD3 OR EffortD4 OR EffortD5;
+
+
+PlotShapes( shapeSmallCircle*FNoDemand , colorOrange ,0, H, 10);
+PlotShapes( shapeSmallCircle*FNoSupply , colorBlue ,0, L);
+PlotShapes( shapeDownArrow*EffortDown , colorRed ,0, H, 10);
+PlotShapes( shapeUpArrow*EffortUp , colorGreen ,0, L);
+
+Trend_U = ( LLV( L, 20 ) + 2 * ATR( 10 ) );
+Trend_D = ( HHV( H, 20 ) - 2 * ATR( 10 ) );
+TrendUp = C >= Trend_U;
+TrendDown = C < Trend_D;
+
+Color2 = IIf( TrendUp, colorDarkGreen, 
+	IIf( TrendDown, colorRed, colorBlack));
+
+Plot( C, "Close", Color2, styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+_SECTION_END();

@@ -1,0 +1,100 @@
+// created by chandrakant
+/*1. Here are some observations to keep in mind that will help assure
+you are in a good trending move which is detrimental to the success 
+of the trade moving higher before the inevitable over exhausted trend.
+ 
+2 Consider only going long on the 5M if the 30M (two rows above) is also blue.
+
+3 Consider the 1hr row as well being blue since it has an effect too.
+
+4 The 15M row has to be blue with NO exceptions
+
+5 The 30M row if blue has less effect on the trade as compared to the 15M row 
+but keep this in mind. The 30M row being blue helps the 15M row continue to stay blue. 
+
+6 The 1hr row has even less effect OR importance but it too keeps the 30M 
+from weakening to some minor degree. 
+*/
+// Define label bar (x) position location
+#pragma nocache
+blankRightBars = 5; //insert actual blank right bars specified in Preferences 
+barsInView = Status("lastvisiblebarindex") - Status("firstvisiblebarindex") - blankRightBars;
+Offset = Param("Offset Bar", 0.95, 0, 1, 0.01);
+textOffset = BarCount - (Offset * barsInView);
+
+_SECTION_BEGIN("1");
+Compress= Param("Compression",1,0.20,100,0.10); 
+TimeFrameSet(Compress* Interval());
+HaClose =EMA((O+H+L+C)/4,3); 
+HaOpen = AMA( Ref( HaClose, -1 ), 0.5 ); 
+HaHigh = Max( H, Max( HaClose, HaOpen ) ); 
+HaLow = Min( L, Min( HaClose, HaOpen ) ); 
+Color = IIf( Haopen > Haclose,4, IIf( HaHigh < HaLow,colorYellow, 6));
+Plot(20,"", Color,styleHistogram+styleThick|styleOwnScale|styleNoLabel, 0, 100 );
+Plot( 21,"",colorBlack,styleOwnScale|styleArea|styleNoLabel,0, 100 );
+PlotText("Heinkein 4T tf :"+Interval(2), textoffset, 61.95, colorYellow);
+printf("\n =" + WriteVal( HaClose));
+CondB=Haopen > Haclose;CONDS=Haopen < Haclose;
+TimeFrameRestore();
+
+
+_SECTION_BEGIN("2");
+Compress= Param("Compression",1.2,0.20,100,0.10); 
+TimeFrameSet(Compress* Interval());
+HaClose =EMA((O+H+L+C)/4,3); 
+HaOpen = AMA( Ref( HaClose, -1 ), 0.5 ); 
+HaHigh = Max( H, Max( HaClose, HaOpen ) ); 
+HaLow = Min( L, Min( HaClose, HaOpen ) ); 
+Color1 = IIf( Haopen > Haclose,4, IIf( HaHigh < HaLow,colorYellow, 6));
+Plot(40,"", Color1,  styleHistogram+styleThick|styleOwnScale|styleNoLabel, 0, 100 );
+Plot( 41,"",colorBlack,styleOwnScale|styleArea|styleNoLabel,0, 100 );
+PlotText("Heinkein 4T tf :"+Interval(2), textoffset, 62.10, colorYellow);
+printf("\n=" + WriteVal(HaClose) );
+CondB1=Haopen > Haclose;CONDS1=Haopen < Haclose;
+TimeFrameRestore();
+
+_SECTION_BEGIN("3");
+Compress= Param("Compression",1.4,0.20,100,0.10); 
+TimeFrameSet(Compress* Interval());
+HaClose =EMA((O+H+L+C)/4,3); 
+HaOpen = AMA( Ref( HaClose, -1 ), 0.5 ); 
+HaHigh = Max( H, Max( HaClose, HaOpen ) ); 
+HaLow = Min( L, Min( HaClose, HaOpen ) ); 
+color2 = IIf( Haopen > Haclose,4, IIf( HaHigh < HaLow,colorYellow,6));
+Plot(60,"", Color2,  styleHistogram+styleThick|styleOwnScale|styleNoLabel, 0, 100 );
+Plot( 61,"",colorBlack,styleOwnScale|styleArea|styleNoLabel,0, 100 );
+PlotText("Heinkein 4T tf :"+Interval(2), textoffset, 62.30, colorYellow);
+printf("\n=" + WriteVal(HaClose) );
+CondB2=Haopen > Haclose;CONDS2=Haopen < Haclose;
+TimeFrameRestore();
+
+
+_SECTION_BEGIN("4");
+Compress= Param("Compression",1.6,0.20,100,0.10); 
+TimeFrameSet(Compress* Interval());
+HaClose =EMA((O+H+L+C)/4,3); 
+HaOpen = AMA( Ref( HaClose, -1 ), 0.5 ); 
+HaHigh = Max( H, Max( HaClose, HaOpen ) ); 
+HaLow = Min( L, Min( HaClose, HaOpen ) ); 
+Color3 = IIf( Haopen > Haclose,4, IIf( HaHigh < HaLow,colorYellow, 6));
+Plot(80,"", Color3,  styleHistogram+styleThick|styleOwnScale|styleNoLabel, 0, 100 );
+Plot( 81,"",colorBlack,styleOwnScale|styleArea|styleNoLabel,0, 100 );
+PlotText("Heinkein 4T tf :"+Interval(2), textoffset, 62.45, colorYellow);
+printf("\n=" + WriteVal(HaClose) );
+CondB3=Haopen > Haclose;CONDS3=Haopen < Haclose;
+TimeFrameRestore();
+Sell=CondB AND Condb1 AND CondB2 ;//OR Condb3;
+Buy= CondS AND CondS1 AND CondS2 ;//OR Conds3;
+//Cover=  Cond1 AND Cond2 OR Cond2 AND Cond3 OR Cond1 AND Cond3 ;
+//Sell=  Cond4 AND Cond5  OR  Cond5 AND Cond6 OR Cond4 AND Cond6;
+Buy=ExRem (Buy,Sell);Sell=ExRem(Sell,Buy);
+PlotShapes(shapeSmallCircle*Buy, colorGreen,0,62.70);
+PlotShapes(shapeSmallCircle*Sell, colorRed,0,62.70);
+
+_N(Title = "{{NAME}} - {{INTERVAL}} {{DATE}} "+_DEFAULT_NAME()+" : {{OHLCX}} {{VALUES}}" 
++
+"\n"+EncodeColor(colorYellow)+
+WriteIf(Buy,"EXIT all Short positions-ENTER long "+EncodeColor(2)+"only above"+WriteVal(Ref(H,-1),1.3)+EncodeColor(4)+" with stop="+WriteVal(L-1*ATR(5),1.3)+",","")+
+WriteIf(Sell,"EXIT all long positions-ENTER short "+EncodeColor(2)+" only below"+WriteVal(Ref(L,-1),1.3)+EncodeColor(4)+" with stop="+WriteVal(H+1*ATR(5),1.3)+",",""));
+Plot( 61.90, "", colorWhite, styleNoDraw);
+Plot( 62.70, "", colorWhite, styleNoDraw);

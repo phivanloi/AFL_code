@@ -1,0 +1,16 @@
+//////////////////////////////////// 
+// Indicators 
+//////////////////////////////////// 
+P1=Param("StdDev period", 30, 5, 80 ); 
+P2=Param("ADX period", 25, 5, 80 ); 
+
+// Normalized standard deviation 
+SD = StDev(C, P1 ); 
+SDC = SD / MA( C, P1 ); 
+
+// Standard Deviation * ADX formula 
+SADX = SDC * ADX( P2 ); 
+
+Plot( SADX, "StdDev*ADX", colorRed); 
+Plot( SDC, "Norm. Standard Deviation", colorBlue, 
+styleOwnScale ); 

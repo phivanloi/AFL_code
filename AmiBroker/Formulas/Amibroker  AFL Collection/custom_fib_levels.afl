@@ -1,0 +1,140 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+//Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+
+_SECTION_BEGIN("Fibo Levels");
+/*---------------------------------------------------
+Another Fib Level
+Based on Aron Pipa's formula , December, 11, 2005
+
+* Under Parameters, select "axis & Grid" , "show date axis" = "yes"
+* Dash lines are the fib extentions
+* If you are not familiar with begin/end values double
+click a lot around the screen til you get the idea
+* Select your fib retrace in a higher timeframe e.g.
+daily and view chart in e.g. 5 min, to see major
+retracement lines.
+--------------------------------------------------------*/
+EnableTextOutput(0);
+
+// Get values for fib levels
+StartBar=BeginValue(BarIndex());
+FinishBar = EndValue( BarIndex() );
+LastBar=BarCount-1;
+period = FinishBar - StartBar;
+Lo =LLV(L,period);
+Hi = HHV(H,period);
+Offset= Param("Offset Fib Lines?",20,0,40,5);
+
+Line0=0;
+Line100=0;
+Line1=0;
+Line2=0;
+Line3=0;
+Line4=0;
+Line5=0;
+Line6=0;
+Line7=0;
+magnet1=0;
+magnet2=0;
+
+i = startbar;
+for( i = startbar; i < finishbar; i++ )
+{
+Line100 = EndValue(L);
+Line0 = BeginValue(H);
+Line1 = Line100 + abs(Line0-Line100)*0.236;
+Line2 = Line100 + abs(Line0-Line100)*0.382;
+Line3 = Line100 + abs(Line0-Line100)*0.5;
+Line4 = Line100 + abs(Line0-Line100)*0.618;
+Line5 = Line100 + abs(Line0-Line100)*0.764;
+Line6 = Line100 - abs(Line0-Line100)*0.236;
+Line7 = Line100 + abs(Line0-Line100)*1.236;
+
+magnet1 = EndValue(C);
+magnet2 = BeginValue(C);
+}
+
+// fib lines, the "x" is the extension
+fib0= LineArray(startbar, Line0, finishbar, Line0, 0, 1);
+fib0x= LineArray(finishbar, Line0, Lastbar, Line0, 0, 1);
+fib100 = LineArray(startbar, Line100, finishbar, Line100, 0, 1);
+fib100x = LineArray(finishbar, Line100, Lastbar, Line100, 0, 1);
+
+fib1= LineArray(startbar, Line1, finishbar, Line1, 0, 1);
+fib1x= LineArray(finishbar, Line1, Lastbar, Line1, 0, 1);
+fib2= LineArray(startbar, Line2, finishbar, Line2, 0, 1);
+fib2x= LineArray(finishbar, Line2, Lastbar, Line2, 0, 1);
+fib3= LineArray(startbar, Line3, finishbar, Line3, 0, 1);
+fib3x= LineArray(finishbar, Line3, Lastbar, Line3, 0, 1);
+fib4= LineArray(startbar, Line4, finishbar, Line4, 0, 1);
+fib4x= LineArray(finishbar, Line4, Lastbar, Line4, 0, 1);
+fib5= LineArray(startbar, Line5, finishbar, Line5, 0, 1);
+fib5x= LineArray(finishbar, Line5, Lastbar, Line5, 0, 1);
+
+fib6= LineArray(startbar, Line6, finishbar, Line6, 0, 1);
+fib6x= LineArray(finishbar, Line6, Lastbar, Line6, 0, 1);
+fib7= LineArray(startbar, Line7, finishbar, Line7, 0, 1);
+fib7x= LineArray(finishbar, Line7, Lastbar, Line7, 0, 1);
+
+
+mag1= LineArray(startbar, magnet1, finishbar, magnet1, 0, 1);
+mag1x= LineArray(finishbar, magnet1, Lastbar, magnet1, 0, 1);
+mag2= LineArray(startbar, magnet2, finishbar, magnet2, 0, 1);
+mag2x= LineArray(finishbar, magnet2, Lastbar, magnet2, 0, 1);
+
+
+Plot(C,"", IIf(O>=C, colorRed, colorBrightGreen),styleCandle);
+
+Plot(fib0,"", colorDarkRed,styleDashed|styleNoRescale);
+Plot(fib0x,"", colorDarkRed,styleDashed|styleNoRescale,Null,Null,Offset);
+Plot(fib100,"", colorDarkRed,styleDashed|styleNoRescale);
+Plot(fib100x,"", colorDarkRed,styleDashed|styleNoRescale,Null,Null,Offset);
+Plot(fib1,"", colorBlue,styleNoRescale,styleThick);
+Plot(fib1x,"", colorAqua,styleDashed|styleNoRescale,Null,Null,Offset);
+Plot(fib2,"", colorBlue,styleNoRescale,styleThick);
+Plot(fib2x,"", colorBlue,styleDashed|styleNoRescale,Null,Null,Offset);
+Plot(fib3,"", colorGreen,styleDashed|styleNoRescale);
+Plot(fib3x,"", colorWhite,styleDots|styleNoRescale,Null,Null,Offset);
+Plot(fib4,"", colorBlue,styleNoRescale);
+Plot(fib4x,"", colorBlue,styleDashed|styleNoRescale,Null,Null,Offset);
+Plot(fib5,"", colorAqua,styleNoRescale);
+Plot(fib5x,"", colorAqua,styleDashed|styleNoRescale,Null,Null,Offset);
+Plot(mag1,"M1", 29,styleNoRescale,styleThick);
+Plot(mag1x,"", 29,styleDashed|styleNoRescale,Null,Null,Offset);
+Plot(mag2,"M2", 12,styleNoRescale,styleThick);
+Plot(mag2x,"", 12,styleDashed|styleNoRescale,Null,Null,Offset);
+
+Plot(fib6x,"", colorBlue,styleDashed,Null,Null,Offset);
+Plot(fib7x,"", colorBlue,styleDashed,Null,Null,Offset);
+
+Title= "TD Rel Retracements "+EncodeColor(25)+Name()+" "+
+(Interval()/60)+" min "+EncodeColor(25)+Date()+ "\n"+
+" Op="+WriteVal(O,1.2)+
+" , Hi="+WriteVal(H,1.2)+
+" , Lo="+WriteVal(L,1.2)+ EncodeColor(25)+
+" , Cl="+WriteVal(C,1.2)+ EncodeColor(25)+
+" , Prev Cl=" + WriteVal((Ref(C,-1)),1.2)+ EncodeColor(25)+
+" , Vol ="+WriteVal(V,1.0)+
+"\n"+
+EncodeColor( colorBlue ) + " 100% = "+EncodeColor(25)+Line100 +
+"\n"+
+EncodeColor( colorBlue ) + " Magnet2 ="+EncodeColor(colorBlue)+Magnet2 +
+"\n"+
+EncodeColor( colorBlue ) + " 76.4% = "+EncodeColor( colorBlue )+Line5 +
+"\n"+
+EncodeColor( colorBlue ) + " 61.8% = "+EncodeColor( colorBlue )+Line4 +
+"\n"+
+EncodeColor( colorBlue ) + " 50.0% = "+EncodeColor( colorBlue)+Line3 +
+"\n"+
+EncodeColor( colorBlue ) + " 38.2% = "+EncodeColor( colorBlue)+Line2 +
+"\n"+
+EncodeColor( colorBlue ) + " 23.6% = "+EncodeColor( colorBlue)+Line1 +
+"\n"+
+EncodeColor( colorBlue ) + " Magnet1 ="+EncodeColor(colorBlue)+Magnet1 +
+"\n"+
+EncodeColor( colorBlue ) + " 0% = "+EncodeColor(16)+Line0;
+_SECTION_END();

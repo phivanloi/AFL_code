@@ -1,0 +1,25 @@
+SL = ( HHV( H, 26 ) + LLV( L, 26) )/2;
+TL = ( HHV( H, 9 ) + LLV( L, 9 ) )/2;
+DL = Ref( C, 25 );
+Span1 = Ref( ( SL + TL )/2, -25 );
+Span2 = Ref( (HHV( H, 52) + LLV(L, 52))/2, -25);
+
+
+MaxGraph = 6;
+
+Graph0 = SL;
+Graph1 = TL;
+Graph2 = DL;
+Graph3 = Span1;
+Graph4 = Span2;
+Graph5 = Close;
+
+Graph0Style = Graph1Style = Graph2Style = Graph3Style = Graph4Style = 1;
+Graph5Style = 5;
+
+Graph0Color = 7;
+Graph1Color = 5;
+Graph2Color = 13;
+Graph3Color = 6;
+Graph4Color = 6;
+Graph5Color = 2; 

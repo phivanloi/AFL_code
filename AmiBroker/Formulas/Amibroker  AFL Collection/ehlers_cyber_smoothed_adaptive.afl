@@ -1,0 +1,67 @@
+  /*
+Smoothed Adaptive Momentum, p. 166
+From Ehlers book: Cybernetic Analysis for Stocks and Futures
+
+*/
+
+SetBarsRequired(1000000,1000000);
+price=(H+L)/2;
+alpha=Param("alpha",0.07,0.01,1,0.01);
+Cutoff=Param("Cutoff",8,2,21,1);
+
+pi=4*atan(1);DTR=pi/180;RTD=1/DTR;
+Cycle=0;I1=0;Q1=0;InstPeriod=0;DeltaPhase=0;MedianDelta=0;DC=0;Value1=0;
+DCPeriod=0;RealPart=0;ImagPart=0;DCPhase=0;Period=0;
+V1=0;a1=0;b1=0;c1=0;coef1=0;coef2=0;coef3=0;coef4=0;filt3=0;
+
+	Smooth = (Price + 2*Ref(Price,-1) + 2*Ref(Price,-2) + Ref(Price,-3))/6;
+	
+for(i=36;i<BarCount;i++)//BarCount-300
+{
+	Cycle[i]  = ((1-0.5*alpha[i])^2)*(Smooth[i] - 2*Smooth[i-1] + Smooth[i-2]) + 2*(1-alpha[i])*Cycle[i-1] - ((1-alpha[i])^2)*Cycle[i-2];
+	if(i<7) Cycle[i]=(Price[i]-2*Price[i-1]+Price[i-2])/4;
+
+		
+//Hilbert Transform
+	Q1[i] = (0.0962*Cycle[i] + 0.5769*Cycle[i-2] - 0.5769*Cycle[i-4] - 0.0962*Cycle[i-6]) * (0.5 + 0.08*InstPeriod[i-1]);
+	I1[i] = Cycle[i-3];
+
+	if (Q1[i] != 0 AND Q1[i-1] != 0) DeltaPhase[i] = (I1[i]/Q1[i] - I1[i-1]/Q1[i-1]) / (1 + I1[i]*I1[i-1]/(Q1[i]*Q1[i-1]));
+	if (DeltaPhase[i] < 0.1) DeltaPhase[i] = 0.1;
+	if (DeltaPhase[i] > 1.1) DeltaPhase[i] = 1.1;
+
+	MedianDelta=Median(DeltaPhase , 5);
+	
+	if (MedianDelta[i] == 0) DC[i]=15;
+	 else 
+	DC[i] = 2*pi/MedianDelta[i] + 0.5; //changed from 0.5 (to 1.28)
+
+	InstPeriod[i] = 0.33*DC[i] + 0.67*InstPeriod[i-1];
+	Period[i] = (0.15*InstPeriod[i] + 0.85*Period[i-1]); //added int
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+	V1[i]=Price[i]-Price[i-(int(Period[i])-1)];
+	a1[i]=exp(-pi/Cutoff);
+	b1[i]=2*a1[i]*cos((1.738*180/Cutoff)*DTR);
+	c1[i]=a1[i]^2;
+	coef2[i]=b1[i]+c1[i];
+	coef3[i]=-(c1[i]+b1[i]*c1[i]);
+	coef4[i]=c1[i]^2;
+	coef1[i]=1-coef2[i]-coef3[i]-coef4[i];
+	filt3[i]=coef1[i]*V1[i] + coef2[i]*filt3[i-1] + coef3[i]*filt3[i-2] + coef4[i]*filt3[i-3];
+	if(i<4) filt3[i]=V1[i];
+}
+
+Trigger=Ref(filt3,-1);
+A1=Cross(filt3,Trigger);
+A2= Cross(Trigger,filt3);
+
+GraphXSpace=5;
+
+Plot(filt3,"filt3",1,1);PlotGrid(0,0);
+Plot(Trigger,"Trigger",0,1);
+//Plot(price,"",colorYellow,24|styleNoLabel);Plot(price,"Price",colorBlue,1|styleNoLabel);
+Plot(A1 OR A2,"Grn-Buy      Red-Sell",IIf(A1,colorGreen,IIf(A2,colorRed,3)),2|styleOwnScale|styleNoLabel);
+
+Title=EncodeColor(colorOrange)+" Ehlers (Cyber) Smoothed Adaptive Momentum      "+
+EncodeColor(colorRed)+"Period: "+period+"     Cycle Period is "+
+WriteIf(Period<Ref(Period,-1),"decreasing. ",WriteIf(Period>Ref(Period,-1),"increasing. ","unchanged. "));

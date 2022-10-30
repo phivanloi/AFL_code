@@ -1,0 +1,68 @@
+//Coded by Rajandran R
+//Author - Marketcalls
+
+_SECTION_BEGIN("Double Donchain Trading System");
+
+SetBarsRequired(100000,0);
+
+GraphXSpace = 15;
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+SetChartBkColor(ParamColor("bkcolor",ColorRGB(0,0, 0)));
+
+GfxSetBkMode(0); 
+
+GfxSetOverlayMode(1);
+
+SetBarFillColor(IIf(C>O,ParamColor("Candle UP Color", colorGreen),IIf(C<=O,ParamColor("Candle Down Color", colorRed),colorLightGrey)));
+
+Plot(C,"\nPrice",IIf(C>O,ParamColor("Wick UP Color", colorDarkGreen),IIf(C<=O,ParamColor("Wick Down Color", colorDarkRed),colorLightGrey)),64,0,0,0,0);
+
+SetPositionSize(100,spsShares);
+
+pds1 = param("param1",79,30,100,1);      //5min - 79 15min - 38
+DonchianUpper1 = HHV( Ref( H, -1 ), pds1 ); // Highest high value of highs in last 40 periods
+DonchianLower1 = LLV( Ref( L, -1 ), pds1 ); // Lowest low value of low in last 40 periods
+
+pds2 = param("param2",24,5,50,1);;       //5min - 24 15min - 6
+DonchianUpper2 = HHV( Ref( H, -1 ), pds2 ); // Highest high value of highs in last 14 periods
+DonchianLower2 = LLV( Ref( L, -1 ), pds2 ); // Lowest low value of low in last 14 periods
+
+Plot( DonchianUpper1, "Donchian U1", ParamColor( "DU Color1", colorBlue ), ParamStyle( "DU Style", styleLine ) );
+Plot( DonchianLower1, "Donchian L1", ParamColor( "DL Color1", colorBlue ), ParamStyle( "DL Style", styleLine ) );
+Plot( DonchianUpper2, "Donchian U2", ParamColor( "DU Color2", colorRed ), ParamStyle( "DU Style", styleLine ) );
+Plot( DonchianLower2, "Donchian L2", ParamColor( "DL Color2", colorRed ), ParamStyle( "DL Style", styleLine ) );
+
+Buy = H>Ref(DonchianUpper1,-1);
+Short = L<Ref(DonchianLower1,-1);
+Cover = H>Ref(DonchianUpper2,-1);
+Sell = L<Ref(DonchianLower2,-1);
+
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+
+Short = ExRem(Short,Cover);
+Cover = ExRem(Cover,Short);
+
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+
+PlotShapes(IIf(Short, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+
+PlotShapes(IIf(Short, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+
+PlotShapes(IIf(Short, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+
+PlotShapes(IIf(Cover, shapeStar, shapeNone),colorRed, 0,L, Offset=-45); 
+
+PlotShapes(IIf(Sell, shapeStar, shapeNone),colorGreen, 0, H, Offset=40);
+
+
+
+
+
+_SECTION_END();

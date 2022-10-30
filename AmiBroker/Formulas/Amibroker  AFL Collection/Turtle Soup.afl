@@ -1,0 +1,9 @@
+TurteSoupLong=
+L==LLV(L,20) AND Ref(L,-1)!=Ref(LLV(L,19),-1) AND Ref(L,-2)!=Ref(LLV(L,18),-2) AND Ref(L,-3)!=Ref(LLV(L,17),-3) AND C>O AND H-L>=ATR(15) OR
+L==LLV(L,20) AND Ref(L,-1)!=Ref(LLV(L,19),-1) AND Ref(L,-2)!=Ref(LLV(L,18),-2) AND Ref(L,-3)!=Ref(LLV(L,17),-3) AND C>O AND Ref(C,-1)-L>=ATR(15);
+
+TurteSoupShort=
+H==HHV(H,20) AND Ref(L,-1)!=Ref(HHV(L,19),-1) AND Ref(L,-2)!=Ref(HHV(L,18),-2) AND Ref(L,-3)!=Ref(HHV(L,17),-3) AND C<O AND H-L>=ATR(15) OR
+H==HHV(H,20) AND Ref(L,-1)!=Ref(HHV(L,19),-1) AND Ref(L,-2)!=Ref(HHV(L,18),-2) AND Ref(L,-3)!=Ref(HHV(L,17),-3) AND C<O AND Ref(C,-1)-L>=ATR(15);
+
+

@@ -1,0 +1,16 @@
+_SECTION_BEGIN("Trend"); 
+///// Trend Identify //////  
+SetChartOptions( Mode = 0, Flags = 0, gridFlags = 0) ; 
+x=Param("CCI Period 3 - 35",9,3,50,1);  
+x1=CCI(x);  
+Y=Param("Smooth Factor 3 - 15",5,3,9,1);  
+Y2=DEMA(x1,Y);  
+Z=Param("Signal Line 3 - 9",3,3,5,1);  
+Z2=MA(Y2,Z);  
+Plot(Z2,"Trend ",colorGreen,4);  
+Plot(100,"",colorGreen); 
+Plot(-100,"",colorRed); 
+Plot(65,"",colorGreen,styleDashed); 
+Plot(-65,"",colorRed,styleDashed); 
+Plot(0,"",colorBlack); 
+_SECTION_END();

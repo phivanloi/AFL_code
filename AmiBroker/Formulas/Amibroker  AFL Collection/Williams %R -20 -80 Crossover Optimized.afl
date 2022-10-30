@@ -1,0 +1,21 @@
+//Williams %R -20/-80 Crossover ***Optimized***
+
+//Enters long/short when the Williams %R oscillator crosses the -20/-80 signal lines. Exits on Reversing trades.
+
+pds=14;
+pds=Optimize("pds",14,5,23,3);
+
+R = ((HHV(H,pds) - C) /(HHV (H,pds) -LLV (L,pds))) *-100;
+
+Buy=Ref(R,-1) < -80 AND R >= -80;
+Sell=Ref(R,-1) > -20 AND R <= -20;
+Short=Ref(R,-1) > -20 AND R <= -20;
+Cover=Ref(R,-1) < -80 AND R >= -80;
+
+Filter=Buy OR Sell OR Short OR Cover;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); Short=ExRem(Short,Cover); Cover=ExRem(Cover,Short);
+
+AddColumn(Buy,"Buy");
+AddColumn(Sell,"sell");
+AddColumn(Short,"short");
+AddColumn(Cover,"cover");

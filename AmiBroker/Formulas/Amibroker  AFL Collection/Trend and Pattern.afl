@@ -1,0 +1,161 @@
+_SECTION_BEGIN("Trend and Pattern sul prezzo");
+/*Trend & Pattern Detection log V.1.6 
+Date: 31-Okt.-2002 
+written by Thomas Zmuck 
+thomas.zm@aon.at 
+
+//for best use, take 4 sheets and copy the formula in every sheet, at next change the value for per to 2, 5, 10, and 20 
+
+/*Adjustment-Part*/ 
+Per=Param("Periodo",5,2,30,1); 
+V1 = 1.05; //V1 for reentry-before 
+V2 = 1.01; //V2 for reentry after 
+
+//a Low must be lower than V1(V2)*any Line to give a Reentry Signal 
+Color_SL= colorRed;Color_PHL=colorRed; 
+Color_RL= colorBlue;Color_PLL=colorBlue; 
+DisRange = 15; //in % 
+
+LL=L;
+HH=H;
+CC=C;
+
+//select here the Range from Close to PLL & Close to PHL so that the PLL Line is displayed. 
+x = Cum(1); s1=LL;s11=HH; 
+
+//Support Line (SL) 
+PS = TroughBars(s1,per,1) == 0; 
+xb = LastValue(ValueWhen(PS,x,1)); 
+xa = LastValue(ValueWhen(PS,x,2)); 
+yb = LastValue(ValueWhen(PS,s1,1)); 
+Ya = LastValue(ValueWhen(PS,s1,2)); 
+xab_log = log(yb/yA)/(xb-xa); 
+SL = exp((x-xb)*xab_log)*yb; 
+RocSL = ROC(SL,1); 
+
+//RL = Resistance Line 
+PR1 = PeakBars(s11,per,1) == 0; 
+Xd = LastValue(ValueWhen(pR1,x,1 )); 
+xc = LastValue(ValueWhen(pR1,x,2 )); 
+yd = LastValue(ValueWhen(pR1,s11,1)); 
+Yc = LastValue(ValueWhen(pR1,s11,2)); 
+xcd_log = log(yd/yc)/(xd-xc); 
+RL = exp((x-xd)*xcd_log)*yd; 
+RocRL = ROC(RL,1); 
+
+//Lower Parallel line - calculated by the Lowest Low below the Res.Line 
+Low_Value = LastValue(Ref(LLV(LL,xd-xc),-(x-xd))); 
+x2 = LastValue(ValueWhen(LL==Low_Value & x>xc & x<xd,x)); 
+PLL = IIf(LastValue(x)-x2>5,exp((x-x2)*xcd_log)*Low_Value,-1e10); 
+
+//Higher Parallel line - calculated by the Highest High above the Supp.Line 
+Hi_Value = LastValue(Ref(HHV(HH,xb-xa),-(x-xb))); 
+x3 = LastValue(ValueWhen(HH==Hi_Value & x>xa & x<xb,x)); 
+PHL = IIf(LastValue(x)-x3>5,exp((x-x3)*xab_log)*Hi_Value,-1e10); 
+
+//Channels 
+parallel= abs(1-RocRL/RocSL)<0.1; 
+uptrend= (RocSL>0 & RocRL>0 & parallel) OR (LL<1.05*PLL & HH>0.95*PLL); 
+downtrend=(RocSL<0 & RocRL<0 & parallel)OR (HH<1.05*PHL & HH>0.95*PHL); 
+DT_UT = IIf (Downtrend & parallel,-1,IIf(Uptrend & parallel,1,0)); 
+
+/******************************/ 
+//Breakouts 
+bu_Breakout = Cross(CC,RL) & X>XD; 
+be_Breakout = Cross(SL,CC) & X>XB; 
+breakout = bu_breakout OR be_breakout; 
+
+//Reentry's 
+RSL_b = LL<V1*SL & LL>V2*SL & Ref(LL,-1)>V2*SL; 
+
+//SL-before 
+RSL_a = LL<=V2*SL & LL>0.99*SL & Ref(LL,-1)>SL & CC>SL; 
+
+//SL-after 
+RPLL_b = LL>Low_Value & LL<V1*PLL & LL>V2*PLL & Ref(LL,-1)>V2*PLL;//PLL-before 
+RPLL_a = LL>Low_Value & LL<V2*PLL & LL>0.99*PLL & Ref(LL,-1)>PLL & C>PLL;//PLL-after 
+ARb = RSL_b OR RPLL_b; //all reentrys before 
+ARa = RSL_a OR RPLL_a; //all reentrys after 
+Ar = ARb OR ARa; //all reentrys 
+Xm = xb-xa >4 & xd-xc >4; //x-min.distance 
+AT= abs(RocRL)<0.03 & RocSL>0.05 & xa<xd & xc<xb & Xm; 
+DT= abs(RocSL)<0.03 & RocRL<-0.05 & xa<xd & xc<xb & Xm; 
+AT_DT= IIf(AT,1,IIf(DT,-1,0)); 
+ST= RocSL>0.03 & RocRL<-0.03 & RL>SL & 
+xa<xd & xc<xb & Xm; 
+ET = RocRL>0.03 & RocSL<-0.03 & RL>SL & abs(ROCSL/ROCRL)<3 & xa<xd & xc<xb & Xm; 
+ST_ET = IIf(ST,1,IIf(ET,-1,0)); 
+RW = RocRL>0.05 & RocSL>0.07 & RocSL>1.5*RocRL & Xm; 
+FW = RocSL<-0.05 & RocRL<-0.07 & RocRL<1.5*RocSL & Xm; 
+RW_FW = IIf (RW,1,IIf(FW,-1,0)); 
+
+//////////////////////////////////////////7 
+//Sell-Conditions 
+S_RL = HH>0.98*RL & CC < RL; 
+S_PHL = HH>0.98*PHL & CC < PHL; 
+
+//Buy- & Sell signals for colored C&lesticks 
+BS = bu_breakout OR Ar; 
+SS = be_breakout OR S_RL OR S_PHL; 
+Buy = BS; Sell = SS; 
+Longfilter = CC>MA(CC,100); 
+
+Filter = Longfilter; 
+
+Reentry_Column = IIf(ARb,-1,IIf(ARa,1,0)); 
+AddColumn(Reentry_Column,"Re",1.0); 
+bu_be_breakout = IIf (bu_breakout,1,IIf(be_breakout,-1,0)); 
+AddColumn(bu_be_breakout,"B-out",1.0); 
+AddColumn(DT_UT,"TC",1); 
+AddColumn(AT_DT,"AT/DT",1); 
+AddColumn(ST_ET,"ST/ET",1); 
+AddColumn(RW_FW,"RW/FW",1); 
+AddColumn (IIf(CC>SL,RocSL,0),"Roc(SL,1)",1.1); 
+AddColumn (IIf(CC<RL,RocRL,0),"Roc(RL,1)",1.1); 
+
+//Display Cond. for Fix when Chart is compl.zoomed out 
+PLLd = abs((LastValue(CC)/LastValue(PLL))-1)<0.01*DisRange; 
+PHLd = abs((LastValue(CC)/LastValue(PHL))-1)<0.01*DisRange; 
+barvisible = Status("barvisible"); 
+firstvisiblebar = barvisible & NOT Ref(barvisible,-1); 
+HHvisible = LastValue(HighestSince(firstvisiblebar,HH)); 
+LLvisible = LastValue(LowestSince(firstvisiblebar,LL)); 
+
+RaH = HHvisible *1.05; //Range High 
+RaL = LLVisible *0.95; //Range Low 
+
+SL_plot = IIf(x>=xa & SL>RaL & SL<RaH,SL,IIf(x>=xa & RaL==0 ,SL,-1e10)); 
+RL_plot = IIf(x>=xc & RL>RaL & RL<RaH,RL,IIf(x>=xc & RaL==0,RL,-1e10)); 
+PLL_plot = IIf(x-x2>=0 & abs(LastValue(CC)/LastValue(exp((x-x2)*xcd_log)*Low_Value)-1)<0.01*DisRange & PLL>RaL & PLL<RaH,PLL,IIf(x-x2>=0 & RaL==0 & PLLd,PLL,-1e10)); 
+PHL_plot = IIf(x-x3>=0 & abs(LastValue(CC)/LastValue(exp((x-x3)*xab_log)*Hi_Value)-1)<0.01*DisRange & PHL>RaL & PHL<RaH,PHL,IIf(x-x3>=0 & RaL==0 & PHLd,PHL,-1e10)); 
+
+GraphXSpace = 1.5; 
+
+LastBar = Cum(1) == LastValue(Cum(1)); 
+Plot(CC,"close" ,IIf(LastBar,IIf(BS,colorGreen,IIf(SS,4,1)),1),32); 
+Plot(SL_plot ,"SL" ,Color_SL,1+4+styleNoRescale|4096); 
+Plot(RL_plot ,"RL" ,Color_RL,1+4+styleNoRescale|4096); 
+Plot(PLL_plot,"PLL",Color_PLL,1+4+styleNoRescale|4096); 
+Plot(PHL_plot,"PHL",Color_PHL,1+4+styleNoRescale|4096); 
+
+/*Title = Name() + EncodeColor( colorRed )+" pds:" + WriteVal(per,1) +" " 
+
++ EncodeColor(colorBlue)+ Date()+EncodeColor(3)+" "+WriteVal(CC,1.2)+ " ("+WriteIf(CC>Ref(CC,-1),"+","")+WriteVal(ROC(CC,1),1.2)+"%)"; */
+
+/*Introduction 
+This formula is for automatic analyzer & indicator builder. Select the last one Day in automatic analyzer. 
+Note! Backtest gives unrealistic results !!! 
+Reentry = Reentry-before(1)OR Reentry-after(-1) 
+Breakout = bull.breakout(1) OR bear.breakout(-1) 
+TC = uptrend(1) OR downtrend(-1) 
+Patterns 
+AT(+1) = Ascending Triangle 
+DT(-1) = Descending Triangle 
+ST(+1) = Symmetrical Triangle 
+ET(-1) = Extended Triangle 
+RW(+1) = Rising Wedge 
+FW(-1) = Falling Wedge 
+ROC SL = daily ROC Support Line (SL) 
+ROC RL = daily ROC Resistance Line (RL) 
+per = percent change to detect peaks & throughs (I prefer to use 3 OR 4 sheets with different values, so you see mostly the underlying trend OR pattern, OR also & more quickly switch to weekly OR Month.*/ 
+_SECTION_END();

@@ -1,0 +1,109 @@
+/*[[
+Name := ButterFly
+Author := Copyright ?2002, MetaQuotes Software Corp.
+Link := http://www.metaquotes.ru
+Notes := 
+Separate Window := No
+First Color := Blue
+First Draw Type := Symbol
+First Symbol := 217
+Use Second Data := yes
+Second Color := Red
+Second Draw Type := symbol
+Second Symbol := 218
+]]*/
+inputs: depth(32),deviation(3),backstep(12);
+var : shift(0),lasthigh(-1),lastlow(-1),lasthighpos(0),lastlowpos(0);
+var : val(0),back(0),res(0);
+var : curlow(0),curhigh(0);
+
+SetLoopCount(0);
+// loop from first bar to current bar (with shift=0)
+lasthigh=-1; 
+lastlow=-1;
+
+for shift = Bars-300 Downto 0
+{
+//--- low
+val=Low[Lowest(MODE_LOW,shift+depth-1,depth)];
+if val==lastlow then val=0
+else 
+{ 
+lastlow=val; 
+if (Low[shift]-val)>(deviation*Point) then val=0
+else
+{
+for back=1 to backstep
+{
+res=GetIndexValue(shift+back);
+if res!=0 AND res>val then SetIndexValue(shift+back,0); 
+};
+};
+}; 
+SetIndexValue(shift,val);
+//--- high
+val=High[Highest(MODE_HIGH,shift+depth-1,depth)];
+if val==lasthigh then val=0
+else 
+{
+lasthigh=val;
+if (val-High[shift])>(deviation*Point) then val=0
+else
+{
+for back=1 to backstep
+{
+res=GetIndexValue2(shift+back);
+if res!=0 AND res<val then SetIndexValue2(shift+back,0); 
+}; 
+};
+};
+SetIndexValue2(shift,val);
+};
+
+// final cutting 
+lasthigh=-1; lasthighpos=-1;
+lastlow=-1; lastlowpos=-1;
+
+for shift = Bars-300 Downto 0
+{
+curlow=GetIndexValue(shift);
+curhigh=GetIndexValue2(shift);
+if curlow==0 & curhigh==0 then continue;
+//---
+if curhigh!=0 then
+{
+if lasthigh>0 then 
+{
+if lasthigh<curhigh then SetIndexValue2(lasthighpos,0)
+else SetIndexValue2(shift,0);
+};
+//---
+if lasthigh<curhigh then
+{
+lasthigh=curhigh;
+lasthighpos=shift;
+};
+lastlow=-1;
+};
+if curlow!=0 then
+{
+if lastlow>0 then
+{
+if lastlow>curlow then SetIndexValue(lastlowpos,0)
+else SetIndexValue(shift,0);
+};
+//---
+if curlow<lastlow | lastlow<0 then
+{
+lastlow=curlow;
+lastlowpos=shift;
+}; 
+lasthigh=-1;
+};
+};
+
+for shift = Bars-300 Downto 0
+{
+res=GetIndexValue2(shift);
+if res!=0 then SetIndexValue(shift,res);
+};

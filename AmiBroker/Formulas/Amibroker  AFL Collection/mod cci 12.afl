@@ -1,0 +1,20 @@
+_SECTION_BEGIN("CCI");
+diff_c = C-EMA(C,34);
+diff_h = H-EMA(H,34);
+diff_l = L-EMA(L,34);
+d = EMA(RSI(5),13);
+Plot(d,"",IIf(d > Ref(d,-1),colorBrightGreen,colorRed),styleThick);
+p1 = Param("TL",15,1,30,1);
+p2 = Param("SL",30,1,70,1);
+
+SL = ( HHV( d, p2 ) + LLV( d, p2) )/2;
+TL = ( HHV( d, p1 ) + LLV( d, p1 ) )/2;
+Span1 = (( SL + TL )/2);
+Span2 = (HHV( d, 20) + LLV(d, 20))/2;
+
+Plot(SL,"SL",colorWhite,styleThick); // standard, base, or kijun-sen line
+Plot(TL,"TL",colorYellow,styleThick); // turning, conversion, or tenkan-sen line
+PlotOHLC(sl,IIf(sl > tl,sl,tl),IIf(sl < tl,sl,tl),tl,"",IIf(TL>Sl,colorDarkGreen,colorOrange),styleCloud+styleNoLabel);
+_SECTION_END(); 
+
+ 

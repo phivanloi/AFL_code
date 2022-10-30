@@ -1,0 +1,27 @@
+_SECTION_BEGIN("TRIX Moving Average Optimized");
+//TRIX Moving Average ***Optimized***
+
+//Enters long/short when TRIX crosses its  moving average. Exit on reversing signals only.
+
+//Note: Run Optimization first, insert optimized figure in ( pds= ) statement, then ( // ) out optimization line, click on backtest.
+
+
+pds=12;//TRIX
+pds2=3;//TRIX moving average
+
+pds=Optimize("pds",12,5,23,3);
+pds2=Optimize("pds2",3,3,15,1);
+
+Buy=Trix(pds) > EMA(Trix(pds),pds2);
+Sell=Trix(pds) < EMA(Trix(pds),pds2);
+Short=Trix(pds) < EMA(Trix(pds),pds2);
+Cover=Trix(pds) > EMA(Trix(pds),pds2);
+
+Filter=Buy OR Sell OR Short OR Cover;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); Short=ExRem(Short,Cover); Cover=ExRem(Cover,Short);
+
+AddColumn(Buy,"Buy");
+AddColumn(Sell,"sell");
+AddColumn(Short,"short");
+AddColumn(Cover,"cover");
+_SECTION_END();

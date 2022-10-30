@@ -1,0 +1,25 @@
+// AccuTrack Compares performance of two securities
+// The basic idea is to switch between the two securities
+// AccuTrack was developed by FastTrack (http://fasttrack.net)
+
+// Following is the Indicator Builder Formula
+
+fnd = Name();
+ind = "ivrclinfra";      // FDRXX is money market fund, so the comparison is done with cash.
+fund = Foreign(fnd, "Close");
+index = Foreign(ind, "Close");
+
+fast = 6;
+slow = 24;
+RawAT = EMA((EMA(ROC(fund,1), slow) - EMA(ROC(index,1),slow)),fast); 
+tradeAccuTrack = RawAT * 265;
+Plot(tradeAccuTrack, "tradeAccuTrack", colorBlue, styleLine);
+
+Title =   Date()
+        + "  Trade AccuTrack of "
+        + fnd
+        +" / "
+        + ind 
+        + " = " + WriteVal(tradeAccuTrack, 1.2) + " ";
+
+GraphXSpace = 2;

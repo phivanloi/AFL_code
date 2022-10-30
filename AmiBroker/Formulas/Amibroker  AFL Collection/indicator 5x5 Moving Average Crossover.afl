@@ -1,0 +1,19 @@
+
+// 5x5 MA Crossover System 
+
+Range1=Optimize("range1",5,1,20,1);
+Range2=Optimize("range2",5,1,125,1);
+  
+Buy = Cross((MA(Close,range1)),(MA(Open,range2))); 
+Sell = Cross(MA(Open,range2),(MA(Close,range1))); 
+Short = Sell; 
+Cover = Buy; 
+
+// plot expanded average 
+
+Plot(MA( Close,range1), "5Min-c", colorRed );  
+Plot(MA( Open,range2), "5Min-o", colorGreen );  
+
+// plot arrows
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ), 0, IIf( Buy, Low, High ) );

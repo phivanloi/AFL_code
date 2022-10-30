@@ -1,0 +1,32 @@
+C1=StochD();
+p = 20;
+MAp = MA( C1, p );
+k = 30;
+MAk = MA( C1, k );
+TC1 = (p*(k-1)*MA(C1,k-1)-k*(p-1)*MA(C1,p-1))/(k-p);
+DescCrossPrediction = Cross( TC1, C1 );
+AscCrossPrediction = Cross( C1, TC1 );
+ConfirmedDesc = Cross( MAk, MAp );
+ConfirmedAsc = Cross( MAp, MAk );
+DescTotalPredictions = Cum( DescCrossPrediction );
+AscTotalPredictions = Cum( AscCrossPrediction );
+function OutputColumns( CrossPred, Confirmed, TotalPred, Text )
+{
+   AddColumn( TotalPred,"Total # of " + Text + " Predictions",1.0);
+   TotalDesc = 0;
+   for( i = 0; i <= 3; i++ )
+   {
+      temp = Ref( CrossPred, -i);
+      npred = Cum( Confirmed AND temp );
+      Colname = WriteIf( i == 0, "Useless " + Text + " %",
+               StrFormat("Acc%g "+ Text + " %%", i - 1 ) );
+      Desc = 100 * npred / TotalPred;
+      AddColumn( Desc, colname, 1);
+      TotalDesc = TotalDesc + Desc;
+   }
+   AddColumn(100-TotalDesc,"False " + Text + " %",1.0);
+}
+Filter = Status("lastbarinrange");
+OutputColumns( DescCrossPrediction, ConfirmedDesc, DescTotalPredictions, "Desc" );
+OutputColumns( AscCrossPrediction, ConfirmedAsc, AscTotalPredictions, "Asc" );
+

@@ -1,0 +1,35 @@
+_SECTION_BEGIN("price");
+SetBarsRequired(200,0);
+
+GraphXSpace = 5;
+SetChartOptions(0,chartShowArrows|chartShowDates); 
+HACLOSE=(O+H+L+C)/4;
+HaOpen = AMA( Ref( HaClose,  -1 ),  0.5 );
+HaHigh = Max( H,  Max( HaClose,  HaOpen ) );
+HaLow = Min( L,  Min( HaClose,  HaOpen ) );
+Col_bar = IIf(Haclose < Haopen ,colorRed,colorBlue);
+EMA3 = EMA(RSI(14),3);
+ema27 = EMA(RSI(14),27); 
+
+diff = ema3-EMA27;
+ema_short = EMA(diff,Param("short ema",3,1,20,1));
+EMA_Long = EMA(diff,Param("long ema",5,1,20,1));
+
+Col_rsi = IIf (EMA_long > Ref(EMA_long,-1),colorBlue,colorRed);
+//Plot (EMA_short,"diff in rsi1",colorYellow,styleThick);
+//Plot (EMA_long,"diff in rsi5",Col_rsi,styleThick);
+//Plot (0,"",colorWhite,styleThick);
+
+Buy = Cross (EMA_short,EMA_long);
+Sell = Cross (EMA_long, EMA_short);
+Short = Sell;
+Cover = Buy;
+PlotOHLC( HaOpen, HaHigh, HaLow, HaClose, "" + Name(), col_bar, styleCandle  );
+//PlotOHLC( O, H, L, C, "" + Name(), col_bar, styleCandle  );
+
+
+PlotShapes (shapeUpTriangle*Buy,colorYellow);
+PlotShapes (shapeDownTriangle*Sell,colorYellow);
+Plot(6, "ribbon", Col_rsi, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+
+_SECTION_END();

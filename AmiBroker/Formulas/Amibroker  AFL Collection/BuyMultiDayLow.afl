@@ -1,0 +1,38 @@
+//----------------------------------------
+// BuyMultiDayLow.afl
+//
+// AmiBroker code for a trading system
+// that buys when the low of the day
+// is lower than a multi-day low.
+//
+// BPSwitch chooses the BuyPrice to be either
+// Close or PriorLow
+// 0 == Prior Low; 1 == Close
+BPSwitch = Optimize("BPSwitch",0,0,1,1);
+
+// LLBBars determines how many days in the 
+// long multi-day lookback
+LLBBars = Optimize("LLBBars",3,1,10,1);
+
+// HoldDays determines how many days to
+// hold the long position
+LHoldDays = Optimize("LHoldDays",1,0,10,1);
+
+// BuyDOW chooses which day of the week to buy.
+// DayOfWeek() == 1 on Monday, 2 on Tuesday, ...
+BuyDOW = Optimize("BuyDOW",2,1,5,1);
+
+
+SetTradeDelays(0,0,0,0);
+SellPrice = C;
+
+PriorLow = Ref(LLV(L,LLBBars),-1);
+
+BuyPrice = IIf(BPSwitch==1,C,PriorLow);
+
+MultiDayLow = L<PriorLow;
+
+Buy = MultiDayLow AND DayOfWeek()==BuyDOW;
+Sell = BarsSince(Buy)>=LHoldDays;
+
+//----------------------------------------

@@ -1,0 +1,106 @@
+_SECTION_BEGIN("Specific parameters"); 
+AcousticSwitch = ParamToggle("Acoustic alert","Off,On",1); 
+EmailSwitch = ParamToggle("Email alert","Off,On",0); 
+Offset = Param("Maximum deviation",20,0.01,200,0.01);
+Centering = ParamToggle("Range centering","Off,On",0);
+SuColor = ParamColor("Lower range",colorGreen);
+ReColor = ParamColor("Upper range",colorRed);
+SU = Param("Lower level",-100,-100,100,1);
+RE = Param("Upper level",100,-100,100,1);
+Indcolor = ParamColor("Indicator color",colorBlue);
+Indstyle = ParamStyle("Indicator style",styleLine,maskAll);
+//Taio = 100*tbTysc()/tbTysf(tbTyse(abs(tbTysd())));
+_SECTION_END();
+TAIO=Cross(MA(C,5),MA(C,3));
+Ind = Taio; //Enter your indicator here
+
+ALON = AcousticSwitch|EmailSwitch;
+
+SuAL_L = IIf(Centering,SU-Offset,SU);
+SuAL_H = SU+Offset;
+ReAL_L = RE-Offset;
+ReAL_H = IIf(Centering,RE+Offset,Re);
+
+//////////////////////////////////////////////////////////////
+//buy alert 1
+Buy_1 = Ind<SuAL_H & Ind>=SuAL_L;//Indicator in support range
+Buytext_1 = "Indicator in lower range";
+lastdatetime = LastValue(DateTime());
+if( LastValue(Buy_1)
+    AND lastdatetime > Nz(StaticVarGet( "AlertFlag1"+Name() ) ) )
+{   StaticVarSet( "AlertFlag1"+Name(),Lastdatetime );
+   AlertIf(True AND AcousticSwitch,"SOUND C:\\Windows\\Media\\Ding.wav",Buytext_1,1,0,1);
+      AlertIf(True AND EmailSwitch,"EMAIL",Buytext_1,1,0,1);
+} 
+//////////////////////////////////////////////////////////////
+//Buy alert 2
+Buy_2 = Cross(Ind,SuAL_H); //Indicator breaks out of lower range
+Buytext_2 = "Indicator left lower range";
+lastdatetime = LastValue(DateTime());
+if( LastValue(Buy_2)
+    AND lastdatetime > Nz(StaticVarGet( "AlertFlag2"+Name() ) ) )
+{   StaticVarSet( "AlertFlag2"+Name(),Lastdatetime );
+   AlertIf(True AND AcousticSwitch,"SOUND C:\\Windows\\Media\\Ding.wav",Buytext_2,1,0,1);
+      AlertIf(True AND EmailSwitch,"EMAIL",Buytext_2,1,0,1);
+} 
+//////////////////////////////////////////////////////////////
+//Sell alert 1
+Sell_1 = Cross(ReAL_L,Ind);//Indicator breaks out of upper range
+Selltext_1 = "Indicator left upper range";
+lastdatetime = LastValue(DateTime());
+if( LastValue(Sell_1)
+    AND lastdatetime > Nz(StaticVarGet( "AlertFlag3"+Name() ) ) )
+{   StaticVarSet( "AlertFlag3"+Name(),Lastdatetime );
+   AlertIf(True AND AcousticSwitch,"SOUND C:\\Windows\\Media\\Ding.wav",Selltext_1,2,0,1);
+      AlertIf(True AND EmailSwitch,"EMAIL",Selltext_1,2,0,1);
+} 
+//////////////////////////////////////////////////////////////
+//Sell alert 2
+Sell_2 = Ind>ReAL_L & Ind<=ReAL_H;//Indicator in upper range
+Selltext_2 = "Indicator in upper range";
+lastdatetime = LastValue(DateTime());
+if( LastValue(Sell_2)
+    AND lastdatetime > Nz(StaticVarGet( "AlertFlag4"+Name() ) ) )
+{   StaticVarSet( "AlertFlag4"+Name(),Lastdatetime );
+   AlertIf(True AND AcousticSwitch,"SOUND C:\\Windows\\Media\\Ding.wav",Selltext_2,2,0,1);
+      AlertIf(True AND EmailSwitch,"EMAIL",Selltext_2,2,0,1);
+} 
+
+
+Buy = Buy_1 OR Buy_2;
+Sell = Sell_1 OR Sell_2;
+
+
+//////////////////////////////////////////////////////////////
+Plot(Ind,"Indicator",Indcolor,Indstyle);
+Plot(SU,"Low-Level",SuColor,styleDashed);
+Plot(RE,"High-Level",ReColor,styleDashed);
+Shift = 10;
+x=Cum(1); Lx = x >=LastValue(x)-Shift;
+CV = IIf(Version()>=4.72,1,0);
+Plot(IIf(Lx & CV,SuAL_L,-1e10),"",SuColor,styleNoRescale+styleNoLabel,0,0,Shift);
+Plot(IIf(Lx & CV,SuAL_H,-1e10),"",SuColor,styleNoRescale,0,0,Shift);
+Plot(IIf(Lx & CV,ReAL_L,-1e10),"",ReColor,styleNoRescale,0,0,Shift);
+Plot(IIf(Lx & CV,ReAL_H,-1e10),"",ReColor,styleNoRescale+styleNoLabel,0,0,Shift);
+Nd = IIf(Su==0&Re>0,1,IIf(Re==0&Su>0,2,IIf(Su==0 & Re==0,3,0)));
+SetChartOptions(0,chartShowDates);
+
+Title = "SPYRO" +    
+EncodeColor(Sucolor)+"   Low level: " + WriteVal(SU,1.1)+
+" (" + WriteVal(SuAL_L,1.1)+" to "+WriteVal(SuAL_H,1.1)+")"+
+EncodeColor(Recolor)+"   High level: " + WriteVal(RE,1.1)+
+" (" + WriteVal(ReAL_L,1.1)+" to "+WriteVal(ReAL_H,1.1)+")\n"+
+EncodeColor(colorBlue)+"Max. deviation = "+WriteVal(Offset,1.2)+" points"
++ "      Activated alerts:"
++WriteIf(AcousticSwitch AND NOT Emailswitch," acoustic",
+ WriteIf(EmailSwitch AND NOT AcousticSwitch," email",
+ WriteIf(EmailSwitch AND AcousticSwitch," accoustic & email"," none")));
+
+_SECTION_BEGIN("StochRSI");
+SetChartOptions(0,0,chartGrid20|chartGrid80);
+Periods = Param( "Periods", 10, 1, 50, 1 );
+StochRSIstyle = ParamStyle("Style", styleLine );
+StochRSI=(Sum(RSI(Periods)-LLV(RSI(Periods),Periods),3)/Sum(HHV(RSI(Periods),Periods)-LLV(RSI(Periods),Periods),3))*100;
+StochRSIcolor = IIf( StochRSI > Ref(StochRSI,-1), ParamColor("Up Color", colorGreen ), ParamColor("Down Color", colorRed ));
+Plot( StochRSI, _DEFAULT_NAME(), StochRSIcolor, StochRSIstyle );
+_SECTION_END();

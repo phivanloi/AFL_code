@@ -1,0 +1,32 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} O %g, H %g, L %g, C %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+ 
+_SECTION_BEGIN("Time and Money");
+// plot candlestick price chart
+Plot( Close, "Price", colorBlack, styleCandle );
+GraphXSpace = 1;
+// define TAM chart period
+period = 25;
+// users of AB version 4.30 can use Param
+// period = Param( "TAM period", 25, 2, 100, 1 );
+halfperiod = floor( period /2 );
+// minor term average
+Arm = MA( Close, period );
+Plot( Arm, "Mtrm avg", colorRed );
+// calculate volatility
+yom = 100 * ( C - Ref( Arm, halfperiod ))/Ref( Arm, halfperiod );
+avyom = MA( yom, 2 * period );
+varyom = MA( yom * yom, 2 * period ) - avyom * avyom;
+som = Ref( sqrt( varyom ), -halfperiod );
+sigom = MA( som, period );
+// plot reference price grid
+Plot( Arm * ( 1 + 0.01 * sigom ), "C+1", 13 );
+Plot( Arm * ( 1 - 0.01 * sigom ), "C-1", 13 );
+Plot( Arm * ( 1 + 0.02 * sigom ), "C+2", colorBlue );
+Plot( Arm * ( 1 - 0.02 * sigom ), "C-2", colorBlue );
+Plot( Arm * ( 1 + 0.03 * sigom ), "C+3", colorGreen );
+Plot( Arm * ( 1 - 0.03 * sigom ), "C-3", colorGreen );
+_SECTION_END();

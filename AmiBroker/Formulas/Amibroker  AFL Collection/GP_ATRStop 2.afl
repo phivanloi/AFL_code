@@ -1,0 +1,165 @@
+_SECTION_BEGIN("Bollinger Bands");
+// Entry Rules : 1 - Piercing 2 - Grazing 3 - Piercing and Grazing 4 - Use RSI
+Rule=Param("RULES: 1-P, 2-G, 3-PZ, 4-RSI",1,1,4,1);
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 20, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+UseRSI= ParamToggle("Use RSI", "No|Yes", 0);
+RSI_Periods = Param("RSI Periods", 14, 2, 300, 1 );
+RSI_OB = Param("RSI OB", 70, 5, 300, 1 );
+RSI_OS = Param("RSI OS", 30, 5, 300, 1 );
+
+RiskAmount=Param("Risk Amount",300,50,10000,50);
+RiskRewardRatio=Param("Risk Reward Ratio ",1,0.1,100,0.1);
+
+
+
+
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+//Plot( C, "Close", ParamColor("Color", colorWhite ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+//PlotOHLC(Open,High,Low,Close,"",colorWhite,styleCandle);
+//Plot(C,"Price", colorBlack, styleCandle );
+PlotOHLC(Open,High,Low,Close,"",colorWhite,styleCandle);
+
+
+Plot(BBandTop(C,Periods ,Width ), "BBTop" + _PARAM_VALUES(),colorDarkGreen,styleThick|styleDots); 
+Plot(BBandBot(C,Periods ,Width ), "BBBot" + _PARAM_VALUES(),colorDarkGreen,styleThick|styleDots); 
+
+//PlotOHLC(BBandTop(C,20,2.25), BBandTop(C,20,2.25),BBandTop(C,20,1),BBandTop(C,20, 1),"Cloud",colorGrey50,styleCloud|styleNoLabel); 
+//PlotOHLC(BBandBot(C,20,2.25),BBandBot(C,20,2.25),BBandBot(C,20,1),BBandBot(C,20,1),"Cloud",colorGrey50 ,styleCloud|styleNoLabel);
+_SECTION_END(); 
+
+bb202t = BBandTop(C, Periods , Width );
+bb202b = BBandBot(C,Periods , Width );
+
+green = O<C;
+red = O>C;
+
+
+// without using RSI. piercing
+
+// prev prev bar is red and pierced bb bottom, prev bar is green and closed above bb bottom, buy at open of this bar
+BuyCond1 = Ref(Cross(bb202b,L ),-2) && Ref(red,-2) && Ref(green,-1) && Ref(C>bb202b,-1) ;
+
+// prev prev bar is green and pierced bb top, prev bar is red and closed below bb top, sell at open of this bar
+SellCond1 = Ref(Cross(H,bb202t ),-2) && Ref(green,-2) && Ref(red,-1) && Ref(C<bb202t,-1)  ;
+
+
+// without using RSI. grazing
+
+//  prev prev bar is green and pierced bb top, prev bar is also green and pirced bb top, buy at open of this bar
+BuyCond2 = Ref(Cross(H,bb202t ),-2) && Ref(green,-2) && Ref(H>bb202t,-1) && Ref(green,-1) ;
+
+// prev prev bar is red and pierced bb bottom, prev bar is also red and pirced bb bottom, sell at open of this bar
+SellCond2 = Ref(Cross(bb202b,L),-2) && Ref(red,-2) && Ref(L<bb202b,-1) && Ref(red,-1) ;
+
+
+// using  RSI. piercing
+
+// use RSI , prev prev bar is red and pierced bb bottom, prev bar is green and closed above bb bottom, buy at open of this bar
+BuyCond3 = BuyCond1  && Ref(RSI(RSI_Periods)<RSI_OS,-1);
+
+// use RSI , prev prev bar is green and pierced bb top, prev bar is red and closed below bb top, sell at open of this bar
+SellCond3 = SellCond1   && Ref(RSI(RSI_Periods)<RSI_OS,-1);
+
+ruleNumber = IIf(SellCond1 OR BuyCond1, 1, IIf(SellCond2 OR BuyCond2, 2, IIf(SellCond3 OR BuyCond3, 3, 0)));
+
+
+Buy = IIf(Rule==1, BuyCond1 , IIf(Rule==2, BuyCond2, IIf(Rule==3, BuyCond1 OR BuyCond2, BuyCond3)) );
+
+Sell = IIf(Rule==1, SellCond1 , IIf(Rule==2, SellCond2, IIf(Rule==3, SellCond1 OR SellCond2, SellCond3)) );
+
+
+
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-15);
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-15);
+
+
+BuyPrice = IIf(Buy, O,0);
+SellPrice = IIf(Sell, O,0);
+
+
+BuySL = IIf(Buy, (round(Ref(L,-2)*0.998*10))/10 ,  0);
+SellSL= IIf(Sell, (round(Ref(H,-2)*1.002*10))/10 ,  0);
+
+BuyTP=IIf(Buy, (round((BuyPrice+(BuyPrice-BuySL))*RiskRewardRatio*10))/10, 0);
+SellTP=IIf(Sell, (round((SellPrice-(SellSL-SellPrice))*RiskRewardRatio*10))/10, 0);
+
+
+//money management
+lotSizeb = round((riskAmount/(BuyPrice-BuySL)));
+lotSizes = round((riskAmount/(SellSL -SellPrice )));
+
+
+
+if( Status("action") == actionIndicator ) 
+(
+
+Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}}  Op %g, , Hi %g, Lo %g, Cl %g (%.1f%%) {{VALUES}}",  O,H, L,C, SelectedValue( ROC( C, 1 ) ) )+"\n"+EncodeColor(colorWhite)+ "BB-RSI System" + " - " +  Name() +  EncodeColor(colorWhite) +
+
+ "\n" +EncodeColor(colorYellow) + WriteIf(((BuyPrice) ) , "Position Size :  "+( lotSizeb )+"  ","")+ WriteIf(((SellPrice ) ) , "Position Size :  "+( lotSizes )+"  ","")+
+WriteIf((Buy OR Sell ), " Rule #  :  "+( ruleNumber )+"  ","")+
+WriteIf((Buy OR Sell ), " RSI  :  "+( RSI(RSI_Periods))+"  ","")+
+
+WriteIf((Buy ), "GO LONG :  "+( BuyPrice)+"  ","")+
+WriteIf( Buy , "     -     LONG TP :  "+(BuyTP )+" ","")+
+WriteIf(Buy , "    -    LONG SL :  "+(BuySL ),"")+
+
+"\n"+
+EncodeColor(colorRed) +
+WriteIf(Sell , "GO Short :  "+( SellPrice )+"  ","")+
+WriteIf(Sell , "    -    Short TP :  "+(SellTP ),"")+
+WriteIf( Sell , "     -     Short SL :  "+(SellSL )+" ",""));
+
+
+
+
+//exploration
+AddColumn( IIf(Buy, 66, IIf(Sell, 83,01 )), "GO", formatChar, colorWhite, bkcolor= IIf(Sell,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy , BuyPrice, IIf(Sell , SellPrice,01 )), "ENTRY@", 1.2, colorWhite, bkcolor= IIf(Sell,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy , BuyTP , IIf(Sell , SellTP ,01 )), "TP@", 1.2, colorWhite, bkcolor= IIf(Sell,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy , BuySL , IIf(Sell , SellSL ,01 )), "SL@", 1.2, colorWhite, bkcolor= IIf(Sell,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy , Lotsizeb, IIf(Sell, Lotsizes,01 )), "QTY", 1.0, colorWhite, bkcolor= IIf(Sell,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy , Lotsizeb*BuyPrice, IIf(Sell, Lotsizes*SellPrice,01 )), "Margin", 1.0, colorWhite, bkcolor= IIf(Sell,colorDarkRed,colorDarkGreen) );
+
+
+// csv file
+
+
+if (IsEmpty(StaticVarGet("EntrySignal"+Name())))
+{
+	StaticVarSet("EntrySignal"+Name(), 1);
+}
+
+
+
+
+   if ((StaticVarGet("EntrySignal"+Name()) == 1) && LastValue( Buy )  )  {
+		fh = fopen( "C:\\trades_buy_"+Name()+".csv", "awr"); 
+		if( fh) 
+		{          
+		   fputs(Name()+","+Date()+","+BuyPrice+","+BuyTP+","+BuySL+","+ round(BuySL*0.9995*10)/10+","+lotSizeb, fh);
+			StaticVarSet("EntrySignal"+Name() , 0); 			 
+			fclose( fh );
+		}
+	} 
+
+	
+
+    
+	if ((StaticVarGet("EntrySignal"+Name()) == 1) && LastValue( Sell)) {
+      fh = fopen( "C:\\trades_sell_"+Name()+".csv", "awr"); 
+      if( fh) 
+		{         
+			fputs(Name()+","+Date()+","+SellPrice+","+SellTP+","+ SellSL+","+round(SellSL*1.0005*10)/10+","+lotSizes , fh);			
+			StaticVarSet("EntrySignal"+Name() , 0);
+			fclose( fh );
+		}
+	}
+ 
+  
+  
+
+
+Filter=Buy OR Sell;

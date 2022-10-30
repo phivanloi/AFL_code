@@ -1,0 +1,40 @@
+// {J.Ehlers Center of Gravity: TASC 5/2002} 
+ 
+mpp=(H+L+C)/3;
+Num=(H+L+C)/3; 
+Num= Num + (2 * Ref(mpp,-1)); 
+Num= Num + (3 * Ref(mpp,-2)); 
+Num= Num + (4 * Ref(mpp,-3)); 
+Num= Num + (5 * Ref(mpp,-4)); 
+Num= Num + (6 * Ref(mpp,-5)); 
+Num= Num + (7 * Ref(mpp,-6)); 
+Num= Num + (8 * Ref(mpp,-7)); 
+Num= Num + (9 * Ref(mpp,-8)); 
+Num= Num + (10 * Ref(mpp,-9)); 
+Denom= mpp; 
+Denom= Denom + Ref(mpp,-1); 
+Denom= Denom + Ref(mpp,-2); 
+Denom= Denom + Ref(mpp,-3); 
+Denom= Denom + Ref(mpp,-4); 
+Denom= Denom + Ref(mpp,-5); 
+Denom= Denom + Ref(mpp,-6); 
+Denom= Denom + Ref(mpp,-7); 
+Denom= Denom + Ref(mpp,-8); 
+Denom= Denom + Ref(mpp,-9); 
+ 
+//{CG:= (Div(Num,Denom)) * -1;} 
+ 
+CG= (Num / Denom) * -1; 
+CG1= MA(cg,3); 
+ 
+Plot(CG,"CG",colorBlue,4); 
+ 
+Plot(CG1,"CG1",colorYellow,styleDots);
+
+Buy = Cross(CG,CG1);
+PlotShapes (IIf(Buy,shapeUpArrow,shapeNone) ,colorLime);
+
+Sell = Cross(CG1,CG);
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorOrange);
+ 
+Title="Center of Gravity" +"\n Slope is "+WriteVal(LinRegSlope(Cg,10))+ WriteIf(LinRegSlope(Cg,10)>Ref(LinRegSlope(cg,10),-1)," And Rising", " And Falling");

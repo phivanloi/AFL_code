@@ -1,0 +1,58 @@
+_SECTION_BEGIN("AJDX system");
+//------------------------------------------------------------------------------
+//
+//  Formula Name:    AJDX system
+//  Author/Uploader: Jaco Jonker 
+//  E-mail:          jjonker@shisas.com
+//  Date/Time Added: 2001-06-18 05:06:17
+//  Origin:          Wellis Wilder
+//  Keywords:        ADX, trend, system
+//  Level:           basic
+//  Flags:           system
+//  Formula URL:     http://www.amibroker.com/library/formula.php?id=25
+//  Details URL:     http://www.amibroker.com/library/detail.php?id=25
+//
+//------------------------------------------------------------------------------
+//
+//  This is a trading system based on the ADX line and should only be used as a
+//  basic exploration to determine the direction of a trend. The Buy indicator
+//  is of most value and changes to fixed variables can be done to fit
+//  different markets.
+//
+//------------------------------------------------------------------------------
+
+/* Commentary Name :ADX (English)
+
+**    Requirements : AmiBroker 3.0 + (AFL 1.1)
+
+**         Version : 0.03
+
+**    Version Date :September 20, 2000
+
+**          Author Jaco Jonker
+
+*/
+
+ct = 100;
+resa = PDI(14)/MDI(14);
+maxp = HHV(PDI(14),ct);
+minp = LLV(PDI(14),ct);
+maxm = HHV(MDI(14),ct);
+minm = LLV(PDI(14),ct);
+area1 = maxp - minm;
+area2 = maxm - minp;
+dif1 = PDI(14) - MDI(14);
+dif2 = MDI(14) - PDI(14);
+
+Buy = dif2 < Ref(dif2,-1) 
+          AND dif2/area2 > 0.75
+          AND Ref(Close,-ct) > 1 
+          AND (Sum(V,5)/5) > 100000 
+          AND Close > 10; 
+Sell = dif1 < Ref(dif1,-1) 
+          AND dif1/area1 > 0 
+          OR Low < (HighestSince(Buy,High,1)*0.95); 
+
+
+
+_SECTION_END();

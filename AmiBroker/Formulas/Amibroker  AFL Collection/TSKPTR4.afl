@@ -1,0 +1,6 @@
+tr4 = E_TSKPTR4(Open,High,Low,Close,Volume);
+PlotShapes( 
+IIf( tr4 >0, shapeHollowUpTriangle, IIf(tr4 <0,shapeHollowDownTriangle,shapeNone)), 
+IIf(tr4 >0,colorBlue,colorRed),
+0,
+IIf( tr4 >0, Low, High ) ); 

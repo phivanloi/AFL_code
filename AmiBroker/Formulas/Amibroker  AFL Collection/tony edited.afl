@@ -1,0 +1,711 @@
+
+_SECTION_BEGIN("Setup");
+//required settings:
+//		Tools --> Preferences | go to Intraday tab and select "START time of interval"
+//		View --> Intraday --> "Show 24 Hours Trading"
+//		View --> Intraday --> "Filter Weekends"
+
+// Rounding the Study line values
+StopLst = ParamList("Select Stop", ".25|.33|.50|.66|.75|1.0|1.5", 6);
+TargetLst = ParamList("Adjust Target", "0.50|0.66|0.75|1.00|1.10|1.20|1.25|1.30|1.35", 0);
+Instrument = ParamList("Instrument", "Stocks|Forex|Futures");
+length 	= ParamList("Digits to R of Decimal","0|2|4",1);		// Number or numbers to the right of the decimal
+rounding  = ParamList("Rounding (for pts.)", "Truncate|NearestQuarter");	// don't round, round to nearest 1, round to nearest .25
+ExpFilter = ParamList("Exploration", "ORB|STATS|OHLC", 0);
+UseIndia = "YES";//ParamList("Indian Market?", "YES|NO",0);
+FltrHolidays = 0;//ParamToggle("Filter Holidays", "YES|NO", 0);
+UseDaySave = 1;//ParamToggle("Daylight Savings", "YES|NO", 1);
+UserSpringFoward =ParamDate("SpringForward", "24/12/2009");
+UserFallBehind =ParamDate("FallBehind", "20/12/2009");
+UserOpen = ParamTime("Market Open", "09:00");
+UserClose = ParamTime("Market Close", "15:30");
+Vlp=Param("Volume lookback period",30,20,300,10);
+ShowEMA = ParamToggle("Show MA", "NO|YES", 0);
+Showstp = ParamToggle("Show initial Stop Line", "NO|YES", 1);
+riskAmount=Param("Invested Amount",15000,10,1000000,5);
+
+_SECTION_END();
+_SECTION_BEGIN("Plot lines");
+//Set parameter default to YES for displaying the final
+//results of the break out calculations.
+PlotBreak =  ParamToggle("Plot Breakout", "YES|NO", 0);
+//set parameter default to YES for displaying PP, S1 and R1
+PPSR1 = ParamToggle("PP,S1/R1", "YES|NO", 1);
+//set paramter default to NO for displaying S2 and R2
+S2R2 = ParamToggle("S2,R2", "YES|NO", 1);
+//set parameter default to NO for dsiplaying S3 and R3
+S3R3 = ParamToggle("S3,R3", "YES|NO", 1);
+//set paramter default to NO for diplaying S4 and R4
+S4R4 = ParamToggle("S4,R4", "YES|NO", 1);
+_SECTION_END();
+
+_SECTION_BEGIN("Price");
+Plot( C, "Close", ParamColor("Color", colorRed ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+SetChartBkColor(ParamColor("Panel color ",colorBlack));
+_SECTION_END();
+
+_SECTION_BEGIN("Speed Lines");
+P20 = 20;
+//Plot( EMA( C, P20 ), "Spd20" ,colorYellow, styleLine | styleThick ); 
+
+P18 = 18;
+Plot(IIf(showema, EMA( C, P18 ),Null), "Spd18" ,colorGreen, styleLine | styleThick ); 
+
+P50 = 50;
+Plot( IIf(showema,MA( C, P50 ),Null), "Spd 50" , colorOrange,styleLine | styleThick); 
+
+P200 = 200;
+Plot( IIf(showema,MA( C, P200 ),Null), "Spd 200" , colorRed, ParamStyle("Style") ); 
+
+Prd3HLC = Param("HLC 3 Prds", 3, 3, 10, 1);
+//Plot(MA((H + L + C)/3, Prd3HLC), "HLC 3MA", colorBlue, styleLine | styleThick);
+
+Prd5HLC = Param("HLC 5 Prds", 5, 3, 10, 1);
+//Plot(MA((H + L + C)/3, Prd5HLC), "HLC 5MA", colorWhite, styleLine | styleThick);
+_SECTION_END();
+
+_SECTION_BEGIN("Open Range Break Out");
+
+CurBarTime = TimeNum();
+
+//Need to use VBscript here to take the user selected date
+//and covert it to the DateNum() format for use by AFL
+EnableScript("vbscript");
+<%
+dim VarPart
+    varPartSpring = Split(AFL("UserSpringFoward"), "/", 3)
+
+AFL("Spring") = varPartSpring(0) 
+	VarPartFall = Split(AFL("UserFallBehind"), "/", 3)
+AFL("Fall") = VarPartFall(0)
+
+%>
+//convert VBscript output to number format and assign to 
+//AFL variables
+SpringForward = StrToNum(Spring);
+FallBehind = StrToNum(Fall);
+
+//based on user selection in parameters dialog for daylight savings and
+// market open and close times, adjust the Open/Close for the market accordingly
+
+if(UseIndia == "YES")
+{
+TimeOpen = ValueWhen(DateNum() != Ref(DateNum(),-1), TimeNum());
+}
+CalcClose = UserClose;
+
+TimeClose = IIf(StrMid(NumToStr(CalcClose ,1,False),2,2)=="00",
+			6000-((Interval()/60)*100)+(CalcClose-10000),
+			CalcClose-(100*(Interval()/60)));
+
+//Determine the value of the market open. Initial setting is for
+//9:30 AM to match US Market Open. Adjust as need for your market
+MrktOpen = ValueWhen(CurBarTime  == TimeOpen , Open);
+DlyOpen =ValueWhen(CurBarTime == TimeClose, MrktOpen);
+//Determine the highest high for each day's trading.
+//Adjust time as needed for your market.
+DlyHigh = HighestSince(CurBarTime  == TimeOpen , High);
+//Take a snapshot value of the day's high at the time of market 
+//close. Intial stting is 4:00 pm to match US Market Close. 
+//Adjust as needed for your market.
+DlyHighest = ValueWhen(CurBarTime  == TimeClose , DlyHigh);
+//Do the same for the lowest value of the trading day.
+//Adjust time as needed for your market.
+DlyLow = LowestSince(CurBarTime  == TimeOpen , Low);
+DlyLowest = ValueWhen(CurBarTime  == TimeClose , DlyLow);
+//determine the market closing price
+DlyClose = ValueWhen(CurBarTime  == TimeClose , C);
+//Now calculate the min range value using Open, Low and High
+//variables calculated above
+RngMin = Min(DlyHighest - MrktOpen, MrktOpen - DlyLowest);
+//Compres this to a daily time frame in order to capture
+//the final value of the Range Min for each trading day
+DlyRngMin = TimeFrameCompress(RngMin, inDaily, compressLast);
+//Use the compressed variable to calculate a 10 day average\
+RngMinAvg = MA(DlyRngMin , 10);
+
+//uncompress the daily variable so that it can be used in 
+//calcuating the long and short break out levels for each day
+RngMinAvg = TimeFrameExpand(RngMinAvg, inDaily);
+
+//caclculate the max range value using the opn, low and high
+//variables
+RngMax = Max(DlyHighest - MrktOpen, MrktOpen - DlyLowest);
+//compress this to a daily time frame in order to capture
+//the final value of the range max for each trading day
+DlyRngMax = TimeFrameCompress(RngMax, inDaily, compressLast);
+//use the compressed variable to calculate a 10 day average
+RngMaxAvg = MA(DlyRngMax, 10);
+//uncompress the daily variable so that it can be used in
+//calculating the profit target for opening range breakouts
+RngMaxAvg = TimeFrameExpand(RngMaxAvg, inDaily);
+//Use the values calculated above to determine the opening
+//range break outs. Notice the Range Min has been shifted so
+//that is reads the previous day's value and this is used against
+//the current day's open to determine the break out levels
+BreakOutLong = MrktOpen + Ref(RngMinAvg, -1);
+BreakOutShort = MrktOpen - Ref(RngMinAvg, -1);
+
+//round the breakout levels based on user selection in parameters
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if(Length == "0")
+	{
+		breakOutLong = int(breakOutLong );
+		breakOutShort = int(breakOutShort );
+	}
+else if(Length == "2")
+	{
+	if(rounding == "NearestQuarter" AND Instrument == "Futures")
+		{
+		breakOutLong = 0.25 * ceil( 0.5 + BreakOutLong * 4 );
+		breakOutShort = 0.25 * floor( 0.5 + BreakOutShort * 4 );
+		}
+	else
+		{
+		breakOutLong = 0.01 * round(0.5 + BreakOutLong * 100);
+		breakOutShort = 0.01 * round(0.5 + BreakOutShort * 100);
+		}
+test = 0;
+	}
+else if(Length == "4")
+{
+		breakOutLong = Prec(breakOutLong , 4);
+		breakOutShort = Prec(breakOutShort , 4);
+}
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//now use the average max range to calculate a profit target
+//for each day's opening range break out
+UserTarget = StrToNum(TargetLst);
+
+//allow user to modify the profit target from selection made in 
+//the parameters.
+ProfitLong = MrktOpen + (Ref(RngMaxAvg, -1))*UserTarget ;
+ProfitShort = MrktOpen - (Ref(RngMaxAvg, -1))*UserTarget ;
+
+UserStop = StrToNum(StopLst);
+
+
+//Allow user to modify the stop loss values from selection made
+//in the parameters.
+StopAmtLong = Prec((breakOutLong - MrktOpen)*UserStop ,2);
+StopAmtShort = Prec((MrktOpen - breakOutShort)*UserStop ,2);
+
+//round the stop and profit target levels based on user selection in parameter
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+if(Length == "0")
+	{
+		StopAmtShort = int(StopAmtShort);
+		StopAmtLong = int(StopAmtLong);
+		ProfitShort = int(ProfitShort) ;
+		ProfitLong = int(ProfitLong); 
+	}
+else if(Length == "2")
+	{
+	if(rounding == "NearestQuarter" AND Instrument == "Futures")
+		{
+		StopAmtShort = 0.25 * ceil( 0.5 + StopAmtShort * 4 )+0.25;
+		StopAmtLong = 0.25 * floor( 0.5 + StopAmtLong * 4 );
+		ProfitShort = 0.25 * ceil( 0.5 + ProfitShort * 4 ) ;
+		ProfitLong = 0.25 * floor( 0.5 + ProfitLong * 4 ) - 0.25;
+		}
+	else
+		{
+		StopAmtShort = 0.01 * floor(0.5 + StopAmtShort * 100);
+		StopAmtLong = 0.01 * round(0.5 + StopAmtLong * 100)+0.01;
+		ProfitShort = Prec(ProfitShort , 2) ;
+		ProfitLong = Prec(ProfitLong , 2);
+		}
+
+	}
+else if(Length == "4")
+{
+		StopAmtShort = Prec(StopAmtShort , 4);
+		StopAmtLong = Prec(StopAmtLong , 4);
+		ProfitShort = Prec(ProfitShort , 4) ;
+		ProfitLong = Prec(ProfitLong , 4); 
+}
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+//create the title layout for the various levels
+TitleBreakOuts = "\n"+
+EncodeColor(colorCustom11) +"Today's Breakout Levels:" +"\n"
+					+"Long Target: " +ProfitLong + "\n"
+					+"Breakout Long: " +breakOutLong +"\n"
+					+"Long Stop: " +(BreakOutLong - StopAmtLong) +"\n"
+					+"Today's Open: " +MrktOpen +"\n"
+					+"Breakout Short: " +breakOutShort +"\n"
+					+"Short Target: " +ProfitShort +"\n"
+					+"Short Stop: " + (BreakOutShort + StopAmtShort)+"\n";
+
+_SECTION_END();
+
+_SECTION_BEGIN("Toby Crabel Patterns");
+TitleHeader = "\n"+
+EncodeColor(colorYellow) +"Yesterday's Price Patterns" +"\n";
+TitleSwing = "\n"+
+EncodeColor(colorLavender) +"1 Day Swing Trend" + "\n";
+
+//compress daily high and low for use in calculations
+DlyC = TimeFrameCompress(DlyClose , inDaily, compressLast);
+DlyH = TimeFrameCompress(DlyHighest, inDaily, compressLast);
+DlyL = TimeFrameCompress(DlyLowest, inDaily, compressLast);
+DlyO = TimeFrameCompress(MrktOpen, inDaily, compressLast);
+DlyRng = DlyH-DlyL;
+//use compressed daily high and low to expand day's 2-5
+PrevO = TimeFrameExpand(DlyO, inDaily);//day 2 open
+//PrevO2 = TimeFrameExpand(Ref(DlyO, -1), inDaily);//day 3 open
+CurH = TimeFrameExpand(DlyH, inDaily);//day 2 high
+PrevH = TimeFrameExpand(Ref(DlyH,-1), inDaily);//day 3 high
+PrevH2 = TimeFrameExpand(Ref(DlyH,-2), inDaily);//day 4 high
+//PrevH3 = TimeFrameExpand(Ref(DlyH,-3), inDaily);//day 5 high
+CurL = TimeFrameExpand(DlyL, inDaily);//day 2 low
+PrevL = TimeFrameExpand(Ref(DlyL,-1), inDaily);//day 3 low
+PrevL2 = TimeFrameExpand(Ref(DlyL,-2), inDaily);//day 4 low
+//PrevL3 = TimeFrameExpand(Ref(DlyL,-3), inDaily);//day 5 low
+PrevC = TimeFrameExpand(DlyC, inDaily);//day 2 close
+PrevC2 = TimeFrameExpand(Ref(DlyC,-1), inDaily);//day 3 close
+PrevC3 = TimeFrameExpand(Ref(DlyC,-2), inDaily);//day 4 close
+
+//code and plot the Doji 
+//abs(O-C)/(H-L) < .11 AND (O+C)/2 < H-((H-L)*.33) AND (O+C)/2 > L+((H-L)*.33)
+DlyDoji = (abs(DlyO-DlyC)/(DlyRng)) < 0.11 AND  
+			((DlyO+DlyC)/2) < (DlyH-((DlyRng)*0.33)) AND 
+			((DlyO+DlyC)/2) > (DlyL+((DlyRng)*0.33));
+doji = TimeFrameExpand(DlyDoji, inDaily);
+
+Cntr = 0;
+Holiday = 0;
+for(i=1;i<BarCount;i++)
+	{
+	if(CurBarTime[i] >= TimeOpen[i] AND CurBarTime[i] <= TimeClose[i])
+		Cntr = 1;	
+		if(Cntr[i] >= 1 AND CurBarTime[i] == TimeClose[i])
+		{
+			Cntr = 2;
+		}
+			if(Cntr[i] < 2 AND CurBarTime[i] > TimeClose[i])
+			{
+				Holiday[i] = 1;
+			}
+	}
+
+Holiday = TimeFrameCompress(Holiday,inDaily);
+
+//apply holiday filter if the user selects it in the parameters
+if(FltrHolidays == 0)
+{
+
+//code and plot the NR4
+DlyNR4 = IIf(Holiday OR (BarsSince(Holiday) >= 1 AND BarsSince(Holiday) <= 4),
+			(LLV(DlyRng,5) == (DlyRng)),
+			(LLV(DlyRng,4) == (DlyRng)));
+//code and plot the WS4
+DlyWS4 = IIf(Holiday OR (BarsSince(Holiday) >= 1 AND BarsSince(Holiday) <= 4),
+			(HHV(DlyRng,5) == (DlyRng)),
+			HHV(DlyRng,4) == (DlyRng));
+//code and plot the NR7
+DlyNR7 = IIf(Holiday OR (BarsSince(Holiday) >= 1 AND BarsSince(Holiday) <= 7),
+			(LLV(DlyRng,8) == (DlyRng)),
+			(LLV(DlyRng,7) == (DlyRng)));
+//code and plot the WS7
+DlyWS7 = IIf(Holiday OR (BarsSince(Holiday) >= 1 AND BarsSince(Holiday) <= 7),
+			(HHV(DlyRng,8) == (DlyRng)),
+			(HHV(DlyRng,7) == (DlyRng)));
+//calculate the 2 day range
+DlyTwoDayRng = IIf(Holiday OR (BarsSince(Holiday) == 1 ),
+					HHV(DlyH ,3) - LLV(DlyL ,3),
+					HHV(DlyH ,2) - LLV(DlyL ,2));
+//calculate the 3 day range
+DlyThreeDayRng = IIf(Holiday OR (BarsSince(Holiday) >= 1 AND BarsSince(Holiday) <= 2),
+					HHV(DlyH ,4) - LLV(DlyL ,4),
+					HHV(DlyH ,3) - LLV(DlyL ,3));
+
+TitleDoji = WriteIf(Holiday OR (BarsSince(Holiday) >= 1 AND BarsSince(Holiday) <= 2),
+						EncodeColor(colorGold) +WriteIf(Ref(doji,-2), " Doji Day" +"\n", ""),
+						EncodeColor(colorGold) +WriteIf(Ref(doji,-1), " Doji Day" +"\n", ""));
+}
+
+
+//code the NR
+NR = (CurH - CurL) < (PrevH - PrevL);
+
+NR4 = TimeFrameExpand(DlyNR4, inDaily);
+TitleNR4 = EncodeColor(colorWhite) + WriteIf(Ref(NR4,0), " NR4 Day"+"\n", "");
+
+WS4 = TimeFrameExpand(DlyWS4, inDaily);
+TitleWS4 = EncodeColor(colorRed) +WriteIf(Ref(WS4,0), " WS4 Day"+"\n", "");
+
+NR7 = TimeFrameExpand(DlyNR7, inDaily);
+TitleNR7 = EncodeColor(colorWhite) + WriteIf(Ref(NR7,0), " NR7 Day"+"\n", "");
+
+WS7 = TimeFrameExpand(DlyWS7, inDaily);
+TitleWS7 = EncodeColor(colorRed) +WriteIf(Ref(WS7,0), " WS7 Day" +"\n", "");
+
+TwoDayRng = TimeFrameExpand(DlyTwoDayRng, inDaily);
+
+//determine lowest 2 day range in previous 20 days
+DlyTwoBarNR = LLV(DlyTwoDayRng , 20) == DlyTwoDayRng ;
+TwoBarNR = TimeFrameExpand(DlyTwoBarNR, inDaily);
+TitleTwoBarNR = WriteIf(Ref(TwoBarNR, -1), " 2DayNR" +"\n", "");
+
+ThreeDayRng = TimeFrameExpand(DlyThreeDayRng, inDaily);
+
+//determine lowest 3 day range in previous 20 days
+DlyThreeBarNR = LLV(DlyThreeDayRng , 20) == DlyThreeDayRng ;
+ThreeBarNR = TimeFrameExpand(DlyThreeBarNR, inDaily);
+TitleThreeBarNR = WriteIf(Ref(ThreeBarNR, -1), " 3DayNR" +"\n", "");
+
+//code and plot the pivot top
+PivotTop = CurL < PrevL  AND CurH < PrevH  AND PrevH > PrevH2;
+
+//code and plot the pivot bottom
+PivotBottom = CurH > PrevH   AND CurL > PrevL   AND PrevL < PrevL2;
+
+SwingUP = PrevC > ValueWhen(PivotTop, PrevH,1);
+SwingDWN = PrevC < ValueWhen(PivotBottom, PrevL,1);
+
+TitleSwingTrend = WriteIf(SwingUP, " Swing UP" +"\n",
+						WriteIf(SwingDWN, " Swing DWN" +"\n", " Swing Flat" +"\n"));
+ExpSwingTrend = IIf(SwingUP, 9,
+						IIf(SwingDWN, 0, 1));
+
+//determine if previous day closed up or down
+CloseUP = PrevO > PrevH;
+//printf("Closed: " +WriteIf( Ref(DlyO,-1) < DlyC, "UP" +"\n", "DWN" +"\n"));
+TitleUPDWN = WriteIf(PrevO > PrevH, " UP Day" +"\n", " DWN Day" +"\n");
+GapDayUP = PrevO > PrevH2 ;
+GapDayDWN = PrevO < PrevL2;
+TitleGapDay = WriteIf(GapDayUP,
+				WriteIf(CloseUP, " Gap UP and closed UP" +"\n", " Gap UP and closed DWN" +"\n"),
+				WriteIf(GapDayDWN, 
+				WriteIf(CloseUP, " Gap DWN and closed UP" +"\n", " Gap DWN and closed DWN" +"\n"),""));
+_SECTION_END();
+
+//Volume Calc
+Vrg=MA(V,Vlp);
+St = StDev(Vrg,Vlp); 
+Vp2 = Vrg + 2*st;;
+Vp1 = Vrg + 1*st;;
+Vn1 = Vrg -1*st; 
+Vcolor=IIf(V>Vp2,colorDarkGreen,IIf(V>Vp1,colorGreen,IIf(V>Vrg,colorSeaGreen, IIf(V<Vrg AND V>Vn1,colorYellow,IIf(V<Vn1,colorLightYellow,colorGrey40)))));
+
+if(expFilter == "ORB")
+{
+
+Filter = CurBarTime == TimeOpen;
+}
+
+_SECTION_BEGIN("Daily Pivots");
+//Determine the value of the market close. Initial setting is for
+//4:00 PM to match US Market Open. Adjust as need for your market
+MrktClose = ValueWhen(CurBarTime  == TimeClose , Close);
+Range = DlyHighest - DlyLowest;
+PP = (DlyHighest + DlyLowest + MrktClose)/3;
+PP = round(PP * 4) / 4;
+R1 = (2 * PP) - DlyLowest;
+S1 = (2 * PP) - DlyHighest;
+R2 = PP + Range;
+S2 = PP - Range;
+R3 = R2 + Range;
+S3 = S2 - Range;
+R4 = R3 + Range;
+S4 = S3 - Range;
+
+TitlePivots = "\n"+
+EncodeColor(colorYellow) +"Today's Daily Pivots" +"\n"
+				+"R1: " +R1 +"\n" +"PP: " +PP +"\n" +"S1: " +S1 
+//+WriteVal((fhh))+WriteVal((FHL))+WriteVal(((TOP)))+ WriteVal((bi1[0]))
++"\n";
+if(PPSR1 == 0)
+{
+Plot(R1, "Dly R1", colorBlue, styleLine | styleThick | styleNoRescale);
+Plot(PP, "Dly Pivot", colorCustom12, styleLine | styleThick | styleNoRescale);
+Plot(S1, "Dly S1", colorBlue, styleLine | styleThick | styleNoRescale);
+}
+if(S2R2 == 0)
+{
+Plot(R2, "Dly R2", colorBlue, styleLine  | styleNoRescale);
+Plot(S2, "Dly S2", colorBlue, styleLine  | styleNoRescale);
+}
+if(S3R3 == 0)
+{
+Plot(R3, "Dly R3", colorBlue, styleDashed | styleThick | styleNoRescale);
+Plot(S3, "Dly S3", colorBlue, styleDashed | styleThick | styleNoRescale);
+}
+if(S4R4 == 0)
+{
+Plot(R4, "Dly R4", colorBlue, styleDashed  | styleNoRescale);
+Plot(S4, "Dly S4", colorBlue, styleDashed  | styleNoRescale);
+}
+
+_SECTION_END();
+//RibbonColor = IIf(MrktHours  , colorGreen, colorRed);
+Plot( 2, "ribbon",VColor,styleOwnScale|styleArea|styleNoLabel, -1, 100 );
+
+
+_SECTION_BEGIN("Title");
+SetChartOptions(0,chartShowArrows|chartShowDates|chartWrapTitle|chartHideQuoteMarker);
+_N(Title = EncodeColor(colorYellow)+ "Tony Crabel Method - Developed by & property of Vinod K. Iyer"+"\n" + "TurnOver=    Rs.  "+ WriteVal((((V*C)/100000)),1.2)+"   Lakhs"+"\n"+StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) ", O, H, L, C, 
+SelectedValue( ROC( C, 1 ) ) )+"\n" +TitleBreakOuts  +TitlePivots +TitleSwing +TitleSwingTrend +TitleHeader 
++TitleNR4  +TitleNR7 +TitleTwoBarNR +TitleThreeBarNR +TitleWS4 
++TitleWS7 +TitleDoji 
++EncodeColor(colorWhite) +WriteIf(TitleGapDay == "", TitleUPDWN, "") +TitleGapDay   );
+
+_SECTION_BEGIN("Price");
+Plot( C, "Close", ParamColor("Color", colorRed ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+SetChartBkColor(ParamColor("Panel color ",colorBlack));
+_SECTION_END();
+
+/*
+        Guppy countback trailing stop plot*/                                                                                  
+
+GP_pfIdUsed = -1;           //  Required global variable
+sname = Name();
+pfId = -1;//Param("1. Portfolio Number?", -1, -1, 255, 1);
+X=Interval()/60; 
+P1 = 15/X;
+cback = P1;//Param("2. Countback value?", 3, 0, 20, 1);
+doSl = 1;//Param("4. Plot as Stop/Loss?", 1, 0, 1, 1);
+
+//long
+isLong = 1;
+bi = BarIndex();            //  This gets the start and end bars of a range
+startIx = BeginValue(bi) - bi[0];
+endIx = EndValue(bi) - bi[0];
+if (endIx < startIx)
+    endIx = startIx;
+if (startIx == 0)
+    startIx = -1;
+plong = GP_GetLongShort(sname, pfId);
+if (plong >= 0)
+    isLong = plong != 0;
+
+cbArr = GP_CountBack(cback, isLong);    //  Get count back data array
+sstop = GP_CreateStop(cbArr, sname, pfId, startIx, isLong); //  Turn into trailing stop
+
+if (startIx > 0) {      //  Remove any data before start in count back array
+    for (i = 0; i < startIx; i++)
+        cbArr[i] = -1e10;
+    }
+if (endIx < BarCount-1) {   //  Remove any data after end in count back and stop arrays
+    for (i = endIx+1; i < BarCount; i++) {
+        sstop[i] = -1e10;
+        cbArr[i] = -1e10;
+        }
+    }
+    
+    
+
+//short
+isLong1 = 0;
+bi1 = BarIndex();            //  This gets the start and end bars of a range
+startIx1 = BeginValue(bi1) - bi1[0];
+endIx1 = EndValue(bi1) - bi1[0];
+if (endIx1 < startIx1)
+    endIx1 = startIx1;
+if (startIx1 == 0)
+    startIx1 = -1;
+
+plong1 = GP_GetLongShort(sname, pfId);
+if (plong1 >= 0)
+    isLong1 = plong1 != 0;
+
+cbArr1 = GP_CountBack(cback, isLong1);    //  Get count back data array
+sstop1 = GP_CreateStop(cbArr1, sname, pfId, startIx1, isLong1); //  Turn into trailing stop
+
+if (startIx1 > 0) {      //  Remove any data before start in count back array
+    for (i = 0; i < startIx1; i++)
+        cbArr1[i] = -1e10;
+    }
+if (endIx1 < BarCount-1) {   //  Remove any data after end in count back and stop arrays
+    for (i = endIx1+1; i < BarCount; i++) {
+        sstop1[i] = -1e10;
+        cbArr1[i] = -1e10;
+        }
+    }
+Plot(sstop, "Countback(" + WriteVal(cback, 1.0) + ")", colorDarkGreen, styleDots);
+Plot(sstop1, "Countback(" + WriteVal(cback, 1.0) + ")", colorDarkRed, styleDots);
+//end Guppy
+
+Limit=Param(" Trade Till (Hour)(Min)(Sec)",145900,103000,153000,100);
+since=(TimeNum() >= 090459 AND TimeNum()<= Limit) AND (DateNum()==LastValue(DateNum()));
+TimeFrameSet(inDaily);
+TOP_        = Open;
+PDC_        = Ref(Close,-1);
+TimeFrameRestore();
+
+FH_Range   = (TimeNum() >= 085959 AND TimeNum()<= 090500) AND (DateNum()==LastValue(DateNum()));
+FH_Prices  = High * FH_Range;
+FH_Marker  = BarsSince(FH_Range>0);
+Num_Bars   = 3600 / Interval(1);  
+isAll = True;
+isRth =  TimeNum() >= 085959 AND TimeNum() <= 090500;
+isdRth =  TimeNum() >= 085959 AND TimeNum() <= 160000;
+aRthL = IIf(isRth, L, 1000000);
+aRthH = IIf(isdRth, H, Null);
+aRthLd = IIf(isdRth, L, 1000000);
+FHH        = Ref(HHV(High*FH_Range,Num_Bars),-FH_Marker);
+FHL = TimeFrameCompress( aRthL, inDaily, compressLow );
+FHL = TimeFrameExpand( FHL, inDaily, expandFirst );
+TOP         = TimeFrameExpand(TOP_,inDaily,expandFirst); 
+PDC         = TimeFrameExpand(PDC_,inDaily,expandFirst); 
+
+
+Buy=((TOP==FHL && TOP>PDC)  &&  (Cross(H,breakOutLong) || Cross(C,breakOutLong)) && since);
+Buy1=Cum(Buy);
+Short=((TOP==FHH && TOP<PDC)  &&  (Cross(BreakOutShort,L) || Cross(BreakOutShort,C)) && since);
+Short1=Cum(Short);
+Sell=IIf(Buy1>=1,((Cross(H, ProfitLong) || Cross(C, ProfitLong)) & since),0) ;
+Cover=IIf(Short1>=1,((Cross(ProfitShort,L) || Cross(ProfitShort,C))& since),0) ;
+bstop=IIf(Buy1>=1,((Cross((breakOutLong - StopAmtLong),L) || Cross((breakOutLong - StopAmtLong),C))& since),0) ;
+sstop=IIf(Short1>=1,((Cross(H,(BreakOutShort + StopAmtShort)) || Cross(C,(BreakOutShort + StopAmtShort)))& since),0) ;
+Buy=ExRem(Buy,Short);
+Short=ExRem(Short,Buy);
+Sell=ExRem(Sell,Cover);
+Cover=ExRem(Cover,Sell);
+bstop=ExRem(bstop,sstop);
+sstop=ExRem(sstop,bstop);
+BuyPrice=(round(breakoutlong*10))/10;
+ShortPrice=(round(breakoutshort*10))/10;
+SellPrice=(round(ProfitLong*10))/10;
+CoverPrice=(round(profitshort*10))/10;
+Buystop=(round((breakOutLong - StopAmtLong)*10))/10;
+Shortstop=(round((BreakOutShort + StopAmtShort)*10))/10;
+bstop1=Cum(bstop);
+sstop1=Cum(sstop);
+Sell1=Cum(Sell);
+Cover1=Cum(Cover);
+byp=IIf(bstop1>=1,0,Sell);
+bstp=IIf(Sell1>=1,0,bstop);
+sep=IIf(sstop1>=1,0,Cover);
+sstp=IIf(Cover1>=1,0,sstop);
+byp=ExRem(byp,sep);
+sep=ExRem(sep,byp);
+bstp=ExRem(bstp,sstp);
+sstp=ExRem(sstp,bstp);
+
+//buy/short writing codes
+
+Buyless=(Buy && C<=BuyPrice);
+Buymore=(Buy && C>BuyPrice);
+Shortless=(Short && C>=ShortPrice);
+Shortmore=(Short && C<ShortPrice);
+
+//money management
+lotSizeb = round((riskAmount/BuyPrice));
+lotSizes = round((riskAmount/ShortPrice));
+
+if(expFilter == "ORB")
+{
+AddColumn( IIf(Buy OR bstp OR byp, TimeNum(), IIf(Short OR sstp OR sep, TimeNum(),01 )), "Time", 1, colorWhite, bkcolor= IIf(Short OR sstp OR sep,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy, 66, IIf(Short, 83,01 )), "GO", formatChar, colorWhite, bkcolor= IIf(Short,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(byp, 80, IIf(sep, 80,01 )), "PR", formatChar, colorWhite, bkcolor= IIf(sep ,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(bstp, 76, IIf(sstp, 76,01 )), "SL", formatChar, colorWhite, bkcolor= IIf(sstp ,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy OR Bstp OR byp, BuyPrice, IIf(Short OR sstp OR sep, ShortPrice,01 )), "ENTRY@", 1.2, colorWhite, bkcolor= IIf(Short OR Sstp OR sep,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy OR Bstp OR byp, BuyStop, IIf(Short OR Sstp OR sep, ShortStop,01 )), "STPLS@", 1.2, colorWhite, bkcolor= IIf(Short OR Sstp OR sep,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy OR Bstp OR byp, SellPrice, IIf(Short OR Sstp OR sep, CoverPrice,01 )), "PR@", 1.2, colorWhite, bkcolor= IIf(Short OR Sstp OR sep,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy OR bstop OR Sell, Lotsizeb, IIf(Short OR sstop OR Cover, Lotsizes,01 )), "QTY", 1.0, colorWhite, bkcolor= IIf(Short OR sstop OR Cover,colorDarkRed,colorDarkGreen) );
+
+
+}
+if(PlotBreak == 0)
+{
+Plot(MrktOpen, "Daily Open", colorBlack, styleLine | styleNoRescale);
+Plot(BreakOutLong , "Break Out Long", colorLime, styleDots | styleNoRescale);
+Plot(BreakOutShort , "Break Out Short", colorRed, styleDots | styleNoRescale);
+Plot(ProfitLong, "Long Target", colorLime, styleDots | styleThick | styleNoRescale);
+Plot(ProfitShort, "Short Target", colorRed, styleDots | styleThick | styleNoRescale);
+Plot(IIf(showstp,Buystop,Null), "Long Target", colorLime, styleLine | styleThick | styleNoRescale);
+Plot(IIf(showstp,Shortstop,Null), "Short Target", colorRed, styleLine | styleThick | styleNoRescale);
+PlotOHLC(MrktOpen, breakOutLong, MrktOpen, MrktOpen, "", colorPaleGreen, styleCloud | styleNoRescale | styleNoLabel);
+PlotOHLC(MrktOpen, MrktOpen, BreakOutShort , MrktOpen, "", colorCustom16, styleCloud | styleNoRescale | styleNoLabel);
+}
+
+//shapes
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorDarkGreen,0,L,-25 );
+PlotShapes(IIf(Short,shapeDownArrow,shapeNone),colorDarkRed,0,H,-25 );
+PlotShapes(IIf(Cover,shapeHollowUpArrow,shapeNone),colorDarkRed,0,L,-25 );
+PlotShapes(IIf(Sell,shapeHollowDownArrow,shapeNone),colorDarkGreen,0,H,-25 );
+
+//Alerts
+AlertIf( Buy, "SOUND C:\\Windows\\Media\\Windows XP Startup.wav", "Buy",2);
+AlertIf( Short, "SOUND C:\\Windows\\Media\\Windows XP Startup.wav", "Short", 2 );
+AlertIf( BStp, "SOUND C:\\Windows\\Media\\Ringin.wav", "BuyStop Hit", 2 );
+AlertIf( byp, "SOUND C:\\Windows\\Media\\Ringin.wav", "Buy Take Profit", 2 );
+AlertIf( SStp, "SOUND C:\\Windows\\Media\\Ringin.wav", "Short Stop Hit", 2 );
+AlertIf( sep, "SOUND C:\\Windows\\Media\\Ringin.wav", "Short Take Profit", 2 );
+
+/*
+Export intraday AND EOD data to TXT files 
+In the first line insert the directory you want to save them to, make sure the
+directory exists
+Select the timeframe period you want to save as using the AA "Settings"
+*/
+
+if (IsEmpty(StaticVarGet("SendSignal"+Name())))
+{
+StaticVarSet("SendSignal"+Name(), 1);
+}
+
+if ((StaticVarGet("SendSignal"+Name())) && LastValue( Buyless ) ) {
+fh = fopen("C:\\BTT_Exe\\config\\order"+".SAV", "a"); 
+if( fh) 
+{ 
+fputs("NSECM|Buy|CLI|VYV118|"+Name()+"|"+"-"+"|"+Lotsizeb+"|"+"MO|"+"-"+"|"+"-|-|NL|Margin|08067|N|Day|Long at|-|-|-|-|-|"+"\n", fh);
+fputs("NSECM|Sell|CLI|VYV118|"+Name()+"|"+BuyStop+"|"+Lotsizeb+"|"+"SL|"+(round((BuyStop+(BuyStop*0.03/100))*10))/10+"|"+"-|-|NL|Margin|08067|N|DAY|BuyStop|-|-|-|-|-|"+"\n", fh);
+StaticVarSet("SendSignal"+Name() , 0);
+fclose( fh );
+}
+}
+
+if (IsEmpty(StaticVarGet("SendSignal1"+Name())))
+{
+StaticVarSet("SendSignal1"+Name(), 1);
+}
+
+if ((StaticVarGet("SendSignal1"+Name()) ) && LastValue( Shortless ) ) {
+fh = fopen("C:\\BTT_Exe\\config\\order"+".SAV", "a"); 
+if( fh) 
+{ 
+fputs("NSECM|Short Sell|CLI|VYV118|"+Name()+"|"+"-"+"|"+Lotsizes+"|"+"MO|"+"-"+"|"+"-|-|NL|Margin|08067|N|Day|Short at|-|-|-|-|-|"+"\n", fh);
+fputs("NSECM|Buy to Cover|CLI|VYV118|"+Name()+"|"+ShortStop+"|"+Lotsizes+"|"+"SL|"+(round((ShortStop-(ShortStop*0.03/100))*10))/10+"|"+"-|-|NL|Margin|08067|N|DAY|ShortStop|-|-|-|-|-|"+"\n", fh);
+StaticVarSet("SendSignal1"+Name() , 0);
+fclose( fh );
+}
+} 
+if (IsEmpty(StaticVarGet("SendSignal2"+Name())))
+{
+StaticVarSet("SendSignal2"+Name(), 1);
+}
+
+if ((StaticVarGet("SendSignal2"+Name())) && LastValue( Buymore ) ) {
+fh = fopen("C:\\BTT_Exe\\config\\order"+".SAV", "a"); 
+if( fh) 
+{ 
+fputs("NSECM|Buy|CLI|VYV118|"+Name()+"|"+BuyPrice+"|"+Lotsizeb+"|"+"SL|"+(round((BuyPrice-(BuyPrice*0.03/100))*10))/10+"|"+"-|-|NL|Margin|08067|N|Day|Long at|-|-|-|-|-|"+"\n", fh);
+fputs("NSECM|Sell|CLI|VYV118|"+Name()+"|"+BuyStop+"|"+Lotsizeb+"|"+"SL|"+(round((BuyStop+(BuyStop*0.03/100))*10))/10+"|"+"-|-|NL|Margin|08067|N|DAY|BuyStop|-|-|-|-|-|"+"\n", fh);
+StaticVarSet("SendSignal2"+Name() , 0);
+fclose( fh );
+}
+}
+
+if (IsEmpty(StaticVarGet("SendSignal3"+Name())))
+{
+StaticVarSet("SendSignal3"+Name(), 1);
+}
+
+if ((StaticVarGet("SendSignal3"+Name()) ) && LastValue( Shortmore ) ) {
+fh = fopen("C:\\BTT_Exe\\config\\order"+".SAV", "a"); 
+if( fh) 
+{ 
+fputs("NSECM|Short Sell|CLI|VYV118|"+Name()+"|"+ShortPrice+"|"+Lotsizes+"|"+"SL|"+(round((ShortPrice+(ShortPrice*0.03/100))*10))/10+"|"+"-|-|NL|Margin|08067|N|DAY|Short at|-|-|-|-|-|"+"\n", fh);
+fputs("NSECM|Buy to Cover|CLI|VYV118|"+Name()+"|"+ShortStop+"|"+Lotsizes+"|"+"SL|"+(round((ShortStop-(ShortStop*0.03/100))*10))/10+"|"+"-|-|NL|Margin|08067|N|DAY|ShortStop|-|-|-|-|-|"+"\n", fh);
+StaticVarSet("SendSignal3"+Name() , 0);
+fclose( fh );
+}
+} 
+
+//Filters
+Filter=Buy || Short || Sell || Cover || bstop || sstop || byp || sep || bstp || sstp;
+

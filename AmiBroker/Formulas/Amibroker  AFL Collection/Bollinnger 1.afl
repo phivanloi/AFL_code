@@ -1,0 +1,30 @@
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 100, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), colorWhite, style); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), colorWhite, style ); 
+
+Buy = Cross (Ref (C,-1), Ref (BBandBot(C,15), -1)) AND (Close > BBandBot(C,15)); 
+PlotShapes(shapeUpArrow*Buy,colorLime,0,L,-10);
+Sell = Cross ( Ref (BBandTop(C,15), -1),Ref (C,-1)) AND (BBandTop(C,15) > Close);
+PlotShapes(shapeDownArrow*Sell,colorRed,0,H,-10);
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy);
+
+Filter = Buy OR Sell;
+AddTextColumn(FullName(),"Name");
+AddColumn( Buy, "BUY");
+AddColumn( Sell, "SELL");
+_SECTION_END();
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+if( ParamToggle("Tooltip shows", "All Values|Only Prices" ) )
+{
+ ToolTip=StrFormat("Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 )));
+}
+_SECTION_END();

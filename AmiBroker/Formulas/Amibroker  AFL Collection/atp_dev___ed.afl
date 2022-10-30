@@ -1,0 +1,25 @@
+//Coded by 	Edward Pottasch
+SetBarsRequired(sbrAll,sbrAll); 
+
+starttime = 090100; 
+endtime = 153100; 
+SetChartBkColor( ParamColor("ColorBG", ColorRGB( 0, 0, 0 ) ) ); 
+SetChartOptions(0, chartShowDates); 
+Plot(C,"\nClose",colorWhite,64);
+timearray = TimeNum() >= starttime AND TimeNum() <= endtime;
+firstBarOfDay = TimeNum() >= starttime ;
+firstBarOfDay = firstBarOfDay - Ref(firstBarOfDay,-1);
+cc = C * timearray;
+BarsInDay = (1 + BarsSince(firstBarOfDay)) * timearray;
+AVP = Sum(cc, BarsInDay ) / BarsInDay;
+SV = Sum((Cc - AvP)^2,BarsInDay) / BarsInDay; 
+SD = sqrt(SV);
+EndSeesion = Day() != Ref(Day(), 1) ;
+Plot(ValueWhen(EndSeesion,AvP + 3*SD), "\n+3R", colorGreen,128+16);
+Plot(ValueWhen(EndSeesion,AvP + 2*SD), "\n+2R", colorSeaGreen,128+16);
+Plot(ValueWhen(EndSeesion,AvP + SD), "\n+1R", colorPaleGreen,128+16);
+Plot(ValueWhen(EndSeesion, AvP),"\nY'AVP",7,128+16); 
+Plot(ValueWhen(EndSeesion,AvP - SD), "\n-1S", colorLightOrange,128+16);
+Plot(ValueWhen(EndSeesion,AvP - 2*SD),"\n-2S", colorOrange,128+16);
+Plot(ValueWhen(EndSeesion,AvP - 3*SD),"\n-3S", colorRed,128+16);	
+Plot(IIf(avp,AVP,Null),"\nAVP",ParamColor("ColorAVP",ColorRGB(120,25,62)),styleLine);

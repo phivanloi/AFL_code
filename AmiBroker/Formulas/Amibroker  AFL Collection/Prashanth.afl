@@ -1,0 +1,85 @@
+//------------------------------------------------------------------------------
+// Yearly Plot
+// By Prashanth, prash454@rediffmail.com
+// Entirely adapted from Graham's Monthly Bar Chart (http://www.amibroker.com/library/formula.php?id=249)
+// dated 23-12-2007
+//------------------------------------------------------------------------------
+
+//Yearly Candlestick chart
+
+firstmonth = ValueWhen(Cum(1)==1,Year()); // First Year for which data available
+numyear = Year()-ValueWhen(Cum(1)==1,Year()); // Number of Years of chart available
+numbars = LastValue(numyear); // *12 - (12-LastValue(Month())) + (12-firstmonth+1);
+
+YearBars = IIf(numyear==1 AND numyear!=Ref(numYear,1),Cum(1),  
+IIf(numYear==numbars AND Cum(1)==LastValue(Cum(1)), 
+LastValue(Cum(1)) - ValueWhen( Ref(numYear,-1)==numbars-1,Cum(1) )+1, 
+ValueWhen(numYear<Ref(numYear,1),Cum(1) )-ValueWhen(numYear>Ref(numYear,-1),Cum(1))+1 ));
+
+YearBar = Yearbars;
+yO = IIf( numyear==1 , Ref(O,-Cum(1)+1), ValueWhen(numyear>Ref(numyear,-1),O ) );
+yH = HHV(H,Yearbars);
+yL = LLV(L,Yearbars);
+yC = C;
+thismonth = Month();
+thisyear = Year();
+SetBarsRequired(100000,100000);
+
+EnableScript("jscript");
+<%
+yo = VBArray( AFL( "yO" ) ).toArray();
+yh = VBArray( AFL( "yH" ) ).toArray();
+yl = VBArray( AFL( "yL" ) ).toArray();
+yc = VBArray( AFL( "yC" ) ).toArray();
+Yearbars = VBArray( AFL( "Yearbars" ) ).toArray();
+Close = VBArray( AFL( "Close" ) ).toArray();
+thisyear = VBArray( AFL( "thisyear" ) ).toArray();
+
+Yro = new Array();
+Yrh = new Array();
+Yrl = new Array();
+Yrc = new Array();
+myyear = new Array();
+
+// initialize first element
+j = 0;
+Yro[0] = yo[0];
+Yrh[0] = yh[0];
+Yrl[0] = yl[0];
+Yrc[0] = yc[0];
+myyear[0] = thisyear[0];
+
+// perform the loop 
+for( i = 1; i < Close.length; i++ )
+{
+ if(Yearbars[i] > 0 )
+ {
+  Yro[j] = yo[i] ;
+  Yrh[j] = yh[i] ;
+  Yrl[j] = yl[i] ;
+  Yrc[j] = yc[i] ;
+  myyear[j] = thisyear[i];
+  j++;
+ }
+}
+
+delta = Close.length - j-1;
+AFL.Var("delta") = delta;
+AFL.Var("Yro") = Yro;
+AFL.Var("Yrh") = Yrh;
+AFL.Var("Yrl") = Yrl;
+AFL.Var("Yrc") = Yrc;
+AFL.Var("myyear") = myyear;
+%>
+
+
+Yearo =IIf(Cum(1)<delta-LastValue(Cum(1)),0, Ref(yro,-delta-1));
+Yearh =IIf(Cum(1)<delta-LastValue(Cum(1)),0, Ref(yrh,-delta-1));
+Yearl =IIf(Cum(1)<delta-LastValue(Cum(1)),0, Ref(yrl,-delta-1));
+Yearc =IIf(Cum(1)<delta-LastValue(Cum(1)),0, Ref(yrc,-delta-1));
+YearDate = IIf(Cum(1)<delta-LastValue(Cum(1)),0, Ref(myyear,-delta-1));
+
+GraphXSpace=5;
+PlotOHLC(YearO,YearH,YearL,YearC,"Yearly",colorBlack,styleCandle);
+
+Title = "Yearly Chart, O:" + WriteVal(yearO,1.1) + ", H:" + WriteVal(yearH,1.1) + ", L:" + WriteVal(yearL,1.1) + ", C:" + WriteVal(yearC,1.1) + ", for the Year: " + "-" + WriteVal(YearDate,1.0);

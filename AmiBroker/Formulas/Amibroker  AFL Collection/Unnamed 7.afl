@@ -1,0 +1,4 @@
+Range = H - L ;
+TPB = Volume > MA(Volume,9) AND Close < Low + Range/2 AND Range <= Ref(Range,-1);
+//Topping Bar
+PlotShapes(shapeSmallCircle * TPB,colorYellow,0,H,20);

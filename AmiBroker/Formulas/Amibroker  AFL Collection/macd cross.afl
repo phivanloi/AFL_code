@@ -1,0 +1,13 @@
+RET_1 = Prefs( 11 );
+RET_2 = Prefs( 12 );
+RET_3 = Prefs( 13 );
+
+M_LINE = MACD(RET_1, RET_2);
+S_LINE = Signal(RET_1, RET_2, RET_3);
+
+PRES_CROSS = Cross(M_LINE, S_lINE);
+
+Filter = PRES_CROSS;
+
+PREV_CLOSE = ValueWhen( PRES_CROSS, C, 2);
+AddColumn( PREV_CLOSE, "PREV_CLOSE" );

@@ -1,0 +1,262 @@
+_SECTION_BEGIN("Scale Out: Futures");
+       //////Code adapted from the scale out example///////
+	    //////provided in the help files of Amibroker///////
+	    //////Author: Pete Hahn / Date: 2/8/09       ///////
+	    //////Use at your own risk, test before you  ///////
+	    //////trade with real money                  ///////
+//The sole purpose of this code is to back test different trading strategy's that
+//incorporate a scale out technique. This code can also be used to optimize system
+//entries and exits as long as the system has optimizable parameters.
+//
+//This code trades three contracts on each entry at the close of 
+//the bar which triggered the entry. It then exits 1 
+//contract on first profit target (FirstProfitTarget), exits 1 more contract
+//on second profit target (SecondProfitTarget) AND will exit all or remaining
+//contracts if the stop loss (StopAmt), trailing stop (TrailingStop)
+//or system defined exits (SystemExitLong, SystemExitShort) are hit.
+//
+//You may change the number of contracts traded at the very bottom of the code
+//were you see the SetPositionSize() statements. Just keep in mind the entries 
+//are going to be made with the quantity shown in the first position size statement
+//and the scale outs will occur with the quantity shown in the second position size
+//statement. Any remaiming open contracts after the two stages of scale out are 
+//complete with be exited only by your system exit or your stop loss (StopAmt).
+//
+//For use in trading futures. Initial setup is for ES, change TickIncrement 
+//and TickIncrement mulitplier as need to work with other contracts and
+//varying degrees of volatility.
+//
+//StopAmt is also used for frist target, ProfitTarget is used for second target.
+//Replace Buy/Sell with your own system entries. Replace SystemExitLong and 
+//SystemExitShort with your system's final exit points. Make sure to leave room
+//for scaling between your system's entries and exits.
+//
+
+SetTradeDelays(0,0,0,0);
+BuyPrice = Close;
+ShortPrice = Close;
+SetOption("FuturesMode", True);
+SetOption("InitialEquity", 10000);
+
+Buy = Cross(MA(C, 20), MA(C,50));
+Short = Cross(MA(C,50), MA(C,20));
+SystemExitLong = Cross(MA(C,18), C); // This value will be adjusted according the system's exit rules
+SystemExitShort = Cross(C, MA(C,18));
+StopAmt = 1.5; //number of points
+ProfitTarget = 3;//number of points
+
+
+
+TickIncrement = Param("Tick Increment", 0.25, 0.1, 1, 0.1);//ES = 0.25, NQ = 0.10, YM = 1
+TickIncrement = TickIncrement * 1; //change this value according to the expected slippage when stops are tiggered
+
+//set begining value of essential variables
+TrailingStop = 0; // This value will be adjusted to FirstProfitTarget only after SecondProfitTarget is hit
+StopLoss = 0;
+FirstProfitTarget = 0;
+SecondProfitTarget = 0;
+//set begining values for long variables
+priceatbuy=0; 
+highsincebuy = 0; 
+Sell = 0;
+TradeDate = DateTime();
+//set begining values for short variables
+priceatshort= 0; 
+lowsincebuy = 0;
+Cover = 0; 
+
+//set exit to zero
+exit = 0;  
+PortEq = Equity();
+
+///////////////////////////////////////////////////////////////////////////
+//////////////Begin code to scale out of positions/////////////////////////
+///////////////////////////////////////////////////////////////////////////
+for( i = 0; i < BarCount; i++ ) 
+{ 
+   if( priceatbuy == 0 AND Buy[ i ] ) 
+    { 
+		//initialize required variables
+		priceatbuy = BuyPrice[ i ]; 
+		StopLoss = StopAmt[i];
+		FirstProfitTarget = StopAmt[i];
+		SecondProfitTarget = ProfitTarget[i];
+    } 
+
+   if( priceatshort == 0 AND Short[ i ] ) 
+	{
+		//initialize required variables
+       priceatshort = ShortPrice[ i ];
+		StopLoss = StopAmt[i];
+		FirstProfitTarget = StopAmt[i];
+		SecondProfitTarget = ProfitTarget[i];
+    } 
+
+   if( priceatbuy > 0 ) 
+    { 
+       highsincebuy = Max( High[ i ], highsincebuy ); 
+//un-comment statement below for debuging
+//_TRACE("LongEntry: " + DateTimeToStr(TradeDate[i]) +"/ BuyPrice: " +BuyPrice[i] +"/ Equity in-loop: " +PortEq[i]);
+
+//check if 1st target hit and Buy not = 1
+      if( Buy[i] != 1 AND exit == 0 AND 
+          High[ i ] >= FirstProfitTarget + TickIncrement  + priceatbuy ) 
+       { 
+         // first profit target hit - scale-out 
+         exit = 1; 
+         Buy[ i ] = sigScaleOut; 
+		  BuyPrice[i] = FirstProfitTarget + priceatbuy;
+       } 
+
+//check if 2nd target hit and Buy not = 1
+      if( Buy[i] != 1 AND exit == 1 AND 
+          High[ i ] >= SecondProfitTarget + TickIncrement  + priceatbuy ) 
+       { 
+         // second profit target hit - scale-out 
+         exit = 2; 
+			Buy[ i ] = sigScaleOut;
+			BuyPrice[i] = SecondProfitTarget + priceatbuy;
+				//if close of bar that sets trailing stop is higher than target 1 assume
+				//trailing stop is not triggered on that bar.
+				SetTrail = IIf(Close[i] > priceatbuy + FirstProfitTarget, 1, 0);
+			//after hitting SecondProfitTarget, move
+			//stop to FirstProfitTarget position
+			TrailingStop = FirstProfitTarget + priceatbuy;   
+																	
+       } 
+
+//check if trailing stop hit and Buy not = 1
+				//make sure SetTrail is not = 1 to ensure trail stop is not hit
+				//unless close of bar where trail stop is set is lower than
+				//trail stop
+      if( Buy[i] != 1 AND exit == 2 AND SetTrail == 0 AND
+          Low[ i ] <=  TrailingStop - TickIncrement  ) 
+       { 
+         // Trailing Stop target hit - exit trade with final contract
+         exit = 3; 
+         SellPrice[ i ] = TrailingStop - TickIncrement  ; //accounting for one tick slippage
+       }
+
+//check if system exit hit and Buy not = 1
+      if( Buy[i] != 1 AND exit <= 2 AND 
+          SystemExitLong [i]) //need to substitute system exit here
+       { 
+         // System Exit hit - exit all remaining contracts 
+         exit = 3; 
+			SellPrice[i] = Close[i]; //all three contracts would exit here
+       }
+
+//check if stop loss hit and Buy not = 1
+      if(Buy[i] != 1 AND Low[ i ] <= priceatbuy - StopLoss - TickIncrement  ) 
+       { 
+         // Stop Loss hit - exit 
+         exit = 3;    
+         SellPrice[ i ] = Min( Open[ i ], priceatbuy - StopLoss - TickIncrement  ); //assume one tick slippage
+       } 
+//un-comment statement below for debuging
+//_TRACE("Buy = " + Buy[i] +"/ Exit: " +exit);
+
+				//Reset the SetTrail variable back to zero before processing next bar
+				SetTrail = 0;
+
+//check if exit complete
+      if( exit >= 3 ) 
+       { 
+         Buy[ i ] = 0; 
+         Sell[ i ] = exit + 1; // mark appropriate exit code 
+         exit = 0; 
+         priceatbuy = 0; // reset price 
+         highsincebuy = 0; 
+		  ThirdProfitTarget  = 0;
+		  TrailingStop  = 0;
+
+		}
+    } //exit: Check exits for longs
+
+   	if( priceatshort > 0 ) 
+    {  
+       lowsincebuy = Min( Low[ i ], lowsincebuy );
+//un-comment statement below for debuging
+//_TRACE("ShortEntry: " + DateTimeToStr(TradeDate[i]) +"/ ShortPrice = " +priceatshort +"/ Equity in-loop: " +PortEq[i]);
+
+//check if 1st target hit and short not = 1
+      if( Short[i] != 1 AND exit == 0 AND
+          Low[ i ] <= priceatshort - FirstProfitTarget - TickIncrement ) 
+       { 
+         // first profit target hit - scale-out 
+         exit = 1; 
+         Short[ i ] = sigScaleOut; 
+		  ShortPrice[i] = priceatshort - FirstProfitTarget;
+       }  
+
+//check if 2nd target hit and short not = 1
+      if( Short[i] != 1 AND exit == 1 AND
+          Low[ i ] <= priceatshort - SecondProfitTarget - TickIncrement ) 
+       { 
+         // second profit target hit - scale-out 
+         exit = 2; 
+			Short[ i ] = sigScaleOut;
+		   ShortPrice[i] = priceatshort - SecondProfitTarget;
+				//if close of bar that sets trailing stop is lower than target 1 assume
+				//trailing stop is not triggered on that bar.
+				SetTrail = IIf(Close[i] < priceatshort - FirstProfitTarget, 1, 0);
+			//after hitting SecondProfitTarget, move  
+			//stop to FirstProfitTarget position
+			TrailingStop = priceatshort - FirstProfitTarget ; 
+		}
+//check if trailing stop hit and short not = 1
+				//make sure SetTrail is not = 1 to ensure trail stop is not hit
+				//unless close of bar where trail stop is set is higher than
+				//trail stop
+      if( Short[i] != 1 AND exit == 2 AND SetTrail == 0 AND
+          High[ i ] >=  TrailingStop + TickIncrement  ) 
+       { 
+         // Trailing Stop target hit - exit trade with final contract
+         exit = 3; 
+         CoverPrice[ i ] = TrailingStop + TickIncrement ;
+       }
+//check if system exit and short not = 1
+      if( Short[i] != 1 AND exit <= 2 AND
+          SystemExitShort[i]) //need to substitute system exit here
+       { 
+         // System Exit hit - exit all remaining contracts 
+         exit = 3; 
+			CoverPrice[i] = Close[i]; //all three contracts would exit here
+       }
+
+//check if stop loss hit and short not = 1
+      if(Short[i] != 1 AND High[ i ] >= priceatshort  + StopLoss + TickIncrement  ) 
+       { 
+         // Stop Loss hit - exit 
+         exit = 3;    
+         CoverPrice[ i ] = Max( Open[ i ], priceatshort  + StopLoss + TickIncrement  ); //assume one tick slippage
+		} 
+//un-comment statement below for debuging
+//_TRACE("Short = " + Short[i] +"/ Exit: " +exit);
+
+				//Reset the SetTrail variable back to zero before processing next bar
+				SetTrail = 0;
+//check if exit complete
+      if( exit >= 3 ) 
+       { 
+         Short[ i ] = 0; 
+         Cover[ i ] = exit + 1; // mark appropriate exit code
+         exit = 0; 
+         priceatshort = 0; // reset price
+         highsincebuy = 0; 
+		  ThirdProfitTarget  = 0;
+		  TrailingStop  = 0;
+
+		}
+    } //exit: check exits for shorts
+
+} //exit: loop
+
+//trade three contracts with every entry signal
+SetPositionSize(3,spsShares); 
+//scale out one contract at a time
+SetPositionSize( 1, IIf( Short == sigScaleOut OR Buy == sigScaleOut, spsShares, spsNoChange ) );
+///////////////////////////////////////////////////////////////////////////
+//////////////End of code to scale out of positions////////////////////////
+///////////////////////////////////////////////////////////////////////////
+_SECTION_END();

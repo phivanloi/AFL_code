@@ -1,0 +1,14 @@
+//LEMA - Lag Efficient Moving Average
+//Author: Leon Wilson, www.wilsontechstats.com
+//AFL Coding: Mubashar Virk, mavirk@gmail.com
+
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 20, 2, 200, 1, 10 );
+lema = EMA (Close,Periods)+ EMA((Close-EMA(Close,Periods)),Periods);
+Plot( lEMA, _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+
+
+
+
+
+  

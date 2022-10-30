@@ -1,0 +1,5 @@
+Periods = Param("Length", 40, 3, 200, 1); 
+
+
+LRCurve = LinearReg( C, periods ); 
+Plot( LRCurve , "LRCurve", ParamColor("Color",colorDarkRed), ParamStyle("Style", style=styleLine, Mask=maskDefault )); 

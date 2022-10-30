@@ -1,0 +1,11 @@
+StochCCI=100*(CCI(14)-LLV(CCI(14),14))/(HHV(CCI(14),14)-LLV(CCI(14),14));
+Plot(StochCCI,"CCI",IIf(stochCCI > 80, colorBrightGreen, IIf(stochCCI < 20,colorRed,IIf(stochCCI > Ref(stochCCI,-1),colorBrightGreen, colorRed))),styleThick);
+Plot(80,"",2,1);Plot(20,"",2,1);
+
+_SECTION_BEGIN("STOMacd");
+StochMACD=100*(MACD(4,34)-LLV(MACD(4,34),14))/(HHV(MACD(4,34),14)-LLV(MACD(4,34),14));
+//Plot(StochMACD,"macd",colorWhite,styleThick); 
+_SECTION_END();
+
+StochRSI=100*(RSI(14)-LLV(RSI(14),14))/(HHV(RSI(14),14)-LLV(RSI(14),14));
+Plot(StochRSI,"rsi",colorBlue,styleThick); 

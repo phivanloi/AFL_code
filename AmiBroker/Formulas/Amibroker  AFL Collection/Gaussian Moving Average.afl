@@ -1,0 +1,5 @@
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 5, 2, 300, 1, 10 );
+Plot(scGauss2ord(C,5),"GMA/SO("+Periods+")",colorLime, ParamStyle("Style"));
+Plot(scGauss3ord(C,5),"GMA/TO("+Periods+")",colorLightBlue, ParamStyle("Style"));
+Plot(scGauss4ord(C,5),"GMA/FO("+Periods+")",colorRed, ParamStyle("Style"));

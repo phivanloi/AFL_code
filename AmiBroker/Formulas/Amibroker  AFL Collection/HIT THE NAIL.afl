@@ -1,0 +1,29 @@
+_SECTION_BEGIN("Exact cross over");
+// Plotting the Price;
+Plot (C,"close",colorBlack ,styleCandle );
+//Plotting Fast EMAs;
+Plot(EMA(C,3) ,"3ema",colorBlue ,styleLine );
+//Plotting Slow EMAs
+Plot(EMA(C,60) ,"60ema",colorRed ,styleLine );
+// calculation of crossover value;
+g=(EMA(Close, 3) * (2 / 4 - 1)-EMA(Close, 60) * (2 / 61 - 1)) / (2 /4- 2 /61);
+// explanation : 2/4 is actually 2/(Fast ema+1) and 2/61 is 2/(slow ema+1)
+e=Ref(g,-1);
+//buy or sell conditions;
+Buy=Cross( EMA(C,3), EMA(C,60));
+Sell=Cross( EMA(C,60), EMA(C,3));
+// Plotting shapes;
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, colorBrightGreen, colorRed ),0, IIf( Buy, Low, High ) );
+//displaying signals with crossover value;
+GraphXSpace = 5;
+dist = 1.5*ATR(5); 
+for( i = 0; i < BarCount; i++ ) 
+{if( Buy[i] ) PlotText( "Buy\n@" + e[ i ], i, L[ i ]-dist[i], colorBrightGreen ); 
+if( Sell[i] ) PlotText( "Sell\n@" + e[ i ], i, H[ i ]+dist[i], 
+colorRed); 
+} 
+//Title;
+_N(Title = "{{NAME}} - {{INTERVAL}} {{DATE}}: "+" : {{OHLCX}} " +EncodeColor( colorRed) +" V  "+WriteVal(V, 1)+" Lot Size  "+WriteVal(RoundLotSize,1.0) +"  Margin"+WriteVal( MarginDeposit, 1.0)+
+ "\n"+EncodeColor( colorDarkGreen) + "  Next crossover value "+WriteVal(g, 1.2));
+_SECTION_END();

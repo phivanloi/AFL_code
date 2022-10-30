@@ -1,0 +1,31 @@
+Plot( Close, "Price", colorBlack, styleBar );
+// trend-line connecting troughs
+x = Cum(1);
+perchg = Param("Pct. change", 13, 0.1, 30, 0.1 );
+startvalue = SelectedValue( Trough( Low, perchg, 1 ) );
+EndValue2 = SelectedValue( Trough( Low, perchg, 2 ) );
+endvalue1 = SelectedValue( Trough( Low, perchg, 3 ) );
+startbar = SelectedValue( ValueWhen( Low == startvalue, x, 1 ) );
+endbar = SelectedValue( ValueWhen( Low == endvalue1, x, 1 ) );
+// draw trend line only if troughs go in one direction
+if( sign( EndValue1 - EndValue2 ) == sign( EndValue2 - StartValue ) )
+{
+ Aa = (endvalue1-startvalue)/(endbar-startbar);
+ b = startvalue;
+ trendline = Aa * ( x  - startbar ) + b;
+ Plot( IIf( x >= endbar, trendline, Null ), "Upward T-line", colorGreen );
+}
+// trend-line connecting peaks
+startvalue = SelectedValue( Peak( High, perchg, 1 ) );
+EndValue2 = SelectedValue( Peak( High, perchg, 2 ) );
+endvalue1 = SelectedValue( Peak( High, perchg, 3 ) );
+startbar = SelectedValue( ValueWhen( High == startvalue, x, 1 ) );
+endbar = SelectedValue( ValueWhen( High == endvalue1, x, 1 ) );
+// draw trend line only if peaks go in one direction
+if( sign( EndValue1 - EndValue2 ) == sign( EndValue2 - StartValue ) )
+{
+ Aa = (endvalue1-startvalue)/(endbar-startbar);
+ b = startvalue;
+ trendline = Aa * ( x  - startbar ) + b;
+ Plot( IIf( x >= endbar, trendline, Null ), "Downward T-line", colorRed );
+}

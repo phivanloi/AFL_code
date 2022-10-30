@@ -1,0 +1,8 @@
+K = StDev(C,5)/MA(StDev(C,5),20);
+SC = 0.9;
+Vidya = SC*K*C+(1-SC*K)*Ref(C,-1);
+UpperBand = Vidya+2*0.5*K;
+LowerBand = Vidya-2*0.5*K;
+Plot(UpperBand, "", colorLime);
+Plot(Vidya, "", colorLightBlue, styleDashed);
+Plot(LowerBand, "", colorRed);;

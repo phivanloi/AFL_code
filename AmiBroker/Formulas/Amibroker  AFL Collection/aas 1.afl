@@ -1,0 +1,690 @@
+_SECTION_BEGIN("Price");
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+Plot( C, "Close", ParamColor("Color", colorGreen ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+if( ParamToggle("Tooltip shows", "All Values|Only Prices" ) )
+{
+ ToolTip=StrFormat("Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 )));
+}
+_SECTION_END();
+
+_SECTION_BEGIN("MA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 200, 1 );
+Plot( MA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorPink ), ParamStyle("Style") ); 
+_SECTION_END();
+
+_SECTION_BEGIN("BBands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 100, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorLightGrey );
+Style = ParamStyle("Style") | styleNoRescale;
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), colorBlue, Style ); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), colorBlack, Style ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Price Interpretation");
+movshort = ParamField("Short Time MA", 8 );
+movmed = ParamField("Mid Time MA", 9 );
+movlong = ParamField("Long Time MA", 10 );
+btop = ParamField("BBTop", 11 );
+bbot = ParamField("BBBottom", 12 );
+if( Status("action") == actionCommentary )
+{
+width = btop - bbot;
+lslop = LinRegSlope( C, 30 ) + 100;
+lslo = LLV( lslop, 90 );
+lshi = HHV( lslop, 90 );
+lswidth = lshi - lslo;
+trend = 100*( lslop - lslo )/lswidth;
+
+mawidth = MA( width, 100 );
+relwidth = 100*(width - mawidth)/mawidth;
+
+_N( tname = Name()+"("+FullName()+")" );
+
+printf("Price and moving averages:\n");
+printf( tname + " has closed " + WriteIf( C > movshort, "above" , "below" ) + " its Short time moving average. ");
+
+printf("\nShort time moving average is currently " + WriteIf( movshort > movmed, "above", "below") + " mid-time, AND " + WriteIf( movshort > movlong, "above", "below" ) + " long time moving averages.");
+
+printf("\nThe relationship between price and moving averages is: "+
+WriteIf( C > movshort AND movshort > movmed, "bullish",
+WriteIf( C < movshort AND movshort < movmed, "bearish", "neutral" ) ) + " in short-term, and "+
+WriteIf( movshort > movmed AND movmed > movlong , "bullish",
+WriteIf( movshort < movmed AND movmed < movlong, "bearish", "neutral" ) ) + " in mid-long term. ");
+
+printf("\n\nBollinger Bands:\n");
+printf(tname+ " has closed " + 
+WriteIf( C < bbot, "below the lower band by " +
+WriteVal( 100 *( bbot-C )/ width, 1.1 ) + "%%. " +
+WriteIf( trend < 30, " This combined with the steep downtrend can suggest that the downward trend in prices has a good chance of continuing.  However, a short-term pull-back inside the bands is likely.",
+WriteIf( trend > 30 AND trend < 70, "Although prices have broken the lower band and a downside breakout is possible, the most likely scenario for "+tname+" is to continue within current trading range.", "" ) ), "" ) +
+
+WriteIf( C > btop, "above the upper band by " +
+WriteVal( 100 *( C- btop )/ width, 1.1 ) + "%%. " +
+WriteIf( trend > 70, " This combined with the steep uptrend suggests that the upward trend in prices has a good chance of continuing.  However, a short-term pull-back inside the bands is likely.",
+WriteIf( trend > 30 AND trend < 70, "Although prices have broken the upper band and a upside breakout is possible, the most likely scenario for "+tname+" is to continue within current trading range.", "" ) ), "" ) +
+
+WriteIf( C < btop AND ( ( btop - C ) / width ) < 0.5, 
+"below upper band by " +
+WriteVal( 100 *( btop - C )/ width, 1.1 ) + "%%. ", 
+WriteIf( C < btop AND C > bbot , "above bottom band by " +
+WriteVal( 100 *( C - bbot )/ width, 1.1 ) + "%%. ", "" ) ));
+
+printf("\n"+
+WriteIf( ( trend > 30 AND trend < 70 AND ( C > btop OR C < bbot ) ) AND abs(relwidth) > 40,
+		 "This picture becomes somewhat unclear due to the fact that Bollinger Bands are  currently",
+		 "Bollinger Bands are " )+	  
+WriteVal( abs( relwidth ), 1.1 ) + "%% " +
+WriteIf( relwidth > 0, "wider" , "narrower" ) +
+" than normal.");
+
+printf("\n");
+
+printf(
+WriteIf( abs( relwidth ) < 40, "The current width of the bands (alone) does not suggest anything conclusive about the future volatility or movement of prices.","")+
+WriteIf( relwidth < -40, "The narrow width of the bands suggests low volatility as compared to " + tname + "'s normal range.  Therefore, the probability of volatility increasing with a sharp price move has increased for the near-term. "+
+"The bands have been in this narrow range for " + WriteVal(BarsSince(Cross(-40,relwidth)),1.0) + " bars. The probability of a significant price move increases the longer the bands remain in this narrow range." ,"")+
+WriteIf( relwidth > 40, "The large width of the bands suggest high volatility as compared to " + tname + "'s normal range.  Therefore, the probability of volatility decreasing and prices entering (or remaining in) a trading range has increased for the near-term. "+
+"The bands have been in this wide range for  " + WriteVal(BarsSince(Cross(relwidth,40)),1.0) + " bars.The probability of prices consolidating into a less volatile trading range increases the longer the bands remain in this wide range." ,""));
+
+printf("\n\nThis commentary is not a recommendation to buy or sell. Use at your own risk.");
+}
+_SECTION_END();
+
+// BEING EXPLORATION CODE
+// **************************
+
+// -- what will be our lookback range for the hh and ll?
+nBars = Param("Number of bars", 12, 5, 40);
+bTrace = Param("Include trace output", 1, 0, 1);
+nNoPivsInSetup = Param("No. Pivs in Setup", 4, 3, 4, 1);
+bShowTCZ = Param("Show TCZ", 1, 0, 1); 
+nMinBarsBtwPivs = Param("Min. number of bars btw. pivots", 1, 1, 10, 1);
+nMinPctBtwPivs = Param("Min. percent diff. btw. pivots", .05, .04, .2, .01);
+bLastBarCanBePiv = Param("Last bar can be a pivot", 1, 0, 1); 
+retrcTolerance = .01;
+tczTolerance = .005;
+nNumBarsToScan = 120;
+
+// -- added from exploration version 20040204
+nExploreBarIdx = 0;
+nExploreDate = 0;
+nCurDateNum = 0;
+DN = DateNum();
+DT = DateTime();
+
+// -- key exploration variables
+bTCZLong = False;
+bTCZShort = False;
+nAnchorPivIdx = 0;
+
+ADX8 = ADX(8);
+
+// 1 - INDICATOR, 2 - COMMENTARY, 3 - SCAN, 
+// 4 - EXPLORATION, 5 - BACKTEST / Optimize 
+if(Status("action")==1) {
+	bDraw = True;
+	bUseLastVis = Param("Use last visible bar", 1, 0, 1);
+} else {
+	bDraw = False;
+	bUseLastVis = False;
+	bTrace = False;
+	nExploreDate = Status("rangetodate");
+	for (i=LastValue(BarIndex());i>=0;i--) {
+		nCurDateNum = DN[i];
+		if (nCurDateNum == nExploreDate) {
+			nExploreBarIdx = i;
+		}
+	}
+// -- if(Status("action")==1...
+}
+
+GraphXSpace=7;
+
+// -- Create 0-initialized arrays the size of barcount
+aHPivs = H - H;
+aLPivs = L - L;
+aHPivHighs = H - H;
+aLPivLows = L - L;
+aHPivIdxs = H - H;
+aLPivIdxs = L - L;
+aAddedHPivs = H - H;
+aAddedLPivs = L - L;
+aLegVol = H - H;
+aRetrcVol = H - H;
+
+nHPivs = 0;
+nLPivs = 0;
+
+lastHPIdx = 0;
+lastLPIdx = 0;
+lastHPH = 0;
+lastLPL = 0;
+curPivBarIdx = 0;
+
+// -- looking back from the current bar, how many bars 
+//    back were the hhv and llv values of the previous 
+//    n bars, etc.?
+aHHVBars = HHVBars(H, nBars);
+aLLVBars = LLVBars(L, nBars);
+aHHV = HHV(H, nBars);
+aLLV = LLV(L, nBars);
+
+// -- Initialize value of curTrend
+nLastVisBar = LastValue(
+	Highest(IIf(Status("barvisible"), BarIndex(), 0)));
+
+curBar = IIf(nlastVisBar > 0 AND bUseLastVis, nlastVisBar, 
+	IIf(Status("action")==4 AND nExploreBarIdx > 0, nExploreBarIdx,
+	LastValue(BarIndex())));
+
+curTrend = "";
+if (aLLVBars[curBar] < aHHVBars[curBar]) 
+	curTrend = "D";
+else 
+	curTrend = "U";
+
+// -- Loop through bars. Search for 
+//    entirely array-based approach
+//    in future version
+/* *******************
+	Find main pivots
+******************* */
+
+// -- Make sure there are enough bars!
+if (curBar >= nNumBarsToScan) {
+	for (i=0; i<nNumBarsToScan; i++) {
+	
+		// -- value of curBar dependent on two parameters
+		curBar = IIf(nlastVisBar > 0 AND bUseLastVis, 
+			nlastVisBar-i, 
+			IIf(Status("action")==4 AND nExploreBarIdx > 0, 
+			nExploreBarIdx-i,
+			LastValue(BarIndex())-i));
+
+		// -- Have we identified a pivot? If trend is down...
+		if (aLLVBars[curBar] < aHHVBars[curBar]) {
+	
+			// ... and had been up, this is a trend change
+			if (curTrend == "U") {
+				curTrend = "D";
+				// -- Capture pivot information
+				curPivBarIdx = curBar - aLLVBars[curBar];
+				aLPivs[curPivBarIdx] = 1;
+				aLPivLows[nLPivs] = L[curPivBarIdx];
+				aLPivIdxs[nLPivs] = curPivBarIdx;
+				nLPivs++;
+			}
+		// -- or current trend is up
+		} else {
+			if (curTrend == "D") {
+				curTrend = "U";
+				curPivBarIdx = curBar - aHHVBars[curBar];
+				aHPivs[curPivBarIdx] = 1;
+				aHPivHighs[nHPivs] = H[curPivBarIdx];
+				aHPivIdxs[nHPivs] = curPivBarIdx;
+				nHPivs++;
+			}
+		// -- 	If curTrend is up...else...
+		}		
+	
+	// -- loop through bars
+	} 
+}
+/* *******************
+	Found main pivots
+******************* */
+
+/* *************************
+	Finding missed pivot(s)
+************************* */
+
+// -- Start at last bar. Reestablish curBar
+curBar = 
+	IIf(nlastVisBar > 0 AND bUseLastVis, 
+	nlastVisBar, 
+	IIf(Status("action")==4 AND nExploreBarIdx > 0, 
+	nExploreBarIdx,
+	LastValue(BarIndex()))
+	);
+
+// -- Make sure I found at least two of each above.
+if (nHPivs >= 2 AND nLPivs >= 2) {
+
+	lastLPIdx = aLPivIdxs[0];
+	lastLPL = aLPivLows[0];
+	
+	lastHPIdx = aHPivIdxs[0];
+	lastHPH = aHPivHighs[0];
+	
+	nLastHOrLPivIdx = Max(lastLPIdx, lastHPIdx);
+	
+	nAddPivsRng = curBar - nLastHOrLPivIdx;
+	aLLVAfterLastPiv = LLV(L, nAddPivsRng);  
+	nLLVAfterLastPiv = aLLVAfterLastPiv[curBar];
+	aLLVIdxAfterLastPiv = LLVBars(L, nAddPivsRng);  
+	nLLVIdxAfterLastPiv = curBar - aLLVIdxAfterLastPiv[curBar];
+	aHHVAfterLastPiv = HHV(H, nAddPivsRng); 
+	nHHVAfterLastPiv = aHHVAfterLastPiv[curBar];
+	aHHVIdxAfterLastPiv = HHVBars(H, nAddPivsRng); 
+	nHHVIdxAfterLastPiv = curBar - aHHVIdxAfterLastPiv[curBar];
+	
+	// -- Later want to add last high pivot only if
+	//    not in buy mode from last and still in trade
+
+	/*
+		Note - I'm only interested in adding pivots if I'm in 
+		a higher-highs or lower-lows scenario
+	*/
+
+	
+	// -- OK, let's start where the last high pivot occurs after the
+	//    last Low pivot
+	if (lastHPIdx > lastLPIdx) {
+	
+		/*	There are at least two possibilities here. One is that
+	   		the previous high was higher, indicating that this is a 
+	   		possible short retracement or one in the making.
+	   		The other is that the previous high was lower, indicating 
+	   		that this is a possible long retracement in the working. 
+			However, both depend on opposing pivots. E.g., if I find 
+			higher highs, what if I have lower lows?  
+		
+			If the highs are descending, then I can consider:
+	   			- a lower low, and leave it at that
+	   			- a higher high and higher low
+	   			- a lower low and another lower high
+		*/
+		if (aHPivHighs[0] < aHPivHighs[1]) {
+	
+			if (nLLVAfterLastPiv < aLPivLows[0] AND 
+				(nLLVIdxAfterLastPiv - lastHPIdx - 1) >= nMinBarsBtwPivs
+				AND nLLVIdxAfterLastPiv != curBar	) {
+	
+				// -- OK, we'll add this as a pivot. 
+				//    Mark it for plotting...
+				aLPivs[nLLVIdxAfterLastPiv] = 1;
+				aAddedLPivs[nLLVIdxAfterLastPiv] = 1;
+		
+				//    ...and then rearrange elements in the 
+				//    pivot information arrays
+				for (j=0; j<nLPivs; j++) {
+					aLPivLows[nLPivs-j] = aLPivLows[nLPivs-(j+1)];
+					aLPivIdxs[nLPivs-j] = aLPivIdxs[nLPivs-(j+1)];
+				}
+				aLPivLows[0] = nLLVAfterLastPiv;
+				aLPivIdxs[0] = nLLVIdxAfterLastPiv;
+				nLPivs++;
+	
+			// -- Test whether to add piv given last piv is high 
+			//    AND we have lower highs	
+			}
+	
+		// -- Here, the last piv is a high piv, and we have 
+		//    higher-highs. The most likely addition is a 
+		//    Low piv that is a retracement.
+		} else {
+	
+			if (nLLVAfterLastPiv > aLPivLows[0] AND 
+				(nLLVIdxAfterLastPiv - lastHPIdx - 1) >= nMinBarsBtwPivs
+				AND nLLVIdxAfterLastPiv != curBar	) {
+	
+				// -- OK, we'll add this as a pivot. 
+				//    Mark it for plotting...
+				aLPivs[nLLVIdxAfterLastPiv] = 1;
+				aAddedLPivs[nLLVIdxAfterLastPiv] = 1;
+		
+				//    ...and then rearrange elements in the 
+				//    pivot information arrays
+				for (j=0; j<nLPivs; j++) {
+					aLPivLows[nLPivs-j] = aLPivLows[nLPivs-(j+1)];
+					aLPivIdxs[nLPivs-j] = aLPivIdxs[nLPivs-(j+1)];
+				}
+				aLPivLows[0] = nLLVAfterLastPiv;
+				aLPivIdxs[0] = nLLVIdxAfterLastPiv;
+				nLPivs++;
+	
+			// -- Test whether to add piv given last piv is high 
+			//    AND we have lower highs	
+			}	
+		// -- The last piv is a high and we have higher highs 
+		//    OR lower highs
+		}
+	
+	/* ****************************************************************
+		Still finding missed pivot(s). Here, the last piv is a low piv.
+	**************************************************************** */
+	} else {
+	
+		// -- First case, lower highs
+		if (aHPivHighs[0] < aHPivHighs[1]) {
+	
+			if (nHHVAfterLastPiv < aHPivHighs[0] AND 
+				(nHHVIdxAfterLastPiv - lastLPIdx - 1) >= nMinBarsBtwPivs
+				AND nHHVIdxAfterLastPiv != curBar	) {
+	
+				// -- OK, we'll add this as a pivot. 
+				//    Mark that for plotting
+				aHPivs[nHHVIdxAfterLastPiv] = 1;
+				aAddedHPivs[nHHVIdxAfterLastPiv] = 1;
+	
+				//    ...and then rearrange elements in the 
+				//    pivot information arrays
+				for (j=0; j<nHPivs; j++) {
+					aHPivHighs[nHPivs-j] = aHPivHighs[nHPivs-(j+1)];
+					aHPivIdxs[nHPivs-j] = aHPivIdxs[nhPivs-(j+1)];
+				}
+				aHPivHighs[0] = nHHVAfterLastPiv;
+				aHPivIdxs[0] = nHHVIdxAfterLastPiv;
+				nHPivs++;
+	
+			// -- Test whether to add piv given last piv is high 
+			//    AND we have lower highs	
+			}
+	
+		// -- Second case when last piv is a low piv, higher highs 
+		//    Most likely addition is high piv that is a retracement.
+		//    Considering adding a high piv as long as it is higher
+		} else {
+	
+			// -- Where I have higher highs,
+			if (nHHVAfterLastPiv > aHPivHighs[0] AND 
+				(nHHVIdxAfterLastPiv - lastLPIdx - 1) >= nMinBarsBtwPivs
+				AND nHHVIdxAfterLastPiv != curBar	) {
+	
+				// -- OK, we'll add this as a pivot. 
+				//    Mark it for plotting...
+				aHPivs[nHHVIdxAfterLastPiv] = 1;
+				aAddedHPivs[nHHVIdxAfterLastPiv] = 1;
+	
+				//    ...and then rearrange elements in the 
+				//    pivot information arrays
+				for (j=0; j<nHPivs; j++) {
+					aHPivHighs[nHPivs-j] = aHPivHighs[nHPivs-(j+1)];
+					aHPivIdxs[nHPivs-j] = aHPivIdxs[nhPivs-(j+1)];
+				}
+				aHPivHighs[0] = nHHVAfterLastPiv;
+				aHPivIdxs[0] = nHHVIdxAfterLastPiv;
+				nHPivs++;
+	
+			// -- Test whether to add piv given last piv is high 
+			//    AND we have lower highs	
+			}
+	
+		}
+			
+	} 
+
+// -- If there are at least two of each
+}
+
+/* ****************************************
+// -- Done with finding pivots
+***************************************** */ 
+
+if (bDraw) {
+
+	// -- OK, let's plot the pivots using arrows
+	PlotShapes(
+		IIf(aHPivs==1, shapeDownArrow, shapeNone), 
+			colorRed, 0, 	High, Offset=-15);
+	PlotShapes(
+		IIf(aAddedHPivs==1, shapeDownArrow, shapeNone),
+			colorDarkRed, 0, High, Offset=-15);
+	PlotShapes(
+		IIf(aLPivs==1, shapeUpArrow , shapeNone),		
+			colorGreen, 0, Low, Offset=-15);
+	PlotShapes(
+		IIf(aAddedLPivs==1, shapeUpArrow , shapeNone), 
+			colorDarkGreen, 0, Low, Offset=-15);
+}
+
+/* ****************************************
+// -- Done with discovering and plotting pivots 
+***************************************** */ 
+
+// -- I'm going to want to look for possible retracement
+risk = 0;
+profInc = 0;
+nLeg0Pts = 0;
+nLeg0Bars = 0;
+nLeg0Vol = 0;
+nLeg1Pts = 0;
+nLeg1Bars = 0;
+nLeg1Vol = 0;
+nLegBarsDiff = 0;
+nRtrc0Pts = 0;
+nRtrc0Bars = 0;
+nRtrc0Vol = 0;
+nRtrc1Pts = 0;
+nRtrc1Bars = 0;
+nRtrc1Vol = 0;
+
+minRtrc = 0;
+maxRtrc = 0;
+minLine = 0;
+maxLine = 0;
+triggerLine = 0;
+firstProfitLine = 0;
+triggerInc = 0;
+triggerPrc = 0;
+firstProfitPrc = 0;
+retrcPrc = 0;
+retrcBar = 0;
+retrcBarIdx = 0;
+retrcRng = 0;
+aRetrcPrc = H-H;
+aRetrcPrcBars = H-H;
+aRetrcClose = C;
+retrcClose = 0;
+
+// -- Do TCZ calcs. Arrangement of pivs very specific
+//    for this setup.
+if (nHPivs >= 2 AND 
+	nLPivs >=2 AND  
+	aHPivHighs[0] > aHPivHighs[1] AND
+	aLPivLows[0] > aLPivLows[1]) {
+
+	tcz500 = 
+	(aHPivHighs[0] -
+	(.5 * (aHPivHighs[0] - aLPivLows[1])));
+
+	tcz618 = 
+	(aHPivHighs[0] -
+	(.618 * (aHPivHighs[0] - aLPivLows[1])));
+
+	tcz786 = 
+	(aHPivHighs[0] -
+	(.786 * (aHPivHighs[0] - aLPivLows[0])));
+
+	retrcRng = curBar  - aHPivIdxs[0];
+	aRetrcPrc = LLV(L, retrcRng);
+	retrcPrc = aRetrcPrc[curBar];
+	aRetrcPrcBars  = LLVBars(L, retrcRng);
+	retrcBarIdx = curBar - aRetrcPrcBars[curBar];
+	retrcClose = aRetrcClose[retrcBarIdx];
+
+	// -- bTCZLong setup?
+	bTCZLong = (
+
+		// -- Are retracement levels arranged in
+		//    tcz order?
+		tcz500 >= (tcz786 * (1 - tczTolerance))
+		AND 
+		// .681 is below .786 for long setups
+		tcz618 <= (tcz786 * (1 + tczTolerance))
+		AND
+
+		// -- Is the low in the tcz range
+		// -- Is the close >= low of tcz range
+		//    and low <= high of tcz range
+		retrcClose >= ((1 - retrcTolerance) *  tcz618)
+		AND
+		retrcPrc <= ((1 + retrcTolerance) *  tcz500)
+		); 
+		
+		// -- risk would be high of signal bar minus low of zone
+		//risk = 0;
+
+// -- lower highs and lower lows
+} else if (nHPivs >= 2 AND nLPivs >=2 
+	AND aHPivHighs[0] < aHPivHighs[1] 
+	AND aLPivLows[0] < aLPivLows[1]) {
+
+	tcz500 = 
+	(aHPivHighs[1] -
+	(.5 * (aHPivHighs[1] - aLPivLows[0])));
+
+	tcz618 = 
+	(aHPivHighs[0] -
+	(.618 * (aHPivHighs[1] - aLPivLows[0])));
+
+	tcz786 = 
+	(aHPivHighs[0] -
+	(.786 * (aHPivHighs[0] - aLPivLows[0])));
+
+	retrcRng = curBar  - aLPivIdxs[0];
+	aRetrcPrc = HHV(H, retrcRng);
+	retrcPrc = aRetrcPrc[curBar];
+	aRetrcPrcBars  = HHVBars(H, retrcRng);
+	retrcBarIdx = curBar - aRetrcPrcBars[curBar];
+	retrcClose = aRetrcClose[retrcBarIdx];
+
+	bTCZShort = (
+		// -- Are retracement levels arranged in
+		//    tcz order?
+
+		// .500 is below .786 for short setups
+		tcz500 <= (tcz786 * (1 + tczTolerance))
+		AND	
+		// .681 is above .786 for short setups
+		tcz618 >= (tcz786 * (1 - tczTolerance)) 
+		AND
+
+		// -- Is the close <= high of tcz range
+		//    and high >= low of tcz range
+		retrcClose <= ((1 + retrcTolerance) *  tcz618)
+		AND
+		retrcPrc >= ((1 - retrcTolerance) *  tcz500)
+		); 
+		
+		// -- Risk would be top of zone - low of signal bar 
+		//risk = 0;
+}
+
+Filter = (bTCZShort OR bTCZLong);
+AddColumn(C, "Close");
+AddColumn(IIf(bTCZLong, 76, 83), "L/S", formatChar);
+
+//Support and resistance levels using RSI.
+//graham Kavanagh May 2003
+//Load into Indicator Builder
+//Sensitivity of the levels can be changed with the variables
+//Can test different numbers live with the Param function ctrl-R with open pane
+RSIperiod	= 5;	// Param("RSI p",3,14,30,1);
+Percent 		= 5;	//	Param("ZIG %",8,9,15,1);
+EMAperiod 	= 5;	//Param("EMA p",4,5,10,1);
+HHVperiod 	= 5;	//Param("HHV p",3,5,10,1);
+NumLine 		= 1;	//Param("Num Lines",3,1,20,1);
+
+Base = DEMA(RSI(RSIperiod),EMAperiod);
+for( i = 1; i <= numline; i++ )
+{
+ResBase = LastValue(Peak(Base,Percent,i));
+SupBase = LastValue(Trough(Base,Percent,i));
+Plot(ValueWhen( ResBase==Base, HHV(H,HHVperiod) ), "Resist Level", colorRed, styleLine);
+Plot(ValueWhen( supbase==Base, LLV(L,HHVperiod) ), "Support Level", colorGreen, styleLine);
+}
+Title = Name() + "; " + Date() + ": Support & Resistance Levels using RSI: " + /*EncodeColor(colorGreen)+ "Support Levels are Green; "+EncodeColor(colorRed)+ "Resistance Levels are Red: "+EncodeColor(colorBlack)+*/ "Num lines ="+WriteVal(numline,1) ;
+/* EMA offset bands ver 1_2
+I'd guess this is NOT much different to bbands except you can contol the per % offset and the periods ema to off set*/
+per=.10;//Percent placement
+periods=20;//time periods
+
+/* EMA offset bands ver 1_2
+I'd guess this is NOT much different to bbands except you can contol the per % offset and the periods ema to off set*/
+per=.10;//Percent placement
+periods=20;//time periods
+/*********************************/
+
+emaverage= EMA(C,periods);
+bandsAdjust=emaverage*per;
+  k=1; /* multiplication factor*/
+  n=10; /*period*/
+  f=ATR(n);
+    
+
+    R[0] = Close[0]; 
+
+    S[0] = C[0];
+for( i = 11; i < BarCount; i++ ) 
+{ 
+
+
+   R[i]=R[i-1];
+   S[i]=S[i-1];
+
+    if ( C[i-1] >R[i-1] )
+{
+       r[i] = C[i-1]+k*f[i-1];
+       s[i]= C[i-1]-k*f[i-1];
+}   
+    if ( C[i-1] <S[i-1] )
+{
+       r[i] = C[i-1]+k*f[i-1];
+       s[i]= C[i-1]-k*f[i-1];
+} 
+
+
+Buy=Close>R;
+Sell=Close<S;
+
+Cump=IIf(Close>R,1,0);
+Vanz=IIf(Close<S,1,0);
+}
+Buy = ExRem( Buy, Sell ); //Elimina semnalele buy consecutive
+Sell = ExRem( Sell, Buy ); //Elimina semnalele sell consecutive
+
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+
+fig=Cump*shapeHollowUpArrow + Vanz*shapeHollowDownArrow;
+
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ), 0, IIf( Buy, Low-50, High+50)); 
+
+AlertIf( Buy, "", "Experiment", 1 );
+AlertIf( Sell, "", "Experiment",2);
+
+GraphXSpace = 3;
+
+Title=EncodeColor(colorBlue)+"Experiment"+EncodeColor(colorBlack)+ " Open:"+O+" High:"+H+" Low:"+L+" Close:"+C+EncodeColor(colorGreen)+" Rez:"+R+EncodeColor(colorRed)+" Sup:"+S+EncodeColor(colorBlue)+
+	" \nDate: "+EncodeColor(colorRed)+Date();
+
+/* Elder's SafeZone, from "Trading Room."  
+This stop method takes into account the "noise" in an uptrend, the lower lows, and sets a safe stop below the normal price fluctuation.  This is done by calculating the difference between a lower Low and the Low preceding it, the "Downside Penetration," DP.  The "Average Downside Penetration," ADP, is then calculated and a multiple of that is plotted beneath the Lows to indicate a SafeZone, which future Lows should not exceed.  Elder suggests using multiples of the average downside penetration to set the stop, and that is included.  The default choice, however, is to use the average plus variable standard deviations of downside penetrations.  You can obviously get the same numbers either way, but using StdDevs is less arbitrary. Based on your Buy point, a level should be determined from which the Stop will not decline.  That is handled here with the adjustable StpLvl.  */
+
+GraphXSpace=6;
+
+
+
+Pd= Param("Period",9,2,50,1);  /*Lookback for DPs.  Elder: Do not go back past "the last important turning point."*/
+
+DP= IIf(L<Ref(L,-1), Ref(L,-1)-L,0); // Downside penetrations
+DPSum= Sum(DP,Pd);
+DPCount= Sum(L<Ref(L,-1),Pd);
+ADP= DPsum/DPcount;  //Average Downside Penetration
+
+MultiplierSwitch= Param("+SDs (0) or *ADP (1)",0,0,1,1); /*Keep at 0 to use Mean+StdDev of DP, or set to 1 to use multiples of mean DP */
+ADPmult= Param("ADP Multiplier",2,1,4,.1);  /*How many multiples of mean DP to use*/
+SDmult = Param("StDev Multiplier",1,0,3,.1); /*Or use Mean + StdDevs*/
+StpLvl= Param("StopLevel",2,1,50,1); /*Adjust to keep the stop from dropping past the relevant low*/
+ADPzone= L-(ADP*ADPmult); //If based on ADPmultiple
+SDzone= L-(ADP+(SDmult*(StDev(DP,Pd)))); //If based on Mean+StdDev
+SafeZone= IIf(MultiplierSwitch == 0,SDzone,ADPzone);
+SafeZoneStop= HHV(SafeZone, StpLvl);
+Plot (SafeZoneStop,"   SafeZoneStop",54,1);  
+
+Title = Name() + ":  " + Date() + "\\c55    Open \\c-1" + WriteVal(O,1.2) + "\\c55  Hi \\c-1" +WriteVal(H,1.2) + "\\c55  Lo \\c-1" +WriteVal(L,1.2) + " \\c55 Close \\c-1" +  WriteVal(C,1.2) + " \\c46 \nDPcount = \\c-1" +WriteVal(DPcount,1) + "\\c54    SafeZone Stop = \\c-1" +WriteVal(SafeZoneStop,1.2);

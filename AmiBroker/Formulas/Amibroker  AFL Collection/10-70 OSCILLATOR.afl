@@ -1,0 +1,19 @@
+_SECTION_BEGIN("10-70 OSCILLATOR");
+A3 = MA(C,10);
+B3 = MA(C,70);
+D3 = A3-B3;
+
+Colorm=IIf(D3>Ref(D3,-1),colorPaleBlue,colorBlue);
+Plot( D3, "1070", Colorm, styleHistogram|styleNoLabel );
+
+
+
+PlotOHLC( 0, D3, 0 , 0 , "1070",Colorm, styleCloud | styleNoLabel);
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+
+
+_SECTION_END();

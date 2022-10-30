@@ -1,0 +1,6 @@
+_SECTION_BEGIN("STOMacd");
+
+//JurikRSX( C,9)
+StochMACD=100*(JurikRSX( C,9)-LLV(JurikRSX( C,9),14))/(HHV(JurikRSX( C,9),14)-LLV(JurikRSX( C,9),14));
+Plot(StochMACD,"",colorRed,styleThick); 
+_SECTION_END();

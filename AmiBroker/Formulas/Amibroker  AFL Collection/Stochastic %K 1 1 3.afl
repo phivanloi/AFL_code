@@ -1,0 +1,9 @@
+_SECTION_BEGIN("Stochastic %K");
+TimeFrameSet(in1Minute*5);
+Plot( StochK( 7 , 3), "stocks", colorRed, styleThick );
+Plot( MA( StochK(7,3), 3 ), "av", colorBlue, styleThick ); 
+Buy = Cross(StochK(7,3), MA(StochK(7,3),3)); 
+Sell = Cross(MA(StochK(7,3),3),StochK(7,3));
+PlotShapes(Buy*shapeHollowSmallUpTriangle, colorWhite);
+PlotShapes(Sell*shapeHollowSmallDownTriangle,colorWhite);
+_SECTION_END();  

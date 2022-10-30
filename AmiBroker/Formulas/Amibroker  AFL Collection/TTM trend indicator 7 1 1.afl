@@ -1,0 +1,79 @@
+_SECTION_BEGIN("Ehlers Instantaneous Trend");   
+//------------------------------------------------------------------------------
+//
+//  Formula Name:    Ehlers Instantaneous Trend 
+//  Author/Uploader: Not Too Swift 
+//  E-mail:          
+//  Date/Time Added: 2005-03-20 00:25:13
+//  Origin:          
+//  Keywords:        
+//  Level:           medium
+//  Flags:           indicator
+//  Formula URL:     http://www.amibroker.com/library/formula.php?id=444
+//  Details URL:     http://www.amibroker.com/library/detail.php?id=444
+//
+//------------------------------------------------------------------------------
+//
+//  This is a zero lag trend indicator with an interesting predictive trigger.
+//
+//------------------------------------------------------------------------------
+
+SetBarsRequired(200, 0);
+
+// Ehlers ITrend
+// from Ehlers, John F. Cybernetic Analysis for Stocks and Futures. Wiley. 2004. 
+// Chapter 3, p. 21. Code on p. 24.
+
+function ITrend(array, alpha)
+{
+  // initialize early array values and declare as array
+  it = array;
+  //it = (array[2] - 2*array[1] + array[0])/4; This initialization takes a long time to converge.
+  for(i = 2; i < BarCount; i++)
+  {
+    it[i] = (alpha - alpha*alpha/4)*array[i] + 
+         .5*alpha*alpha*array[i-1] -
+         (alpha - .75*alpha*alpha)*array[i-2] +
+         2*(1 - alpha)*it[i-1] -
+         (1 - alpha)*(1 - alpha)*it[i-2];
+  }
+  return it;
+} 
+
+function ITrendTrigger(array)
+{
+  trigger = 2*array - Ref(array, -2);
+  return trigger;
+}
+
+Med = (H+L+C)/3;
+
+// Instantaneous Trend
+//Plot(Med, "", colorBlack, styleLine);
+trigger = Param("trigger",0.1,0.01,2,0.01);
+trend = ITrend(Med, trigger);
+Plot(trend, "ITrend", colorBlue, styleLine);
+Plot(ITrendTrigger(trend), "", colorRed, styleLine);
+Buy = Cross(ITrendTrigger(trend),trend);
+Sell = Cross (trend,ITrendTrigger(trend));
+Cover = Buy;
+Short = Sell;
+
+PlotShapes(Buy*shapeUpTriangle,colorYellow);
+PlotShapes(Sell*shapeDownTriangle,colorYellow);
+
+
+_SECTION_END();
+
+Colbar = IIf(trend < ITrendTrigger(trend),colorBlue,colorRed);
+Plot (Close, "", Colbar,styleCandle);
+
+
+ Title = EncodeColor(colorWhite)+ "LINKON'S PIVOT SYSTEM" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+ "Cl-"+C+"  "+ "Vol= "+ WriteVal(V)
+//+ EncodeColor(colorRed)+   "\n Pivot High : "+ EncodeColor(colorWhite)+PH+EncodeColor(colorRed)+ "  Place LONG    Trigger at :"+EncodeColor(colorWhite)+ phfilter + EncodeColor(colorRed)+ "   SL of :"+ EncodeColor(colorWhite)+E_TSKPAUTOSTOP(High,Low,Close)+ EncodeColor(colorRed)+ "    Risk of " + EncodeColor(colorWhite)+risk_long
+//+ EncodeColor(colorYellow)+ "\n Long Target of : "+Long_tgt1 +"  and second target of :" + Long_tgt2   
++ "\n"
+//+ EncodeColor(colorGreen)+ "\n Pivot  Low : "+EncodeColor(colorWhite)+PL+EncodeColor(colorGreen)+"  Place SHORT Trigger at :"+ EncodeColor(colorWhite)+plfilter + EncodeColor(colorGreen)+"   SL of :"+ EncodeColor(colorWhite)+E_TSKPAUTOSTOP(High,Low,Close)+ EncodeColor(colorGreen)+"    Risk of " + EncodeColor(colorWhite)+risk_short
+//+ EncodeColor(colorYellow)+ "\n Short Target of : "+short_tgt1 +"  and second target of :" + short_tgt2   
+;

@@ -1,0 +1,118 @@
+/*
+        Guppy countback trailing stop plot
+
+		Last change: WS 14/07/2005 12:16:51 AM
+*/                                                                                                                              
+
+GP_pfIdUsed = -1;           //  Required global variable
+
+//----------------------------------------------------------------------------
+
+
+/*      This function checks if the buy date is in the dates array and if not,
+        changes it to the closest date before it.
+*/
+
+function CheckDate(buyDate, dates)
+{
+    retDate = buyDate;
+
+    i = 0;
+    gotDate = 0;
+    while (i < BarCount && !gotDate) {
+        if (buyDate == dates[i])
+            gotDate = 1;
+        else {
+            if (dates[i] > buyDate) {
+                gotDate = 1;
+                if (i)
+                    retDate = dates[i-1];
+                else
+                    retDate = dates[0];
+                }
+            }
+        i++;
+        }
+
+    return retDate;
+}
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+
+//      The main program ....
+
+Plot(Close, "Price", -1, styleCandle);
+
+sname = Name();
+
+pfId = Param("1. Portfolio Number?", -1, -1, 255, 1);
+cback = Param("2. Countback value?", 3, 0, 20, 1);
+doSl = Param("3. Plot as Stop/Loss?", 1, 0, 1, 1);
+
+bi = BarIndex();            //  This gets the start and end bars of a range
+startIx = BeginValue(bi) - bi[0];
+endIx = EndValue(bi) - bi[0];
+if (endIx < startIx)
+    endIx = startIx;
+if (startIx == 0)
+    startIx = -1;
+
+cbArr = GP_CountBack(cback);    //  Get count back data array
+sstop = GP_CreateStop(cbArr, sname, pfId, startIx); //  Turn into trailing stop
+
+if (startIx > 0) {      //  Remove any data before start in count back array
+    for (i = 0; i < startIx; i++)
+        cbArr[i] = -1e10;
+    }
+if (endIx < BarCount-1) {   //  Remove any data after end in count back and stop arrays
+    for (i = endIx+1; i < BarCount; i++) {
+        sstop[i] = -1e10;
+        cbArr[i] = -1e10;
+        }
+    }
+
+Sells = 0;          //  Generate sell array
+if (doSl)
+    Sells = Cross(sstop, Close);
+
+buyStr = "";
+
+pfId = GP_pfIdUsed;
+dummy = -1e10;      //  As indicator can't display enough text in one parameter
+
+if ((pfId >= 0 OR startIx > 0) AND doSl) {      //  Plot proper trailing stop
+    if (startIx <= 0) {
+        buyDate = GP_GetBuyDate(sname, pfId);
+        buyQty = GP_GetBuyQty(sname, pfId);
+        BuyPrice = GP_GetBuyPrice(sname, pfId);
+
+        tgain = GP_GetGain(sname, pfId, endIx, 0);  //  Calculate gains
+        pgain = GP_GetGain(sname, pfId, endIx, 1) * 100;
+
+        dates = DateNum();
+        buyDate = CheckDate(buyDate, dates);
+        yy = int(buyDate / 10000) + 1900;
+        mm = int((buyDate % 10000) / 100);
+        dd = buyDate % 100;
+        watchName = CategoryGetName(categoryWatchlist, pfId);
+
+        bpStr = StrFormat("(Gain = $%1.2f, ", tgain);   //  Format display string
+        if (frac(tgain*100))
+            bpStr = StrFormat("(Gain = $%1.3f, ", tgain);
+        if (tgain > 0)
+            bpStr = bpStr + "+";
+        buyStr = watchName + StrFormat(" - %g/%g/%04g, %1.0f @ $%1.2f = $%1.2f ", dd, mm, yy, BuyQty, BuyPrice, BuyPrice*buyQty)
+                                            + bpStr + StrFormat("%1.2f%%), ", pgain);
+
+        Plot(dummy, buyStr, colorBlue, styleDots);  //  Plot nothing to display this text
+        }
+    Plot(sstop, "Countback(" + WriteVal(cback, 1.0) + ")", colorBlue, styleDots);
+    if (startIx <= 0)       //  Show buy date if no range marked
+        PlotShapes(IIf(pfId >= 0 AND dates==buyDate, shapeUpTriangle, shapeNone), colorBlue, Graph0, 0);
+    }
+else            //  Plot raw count back data
+    Plot(cbArr, "Countback(" + WriteVal(cback, 1.0) + ")", colorBlue, styleDots);
+
+PlotShapes(IIf(Sells, shapeDownArrow, shapeNone), colorBlue, Graph0, Low-Low*0.03);     // Show sells

@@ -1,0 +1,108 @@
+_SECTION_BEGIN("IB Trades");
+
+// ********************************************************************************************
+// 
+// Plotting TWS trade excutions
+// Coded by Yofa
+// Original experimental code from Herman
+//
+// ********************************************************************************************
+//
+// Goals: to present TWS real time trade execution data on any price pane.
+//
+// This code reads the auto exported TWS trade executions file and plots BOT and SLD transactions on a price pane.
+// It is intended for Real-Time intraday trading.
+// Tws auto exports only the current trading day's data! 
+//
+// To use this, you need to configure your TWS to auto export the trade executions list (TWSTrades.csv) each minute:
+// Select Configure-Misc-Auto Export menu in TWS.
+// In Auto Export settings window:
+//      Check "Activate auto export"
+//      Set "Start time", "Stop Time", "Interval" according to your intraday trading
+//      Set "Export directory" to "C:\JTS"
+//      Set "Export file" to "TWSTrades.csv"
+//      Select "Default columns"
+//      Check "Write trade times using local time zone"
+//      Select "Local sysbol" for "Symbol"
+//      Select "," for "Field Delimeter"
+//      
+// You can manually create export files and concatanate them for the last few days (TWSTradesHistory.csv).
+//
+// ********************************************************************************************
+//
+// Dependencies
+//
+//  TWS (892.7) auto export settings (see above)
+//
+// ********************************************************************************************
+
+IBTradesTradeExists = False;
+IBTradesPrice = Null;
+IBTradesTradeColor = Null;
+
+procedure IBTradesProcessFile(InputFileName)
+{
+    IBTradesTradeExists = False;
+    InputFHandle = fopen(InputFileName, "r");
+    if(InputFHandle)
+    {
+        FirstVisible = Status("firstvisiblebar");
+        LastVisible  = Min(Status("lastvisiblebar"), BarCount-1);
+
+        BarDT = DateTime();
+        Index = FirstVisible;
+
+	    //skip header line
+	    fgets(InputFHandle);
+
+    	//outer loop to go down the file until the EOF or until the last visible bar
+	    while(!feof(InputFHandle) AND Index <= LastVisible)
+	    {
+  	        InputLine = fgets(InputFHandle);
+		    if(InputLine != "")
+		    {
+			    Ticker = StrExtract(InputLine,0);
+			    if (StrLeft(Name(), 3) == StrLeft(Ticker, 3))   //may need to customize this (3 is needed for forex)
+			    {
+			        TradeDate = StrExtract(InputLine,5);
+			        TradeDate = StrMid(TradeDate, 4,2) + "/" + StrRight(TradeDate, 2) + "/" + StrLeft(TradeDate, 4);
+			        TradeTime = StrExtract(InputLine,4);
+			        
+		            TradeDT = StrToDateTime(TradeDate + " " + TradeTime);   //Date and time of the trade (DateTime() precision!) 
+	                //inner loop to find the bar for the trade
+                    while(Index <= LastVisible AND TradeDT >= BarDT[Index])
+                    {
+                        //check if next bar's datetime is later than the trade's datetime
+                        if (Index == BarCount-1)
+                            NextIsLater = 1;
+                        else
+                            NextIsLater = TradeDT < BarDT[Index+1];
+                            
+                        if (TradeDT >= BarDT[Index] AND NextIsLater)
+                        {
+	                        IBTradesPrice[Index] = StrToNum(StrExtract(InputLine,3));
+	                        Action = StrExtract(InputLine,1);
+                            if (Action == "SLD")
+                                IBTradesTradeColor[Index] = colorRose;
+                            else if (Action == "BOT")
+                                IBTradesTradeColor[Index] = colorLime;
+                            IBTradesTradeExists = True;
+                        }
+                        Index++;
+                    }
+			    }
+		    }
+	    }
+	    fclose(InputFHandle);
+    }
+}
+
+IBTradesProcessFile("C:\\Jts\\TWSTrades.csv");
+if (IBTradesTradeExists)
+    PlotShapes(IIf(NOT IsNull(IBTradesPrice), shapeSmallCircle, shapeNone), IBTradesTradeColor, 0, IBTradesPrice, 0);
+
+IBTradesProcessFile("C:\\Jts\\TWSTradesHistory.csv");
+if (IBTradesTradeExists)
+    PlotShapes(IIf(NOT IsNull(IBTradesPrice), shapeSmallCircle, shapeNone), IBTradesTradeColor, 0, IBTradesPrice, 0);
+
+_SECTION_END(); //"IB Trades"

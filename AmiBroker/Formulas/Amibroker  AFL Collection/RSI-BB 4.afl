@@ -1,0 +1,25 @@
+_SECTION_BEGIN("MACD");
+
+SetChartBkColor( colorBlack ) ;
+f = Param("Rsi of",5,1,50,1);
+s = Param("ema of rsi",13,2,100,1);
+A1=EMA(RSI(f),s);
+BBtop=BBandTop(A1,5,.5); 
+BBbot=BBandBot(A1,5,.5);
+//Color=IIf(a1<0 AND a1>Ref(a1,-1), colorBrightGreen,IIf(a1>0 AND a1>Ref(a1,-1),colorBrightGreen,IIf(a1>0 AND a1<Ref(a1,-1),colorRed,colorRed)));
+Color = IIf(A1 > bbtop, colorBrightGreen, IIf(a1 < bbbot,colorRed,colorYellow));
+Plot(a1,"rsi",color,styleDots+styleLine);
+Plot(BBtop,"",colorYellow,styleDashed);
+Plot(BBbot,"",colorYellow,styleDashed);
+Plot(80,"",31,1);
+Plot(20,"",31,1);
+
+_SECTION_END();
+
+Plot( EMA( a1, 9 ), "", colorBlue, styleThick ); 
+thick = Param("thickness",0.25,0.1,5,0.1);
+//Plot(6, "", Color, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+PlotOHLC(50,50+thick,50-thick,50,"",Color,styleCloud);
+
+
+_SECTION_END();

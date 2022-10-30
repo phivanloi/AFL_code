@@ -1,0 +1,81 @@
+_SECTION_BEGIN("ZEMA ATR");
+
+Period1=Param("Period 1",10,1,100,1);//Period1=Optimize("Period 1",10,1,25,1);
+EMA1= EMA(C,Period1);
+EMA2= EMA(EMA1,Period1);
+Difference= EMA1 - EMA2;
+ZeroLagEMA1= EMA1 + Difference;
+
+Period2=Param("Period 2",20,1,100,1);//Period2=Optimize("Period 2",10,1,25,1);
+
+EMA3= EMA(C,Period2);
+EMA4= EMA(EMA3,Period2);
+Difference= EMA3 - EMA4;
+ZeroLagEMA2= EMA3 + Difference;
+
+Plot(zerolagema1, "", colorBlue);
+Plot(zerolagema2, "", colorRed);
+
+
+pds=Param("ATR Periods",7,3,100,1);//pds=Optimize("pds",7,3,10,1);
+pdslong=pdsshort=pds;
+//pdsshort=Param("pds short",7,5,100,1);
+//pdslong=Param("pds long",7,5,100,1);
+
+ATRmultiple=Param("ATR Multiple",3,1,5,0.1);//ATRmultiple=Optimize("ATRmultiple",3,1,5,0.1);
+
+AvgATRShort= ATRmultiple*ATR(pdsshort);
+AvgATRLong= ATRmultiple*ATR(pdslong);
+
+Ststop=LLV((LLV(L,pdsshort)+ AvgATRShort),pdsshort);
+Lgstop=HHV((HHV(H,pdslong)- AvgATRlong),pdslong);
+Ststop = LLV(Ststop, pdsshort);
+Lgstop = HHV(Lgstop, pdslong);
+
+//ApplyStop(stopTypeTrailing, stopModePoint, Ref(ATRmultiple*ATR(pdslong),-1),True, True);	
+
+//Equity(1);
+//Plot(Sell = 4,"ApplyStop Sell",colorRed,1|styleOwnScale);
+//Plot(Cover=4,"ApplyStop Cover",colorGreen,1|styleOwnScale);
+// Does this do anything. I dont know how to check.
+
+
+ZemaBuy = (Cross(zerolagema1,zerolagema2));
+ZemaSell = (Cross(zerolagema2,zerolagema1));
+
+Short = Cross(Lgstop, C);
+Cover = Cross(C, Ststop);
+
+Short = ExRem(Short, Cover);
+Cover = ExRem (Cover, Short);
+
+Buy=Cover;
+Sell=Short;
+
+Buy=ExRem(Buy, Sell); 
+Sell=ExRem(Sell, Buy);
+
+Stop=IIf(Sell, Ststop, IIf(Buy, Lgstop, Ststop));
+//Stop=IIf(Buy, Ststop, Lgstop);
+//Stop = Buy * Lgstop + Sell * Ststop);
+/* Need some code here to do the following
+/* a) During SHort trade, Stop=Ststop, and during Long Trade, Stop=Lgstop
+/* b) Plot only on stop loss, either Ststop or Lgstop, based on whether we are in LOng trade or Short Trade
+/* c) During Short trade, Ststop of each bar should be equal to or lower than the previous bars Ststop. Reset Lgstop
+/* d) During Long trade, Lgstop of each bar should be equal to or Greate than the previous bar's Lgstop. Reset Ststop
+*/
+
+PlotShapes(IIf(ZemaBuy, shapeHollowUpArrow, shapeNone), colorGreen);
+PlotShapes(IIf(ZemaSell, shapeHollowUpArrow + shapePositionAbove, shapeNone), colorRed);
+
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ), 0, IIf( Buy, Low, High ));
+Plot(Ststop," SL for shorts ",colorGreen,styleDots|styleNoLine);
+Plot(Lgstop," SL for long ",colorRed,styleDots|styleNoLine);
+//Plot(Stop, "Stop Loss", colorBlue,styleDots|styleNoLine);
+// Need to plot one single stop loss, Green if its Lgstop (OR) Red if it is Ststop.
+
+
+
+
+_SECTION_END();

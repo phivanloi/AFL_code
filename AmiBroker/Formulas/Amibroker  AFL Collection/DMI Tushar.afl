@@ -1,0 +1,43 @@
+ //Dynamic Momentum Index Tushar Chande Translated to AFL by Jayson Casavant
+//Cmo5 formula
+GraphXSpace = 3;
+
+CMO5_1=Sum( IIf( C > Ref( C, -1 ) , ( C - Ref( C ,-1 ) ) ,0 ) ,5 ) ;
+CMO5_2=Sum( IIf( C < Ref( C ,-1 ) , ( Ref( C ,-1 ) - C )  ,0 ) ,5 );
+CMO5=DEMA(100 * Nz(( CMO5_1 -CMO5_2)  /( CMO5_1+CMO5_2)),3);
+
+//Cmo10 formula
+CMO10_1=Sum( IIf( C > Ref( C, -1 ) , ( C - Ref( C ,-1 ) ) ,0 ) ,10 ) ;
+CMO10_2=Sum( IIf( C < Ref( C ,-1 ) , ( Ref( C ,-1 ) - C )  ,0 ) ,10 );
+CMO10=DEMA(100 * Nz(( CMO10_1 -CMO10_2)  /( CMO10_1+CMO10_2)),3);
+
+//Cmo20 formula
+CMO20_1=Sum( IIf( C > Ref( C, -1 ) , ( C - Ref( C ,-1 ) ) ,0 ) ,20 ) ;
+CMO20_2=Sum( IIf( C < Ref( C ,-1 ) , ( Ref( C ,-1 ) - C )  ,0 ) ,20 );
+CMO20=DEMA(100 * Nz(( CMO20_1 -CMO20_2)  /( CMO20_1+CMO20_2)),3);
+
+// dmi formula
+dmi=((StDev(C,5)* CMO5)+(StDev(C,10)* CMO10)+(StDev(C,20)*
+CMO20))/(StDev(C,5)+StDev(C,10)+StDev(C,20));
+pds=Param("Smoothing",5,1,10,1);
+pds1=Param("Trigger Line",8,1,10,1);
+
+Plot(EMA(dmi,pds),"Dynamic Momentum Index",colorBlue,4);
+Plot(MA(dmi,pds1),"trigger",colorYellow,styleDashed);
+
+
+Plot(-40,"",colorGreen,1+styleThick);
+//Plot(-20,"",colorRed,1);
+//Plot(0,"",colorBlue,1); 
+//Plot(20,"",colorGreen,1); 
+Plot(40,"",colorRed,1+styleThick); 
+
+TEMP=(EMA(dmi,pds));
+
+Buy=Cross(EMA(dmi,pds),MA(dmi,pds1)) AND TEMP<-35;
+Sell=Cross(MA(dmi,pds1),EMA(dmi,pds)) AND TEMP>30;
+PlotShapes(IIf(Buy,shapeDigit2,shapeNone) ,colorPink);
+PlotShapes(IIf(Sell,shapeDigit3,shapeNone),colorOrange);
+
+Title=EncodeColor(colorLightBlue)+"Dynamic Momentum "+EncodeColor(colorGold)+ "    Open: "+O+"    High: "+H+"    Low: "+L+"    Close: "+C+
+	EncodeColor(colorWhite)+" \n CHART # 2       "+EncodeColor(colorBrightGreen)+Date()+EncodeColor(colorLightYellow)+"     This signal is early.";

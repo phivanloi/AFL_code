@@ -1,0 +1,18 @@
+Filter =  
+C * V >= 1000000
+AND C>=5
+AND C*V<=500000000
+AND MA(V,15) >=100000
+AND Ref(V,-5)>=50000
+AND Ref(V,-10)>=50000
+AND Ref(V,-15)>=50000
+AND Ref(V,-20)>=50000
+;
+
+
+AddColumn(((C - Ref(C,-1))/Ref(C,-1))*100 ,"% Tang gia ");
+AddColumn(C*V,"Gia tri GD ");
+AddColumn(C,"Gia today");
+AddColumn((0.2*((C - Ref(C,-20))/Ref(C,-20))*100 +0.2*((C - Ref(C,-40))/Ref(C,-40))*100+0.2*((C - Ref(C,-60))/Ref(C,-60))*100 + 0.4*((C - Ref(C,-10))/Ref(C,-10))*100) ,"Binh Quan % tang gia");
+AddSummaryRows(16, 1.2,5);
+SetSortColumns( -6 ) ;

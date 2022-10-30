@@ -1,0 +1,139 @@
+time=now(4);
+/// Khung Dayly
+TimeFrameSet( inDaily ); // switch now to hourly
+
+dem=0;
+tenkan=Param("Tenkan",9,9,20,1);
+kijun=Param("Kijun",17,9,50,1);
+spanBPeriod = Param("Span B Period",26,9,60,1);
+forward = Param("Shift BAck/Forward", 26,9,60,1);
+TKcolor = ParamColor("Tenkan color",colorCustom12);
+KJcolor = ParamColor("Kijun color",colorBlue);
+// 2. Calculation condition setup
+TK = (HHV(H,tenkan)+LLV(L,tenkan))/2;
+KJ=(HHV(H,kijun)+LLV(L,kijun))/2;
+SpanA = ((KJ+TK)/2);
+SpanB = (HHV(H,spanBPeriod)+LLV(L, spanBPeriod))/2;
+// swords dow
+TKDown = TK<Ref(TK,-1);
+KJDown = KJ<Ref(KJ,-1);
+//swords up
+TKUp = TK>Ref(TK,-1);
+KJUp = KJ>Ref(KJ,-1);
+// 3. Indicator
+
+/// Chien luoc
+mua = IIf(C>=O, 1,0);
+ban= IIf(C<O, 1,0);
+LucCau=mua*V;
+LucCung=ban*V;
+period=Param("chuky",10,3,15,1);
+LucCau10 = MA(LucCau,period);
+LucCung10 = MA(LucCung,period);
+LucCungCau10=(LucCau10-LucCung10);
+//// xac dinh 
+uptrend = LucCungCau10>0 AND RSI(14)>54;
+downtrend = LucCungCau10<0 AND RSI(14)<46;
+sideway= (RSI(14)<=54 AND RSI(14)>=46)
+OR (LucCungCau10<0 AND RSI(14)>54)
+OR (LucCungCau10>0 AND RSI(14)<46);
+
+
+UpperCloud = Ref(Max(SpanA,SpanB),-forward);
+LowerCloud = Ref(Min(SpanA,SpanB),-forward);
+//chien luoc cu
+DK1= Ref(TK,-1)==Ref(TK,-2) AND
+TK>Ref(TK,-1) AND KJ>=Ref(KJ,-1) AND
+ LucCungCau10 >0 AND C>TK AND TK>KJ;
+DK5 = abs(TK-KJ)/KJ<0.04;
+// he so K thay doi
+//time1=StrToNum(time);
+K=1;
+time1=time/10000;
+if((time1>9)AND(time1)<=10) K=0.6;
+if((time1>10)AND(time1)<=11) K=0.8;
+if((time1>11)AND(time1)<=11.3) K=1;
+if((time1>11.3)AND(time1)<=13.3) K=1.2;
+if((time1>13.3)AND(time1)<=15) K=1.4;
+if(((time1>=0)AND(time1)<=9) OR (time1>15)) K=1.4;
+
+DK2 = V>K*MA(Ref(V,-1),3);
+DK3 = C>1;
+DK4=V*C>2000000;
+
+Buy = DK1  AND DK3 AND DK2 AND DK4 AND DK5;
+Filter = Buy;
+
+
+
+/////////////////////////////////////////
+Version(6.17);  //Code is Compatible with 6.17 and Higher
+
+//TelegramAlerts = ParamTrigger("Telegram Alert","Send Alert");
+TelegramAPI_ID = ParamStr("Telegram Bot API Key","1333859675:AAFTmHzM54SIGgzrHajwbiCY1G_mv0bJ2uw");  //Get the Bot API key via BotFather in Telgram
+TelgramCHAT_ID = "@p1234567980";//ParamStr("Telegram Channel ID","@phukhangami");  //Channel ID example : @marketcalls_in
+
+Message1="Buy@Daily@ ";
+
+for( i = 0; i < BarCount; i++ )
+{
+
+        
+if( Buy[i] ) {
+           
+  if(i==BarCount-1) {//countbuy=countbuy+1;
+  //Export Chart
+			exportPath = "C:\\Data\\";
+			AB = CreateObject("Broker.Application");
+			ABDocs = AB.Documents;
+			AD = ABDocs.Item(0); // Use the first chart only - set your default layout accordingly
+			ADWindows = AD.Windows;
+			AD.Name = Name();
+			AW = AD.ActiveWindow;//SelectedTab = 1;
+			filename = Name() + ".PNG";
+			AW.ExportImage( exportPath + filename);
+	// Send chart to telegram
+  
+
+				//	ih = InternetOpenURL("https://api.telegram.org/bot"+TelegramAPI_ID+"/sendMessage?chat_id="+TelgramCHAT_ID+
+				//"&text="+Message1+Name()+" ***"+C[i]); 
+					
+				//	InternetClose(ih);
+					//ihs = InternetOpenURL("https://api.telegram.org/bot"+TelegramAPI_ID+"/sendPhoto?chat_id="+TelgramCHAT_ID+
+					//"&photo="+"https://nupakachi.com/uploaded/tin-tuc/2019/01/chup-anh-dep-ngay-tet-2.jpg"); 
+					//InternetClose(ihs);
+										//
+					Message1 = "Buy@Daily@" + Name()+"***"+C[i];
+					Photo1 = "C:\\Data\\" + Name() + ".PNG";
+
+					arguments = Message1 + " " + Photo1;
+
+					ShellExecute("C:\\Bot\\BotSendPhoto.jar", arguments , "C:\\Bot\\", 1 );
+
+
+				}
+				
+				
+			}
+
+
+}
+
+TimeFrameRestore(); // restore time frame to original
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+					
+					

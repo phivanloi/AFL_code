@@ -1,0 +1,131 @@
+_SECTION_BEGIN("OPENING RANGE BREAK-OUT");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+
+//Green ribbon means both MACD and ADX trending up.  
+//If the red ribbon shows up the MACD and the ADX are both trending down.
+
+
+//_SECTION_BEGIN("trending ribbon"); 
+uptrend=PDI()>MDI()AND Signal()<MACD();
+downtrend=MDI()>PDI()AND Signal()>MACD();
+
+
+Plot( 2, /* defines the height of the ribbon in percent of pane width */"ribbon",
+IIf( uptrend, colorGreen, IIf( downtrend, colorRed, 0 )), /* choose color */
+styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+
+_SECTION_END();
+
+SetChartOptions(0,chartShowDates|chartShowArrows|chartLogarithmic|chartWrapTitle);
+_SECTION_BEGIN("POS SIZE");
+cap = Param("Capital", 0,100000, 5000000, 50000 );
+risk = Param("Max. Risk",0.0025, 0.005, 0.02, 0.0025 );
+_SECTION_END();
+
+_SECTION_BEGIN("Volume"); 
+Plot( Volume, "Volume", ParamColor("Color", colorLightGrey), styleNoTitle | ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick | styleNoLabel, maskHistogram ), 5 ); 
+_SECTION_END();
+TrailStop = HHV( C - 2 * ATR(10), 15 ); 
+Plot( TrailStop, "Trailing stop", colorCustom11, 8); 
+GfxSetOverlayMode(0); 
+GfxSelectFont("Tahoma", Status("pxheight")/15 ); 
+GfxSetTextAlign( 6 );// center alignment 
+GfxSetTextColor( ColorRGB( 200, 200, 200 ) ); 
+GfxSetBkMode(3); // transparent 
+GfxTextOut( FullName(), Status("pxwidth")/2, Status("pxheight")/4 );
+
+_SECTION_BEGIN("ORB"); 
+tn = TimeNum();
+dn = DateNum();
+u = ValueWhen( tn<093000, HighestSince(dn!=Ref(dn,-1), H ));
+w = ValueWhen( tn<093000, LowestSince(dn!=Ref(dn,-1), L ));
+a= EMA(Close,5)-(EMA(ATR(1),10)*1.50) ;
+b= EMA(Close,5)+(EMA(ATR(1),10)*1.50) ;
+a1=(u-a)*RoundLotSize;
+a2=((u-w))*RoundLotSize;
+b1=(b-w)*RoundLotSize;
+b2=((u-w))*RoundLotSize;
+//StartTime=ParamTime("start", "09:54", 0); 
+//EndTime=ParamTime("end", "10:55", 0); 
+//HighVal=deTimeRangeHHV(H, StartTime, EndTime); 
+//Lowval=deTimeRangeLLV(L, StartTime, EndTime);
+Longtgt=u+(u-w);
+Shrttgt=w-(u-w);
+Plot(u,"Hgh", ParamColor("HighColor", colorRed), styleNoLine|styleDots); 
+Plot(w,"low",ParamColor("HighLow", colorBlue),styleNoLine|styleDots); 
+Plot(Longtgt,"",colorGreen,styleNoLine|styleDots); 
+Plot(Shrttgt,"",colorGreen,styleNoLine|styleDots); 
+_SECTION_BEGIN("ORB POS SIZE");
+cap1 = Param("Capital", 0,100000, 5000000, 50000 );
+risk1 = Param("Max. Risk",0.0025, 0.005, 0.02, 0.0025 );
+_SECTION_END();
+_SECTION_BEGIN("GMMA"); 
+a=C;
+g=(EMA(Close,3) * (2 / 4 - 1)-EMA(Close,60) * (2 / 61 - 1)) / (2 /4- 2 /61);
+e=Ref(g,-1);
+Plot (EMA(a,3), "3ema", colorBlue,styleNoLabel);
+Plot (EMA(a,5), "5ema", colorBlue,styleNoLabel);
+Plot (EMA(a,8), "8ema", colorBlue,styleNoLabel);
+Plot (EMA(a,10), "10ema", colorBlue,styleNoLabel);
+Plot (EMA(a,12), "12ema", colorBlue,styleNoLabel);
+Plot (EMA(a,15), "15ema", colorBlue);
+
+Plot (EMA(a,30), "30ema", colorRed,styleNoLabel);
+Plot (EMA(a,35), "35ema", colorRed,styleNoLabel);
+Plot (EMA(a,40), "40ema", colorRed,styleNoLabel);
+Plot (EMA(a,45), "45ema", colorRed,styleNoLabel);
+Plot (EMA(a,50), "50ema", colorRed,styleNoLabel);
+Plot (EMA(a,55), "55ema", colorRed,styleNoLabel);
+Plot (EMA(a,60), "60ema", colorRed);
+Plot(C,"close", colorBlack,styleCandle);
+
+Cond1=StochK(14)>StochD(14);
+Cond2=StochK(14)<StochD(14);
+
+Buy=Cross(C, u);
+
+Sell=Cross( w,C);
+//IIf(Buy,PlotShapes(shapeUpArrow*Buy,colorBlue),0);
+//IIf(Sell,PlotShapes(shapeDownArrow*Sell,colorRed),0);
+Filter = Buy OR Sell;
+
+_SECTION_END();
+AddColumn( IIf( Buy, 66, 83 ), "Signal", formatChar ); 
+AddColumn(Close,"Close",1.2);
+AddColumn(Volume,"Volume",1.0);
+Cond13=PDI()>MDI();
+
+_SECTION_END();
+
+_SECTION_END();
+Title = Date()+"  "+ Interval(format=2)+"  "+Name()+" "+"O "+WriteVal(O)+" "+"H "+WriteVal(H)+"  L"+WriteVal(L)+"    C "+WriteVal(C)+EncodeColor(colorRed)+" Lot Size  "+WriteVal(RoundLotSize,1.0)+"  Margin"+WriteVal(MarginDeposit,1.0)+
+"\n"+EncodeColor(colorBlack)+"ORB TRADE"+"\n"+EncodeColor(colorGreen)+"  Buy above  "+WriteVal(u,1.2)+" Target   "+ WriteVal(Longtgt,1.2)+"\n"+EncodeColor(colorRed)+"  Sell below  "+WriteVal(w,1.2)+" target  "+ WriteVal(Shrttgt,1.2)+
+"\n"+EncodeColor(colorBlue)+" Trade risk based on ORB Rs "+ WriteVal((u-w),1.2)+ "  Position Size based on " + WriteVal(risk1*100,1.2)+ " % risk = " + WriteVal((cap1*risk1)/(u-w),1.0)+ "shares"+"\n"+ EncodeColor(colorGreen)+"  ADX is "+ WriteIf(Cond13,"BULLISH","BEARISH ");
+ _SECTION_BEGIN("my FIST");
+
+tn = TimeNum();
+dn = DateNum();
+u = ValueWhen( tn<093000, HighestSince(dn!=Ref(dn,-1), H ));
+w = ValueWhen( tn<093000, LowestSince(dn!=Ref(dn,-1), L ));
+Buy=Cross(C,u) ;
+Sell=Cross(w,C);
+//Buy=(Cross( C,EMA(a,3))AND EMA(a,15)>EMA(C,30) AND EMA(C,3)>EMA(C,15) AND StochK()>Ref(StochK(),-1) AND StochK()>StochD() AND StochD()<80) OR (Cross(EMA(C,15),EMA(C,60) ));
+//Sell=(Cross( EMA(a,3), C ) AND EMA(a,15)< EMA(C,30) AND EMA(C,3)<EMA(C,15) AND StochK()<Ref(StochK(),-1) AND StochK()<StochD() AND StochD()<30) OR (Cross(EMA(C,60),EMA(C,15) )AND StochD()<30);
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+
+PlotShapes( shape, IIf( Buy, colorBlue, colorRed ),0, IIf( Buy, Low, High ) );
+
+GraphXSpace = 5;
+dist = 5*ATR(10); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "ORBuy\n@" + u[ i ], i, L[ i ]-dist[i], colorBlue 
+); 
+if( Sell[i] ) PlotText( "ORSell\n@" + w[ i ], i, H[ i ]+dist[i], 
+colorBlue); 
+} 
+Plot( 1, "", IIf(EMA(C,15)>EMA(C,60) , colorPaleGreen, colorRose ),styleArea | styleOwnScale, 0, 1 );
+_SECTION_END();

@@ -1,0 +1,7 @@
+mao = MA((EMA(C,3) - EMA(C,13)),3);
+
+tig = (MAo * 0.9);
+tig1 = MAo * -0.9;
+
+Plot(tig, "",colorLime);
+Plot(tig1, "",colorRed);

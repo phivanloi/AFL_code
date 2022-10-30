@@ -1,0 +1,3 @@
+fim = (H-L)/V;
+fall = IIf(fim < Ref(fim,-1) AND V < Ref(V,-1), -1,0);
+Plot(fall, "", 4);

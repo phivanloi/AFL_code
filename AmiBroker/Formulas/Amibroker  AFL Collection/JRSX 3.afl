@@ -1,0 +1,8 @@
+_SECTION_BEGIN("JRSX");
+//SetBarsRequired(10000, 0); 
+
+
+Length=Param( "Length ", 14, 0, 100);
+j =  JurikRSX( C,Length);
+Plot( JurikRSX( C,Length), _DEFAULT_NAME(), IIf(j > Ref(j,-1),colorGreen,colorRed), ParamStyle("Style") );
+_SECTION_END();

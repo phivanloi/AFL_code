@@ -1,0 +1,5 @@
+MovTrend20 = LinearReg( Close, 20 ); // calculate moving trend
+// plot moving trend, moving average and price bars
+Plot( MovTrend20, "MovTrend-20", colorRed, styleThick );
+Plot( MA( Close, 20 ), "MA-20", colorBlue, styleThick );
+Plot( Close, "Price", IIf(Close > Open, colorDarkGreen, colorDarkRed), styleBar) ;

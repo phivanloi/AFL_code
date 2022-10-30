@@ -1,0 +1,44 @@
+Daysback = Param( "DysBack", 126, 30, 252, 1 );
+
+x = Cum( 1 ); // the X axis, abscissa
+
+LastX = LastValue( X );
+
+C1 = Close;
+
+aa = LastValue( LinRegIntercept( C1, Daysback ) );
+
+bb = LastValue( LinRegSlope( C1, Daysback ) );
+
+yy = Aa + bb * ( x - ( Lastx - DaysBack ) ); // the algebraic equation for a straight line
+
+yy = IIf( x >= ( lastx - Daysback ), yy, -1e10 ); // roll the plot forward and show only the 6 months
+
+Plot( yy, "LinRegression Line", colorDarkRed, styleThick );
+
+UpperSEBand = YY + 2 * StdErr( C, 126 );
+
+LowerSEBand = YY - 2 * StdErr( C, 126 );
+
+Plot( UpperSEBand, "Upper 2 Sigma", colorBlue, styleLine );
+
+Plot( LowerSEband, "Lower 2 Sigma", colorBlue, styleLine );
+
+// General Section
+
+period = 22; // 22 trading days a month
+
+MPT_Period = Param( "MPT Period", 252, 125, 500, 5 );
+
+IndexSym = ParamStr( "Russell 2000 Index Symbol", "!spx" );
+
+Plot( Close, "Close", colorBlue, styleLine );
+
+// calc angel from bb
+pi = 4 * atan( 1 ) ; //Pi
+slopeangle = atan( bb ) * ( 180 / pi );
+
+Title = FullName() + " " + Date() + "\n" + "Slope of Regression Line(in degrees) = " +  WriteVal( slopeangle, 1.2 ) +
+        "\n" + "Standard Err of of RS Line(%) = " + WriteVal( StdErr( 100 * Close, 126 ), 1.2 );
+
+

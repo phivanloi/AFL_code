@@ -1,0 +1,93 @@
+// Coder - Rajandran R
+// Founder - Marketcalls.in & Co-Founder - Algomojo.com
+// Algomojo Provides Free API + Free Trading Bridge for API Based Automated Trading
+// Creation Date : 15th Oct 2020
+// Weather Display Dashboard
+
+
+
+
+_SECTION_BEGIN("Weather Display Dashboard");
+Version(6.17);  //Code is Compatible with 6.17 and Higher
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", colorDefault, styleNoTitle | styleCandle | GetPriceStyle() ); 
+
+city = ParamStr("City","Bangalore");
+
+ih = InternetOpenURL( "http://api.openweathermap.org/data/2.5/weather?q="+city+"&appid=1f082c296a4b6013f8976bdf820147c2" );
+
+if( ih )
+{
+     while( ( str = InternetReadString( ih ) ) != "" )
+     {
+         //printf( "%s", str );
+          for( item = -1; ( sym = StrExtract( str, item,'{' )) != ""; item-- )
+	 {
+	 
+	 if(item == -4)
+	 {
+	 //printf( "%s", sym );
+	 
+	 for( jitem = -1; ( temp = StrExtract( sym, jitem,',' )) != ""; jitem-- )
+	 {
+	 printf( "\n%s", temp );
+	 if(Strfind(temp,"temp"))
+	 {
+     temp1 = StrExtract(temp,1,':');
+     temp1 = StrTrim(temp1,"\"");
+    //_TRACE("\nTemperature : "+NumToStr(StrToNum(temp1)-273.15) +" Degree Celsious");
+	 }
+	 
+	 if(Strfind(temp,"feels_like"))
+	 {
+     fl = StrExtract(temp,1,':');
+     fl = StrTrim(fl,"\"");
+    //_TRACE("\nFeels Like : "+NumToStr(StrToNum(fl)-273.15)+" Degree Celsious");
+	 }
+	 
+	 
+	 if(Strfind(temp,"humidity"))
+	 {
+     hm = StrExtract(temp,1,':');
+     hm = StrTrim(hm,"\"");
+     hm = StrTrim(hm,"}");
+    //_TRACE("\nHumidity : "+hm);
+	 }
+	 
+	  if(Strfind(temp,"pressure"))
+	 {
+     pr = StrExtract(temp,1,':');
+     pr = StrTrim(pr,"\"");
+
+    //_TRACE("\nPressure : "+pr);
+	 }
+	 
+	 
+	 }
+	 
+     
+     }
+	 }
+
+     }
+     InternetClose( ih );
+      
+}
+
+//Display Weather Dashboard
+
+GfxSetBkMode( 0 );
+GfxSelectFont( "Tahoma", 13, 100 );
+GfxSetTextColor( colorWhite );
+
+
+GfxSelectPen( colorGreen, 2 ); 
+GfxSelectSolidBrush( colorgreen ); 
+GfxRectangle( 10, 20, 250, 180 );
+
+GfxTextOut( "City : "+city,23,23); 
+
+    
+
+_SECTION_END();

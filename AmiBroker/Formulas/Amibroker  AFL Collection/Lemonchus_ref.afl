@@ -1,0 +1,98 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+SetBarsRequired(sbrAll,sbrAll);
+SetBarFillColor(IIf(C>O,ParamColor("Candle Up Color", colorBrightGreen),IIf(C<=O,ParamColor("Candle Down Color", colorRed),colorLightGrey)));
+Plot(C,"Price",IIf(C>O,ParamColor("Shadow Up Color", colorBlack),IIf(C<=O,ParamColor("Shadow Down Color", colorBlack),colorLightGrey)),64,0,0,0,0);
+SetChartBkColor(ParamColor("Panel Color ",colorLightGrey));
+SetChartBkGradientFill(ParamColor("Upper Chart",colorLightGrey),ParamColor("Lower Chart",colorLightGrey));
+GraphXSpace=Param("GraphXSpace",20,-10,25,1);
+
+_SECTION_BEGIN("Raghee Horner's EMA's");
+EMA1 = EMA(H,34);
+EMA2 = EMA(L,34);
+EMA3 = EMA(C,34);
+
+Plot( EMA1, "EMA1" ,ParamColor( "Color1", colorRed ), ParamStyle("Style", styleLine|styleThick) | styleNoRescale );
+Plot( EMA2, "EMA2" ,ParamColor( "Color2", colorGreen ), ParamStyle("Style", styleLine|styleThick) | styleNoRescale );
+Plot( EMA3, "EMA3" ,ParamColor( "Color3", colorBlue ), ParamStyle("Style", styleLine|styleThick) | styleNoRescale );
+_SECTION_END();
+
+_SECTION_BEGIN("Supertrend");
+procedure calcTrend_proc(ATR_Period,tr,ATR_Multiplier,TrendMode,CalcPrice)
+{
+global buffer_line_down;
+global buffer_line_up;
+buffer_line_down = Null;
+buffer_line_up = Null;
+
+PHASE_NONE = 0;
+PHASE_BUY = 1;
+PHASE_SELL = -1;
+
+phase=PHASE_NONE;
+band_upper = 0;band_lower = 0;
+  
+for(i = ATR_Period + 1; i < BarCount; i++)
+{
+	band_upper = CalcPrice[i] + ATR_Multiplier * tr[i];
+	band_lower = CalcPrice[i] - ATR_Multiplier * tr[i];
+	
+	if(phase==PHASE_NONE)
+	{
+		buffer_line_up[i] = CalcPrice[i];
+		buffer_line_down[i] = CalcPrice[i];
+	}
+	if(phase!=PHASE_BUY && Close[i]>buffer_line_down[i-1] && !IsEmpty(buffer_line_down[i-1])) 
+	{
+		phase = PHASE_BUY;
+		buffer_line_up[i] = band_lower;
+		buffer_line_up[i-1] = buffer_line_down[i-1];
+	}
+	if(phase!=PHASE_SELL && Close[i]<buffer_line_up[i-1] && !IsEmpty(buffer_line_up[i-1]))
+	{
+		phase = PHASE_SELL;
+		buffer_line_down[i] = band_upper;
+		buffer_line_down[i-1] = buffer_line_up[i-1];
+	}	
+	if(phase==PHASE_BUY && ((TrendMode==0 && !IsEmpty(buffer_line_up[i-2])) || TrendMode==1) )
+	{
+		if(band_lower>buffer_line_up[i-1]) 
+		{
+			buffer_line_up[i] = band_lower;
+		}
+		else 
+		{
+			buffer_line_up[i] = buffer_line_up[i-1];
+		}
+	}
+	if(phase==PHASE_SELL && ((TrendMode==0 && !IsEmpty(buffer_line_down[i-2])) || TrendMode==1) )
+	{
+		if(band_upper<buffer_line_down[i-1])
+		{
+			buffer_line_down[i] = band_upper;
+		}
+		else
+		{
+			buffer_line_down[i] = buffer_line_down[i-1];
+		}
+	}
+}
+}
+
+TrendMode = ParamToggle("TrendMode","Off|On",1);
+ATR_Multiplier = Param("ATR_Multiplier",2,0.1,10,0.1);
+ATR_Period = Param( "ATR_Period",5,1,20,1);
+tr = ATR(ATR_Period);
+
+CalcPrice = (H+L)/2;
+calcTrend_proc(ATR_Period,tr,ATR_Multiplier,TrendMode,CalcPrice);
+
+Plot(buffer_line_up,"\ntu",ColorRGB(28,134,238),styleThick);
+Plot(buffer_line_down,"\ntd",ColorRGB(205,51,51),styleThick);
+
+Plot( 2,"",IIf(buffer_line_up,colorGreen,colorBlack),styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+Plot( 4,"",IIf(buffer_line_down,colorRed,colorBlack),styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+_SECTION_END();
+
+
+

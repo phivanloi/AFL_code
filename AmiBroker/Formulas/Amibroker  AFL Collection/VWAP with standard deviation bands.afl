@@ -1,0 +1,68 @@
+/// VWAP code that also plots standard deviations...if you want a 3rd...it should be fairly simple to add 
+//
+// NOTE: the code is SLOOOOWWWW...can someone help speed it up?  
+// I tried my best, but can't really do much with the two for-loops...
+//
+// LarryJR - ljr500@hotmail.com
+
+// need this line or else when u scroll 1 min chart over a few days, the vwap bars may change
+// size (which is wrong) because of the QuickAFL processing code 
+// so we ensure we have enough bars loaded for at least a couple of days...  set the number appropriately.
+SetBarsRequired( 10000, 0 );
+
+// this stores true/false based on a new day...
+newday=Day() != Ref(Day(), -1);
+
+SumPriceVolume=0;
+totVolume=0;
+Vwap2=0;
+stddev=0;
+newdayindex=0;
+Variance =0;
+
+// we must use a loop here because we need to save the vwap for each bar to calc the variance later
+for( i= 0; i < BarCount; i++ ) 
+{ 
+	// only want to reset our values at the start of a new day
+	if (newday[i]==True)
+	{
+		SumPriceVolume=0;
+		totVolume=0;
+		newdayindex=i;	// this is the index at the start of a new day
+		Variance=0;
+		//Vwap2=0;
+	}
+	AvgPrice=(O[i] + H[i] + L[i] + C[i])/4;
+
+	// Sum of Volume*price for each bar
+	sumPriceVolume += AvgPrice * (Volume[i]);
+		
+	// running total of volume each bar
+	totVolume += (Volume[i]);		
+
+	if (totVolume[i] >0)
+	{	
+		Vwap2[i]=Sumpricevolume / totVolume ;
+		Vwap2temp=Vwap2[i];
+	}
+
+	// now the hard part...calculate the variance...
+	// a separate calc from the start of each day - note it requires the vwap from above
+	// also note, we calculate starting at the first bar in the new day to today to the curent bar
+	Variance=0;
+	for (j=newdayindex; j < i; j++)
+	{
+		AvgPrice=(O[j] + H[j] + L[j] + C[j])/4;
+		Variance += (Volume[j]/totVolume) * (Avgprice-Vwap2temp)*(Avgprice-Vwap2temp);
+	}
+	stddev_1_pos[i]=Vwap2temp + sqrt(Variance);
+	stddev_1_neg[i]=Vwap2temp - sqrt(Variance);
+
+	stddev_2_pos[i]=Vwap2temp + 2*sqrt(Variance);
+	stddev_2_neg[i]=Vwap2temp - 2*sqrt(Variance);
+} 
+Plot (Vwap2,"VWAP2",colorDarkGrey, styleLine);
+Plot (stddev_1_pos,"VWAP_std+1",colorGrey50, styleDashed);
+Plot (stddev_1_neg,"VWAP_std-1",colorGrey50, styleDashed);
+Plot (stddev_2_pos,"VWAP_std+2",colorGrey40, styleDashed);
+Plot (stddev_2_neg,"VWAP_std-2",colorGrey40, styleDashed);

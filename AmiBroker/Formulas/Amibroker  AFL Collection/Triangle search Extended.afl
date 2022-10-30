@@ -1,0 +1,107 @@
+// Triangle search Extended
+
+/*This scan/exploration extends the triangle search by Graham Kavanagh
+The original scans for triangles using Highest High AND Lowest Low over a 20 bar period,
+ then next High over a chosen period after these HHV AND LLV. He requires the order of the 
+highs AND lows are to be in alternate order and his test will pick up ascending, descending
+ AND equal triangles. His 'variable' d1 (set to 20)is the number of days to lookback and search 
+for the last Highest High, AND d2 is the gap after this HH to start searching for the next HH
+ after the first. Similarly for the Lowest lows
+The variables z? represent the highs, AND w? the lows.
+
+This extended program adds a number of options,as follows:-
+a. It automatically searches over different lookback periods between d1max and d1min, set to
+60 and 20 (but easily changed) and records all succeses. Because of the nature of triangles,a 
+single value for d1 can miss many valid cases.
+b. Where the triangle criteria are satisfied on successive days, only the last of these is retained
+in order to reduce the amount of output.
+c. The user can toggle between searches based on the data H and L, or the highs and lows of the candle body.
+d. The lengthy test to yield a "buy" in the original has been broken down into 7 separate conditions, 
+allowing the user to easily change the conditions. Thus, Condition 3 tests for the triangle shape. This can
+use a more liberal test via the parameter toggle that has been added. Similarly, Cond5 is a volume test which
+can now be left in or excluded.
+Finally, the user should note that conds 6 and 7 test that the general price trend is up. If interested in
+potential downward moves, a user might want to delete these from the "buying" test.
+*/
+
+d1max = 60;
+d1min = 20;
+Buy = 0;
+
+
+for (d1=d1min;d1<d1max;d1++)
+{
+d2=4;
+Hi = H;
+Lo = L;
+Body = ParamToggle("Use candle body rather than H & L","No|Yes",  0);
+if(Body == 1)
+{
+Hi = Max(O,C);
+Lo = Min(O,C);
+}
+z1=HHV(Hi,d1);
+za1=HHVBars(Hi,d1);
+zb1=za1-d2;
+z2=HHV(Hi,zb1);
+za2=HHVBars(Hi,zb1);
+w1=LLV(Lo,d1);
+wa1=LLVBars(Lo,d1);
+wb1=wa1-d2;
+w2=LLV(Lo,wb1);
+wa2=LLVBars(Lo,wb1);
+
+aa1=LastValue(Hi);
+aa2=LastValue(Lo);
+
+C3 = ParamToggle("Use a more liberal triangle shape test?", "No|Yes",0);
+ExVol = ParamToggle("Exclude volume test?","No|Yes",0);
+
+Cond1 = ((z1>=z2 AND w2>w1) OR(z1>z2 AND w2>=w1));//Allows for horizontal top or bottom
+Cond2 = za1>za2 AND wa1>wa2;//Automatically satisfied if za1,za2,wa1 and wa2 all exist
+//Cond3 ensures triangle shape
+Cond3 =((za1>wa1 AND wa1>za2 AND za2>wa2) OR (wa1>za1 AND za1>wa2 AND wa2>za2)) ;//Original
+if(C3 == 1)
+Cond3 =((za1>wa1 AND wa1>za2) OR (wa1>za1 AND za1>wa2)) ;//a more liberal test
+
+Cond4 = aa1<z2 AND aa2>w2 ;// Triangle shape continues to last Value
+
+Cond5 = Ref(Volume,-za1) > MA(Volume,d2);
+if(ExVol == 1) Cond5 =1; 
+//Conditions 6 & 7 require close price trend to be up
+Cond6 = Ref(MA(Close,d1),-za1) > Ref(MA(Close,d1),-2*za1) ;
+Cond7= MA(Close,d1) > Ref(MA(Close,d1),-2*za1); 
+Buying = Cond1 AND Cond2 AND Cond3 AND Cond4 AND Cond5 AND Cond6 AND Cond7;
+Buy = Buy + Buying;
+}
+for(i=1;i<BarCount;i++)
+if(Buy[i]>=1)
+{
+Buy[i-1]=0;
+Buy[i] = 1;
+}
+//Retain only the last of consecutive buy signals
+
+Filter=Buy;
+/*
+NumColumns = 8;
+
+Column0 = z1;
+Column1 = z2;
+Column2 = w1;
+Column3 = w2;
+Column4 = za1;
+Column5 = za2;
+Column6 = wa1;
+Column7 = wa2;
+*/
+
+NumColumns = 8;
+Column0 = Cond1;
+Column1 = Cond2;
+Column2 = Cond3;
+Column3 = Cond4;
+Column4 = Cond5;
+Column5 = Cond6;
+Column6 = Cond7;
+Column7 = Buy;

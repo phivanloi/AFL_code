@@ -1,0 +1,46 @@
+// Supertrend Indicator
+// AmiBroker implementation by Matt Radtke, www.quantforhire.com
+_SECTION_BEGIN("ATR | Filter ATR");
+//ATR
+function SuperTrend(lenATR, width)
+{
+    nATR = ATR(lenATR);
+    pAvg = (H+L) / 2;
+
+    upperBand = pAvg + width * nATR;
+    lowerBand = pAvg - width * nATR;
+    isUpTrend = True;
+    dn = DateNum();
+
+    for (i=lenATR; i<BarCount; ++i)
+    {
+        if (C[i] > upperBand[i-1])
+            isUpTrend[i] = True;
+        else if (C[i] < lowerBand[i-1])
+            isUpTrend[i] = False;
+        else
+            isUpTrend[i] = isUpTrend[i-1];
+
+        if (isUpTrend[i])
+            lowerBand[i] = Max(lowerBand[i], lowerBand[i-1]);
+        else
+            upperBand[i] = Min(upperBand[i], upperBand[i-1]);
+    }
+
+    super = IIf(isUpTrend, lowerBand, upperBand); 
+    return super;
+}
+lengthATR = Param("ATR Length", 10, 1, 100, 1);
+widthBands = Param("Band Width", 3, 1, 20, 0.1);
+st = Supertrend(lengthATR,widthBands);
+Plot(st, "Supertrend("+lengthATR+","+widthBands+")", ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+// Filter ATR
+Filter = True;
+AddColumn(O,"Open");
+AddColumn(H,"High");
+AddColumn(L,"Low");
+AddColumn(C,"Close");
+AddColumn((H+L)/2,"Avg");
+AddColumn(ATR(lengthATR), "ATR("+lengthATR+")");
+AddColumn(st, "Supertrend("+lengthATR+","+widthBands+")");
+_SECTION_END();

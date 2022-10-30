@@ -1,0 +1,148 @@
+/* ABKP Benchmark Bar
+	the Benchmark Bar Up must exceed the High of the prior two bars AND 
+	close above the high of the prior two bars. And, naturally 
+	Fast 2 must be blue to confirm the momentum strength of the 
+	POWER BAR.
+	the Benchmark Bar Down must exceed the low of the prior two bars AND 
+	close below the low of the prior two bars. And, naturally 
+	Fast 2 must be red to confirm the momentum strength of the 
+	POWER BAR.
+	
+	Note:  not mentioned in the PDF is the requirement that there
+	be a change in color in for the Power Bar.  For an up Power Bar then
+	you can have Red|Yellow, Red|Blue, or Yellow|Blue.  For the down
+	Power Bar you can have Blue|Yellow, Blue|Red, or Yellow Red.
+
+*/
+parmPowerBarUpColor = ParamColor("Power Bar Up color", colorAqua);
+parmPowerBarDnColor = ParamColor("Power Bar Dn color", colorPink);
+parmFast2Confirm = ParamToggle("Fast2 confirm", "No|Yes", 0);
+parmA900Confirm = ParamToggle("A900 confirm", "No|Yes", 1);
+parmPRange = ParamToggle("Confirm % Range", "No|Yes", 0);
+parmRibbon = ParamToggle("Plot as ribbon", "No|Yes" , 0);
+parmRibbonSize = Param("Ribbon size", 1, 0.5, 10, 0.5);
+parmThreshold = Param("SC Threshold", 5, -5, 5, 1);
+parmVoice = ParamToggle("Voice", "No|Yes", 0);
+parmPlotTargets = ParamToggle("Plot targets", "No|Yes", 0);
+parmDebug = ParamToggle("Debug", "No|Yes", 0);
+SetBarsRequired(350, -1);
+// constants
+_N(APaneName = Name() + Interval(2) + _SECTION_NAME());
+_N(ANewBarName = "NewBar" + APaneName);
+
+//functions
+function ANewBar()
+{
+	PrevDT = StaticVarGet( ANewBarName);
+	DT = LastValue(DateTime());
+	StaticVarSet( ANewBarName,DT);
+	return DT != PrevDT;
+}
+function MRound2(Number, Multiple )
+{
+	if(Multiple == 0 )
+	{
+
+		xMultiple = 0.01;	}
+	else
+	{
+	xMultiple = Multiple; 
+	}
+	Divided = Number / xMultiple;
+	intDivided = int(Divided);
+	intDivided = intDivided + round(Divided - intDivided);
+	return intDivided * xMultiple;
+}
+
+ObjAB = CreateObject("Broker.Application");
+ticker = objAB.Stocks(Name() );
+
+// KP indicators
+Ctmpl = E_TSKPCOLORTMPL(Open,High,Low,Close,Volume);
+total = 0;
+total = total  + IIf(tskp_colortmplcnd0 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd1 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd2 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd3 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd4 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd5 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd6 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd7 > 0, 1, -1); 
+KPScoreCard = total  + IIf(tskp_colortmplcnd8 > 0, 1, -1); 
+dummy =  E_TSKPFAST2(Open,High,Low,Close,Volume);
+
+// calculations
+Range = H -L;
+RangePercent = (C - L) / Range;
+
+PriorHHScoreCard = Ref(HHV(KPScoreCard, 1), -1);
+PriorLLScoreCard = Ref(LLV(KPScoreCard, 1), -1);
+ChangeInBarColor = ((KPScoreCard >= parmThreshold AND PriorHHScoreCard < parmThreshold) OR (KPScoreCard >= -(parmThreshold-1) AND PriorHHScoreCard <= -parmThreshold))
+							OR ((KPScoreCard <= -parmThreshold AND PriorHHScoreCard > -parmThreshold) OR (KPScoreCard <= (parmThreshold-1) AND PriorHHScoreCard >= parmThreshold));
+PriorHHV = Ref(HHV(H, 2) , -1);	//highest high of the 2 prior bars
+PriorLLV = Ref(LLV(L, 2) , -1);	//lowest low of the 2 prior bars
+if(parmDebug == 1)
+	{
+		printf("PHHScoreCard: %g% \nPLLScoreCard: %g%\nChgInBar: %g%\nKPScoreCard: %g%\n", PriorHHScoreCard, PriorLLScoreCard, ChangeInBarColor, KPScoreCard);
+	}
+if(parmFast2Confirm == 0)
+	{
+		BBarUp = H > PriorHHV AND  C > PriorHHV AND ChangeInBarColor;
+		BBarDn = L < PriorLLV AND  C < PriorLLV AND ChangeInBarColor;
+	}
+else	//confirm with Fast2
+	{
+		KPFast21 = tskp_Fast2val1;
+		KPFast22 = tskp_Fast2val2;
+		if(parmDebug == 1)
+			{
+				printf("KPFast21: %g%\nKPFast22: %g%\n", KPFast21, KPFast22);
+			}
+		BBarUp = H > PriorHHV AND  C > PriorHHV AND ChangeInBarColor AND KPFast21 == 1;
+		BBarDn = L < PriorLLV AND  C < PriorLLV AND ChangeInBarColor AND KPFast22 == -1;
+	}
+if(parmA900Confirm == 1);
+	{a 5 period simple moving average
+		KPA900 = E_TSKPA900(Close); 
+		BBarUp = BBarUp AND C > KPA900;
+		BBarDn = BBarDn AND C < KPA900;
+
+	}
+if(parmPRange == 1)
+	{
+		BBarUp = BBarUp AND RangePercent >= 0.7;
+		BBarDn = BBarDn AND rangePercent <= 0.4;
+	}
+	
+//paint the pane
+if(parmDebug == 1)
+	{
+		printf("BBarUp: %g%\nBBarDn: %g%\n", BBarUp, BBarDn);
+	}
+if(parmRibbon == 0)
+	{
+		PlotShapes(IIf(BBarUp , shapeHollowStar, shapeNone), parmPowerBarUpColor, 0, L, -8);
+		PlotShapes(IIf(BBarDn , shapeHollowStar, shapeNone), parmPowerBarDnColor, 0, H, 8);
+	}
+else Plot( IIf(BBarUp OR BBarDn, parmRibbonSize, 0), "" , IIf(BBarUp, parmPowerBarUpColor, IIf(BBarDn, parmPowerBarDnColor, Null)) , styleArea |  styleNoLabel | styleOwnScale , 0, 10);
+//voice
+ANewBarSignal = ANewBar();
+if(parmVoice == 1)
+	{
+		if(ANewBarSignal)
+			{
+				if(LastValue(Ref(BBarUp, -1)) ) Say(Interval(2) + " Benchmark bar: up. Stop at " + NumToStr(Ref(L, -1) - ticker.TickSize, 1.2) + ".");
+				if(LastValue(Ref(BBarDn, -1)) ) Say(Interval(2) + " Benchmark bar: down. Stop at " + NumToStr(Ref(H, -1) + ticker.TickSize, 1.2) + ".");
+			}
+	}
+//plot targets
+if(parmPlotTargets == 1)
+	{
+		RangeAvg = MRound2(Ref(MA(H-L, 5), -1) , ticker.ticksize ) ;
+		BBarUpSince = BarsSince(BBarUp);
+		BBarDnSince = BarsSince(BBarDn);
+		PT = IIf( BBarUpSince <= BBarDnSince, Ref(O, - BBarUpSince + 1 ) + Ref(RangeAvg, -BBarUpSince -1), Ref(O, - BBarDnSince + 1) - Ref(RangeAvg, -BBarDnSince -1) );
+		Stop = IIf( BBarUpSince <= BBarDnSince, Ref(L, - BBarUpSince) - ticker.TickSize, Ref(H, - BBarDnSince) + ticker.TickSize);
+		Plot(Stop, "Stop", colorRed, styleLine | styleStaircase);   
+		Plot(PT, "Target", colorGreen, styleLine | styleStaircase);   	
+	}

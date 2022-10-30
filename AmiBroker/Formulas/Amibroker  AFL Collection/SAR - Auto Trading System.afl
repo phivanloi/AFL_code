@@ -1,0 +1,16 @@
+_SECTION_BEGIN("Sar - Auto Trading System"); 
+SetPositionSize(1, spsShares);
+x = Close>SAR() AND Ref(Close,-1)<Ref(SAR(),-1)  ; 
+y = Close<SAR() AND Ref(Close,-1)>Ref(SAR(),-1) ; 
+xScale = SAR()>Ref(SAR(),-1) AND Close>SAR(); 
+yScale = SAR()<Ref(SAR(),-1) AND Close<SAR(); 
+Buy = IIf(x!=0, 1, IIf(xScale!=0,sigScaleIn,0)) ; 
+Sell = IIf(y!=0, 1, IIf(yScale!=0,sigScaleIn,0)) ; 
+
+PlotOHLC(O,H,L,C,"Price", colorBlack) ; 
+Plot(SAR(), "SAR", colorRed, styleDots | styleNoLine) ; 
+shape = x * shapeUpArrow + y * shapeDownArrow; 
+PlotShapes( shape, IIf( x, colorGreen, colorRed ), 0, IIf( x, Low, High ) ); 
+shape = IIf( xScale, shapeHollowUpArrow, IIf (yScale,shapeHollowDownArrow,0)); 
+PlotShapes( shape, IIf( xScale, colorGreen, colorRed ), 0, IIf( xScale, Low, High ) );
+_SECTION_END();

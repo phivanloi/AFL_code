@@ -1,0 +1,4 @@
+Filter=1;
+// 52 Week High Low
+A = IIf(H > HHV(H,250),1,0);
+B = IIf(L < LLV(L,250),1,0);

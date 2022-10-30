@@ -1,0 +1,22 @@
+_SECTION_BEGIN("rsi guppy");
+r = RSI(5); 
+s = EMA(r,3);
+Buy = Ref(s,-2) > Ref(s,-1) AND Ref(s,-1) < s;
+Sell =Ref(s,-2) < Ref(s,-1) AND Ref(s,-1) > s;
+ 
+_SECTION_END();
+
+_SECTION_BEGIN("Price");
+Buy=ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+dist = 1.5*ATR(10); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "Buy\n@" + C[ i ] , i, L[ i ]-dist[i], colorBlack,colorGreen ); 
+if( Sell[i] ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorBlack, colorRed ); 
+
+} 
+
+PlotShapes( Buy * shapeUpTriangle + Sell * shapeDownTriangle, IIf( Buy, colorYellow, colorYellow ) );
+_SECTION_END();

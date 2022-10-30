@@ -1,0 +1,18 @@
+_SECTION_BEGIN("Weissman RSI & MA System");
+Plot (RSI (9), "RSI-9", colorRed);
+Plot (RSI (14), "RSI-14", colorBlue);
+Plot( 30, "", colorBlack, styleNoLabel);
+Plot( 70, "", colorBlack, styleNoLabel);
+
+Buy= Ref (RSI (9), -1) < 35;
+PlotShapes(shapeUpArrow*Buy,colorGreen);
+Sell = Cross (Ref (RSI (14), -1), 80);
+PlotShapes(shapeDownArrow*Sell,colorRed);
+
+Filter = Buy OR Sell;
+
+AddColumn( Buy, "Buy", 1);
+AddColumn(Sell, "Sell", 1);
+AddColumn(Close,"Close",1.2);
+AddColumn(Volume,"Volume",1.0);
+_SECTION_END();

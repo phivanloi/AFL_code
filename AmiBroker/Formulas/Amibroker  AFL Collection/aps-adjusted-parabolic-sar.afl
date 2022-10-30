@@ -1,0 +1,140 @@
+  SetBarsRequired(100000,100000);
+//------------------------------------------------------------------+
+// Block 1                                                          |
+//------------------------------------------------------------------+
+  Step=Param("Step",0.02,0.001,10,0.001);                  
+  Muximum=Param("Muximum",0.2,0.001,10,0.001);             
+  PR=ParamToggle("Price reversal Open","Yes|No",0);        
+  MuxAccel=ParamToggle("Muximum acceleration","Yes|No",0); 
+  RouExt=ParamToggle("Rounding extrema","Yes|No",0);       
+  ColorSAR=ParamColor("Color SAR",colorRed);               
+  History=Param("History",Min(5000,BarCount-2),1,BarCount-2,1); 
+//------------------------------------------------------------------+
+// Block 2                                                          |
+//------------------------------------------------------------------+  
+  i=BarCount-1-History;                                     
+  n=1;                                                     
+  Acceleration=0;                                          
+  direction=0;                                              
+  ep=0;                                                    
+  iSAR=Open;                                               
+//------------------------------------------------------------------+
+// Block 3                                                          |
+//------------------------------------------------------------------+  
+  while(i<=BarCount-1)
+    {          
+     if(direction==0)                                      
+       {                                                   
+        if(High[i-1]<High[i]&Low[i-1]<Low[i])
+          {     
+           iSAR[i]=Low[i];                                 
+           ep=High[i];                                     
+           direction=1;                                    
+          }     
+        if(High[i-1]>High[i]&Low[i-1]>Low[i])
+          {     
+           iSAR[i]=High[i];
+           ep=Low[i];   
+           direction=2; 
+          }
+       }
+//------------------------------------------------------------------+
+// Block 4                                                          |
+//------------------------------------------------------------------+       
+       else
+       {
+        if(direction==1)                                   
+          {
+           if(PR==1)                                       
+             {
+              Rev=Low[i-1];
+             }
+             else
+             {
+              Rev=Open[i];
+             }
+//-------------------------------------------------------------------
+           if(Rev<iSAR[i-1])                               
+             {
+              iSAR[i]=ep;
+              n=1;
+              direction=2;
+             }
+             else                                          
+             {
+//-------------------------------------------------------------------
+              if(MuxAccel==1)                              
+                {
+                 if(High[i-1]<High[i])
+                   {
+                    Acceleration=Min(Step*n,Muximum); 
+                   }
+                }
+                else
+                {
+                 Acceleration=Min(Step*n,Muximum); 
+                }
+//-------------------------------------------------------------------
+              n++;
+              ep=Max(ep,High[i-1]);                         
+              iSAR[i]=iSAR[i-1]+Acceleration*(ep-iSAR[i-1]);
+              if(RouExt==0)
+                {
+                 iSAR[i]=Min(Min(Low[i-2],Low[i-1]),iSAR[i]);
+                }
+             }           
+          } 
+//------------------------------------------------------------------+
+// Block 5                                                          |
+//------------------------------------------------------------------+
+          else
+          {
+           if(direction==2)                                
+             {
+//-------------------------------------------------------------------
+              if(PR==1)                                    
+                {
+                 Rev=High[i-1];
+                }
+                else
+                {
+                 Rev=Open[i];
+                }
+//-------------------------------------------------------------------
+              if(Rev>iSAR[i-1])
+                {
+                 iSAR[i]=ep;
+                 n=1;
+                 direction=1;
+                }
+                else
+                {
+                 if(MuxAccel==1)                           
+                   {
+                    if(Low[i-1]>Low[i])
+                      {
+                       Acceleration=Min(Step*n,Muximum); 
+                      }
+                   }
+                   else
+                   {
+                    Acceleration=Min(Step*n,Muximum); 
+                   }
+//-------------------------------------------------------------------
+                 n++;
+                 ep=Min(ep,Low[i-1]);                      
+                 iSAR[i]=iSAR[i-1]+Acceleration*(ep-iSAR[i-1]);
+                 if(RouExt==0)
+                   {
+                    iSAR[i]=Max(Max(High[i-2],High[i-1]),iSAR[i]);
+                   }
+                }
+             } 
+          }
+       }
+     i++;
+    }
+//------------------------------------------------------------------+
+// Block 6                                                          |
+//------------------------------------------------------------------+
+  Plot(iSAR,"APS",ColorSAR,styleDots|styleNoLine);

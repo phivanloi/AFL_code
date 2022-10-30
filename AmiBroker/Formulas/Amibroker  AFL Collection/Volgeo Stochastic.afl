@@ -1,0 +1,31 @@
+_SECTION_BEGIN("Volgeo Stochastic");
+
+
+x1= StochK(14 ,7) ; 
+x2= TEMA(x1 ,5 ) ; 
+x3= EMA(x2 ,5 ) ; 
+
+Plot(x2, "Volgeo Stochastic" ,colorBlue,4); 
+Plot(x3,"",colorRed,1);
+
+os=25;
+ob=75;
+
+Plot(Os,"",colorLightGrey,styleLine);
+Plot(Ob,"",colorLightGrey,styleLine);
+Plot(90,"",colorLightOrange,styleLine);//extreme
+Plot(10,"",colorLightOrange,styleLine);
+
+
+Buy2=Cross(x2,x3);
+Sell2=Cross(x3,x2);
+
+
+shape = Buy2 * shapeHollowUpArrow + Sell2 * shapeHollowDownArrow;
+
+
+PlotShapes( shape, IIf( Buy2, colorBlue, colorRed ), 0,IIf( Buy2, Ref(x2,-1)*0.9, Ref(x3,-1)*1.05)  );
+
+
+
+_SECTION_END();

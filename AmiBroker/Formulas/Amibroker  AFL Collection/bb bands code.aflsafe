@@ -1,0 +1,32 @@
+//Bollinger Bands with Expansion and Contraction
+//HIGHLIGHTS
+// Contraction Color: Blue
+pds=20;//bollinger bands periods
+shift=2;//bollinger band shift
+ChartStyle=styleCandle;
+Cond1= BBandTop(Close,pds,shift)< Ref(BBandTop(Close,pds,shift),-1) AND
+BBandBot(Close,pds,shift)>Ref(BBandBot(Close,pds,shift),-1);
+ 
+// Expansion Color: Red
+Cond2= BBandTop(Close,pds,shift)> Ref(BBandTop(Close,pds,shift),-1) AND
+BBandBot(Close,pds,shift)<Ref(BBandBot(Close,pds,shift),-1);
+barcolor=IIf(Cond1,6,IIf(Cond2,4,0));
+Graph0=BBandTop(C,pds,shift);
+Graph1=C;
+Graph1Color=colorBlack;
+Graph1Style=ChartStyle;
+Graph2=BBandBot(C,pds,shift);
+Graph0Style=Graph2Style=1;
+Graph0BarColor=Graph2BarColor=ValueWhen(barcolor!=0,barcolor);
+/**********************************************************/
+Lookback=10;
+diff=BBandTop(Close,pds,shift)- BBandBot(Close,pds,shift);
+contraction_cond=IIf(diff < Ref(LLV(diff,Lookback),-1),1,0);
+expansion_cond=IIf(diff > Ref(HHV(diff,Lookback),-1),1,0);
+present=WriteIf(Cond1,"Contraction","Expansion");//is the market currently under expansion or contraction
+Filter=Cond1 > 0 OR Cond2 > 0 AND Close > 0 AND Close < 25 AND Volume > 5000;
+AddColumn(IIf(Cond1,C,IIf(Cond2,C,C)),"close");
+AddColumn(Cond1,"contract");AddColumn(ValueWhen(Cond1,BBandTop(Close,pds,shift)-BBandBot(Close,pds,shift),1),"ContractValue");
+AddColumn(Cond2,"expand");AddColumn(ValueWhen(Cond2,BBandTop(Close,pds,shift)-BBandBot(Close,pds,shift),1),"ExpansionValue");
+AddTextColumn(Present,"Condition");
+AddColumn(RSI(),"RSI");AddColumn(ADX(),"ADX");

@@ -1,0 +1,244 @@
+_SECTION_BEGIN("Continous Contract");
+/*
+///////////////////////////////////////////////////////////////////////////
+// Continious Contract Rollover on 5 sec database (by Dennis Brown 6/14/2008)
+//
+// This chart is used to generate a Continuous Contract Rollover ticker
+// This chart runs on a 5 second database --not tested on other timeframes
+//
+// Instructions:
+//
+// 1. Create a new ticker for the new contract
+// 2. Fill in the information section of the new ticker
+// 3. Backfill the new ticker with as much data as available
+// 4. Run this AFL on the old contract ticker and backfill it if needed
+// 5. Turn off all filtering in the database settings
+// 6. Set the chart timeframe to match the database base timeframe
+// 7. Fill in the parameter for the NEW contract ticker
+// 8. Select the rollover date desired 
+// 9. Verify higher volume for new contract on that date in the chart
+//10. Click the parameter to write out the new merged contract text file
+//11. Use Import Wizard to import the data into the database
+//12. If you mess up, delete the new ticker from the database and start over
+//
+// The timeframe must match the database or some data will be lost (5 sec)
+// All 24 hour data must be selected in the database or some data will be lost
+//
+// It merges actual contract prices of two tickers
+// The old ticker is the one set up in the chart
+// The new ticker is selected via parameter
+// The rollover date is selected via paramater
+// Volumes of both tickers are shown to verify the rollover time
+// Tick size, Point value, etc. are copied from the older ticker
+// Older contract prices are adjusted down by the premium and appended to the new ticker
+// Volumes are just used directly, but it would be better to add them if a RT solution was available for trading that way
+// 
+//
+// The new ticker is written out as a textfile
+// Once the ticker is generated it must be imported to the database
+// This will replace the new ticker data and updates can this happen normally
+// One caution is backfilling during the first [provider backfill history days] after the rollover date
+// may cause the old contract data (esp. volumes) to be altered which may affect backtest results
+// and the whole process would have to be repeated to restore the proper history again
+//
+// Each contract ticker that is desired to have a long history requires going through this process
+// one by one at each rollover date, which may be monthly, bi-monthly, or quarterly
+// 
+///////////////////////////////////////////////////////////////////////////
+*/
+Version(5.0); //minimum version required
+/*
+//================================================================
+// Draw a Button/Table Cell
+// Specify the upper left x,y pixel and size of the cell and the formatting
+// Can also specify the row and column number if part of an array of cells
+// A text only box with or without a background can be drawn by LineSize=0
+//
+// TextAlign formatting codes
+// AlignTop=0; AlignLeft=0; AlignHCenter=1; AlignRight=2; AlignVCenter=4; AlignBottom=8; 
+// FmtWordBrk=16; Fmt1Line=32; FmtTabs=64; FmtNoClip=256; FmtNoPrefix=2048;
+// FmtEndEllipsis=32768; FmtPathEllipsis=16384; 
+//
+// TextType codes
+// Default(0) PointSize=Height/2; PointSize=4-63; Bold=64; Italic=256; Underline=512;
+*/
+
+colorClear = ColorRGB(254,254,254); //not quite white, call it a transparent flag
+procedure DrawCell(x, y, Width, Height, Col, Row, CellColor, CellText, TextColor, TextType, TextAlign, LineColor, LineSize){
+	x1 = x + Width*Col;
+	x2 = x1 + Width;
+	y1 = y + Height*Row;
+	y2 = y1 + Height;
+
+	// draw a filled solid color rect
+	if(CellColor!=colorClear){
+		GfxSelectPen(LineColor, LineSize, none=5); 
+		GfxSelectSolidBrush(CellColor);
+		GfxSetBkMode(solid=2);
+		GfxRectangle(x1, y1, x2+1, y2+1);
+	}
+	//draw in the text
+	PointSize = TextType&63;
+	if(PointSize==0){PointSize = Height/2;}
+	if(TextType&64){TextWeight = 700;}else{TextWeight = 400;}
+	if(TextType&256){italic = 1;}else{ italic = 0;}
+	if(TextType&512){underline = 1;}else{ underline = 0;}
+	
+	GfxSelectFont( "Tahoma", PointSize, TextWeight, italic, underline, orientation = 0 );
+	GfxSetTextColor(TextColor);
+	GfxSetBkMode(transparent=1);
+	if((TextAlign&1)==1){GfxDrawText(CellText, x1, y1, x2, y2, TextAlign);} //centered
+	if((TextAlign&2)==2){GfxDrawText(CellText+" ", x1, y1, x2, y2, TextAlign);} //right
+	if((TextAlign&3)==0){GfxDrawText(" "+CellText, x1, y1, x2, y2, TextAlign);} //left
+
+	//draw outlines of box
+	if(LineSize>0){
+		GfxSelectPen(LineColor, LineSize); 
+		offset = round(LineSize/2) - 1;
+		GfxMoveTo(x1+offset, y1+offset); 
+		GfxLineTo(x2-offset, y1+offset); 
+		GfxLineTo(x2-offset, y2-offset); 
+		GfxLineTo(x1+offset, y2-offset); 
+		GfxLineTo(x1+offset, y1+offset); 
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////
+// RataDieNum and Time Functions mostly copied from the AB UKB
+//
+function DateNumberToRataDie( DateNumber ){ //modified from the AB UKB --added round()
+	num = DateNumber/10000;
+	yyyy = int(num) + 1900;
+	num = frac(num) * 100;
+	mm = int(num);
+	dd = frac(num)*100;
+	yyyy = yyyy + int((mm-14)/12);
+	mm = IIf(mm < 3, mm+12, mm);
+	RataDieNum = round(dd + int((153*mm-457)/5) + 365*yyyy + int(yyyy/4) - int(yyyy/100) + int(yyyy/400) - 306);
+	return (RataDieNum);
+}
+
+///////////////////////////////////////////////////////////////////////////
+// Main routine
+//
+GraphZOrder=1;
+GraphXSpace=20;
+Lastbar = BarCount-1; 
+
+OldContract = Name();
+NewContract = ParamStr("New Ticker Symbol","TICKER");
+RollDate = ParamDate("Rollover Date","6/12/2008");
+writeit = ParamTrigger("Write New Ticker","Click to Make .txt File");
+
+timeBase = Interval(); //5 second database, but could be 15 sec or 60 sec also
+BarsIn3hr = 10800/timeBase;
+Vxover = 0;
+barDates = DateNum();
+
+Plot(C, "OldTicker", colorLightGrey, styleBar); 
+if(	SetForeign(NewContract) AND timeBase > 0){ //newer ticker OHLCV
+	O1=O; H1=H; L1=L; C1=C; V1=V; //pick up the new ticker data
+	Plot( C, "NewTicker", colorRed, styleBar); 
+	RestorePriceArrays(); //Back to the old ticker data again
+	NewV = round(MA(V1,BarsIn3hr));
+	OldV = round(MA(V,BarsIn3hr));
+	TotalV = 20*round(LastValue(MA(V,360000/timeBase))); //10 days volume average for chart scale
+	Plot(OldV, "OldVolume", colorDarkGrey, styleThick|styleOwnScale,0,TotalV); 
+	Plot(NewV, "NewVolume", colorRed, styleNoTitle|styleNoLabel|styleThick|styleHistogram|styleOwnScale,0,TotalV); 
+	Plot(OldV, "OldVolume", colorLightGrey, styleNoTitle|styleNoLabel|styleHistogram|styleOwnScale,0,TotalV); 
+	Plot(NewV, "NewVolume", colorDarkRed, styleThick|styleOwnScale,0,TotalV); 
+	diff = MA((H+L)/2,BarsIn3hr*4) - MA((H1+L1)/2,BarsIn3hr*4); //12 Hour average price difference
+	tick = TickSize;
+	Vxover = barDates > RollDate; //find the rollover bar, at midnight
+	for(i=LastBar; i>0 AND Vxover[i]; I--){;} // find rollover bar
+	rolloverBar = i;
+	delta = round(diff[i]*(1/tick))/(1/tick); //move the premium offset to closest tick
+	O -= delta; H -= delta; L -= delta; C -= delta; // offset old ticker data by premium
+	for(i=LastBar; i>=0 AND Vxover[i]; I--){ // substitute new ticker data after rollover date
+		O[i] = O1[i]; H[i] = H1[i]; L[i] = L1[i]; C[i] = C1[i]; V[i] = V1[i];
+	}
+}
+Vxover[LastBar] = 2;
+Plot(C, "RolledPrice", IIf(Vxover,colorRed,colorBlue), styleBar|styleNoLabel); 
+
+if(writeit){
+	if(OldContract != NewContract ){
+		bars=0; 
+		filename = NewContract + ".txt";
+		fh = fopen(filename, "w"); 
+		if(fh){
+			barTimes = TimeNum();
+			StaticVarSetText("lastfile"+GetChartID(),"Error: endless loop detection preference is set to low");
+			for(i=0; i<=LastBar; i++){
+				Yr = int(barDates[i]/10000 +1900);
+				MoY = int(barDates[i]/100%100);
+				doM = int(barDates[i]%100);
+		
+				Hours = int(barTimes[i]/10000);
+				Minutes = int(barTimes[i]/100%100);
+				Seconds= int(barTimes[i]%100);
+		
+				line = StrFormat("%04.0f-%02.0f-%02.0f,%02.0f:%02.0f:%02.0f,%1.2f,%1.2f,%1.2f,%1.2f,%1.0f\n", 
+						Yr, MoY, DoM, Hours, Minutes, Seconds, O[i], H[i], L[i], C[i], V[i]);
+				fputs( line, fh ); //"2007-12-21,13:41:55,1510.25,1510.00,1510.75,1510.50,20"
+				bars++;
+			}
+			fclose( fh );
+		}
+		else {filename = "Error opening "+filename;}
+		StaticVarSet("Bars"+GetChartID(),bars);
+		StaticVarSet("WrittenDays"+GetChartID(),DateNumberToRataDie(barDates[LastBar])-DateNumberToRataDie(barDates[0]));
+		StaticVarSetText("lastfile"+GetChartID(),filename);
+	}
+	else {StaticVarSetText("lastfile"+GetChartID(),"Aborted Overwrite of Old Ticker");}
+}
+//Make a box of legends
+CellText =
+" Continious Contract Rollover Maker: \n"+
+"  --Light Grey: Old contract Price \n"+
+"  --Red: New contract Price \n"+
+"  --Blue: Adjusted old contract Price \n"+
+"  --Dark Grey: Old contract volume \n"+
+"  --Dark Red: New contract volume \n"+
+"    (Volumes are 3 hr average contracts/bar) \n\n";
+
+DrawCell(0, 20, 350, 130, 0, 0, colorWhite, CellText, colorBlack, 10, 256, colorBlack, 1);
+
+//Make a box of status
+barsWritten = NumToStr(StaticVarGet("Bars"+GetChartID()),1.0);
+daysWritten = NumToStr(StaticVarGet("WrittenDays"+GetChartID()),1.0);
+lastFile = StaticVarGetText("lastfile"+GetChartID());
+CellText =
+" Last Operation Status: \n\n"+
+" "+daysWritten +" Total days written to file \n"+
+" "+barsWritten +" Total bars written to file \n"+
+" Last file written: "+lastFile;
+
+DrawCell(0, 150, 350, 100, 0, 0, colorWhite, CellText, colorBlack, 10, 256, colorBlack, 1);
+
+//Make a box of instructions
+CellText =
+" Instructions: \n\n"+
+"  1. Create a new ticker for the new contract \n"+
+"      (Quarterly contracts progress: H7 M7 U7 Z7 H8...) \n"+
+"  2. Fill in the information section of the new ticker \n"+
+"  3. Backfill the new ticker with as much data as available \n"+
+"  4. Run this AFL on the old contract ticker and backfill \n"+
+"  5. Turn off all filtering in the database settings \n"+
+"  6. Set the chart to match the database base timeframe \n"+
+"  7. Fill in the parameter for the NEW contract ticker \n"+
+"  8. Select the rollover date parameter \n"+
+"  9. Verify higher volume for new contract on that date \n"+
+" 10. Click param to write out the new contract text file \n"+
+" 11. Use Import Wizard to import the data into the database \n"+
+"      (Format: YMD, Time, O, H, L, C, V)\n"+
+" 12. If you goof, delete the new ticker and start over \n\n"+
+" Backfilling during the first provider backfill-history-days \n"+
+"  after the rollover date may alter the old contract data \n"+
+"  and the whole process will have to be repeated ";
+//
+DrawCell(0, 250, 350, 340, 0, 0, colorWhite, CellText, colorBlack, 10, 256, colorBlack, 1);
+RequestTimedRefresh(5,0);
+SetBarsRequired(1000000,1000000);
+
+_SECTION_END();

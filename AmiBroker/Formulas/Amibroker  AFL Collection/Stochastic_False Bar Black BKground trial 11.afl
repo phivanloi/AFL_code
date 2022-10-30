@@ -1,0 +1,48 @@
+TimeFrameSet(in5Minute);
+_SECTION_BEGIN("Stochastic_45-4-2_833"); 
+periods = Param( "Periods", 45, 1, 200, 1 );
+K1smooth = Param( "%K1 avg", 4, 1, 200, 1 );
+//Plot( StochK( periods , K1smooth), _DEFAULT_NAME(), colorCustom3, styleNoLabel  | styleThick | styleDots);
+
+
+periods = Param( "Periods", 45, 1, 200, 1 );
+K1smooth = Param( "%K1 avg", 4, 1, 200, 1 );
+D1smooth = Param( "%D1 avg", 2, 1, 200, 1 );
+//Plot( StochD( periods , K1smooth, D1Smooth ), _DEFAULT_NAME(), colorCustom3, styleNoLabel  | styleThick | styleDots);
+
+
+
+A = StochK( periods , K1smooth);
+B = StochD( periods , K1smooth, D1Smooth );
+
+
+Plot (20, "", colorTan, styleNoLabel);
+Plot (50, "", colorLavender, styleNoLabel);
+Plot (80, "", colorTan, styleNoLabel);
+
+periods = Param( "Periods", 8, 1, 200, 1 );
+K1smooth = Param( "%K1 avg", 3, 1, 200, 1 );
+
+
+
+periods = Param( "Periods", 8, 1, 200, 1 );
+K2smooth = Param( "%K1 avg", 3, 1, 200, 1 );
+D2smooth = Param( "%D1 avg", 3, 1, 200, 1 );
+
+M = StochK( periods , K2smooth);
+N = StochD( periods , K2smooth, D2Smooth );
+
+ColorK=IIf(A>B,colorBrightGreen,colorRed);
+
+Plot( M,"StoK", ColorK, styleThick);
+Plot( N,"StoD", colorDarkYellow, styleDashed);
+
+
+PlotOHLC( 100, 100 , 95 , 95 , "", ColorK, styleCloud | styleNoLabel);
+PlotOHLC( 5, 5 , 0 , 0 , "", ColorK, styleCloud | styleNoLabel);
+
+PlotOHLC( 0, A , B , B , "Cloud", IIf(A > B ,colorAqua,colorRed), styleCloud | styleNoLabel);
+
+
+_SECTION_END();
+TimeFrameRestore();

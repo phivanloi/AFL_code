@@ -1,0 +1,4 @@
+RSIcon = 100 - 100/(1.0+ IIf(EMA(IIf(C-Ref(C,-1)<0,-(C-Ref(C,-1)),0),23)==0,1000000,
+EMA(IIf(C-Ref(C,-1)>0, C-Ref(C,-1), 0),23) /EMA(IIf(C-Ref(C,-1)<0-(C-Ref(C,-1)),1,0),23)));
+
+Plot( RSIcon, "RSI - Canonical", ParamColor("Color",  colorCycle ), ParamStyle("Style")  );

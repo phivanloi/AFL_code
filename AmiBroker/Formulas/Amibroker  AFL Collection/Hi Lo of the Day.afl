@@ -1,0 +1,52 @@
+ 
+GraphXSpace = 5 ;
+SetChartOptions(0,chartShowArrows|chartShowDates);
+Plot( C, "Close", colorBlack, styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+
+_SECTION_BEGIN("Hi and LO of the day");
+TLH = ParamToggle("Days Hi Lo","Off|On",1);
+if (TLH==1) {
+  Hodcolorsheme=ParamColor("High of day color",colorDarkRed);
+  LodColorscheme=ParamColor("Low of day color",colorGreen);
+  tempnum = TimeNum(); 
+  temphi[0] = H[0]; 
+  temphiColor[0] = Hodcolorsheme; 
+  templo[0] = L[0]; 
+  temploColor[0] = LodColorscheme; 
+  for( i = 1; i < BarCount; i++ ) 
+  { 
+  if(tempnum[i] - tempnum[i-1] > Interval()) 
+  { 
+  if(H[i] > temphi[i-1]) 
+  { 
+  temphi[i] = H[i]; 
+  temphiColor[i] = Hodcolorsheme; 
+  } 
+  else 
+  { 
+  temphi[i] = temphi[i-1]; 
+  temphiColor[i] = Hodcolorsheme; 
+  } 
+  if(L[i] < templo[i-1]) 
+  { 
+  templo[i] = L[i]; 
+  temploColor[i] = LodColorscheme; 
+  } 
+  else 
+  { 
+  templo[i] = templo[i-1]; 
+  temploColor[i] = LodColorscheme; 
+  } 
+  } 
+  else 
+  { 
+  temphi[i] = H[i]; 
+  temphiColor[i] = Hodcolorsheme; 
+  templo[i] = L[i]; 
+  temploColor[i] = LodColorscheme; 
+  } 
+  } 
+  Plot(temphi,"", temphiColor,styleBar); 
+  Plot(templo,"", temploColor,styleBar);
+}
+_SECTION_END();

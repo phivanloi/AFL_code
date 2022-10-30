@@ -1,0 +1,24 @@
+
+
+
+
+
+_SECTION_BEGIN("FPSR");
+
+// Get Previous Day's close, Low and High
+Prev_Close = TimeFrameGetPrice( "C", inDaily, -1, expandFirst) ;
+Prev_Low = TimeFrameGetPrice( "L", inDaily, -1, expandFirst) ;
+Prev_High = TimeFrameGetPrice( "H", inDaily, -1, expandFirst) ;
+Today = LastValue(Day( ) );
+
+
+//////////////////////////////30 MT STRATEGY /////////////////////////////////////////////////////////////
+BS=(Prev_High-Prev_Low)/3;
+
+
+Y=R30=Prev_Close+BS;
+X=S30=Prev_Close-BS;
+BSColor = ColorRGB(20,20,40);
+
+PlotOHLC( 0, R30 , S30 ,S30 , "30MT", BSColor, styleCloud|styleNoLabel);
+_SECTION_END();

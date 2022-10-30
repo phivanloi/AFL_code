@@ -1,0 +1,33 @@
+
+Main = C; 
+Col_cci = IIf(CCI(20) > 100, colorDarkGreen,IIf(CCI(20) <-100,colorDarkRed,IIf(CCI(20) > Ref(CCI(20),-1),colorBrightGreen,colorRed)));
+Plot(Main, "",Col_cci , styleBar+styleThick);
+//titles 
+
+// trend based on EMA
+ 
+//Plot(DEMA(Close,3),"",colorWhite,styleThick); 
+Plot(EMA(Close,13),"",colorGreen,styleThick);
+//Plot(EMA(Close,20),"",colorBlue,styleThick);
+//Plot(EMA(Close,34),"",colorRed,styleThick);
+Long_trend = WriteIf(EMA(Close,20) > Ref(EMA(Close,20),-1),EncodeColor(colorBrightGreen)+ " UP ", EncodeColor(colorRed)+ " DN ");
+Mid_trend =  WriteIf(JurikJMA( Close, 13, 0) > Ref(JurikJMA( Close, 13, 0),-1),EncodeColor(colorBrightGreen)+ " UP ", EncodeColor(colorRed)+ " DN ");
+short_trend =  WriteIf(EMA(Close,3) > JurikJMA( Close, 13, 0),EncodeColor(colorBrightGreen)+ " UP ", EncodeColor(colorRed)+ " DN ");
+
+
+//Title = Name() + "  -  RSI(" + WriteVal(pd,0.0) + ")  -  Close=" +  WriteVal(Close,0.3) + "    UL=" +  WriteVal(UL,0.4) + "    MM=" +  WriteVal(MM,0.4) + "    LL=" +  WriteVal(LL,0.4); 
+Title =
+
+EncodeColor(colorYellow)+"Trend  EMA  : "+EncodeColor(colorWhite)+"Long term : " +Long_trend
++EncodeColor(colorWhite)+"Mid term : " +mid_trend
++EncodeColor(colorWhite)+"Short term : " +short_trend
+;
+
+
+
+_SECTION_END();
+
+_SECTION_END();
+
+_SECTION_BEGIN("JMA");
+_SECTION_END();

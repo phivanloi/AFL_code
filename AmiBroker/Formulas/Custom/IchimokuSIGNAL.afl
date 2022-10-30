@@ -1,0 +1,638 @@
+//www.aflcode.com
+//ICHIMOKU SIGNAL TRADER
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+EPSYield= (GetFnData("EPS") / C)  * 100;
+DIVYield = (GetFnData("DividendPerShare") / C)  * 100;
+
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol =" 
++WriteVal( V, 1.0 ) +"\n DIVYield = (%.1f%%),\n{{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )), DIVYield  ));
+
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+
+// ******************************************************************
+// Volume
+// ******************************************************************
+
+Volsum5 = MA(V,5); 
+Volsum10 = MA(V,10);
+Volsum16 = MA(V,16);
+Volsum30 = MA(V,30);
+
+Volpercent16 = (Volume - Volsum16 )/Volume *100;
+Volpercent30 = (Volume - Volsum30 )/Volume *100;
+
+pricePercent =  (C-Ref(C,-1))/Ref(C,-1)*100 ;
+//printf("pricePercent = %g\n",pricePercent );
+
+volflg1 = V  >  Ref(V,-2)
+AND V > 0.90 * MA(V,16)
+AND Ref(V,-2) > 0.90 *MA(V,16)  AND Ref(V,-2) < 1.1 * MA(V,16);
+
+volflg2 = IIf((V>1.3*Volsum16)OR (V>1.2*Volsum10), 1,0);
+volflg3 = V > 1.2  * MA(V,16) AND (Ref(V,-1) >  MA(V,16)) ;
+// Catch volume spike 1,2,3 days ago
+Volflg4 = Ref(volflg1,-1) OR Ref(volflg1,-2) OR Ref(volflg1,-3) OR Ref(volflg1,-4) OR Ref(volflg1,-5) OR
+          Ref(volflg2,-1) OR Ref(volflg2,-2) OR Ref(volflg2,-3) OR Ref(volflg2,-4) OR Ref(volflg2,-5) OR
+          Ref(volflg3,-1) OR Ref(volflg3,-2) OR Ref(volflg3,-3) OR Ref(volflg3,-4) OR Ref(volflg3,-5);
+
+PeriodS = Param("Short period", 12, 9, 100,2);//PeriodS = Optimize("Short period", 43, 8, 50,2 );
+PeriodL = Param("Long period", 14, 10, 50,2 ); //PeriodL = Optimize("Long period", 38, 20, 50,2 );
+PeriodSig = Param("Smoothing period", 7, 7, 100,3 );//PeriodSig = Optimize("Smoothing period", 87, 7, 100,2 );
+
+PeriodS  = 12; PeriodL = 26; PeriodSig = 9; // default
+PeriodS  = 12; PeriodL = 38; PeriodSig = 87; // 30.83%W Tot Profit with index
+PeriodS  = 12; PeriodL = 30; PeriodSig = 27; // 32.29%W
+
+LongMA = EMA( V * C, PeriodL ) / EMA( V, PeriodL );
+ShortMA = EMA( V * C, PeriodS ) / EMA( V, PeriodS );
+
+VMACD = ShortMA - LongMA;
+
+SignalLine = EMA( VMACD, PeriodSig );
+
+pricePercentValue = Optimize("Price %",2,1,10,1); //pricePercentValue =2;
+BuyVol = (VMACD-SignalLine > 0 OR volflg1 OR volflg2 OR volflg3 OR Volflg4)
+AND pricePercent > pricePercentValue ;
+
+// ******************************************************************
+//
+// ******************************************************************
+
+stocup = StochK()>StochD() ;
+MFIup = MFI()>MA(MFI(),7) ;
+MACDup = MACD()>Signal() ;
+Lim = ADX()<30 AND StochK()<70 ;
+PDIup = PDI()>MDI() ;
+
+// *********************************************************************************
+// LONG (Low12High)- Today Low is higher then the previous 12 days price Highs
+// SHORT(High12Low) - Today High is Lover then the previous 12 days price Lows
+// *********************************************************************************
+
+//LONG- Today Low is higher then the previous 12 days price Highs
+Low12High = L > Ref(HHV(H,11),-1);
+//SHORT - Today High is Lover then the previous 12 days price Lows
+High12Low = H < Ref(LLV(L,11),-1);
+
+// "Low12High =" +WriteVal(Low12High );
+// "High12Low =" +WriteVal(High12Low );
+
+// ******************************************************************
+// Ichimoku Signals
+// ******************************************************************
+
+CStyle = ParamToggle("Short?","N/Y",0);//Choose 
+
+if(Cstyle ){
+t1= 9;t2=26;t3=52;}
+else{
+t1= 18;t2=52;t3=104;}
+//t1 =Param("t1",9,9,50,2); //
+//t2 =Param("t2",18,9,100,2); //
+//t3 =Param("t3",52,9,120,2); //
+
+// Uncomment below line to use shorter range for Optimization. 
+// t1= 9;t2=26;t3=52;
+
+WriteIf(Cstyle ==  0,"Ichimoku Long Chart 18,52,104","Ichimoku Short Chart 9,18,53");
+
+SLblue = ( HHV( H, t2 ) + LLV( L, t2) )/2;
+TLred = ( HHV( H, t1 ) + LLV( L, t1 ) )/2;
+
+Lagging = Ref( C, t2 );
+
+Span1 = (( SLblue + TLred )/2);
+Span2 = (HHV( H, t3) + LLV(L, t3))/2;
+ 
+aboveKumo=IIf((C>=Ref(Span1,-t2) AND C>=Ref(Span2,-t2)),1,0);
+withinKumo=IIf((C>=Ref(Span2,-t2) AND C<=Ref(Span1,-t2)),1,0) OR IIf((C>=Ref(Span1,-t2) AND C<=Ref(Span2,-t2)),1,0);
+belowKumo=IIf((C<=Ref(Span1,-t2) AND C<=Ref(Span2,-t2)),1,0);
+
+//       price26 above Lagging               lag26 above C          Lag26 is rising
+dlUp =   (Ref(C,-(t2+1)) > C )              AND  Ref(C,-t2) < C    AND C > Ref(C,-1);
+dlDown = (Ref(C,-(t2+1)) < C )              AND  Ref(C,-t2) > C    AND C < Ref(C,-1);
+
+//       Tenkan Sen (RED) / Kijun Sen (BLUE)Cross
+// The Tenkan Sen / Kijun Sen Cross signal occurs when the Tenkan Sen (Turning line - RED) crosses the Kijun Sen (Standard line - BLUE).
+//A bullish signal occurs when the (Tenkan Sen) crosses from below to above the (Kijun Sen)
+BuyWeakTKCross    = Cross(TLred,SLblue) AND belowKumo ;
+BuyNeutralTKCross = Cross(TLred,SLblue) AND withinKumo;
+BuyStrongTKCross = Cross(TLred,SLblue) AND aboveKumo;
+
+//A bearish signal occurs when the (Tenkan Sen) crosses from above to below the (Kijun Sen)
+SellWeakTKCross    = Cross(SLblue ,TLred) AND aboveKumo;
+SellNeutralTKCross = Cross(SLblue ,TLred) AND withinKumo;
+SellStrongTKCross  = Cross(SLblue ,TLred) AND belowKumo;
+
+//        Kijun Sen Cross
+//The Kijun Sen Cross signal occurs when the PRICE crosses the Kijun Sen (Standard line - BLUE)
+//A bullish signal occurs when the price crosses from below to above the Kijun Sen (Blue)
+BuyWeakPriceCross = Cross(C,SLblue) AND belowKumo;
+BuyNeutralPriceCross = Cross(C,SLblue) AND withinKumo;
+BuyStrongPriceCross = Cross(C,SLblue) AND aboveKumo;
+
+// A bearish signal occurs when the PRICE crosses from above to below the Kijun Sen
+SellWeakPriceCross = Cross(SLblue,C) AND aboveKumo;
+SellNeutralPriceCross = Cross(SLblue,C) AND withinKumo;
+SellStrongPriceCross = Cross(SLblue,C) AND belowKumo;
+
+//        Kumo Breakout
+//The Kumo Breakout signal occurs when the price leaves or crosses the Kumo (Cloud).
+
+BuyKumoBreakout =  (aboveKumo AND Ref(withinKumo,-1)) OR (aboveKumo AND Ref(belowKumo ,-1));
+SellKumoBreakout = belowKumo AND Ref(withinKumo,-1)   OR (belowKumo AND Ref(aboveKumo ,-1));
+
+//       Senkou Span Cross
+//The Senkou Span Cross Signal occurs when the Senkou Span A (1st leading line) crosses the Senkou Span B (2nd leading line).
+//As the Senkou Spans are projected forward, the Cross that triggers this Signal will be 26 days ahead of the price AND, hence, 
+//the actual Date that the Signal occurs. The strength of the Signal is determined by the relationship of the price on the 
+//Date of the Signal (NOT the trigger) to the Kumo (Cloud).
+//
+//A bullish signal occurs when the Senkou Span A crosses from below to above the Senkou Span B
+BuyWeakSenkouSpanCross = belowKumo AND Cross(Ref(Span1,-t2),Ref(Span2,-t2));
+BuyNeutralSenkouSpanCross = withinKumo AND Cross(Ref(Span1,-t2),Ref(Span2,-t2));
+BuyStongSenkouSpanCross = aboveKumo AND Cross(Ref(Span1,-t2),Ref(Span2,-t2));
+
+//A bearish signal occurs when the Senkou Span A crosses from above to below the Senkou Span B
+SellWeakSenkouSpanCross = aboveKumo AND Cross(Ref(Span2,-t2),Ref(Span1,-t2));
+SellNeutralSenkouSpanCross = withinKumo AND Cross(Ref(Span2,-t2),Ref(Span1,-t2));
+SellStrongSenkouSpanCross = belowKumo AND Cross(Ref(Span2,-t2),Ref(Span1,-t2));
+
+//       Chikou Span Cross
+//The Chikou Span Cross Signal occurs when the Chikou Span (Lagging line) rises above OR falls below the price.
+//Note that the Chikou Span must be rising when it crosses to above the price for a bull Signal AND falling
+//when it crosses to below for a bear Signal; just crossing the price alone is NOT sufficient to trigger the Signal.
+//As the Chikou Span is the closing price shifted into the past, the Cross that triggers this Signal will be 26 
+//days behind the price AND, hence, the actual Date that the Signal occurs.  The strength of the Signal is 
+//determined by the relationship of the price on the Date of the Signal (NOT the trigger) to the Kumo (Cloud).
+
+//A bullish signal occurs when the Chikou Span rises from below to above the price
+
+BuyWeakChikouSpanCross = belowKumo AND dlUp;
+BuyNeutralChikouSpanCross = withinKumo AND dlUp ;
+BuyStrongChikouSpanCross = aboveKumo AND dlUp;
+
+// A bearish signal occurs when the Chikou Span falls from above to below the price
+SellWeakChikouSpanCross = aboveKumo AND dlDown ;
+SellNeutralChikouSpanCross = withinKumo AND dlDown;
+SellStrongChikouSpanCross = belowKumo AND dlDown;
+
+//BuyTenkanSen34EMACross = Cross(TLred,EMA(C,34)) AND aboveKumo  ;
+//SellTenkanSen34EMACross = Cross(EMA(C,34),TLred) AND belowKumo ;
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+BuyWeak     = BuyWeakTKCross     OR BuyWeakPriceCross      OR BuyWeakSenkouSpanCross      OR BuyWeakChikouSpanCross;
+BuyNeutral  = BuyNeutralTKCross  OR BuyNeutralPriceCross   OR BuyNeutralSenkouSpanCross   OR BuyNeutralChikouSpanCross ;
+BuyStrong   = BuyStrongTKCross   OR BuyStrongPriceCross    OR BuyStongSenkouSpanCross     OR BuyStrongChikouSpanCross   OR BuyKumoBreakout ;
+
+SellWeak    = sellWeakTKCross    OR SellWeakPriceCross     OR SellWeakSenkouSpanCross     OR SellWeakChikouSpanCross ;
+SellNeutral = SellNeutralTKCross OR sellNeutralPriceCross  OR SellNeutralSenkouSpanCross  OR SellNeutralChikouSpanCross;
+SellStrong  = SellStrongTKCross  OR SellStrongPriceCross   OR SellStrongSenkouSpanCross   OR SellStrongChikouSpanCross   OR SellKumoBreakout;
+/*
+"BuyWeak     =" +WriteVal(BuyWeak     );
+"BuyNeutral  =" +WriteVal(BuyNeutral  );
+"BuyStrong   =" +WriteVal(BuyStrong   );
+"SellWeak    =" +WriteVal(SellWeak    );
+"SellNeutral =" +WriteVal(SellNeutral );
+"SellStrong  =" +WriteVal(SellStrong  );
+*/
+
+BuyAll     = BuyWeakTKCross     OR BuyWeakPriceCross         OR BuyWeakSenkouSpanCross      OR BuyWeakChikouSpanCross OR
+      BuyNeutralTKCross  OR BuyNeutralPriceCross   OR BuyNeutralSenkouSpanCross   OR BuyNeutralChikouSpanCross OR
+      BuyStrongTKCross   OR BuyStrongPriceCross    OR BuyStongSenkouSpanCross     OR BuyStrongChikouSpanCross   OR BuyKumoBreakout ;
+SellAll    = sellWeakTKCross    OR SellWeakPriceCross     OR SellWeakSenkouSpanCross     OR SellWeakChikouSpanCross OR
+             SellNeutralTKCross OR sellNeutralPriceCross  OR SellNeutralSenkouSpanCross  OR SellNeutralChikouSpanCross OR
+             SellStrongTKCross  OR SellStrongPriceCross   OR SellStrongSenkouSpanCross   OR SellStrongChikouSpanCross   OR SellKumoBreakout;
+
+BuySig1 = Cross(TLred,SLblue) AND macdup OR
+      Cross(MACD(),Signal()) AND TLred>SLblue AND lim OR
+      Cross(C,SLblue) AND MACDup AND dlup OR
+      Cross(MACD(),Signal()) AND C>SLblue AND dlup AND lim OR
+      Cross(C,Ref(C,-t2)) AND MACDup OR
+      Cross(MACD(),Signal()) AND dlup AND Lim OR
+      Cross(StochK(),StochD()) AND StochK()<50 AND L>=SLblue AND TLred>SLblue AND PDIup AND dlup;
+
+Filter = Status("lastbarinrange");
+
+Buy1 = 
+BuyKumoBreakout AND BuyVol;
+
+Buy2 = 
+BuyKumoBreakout AND BuyVol AND Low12High;
+
+Buy3 =
+BuyVol AND Low12High;
+
+Buy4 =
+BuyKumoBreakout
+AND BuyVol
+AND RSI(14) > 50 
+AND BuySig1 
+;
+Buy = (Buy1 
+OR Buy2
+OR Buy3
+OR Buy4)
+AND MA(V,30) > 25
+AND C > 2
+;
+
+
+Sell = SellStrongTKCross  OR SellStrongPriceCross   OR SellStrongSenkouSpanCross   OR SellStrongChikouSpanCross   OR SellKumoBreakout
+OR High12Low;
+
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Optimize
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
+B=7 S=1 Net 33% 316 winners 51.8% Us Stocks 2-20
+B=10 S=12,9,7,2,6,3,8,13,4,1,5,10 Net 1.33% 45 winners 52.94% Us Stocks 2-20
+
+Opt = BuyVol;
+b = Optimize("b",1,1,19,1);
+if (b ==1)
+Buy = BuyWeakTKCross  AND Opt  ;
+if (b ==2)
+Buy = BuyNeutralTKCross  AND Opt  ;
+if (b ==3)
+Buy = BuyStrongTKCross AND Opt;
+if (b ==4)
+Buy = BuyWeakPriceCross AND Opt ;
+if (b ==5)
+Buy = BuyNeutralPriceCross AND Opt;
+if (b ==6)
+Buy = BuyStrongPriceCross AND Opt ;
+if (b ==7)
+Buy = BuyKumoBreakout AND Opt;
+if (b ==8)
+Buy = BuyWeakSenkouSpanCross AND Opt ;
+if (b ==9)
+Buy = BuyNeutralSenkouSpanCross AND Opt;
+if (b ==10)
+Buy = BuyStongSenkouSpanCross AND Opt;
+if (b ==11)
+Buy = BuyWeakChikouSpanCross AND Opt;
+if (b ==12)
+Buy = BuyNeutralChikouSpanCross AND Opt ;
+if (b ==13)
+Buy = BuyStrongChikouSpanCross AND Opt ;
+if (b ==14) 
+Buy = BuySig1 AND Opt;   
+if (b ==15) 
+Buy = Low12High AND Opt; 
+if (b ==16) 
+Buy = buy1; 
+if (b ==17) 
+Buy = buy2; 
+if (b ==18) 
+Buy = buy3; 
+if (b ==19) 
+Buy = buy4; 
+
+s = Optimize("s",1,1,13,1);
+if (s ==1)
+Sell = sellWeakTKCross    ;
+if (s ==2)
+Sell = SellNeutralTKCross; 
+if (s ==3)   
+Sell = SellStrongTKCross;
+if (s ==4)
+Sell = SellWeakPriceCross ;
+if (s ==5)
+Sell = sellNeutralPriceCross ;
+if (s ==6)
+Sell = SellStrongPriceCross ;
+if (s ==7)
+Sell = sellKumoBreakout ;
+if (s ==8)
+Sell = SellWeakSenkouSpanCross ;
+if (s ==9)
+Sell = SellNeutralSenkouSpanCross ;
+if (s ==10)
+Sell = SellStrongSenkouSpanCross ;
+if (s ==11)
+Sell = sellWeakChikouSpanCross ;
+if (s ==12)
+Sell = SellNeutralChikouSpanCross ;
+if (s ==13)
+Sell = SellStrongChikouSpanCross ;
+*/
+
+// *********************************************************************************
+//  PLOTS
+// *********************************************************************************
+
+Plot(MA(C,200),"ma200",colorYellow,styleThick); 
+
+Plot(SLblue,"SLblue",colorBlue,styleThick); // standard, base, or kijun-sen line
+Plot(TLred,"TLred",colorRed,styleThick); // turning, conversion, or tenkan-sen line
+Plot(C,"",colorBrightGreen,styleDashed |styleThick,Null,Null,-t2); // delayed, lagging, or chikou span
+
+Plot(Span1,"",colorBrown,1,0,0,t2); // senkou span A, kumo, or white clouds
+Plot(Span2,"",colorLightOrange,1,0,0,t2); // senkou span B, kumo, or white clouds
+PlotOHLC(Span1,Span2,Span1,Span2,"",IIf(Span1>Span2,colorLime,colorLightOrange),styleCloud|4096,0,0,t2); // span out 26 days
+
+PlotShapes(IIf(BuyStrong,shapeUpTriangle,shapeNone),colorBlue,0,Low,Offset=-15);
+PlotShapes(IIf(BuyNeutral,shapeUpArrow,shapeNone),colorBlue,0,Low,Offset=-15);
+PlotShapes(IIf(BuyWeak,shapeHollowUpArrow,shapeNone),colorBlue,0,Low,Offset=-15);
+PlotShapes(IIf(SellStrong,shapeDownTriangle,shapeNone),colorRed,0,High,Offset=-15);
+PlotShapes(IIf(SellNeutral,shapeDownArrow,shapeNone),colorRed,0,High,Offset=-15);
+PlotShapes(IIf(SellWeak,shapeHollowDownArrow,shapeNone),colorRed,0,High,Offset=-15);
+
+// *********************************************************************************
+// LONG (Low12High)- Today Low is higher then the previous 12 days price Highs
+// SHORT(High12Low) - Today High is Lover then the previous 12 days price Lows
+// *********************************************************************************
+
+Low12High_n = 
+WriteIf(Low12High  ==  1," Low12High ",
+WriteIf(High12Low ==  1," High12Low ",""));
+
+// *********************************************************************************
+// BUY Tenkan Sen / Kijun Sen Cross
+// *********************************************************************************
+
+BuyTKCross= 
+WriteIf(BuyWeakTKCross==  1,"\n>> Buy Weak Tenkan Sen (RED) / Kijun Sen (BLUE)Cross",
+WriteIf(BuyNeutralTKCross ==  1,"\n>> Buy Neutral Tenkan Sen (RED) / Kijun Sen (BLUE)Cross",
+WriteIf(BuyStrongTKCross ==  1,"\n>> Buy STrong Tenkan Sen (RED) / Kijun Sen (BLUE)Cross","")));
+
+BuyTKCross1 = BuyWeakTKCross OR BuyNeutralTKCross OR BuyStrongTKCross;
+
+WriteIf(BuyTKCross1==  1,"The Tenkan Sen / Kijun Sen Cross Signal(Blue) occurs when the Tenkan Sen (Turning line - Red) crosses the Kijun Sen (Standard line -Blue).",
+WriteIf(BuyTKCross1==  1,"A bullish signal occurs when the Tenkan Sen crosses from below to above the Kijun Sen.",""));
+
+WriteIf(BuyWeakTKCross ==  1,"A weak bullish signal occurs when the cross is below the Kumo.",
+WriteIf(BuyNeutralTKCross ==  1,"A neutral bullish signal occurs when the cross is inside the Kumo.",
+WriteIf(BuyStrongTKCross ==  1,"A strong bullish signal occurs when the cross is above the Kumo.", "")));
+
+// *********************************************************************************
+// BUY Kijun Sen Cross
+// *********************************************************************************
+
+BuyPriceCross = 
+WriteIf(BuyWeakPriceCross ==  1,"\n>> Buy Weak Kijun Sen (Price) Cross",
+WriteIf(BuyNeutralPriceCross ==  1,"\n>> Buy Neutral Kijun Sen (Price)Cross",
+WriteIf(BuyStrongPriceCross ==  1,"\n>> Buy Strong Kijun Sen (Price)Cross"," ")));
+
+BuyPriceCross1 = BuyWeakPriceCross OR BuyNeutralPriceCross OR BuyStrongPriceCross ;
+
+WriteIf(BuyPriceCross1 ==  1," The Kijun Sen Cross signal occurs when the price crosses the Kijun Sen (Standard line).",
+WriteIf(BuyPriceCross1 ==  1,"A bullish signal occurs when the price crosses from below to above the Kijun Sen",""));
+
+WriteIf(BuyWeakPriceCross ==  1,"A weak bullish signal occurs when the cross is below the Kumo.",
+WriteIf(BuyNeutralPriceCross ==  1,"A neutral bullish signal occurs when the cross is inside the Kumo.",
+WriteIf(BuyStrongPriceCross ==  1,"A strong bullish signal occurs when the cross is above the Kumo.", "")));
+
+// *********************************************************************************
+// BUY Kumo Breakout
+// *********************************************************************************
+BuyKumo = 
+WriteIf(BuyKumoBreakout ==  1,"\n>> Buy Kumo Breakout ", "");
+
+WriteIf(BuyKumoBreakout ==  1,"The Kumo Breakout signal occurs when the price leaves or crosses the Kumo (Cloud).",
+WriteIf(BuyKumoBreakout ==  1,"A bullish signal occurs when the price goes upwards through the top of the Kumo.",""));
+
+// *********************************************************************************
+// BUY Senkou Span Cross
+// *********************************************************************************
+
+BuySenkouSpanCross = 
+WriteIf(BuyWeakSenkouSpanCross ==  1,"\n>> BuyWeak Senkou Span Cross",
+WriteIf(BuyNeutralSenkouSpanCross ==  1,"\n>> BuyNeutral Senkou Span Cross",
+WriteIf(BuyStongSenkouSpanCross ==  1,"\n>> BuyStrong Senkou Span Cross","")));
+
+BuySenkouSpanCross1 = BuyWeakSenkouSpanCross OR BuyNeutralSenkouSpanCross OR BuyStongSenkouSpanCross ;
+
+WriteIf(BuySenkouSpanCross1 ==  1,"The Senkou Span Cross signal occurs when the Senkou Span A (1st leading line) crosses the Senkou Span B (2nd leading line).
+\nAs the Senkou Spans are projected forward, the Cross that triggers this Signal will be 26 days ahead of the price AND, hence, the actual Date that the Signal occurs.
+\nthe relationship of the price on the Date of the Signal (NOT the trigger) to the Kumo (Cloud).", 
+WriteIf(BuySenkouSpanCross1 ==  1,"A bullish signal occurs when the Senkou Span A crosses from below to above the Senkou Span B",""));
+
+WriteIf(BuyWeakSenkouSpanCross ==  1,"A weak bullish signal occurs when the cross is below the Kumo.",
+WriteIf(BuyNeutralSenkouSpanCross ==  1,"A neutral bullish signal occurs when the cross is inside the Kumo.",
+WriteIf(BuyStongSenkouSpanCross ==  1,"A strong bullish signal occurs when the cross is above the Kumo.", "")));
+
+// *********************************************************************************
+// BUY Chikou Span Cross
+// *********************************************************************************
+BuyChikouSpanCross = 
+WriteIf(BuyWeakChikouSpanCross ==  1,"\n>> BuyWeak Chikou Span Cross",
+WriteIf(BuyNeutralChikouSpanCross ==  1,"\n>> BuyNeutral Chikou Span Cros ",
+WriteIf(BuyStrongChikouSpanCross ==  1,"\n>> BuyStrong Chikou Span Cros","")));
+
+BuyChikouSpanCross1 = BuyWeakChikouSpanCross OR BuyNeutralChikouSpanCross OR BuyStrongChikouSpanCross ;
+
+WriteIf(BuyChikouSpanCross1 ==  1,"The Chikou Span Cross signal occurs when the Chikou Span (Lagging line) rises above or falls below the price.
+\nNote that the Chikou Span must be rising when it crosses to above the price for a bull Signal AND falling when it crosses to below for a bear Signal; just crossing the price alone is NOT sufficient to trigger the Signal.
+\nAs the Chikou Span is the closing price shifted into the past, the Cross that triggers this Signal will be 26 days behind the price AND, hence, the actual Date that the Signal occurs.  The strength of the Signal is determined by the relationship of the price on the Date of the Signal (NOT the trigger) to the Kumo (Cloud).",
+WriteIf(BuyChikouSpanCross1 ==  1,"A bullish signal occurs when the Chikou Span rises from below to above the price",""));
+
+WriteIf(BuyWeakChikouSpanCross ==  1,"A weak bullish signal occurs when the cross is below the Kumo.",
+WriteIf(BuyNeutralChikouSpanCross ==  1,"A neutral bullish signal occurs when the cross is inside the Kumo.",
+WriteIf(BuyStrongChikouSpanCross ==  1,"A strong bullish signal occurs when the cross is above the Kumo.", "")));
+
+// *********************************************************************************
+//SELL Tenkan Sen (RED) / Kijun Sen (BLUE)Cross
+// *********************************************************************************
+
+SellTkCross = 
+WriteIf(SellNeutralTKCross ==  1,"\n>> SellNeutral Tenkan Sen (RED) / Kijun Sen (BLUE)Cross",
+WriteIf(SellStrongTKCross  ==  1,"\n>> SellStrong Tenkan Sen (RED) / Kijun Sen (BLUE)Cross",
+WriteIf(SellWeakTKCross    ==  1,"\n>> SellWeak Tenkan Sen (RED) / Kijun Sen (BLUE)Cross","")));
+
+SellTkCross1 = SellWeakTKCross OR SellNeutralTKCross OR SellStrongTKCross;
+
+WriteIf(SellTkCross1 ==  1,"The Tenkan Sen / Kijun Sen Cross Signal(RED) occurs when the Tenkan Sen (Turning line - BLUE) crosses the Kijun Sen (Standard line).",
+WriteIf(SellTkCross1 ==  1,"A bearish signal occurs when the Tenkan Sen crosses from above to below the Kijun Sen)",""));
+
+WriteIf(SellWeakTKCross ==  1,"A weak bearish signal occurs when the cross is above the Kumo.",
+WriteIf(SellNeutralTKCross ==  1,"A neutral bearish signal occurs when the cross is inside the Kumo.",
+WriteIf(SellStrongTKCross ==  1,"  A strong bearish signal occurs when the cross is below the Kumo.", "")));
+
+// *********************************************************************************
+//SELL Kijun Sen Cross
+// *********************************************************************************
+
+SellPriceCross = 
+WriteIf(SellWeakPriceCross ==  1,"\n>> SellWeak Kijun Sen (Price)Cross ",
+WriteIf(SellNeutralPriceCross ==  1,"\n>> SellNeutral Kijun Sen (Price)Cross",
+WriteIf(SellStrongPriceCross ==  1,"\n>> SellStrong Kijun Sen (Price)Cross","")));
+
+SellPriceCross1 =SellWeakPriceCross OR SellNeutralPriceCross OR SellStrongPriceCross ;
+
+WriteIf(SellPriceCross1 ==  1,"The Tenkan Sen / The Kijun Sen Cross signal occurs when the price crosses the Kijun Sen (Standard line - Blue).",
+WriteIf(SellPriceCross1 ==  1,"A bullish signal occurs when the price crosses from below to above the Kijun Sen",""));
+
+WriteIf(SellWeakPriceCross ==  1,"A weak bullish signal occurs when the cross is below the Kumo.",
+WriteIf(SellNeutralPriceCross ==  1,"A neutral bullish signal occurs when the cross is inside the Kumo.",
+WriteIf(SellStrongPriceCross ==  1,"A strong bullish signal occurs when the cross is above the Kumo.", "")));
+
+// *********************************************************************************
+// SELL Kumo Breakout
+// *********************************************************************************
+SellKumo = 
+WriteIf(SellKumoBreakout ==  1,"\n>> Sell Kumo Breakout ", "");
+
+WriteIf(SellKumoBreakout ==  1,"The Kumo Breakout signal occurs when the price leaves or crosses the Kumo (Cloud).", "");
+WriteIf(SellKumoBreakout ==  1,"A bearish signal occurs when the price goes downwards through the bottom of the Kumo.","");
+
+// *********************************************************************************
+// SELL Senkou Span Cross
+// *********************************************************************************
+
+SellSenkouSpanCross = 
+WriteIf(SellWeakSenkouSpanCross ==  1,"\n>> SellWeak Senkou Span Cross",
+WriteIf(SellNeutralSenkouSpanCross ==  1,"\n>> SellNeutral Senkou Span Cross ",
+WriteIf(SellStrongSenkouSpanCross ==  1,"\n>> SellStrong Senkou Span Cross","")));
+
+SellSenkouSpanCross1 = SellWeakSenkouSpanCross OR SellNeutralSenkouSpanCross OR SellStrongSenkouSpanCross ;
+
+WriteIf(SellSenkouSpanCross1 ==  1,"The Senkou Span Cross signal occurs when the Senkou Span A (1st leading line) crosses the Senkou Span B (2nd leading line).
+\nAs the Senkou Spans are projected forward, the Cross that triggers this Signal will be 26 days ahead of the price AND, hence, the actual Date that the Signal occurs.
+\nthe relationship of the price on the Date of the Signal (NOT the trigger) to the Kumo (Cloud).",
+WriteIf(SellSenkouSpanCross1 ==  1,"A bearish signal occurs when the Senkou Span A crosses from above to below the Senkou Span B",""));
+
+WriteIf(SellWeakSenkouSpanCross ==  1,"A weak bullish signal occurs when the cross is below the Kumo.",
+WriteIf(SellNeutralSenkouSpanCross ==  1,"A neutral bullish signal occurs when the cross is inside the Kumo.",
+WriteIf(SellStrongSenkouSpanCross ==  1,"A strong bullish signal occurs when the cross is above the Kumo.", "")));
+
+// *********************************************************************************
+//SELL Chikou Span Cross
+// *********************************************************************************
+SellChikouSpanCross = 
+WriteIf(SellWeakChikouSpanCross ==  1,"\n>> SellWeak Chikou Span Cross",
+WriteIf(SellNeutralChikouSpanCross ==  1,"\n>> SellNeutral Chikou Span Cross",
+WriteIf(SellStrongChikouSpanCross ==  1,"\n>> SellStrong Chikou Span Cross","")));
+
+SellChikouSpanCross1 = SellWeakChikouSpanCross OR SellNeutralChikouSpanCross OR SellStrongChikouSpanCross ;
+
+WriteIf(SellChikouSpanCross1 ==  1," The Chikou Span Cross signal occurs when the Chikou Span (Lagging line) rises above or falls below the price.
+\nNote that the Chikou Span must be rising when it crosses to above the price for a bull Signal AND falling when it crosses to below for a bear Signal; just crossing the price alone is NOT sufficient to trigger the Signal.
+\nAs the Chikou Span is the closing price shifted into the past, the Cross that triggers this Signal will be 26 days behind the price AND, hence, the actual Date that the Signal occurs.  The strength of the Signal is determined by the relationship of the price on the Date of the Signal (NOT the trigger) to the Kumo (Cloud).",
+WriteIf(SellChikouSpanCross1 ==  1,"A bearish signal occurs when the Chikou Span falls from above to below the price",""));
+
+WriteIf(SellWeakChikouSpanCross ==  1,"A weak bullish signal occurs when the cross is below the Kumo.",
+WriteIf(SellNeutralChikouSpanCross ==  1,"A neutral bullish signal occurs when the cross is inside the Kumo.",
+WriteIf(SellStrongChikouSpanCross ==  1,"A strong bullish signal occurs when the cross is above the Kumo.", "")));
+
+// ********************************************************************************
+// Buy Explore Columns
+// ********************************************************************************
+
+BuyN =
+WriteIf(Buy1 ==  1,"B1: Kumo&V",
+WriteIf(Buy2 ==  1,"B2: Kumo&V&L12H",
+WriteIf(Buy3 ==  1,"B3: V & L12H",
+WriteIf(Buy4 ==  1,"B4: V & SIG1","No Buy"))));
+
+//dColumn( Buy, "Buy", 1 );
+AddTextColumn( BuyN , "BUY", 1, colorDefault,
+IIf( Buy1 == True, colorGreen,
+IIf( Buy2 == True, colorGreen,
+IIf( Buy3 == True, colorGreen,
+IIf( Buy4 == True, colorGreen, colorWhite)))),width = 75);
+
+AddColumn( Volpercent16 , "V16", 1.4,IIf( Volpercent16 > 0 AND pricepercent > 2,  colorGreen, colorWhite));
+AddColumn( Volpercent30 , "V30", 1.4,IIf( Volpercent30 > 0 AND pricepercent > 2 , colorGreen, colorWhite));
+
+"Volpercent30 =" +WriteVal(Volpercent30 );
+"pricepercent =" +WriteVal(pricepercent );
+
+AddTextColumn( Low12High_n, "Low12High", 1 , colorDefault,
+IIf( Low12High==True, colorGreen,
+IIf( High12Low==True, colorRed,colorWhite)),width = 75);
+
+//AddTextColumn( TenkanSen34EMACross_n, "TenkanSen34EMACross", 1 , colorDefault,
+//IIf( BuyTenkanSen34EMACross==True, colorGreen,
+//IIf( SellTenkanSen34EMACross==True, colorRed,colorWhite)),width = 75);
+
+AddTextColumn( BuyTKCross , "B TkCross ", 1 , colorDefault,
+IIf( BuyStrongTKCross ==True, colorDarkGreen,
+IIf( BuyNeutralTKCross==True, colorGreen,
+IIf( BuyWeakTKCross==True, colorLime,colorWhite))),width = 75);
+
+AddTextColumn( BuyPriceCross , "B PriceCross ", 1 , colorDefault,
+IIf( BuyStrongPriceCross ==True, colorDarkGreen,
+IIf( BuyNeutralPriceCross ==True, colorGreen,
+IIf( BuyWeakPriceCross ==True, colorLime,colorWhite))),width = 75);
+
+AddTextColumn( BuyKumo , "Buy Kumo ", 1 , colorDefault,
+IIf( BuyKumoBreakout ==True, colorDarkGreen,colorWhite),width = 125);
+
+AddTextColumn( BuySenkouSpanCross , "B SenkouSpanCross ", 1 , colorDefault,
+IIf( BuyStongSenkouSpanCross ==True, colorDarkGreen,
+IIf( BuyNeutralSenkouSpanCross ==True, colorGreen,
+IIf( BuyWeakSenkouSpanCross ==True, colorLime,colorWhite))),width = 125);
+
+AddTextColumn( BuyChikouSpanCross , "B ChikouSpanCross ", 1 , colorDefault,
+IIf( BuyStrongChikouSpanCross ==True, colorDarkGreen,
+IIf( BuyNeutralChikouSpanCross ==True, colorGreen,
+IIf( BuyWeakChikouSpanCross ==True, colorLime,colorWhite))),width = 125);
+
+// ********************************************************************************
+// Sell Explore Columss
+// ********************************************************************************
+
+AddTextColumn( SellTKCross , "Sell TkCross ", 1 , colorDefault,
+IIf( SellStrongTKCross ==True, colorDarkRed,
+IIf( SellNeutralTKCross==True, colorRed,
+IIf( SellWeakTKCross==True, colorOrange,colorWhite))),width = 75);
+
+AddTextColumn(SellPriceCross , "Sell PriceCross ", 1 , colorDefault,
+IIf( SellStrongPriceCross ==True, colorDarkRed,
+IIf( SellNeutralPriceCross ==True, colorRed,
+IIf( SEllWeakPriceCross ==True, colorOrange,colorWhite))),width = 100);
+
+AddTextColumn( SellKumo , "Sell Kumo ", 1 , colorDefault,
+IIf( SellKumoBreakout ==True, colorDarkRed,colorWhite),width = 75);
+
+AddTextColumn( SellSenkouSpanCross , "Sell SenkouSpanCross ", 1 , colorDefault,
+IIf( SellStrongChikouSpanCross ==True, colorDarkRed,
+IIf( SellNeutralSenkouSpanCross ==True, colorRed,
+IIf( SellWeakSenkouSpanCross ==True, colorOrange,colorWhite))),width = 125);
+
+AddTextColumn( SellChikouSpanCross , "Sell ChikouSpanCross ", 1 , colorDefault,
+IIf( SellStrongChikouSpanCross ==True, colorDarkRed,
+IIf( SellNeutralChikouSpanCross ==True, colorRed,
+IIf( SellWeakChikouSpanCross ==True, colorOrange,colorWhite))),width = 125);
+
+// Uncomment to debug 
+
+"BuyWeakTKCross                    =" +WriteVal(BuyWeakTKCross);
+"BuyNeutralTKCross                 =" +WriteVal(BuyNeutralTKCross );
+"BuyStrongTKCross                 =" +WriteVal(BuyStrongTKCross );
+"\nBuyWeakPriceCross                =" +WriteVal(BuyWeakPriceCross );
+"BuyNeutralPriceCross             =" +WriteVal(BuyNeutralPriceCross );
+"BuyStrongPriceCross              =" +WriteVal(BuyStrongPriceCross );
+"\nBuyKumoBreakout                    =" +WriteVal(BuyKumoBreakout );
+"\nBuyWeakSenkouSpanCross    =" +WriteVal(BuyWeakSenkouSpanCross );
+"BuyNeutralSenkouSpanCross =" +WriteVal(BuyNeutralSenkouSpanCross );
+"BuyStongSenkouSpanCross   =" +WriteVal(BuyStongSenkouSpanCross );
+"\nBuyWeakChikouSpanCross    =" +WriteVal(BuyWeakChikouSpanCross );
+"BuyNeutralChikouSpanCross =" +WriteVal(BuyNeutralChikouSpanCross );
+"BuyStrongChikouSpanCross  =" +WriteVal(BuyStrongChikouSpanCross );
+
+"\nSellWeakTKCross                    =" +WriteVal(SellWeakTKCross    );
+"SellNeutralTKCross                 =" +WriteVal(SellNeutralTKCross );
+"BuyStrongTKCross                 =" +WriteVal(SellStrongTKCross  );
+"\nSellWeakPriceCross                 =" +WriteVal(SellWeakPriceCross );
+"SellNeutralPriceCross              =" +WriteVal(SellNeutralPriceCross );
+"SellStrongPriceCross               =" +WriteVal(SellStrongPriceCross );
+"SellKumoBreakout                    =" +WriteVal(SellKumoBreakout );
+"\nSellWeakSenkouSpanCross    =" +WriteVal(SellWeakSenkouSpanCross );
+"SellNeutralSenkouSpanCross =" +WriteVal(SellNeutralSenkouSpanCross );
+"SellStrongSenkouSpanCross  =" +WriteVal(SellStrongSenkouSpanCross );
+"\nSellWeakChikouSpanCross    =" +WriteVal(SellWeakChikouSpanCross );
+"SellNeutralChikouSpanCross =" +WriteVal(SellNeutralChikouSpanCross );
+"SellStrongChikouSpanCross =" +WriteVal(SellStrongChikouSpanCross );
+
+_SECTION_END();
+

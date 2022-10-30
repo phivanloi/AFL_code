@@ -1,0 +1,41 @@
+_SECTION_BEGIN("momentum");
+A=EMA(C,10);
+B=EMA(C,50);
+MOM = A/B;
+
+Plot(mom,"Momentum",colorWhite, styleThick);
+_SECTION_BEGIN("guppy");
+e3 = EMA(MOM,3); 
+e5 = EMA(MOM,5);
+e8 = EMA(MOM,8);
+e10 = EMA(MOM,10);
+e12 = EMA(MOM,12); 
+e15 = EMA(MOM,15);
+
+
+Plot (e3,"",colorBlue,styleThick);
+Plot (e5,"",colorBlue,styleThick);
+Plot (e8,"",colorBlue,styleThick);
+Plot (e10,"",colorBlue,styleNoLabel);
+Plot (e12,"",colorBlue,styleNoLabel);
+Plot (e15,"",colorBlue,styleNoLabel);
+
+
+
+e30 = EMA(MOM,30);
+e35 = EMA(MOM,35);
+e40 = EMA(MOM,40);
+e45 = EMA(MOM,45);
+e50 = EMA(MOM,50);
+e55 = EMA(MOM,55);
+e60 = EMA(MOM,60);
+
+Plot (e30,"",colorYellow,styleThick);
+Plot (e35,"",colorRed,styleNoLabel+styleThick);
+Plot (e40,"",colorRed,styleNoLabel+styleThick);
+Plot (e45,"",colorRed,styleNoLabel+styleThick);
+Plot (e50,"",colorRed,styleNoLabel+styleThick);
+Plot (e55,"",colorRed,styleNoLabel+styleThick);
+Plot (e60,"",colorRed,styleNoLabel+styleThick);
+
+_SECTION_END();

@@ -1,0 +1,71 @@
+_SECTION_BEGIN("RMO");
+
+SwingTrd1 = 100 * (Close - ((MA(C,2)+
+
+MA(MA(C,2),2)+
+
+MA(MA(MA(C,2),2),2) +
+
+MA(MA(MA(MA(C,2),2),2),2) +
+
+MA(MA(MA(MA(MA(C,2),2),2),2),2) +
+
+MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2) +
+
+MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2)+
+
+MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2),2)+
+
+MA(MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2), 2),2)+
+
+MA(MA(MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2), 2),2),2),2))
+
+/10))/(HHV(C,10)-LLV(C,10));
+
+SwingTrd2=
+
+EMA(SwingTrd1,30);
+
+SwingTrd3=
+
+EMA(SwingTrd2,30);
+
+RMO= EMA(SwingTrd1,81);
+
+Buy=Cross(SwingTrd2,SwingTrd3);
+
+Sell=Cross(SwingTrd3,SwingTrd2);
+
+Bull_Trend=EMA(SwingTrd1,81)>0;
+
+Bear_Trend=EMA(SwingTrd1,81)<0;
+
+Ribbon_kol=IIf(Bull_Trend,colorGreen, IIf(Bear_Trend,colorRed, colorBlack));
+
+Plot(4, "ribbon", Ribbon_kol, styleOwnScale|styleArea|styleNoLabel, -0.5,100);
+
+Impulse_UP= EMA(SwingTrd1,30) > 0;
+
+Impulse_Down= EMA(SwingTrd1,81) < 0;
+
+bar_kol=IIf(impulse_UP, colorLime, IIf(impulse_Down, colorRed,IIf(Bull_Trend, colorRed, colorGreen)));
+
+Plot(Close,"Close",bar_kol,styleBar | styleThick );
+
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+
+PlotShapes( shape, IIf( Buy, colorBrightGreen, colorRed ),0, IIf( Buy, Low, High ) );
+
+Plot(EMA(C,3),"S ema",colorLightOrange,styleLine);
+
+Plot(EMA(C,60),"L ema",colorLavender,styleLine);
+
+_SECTION_END();
+
+
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | styleHidden | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

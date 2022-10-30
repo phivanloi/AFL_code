@@ -1,0 +1,75 @@
+/* Tom DeMark's Rate of Change 2 (TD ROC 2) Multiple*/
+
+// Set A variables
+varOversoldSignal = 97.5; // default 97.5
+varOverboughtSignal = 107; // default 102.5
+varPeriod = 22;
+varThreshold = 100; // Param("thresh",1,1,100,1);  // default 100
+TDROC1 = (C/Ref(C,-(varPeriod)))*100;
+TDROC2 = IIf(TDROC1>varThreshold, (H/Ref(H,-(VarPeriod)))*100, (L/Ref
+(L,-(VarPeriod)))*100);
+//Plot(MA(TDROC2,4),"TDROC2",colorBlack,styleThick);
+
+// Set B variables
+varBPeriod = 15;
+TDBROC1 = (C/Ref(C,-(varBPeriod)))*100;
+TDBROC2 = IIf(TDBROC1>varThreshold, (H/Ref(H,-(VarBPeriod)))*100,
+(L/Ref(L,-(VarBPeriod)))*100);
+//Plot(MA(TDBROC2,4),"TDBROC2",colorBlue,styleThick);
+
+// Set C variables
+varCPeriod = 10;
+TDCROC1 = (C/Ref(C,-(varCPeriod)))*100;
+TDCROC2 = IIf(TDCROC1>varThreshold, (H/Ref(H,-(VarCPeriod)))*100,
+(L/Ref(L,-(VarCPeriod)))*100);
+//Plot(MA(TDCROC2,4),"TDCROC2",colorOrange,styleThick);
+
+// Set D variables
+varDPeriod = 5;
+TDDROC1 = (C/Ref(C,-(varDPeriod)))*100;
+TDDROC2 = IIf(TDDROC1>varThreshold, (H/Ref(H,-(VarDPeriod)))*100,
+(L/Ref(L,-(VarDPeriod)))*100);
+//Plot(MA(TDDROC2,4),"TDDROC2",colorWhite,styleThick);
+
+VarROCFinal = (TDROC2*1.25+TDBROC2*1.15+TDCROC2*0.85+TDDROC2*0.75)/4;
+
+// Buy Support Line
+x = Cum(1);
+VarPerc = Param("VarPerc",0.3,0.01,2.0,0.01); // default 0.3
+perchg = VarPerc*LastValue( Highest( ROC( VarROCFinal, 50 ) ));
+startvalue = LastValue( Trough( VarROCFinal, perchg, 1 ) );
+endvalue1 = LastValue( Trough( VarROCFinal, perchg, 2 ) );
+startbar = LastValue( ValueWhen( VarROCFinal== startvalue, x, 1 ) );
+endbar = LastValue( ValueWhen( VarROCFinal== endvalue1, x, 1 ) );
+Aa = (endvalue1-startvalue)/(endbar-startbar);
+b = startvalue;
+trendline = Aa * ( x  - startbar ) + b;
+
+// Short Resistance Line
+y = Cum(1);
+Bperchg = VarPerc*LastValue( Highest( ROC( VarROCFinal, 50 ) ));
+Bstartvalue = LastValue( Peak( VarROCFinal, Bperchg, 1 ) );
+Bendvalue1 = LastValue( Peak( VarROCFinal, Bperchg, 2 ) );
+Bstartbar = LastValue( ValueWhen( VarROCFinal== Bstartvalue, y, 1 ) );
+Bendbar = LastValue( ValueWhen( VarROCFinal== Bendvalue1, y, 1 ) );
+BAa = (Bendvalue1-Bstartvalue)/(Bendbar-Bstartbar);
+Bb = Bstartvalue;
+Btrendline = BAa * ( y  - Bstartbar ) + Bb;
+
+// Buy Settings
+varTDROC2_M_Buy = x >= endbar AND VarROCFinal<=1.01*trendline; // bounce long support
+
+// Short Settings
+varTDROC2_M_Short = y >= Bendbar AND VarROCFinal>=0.99*Btrendline; // bounce long resistance
+
+// Plot Colored Line
+Plot(VarROCFinal,"TDDROC2 Multiple",colorWhite,styleThick);
+Graph0BarColor=IIf(varTDROC2_M_Buy,colorBrightGreen,IIf(varTDROC2_M_Short,colorLime,colorOrange));
+
+//Plot( IIf( x >= endbar, trendline, Null ), "Trendline", colorYellow,styleDots );
+//Plot( IIf( y >= Bendbar, Btrendline, Null ), "Trendline", colorBlue,styleDots );
+
+Plot(varOverboughtSignal,"",colorRed,styleThick);
+Plot(varOversoldSignal,"",colorGreen,styleThick);
+
+Title = "TDROC2";

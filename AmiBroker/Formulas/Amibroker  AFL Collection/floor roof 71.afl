@@ -1,0 +1,7 @@
+/* Alan Hull's Range Indicator - for weekly charts */
+
+Plot(Close,"Close",colorWhite,styleCandle);
+
+Plot(LinearReg(C,25),"Range Middle",colorBlue,styleLine); 
+//Plot(LinearReg(C,13),"Range Middle",colorRed,styleLine); 
+Plot(EMA(C,34),"Range Middle",colorWhite,styleLine); 

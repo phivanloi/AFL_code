@@ -1,0 +1,53 @@
+_SECTION_BEGIN("Triangular Moving average");
+//Triangular Moving average
+//Anthony Faragasso
+//December, 2002.
+
+/* A Triangular moving average is similar to exponential AND 
+weighted moving averages except A different weighting scheme
+is used. Exponential AND Weighted averages assign the majority
+of the weight to the most recent data. Simple moving averages
+assign the weight equally across all the data. With A Triangular
+moving average, the majority of the weight is assigned to the middle
+portion of the data.*/
+
+Odd=13;//enter Odd numbers only
+CoefOdd=round(Odd/2);
+
+Even=12;//enter Even numbers only
+Coefeven=Even/2;
+Coefeven2=Coefeven+1;
+
+CongestionPercent=2.8;/*Set % above/below Moving average for congestion / sideways market*/
+
+TriangularOdd=MA(MA(C,CoefOdd),CoefOdd);
+TriangularEven=MA(MA(C,Coefeven),Coefeven2);
+ShortPer = Param("Short Period", 5, 3, 10, 1 );
+LongPer = Param("Long Period", 50, 30, 100, 5 ); /* select periods with parameter window */ 
+ShortMA = EMA( C, ShortPer );
+LongMA = EMA( C, LongPer );finalMov_avg=IIf(Odd > even,triangularOdd,TriangularEven);
+
+Color=colorBrightGreen;//select Moving average line color
+tickercolor=colorBlack;//select price color
+
+Plot(finalMov_avg,"",IIf(C < finalmov_avg,colorRed,Color),styleLine|styleDots);
+
+
+Title=Name()+"..."+"( "+WriteIf(Odd > even,WriteVal(Odd,1),WriteVal(even,1))+" ) Period "+EncodeColor(Color)+"Triangular"+WriteIf(Odd > even,"ODD","EVEN")+" Moving Average"+"..."+EncodeColor(colorWhite)+ WriteIf(C < finalMov_avg,"Close is "+EncodeColor(colorRed)+"Below"+EncodeColor(colorWhite)+" Moving Average by ","Close is"+EncodeColor(colorBrightGreen)+" Above"+EncodeColor(colorWhite)+" Moving Average by ")+"("+WriteVal(((C/finalMov_avg)-1)*100,1.1)+"% )"+"\n"+WriteIf(finalmov_avg-Ref(finalmov_avg,-1)>0," Slope Of Average is UP : ","Slope Of Average is DOWN :")+WriteIf((((C/finalMov_avg)-1)*100 <= CongestionPercent AND ((C/finalMov_avg)-1)*100 >= -CongestionPercent),EncodeColor(colorWhite)+" with Price Congestion / Divergence to Average ","")+"\n"+WriteIf(Ref(C,-1) < Ref(finalmov_avg,-1) AND C > finalmov_avg,EncodeColor(colorWhite)+"Possible Change in Trend From Down to Up"+"\n"+" OR Short Term Correction of Previous Trend",WriteIf(Ref(C,-1) > Ref(finalmov_avg,-1) AND C < finalmov_avg,EncodeColor(colorRed)+"Possible Change in Trend From Up to Down "+"\n"+" OR Short Term Correction to Previous Trend",""))+"\n"+WriteIf(C > finalmov_avg,EncodeColor(colorWhite)+"Close has been above Moving Average ( "+WriteVal(BarsSince(C < finalmov_avg),1)+" ) Bars",EncodeColor(colorRed)+"Close has been Below Moving Average"); 
+_SECTION_END();
+
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 100, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), colorWhite, style); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), colorWhite, style ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorWhite|styleThick ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

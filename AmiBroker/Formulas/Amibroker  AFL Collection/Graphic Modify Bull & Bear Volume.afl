@@ -1,0 +1,133 @@
+_SECTION_BEGIN("BullBear Volume");
+ 
+C1 = Ref(C, -1);
+uc = C > C1; dc = C <= C1;
+ud = C > O; dd = C <= O;
+ 
+green = 1; blue = 2; yellow = 3; red = 4; white = 5;
+VType = IIf(ud,             
+            IIf(uc, green, yellow),
+         IIf(dd, 
+            IIf(dc, red, blue), white));
+ 
+ 
+gv = IIf(VType == green, V, 0); 
+yv = IIf(VType == yellow, V, 0); 
+rv = IIf(VType == red, V, 0); 
+bv = IIf(VType == blue, V, 0); 
+ 
+uv = gv + bv; uv1 = Ref(uv, -1); /* up volume */
+dv = rv + yv; dv1 = Ref(dv, -1); /* down volume */
+ 
+/* create moving average period parameters */
+VolPer = Param("Adjust Vol. MA per.", 34, 1, 255, 1);
+ConvPer = Param("Adjust Conv. MA per.", 9, 1, 255, 1);
+ 
+/* create triple exponential moving avearges of separate up and down volume moving averages */
+MAuv = TEMA(uv, VolPer ); mauv1 = Ref(mauv, -1);
+MAdv = TEMA(dv, VolPer ); madv1 = Ref(madv, -1);
+MAtv = TEMA(V, VolPer );//total volume
+ 
+/* Switch for Horizontal lines indicating current level of positive and negative volume for ease in comparing to past highs/lows - toggle via parmameter window */
+OscillatorOnly = Param("Show Oscillator Only", 0, 0, 1, 1);
+CompareBullVolume = Param("Show Bull Level", 1, 0, 1, 1);
+if(CompareBullvolume AND !OscillatorOnly){
+Plot(SelectedValue(MAuv), "", colorAqua, styleLine);
+}
+ 
+CompareBearVolume = Param("Show Bear Level", 1, 0, 1, 1);
+if(CompareBearVolume AND !OscillatorOnly){
+Plot(SelectedValue(MAdv), "", colorRed, styleLine);
+}
+ 
+/* Volume Segment Switches - toggle via parameter window */
+bullvolume = Param("Show Bull Volume", 1, 0, 1, 1);
+bearvolume = Param("Show Bear Volume", 1, 0, 1, 1);
+totalvolume = Param("Show Total Volume", 1, 0, 1, 1);
+ 
+/* plot volume lines and histograms if toggled on: */
+bearToFront = Param("Show Bear Vol in Front", 0, 0, 1, 1);
+if(bearToFront AND !OscillatorOnly){
+Plot(MAdv, "", colorRed, styleNoLabel);
+}
+if(bullvolume AND !OscillatorOnly){
+Plot(MAuv, "Average Bull Volume", colorBlue, styleThick+styleNoLabel);
+}
+if(bearvolume AND !OscillatorOnly){
+Plot(MAdv, "Average Bear Volume", colorRed, styleThick+styleNoLabel);
+}
+if(bearvolume AND !OscillatorOnly){
+Plot(MAdv, "", colorWhite, styleNoLabel);
+PlotOHLC( 0 , MAdv , 0 , MAdv , "", colorDarkRed, styleCloud | styleNoRescale|styleNoLabel);
+
+}
+if(bullvolume AND !OscillatorOnly){
+Plot(MAuv, "", colorWhite, styleNoLabel);
+PlotOHLC( 0 , MAuv , O ,MAuv , "", colorDarkBlue, styleCloud | styleNoRescale|styleNoLabel);
+
+}
+if(totalVolume AND !OscillatorOnly){
+Plot(MAtv, "Total Volume", colorYellow );
+PlotOHLC( 0 , MAtv , 0 , MAtv , "", colorGrey50, styleCloud | styleNoRescale|styleNoLabel);
+ 
+}
+ 
+Buy=Cross(MAuv,MAdv);
+Sell=Cross(MAdv,MAuv);
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone) ,colorBlue);
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed);
+Filter=Buy OR Sell;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy);
+AddColumn(Close,"Close");AddColumn(Volume,"Total Volume");AddColumn(Buy,"Buy"); AddColumn(Sell,"sell"); 
+ 
+/* better visibility of zero line: */
+Plot(0, "", colorYellow, 1);
+ 
+/* Rise/Fall Convergence variables:  */
+Converge = (TEMA(MAuv - MAdv, ConvPer));
+Converge1 = Ref(Converge, -1);
+ConvergeUp = Converge > Converge1;
+ConvergeOver = Converge > 0;
+rising = ConvergeUp AND ConvergeOver;
+falling = !ConvergeUp AND ConvergeOver;
+ 
+/* Rise/Fall Convergence Oscillator Switch  - toggle via parameter window - (provides a better view of resulting combination of battling bull/bear volume forces) */
+convergenceOscillator = Param("Show Oscillator", 0, 0, 1, 1);
+if(convergenceOscillator OR OscillatorOnly){
+Plot(Converge, "Amimals War", colorViolet, 1|styleLeftAxisScale|styleNoLabel|styleThick);
+Plot(0,"", colorYellow, 1|styleLeftAxisScale|styleNoLabel);
+}
+ 
+/********************************************************
+ Convergence Rise/Fall Shadows: 
+ 
+ (provides a more easily visible display of rising and falling  bull/bear volume convergence) - toggle via parameter window 
+ 
+-posiitive Volume exceeding negative Volume: Light shadow
+-negative volume exceeding positive volume: dark shadow
+-if you use standard gray background - best shadows are:
+-my greys: 14 = (216, 216, 216); 15 = (168, 168, 168));
+-best substitute? using AB color constants?
+-light: colorpalegreen; dark: colorRose;? 
+-(depends on your color scheme - customize to your tastes)
+**********************************************************/
+ 
+/* uncomment if you use my custom color greys: */
+riseFallColor = IIf(rising, 14,15); //my custom shadow greys
+ 
+/* comment out if you use my custom color gray shadows: */
+/* riseFallColor = IIf(rising, colorPaleGreen,colorRose); */
+ 
+/* Rise/Fall Convergence Plot Switch - toggle via parameter window */
+riseFallShadows = Param("Show RiseFallShadows", 0, 0, 1, 1);
+if(riseFallShadows){
+Plot(IIf(rising OR falling, 1, 0), "", riseFallColor, styleArea|styleOwnScale|styleNoLabel);
+}
+GraphXSpace = 0.5;
+_SECTION_END();
+
+_SECTION_BEGIN("Background");
+	SetChartBkColor(ParamColor("Outer panel",colorBlack)); // color of outer border 
+	SetChartBkGradientFill( ParamColor("Inner panel upper",colorBlack),ParamColor("Inner panel lower",colorBlack));
+	tchoice=Param("Title Selection ",2,1,2,1);
+_SECTION_END();

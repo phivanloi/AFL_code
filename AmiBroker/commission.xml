@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Commission CompactMode="1">
+	<Commission>
+		<Item GroupID="0" TierMin="0" TierMax="0" PerShare="0" PerTrade="0" PcntOfValue="0" MinAmount="0" MinPercent="0" MaxAmount="0" MaxPercent="0"/>
+		<Item GroupID="0" TierMin="0" TierMax="0" PerShare="0" PerTrade="0" PcntOfValue="0" MinAmount="0" MinPercent="0" MaxAmount="0" MaxPercent="0"/>
+		<Item GroupID="0" TierMin="0" TierMax="0" PerShare="0" PerTrade="0" PcntOfValue="0" MinAmount="0" MinPercent="0" MaxAmount="0" MaxPercent="0"/>
+		<Item GroupID="0" TierMin="0" TierMax="0" PerShare="0" PerTrade="0" PcntOfValue="0" MinAmount="0" MinPercent="0" MaxAmount="0" MaxPercent="0"/>
+		<Item GroupID="0" TierMin="0" TierMax="0" PerShare="0" PerTrade="0" PcntOfValue="0" MinAmount="0" MinPercent="0" MaxAmount="0" MaxPercent="0"/>
+		<Item GroupID="0" TierMin="0" TierMax="0" PerShare="0" PerTrade="0" PcntOfValue="0" MinAmount="0" MinPercent="0" MaxAmount="0" MaxPercent="0"/>
+	</Commission>
+</Commission>

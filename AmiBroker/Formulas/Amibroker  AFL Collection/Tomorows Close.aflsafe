@@ -1,0 +1,51 @@
+// Next bar  Close Ct for Ti3 cross, by D. Tsokakis, April 2004
+// Ti3_10 
+pa=10;sa=0.8;fa=2/(pa+1);
+e1a=EMA(C,pa);
+e2a=EMA(e1a,pa);
+e3a=EMA(e2a,pa);
+e4a=EMA(e3a,pa);
+e5a=EMA(e4a,pa);
+e6a=EMA(e5a,pa);
+c1a=-sa*sa*sa;
+c2a=3*sa*sa+3*sa*sa*sa;
+c3a=-6*sa*sa-3*sa-3*sa*sa*sa;
+c4a=1+3*sa+sa*sa*sa+3*sa*sa;
+Ti3a=c1a*e6a+c2a*e5a+c3a*e4a+c4a*e3a;
+Plot(Ti3a,"Ti3a",colorBlue,1);
+Ga=
+(1-fa)*(C1a*fa^5+C2a*fa^4+C3a*fa^3+C4a*fa^2)*e1a+
+(1-fa)*(C1a*fa^4+C2a*fa^3+C3a*fa^2+C4a*fa)*e2a+
+(1-fa)*(C1a*fa^3+C2a*fa^2+C3a*fa+C4a)*e3a+
+(1-fa)*(C1a*fa^2+C2a*fa+C3a)*e4a+
+(1-fa)*(C1a*fa+C2a)*e5a+
+(1-fa)*(C1a)*e6a;
+GGa=C1a*fa^6+C2a*fa^5+C3a*fa^4+C4a*fa^3;
+// Ti3_20
+pb=20;sb=0.7;fb=2/(pb+1);//pb should be higher than pa
+e1b=EMA(C,pb);
+e2b=EMA(e1b,pb);
+e3b=EMA(e2b,pb);
+e4b=EMA(e3b,pb);
+e5b=EMA(e4b,pb);
+e6b=EMA(e5b,pb);
+c1b=-sb*sb*sb;
+c2b=3*sb*sb+3*sb*sb*sb;
+c3b=-6*sb*sb-3*sb-3*sb*sb*sb;
+c4b=1+3*sb+sb*sb*sb+3*sb*sb;
+Ti3b=c1b*e6b+c2b*e5b+c3b*e4b+c4b*e3b;
+Plot(Ti3b,"Ti3b",colorRed,1);
+Gb=
+(1-fb)*(C1b*fb^5+C2b*fb^4+C3b*fb^3+C4b*fb^2)*e1b+
+(1-fb)*(C1b*fb^4+C2b*fb^3+C3b*fb^2+C4b*fb)*e2b+
+(1-fb)*(C1b*fb^3+C2b*fb^2+C3b*fb+C4b)*e3b+
+(1-fb)*(C1b*fb^2+C2b*fb+C3b)*e4b+
+(1-fb)*(C1b*fb+C2b)*e5b+
+(1-fb)*(C1b)*e6b;
+GGb=C1b*fb^6+C2b*fb^5+C3b*fb^4+C4b*fb^3;
+Ct=(Gb-Ga)/(GGa-GGb);
+Title="Tomorrow's Close should be"+
+WriteIf(Ti3a<Ti3b," higher than "," lower than ")+
+" Ct="+
+WriteVal(Ct,1.2)+
+WriteIf(Cross(ti3a,ti3b) OR Cross(ti3b,ti3a),", Cross","");

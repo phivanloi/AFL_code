@@ -1,0 +1,9 @@
+small=100;
+large=200;
+sig=50;
+
+Buy  = Cross(MACD(small,large), Signal(small,large,sig));
+Sell = Cross(Signal(small,large,sig), MACD(small,large));
+
+AlertIf(Buy,   "", "",1,1 );
+AlertIf(Sell,  "", "",2,1 );

@@ -1,0 +1,80 @@
+TimeFrameSet(inDaily);
+DayHigh = LastValue(H);
+DayLow = LastValue(L);
+TimeFrameRestore();
+TimeFrameSet(in15Minute);
+
+BatEntrade = ParamToggle("Entrade", "No|Yes", 0);
+HUYLENH = ParamTrigger("Huy lenh cho","OKE");
+tele_15m = ParamToggle("Tele_15m", "Yes|No", 0);
+TelegramAlerts = ParamTrigger("Telegram Alert","Send Alert");
+TelegramAPI_ID = ParamStr("Telegram Bot API Key","1200942736:AAEG8y9qyJ7aHefUm4vt_xKqkNBxfKd3qCc");
+TelgramCHAT_ID = ParamStr("Telegram Channel ID","@Victor_AlgoTrading");  
+
+Message_buy = "LONG_entrade_15m" + " " + Name() + "  " + TimeNum() + "    " + Interval() ;
+Message_sell = "SHORT_entrade_15m" + " " + Name() + "  "  + TimeNum() + "  " + Interval() ;
+
+if (HUYLENH)
+{
+ih1 = InternetOpenURL("http://localhost:6868/api/cancelOrders?clientId=-1" ); 
+InternetClose(ih1);
+}
+HUYLENHACTIVE = ParamTrigger("Huy lenh Active","OKE");
+if (HUYLENHACTIVE)
+{
+ih2 = InternetOpenURL("http://localhost:6868/api/closeActiveDeals?clientId=-1" ); 
+InternetClose(ih2);
+}
+
+prev=AMA2(C,1,0);
+d=IIf(C>Ref(Max(Max(H,Ref(H,-20)),Max(Ref(H,-10),Ref(H,-15))),-1),Min(Min(L,Ref(L,-20)),Min(Ref(L,-10),Ref(L,-15))),
+IIf(C<Ref(Min(Min(L,Ref(L,-20)),Min(Ref(L,-10),Ref(L,-15))),-1),Max(Max(H,Ref(H,-20)),Max(Ref(H,-10),Ref(H,-15))),PREV));
+a=Cross(Close,d);
+b=Cross(d,Close);
+state=IIf(BarsSince(a)<BarsSince(b),1,0);
+s=state>Ref(state,-1);
+ss=state<Ref(state,-1);
+sss=state==Ref(state,-1);
+col=IIf(state == 1 ,51,IIf(state ==0,4,1));
+Plot(C,"",Col,64);
+Buy = s;
+Sell = ss;
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes(shape, IIf(Buy,colorGreen,colorRed), 0, IIf(Buy,Low,High));
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-10);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-20);
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-15);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=20);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=30);
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-25);
+
+if(Buy[BarCount -1] == 1 OR TelegramAlerts)
+{
+	if(tele_15m)
+	{
+	ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message_buy); 
+	InternetClose(ih);
+	}
+} 
+if(Sell[BarCount -1] == 1 OR TelegramAlerts)
+{
+	if(tele_15m)
+	{
+	ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message_sell); 
+	InternetClose(ih);
+	}
+} 
+
+dist = 2.9*ATR(10);
+dist1= 2.9*ATR(10);
+for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] )
+{
+PlotText( "\nBuy:" + L[ i ] + "\nSL= " + (L[i]*0.9975), i, L[ i ]-dist[i], colorGreen, colorWhite );
+}
+if( Sell[i] )
+{
+PlotText( "Sell:" + H[ i ] + "\nSL= " + (H[i]*1.0025), i, H[ i ]+dist1[i], colorRed, colorWhite );
+}
+}

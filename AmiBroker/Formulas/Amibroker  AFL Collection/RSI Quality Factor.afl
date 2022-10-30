@@ -1,0 +1,6 @@
+pds = 14;
+x = (RSI(pds) -50)/ MA((abs(RSI(PDS) - 50)),PDS);
+
+
+Plot( x, "RSI Quality Factor", ParamColor("Color",  colorCycle ), ParamStyle("Style")  );
+PlotGrid(0, colorLightGrey);

@@ -1,0 +1,10 @@
+_SECTION_BEGIN("BB-EMA");
+Tp=(H+L+C)/3;
+Per = Param("EMA Periods", 20, 2, 200, 1);
+stper=Param("StDev Period",20,10,30,5);
+w=Param("Width",2,0.5,4,0.5);
+BBup=EMA(tp,per)+w*StDev(C,stper);
+BBdn=EMA(tp,per)-w*StDev(C,stper);
+
+Plot (bbup,"BB-UP",ParamColor( "Color", colorLightGrey ),styleLine);
+Plot (bbdn,"BB-DN",ParamColor( "Color", colorLightGrey ),styleLine);

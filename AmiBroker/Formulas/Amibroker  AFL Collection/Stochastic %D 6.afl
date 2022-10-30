@@ -1,0 +1,6 @@
+periods = Param( "Periods", 15, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 3, 1, 200, 1 );
+Dsmooth = Param( "%D avg", 3, 1, 200, 1 );
+sto = StochD( periods , Ksmooth, DSmooth );
+Plot( sto, _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+Plot( Ref(sto,-1), "", colorBlue, styleThick );

@@ -1,0 +1,22 @@
+_SECTION_BEGIN("rsi guppy");
+r = RSI(5);
+s=Param("thickness",0.5,0,0.5,0.01);
+t= EMA(r,3);
+PlotOHLC(EMA(r,3),EMA(r,3)+s,EMA(r,3)-s,EMA(r,3),"",colorWhite,styleCloud+styleNoLabel);
+Plot (EMA(r,3),"ema3",colorWhite,styleLine);
+Plot (EMA(r,5),"",colorBlue,styleLine);
+Plot (EMA(r,8),"",colorBlue,styleLine+styleNoLabel);
+Plot (EMA(r,10),"",colorBlue,styleLine+styleNoLabel);
+Plot (EMA(r,12),"",colorBlue,styleLine+styleNoLabel);
+Plot (EMA(r,15),"",colorBlue,styleLine+styleNoLabel);
+
+Plot (EMA(r,25),"",colorYellow,styleLine);
+Plot (EMA(r,30),"",colorRed,styleLine+styleNoLabel);
+Plot (EMA(r,35),"",colorRed,styleLine+styleNoLabel);
+Plot (EMA(r,40),"",colorRed,styleLine+styleNoLabel);
+Plot (EMA(r,45),"",colorRed,styleLine+styleNoLabel);
+Plot (EMA(r,50),"",colorRed,styleLine+styleNoLabel);
+Plot (EMA(r,50),"",colorRed,styleLine);
+ 
+PlotOHLC( 6, 6 , 0 , 0 , "", IIf(EMA(r,3)>EMA(r,5),colorBrightGreen,colorRed), styleCloud | styleNoLabel);
+_SECTION_END();

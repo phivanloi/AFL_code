@@ -1,0 +1,33 @@
+_SECTION_BEGIN("Tillson T3"); 
+// Tillson T3, written by Barry Scarborough for AmiBroker
+function T3(price,periods) //AMA-based
+{
+s = 0.84;
+periods = 2/(periods+1);
+e1=AMA(price,periods);
+e2=AMA(e1,Periods);
+e3=AMA(e2,Periods);
+e4=AMA(e3,Periods);
+e5=AMA(e4,Periods);
+e6=AMA(e5,Periods);
+c1=-s*s*s;
+c2=3*s*s+3*s*s*s;
+c3=-6*s*s-3*s-3*s*s*s;
+c4=1+3*s+s*s*s+3*s*s;
+Ti3=c1*e6+c2*e5+c3*e4+c4*e3;
+return ti3;
+}
+t3fast = Param("T3 fast", 3, 1, 50);		
+t3med = Param("T3 medium", 5, 1, 50);
+t3long = Param("T3 long", 8, 1,50);				
+aT3 = T3(C,t3fast );		// aT3 = T3(C,3);
+bT3 = T3(C,t3med );		// bT3 = T3(C,5);
+cT3 = T3(C,t3long );		// cT3 = T3(C,8);
+
+Buy = Cover = Cross(aT3, bT3);
+Sell = Short = Cross(bT3, aT3);
+
+Plot(aT3,"T3-3",colorCustom12,styleThick,1);
+Plot(bT3,"T3-5",colorLime,1); 
+Plot(cT3,"T3-8",colorRed,1);
+_SECTION_END();

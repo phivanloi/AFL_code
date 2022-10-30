@@ -1,0 +1,26 @@
+
+_SECTION_BEGIN("Fibo");
+
+hi = HHV(H, 10);
+li = LLV(L, 10);
+range = hi - li;
+
+function fib(ret_level)
+{
+	range * ret_level + li; 
+}
+
+r236 = fib(0.236);	r236I = LastValue (r236,1);
+r382 = fib(0.382);	r382I = LastValue (r382,1);
+r050 = fib(0.50);		r050I = LastValue (r050,1);
+r618 = fib(0.618);	r618I = LastValue (r618,1);
+r786 = fib(0.786);	r786I = LastValue (r786,1);
+e127 = fib(1.27);		e127I = LastValue (e127,1);
+e162 = fib(1.62);		e162I = LastValue (e162,1);
+e200 = fib(2.00);		e200I = LastValue (e200,1);
+e262 = fib(2.62);		e262I = LastValue (e262,1);
+e424 = fib(4.24);		e424I = LastValue (e424,1);
+
+Title = hi + " " +  li + " " + r050;
+
+_SECTION_END();

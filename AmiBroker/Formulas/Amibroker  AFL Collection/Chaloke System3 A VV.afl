@@ -1,0 +1,49 @@
+_SECTION_BEGIN("Chaloke System3");
+///// Chaloke System3 /////
+
+P1=Param("ShortTerm Period",9,3,15,1);
+P2=Param("MidTerm Period",15,9,24,1);
+P3=Param("LongTerm Period",24,15,50,1);
+P4=Param("Invesment Term",5,1,12,1);
+P5=Param("ATR Period",5,1,25,1);
+
+Sm=2*P5/10;
+ATRX=Sm*ATR(P4);
+S=EMA(C,P1) - ATRX;
+M=EMA(C,P2) -ATRX;
+lg=EMA(C,P3) -ATRX;
+
+Sht=IIf(C==HHV(C,3),S,Ref(EMA(C,9),-1)-ATRX);
+Mid=IIf(C==HHV(C,3),M,Ref(EMA(C,15),-1)-ATRX);
+Lng=IIf(C==HHV(C,3),Lg,Ref(EMA(C,24),-1)-ATRX);
+
+Color=IIf(Sht>Mid AND C > Sht ,colorGreen,IIf(C < lng OR
+Sht<lng,colorRed,colorBlack));
+
+
+Plot(Mid,"ChalokeSystem3",colorBlack,styleLine);
+Plot(Sht,"",colorBlue,styleLine);
+Plot(lng,"",colorRed,styleLine);
+Plot(C,"",Color,64);
+
+Change=C-Ref(C,-1);
+Title=Name()+" "+Date()+" "+"Chaloke System 3"+"
+Vol="+Volume+" "+"O="+Open+"
+H="+HHV(H,1)+" L="+LLV(L,1)+" Close="+ Close+"
+"+Change;
+
+Buy=Sht>Mid AND C > Sht ;
+Sell=C < lng OR Sht<lng ;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy);
+PlotShapes( shapeHollowUpArrow* Buy , colorBrightGreen ,0);
+PlotShapes( shapeHollowDownArrow* Sell, colorRed ,0);
+
+Filter = Buy OR Sell;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy);
+AddTextColumn(FullName(),"Name");
+AddColumn( Buy, "BUY" );
+AddColumn( Sell, "SELL" );
+
+
+
+_SECTION_END();

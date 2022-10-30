@@ -1,0 +1,39 @@
+ //=======================================================================
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+
+//colourcode price==========================================
+_SECTION_BEGIN("Macd coloured price");
+ 
+a = Param("fast macd period",13,1,100,1);
+b = Param("slow macd period",39,1,100,1);
+
+Up_MACD_TRIX = MACD( a, b ) > Ref(MACD(a,b),-1); 
+
+Down_MACD_TRIX =  MACD( a, b ) < Ref(MACD(a,b),-1);
+
+Colormacd = IIf(Up_MACD_TRIX,colorLime,IIf(Down_MACD_TRIX,colorRed,colorCustom12)); 
+Col = IIf(CCI(20) > 100,colorBlue,IIf(CCI(20) < -100,colorGold,IIf(CCI(20) >Ref(CCI(20),-1),colorBrightGreen,colorRed)));
+
+PlotOHLC( Open, High, Low, Close, "", Col, styleBar ); 
+
+_SECTION_END();
+
+
+
+
+//--------------------------------------------------------------
+
+ 
+SL = ( HHV( H, 26 ) + LLV( L, 26) )/2;
+TL = ( HHV( H, 9 ) + LLV( L, 9 ) )/2;
+Span1 = (( SL + TL )/2);
+Span2 = (HHV( H, 52) + LLV(L, 52))/2;
+range = (HHV(H,26) - LLV(L,26))*0.38;
+
+Plot( Close, "", colorRed, styleThick+styleLine+styleNoLabel,Null, Null, -26  ); 
+
+Plot(SL,"SL",colorWhite,styleThick); // standard, base, or kijun-sen line
+Plot(TL,"TL",colorYellow,styleThick); // turning, conversion, or tenkan-sen line
+PlotOHLC(Span1,Span2,Span1,Span2,"",IIf(Span1>Span2,colorGreen,colorOrange),styleCloud|4096,0,0,26);

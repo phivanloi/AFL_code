@@ -1,0 +1,27 @@
+_SECTION_BEGIN("ADX"); 
+Col_bar = IIf(EMA(CCI(14),2) > Ref(EMA(CCI(14),2),-1),colorBrightGreen,colorRed);
+Plot(Close,"price",col_bar,styleCandle);
+
+_SECTION_END(); 
+
+_SECTION_BEGIN("BB");
+bb2top = BBandTop(Close,20,2.25);
+bb1top = BBandTop(Close,20,1);
+bb2bot = BBandBot(Close,20,2.25);
+bb1bot = BBandBot(Close,20,1);
+//PlotOHLC( Cc,Cc,80,Cc, "", IIf( Cc > 0, colorGreen, colorRed ), styleCloud | styleClipMinMax, -80, 80 ); 
+Plot (bb2top,"",IIf(bb2top > Ref(bb2top,-1) AND bb2bot < Ref(bb2bot,-1),colorGrey50,colorGrey40));
+Plot (bb2bot,"",IIf(bb2top > Ref(bb2top,-1) AND bb2bot < Ref(bb2bot,-1),colorGrey50,colorGrey40));
+//Col_action = IIf(Close >bb1top AND PDI(range) > MDI(range),colorBrightGreen,IIf(Close <bb1bot AND PDI(range) < MDI(range),colorRed,colorBlack));  
+//Plot(2, "", IIf(ADX(range) > Ref(ADX(range),-1),colorBlue,colorBlack), styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+
+//Plot(5, "", Col_action, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+
+_SECTION_END();
+
+//PlotOHLC(EMA( Close, 19 ),IIf(EMA( Close, 19 ) > EMA( Close, 21 ),EMA( Close, 19 ),EMA( Close, 21 )),IIf(EMA( Close, 19 )<EMA( Close, 21 ),EMA( Close, 19 ),EMA( Close, 21 )),EMA( Close, 20 ),"",IIf(EMA( Close, 20 ) > MA(EMA( Close, 20 ),3),colorDarkGreen,colorDarkRed),styleCloud); 
+
+_SECTION_END();
+
+PlotOHLC(bb2top,bb2top,bb1top,bb1top,"",colorDarkGrey,styleCloud); 
+  PlotOHLC(bb1bot,bb1bot,bb2bot,bb1bot,"",colorDarkGrey,styleCloud);

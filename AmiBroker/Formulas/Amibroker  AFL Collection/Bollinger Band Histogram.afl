@@ -1,0 +1,5 @@
+bbh = ((C+2*StDev(C,20) - MA(C,20)) / (4*StDev(C,20)))*4 - 2;
+
+Plot(bbh, "", 4, styleHistogram);
+PlotGrid(2, colorLightGrey);
+PlotGrid(-2, colorLightGrey);

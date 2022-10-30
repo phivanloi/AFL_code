@@ -1,0 +1,2 @@
+Buy  = C>= HHV(C,18);
+Sell = C <= LLV(C,18);

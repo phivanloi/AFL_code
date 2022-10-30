@@ -1,0 +1,2 @@
+Buy  = C>HHV(C,200);
+Sell  = C<LLV(C,200);

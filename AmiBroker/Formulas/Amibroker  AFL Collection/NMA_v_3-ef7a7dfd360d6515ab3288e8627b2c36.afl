@@ -1,0 +1,193 @@
+SetChartOptions(0,chartShowArrows|chartShowDates);  
+strWeekday = StrMid("SunMonTueWedThuFriSat", SelectedValue(DayOfWeek())*3,3);
+
+_SECTION_BEGIN("price");   
+UpCandle = ParamColor("Up Color", colorBrightGreen );  
+DownCandle = ParamColor("Down Color", colorDarkRed );
+Consolidation = ParamColor("Consolidation", colorBlack ); 
+BG2a=HHV(LLV(L,4)+ATR(4),8); 
+BR2a=LLV(HHV(H,4)-ATR(4),8);
+Candlecolor = IIf(Close>BG2a ,UpCandle,IIf(Close < BR2a,DownCandle,Consolidation)); 
+SetBarFillColor( IIf(O <C, colorSeaGreen,colorOrange) ); 
+Plot( Close, "Price", CandleColor, styleCandle ); 
+_SECTION_END(); 
+
+_SECTION_BEGIN("NMA ");
+//MY STOCKS    
+mult =  0; Period= 0; Com=0;                                                         
+if (Name() == "BANKNIFTY_F1")      {Com= in5Minute*2; mult = 1.75; period = 42;} //
+if (Name() == "MINIFTY_F1")        {Com= in5Minute*3; mult = 1.25; period = 14;} //
+if (Name() == "NIFTY_F1")          {Com= in5Minute*6; mult = 1.50; period = 49;} // 
+                    
+if (Name() == "DLF.NS")            {Com= in5Minute*4; mult = 1; period = 25;}
+if (Name() == "GAIL.NS")           {Com= in5Minute*4; mult = 1.50; period = 10;}              
+//if (Name() == "GTLINFRA.NS")  { mult = 1.75; period = 36;}
+
+//-------------------------------------------------------------------------------------------
+if(Interval() != COM )
+{T5 =  " ALERT!!!" + "   " + Name() + "\n" + "   " + "Set the chart
+Time Frame to: " + NumToStr(com/60, 1.0, 1) + "  Mints";}
+else if(Interval() == COM )
+{T5="Good Luck "; }
+HaClose=(O+H+L+C)/4; 
+HaOpen = AMA( Ref( HaClose,  -1 ),  0.5 ); 
+HaHigh = Max( H,  Max( HaClose,  HaOpen ) ); 
+HaLow = Min( L,  Min( HaClose,  HaOpen ) );
+ms=ParamList("ST0P/REV",List="Reg|Smoothed",0);
+if(ms=="Reg")
+{nm =(H-L);
+j=(O+H+L+C)/4;
+}
+else
+{nm=(HaHigh-HaLow);
+j=(HaOpen+HaHigh+HaLow+HaClose)/4;
+}
+rfsctor = WMA(nm,period); 
+revers = mult * rfsctor; 
+Trend = 1;   
+NW[0] = 0;   
+for(i = 1; i < BarCount; i++) 
+{ 
+ if(Trend[i-1] == 1)                 
+ { 
+  if(j[i] < NW[i-1])                  
+  { 
+   Trend[i] = -1;                    
+   NW[i] = j[i] + Revers[i];         
+  } 
+  else                               
+  { 
+   Trend[i] = 1; 
+   if((j[i] - Revers[i]) > NW[i-1]) 
+   { 
+    NW[i] = j[i] - Revers[i];  
+   } 
+   else 
+   { 
+    NW[i] = NW[i-1]; 
+   } 
+  }  
+ } 
+ if(Trend[i-1] == -1)                
+ { 
+  if(j[i] > NW[i-1])                 
+  { 
+   Trend[i] = 1;                     
+   NW[i] = j[i] - Revers[i];         
+  } 
+  else                               
+  { 
+   Trend[i] = -1; 
+   if((j[i] + Revers[i]) < NW[i-1])  
+   { 
+    NW[i] = j[i] + Revers[i];  
+   } 
+   else 
+   { 
+    NW[i] = NW[i-1]; 
+   } 
+  } 
+ } 
+} 
+//Plot(NW, "", IIf(Trend == 1, 6, 4), 4);
+if(ms=="Reg")
+{
+Buy=Cover=Cross(j,nw);
+Sell=Short=Cross(nw,j);
+}
+else
+{
+B = Cross(j,nw);
+S = Cross(nw,j); 
+Buysetup=Flip(b,s);
+Shortsetup=Flip(s,b);
+BuySetupValue		=	ValueWhen(b,H,1);
+ShortsetupValue	=	ValueWhen(s,L,1);
+b1= Buysetup AND Cross(C,BuySetupValue);
+s1= Shortsetup AND Cross(ShortsetupValue,C);
+Buy=b1;
+Short=s1;
+Sell=Shortsetup;
+Cover=Buysetup;
+}
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+Short=ExRem(Short,Cover);
+Cover=ExRem(Cover,Short);
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorSkyblue, 0,Low,-15);  
+PlotShapes(IIf(Sell, shapeHollowDownArrow, shapeNone),colorLightYellow, 0,High,-15);  
+PlotShapes(IIf(Cover, shapeHollowUpArrow, shapeNone),colorTan, 0,Low,-25);  
+PlotShapes(IIf(Short, shapeDownArrow, shapeNone),colorGold, 0,High,-25); 
+Buysetup=Flip(Buy,Sell);
+Shortsetup=Flip(Sell,Buy);
+Plot(IIf(Buysetup,nw,Null),"",colorBlue,512|1024);
+Plot(IIf(Shortsetup,nw,Null), "",colorDarkRed,512|1024);
+//-----------end--------------
+Long				=	Flip(Buy,Sell);
+Shrt				=	Flip(Sell,Buy );
+t1					= 	Flip(Buy,Sell);
+t2					= 	Flip(Sell,Buy);
+BPrice				=	ValueWhen(t1 AND Ref(t1,-1)==0,C,1);
+SPrice				=	ValueWhen(t2 AND Ref(t2,-1)==0,C,1);
+pl1=SPrice-BPrice;
+
+Filter=Buy OR Sell  ; 
+AddColumn(IIf(Buy,BPrice,Null),"Buy/Cover", 1.2,1,colorGreen,70);
+AddColumn(IIf(Sell,SPrice,Null),"Sell/Short " ,1.2,1,colorOrange,70);
+AddColumn(IIf(Sell,pl1,Null),"Profit/Loss ",1.2,1,colorGold,70);
+_SECTION_END();
+function GetSecondNum()
+{
+    Time       = Now( 4 );
+    Seconds    = int( Time % 100 );
+    Minutes    = int( Time / 100 % 100 );
+    Hours    = int( Time / 10000 % 100 );
+    SecondNum = int( Hours * 60 * 60 + Minutes * 60 + Seconds );
+    return SecondNum;
+}
+
+RequestTimedRefresh( 1 );
+TimeFrame = Interval();
+SecNumber = GetSecondNum();
+SecsLeft    = SecNumber - int( SecNumber / TimeFrame ) * TimeFrame;
+SecsToGo    = TimeFrame - SecsLeft;
+Secsleft = SecsToGo % 60 ;
+Minleft = int( SecsToGo / 60 );
+Time = "\\c09 " +  Minleft + "\\c02 :" + "\\c07 " + Secsleft ;
+
+if( Status("action") == actionIndicator ) 
+(
+Title = EncodeColor(colorWhite)+ "NMA 3.6 a ("+mult+" - "+perIOD+" - "+ms+")" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) + 
+ "  #  "+strWeekday +" , "+ Date()+ EncodeColor(colorAqua) +"    Time left  " +TIME+"\n" +EncodeColor(colorYellow) +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+ 
+"Cl-"+C+"  "+ "Vol= "+ WriteVal(V)+ 
+EncodeColor(2)+"\n"+"======System========"+"\n"+
+WriteIf (Buy , " GO LONG / Reverse Signal at "+C+"  ","")+
+WriteIf (Sell , " EXIT LONG / Reverse Signal at "+C+"  ","")+"\n"+EncodeColor(colorWhite)+
+WriteIf(Sell , "Total Profit/Loss for the Last Trade Rs."+(C-BPrice)+"","")+
+WriteIf(Buy  , "Total Profit/Loss for the Last trade Rs."+(SPrice-C)+"","")+
+WriteIf(t1 AND NOT Buy, "Trade : Long - Entry price Rs."+(BPrice),"")+
+WriteIf(t2 AND NOT Sell, "Trade : Short - Entry price Rs."+(SPrice),"")+"\n"+ 
+WriteIf(t1 AND NOT Buy, "Current Profit/Loss Rs."+(C-BPrice)+"","")+
+WriteIf(t2 AND NOT Sell, "Current Profit/Loss Rs."+(SPrice-C)+"",""));
+_SECTION_END();
+
+grid_day = IIf(Day()!=Ref(Day(),-1),1,0);  
+Plot(grid_day,"",colorDarkGrey,styleHistogram|styleDashed|styleNoLabel|styleOwnScale);
+
+_SECTION_BEGIN("Background text");
+bkclr=ParamColor("Bk-col",colorGrey40); 
+SetChartBkColor(ColorBlend(bkclr, colorTan, 0.2));
+gxs=Param("GRAPH spaceing",10,5,50,5);  
+GraphXSpace = gxs;
+z = (GetPerformanceCounter()/100)%256; 
+anim=ColorHSB( ( z ) % 250, 256, Param("Gfx Brightness", 5, 0, 255, 1 ));
+RequestTimedRefresh(2);
+Font= ParamList("Font:","Arial|Calibri|Futura|Tahoma|MS Sans Serif|Times New Roman ",4);
+GfxSetTextAlign( 6 );// center alignment
+GfxSelectFont(Font, 10, 700, False, False, 0);
+GfxSetTextColor(z);   
+GfxTextOut(""+T5+"", Status("pxwidth")/2 , Status("pxheight")-40 );
+GfxSetBkMode( 0 );GfxSetOverlayMode(1); GfxSetTextColor(1);//z5 
+GfxSelectFont(Font, 12, 700, False, False, 0);   
+GfxTextOut("NMA v 3.6 T.sys ", Status("pxwidth")/2 , Status("pxheight")/3 );
+_SECTION_END();

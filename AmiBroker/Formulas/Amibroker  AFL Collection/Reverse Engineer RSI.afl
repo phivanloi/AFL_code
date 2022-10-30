@@ -1,0 +1,15 @@
+////////////////////////////////
+// Reverse Engineer RSI
+////////////////////////////////
+Value = Param("RSI value", 39.82, 1, 100, 0.1 );
+WildPer = Param("Time periods", 14, 1, 100 );
+ExpPer = 2 * WildPer - 1;
+AUC = EMA( Max( C - Ref( C, -1 ), 0 ), ExpPer );
+ADC = EMA( Max( Ref( C, -1 ) - C, 0 ), ExpPer );
+x = (WildPer - 1) * ( ADC * Value / (100-Value) - AUC);
+RevEngRSI = IIf( x >= 0, C + x, C + x * (100-Value)/Value );
+Plot( Close, Date()+", Close ", colorBlack, styleCandle );
+Plot( RevEngRSI,
+      "Reverse Eng. RSI( "+WriteVal(WildPer,1.0)+", "+
+      WriteVal(Value, 1.2)+" )",
+      colorGreen );

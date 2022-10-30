@@ -1,0 +1,15 @@
+outputdrive = "C:\\";
+
+saveimage = outputdrive;
+
+var oAB = WScript.CreateObject("Broker.Application");
+
+Ticker = oAB.ActiveDocument.Name;
+
+AB = new ActiveXObject("Broker.Application");
+
+Win = AB.ActiveWindow;
+
+output=saveimage + Ticker + ".gif";
+
+Win.ExportImage( output, 800, 600 );

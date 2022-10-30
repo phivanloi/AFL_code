@@ -1,0 +1,69 @@
+//Shortavg=Optimize("Short average",13,5,25,2);
+Longavg=Param("Long average",13,5,80,2);
+TrendAvg=Param("Trender average",21,5,100,3);
+Dix = Param ("Directional Index",14,5,25,1);
+Oversold = Param ( "Oversold", 50, 20, 70, 5 );
+Overbot = Param ("Overbot", 50, 50, 100, 5 );
+ADXThreshold = Param ("ADXThreshold",15,5,25,1);
+
+
+//MACD//
+FAST = Param("FAST",12,0,100,1);
+SLOW = Param("SLOW",26,0,100,1);
+SIG  = Param("SIG",5,0,100,1);
+ 
+MACDLine   = MACD(FAST,SLOW);
+MACDSignal = Signal(FAST,SLOW,SIG);
+ 
+ 
+//Trendscore//
+TrendScore =
+IIf(C>=Ref(C,-13),1,-1)+
+IIf(C>=Ref(C,-14),1,-1)+
+IIf(C>=Ref(C,-15),1,-1)+
+IIf(C>=Ref(C,-16),1,-1)+
+IIf(C>=Ref(C,-17),1,-1)+
+IIf(C>=Ref(C,-18),1,-1)+
+IIf(C>=Ref(C,-19),1,-1)+
+IIf(C>=Ref(C,-20),1,-1)+
+IIf(C>=Ref(C,-21),1,-1)+
+IIf(C>=Ref(C,-22),1,-1);
+ 
+/////////////////AROON////////////////////
+ 
+Period = 14;
+LLVBarsSince = LLVBars(L, Period) + 1;
+HHVBarsSince = HHVBars(H, Period) + 1;
+ 
+AroonDn = 100 * (Period - LLVBarsSince) / (Period - 1);
+AroonUp   = 100 * (Period - HHVBarsSince) / (Period - 1);
+
+///Buy and cover// 
+Buy = Cover = Cross(C, EMA(C,Longavg)) //AND (C>=EMA(C,TrendAvg))
+AND (ADX (Dix) > ADXThreshold)
+AND PDI(Dix)>MDI(Dix) 
+//AND MACDLine>MACDSignal;
+AND (RSI(14)>Oversold);
+//AND AroonUp>30;
+Cover = C>EMA(C,Longavg) AND RSI(14)>Oversold;
+
+//Short AND Sell//
+Short = Cross(EMA(C,Longavg), C) //AND (C<=EMA(C,TrendAvg))
+AND (ADX (Dix) > ADXThreshold)
+AND PDI(Dix)>MDI(Dix)
+//AND MACDLine<MACDSignal;
+AND (RSI(14)<Overbot);
+//AND AroonDn>30;
+Sell = C>EMA(C,Longavg) AND RSI(14)<Overbot;
+ 
+Buy = ExRem( Buy, Sell );
+Sell = ExRem( Sell, Buy );
+ 
+PositionSize = -20;
+//StopAmount = 10 * ATR( 20 );
+//ApplyStop( 0, 2, StopAmount, 1 );
+//AND (ADX (Dix) < 50)
+// trendscore>5;
+// AND trendscore>5
+
+_SECTION_END();

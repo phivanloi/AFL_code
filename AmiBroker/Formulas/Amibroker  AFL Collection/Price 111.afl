@@ -1,0 +1,77 @@
+_SECTION_BEGIN("Price");
+
+Plot( C, "Close", IIf(MACD(9,34) > Signal(9,34,9),colorGreen,colorRed), styleCandle ); 
+
+_SECTION_END();
+
+_SECTION_BEGIN("rule");
+//Buy if rsi(2) is above 70 sell if rsi(2) is below(30);
+Buy_rule_1 = RSI(2) > 70;
+Sell_rule_1 = RSI(2) < 30;
+
+_SECTION_END();
+
+_SECTION_BEGIN("Trend Check"); 
+TimeFrameSet(in1Minute*3);
+//P1 = Param("Short Period",13,0,100,1); 
+//P2 = Param("Long Period",39,0,100,1); 
+//L1=Param("Threshold",4,2,10,1); 
+U= MA(C,13)-MA(C,39); 
+R=100*U/MA(C,39); 
+//ap=Param("ADX Period",9,5,30,1); 
+MyADX=ADX(9); 
+//Len=Param("Length",10,1,30,1); 
+//dp=Param("Diff Period",20,5,50,1); 
+//Vs=ParamToggle("Select Indicator","ADX, Ravi",0);  
+ta = R; 
+EmaIndex=2/(1+10); 
+Diff=HHV(ta,20)-LLV(ta,20); 
+Myconst=IIf(Diff>0,(ta-LLV(ta,20))/Diff,EMAIndex); 
+Newconst=IIf( MyConst > EmaIndex , EmaIndex, MyConst);  
+y=AMA(C,Newconst); 
+
+// buy if only tc moves in 3 min
+Buy_rule_2 = y > Ref(y,-1);
+Sell_rule_2 = y < Ref(y,-1);
+
+//Plot(y,"Trend Check",colorWhite, styleThick); 
+//Plot(6,"",IIf(y > Ref(y,-1),colorBlue,IIf(y < Ref(y,-1),colorRed,colorYellow)),styleOwnScale+styleArea+styleNoLabel,-0.5,100);
+TimeFrameRestore();
+_SECTION_END();
+
+_SECTION_BEGIN("Trend Check1"); 
+//P1 = Param("Short Period",13,0,100,1); 
+//P2 = Param("Long Period",39,0,100,1); 
+//L1=Param("Threshold",4,2,10,1); 
+U= MA(C,13)-MA(C,39); 
+R=100*U/MA(C,39); 
+//ap=Param("ADX Period",9,5,30,1); 
+MyADX=ADX(9); 
+//Len=Param("Length",10,1,30,1); 
+//dp=Param("Diff Period",20,5,50,1); 
+//Vs=ParamToggle("Select Indicator","ADX, Ravi",0);  
+ta = R; 
+EmaIndex=2/(1+10); 
+Diff=HHV(ta,20)-LLV(ta,20); 
+Myconst=IIf(Diff>0,(ta-LLV(ta,20))/Diff,EMAIndex); 
+Newconst=IIf( MyConst > EmaIndex , EmaIndex, MyConst);  
+y=AMA(C,Newconst); 
+
+// buy if only tc moves in 3 min
+Buy_rule_3 = y > Ref(y,-1);
+Sell_rule_3 = y < Ref(y,-1);
+
+em = EMA(y,18);
+Buy_rule_4 = y > em;
+Sell_rule_4 = y < em; 
+//Plot(y,"Trend Check",colorWhite, styleThick); 
+//Plot(6,"",IIf(y > Ref(y,-1),colorBlue,IIf(y < Ref(y,-1),colorRed,colorYellow)),styleOwnScale+styleArea+styleNoLabel,-0.5,100);
+_SECTION_END();
+
+Buy = Buy_rule_1 AND Buy_rule_2 AND Buy_rule_3 AND Buy_rule_4; 
+Sell = sell_rule_1 AND sell_rule_2 AND sell_rule_3 AND Sell_rule_4; 
+
+PlotShapes(Buy*shapeHollowSmallUpTriangle,colorYellow);
+PlotShapes(Sell*shapeHollowSmallDownTriangle,colorYellow);
+
+

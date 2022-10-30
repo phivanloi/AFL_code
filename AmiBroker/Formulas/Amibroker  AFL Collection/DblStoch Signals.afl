@@ -1,0 +1,23 @@
+period = 10;
+RawStoch1 = StochK(period,1);
+Ema13 = EMA(RawStoch1,3);
+RawStoch2 = (Ema13-LLV(Ema13,period))/(HHV(Ema13,period)-LLV(Ema13,period))*100;
+Cycles10 = EMA(Rawstoch2,3);
+
+
+//DblStoch Signals
+WBDblStochSignal = IIf(Trough(Cycles10,0.01,1) < 40 AND TroughBars(Cycles10,0.01,1)==1, H,
+IIf(Peak(Cycles10,0.01,1) > 70 AND PeakBars(Cycles10,0.01,1)==1, -L, 0.00));
+
+Plot(WBDblStochSignal, "", 5);
+
+//WB BlueLine Signals
+m23=EMA(C,23);
+m50=EMA(C,50);
+DSSS = IIf(WBDblStochSignal > 0 AND m23>m50 AND C>m50 AND BarsSince(L<m50)<4, H, IIf(WBDblStochSignal < 0 AND m23<m50 AND C<m50 AND BarsSince(H>m50)<4, -L, 0));
+
+Plot(DSSS, "", 6);
+
+red = IIf(WBDblStochSignal > 0 AND m23>m50 AND C>m23 AND BarsSince(L<m23)<4, H, IIf(WBDblStochSignal < 0 AND m23<m50 AND C<m23 AND BarsSince(H>m23)<4, -L, 0));
+
+Plot(red, "", 4);

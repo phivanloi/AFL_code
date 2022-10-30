@@ -1,0 +1,408 @@
+//www.aflcode.com
+
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+
+WhiteBody = C > O;
+BigWhite = (Close - Open)/Open > 0.015 AND (Close - Open) * 2 > High - Low;
+BlackBody = C < O;
+BigBlack = (Open - Close)/Open > 0.015 AND (Open - Close) * 2 > High - Low;
+Big = abs((Close - Open)/Open) > 0.014;
+LongUpperShadow = H - Max(O,C) > (H - L)*0.67;
+LongLowerShadow = Min(O,C) - L > (H - L)*0.67;
+rng = abs((C-O)/O);
+lowerShadow = Min(O,C) - L;
+uppershadow = H - Max(O,C);
+body = abs(O-C);
+rngx = abs(H - L);
+rngy = H-L;
+shaven = lowerShadow < rngy*0.1;
+ShavenBottom = L == Min(O,C);
+ShavenHead = H == Max(O,C);
+prevSize = abs(Ref(O,-1)-Ref(C,-1));
+currentSize = abs(O-C);
+fwh = Ref(H,-4);
+fwl = Ref(L,-4); 
+isPrevLargeWhite = Ref(big,-1) AND Ref(whitebody,-1);
+SmallRealBody = rng < 0.003 AND rng >0; 
+Diff = abs((prevSize - currentSize) / currentSize);
+DownTrend = (H < Ref(H,-1) AND L < Ref(L,-1));
+UpTrend = (H > Ref(H,-1) AND L > Ref(L,-1));
+isPrevUpTrend = Ref(uptrend,-1);
+RealBodyGapUp = Min(O,C) > Max(Ref(O,-1),Ref(C,-1));
+RealBodyGapDown = Max(O,C) < Min(Ref(O,-1),Ref(C,-1));
+FallingWindow = Ref(downtrend,-1) AND GapDown();
+RisingWindow = Ref(uptrend,-1) AND GapUp();
+isfalling = bigblack AND fallingwindow;
+isrising = bigwhite AND risingwindow;
+rwh = Ref(H,-4);
+rwl = Ref(L,-4);
+isFallingBlack = Ref(fallingwindow,-1) AND Ref(blackbody,-1);
+horw = Ref(H,-2); 
+windowOpen = C < horw;
+opensInside = O < Ref(O,-1) AND O > Ref(C,-1);
+similarSize = diff <= 0.25;
+GapUpFromWhite = realBodyGapUp AND isPrevLargeWhite AND isPrevUptrend;
+isPrevLargeBlack = Ref(big,-1) AND Ref(blackbody,-1);
+isPrevDownTrend = Ref(downtrend,-1);
+GapDownFromBlack = realBodyGapDown AND isPrevLargeBlack AND isPrevDowntrend;
+isRisingWhite = Ref(risingwindow,-1) AND Ref(whitebody,-1);
+lorw = Ref(L,-2);
+windowOpenx = C > lorw;
+Doji = C == O AND V > 0;
+LongLeggedDoji = doji AND (H - L)/L > 0.01;
+StarUp = smallRealBody AND gapUpFromWhite;
+DojiStarUp = doji AND gapUpFromWhite;
+DojiStarDown = doji AND gapDownFromBlack;
+StarDown = smallRealBody AND gapDownFromBlack;
+isPrevDownTrendx = Ref(downtrend,-3);
+firstDoji = Ref(doji,-2); 
+secDojiLower = Ref(doji,-1) AND Ref(realBodyGapDown,-1);
+isPrevUpTrendx = Ref(uptrend,-3);
+secDojiHigher = Ref(doji,-1) AND Ref(realBodyGapUp,-1);
+BeltHold = shavenbottom AND shavenhead AND big;
+Engulfing = Max(O,C) > Ref(Max(O,C),-1) AND Min(O,C) < Ref(Min(O,C),-1);
+UmbrellaLine = uppershadow < rngx*0.1 AND lowershadow > body*2; 
+//====================================================================================================
+
+//----------------------------------------
+// Bearish
+//----------------------------------------
+
+// Kicker
+KBR = Ref(O,-1) < Ref(C,-1) AND O <= Ref(O,-1) AND C <= O;
+
+//Evening Doji Star
+EveningDojiStar = Ref(dojiStarUp,-1) AND blackbody AND big AND C < Ref((O + C)/2,-2);
+/*
+A large white candlestick followed by a doji that gaps up from the
+previous candles real body. This is followed by a third candlestick that is black and has a
+close lower than the half way point of the first candlesticks real body. Must be preceeded by an uptrend.
+*/
+
+// Evening Star
+EveningStar = Ref(starUp,-1) AND blackbody AND big AND C < Ref((O + C)/2,-2);
+/*
+A large white candlestick followed by a small real body of either colour that gaps up from the
+previous candles real body. This is followed by a third candlestick that is black and has a
+close lower than the half way point of the first candlesticks real body. Must be preceeded by an uptrend.
+*/
+
+// Grave Stone Doji
+GraveStoneDoji = longleggeddoji AND L == C AND Ref(uptrend,-1);
+/*
+A doji with no lower shadow and an extremenly long upper shadow. Must be preceeded by an uptrend.
+*/
+
+//Bear 3 Formation
+Bear3Formation = bigblack AND C < Ref(C,-4) AND 
+Ref(H,-1) <= fwh AND Ref(L,-1) >= fwl AND
+Ref(H,-2) <= fwh AND Ref(L,-2) >= fwl AND 
+Ref(H,-3) <= fwh AND Ref(L,-3) >= fwl AND
+Ref(isfalling, -4);
+/*A strong black candle in a falling window, followed by three
+ candles that fall within the high/low range of the strong black candle, followed
+ by another strong black candle that closes below the close of the first black candle. 
+ This is a bearish confirmation.*/
+
+//Bearish Abandoned Baby
+BearishAbandonedBaby = EveningDojiStar AND Ref(GapUp(),-1) AND GapDown();
+/*
+An evening doji star where there is a gap between the lower shadow of the doji and
+the upper shadows of the prior and next candle.
+*/
+
+//Bearish Belt Hold
+BearishBeltHold = belthold AND blackbody AND Ref(uptrend,-1);
+/*
+A large black candle with a shaven head and bottom preceeded by an uptrend.
+*/
+
+//Bearish Counter Attack
+BearishCounterAttack = Ref(big AND whitebody,-1) AND O > Ref(H,-1) AND C == Ref(C,-1) AND big AND blackbody AND Ref(uptrend,-1);
+/*
+A large white candle followed by a black candle which opens sharply higher but closes
+at the prior black candles close. Must be preceeded by an uptrend.
+*/
+
+// Bearish Harami Cross
+BearishHaramiCross = doji AND Ref(C,-1) > O AND Ref(O,-1) < O AND Ref(big AND whitebody,-1) AND Ref(uptrend,-1);
+/*
+A doji preceded by and contained within the real body of a big white 
+candlestick in an uptrend
+*/
+
+// Bearish Harami
+BearishHarami = Ref(big AND whitebody,-1) AND smallRealBody AND Min(O,C) > Ref(O,-1) AND Max(O,C) < Ref(C,-1) AND Ref(uptrend,-1);
+/*
+A small candlestick preceded by and whose real body is contained 
+within, the real body of a big white candlestick in an uptrend
+*/
+
+// Bearish Separating Line
+BearishSeparatingLine = Ref(whitebody AND big,-1) AND blackbody AND big AND O == Ref(O,-1) AND Ref(downtrend,-1); 
+/*
+A white candlestick followed by a black candlestick with the same opening price. Continues
+ the previous downtrend.
+*/
+
+// Dark Cloud Cover
+DarkCloudCover = Ref(bigwhite,-1) AND blackbody AND O > Ref(H,-1) AND C <= Ref((O+C)/2,-1) AND C > Ref(O,-1) AND Ref(uptrend,-1);
+/*
+A strong white candle in an uptrend followed by a black candle that opens above the high of the 
+white candle and closes at least 50 percent into the white candles real body. Note that if the black candle completely
+engulfs the white candles real body then this is not Dark Cloud Cover but a Bearish Engulfing Pattern.
+*/
+
+
+// Engulfing Bear
+EngulfingBear = Ref(whitebody,-1) AND blackbody AND engulfing AND Ref(uptrend,-1);
+/*
+This bar is black and its real body engulfs the previous bars white real body. Must be preceeded by
+an uptrend.
+*/
+
+//Hamging Man
+HangingMan = umbrellaline AND uptrend AND Ref(uptrend,-1);
+/*
+The same as a hammer except must be preceeded by an uptrend.
+*/
+
+//Shooting Star
+ShootingStar = smallRealBody AND shaven AND realBodyGapUp AND longuppershadow AND Ref(uptrend,-1);
+/*
+A small body that closes near the bottom of its range and 
+has a long upper shadow. There must be a real body gap up from the previous sessions candle. This
+pattern occurs only after an uptrend.
+*/
+
+//Three Black Crows
+ThreeBlackCrows = (big AND blackbody) AND Ref(big AND blackbody, -1) AND Ref(big AND blackbody, -2) AND O < Ref(O,-1) AND Ref(O,-1) < Ref(O,-2) AND Ref(uptrend,-4);
+/*
+The last three candlesticks are large and black. Each opens within or lower than the 
+ previous candles real body.Must be preceeded by an uptrend.
+*/
+
+// Tri-Star Bottom
+TriStarBottom = firstDoji AND secDojiLower AND doji AND realBodyGapUp AND isPrevDownTrendx;
+/*
+A doji followed by a lower doji which is followed by another doji that is higher than the
+second doji. Must be preceeded by a downtrend.
+*/
+
+//Tweezer Tops
+TweezerTops = H == Ref(H,-1) AND Ref(big AND whitebody,-1) AND Ref(uptrend,-2);
+/* A large candle followed by a candle with the same high. Must be preceeded by an uptrend. */
+
+// Upside Gap Two Crows
+UpsideGapTwoCrows = Ref(big AND whitebody,-2) AND Ref(realBodyGapUp,-1) AND Ref(smallRealBody,-1) AND Ref(blackbody,-1) AND engulfing AND blackbody AND C > Ref((O+C)/2,-2) AND Ref(uptrend,-2);
+/* A strong white candle followed by a small black candle which gaps above the previous 
+candles real body, followed by a black candle which engulfs the previous black candle. Preceeded by an uptrend. */
+
+//----------------------------------------
+// Bullish
+//----------------------------------------
+
+// Kicker
+KBL = Ref(O,-1) > Ref(C,-1) AND O >= Ref(O,-1) AND C > O; 
+
+// Morning Star
+MorningStar = Ref(starDown,-1) AND whitebody AND big AND C > Ref((O + C)/2,-2);
+/*
+A large black candlestick followed by a small real body of either colour,
+ that gaps below the previous black candles real body, with a third white candlestick, that has a close 
+ higher than the half way point of the first black candlestick. Must be preceeded by a downtrend.
+*/
+
+// Morning Doji Star
+MorningDojiStar = Ref(dojiStarDown,-1) AND whitebody AND big AND C > Ref((O + C)/2,-2);
+/*
+A large black candlestick followed by a doji that gaps below its real body, with a third
+ white candlestick, that has a close at least half of the way up the black candlestick. Must be preceeded by a
+ downtrend.
+*/
+
+// Bull 3 Formation
+Bull3Formation = bigwhite AND C > Ref(C,-4) AND 
+Ref(H,-1) <= rwh AND Ref(L,-1) >= rwl AND
+Ref(H,-2) <= rwh AND Ref(L,-2) >= rwl AND 
+Ref(H,-3) <= rwh AND Ref(L,-3) >= rwl AND
+Ref(isrising, -4);
+/*
+A strong white candle in a rising window, followed by three 
+ candles that fall within the high/low range of the strong white candle, followed
+ by another strong white candle that closes above the close of the first white candle. 
+ This is confirmation of the Bullish trend."
+*/
+
+// Bullish Abandoned Baby
+BullishAbandonedBaby = morningdojistar AND Ref(GapDown(),-1) AND GapUp();
+/*
+A morning doji star where there is a gap between the lower shadow of the doji and
+the prior and next candle.
+*/
+// Bullish Belt Hold
+BullishBeltHold = belthold AND whitebody AND Ref(downtrend,-1);
+/*
+A large white candle with no upper or lower shadow preceeded by a downtrend.
+*/
+
+// Bullish Counter Attack
+BullishCounterAttack = Ref(big AND blackbody,-1) AND O < Ref(H,-1) AND C == Ref(C,-1) AND big AND whitebody AND Ref(downtrend,-1);
+/*
+A large black candle followed by a white candle which opens sharply lower but closes at the 
+prior white candles close. Must be preceeded by a downtrend
+*/
+
+// Bullish Harami Cross
+BullishHaramiCross = doji AND Ref(O,-1) > O AND Ref(C,-1) < O AND Ref(big AND blackbody,-1) AND Ref(downtrend,-1);
+/*
+A doji preceded by and contained within the real body of a big 
+black candlestick in a downtrend.
+*/
+
+// Bullish Harami
+BullishHarami = Ref(big AND blackbody,-1) AND smallRealBody AND Min(O,C) > Ref(C,-1) AND Max(O,C) < Ref(O,-1) AND Ref(downtrend,-1);
+/*
+A small candlestick, preceded by, and whose body is contained within a big black 
+candlestick in a downtrend
+*/
+
+// Bullish Separating Line
+BullishSeparatingLine = Ref(blackbody AND big,-1) AND whitebody AND big AND O == Ref(O,-1) AND Ref(uptrend,-1);
+/*
+A black candlestick followed by a white candlestick with the same opening price. Continues
+ the previous uptrend.
+*/
+
+//Dragonfly Doji
+DragonflyDoji = longleggeddoji AND H==C AND Ref(downtrend,-1);
+/*A doji with no upper shadow AND a long lower shadow preceeded by a downtrend.*/
+
+// Engulfing Bull
+EngulfingBull = Ref(blackbody,-1) AND whitebody AND engulfing AND Ref(downtrend,-1);
+/*
+This bar is white and its real body engulfs the previous bars black real body. Must be
+preceeded by a downtrend.
+*/
+
+// Hammer
+Hammer = umbrellaline AND Ref(downtrend,-1);
+/*
+The upper shadow is less than ten percent of the range
+ and the lower shadow is more than two times the size of the body. Must be preceeded by a downtrend.
+*/
+
+//Inverted Hammer
+InvertedHammer = smallRealBody AND shaven AND realBodyGapDown AND longuppershadow AND Ref(downtrend,-1);
+/*
+An upside down Hammer that appears after a downtrend
+*/
+
+//Piercing Line
+PiercingLine = Ref(bigblack,-1) AND whitebody AND O < Ref(L,-1) AND C >= Ref((O+C)/2,-1) AND C < Ref(O,-1) AND Ref(downtrend,-1);
+/*
+A stong black candle followed by a white candle that opens below the low of
+the prior black candle but closes more than halfway into the black candles real body. Preceeded by a downtrend. Note that if the
+white candle engulfs the prior black candles real body then this is a Bullish Engulfing Pattern not a Piercing Pattern
+*/
+
+// SeperatingLines
+SeperatingLines = O == Ref(O,-1) AND (blackbody AND Ref(whitebody,-1) OR whitebody AND Ref(blackbody,-1));
+/*
+a black candlestick is followed by a white candlestick, or a white with a black,and they have the same opening prices.
+*/
+
+//Three White Soldiers
+ThreeWhiteSoldiers = (whitebody AND big) AND Ref(whitebody AND big,-1) AND Ref(whitebody AND big,-2) AND O > Ref(O,-1) AND Ref(O,-1) > Ref(O,-2);
+/*
+The last three candlesticks are large and white. Each opens within or higher than the 
+ previous candles real body.
+*/
+
+// Tri-Star Top
+TriStarTop = firstDoji AND secDojiHigher AND doji AND realBodyGapDown AND isPrevUpTrendx;
+/*
+A doji followed by a higher doji which is followed by another doji that is lower than the
+second doji. Must be preceeded by an uptrend.
+*/
+
+// Tweezer Bottoms
+TweezerBottoms = L == Ref(L,-1) AND Ref(big AND blackbody,-1) AND Ref(downtrend,-2);
+/* A large candle followed by a candle with the same Low. Must be preceeded by a downtrend. */
+
+
+//----------------------------------------
+// Continuation
+//----------------------------------------
+
+// Downward Gapping Tasuki
+DownwardGappingTasuki = isFallingBlack AND whitebody AND opensInside AND C > Ref(O,-1) AND windowOpen AND similarSize;
+/* A black candle that gaps down followed by a similarly sized white candle that opens Inside the black candles real body AND closes above it. */
+
+//Upward Gapping Tasuki
+UpwardGappingTasuki = isRisingWhite AND blackbody AND opensInside AND C < Ref(O,-1) AND  windowOpenx AND similarSize;
+/* A white candle that gaps up followed by a similarly sized black candle that opens Inside the white candles real body AND closes below it; */
+
+//Inverted Black Hammer
+InvertedBlackHammer = blackbody AND InvertedHammer;
+
+
+
+STS = /*Bears*/
+WriteIf(KBR, "Bearish Kicker", 
+WriteIf(EveningDojiStar, "Evening Doji Star", 
+WriteIf(EveningStar, "Evening Star",
+WriteIf(GraveStoneDoji, "Grave Stone Doji",
+WriteIf(Bear3Formation, "Bear 3 Formation",
+WriteIf(BearishAbandonedBaby, "Bearish Abandoned Baby",
+WriteIf(BearishBeltHold, "Bearish Belt Hold",
+WriteIf(BearishCounterAttack, "Bearish Counter Attack",
+WriteIf(BearishHaramiCross, "Bearish Harami Cross",
+WriteIf(BearishHarami, "Bearish Harami",
+WriteIf(BearishSeparatingLine, "BearishSeparatingLine",
+WriteIf(DarkCloudCover, "DarkCloudCover",
+WriteIf(EngulfingBear, "Engulfing Bear",
+WriteIf(HangingMan, "Hanging Man",
+WriteIf(ShootingStar, "Shooting Star",
+WriteIf(ThreeBlackCrows, "Three Black Crows",
+WriteIf(TriStarBottom, "TriStar Bottom",
+WriteIf(TweezerTops, "Tweezer Tops",
+WriteIf(UpsideGapTwoCrows, "UpsideGapTwoCrows", 
+/*Bulls*/
+WriteIf(KBL, "Bullish Kicker",
+WriteIf(MorningStar, "Morning Star",
+WriteIf(MorningDojiStar, "Morning Doji Star",
+WriteIf(Bull3Formation, "Bull 3 Formation",
+WriteIf(BullishAbandonedBaby, "Bullish Abandoned Baby",
+WriteIf(BullishBeltHold, "Bullish Belt Hold",
+WriteIf(BullishCounterAttack, "Bullish Counter Attack",
+WriteIf(BullishHaramiCross, "Bullish Harami Cross",
+WriteIf(BullishHarami, "Bullish Harami",
+WriteIf(BullishSeparatingLine, "Bullish Separating Line",
+WriteIf(DragonflyDoji, "Dragonfly Doji",
+WriteIf(EngulfingBull, "Engulfing Bull",
+WriteIf(Hammer, "Hammer",
+WriteIf(InvertedHammer, "Inverted Hammer",
+WriteIf(PiercingLine, "Piercing Line",
+WriteIf(SeperatingLines, "Seperating Lines",
+WriteIf(ThreeWhiteSoldiers, "Three White Soldiers",
+WriteIf(TriStarTop, "Tri-Star Top",
+WriteIf(TweezerBottoms, "Tweezer Bottoms",""))))))))))))))))))))))))))))))))))))));
+
+Filter = 1;
+
+Col = IIf(KBR OR EveningDojiStar OR EveningStar OR GraveStoneDoji OR Bear3Formation OR BearishAbandonedBaby
+  OR BearishBeltHold OR BearishCounterAttack OR BearishHaramiCross OR BearishHarami OR BearishSeparatingLine
+  OR DarkCloudCover OR EngulfingBear OR HangingMan OR ShootingStar OR ThreeBlackCrows OR TriStarBottom 
+  OR TweezerTops OR UpsideGapTwoCrows, colorRed, IIf( MorningStar OR MorningDojiStar OR Bull3Formation
+  OR BullishAbandonedBaby OR BullishBeltHold OR BullishCounterAttack OR BullishHaramiCross
+  OR BullishHarami OR BullishSeparatingLine OR DragonflyDoji OR EngulfingBull OR Hammer OR InvertedHammer
+  OR PiercingLine OR SeperatingLines OR ThreeWhiteSoldiers OR TriStarTop OR TweezerBottoms OR KBL, colorGreen, 0));
+AddColumn(C, "Close", 1.2);
+AddTextColumn(sts, "Candle", 1.0, Col, colorDefault,100);

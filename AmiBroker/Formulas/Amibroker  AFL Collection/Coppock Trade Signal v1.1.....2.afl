@@ -1,0 +1,83 @@
+/*
+Coppock Trade Signal v1.1 (01/28/09)
+
+The Coppock formula was introduced in Barron's in 1962, devised by a San
+Antonio, TX-based technician, economist and investment advisor named Edwin
+Sedgwick Coppock.
+Since then, the Coppock oscillator has been adopted and adapted by technicians
+around the world.
+
+The Coppock curve is a long-term price momentum indicator used primarily to
+recognize major bottoms in the stock market.
+It is calculated as a 10-month weighted moving average of the sum of the
+14-month rate of change and the 11-month rate of change for the index.
+
+A buy signal is formed when there is an upturn in the curve after an extreme
+low in the curve.
+A sell signal is formed when there is a higher peak in stock prices but a lower
+peak in the Coppock curve.
+These are the basic signals, more signals and interpretations are seen at more
+advanced levels.
+
+AFL Author: rcef88
+goriamtrader[at]yahoo.com
+EliteVest, Public Mutual Bhd
+*/
+
+_SECTION_BEGIN("Coppock Trade Signal v1.1");
+
+//PARAMETERS:
+ROC1Periods		=Param("ROC1 periods",14,2,200,1,0);
+ROC2Periods		=Param("ROC2 periods",11,2,200,1,0);
+WMAPeriods			=Param("WMA periods",10,2,200,1,0);
+CoppockCurve		=ParamToggle("Use Coppock curve","No|Yes",0);
+CoppockBar			=ParamToggle("Use Coppock bar","No|Yes",1);
+ColBull			=ParamColor("Bull color",colorBlue);
+ColBear			=ParamColor("Bear color",colorRed);
+UseTradeSignal	=ParamToggle("Use trade signal","No|Yes",1);
+CoppockFilter		=Param("Coppock filter",20,2,200,1,0);
+ColBuy				=ParamColor("Buy color",colorBrightGreen);
+ColSell			=ParamColor("Sell color",colorDarkRed);
+ColBg				=ParamToggle("Show background color","No|Yes",1);
+
+//MAIN:
+Coppock=WMA((ROC(C,ROC1Periods)+ROC(C,ROC2Periods)),WMAPeriods);
+InitialCalculationLength=Max(ROC1Periods,ROC2Periods)+WMAPeriods;
+for(i=0;i<BarCount;i++)
+{
+	if(i<InitialCalculationLength) //initial zero
+	{
+		Coppock[i]=0.0;
+		if(UseTradeSignal){Buy=0; Sell=0;}
+	}
+}
+LastCoppock1=Ref(Coppock,-1);
+LastCoppock2=Ref(Coppock,-2);
+TradeStatus=IIf(Coppock>0,IIf(Coppock>LastCoppock1,ColBull,IIf(Coppock<LastCoppock1,ColBear,IIf(Coppock==LastCoppock1
+&& LastCoppock1>LastCoppock2,ColBull,ColBear))),
+			 
+IIf(Coppock>LastCoppock1,ColBull,IIf(Coppock<LastCoppock1,ColBear,IIf(Coppock==LastCoppock1
+&& LastCoppock1>LastCoppock2,ColBull,ColBear))));
+StyleTitle=IIf(CoppockCurve && CoppockBar,styleNoTitle,0);
+StyleLabel=IIf(CoppockCurve && CoppockBar,styleNoLabel,0);
+if(CoppockCurve)
+Plot(Coppock,"Coppock"+_PARAM_VALUES(),TradeStatus,styleLine|styleThick|StyleTitle|StyleLabel);
+if(CoppockBar)
+Plot(Coppock,"Coppock"+_PARAM_VALUES(),TradeStatus,styleHistogram|styleThick);
+if(UseTradeSignal)
+{
+	CoppockIsBuy=TradeStatus==ColBull;
+	CoppockIsSell=TradeStatus==ColBear;
+	CoppockBuyValue=ValueWhen(CoppockIsBuy,Coppock,1);
+	CoppockSellValue=ValueWhen(CoppockIsSell,Coppock,1);
+	Buy=!Ref(CoppockIsBuy,-1) && Coppock<0 && CoppockIsBuy &&
+	abs(CoppockBuyValue)>=CoppockFilter;
+	Sell=!Ref(CoppockIsSell,-1) && Coppock>0 && CoppockIsSell &&
+	abs(CoppockSellValue)>=CoppockFilter;
+	PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),ColBuy,0,Coppock,0);
+	PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),ColSell,0,Coppock,0);
+}
+if(ColBg)
+SetChartBkGradientFill(ParamColor("BgTop",colorWhite),ParamColor("BgBottom",colorTeal));
+
+_SECTION_END();

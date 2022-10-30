@@ -1,0 +1,43 @@
+/* Standard Error Bands */
+// user parameters
+Periods = Param("Standard Error", 120, 3, 200, 1); 
+Smooth  = Param("Smooth",30,2,100,1);
+parmMBColor = ParamColor("Color MB",colorBlack);  
+parmMBStyle = ParamStyle("Style MB", style=styleDashed | styleNoLabel, Mask=maskAll );
+parmUBColor = ParamColor("Color UB",colorBlack);
+parmUBStyle = ParamStyle("Style UB", style=styleLine | styleNoLabel, Mask=maskAll ); 
+parmLBColor = ParamColor("Color LB",colorBlack);
+parmLBStyle = ParamStyle("Style LB", style=styleLine | styleNoLabel, Mask=maskAll ); 
+ParmCloud = ParamToggle("Cloud", "No|Yes", 0);
+parmCloudColor = ParamColor("Cloud Color", ColorRGB( 245,245,255) );
+ParmField = ParamField("Field", -1);
+parmTT = ParamToggle("Plot Tone/Trend", "No|Yes");
+parmToneColorUp = ParamColor("Tone Color Up", ColorRGB(167, 224, 243) );
+parmToneColorDn = ParamColor("Tone Color Dn", ColorRGB(255, 192, 203) );
+parmTrendColorUp = ParamColor("Trend Color Up", ColorRGB(167, 224, 243) );
+parmTrendColorDn = ParamColor("Trend Color Dn", ColorRGB(255, 192, 203) );
+RibbonSize = Param("Ribbon Size", 1 , 0.5, 10, 0.5);
+
+// calculations
+LRCurve = LinearReg( ParmField, periods ); 
+MALRCurve  = MA(LRCurve, Smooth);
+SEValue = StdErr( ParmField, periods ); 
+SErrorAvg =  MA(SEValue, Smooth);
+
+LowerBand = MALRCurve - SErrorAvg ;
+UpperBand = MALRCurve + SErrorAvg ;
+
+Plot( MALRCurve , "MidBand", parmMBColor , parmMBStyle); 
+Plot( UpperBand , "UpperBand",parmUBColor ,parmUBStyle );
+Plot( LowerBand , "LowerBand", parmLBColor , parmLBStyle);
+//paint inside the bands
+if(parmCloud == 1)
+{
+	PlotOHLC( UpperBand, UpperBand, LowerBand, LowerBand, "Band", parmCloudColor, styleCloud | styleNoLabel); 
+}
+//paint tone and trend
+if(parmTT == 1)
+{
+	PlotOHLC( UpperBand, UpperBand, LowerBand, LowerBand, "Band", IIf(Low > UpperBand, parmTrendColorUp, IIf(High < LowerBand, parmTrendColorDn, parmCloudColor)) , styleCloud | styleNoLabel); 
+	Plot( RibbonSize, "Tone", IIf(Close > MALRCurve, parmToneColorUp, parmToneColorDn) , styleArea |  styleNoLabel | styleOwnScale , 0, 10);
+}

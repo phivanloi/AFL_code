@@ -1,0 +1,51 @@
+SetTradeDelays(0,0,0,0);
+BuyPrice = C;
+SellPrice = C;
+SetBarsRequired(200, 0);
+
+function CGOscillator(Price, Length)
+{
+	Result = 0;
+	for (i=length; i< BarCount; i++)
+	{
+		Num = 0;
+		Denom = 0;
+		for (j=0; j<Length; j++)
+		{
+			Num = Num + (1 + j) * Price[i-j];
+			Denom = Denom + Price[i-j];
+		}
+		if (Denom != 0) Result[i]
+				= 100.0 * ((-Num / Denom) + (Length + 1)/2);
+}
+return Result;
+}
+
+Price = (H + L) / 2;
+CGOLength = Param("CGOLength", 13, 1, 250, 10);
+CGO = CGOscillator(Price, CGOLength);
+SmLength = Param("SmLength", 2, 1, 20, 2);
+CGOSmoothed = DEMA(CGO,SmLength);
+
+Buy = Cross(CGO,CGOSmoothed);
+
+HoldDays = Param("HoldDays",6,1,10,1);
+
+Sell = Cross(CGOSmoothed, CGO)
+			OR (BarsSince(Buy) >= HoldDays);
+
+Sell = ExRem (Sell,Buy);
+
+e = Equity();
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+Plot( Close, "Price", colorBlack, styleCandle );
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ),
+			0, IIf( Buy, Low, High ) );
+GraphXSpace = 5;
+
+Plot(e,"Equity",colorRed,styleLine|styleOwnScale);
+Plot(CGO, "CG Oscillator", colorRed,
+		styleLine|styleLeftAxisScale);
+Plot(CGOSmoothed, "CGO Smoothed", colorBlue,
+		styleLine|styleLeftAxisScale);
+//Figure 10.1 Center of Gravity

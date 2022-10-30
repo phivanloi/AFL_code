@@ -1,0 +1,7 @@
+/* Create date: 04 Jan 2009
+The Stochastic %K(Slow) of the current bar is greater than 90 */
+
+Sell = StochK( 14, 3 ) > 90
+AND 	RSI( 5 ) < 90;
+Buy = StochK( 14, 3 ) < 10
+AND RSI( 5 ) < 10;

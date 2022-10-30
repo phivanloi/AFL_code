@@ -1,0 +1,196 @@
+//------------------------------------------------------------------------------
+//
+//  Formula Name:    ATR Volatility System
+//  Author/Uploader: Marcelin 
+//  E-mail:          marcelint@xnet.ro
+//  Developed By :   Tudor Marcelin - Art Invest
+//  Edited By :      Rajandran R          
+//  Website :        www.marketcalls.in
+//  Level:           medium
+//  Flags:           system
+//  
+//
+//------------------------------------------------------------------------------
+//
+//  ATR trading system for short terms tradings. You can use it with Absolute
+//  Strength Index for confirmation of signals.
+//
+//------------------------------------------------------------------------------
+
+_SECTION_BEGIN("ATR Volatility Revised Edition");
+
+SetBarsRequired(100000,0);
+
+GraphXSpace = 15;
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+SetChartBkColor(ParamColor("bkcolor",ColorRGB(0,0, 0)));
+
+GfxSetBkMode(0); 
+
+GfxSetOverlayMode(1);
+
+SetBarFillColor(IIf(C>O,ParamColor("Candle UP Color", colorGreen),IIf(C<=O,ParamColor("Candle Down Color", colorRed),colorLightGrey)));
+
+Plot(C,"\nPrice",IIf(C>O,ParamColor("Wick UP Color", colorDarkGreen),IIf(C<=O,ParamColor("Wick Down Color", colorDarkRed),colorLightGrey)),64,0,0,0,0);
+
+
+
+SetTradeDelays(1,1,1,1);
+
+SetPositionSize(100,spsShares);
+  
+   n=Param( "period", 14, 5 , 20, 1 );
+   k=Param( "factor", 1.4, 0.5 , 2.5, 0.1 );
+
+  f=ATR(n);
+    
+/*R Resistance */
+    R[0] = C[0]; 
+/*S Support  */ 
+    S[0] = C[0];
+  
+for( i = n+1; i < BarCount; i++ ) 
+{ 
+
+    R[i]=R[i-1];
+    S[i]=S[i-1];
+    if (( S[i-1]<=C[i-1]) AND (C[i-1] <=R[i-1] ) AND (C[i-1]+k*f[i-1])<=RV)
+ 
+        R[i] = C[i-1]+k*f[i-1];
+   
+     if (( S[i-1]<=C[i-1]) AND (C[i-1]<=R[i-1] ) AND  (C[i-1]-k*f[i-1])>=SV)
+
+        S[i]= C[i-1]-k*f[i-1];
+  
+
+
+  
+
+
+    if ( C[i-1] >R[i-1] )
+{
+       R[i] = C[i-1]+k*f[i-1];
+       S[i]= C[i-1]-k*f[i-1];
+       RV=R[i];
+       SV=S[i]; 
+}   
+    if ( C[i-1] <S[i-1] )
+{
+       R[i] = C[i-1]+k*f[i-1];
+       S[i]= C[i-1]-k*f[i-1];
+       RV=R[i];
+       SV=S[i]; 
+
+} 
+
+
+ Buy=Close>R;
+ Sell=Close<S;
+ 
+Cump=IIf(Close>R,1,0);
+Vanz=IIf(Close<S,1,0);
+}
+
+Buy = ExRem( Buy, Sell ); 
+Sell = ExRem( Sell, Buy );
+
+iBuy = Flip( Buy, Sell ); 
+iSell =Flip( Sell, Buy );
+
+R[BarCount-1]=Null;
+S[BarCount-1]=Null;
+
+Plot(IIf(iSell,R,Null), "Rez:",colorRed,styleDots|styleNoLine);
+Plot(IIf(iBuy,S,Null), "Sup:",colorGreen,styleDots|styleNoLine);
+
+Short=Sell;
+
+Cover=Buy;
+
+
+Buy[BarCount-1]=Null;
+Sell[BarCount-1]=Null;
+Short[BarCount-1]=Null;
+Cover[BarCount-1]=Null;
+
+
+
+
+BuyPrice=ValueWhen(Buy,C);
+
+SellPrice=ValueWhen(Sell,C);
+
+ShortPrice=ValueWhen(Short,C);
+
+CoverPrice=ValueWhen(Cover,C);
+
+
+
+
+
+Title = EncodeColor(colorWhite)+ "ATR Volatility System code from www.marketcalls.in" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+
+ "  - " + Date() +" - "+"\n" +EncodeColor(colorRed) +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+
+
+"Cl-"+C+"  "+ "Vol= "+ WriteVal(V)+"\n"+ 
+
+EncodeColor(colorLime)+
+
+WriteIf (Buy , " GO LONG / Reverse Signal at "+C+"  ","")+
+
+WriteIf (Sell , " EXIT LONG / Reverse Signal at "+C+"  ","")+"\n"+EncodeColor(colorYellow)+
+
+WriteIf(Sell , "Total Profit/Loss for the Last Trade Rs."+(C-BuyPrice)+"","")+
+
+WriteIf(Buy  , "Total Profit/Loss for the Last trade Rs."+(SellPrice-C)+"","");
+
+
+
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+
+PlotShapes(IIf(Short, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+
+PlotShapes(IIf(Short, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+
+PlotShapes(IIf(Short, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+
+//Magfied Market Price
+
+FS=Param("Font Size",30,11,100,1);
+
+GfxSelectFont("Times New Roman", FS, 700, True ); 
+
+GfxSetBkMode( colorWhite );  
+
+GfxSetTextColor( ParamColor("Color",colorGreen) ); 
+
+Hor=Param("Horizontal Position",940,1,1200,1);
+
+Ver=Param("Vertical Position",12,1,830,1); 
+
+GfxTextOut(""+C, Hor , Ver );
+
+YC=TimeFrameGetPrice("C",inDaily,-1);
+
+DD=Prec(C-YC,2);
+
+xx=Prec((DD/YC)*100,2);
+
+GfxSelectFont("Times New Roman", 11, 700, True ); 
+
+GfxSetBkMode( colorBlack );  
+
+GfxSetTextColor(ParamColor("Color",colorYellow) ); 
+
+GfxTextOut(""+DD+"  ("+xx+"%)", Hor , Ver+45 );
+
+ 
+
+
+_SECTION_END();

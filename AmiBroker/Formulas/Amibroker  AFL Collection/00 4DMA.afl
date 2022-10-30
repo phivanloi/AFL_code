@@ -1,0 +1,55 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Magnified Market Price");
+//by Vidyasagar, vkunisetty@yahoo.com// 
+FS=Param("Font Size",30,11,100,1);
+GfxSelectFont("Times New Roman", FS, 700, True ); 
+GfxSetBkMode( colorWhite );  
+GfxSetTextColor( ParamColor("Color",colorBlack) ); 
+Hor=Param("Horizontal Position",550,1,1200,1);
+Ver=Param("Vertical Position",1,1,830,1); 
+GfxTextOut(""+C, Hor , Ver );
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+GfxSelectFont("Times New Roman", 11, 700, True ); 
+GfxSetBkMode( colorWhite );  
+GfxSetTextColor(ParamColor("Color",colorBlack) ); 
+GfxTextOut(""+DD+"  ("+xx+"%)", Hor , Ver+45 );
+
+_SECTION_END();
+
+
+/////////////////// 5DMA SAR ----- BY AMOL VAIDYA[astro-nifty.blogspot.com] /////////////////////
+_SECTION_BEGIN(" 5DMA-SAR ");
+FS=Param("Font Size",20,11,100,1);
+GfxSelectFont("Arial", FS, 700, True ); 
+GfxSetBkMode( colorWhite );  
+GfxSetTextColor( ParamColor("Color",colorWhite) ); 
+Hor=Param("Horizontal Position",700,1,1200,1);
+Ver=Param("Vertical Position",1,1,830,1); 
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DFYC=TimeFrameGetPrice("C",inDaily,-2);
+DFYC1=TimeFrameGetPrice("C",inDaily,-3);
+DFYC2=TimeFrameGetPrice("C",inDaily,-4);
+//SAR1=Prec((C+YC+DFYC+DFYC1+DFYC2)/5,5);
+SAR1=Prec((C+YC+DFYC+DFYC1)/4,4);
+GfxTextOut("SAR="+SAR1, Hor , Ver );
+
+_SECTION_END();
+
+ 
+_SECTION_BEGIN("Ribbon");
+no=Param( "Swing", 10, 1, 55 );
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+tsl=IIf(avn==1,sup,res);
+  
+Plot( 2, "Ribbon",IIf(C>tsl,colorGreen,colorRed),styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+_SECTION_END();

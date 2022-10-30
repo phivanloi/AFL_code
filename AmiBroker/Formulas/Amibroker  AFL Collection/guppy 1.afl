@@ -1,0 +1,159 @@
+_SECTION_BEGIN("Price");
+Col_1 = IIf(EMA(RSI(39),30) > Ref(EMA(RSI(39),30),-1),colorGreen,colorOrange);
+Plot( C, "", col_1, styleCandle+styleThick ); 
+_SECTION_END();
+
+_SECTION_BEGIN("guppy");
+e3 = EMA(Close,3);
+e5 = EMA(Close,5);
+e8 = EMA(Close,8);
+e10 = EMA(Close,10);
+e12 = EMA(Close,12); 
+e15 = EMA(Close,15);
+
+e30 = EMA(Close,30);
+e35 = EMA(Close,35);
+e40 = EMA(Close,40);
+e45 = EMA(Close,45);
+e50 = EMA(Close,50);
+e55 = EMA(Close,55);
+e60 = EMA(Close,60);
+Buy_guppy = e3>e45;
+Sell_guppy = e45 > e3;
+Buy_guppy = ExRem (Buy_guppy,Sell_guppy);
+Sell_guppy = ExRem(Sell_guppy,Buy_guppy);
+//PlotShapes(Buy_guppy*shapeHollowSmallUpTriangle, colorYellow);
+//PlotShapes(Sell_guppy*shapeHollowSmallDownTriangle,colorYellow);
+
+Plot (e3,"",colorBlue,styleNoLabel);
+Plot (e5,"",colorBlue,styleNoLabel);
+Plot (e8,"",colorBlue,styleNoLabel);
+Plot (e10,"",colorBlue,styleNoLabel);
+Plot (e12,"",colorBlue,styleNoLabel);
+Plot (e15,"",colorBlue,styleNoLabel);
+
+Plot (e30,"",colorYellow,styleNoLabel+styleThick);
+Plot (e35,"",colorRed,styleNoLabel+styleThick);
+Plot (e40,"",colorRed,styleNoLabel+styleThick);
+Plot (e45,"",colorRed,styleNoLabel+styleThick);
+Plot (e50,"",colorRed,styleNoLabel+styleThick);
+Plot (e55,"",colorRed,styleNoLabel+styleThick);
+Plot (e60,"",colorRed,styleNoLabel+styleThick);
+
+_SECTION_END();
+
+_SECTION_BEGIN("rsi de ema");
+
+r = 21;
+slow_per = 3;
+fast_per = 34;
+
+Buy_rsi = EMA(RSI(r),slow_per)> EMA(RSI(r),fast_per);
+Sell_rsi= EMA(RSI(r),fast_per) >EMA(RSI(r),slow_per); 
+
+Buy = Buy_rsi  AND Buy_guppy; //AND Buy_stochk;
+Sell = sell_rsi AND sell_guppy; //AND SELL_stochk;
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+//PlotShapes(Buy*shapeSmallUpTriangle,colorRed);
+//PlotShapes(Sell*shapeSmallDownTriangle,colorRed);
+
+
+
+_SECTION_END();
+
+_SECTION_BEGIN("Tops and bottom");
+
+pd = Param("Periods",13,5,144,1); 
+pds = 2*pd-1;//     (Adjustment for Wilders MA) 
+aa = Close-Ref(Close,-1); 
+uu = EMA(Max(0,aa),pds); 
+dd=  EMA((Max(0,0-aa)),pds); 
+
+rf = IIf(C>2,1000,10000); 
+
+c1 = Param("Upper Level",70,50,90,1); 
+qq1 =100/(100-c1)-1; 
+ff1 = qq1*dd-uu; 
+ff2 = ff1/qq1; 
+f1 = Max(ff1,ff2); 
+UL = Close + f1*(pds-1)/2; 
+UL = IIf(UL>C,floor(UL*rf),ceil(UL*rf))/rf; 
+
+c2 = Param("Equilibrium",50,50,50,0);  
+qq2 =100/(100-c2)-1;// [=1] 
+ff = dd-uu; 
+MM = Close + ff*(pds-1)/2; 
+MM = IIf(MM>C,floor(MM*rf),ceil(MM*rf))/rf; 
+
+c3 = Param("Lower Level",30,10,50,1); 
+qq3 =100/(100-c3)-1; 
+ff1 = qq3*dd-uu; 
+ff2 = ff1/qq3; 
+f3 = Min(ff1,ff2); 
+LL = Close + f3*(pds-1)/2; 
+LL = IIf(LL>C,floor(LL*rf),ceil(LL*rf))/rf; 
+
+band = Param("band width",4,0,15,0.25);
+mmu = MM+band;
+mmd = MM-band;
+
+
+X=Cross( C,LL);
+Y=Cross(UL,C);
+
+Buy1= X ;
+Sell1= Y ;
+
+PlotShapes(shapeCircle*Buy1,colorRed,0,L,-15);
+PlotShapes(shapeCircle*Sell1,colorGreen,0,H,-15);
+
+Filter=Buy1 OR Sell1 ;
+AddTextColumn(FullName(),"Name");
+AddColumn(Buy1,"Buy");
+AddColumn(Sell1,"sell");
+
+
+//Title = Name() + "  -  RSI(" + WriteVal(pd,0.0) + ")  -  Close=" +  WriteVal(Close,0.3) + "    UL=" +  WriteVal(UL,0.4) + "    MM=" +  WriteVal(MM,0.4) + "    LL=" +  WriteVal(LL,0.4); 
+
+
+dist = 1.5*ATR(10); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+
+if( Buy_guppy[i] ) PlotText( "^" , i, L[ i ]-dist[i], colorBlack,colorGreen ); 
+if( Sell_guppy[i] ) PlotText( "v", i, H[ i ]+dist[i], colorBlack, colorRed ); 
+if( Buy[i] ) PlotText( "Buy\n@" + C[ i ] , i, L[ i ]-dist[i], colorBlack,colorGreen ); 
+if( Sell[i] ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorBlack, colorRed ); 
+if( Sell1[i] ) PlotText( "Top" , i, H[ i ]+dist[i], colorGreen, colorBlack ); 
+if( Buy1[i] ) PlotText( "Bottom", i, L[ i ]-dist[i], colorRed, colorBlack ); 
+
+
+} 
+//PlotShapes( Buy * shapeUpArrow + Sell * shapeDownArrow, IIf( Buy, colorYellow, colorYellow ) );
+//PlotShapes( Buy * shapeSmallUpTriangle + Sell * shapeSmallDownTriangle, IIf( Buy, colorGreen, colorRed ) );
+
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+
+_SECTION_END();
+
+Title = EncodeColor(colorWhite)+ "NICK MA Swing System" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"\n" +EncodeColor(colorYellow) +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+
+"Cl-"+C+"  "+ "Vol= "+ WriteVal(V)+"\n"+ 
+EncodeColor(colorLime)+
+WriteIf (Buy , " GO LONG / Reverse Signal at "+C+"  ","")+
+WriteIf (Sell , " EXIT LONG / Reverse Signal at "+C+"  ","")+"\n"+EncodeColor(colorWhite)
+//+WriteIf(Sell , "Total Profit/Loss for the Last Trade Rs."+(C-BuyPrice)+"","")+
+//WriteIf(Buy  , "Total Profit/Loss for the Last trade Rs."+(SellPrice-C)+"","")
+//+WriteIf(Buy AND NOT Buy_guppy, "Trade : Long - Entry price Rs."+(BuyPrice),"")+
+//WriteIf(Sell AND NOT Sell_guppy, "Trade : Short - Entry price Rs."+(SellPrice),"")+"\n" 
+//+WriteIf(Long AND NOT Buy, "Current Profit/Loss Rs."+(C-BuyPrice)+"","")+
+//WriteIf(shrt AND NOT Sell, "Current Profit/Loss Rs."+(SellPrice-C)+"","")
+;
+

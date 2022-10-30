@@ -1,0 +1,12 @@
+Filter = H>Ref(H,-1) AND Ref(H,-1)>Ref(H,-2) AND Ref(H,-2)>Ref(H,-3) AND
+L>Ref(L,-1) AND Ref(L,-1)>Ref(L,-2) AND
+Ref(L,-2)>Ref(L,-3)AND
+V>Ref(V,-1) AND
+Ref(V,-1)>Ref(V,-2) AND
+V>100000 AND
+C>100.00;
+
+NumColumns = 1;
+
+Column0 = Filter ;
+Column0Name ="The Candidate";

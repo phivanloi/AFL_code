@@ -1,0 +1,30 @@
+_SECTION_BEGIN("RMO Code");
+#include <RMO Code.afl>
+SwingTrd1 = 100 * (Close - ((MA(C,2)+
+MA(MA(C,2),2) +
+MA(MA(MA(C,2) ,2),2) +
+MA(MA(MA(MA( C,2),2),2) ,2) +
+MA(MA(MA(MA( MA(C,2),2) ,2),2),2) +
+MA(MA(MA(MA( MA(MA(C,2) ,2),2),2) ,2),2) +
+MA(MA(MA(MA( MA(MA(MA( C,2),2),2) ,2),2),2) ,2)+
+MA(MA(MA(MA( MA(MA(MA( MA(C,2),2) ,2),2),2) ,2),2),2)+
+MA(MA(MA(MA( MA(MA(MA( MA(MA(C,2) ,2),2),2) ,2),2),2), 2),2)+
+MA(MA(MA(MA( MA(MA(MA( MA(MA(MA( C,2),2),2) ,2),2),2), 2),2),2),2))/10))/(HHV(C, 10)-LLV(C, 10));
+
+SwingTrd2 = EMA(SwingTrd1, 30);
+SwingTrd3 = EMA(SwingTrd2, 30);
+RMO= EMA(SwingTrd1, 81);
+
+BuyAlert = Cross(SwingTrd2 ,SwingTrd3) ; // Start of blue bars
+SellAlert = Cross(SwingTrd3,SwingTrd2) ; // start of red bars
+
+Bull_Trend = RMO > 0;
+Bear_Trend = RMO < 0;
+Medium_Up_Trend = SwingTrd2 >= 0;
+Medium_Down_Trend = SwingTrd2 < 0;
+
+bar_color=IIf(Medium_Up_Trend, colorLightBlue, colorRed);
+Ribbon_color=IIf( Bull_Trend, colorGreen,IIf(Bear_Trend, colorRed,colorBlack)) ;
+
+shape = BuyAlert * shapeUpArrow + SellAlert * shapeDownArrow;
+_SECTION_END();

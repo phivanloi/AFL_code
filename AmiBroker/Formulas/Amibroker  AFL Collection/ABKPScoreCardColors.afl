@@ -1,0 +1,38 @@
+_SECTION_BEGIN("ABKPScoreCardColors");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g% (%0.4f%) {{VALUES}}", O, H, L, C, SelectedValue( C - Ref(C, -1)) ));
+if( ParamToggle("Tooltip shows", "All Values|Only Prices" ) )
+{
+ ToolTip=StrFormat("Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.2f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 )));
+}
+parmSCUpColor = ParamColor("SC up color", colorBlue);
+parmSCDnColor = ParamColor("SC down color", colorRed);
+parmSCNuColor = ParamColor("SC neutral color", colorYellow);
+parmRibbon = ParamToggle("Plot as ribbnon", "No|Yes", 0);
+parmThreshold = Param("SC Threshold", 5, 0, 10, 1);
+SetBarsRequired(350, -1);
+// KP indicators
+Ctmpl = E_TSKPCOLORTMPL(Open,High,Low,Close,Volume);
+KPScoreCard = 0;
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd0 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd1 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd2 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd3 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd4 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd5 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd6 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd7 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd8 > 0, 1, -1); 
+
+
+Color = IIf(KPScoreCard >= parmThreshold, parmSCUpColor, IIf(KPScoreCard <= -parmThreshold, parmSCDnColor, parmSCNuColor) );
+if(parmRibbon == 0)
+	{
+		Plot( C, "Close", Color , styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+	}
+else
+	{
+		Plot( C, "Close", ParamColor("Color", colorWhite ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+		Plot(KPScoreCard,"ScoreCard",Color,ParamStyle("ScoreCardStyle", styleStaircase | styleOwnScale | styleArea ,maskAll), -10, 100);
+	}
+_SECTION_END();

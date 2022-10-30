@@ -1,0 +1,39 @@
+_SECTION_BEGIN("Fisher Transform of Stochastics");
+// Fisher transform of stochastics
+//
+//It is an improvement on the Stochastics. Identifying turning points better with less wipsaws. 
+//Good for swing trading. 
+//
+function FisherSto(array, period, factor) {
+   MaxH = HHV(array, period);
+   MinL = LLV(array, period);
+ 
+   Range = MaxH - MinL;
+   sto  = (array - MinL)/(MaxH - MinL);
+
+   Value1 = AMA(2*(sto - 0.5), factor);
+   Value1 = IIf(Value1 > 0.999, 0.999, IIf(Value1 < -0.999, -0.999, Value1));
+
+      Fish = AMA(log((1 + Value1)/(1 - Value1)), 0.5);
+
+   return fish;
+}
+
+// Parameters
+period = Param("Period", 14, 3, 35, 1);
+factor = 0.10;
+
+price  = AMA(Avg,0.5);
+StoFR = FisherSto(price, period, factor); 
+temp = Ref(StoFR,-1);
+
+Plot(StoFR, "Stochastic", colorRed,styleThick); 
+Plot(Ref(StoFR,-1), "Signal", colorPink,styleDashed); 
+PlotGrid(2, colorLightGrey);
+PlotGrid(-2, colorLightGrey);
+
+Buy=Cross(StoFR,temp);
+Sell=Cross(temp,StoFR);
+
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone) ,colorGreen,0,Graph0,-5); PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed,0,Graph1,5);
+_SECTION_END();

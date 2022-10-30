@@ -1,0 +1,26 @@
+_SECTION_BEGIN("BVSV Smart Money Indicator");
+SetBarsRequired(sbrAll,sbrAll);
+BV = IIf( (H==L), 0, V*(C-L)/(H-L) );
+SV = IIf( (H==L), 0, V*(H-C)/(H-L) );
+PlotOHLC(SV,SV,0,0,"SellVolume",colorRed,styleCandle|styleNoTitle|styleNoLabel );
+PlotOHLC(SV,BV+SV,SV,BV+SV,"BuyVolume",colorbrightgreen ,styleCandle|styleNoTitle|styleNoLabel );
+Va = MA(V,30);
+PlotOHLC( Va, Va, 0, 0, "", ColorBlend( colorWhite , GetChartBkColor(), 0.4 ), styleNoLabel | styleCloud | styleNoRescale, Null, Null, Null, -1 );
+Plot(Va,"Average Volume",colorRose,styleNoLine|styleNoLabel );
+VI = V/Va;
+Title = "SellVolume:"+WriteVal(SV,5.0)+" "+"BuyVolume:"+WriteVal(BV,5.0)+" "+"VolumeIndex:"+WriteVal(VI,1.2)+" "+
+"BuyVolume:"+WriteVal(100*BV/(BV+SV),2.0)+"%"+" "+"SellVolume:"+WriteVal(100*SV/(BV+SV),2.0)+"%";
+GfxSetOverlayMode(1);
+GfxSelectFont("Verdana",12,800,True ); 
+GfxSetBkMode(0); 
+GfxSetTextColor(ColorRGB(18,18,18)); 
+GfxTextOut("",800,130 );
+GfxSelectFont("Verdana", 14, 800, True ); 
+GfxSetBkMode(1); 
+GfxTextOut("Bid Offer",800,100 );
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

@@ -1,0 +1,160 @@
+1.
+The TEMA10 AND TEMA20 of CCI(30) may give interesting Sell signals according to the
+
+//TEMA10 and TEMA20 for the CCI(30) Sell signals
+H1=H;L1=L;
+n=Param("N",30,20,30,5); 
+y=CCI(n);
+T10=TEMA(Y,10);T20=TEMA(Y,20);
+Plot(C,"Close",1,64);
+H=L=T20;
+S1=SAR(0.05,0.5);
+Sell=Cross(S1,T10)*(T20>100);
+PlotShapes(shapeDownTriangle*Sell,colorPink);
+
+The logic is rather simple, when T20 is above 100 we check the crosses of T10 with the SAR of T20.
+[see Fig. 1]
+
+2.
+Since we used theT10= TEMA(10) AND T20= TEMA(20), we may replace them by a Ti3 smoother.
+2a.
+We should search first the proper factor "s" according to an enhanced variation of the 
+http://groups.yahoo.com/group/amibroker/message/59863
+technique.
+We ask a Ti3 "between" T10 AND T20.
+The Ti3 distorsion AND the Day of the Highest distorsion should be in the T10, T20 range.
+In an empty IB window paste first the
+
+// The range of the parameter S for various Ti3 periods
+t=Cum(1);
+L1=LastValue(t);D=100;DD=110;
+C0=IIf(t>L1-d,dd,d);
+Plot(C0,"\nCLOSE",1,styleThick);Plot(112,"",0,styleNoLine);
+PERIOD1=10;PERIOD2=20;//the TEMA periods
+S1=TEMA(C0,PERIOD1);
+Hb1=LastValue(ValueWhen(s1==Highest(s1),t)-ValueWhen(C0>Ref(C0,-1),t));
+S2=TEMA(C0,PERIOD2);
+Hb2=LastValue(ValueWhen(s2==Highest(s2),t)-ValueWhen(C0>Ref(C0,-1),t));
+Div1=100*(s1-C0)/LastValue(C0);MaxDiv1=LastValue(Highest(Div1));
+Div2=100*(s2-C0)/LastValue(C0);MaxDiv2=LastValue(Highest(Div2));
+Plot(S1,"",colorBlack,8);z1=WriteVal(period1,1.0);z2=WriteVal(period2,1.0);
+Plot(S2,"",colorBlack,8);
+PlotShapes(shapeUpArrow*(s1==LastValue(Highest(s1))),colorBlack);
+PlotShapes(shapeUpArrow*(s2==LastValue(Highest(s2))),colorBlack);
+Title="Max Div for TEMA("+z1+") ="+WriteVal(MaxDiv1,1.2)
++"%"+", TEMA("+z2+")="+WriteVal(Maxdiv2,1.2)+"%"+"\nHb1="+WriteVal(Hb1,1.0)+", Hb2="+WriteVal(Hb2,1.0)+ "\nThe parameter S should be";
+//the Ti3 function
+function T3(price,periods,s)
+{
+e1=EMA(price,periods);
+e2=EMA(e1,Periods);
+e3=EMA(e2,Periods);
+e4=EMA(e3,Periods);
+e5=EMA(e4,Periods);
+e6=EMA(e5,Periods);
+c1=-s*s*s;
+c2=3*s*s+3*s*s*s;
+c3=-6*s*s-3*s-3*s*s*s;
+c4=1+3*s+s*s*s+3*s*s;
+Ti3=c1*e6+c2*e5+c3*e4+c4*e3;
+return ti3;
+}
+//the S_range procedure
+procedure S_range(x,Color)
+{
+k=0;smin=0;step=0.01;Hb=0;
+for(s=0.5;s<1.5;s=s+step)
+{
+Ti3=T3(C0,X,s);
+Div3=100*(Ti3-C0)/LastValue(C0);
+MaxDiv3=LastValue(Highest(Div3));
+Hb3=LastValue(ValueWhen(Ti3==Highest(Ti3),t)-ValueWhen(C0>Ref(C0,-1),t));
+if(MaxDiv3>=MaxDiv1 AND MaxDiv3<=MaxDiv2 AND Hb3>=Hb1 AND Hb3<=Hb2)
+{
+Plot(Ti3,"\nT3",color,1);
+PlotShapes(shapeDownArrow*(Ti3==LastValue(Highest(Ti3))),color);
+k=k+1;Hb=Hb3;
+smin=smin+IIf(k==1,s,0);
+}
+}
+smax=smin+(k-1)*step;
+
+
+Title0="\nfor Ti3("+WriteVal(x,1.0)+") from "+WriteVal(smin,1.2)
++" to "+WriteVal(smax,1.2)+", [Hb="+WriteVal(Hb,1.0)+"]";
+Title=Title+WriteIf(smin>0,Title0,"");
+}
+//Application
+for(g=5;g<9;g++)
+{
+S_range(g,20+g);
+}
+
+AND read the results:
+The maximum Distorsion for TEMA10 is 1.38% AND occurs in Hb1=6 bars after the price gap up.
+The maximum Distorsion for TEMA20 is 1.61% AND occurs in Hb1=12 bars after the price gap up.
+The parameter "s" should be
+for Ti3(5) from 0.83 to 0.87 with Hb=7
+for Ti3(6) from 0.81 to 0.84 with Hb=9
+for Ti3(7) from 0.79 to 0.82 with Hb=1
+Other Ti3 periods OR "s" values will give either higher distorsion OR delayed response
+[see Fig. 2]
+
+2b.
+The next step is to replace T10, T20 with the proper Ti3.
+
+//the Ti3  vs TEMA for the CCI() sell signals
+H1=H;L1=L;
+n=Param("N",30,20,30,5); 
+y=CCI(n);
+T10=TEMA(Y,10);T20=TEMA(Y,20);
+Plot(C,"Close",1,64);
+H=L=T20;
+S1=SAR(0.05,0.5);
+Sell=Cross(S1,T10)*(T20>100);
+PlotShapes(shapeDownTriangle*Sell,colorPink);
+H=H1;L=L1;
+//the Ti3 function
+function T3(price,periods,s)
+{
+e1=EMA(price,periods);
+e2=EMA(e1,Periods);
+e3=EMA(e2,Periods);
+e4=EMA(e3,Periods);
+e5=EMA(e4,Periods);
+e6=EMA(e5,Periods);
+c1=-s*s*s;
+c2=3*s*s+3*s*s*s;
+c3=-6*s*s-3*s-3*s*s*s;
+c4=1+3*s+s*s*s+3*s*s;
+Ti3=c1*e6+c2*e5+c3*e4+c4*e3;
+return ti3;
+}
+n=Param("N",30,20,30,5); 
+y=CCI(n);
+p1=Param("p1",5,5,7,1);
+p2=Param("p2",79,79,87,1)/100;
+T=T3(y,p1,p2);
+H=L=T;
+S1=SAR(0.05,0.5);
+Sell=Cross(S1,T)*(T>100);
+PlotShapes(shapeDownArrow*Sell,colorRed);
+GraphXSpace=10;
+
+The above described Ti3 will give a Sell Signal fine tuning. 
+The Ti3 red arrows are anticipating OR confirming the basic TEMA Sell signals [pink triangles]
+AND will improve the Selling opportunities.
+[see Fig. 3]
+The actual CCI(), T10, T20 AND Ti3 are in Fig. 4. See how Ti3 is placed "between" T10 AND T20.
+Dimitris Tsokakis
+
+References
+1. http://www.traders.com/Documentation/FEEDbk_docs/Archive/0198/Abstracts_new/TILLSON/Tillson9801.html
+2. http://www.traders.com/Documentation/FEEDbk_docs/Archive/0298/TradersTips/Tips9802.htm
+3. http://finance.groups.yahoo.com/group/amibroker-ts/files/
+    [Tillson T3 Better MAs AND Oscillators.doc]
+4. http://www.amibroker.com/library/detail.php?id=342
+5. http://www.amibroker.com/library/detail.php?id=116
+6. http://finance.groups.yahoo.com/group/amibroker/message/59863
+7. http://finance.groups.yahoo.com/group/amibroker/message/59881 
+

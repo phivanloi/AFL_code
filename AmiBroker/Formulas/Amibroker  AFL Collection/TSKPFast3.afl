@@ -1,0 +1,14 @@
+ //r[0] = mydll.call("E_GETRETURN",stateID,0);
+//            r[1] = Math.max(r[0],0);
+
+
+Line = ParamToggle("Histogram","Histogram|Line",default=0 );
+// tskp_mediumma,tskp_mediumup,tskp_mediumdown
+fast3 = E_TSKPFAST3(Open,High,Low,Close,Volume);
+
+Color = IIf(fast3>0,colorBlue,colorRed);
+// 
+if (Line)
+	Plot( fast3 , "Fast3", Color, styleThick+styleNoLabel );
+else
+	Plot( fast3 , "Fast3", Color, styleHistogram+styleThick+styleNoLabel );

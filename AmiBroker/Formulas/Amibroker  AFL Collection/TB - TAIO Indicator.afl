@@ -1,0 +1,177 @@
+//|------------------------------------------------------------------
+//|Tradingbasis.com - TAIO indicator							
+//|Version:3.0   04-May-2006
+//|Copyright © 2005, Tradingbasis.com
+//|http://www.tradingbasis.com
+//|e-mail: support@tradingbasis.com
+//|------------------------------------------------------------------
+SetChartOptions(0,chartShowDates|chartWrapTitle,chartGridMiddle==0);
+#pragma nocache
+#include  <\TBInc\Tradingbasis_f0.afl> 
+
+
+if(inAA){
+_SECTION_BEGIN("Automatic Analysis");
+AddparamUsefromChart(1); 
+Widecolumns = ParamToggle("Wide columns","No,Yes",1);
+_SECTION_END();
+}
+
+AddAlertParam(0,0,0);
+_SECTION_BEGIN("Alerts");
+BuySig = ParamList("Buy Signal", List1 = "Taio Top,Taio Valley,Zero Line Cross,Zero Line Bounce,Oversold,Trend Level reached",1); 
+SellSig = ParamList("Sell Signal",List2 = "Taio Top,Taio Valley,Zero Line Cross,Zero Line Bounce,Overbought,Trend Level reached",0);
+_SECTION_END();
+
+_SECTION_BEGIN("First Time Frame"); 
+TAIO_switchvalue = ParamList("Color Mode", List = "1 - Rising/Falling/Range,2 - Range/Trend,3 - Rising/Falling,4 - Zero based,5 - Single Color"); 
+Level = Param("Trend Level",50.0,0,90);
+for( i=0; i<10; i++) {if( StrExtract(List, i) == Taio_switchvalue ) Color_Mode1 = i+1; } 
+Shadows_switch = ParamToggle("Plot Shadows", "Off|On",0);
+Ribbons_switch = ParamToggle("Plot Ribbons", "On|Off",1);
+Ribbonsheight = Param("Height",5,1,100,1);
+Style1 = ParamStyle("Style",styleHistogram+styleThick,maskAll);
+up_color1 = ParamColor("Taio > Trend Level",colorGreen);
+dn_color1 = ParamColor("Taio < Trend Level",colorRed);
+RangeP_color1 = ParamColor("Range (>0)",colorPaleGreen);
+RangeN_color1 = ParamColor("Range (<0)",colorPink);
+Singlecolor1 = ParamColor("Single Color",colorLightBlue);
+_SECTION_END(); 
+
+Taio1up = Taio>Level & Taio>Ref(Taio,-1);
+Taio1dn = Taio<(-Level) & Taio<Ref(Taio,-1);
+
+_SECTION_BEGIN("Second Time Frame"); 
+SecondTF2 = ParamToggle("Plot Indicator", "Off|On",1);
+Multiplier = Param("Multiplier",4,1,30,1);
+SecondTFstyle = ParamStyle("Style",styleLine+styleThick+styleDots,maskAll);
+Color_Mode2 = ParamToggle("Color Mode", "1 - Rising/Falling|2 - Above/Below Zero",0);
+up_Color2 = ParamColor("Up Color",colorTurquoise);
+dn_Color2 = ParamColor("Dn Color",colorLightOrange);
+_SECTION_END(); 
+
+
+for( i=0; i<10; i++) 
+{
+if( StrExtract(List1, i) == BuySig ) BuySignal = i; 
+if( StrExtract(List2, i) == SellSig ) SellSignal = i;
+}
+
+
+upbar_col = 7; dnbar_col = 7;
+Taio1_color = TaioColor(Color_Mode1,Level,Level,up_color1,RangeP_color1,RangeN_color1,dn_color1,singlecolor1);
+RibbonsColor = Taio1_color;
+
+
+Taio2 = TaioTF(Multiplier);
+
+Taio2up = Taio2>=Ref(Taio2,-multiplier); Taio2dn = Taio2<=Ref(Taio2,-multiplier);
+Taio2_color = 
+IIf(Color_Mode2==0 & Taio2up,up_color2, 
+IIf(Color_Mode2==0 & Taio2dn,dn_color2,
+IIf(Color_Mode2==1 & Taio2>0,up_color2, 
+IIf(Color_Mode2==1 & Taio2<0,dn_color2,7
+))));
+TimeFrameRestore(); 
+
+Overbought = Taio > Level;
+Oversold = Taio < (-Level);
+
+//Tops & valleys
+Top = Ref(Taio,-1) == HHV(Taio,3);
+TopL = Top AND Ref(Taio,-1) >  Level;
+Valley = Ref(Taio,-1)==LLV(Taio,3);
+ValleyL = Valley AND Ref(Taio,-1) < -Level;
+TpVa = IIf(TopL,-1,IIf(ValleyL,1,0));
+
+//Zero line crosses
+ZLCn = Cross(0,Taio);
+ZLCp = Cross(Taio,0);
+ZLC = IIf(ZLCp,1,IIf(ZLCn,-1,Null));
+
+//Zero line bounce
+threshold = 3;
+ZLbn = Ref(Taio,-1)<threshold AND Ref(Taio,-1)>-threshold AND Top;
+ZLbp = Ref(Taio,-1)>-threshold AND Ref(Taio,-1)<threshold AND Valley;
+ZLB = IIf(ZLBp,1,IIf(ZLBn,-1,Null));
+
+//Overbought - Oversold
+Overbought = Taio2>80 AND Taio>80;
+Oversold = Taio2<-80 AND Taio<-80;
+OBOS = IIf(Oversold,1,IIf(Overbought,-1,Null));
+
+//Upper/Lower Level reached
+UpperLevelreached = Cross(Taio,Level);
+LowerLevelreached = Cross(-Level,Taio);
+TrendLevelreached = IIf(UpperLevelreached,1,IIf(LowerLevelreached,-1,Null));
+
+Buy = 
+IIf(BuySignal == 0, TpVa==-1,
+IIf(BuySignal == 1, TpVa== 1,
+IIf(BuySignal == 2, ZLC==1,
+IIf(BuySignal == 3, ZLB==1,
+IIf(BuySignal == 4, Oversold==1,
+IIf(BuySignal == 5, UpperLevelreached==1,Null))))));
+
+Sell = 
+IIf(SellSignal == 0, TpVa==-1,
+IIf(SellSignal == 1, TpVa== 1,
+IIf(SellSignal == 2, ZLC==-1,
+IIf(SellSignal == 3, ZLB==-1,
+IIf(SellSignal == 4, Overbought==-1,
+IIf(SellSignal == 5, LowerLevelreached==-1,Null))))));
+
+Alerttext = 
+DefaultAlertText+","
++"\nTaio =   "+ WriteVal(Taio)+", "
++"\nTaio 2nd Time Frame =   "+WriteVal(Taio2);
+
+AddAlert(Buy,Audio,Email,BuySig + Alerttext,1,BarComplete);
+AddAlert(Sell,Audio,Email,SellSig + Alerttext,2,BarComplete);
+
+
+Filter = NOT GroupID()==253;
+
+if(inAA){
+if(Widecolumns)
+{
+Adddefaultcolumns(1,1);
+AddColumn(Taio,"Taio",1);
+AddColumn(Taio2,"Taio TF2",1,1,colorWhite,60);
+AddColumn(TpVa,"Taio Top / Valley",1,1,IIf(TpVa==1 OR TpVa==-1,colorLightBlue,colorWhite),0);
+AddColumn(ZLC,"Zero Line Cross",1,1,IIf(ZLCp,colorLime,IIf(ZLCn,colorRed,colorWhite)),90);
+AddColumn(ZLB,"Zero Line Bounce",1,1,IIf(ZLBp,colorLime,IIf(ZLBn,colorRed,colorWhite)),100);
+AddColumn(TrendLevelreached,"Trend Level reached",1,1,IIf(UpperLevelreached,colorLime,IIf(LowerLevelreached,colorRed,colorWhite)),120);
+AddColumn(OBOS,"Overbought/Oversold",1,1,IIf(Oversold,colorLime,IIf(Overbought,colorRed,colorWhite)),120);
+AddColumn(IIf(Taio>Level,BarsSince(Cross(Taio,Level)),IIf(Taio<-Level,BarsSince(Cross(-Level,Taio)),Null)),"Bars since Trendlevel reached",1.0);
+AddTextColumn(FullName(),"Full name",120);
+}
+else
+{
+Adddefaultcolumns(2,1);
+AddColumn(Taio,"Taio",1);
+AddColumn(Taio2,"Taio TF2",1,1,colorWhite,60);
+AddColumn(TpVa,"T/V",1,1,IIf(TpVa==1 OR TpVa==-1,colorLightBlue,colorWhite),40);
+AddColumn(ZLC,"ZLC",1,1,IIf(ZLCp,colorLime,IIf(ZLCn,colorRed,colorWhite)),40);
+AddColumn(ZLB,"ZLB",1,1,IIf(ZLBp,colorLime,IIf(ZLBn,colorRed,colorWhite)),40);
+AddColumn(TrendLevelreached,"TLR",1,1,IIf(UpperLevelreached,colorLime,IIf(LowerLevelreached,colorRed,colorWhite)),40);
+AddColumn(OBOS,"OB/OS",1,1,IIf(Oversold,colorLime,IIf(Overbought,colorRed,colorWhite)),60);
+AddColumn(IIf(Taio>Level,BarsSince(Cross(Taio,Level)),IIf(Taio<-Level,BarsSince(Cross(-Level,Taio)),Null)),"BSTR",1.0);
+//AddTextColumn(FullName(),"Full name");
+}
+}
+PlotGrid(Level,colorDefault);
+PlotGrid(-Level,colorDefault);
+PlotGrid(   0,colorDefault);
+PlotGrid( 100,colorDefault);
+PlotGrid(-100,colorDefault);
+Plot(IIf(Ribbons_switch == 0,Ribbonsheight,-1e10),"",RibbonsColor,styleOwnScale|styleArea|styleNoLabel,-0.1,100);
+Plot(IIf(Ribbons_switch == 0,Ribbonsheight,-1e10),"",RibbonsColor,styleOwnScale|styleArea|styleNoLabel,-0.1,100);
+Plot(IIf(SecondTF2,Taio2,-1e10),"TF2 Taio",Taio2_color,SecondTFstyle); 
+Plot(Taio,"TF1 Taio",Taio1_color,style1);
+if(Version()>=4.75 AND Shadows_switch)
+{
+PlotOHLC(0,Taio,0,Taio,"",IIf(Taio > 0,up_color1,dn_color1), styleCloud | styleClipMinMax, -Level, Level); 
+}
+
+Title = "Tradingbasis.com - Taio Indicator" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor() + "  - " + Date() +" - " +EncodeColor(LastValue(Taio1_color))+ "Taio = "+WriteVal(Taio,1.2)+ ", " +EncodeColor(LastValue(Taio2_color))+ "TF-Multiplier = "+WriteVal(Multiplier,1.0)+", " +"Taio 2nd time frame = "+WriteVal(Taio2,1.2)+" ";

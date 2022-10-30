@@ -1,0 +1,10 @@
+// DetrendedPrice.afl
+//
+LookBack = 20;
+dd = ( C - EMA( C, LookBack ) ) / EMA( C, LookBack );
+ee = EMA( dd, 3 );
+ff = EMA( ee, 5 );
+Plot( C, "C", colorRose, styleCandle );
+Plot( dd, "DeTrended", colorRed, styleLine | styleOwnScale );
+//Plot( ee, "DT Sm", colorBlue, styleLine | styleOwnScale );
+Plot( ff, "DT Db Sm", colorLime, styleLine | styleOwnScale );

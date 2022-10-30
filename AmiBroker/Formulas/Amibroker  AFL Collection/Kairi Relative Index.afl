@@ -1,0 +1,22 @@
+// Price - SMA over X periods divided by SMA over X periods
+// http://www.investopedia.com/articles/forex/09/kairi-relative-strength-index.asp
+/*
+The Kairi Relative Index is considered an oscillator as well as a leading indicator.
+The Index calculates a deviation of the current price from its simple moving average
+as a percentage of the moving average. By recognizing trending markets that are
+overextended, traders hope to capitalize on the downside.
+*/
+
+GraphXSpace = 5;
+SetChartOptions( 0, 0, 0 );
+
+function Kairi( array, period )
+{
+    return ( ( array - MA( array, period ) ) / MA( array, period ) ) * 100;
+}
+
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 14, 2, 300, 1, 10 );
+
+Plot( Kairi( P, Periods),	"KRI("+Periods +")", ParamColor( "Color", colorCycle ), ParamStyle("Style", styleLine, maskAll  ));
+PlotGrid( 0, colorBlack );

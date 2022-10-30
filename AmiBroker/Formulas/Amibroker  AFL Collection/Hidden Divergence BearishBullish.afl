@@ -1,0 +1,94 @@
+_SECTION_BEGIN("Hidden Divergence Bearish+Bullish");
+/* Detecting double tops */
+
+/////////////////////////////////////////////////////BEARISH HD /////////////////////////////////////////////////
+
+percdiff = 0.5; /* peak detection threshold */
+//fwdcheck = 5; /* forward validity check */
+//mindistance = 10;
+//validdiff = percdiff/400;
+PK= Peak( H, percdiff, 1 ) == High;
+
+x = Cum( 1 );
+XPK1 = Peak( H, percdiff, 1 ); 
+XPK2 = Peak( H, percdiff, 2 ); 
+
+//peakdiff = ValueWhen( PK, H, 1 )/ValueWhen( PK, H, 2 );
+//doubletop = PK AND abs( peakdiff - 1 ) < validdiff AND (XPK1 - XPK2)>mindistance AND High > HHV( Ref( H, fwdcheck ), fwdcheck - 1 );
+//Buy = doubletop;
+//Sell = 0;
+//Filter=Buy;
+//WriteIf( Highest( doubletop ) == 1, "AmiBroker has detected some possible
+//double top patterns for " + name() + "\nLook for green arrows on the price
+//chart.", "There are no double top patterns for " + name() );
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+periods = Param( "Periods", 8, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 3, 1, 200, 1 );
+XD=StochK(8,3);
+ZD=StochD(8,3,3);
+
+PKST= Peak( XD, 10, 1 ) == XD;
+
+
+
+PB2=PeakBars( H, percdiff, 2 );//BARS since Peak2
+XDP2=Ref(XD,-PB2);//value of Stoch(8,3) ,PB2 bars ago or at price Peak2
+
+PB1=PeakBars( H, percdiff, 1 );//BARS since Peak1
+XDP1=Ref(XD,-PB1);//value of Stoch(8,3), PB1 bars ago or at price Peak1
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////// BULLISH  HD  /////////////////////////////////////////////////////////////////////
+//percdiff = 0.11; /* peak detection threshold */
+//fwdcheck = 5; /* forward validity check */
+//mindistance = 10;
+//validdiff = percdiff/400;
+TR= Trough( L, percdiff, 1 ) == Low;
+
+x = Cum( 1 );
+XTR1 = Trough( L, percdiff, 1 ); 
+XTR2 = Trough( L, percdiff, 2 );
+
+TRST= Trough( XD, 10, 1 ) == XD;
+
+
+
+TB2=TroughBars( L, percdiff, 2 );//BARS since Trough2
+XDT2=Ref(XD,-TB2);//value of Stoch(8,3) ,TB2 bars ago or at price Trough2
+
+TB1=TroughBars( L, percdiff, 1 );//BARS since Trough1
+XDT1=Ref(XD,-TB1);//value of Stoch(8,3), TB1 bars ago or at price Trough1
+
+
+Buy=XTR1>=XTR2 AND XDT1<0.5*XDT2;
+Sell=XPK1<=XPK2 AND XDP1>1.2*XDP2;
+
+Filter=Sell OR Buy;
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+PK=(XPK1-XPK2)*100/XPK2;  //Price % diff betwwen P1  and P2
+TR=(XTR1-XTR2)*100/XTR2;  //Price % diff betwwen T1  and T2
+
+STP=(XDP1-XDP2)*100/XDP2; //Percent Stoch at P1 high over Stoch at  P2
+STT=(XDT1-XDT2)*100/XDT2; //Percent Stoch at T1 high over Stoch at  T2
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+AddColumn(IIf(Sell,XPK2,IIf(Buy,XTR2,0)) ,"P2/T2",1.2,colorWhite,IIf(Sell,colorRed,IIf(Buy,colorDarkGreen,colorBlue)));
+AddColumn(IIf(Sell,XPK1,IIf(Buy,XTR1,0)) ,"P1/T1",1.2,colorWhite,IIf(Sell,colorRed,IIf(Buy,colorDarkGreen,colorBlue)));
+AddColumn(IIf(Sell,XDP2,IIf(Buy,XDT2,0)) ,"StochP2/T2",1.2,colorWhite,IIf(Sell,colorRed,IIf(Buy,colorDarkGreen,colorBlue)));
+AddColumn(IIf(Sell,XDP1,IIf(Buy,XDT1,0)) ,"StochP1/T1",1.2,colorWhite,IIf(Sell,colorRed,IIf(Buy,colorDarkGreen,colorBlue)));
+
+AddColumn(IIf(Sell,PK,IIf(Buy,TR,0)) ,"PrDiff%",1.2,colorWhite,IIf(Sell,colorRed,IIf(Buy,colorDarkGreen,colorBlue)));
+AddColumn(IIf(Sell,STP,IIf(Buy,STT,0)) ,"StoDiff%",1.2,colorWhite,IIf(Sell,colorRed,IIf(Buy,colorDarkGreen,colorBlue)));
+AddColumn(IIf(Sell,PB2,IIf(Buy,TB2,0)) ,"BarsSinceP2/T2",1.2,colorWhite,IIf(Sell,colorRed,IIf(Buy,colorDarkGreen,colorBlue)));
+AddColumn(IIf(Sell,PB1,IIf(Buy,TB1,0)) ,"BarsSinceP1/T1",1.2,colorWhite,IIf(Sell,colorRed,IIf(Buy,colorDarkGreen,colorBlue)));
+
+//AddColumn(PPR,"P1/P2",1.2,colorWhite,IIf(PPR<1,colorDarkYellow,colorBlue));
+//AddColumn(STPH ,"Stoch%High",1.2,colorWhite,IIf(STPH>2,colorDarkRed,IIf(STPH>1.5,colorRed,IIf(STPH>1.1,colorDarkYellow,colorBlue))));
+
+//AddColumn(IN1, "IN1",1);
+
+_SECTION_END();

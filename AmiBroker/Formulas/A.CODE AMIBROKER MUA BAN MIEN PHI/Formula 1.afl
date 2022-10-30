@@ -1,0 +1,336 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("2 Day RSI filter");
+PositionQuan = Param("No. of Positions", 5, 1, 20, 1);
+SetOption("InitialEquity", 10000 );
+PositionSize = 10000/PositionQuan;
+MarketLiquidity = Param("Liquidity in Mill's", 0.3, 0.1, 10, 0.1) *1000000;
+
+BuyStartDate = ParamDate( "Buy Start Date", "2000-01-01" );
+EndDate = ParamDate( "Last Buy Date", "2020-01-01" );
+DateOK = IIf(DateNum() >= BuyStartDate AND DateNum() <= EndDate, 1, 0);
+LiqudityOK = MA(V, 20) * MA(C, 20) >= MarketLiquidity;
+
+
+RSIPeriod = Param("RSI Period", 7, 2, 10, 1);
+EntryRSI = Param("EntryRSI", 4, 4, 20, 2);
+
+Buy = Filter = RSI(RSIPeriod ) < EntryRSI AND LiqudityOK AND DateOK AND C > MA(C,150) ;
+
+Sell = RSI(RSIPeriod ) > 65;
+AddColumn(C, "Close");
+_SECTION_END();
+
+T=Max(Ref(H,-1),Ref(H,-2));
+M=Max(Ref(H,-2),Ref(H,-3));
+S=Max(T,M);
+p=Min(Ref(L,-1),Ref(L,-2));
+k=Min(Ref(L,-2),Ref(L,-3));
+r=Min(p,k);
+
+
+
+_SECTION_BEGIN("Price");
+
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+t1=DayOfWeek();
+n2=WriteIf(t1==1,"MONDAY",WriteIf(t1==2,"TUESDAY",WriteIf(t1==3,"WEDNESDAY",WriteIf(t1==4,"THURSDAY",WriteIf(t1==5,"FRIDAY","-")))));
+
+
+Plot( C, "Close", IIf (t1==2 , colorRed,IIf(t1==5,colorBlue,colorBlack)), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+BarColor = IIf (t1==2 , colorRed,colorBlack);
+
+//Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_BEGIN("Volume");
+Plot( Volume, _DEFAULT_NAME(), ParamColor("Color", colorBlueGrey ), ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick, maskHistogram ), 2 );
+_SECTION_END();
+
+H1=(Ref(H,-1));
+H2=(Ref(H,-2));
+H3=(Ref(H,-3)); 
+l1=(Ref(L,-1));
+l2=(Ref(L,-2));
+l3=(Ref(L,-3));
+
+J=C>(s+2.5);//UPTO200
+j1=C<(r-2.5);
+A=C>(S+3.75);//300 
+a1=C<(r-3.75);
+B=C>(S+5);//400 
+b1=C<(r-5);
+D=C>(S+6.25);//500 
+d1=C<(r-6.25);
+E=C>(S+7.5);//600 
+e1=C<(r-7.5);
+F=C>(S+8.75);//700 
+f1=C<(r-8.75);
+G=C>(S+10);//800 
+g1=C<(r-10);
+I=C>(S+11.25);// 900 
+i1=C<(r-11.25);
+N=C>(S+12.5);//1000 
+n1=C<(r-12.5);
+A2=C>(s+22);//1001 to 3000 
+a3=C<(r-22);
+B2=C>(S+37.5);//ABOVE3000(S+37.5); 
+b3=C<(r-37.5);
+
+
+
+//------------------------
+
+a4=s-1.75;//buystoploss upto 300
+b4=s-3.25;//stoploss upto 700
+C4=s-5.25;//stoploss upto 1300
+d4=s-10;// stoploss above 1300
+//----------------------
+
+
+
+
+
+
+a11=r+1.75;//sellstoploss upto300
+b11=r+3.25;//700
+C11=r+5.25;//1300
+d11=r+10;//above1300
+//-------------------------
+j5=(s+2.5); //buy upto200
+a5=(S+3.75);//upto300
+b5=(S+5);//400
+d5=(S+6.25);//500
+e5= (S+7.5);//600
+f5=(S+8.75);//700
+g5=(S+10);//800
+i5=(S+11.25);//900
+n5=(S+12.5);//1000
+a55=(s+22);//1000t03000
+b55=(S+37.5);//above 3000
+//__________________________________
+j6=(r-2.5);//sell upto 200
+a6=(r-3.75);//300
+b6=(r-5);//400
+d6=(r-6.25);//500
+e6=(r-7.5);//600
+f6=(r-8.75);//700
+g6=(r-10);//800
+i6=(r-11.25);//900
+n6=(r-12.5);//1000
+a66=(r-22);//1001 to 3000
+b66=(r-37.5);//above 3000
+//_______________________________________________________
+
+
+
+
+
+//Buy=IIf((C<200 AND C>1 AND J)OR(C>201 AND C<300 AND A)OR (C>301 AND C<400 AND B) OR (C>401 AND C<500 AND D)OR (C>501 AND C<600 AND E) OR (C>601 AND C<700 AND F)OR
+//(C>701 AND C<800 AND G)OR(C>801 AND C<900 AND I) OR (C>901 AND C<1000 AND N) OR (C>1001 AND C<3000 AND A2) OR (C>3001 AND B2),1,0) ;
+Buy=IIf((C<200 AND C>1 AND C>s AND C<s+3.5)OR(C>201 AND C<300 AND C>s AND C<s+5)OR (C>301 AND C<400 AND C>s AND C>s+7) OR (C>401 AND C<500 AND C>s AND C<8)OR 
+(C>501 AND C<600 AND C>s AND C<8.5) OR (C>601 AND C<700 AND C>s AND C<9.5)OR(C>701 AND C<800 AND C>s AND C<s+10.5)OR(C>801 AND C<900 AND C>s AND C<s+12) OR 
+(C>901 AND C<1000 AND C>s AND C<s+14) OR (C>1001 AND C<3000 AND C>s AND C<s+28) OR (C>3001 AND C>s AND C<s+45 ),1,0) ;//instant
+
+//Sell=IIf((C<200 AND C>1 AND j1)OR(C>201 AND C<300 AND a1)OR (C>301 AND C<400 AND b1) OR (C>401 AND C<500 AND d1)OR (C>501 AND C<600 AND e1) OR (C>601 AND C<700 AND f1)OR
+//(C>701 AND C<800 AND g1)OR(C>801 AND C<900 AND i1) OR (C>901 AND C<1000 AND a1) OR (C>1001 AND C<3000 AND a3) OR (C<3001 AND b3),1,0);
+
+Sell=IIf((C<200 AND C>1 AND C<r AND C>r-3.5) OR (C>201 AND C<300 AND C<r AND C>r-5)OR (C>301 AND C<400 AND C<r AND C>r-7) OR (C>3001 AND C>s AND C<s+45 )OR
+(C>501 AND C<600 AND C<r AND C>r-8.5)OR (C>601 AND C<700 AND C<r AND C>r-9.5)OR(C>701 AND C<800 AND C<r AND C>r-10.5)OR(C>801 AND C<900 AND C<r AND C>r-12) OR 
+(C>901 AND C<1000 AND C<r AND C>r-14)OR(C>1001 AND C<3000 AND C<r AND C>r-28) OR (C<3001 AND C>20000 AND C<r AND C>r-45),1,0);//instant
+PlotShapes(Buy*shapeUpArrow,colorGreen,0,Graph0);
+PlotShapes(Sell*shapeDownArrow,colorRed,0,Graph0);
+
+
+//1st tgt=b-sl/2nd 1.5*1st/3rd 2.25*1st //sell tgt 
+j12=(2*j5)-a4;//upto200
+a12=(2*a5)-a4;//300
+b12=(2*b5)-b4;//400
+d12=(2*d5)-b4;//500
+e12=(2*e5)-b4;//600
+f12=(2*f5)-b4;//700
+g12=(2*g5)-c4;//800
+i12=(2*i5)-C4;//900
+n12=(2*n5)-C4;//1000
+a121=(2*a55)-C4;//1100to1300 
+a122=(2*a55)-d4;//1300 to 3000
+b121=(2*b55)-d4;//above 3000
+//2ND TGT 
+j123=1.5*(j5-a4)+j5;//upto200
+a123=1.5*(a5-a4)+a5;//300
+b123=1.5*(b5-b4)+b5;//400
+d123=1.5*(d5-b4)+d5;//500
+e123=1.5*(e5-b4)+e5;//600
+f123=1.5*(f5-b4)+f5;//700
+g123=1.5*(g5-c4)+g5;//800
+i123=1.5*(i5-C4)+i5;//900
+n123=1.5*(n5-C4)+n5;//1000
+a1211=1.5*(a55-C4)+a55;//1100to1300 
+a1221=1.5*(a55-d4)+a55;//1300 to 3000
+b1211=1.5*(b55-d4)+b55;//above 3000
+
+//3RD
+j124=2.25*(j5-a4)+j5;//upto200
+a124=2.25*(a5-a4)+a5;//300
+b124=2.25*(b5-b4)+b5;//400
+d124=2.25*(d5-b4)+d5;//500
+e124=2.25*(e5-b4)+e5;//600
+f124=2.25*(f5-b4)+f5;//700
+g124=2.25*(g5-c4)+g5;//800
+i124=2.25*(i5-C4)+i5;//900
+n124=2.25*(n5-C4)+n5;//1000
+a1212=2.25*(a55-C4)+a55;//1000to1300 
+a1222=2.25*(a55-d4)+a55;//1300 to 3000
+b1212=2.25*(b55-d4)+b55;//above 3000
+
+//___________________________________________________________________________
+
+//Selling 1st tgt
+j7=2*j6-a11;//200
+a7=2*a6-a11;//300
+b7=2*b6-b11;//400
+d7=2*d6-b11;//500
+e7=2*e6-b11;//600
+f7=2*f6-b11;//700
+g7=2*g6-C11;//800
+i7=2*i6-C11;//900
+n7=2*n6-C11;//1000
+a77=2*a66-c11;//1000 t0 1300
+a771=2*a66-d11;//1300 t03000
+b77=2*b66-d11;//above 3000
+
+
+//2nd tgt 1.5*1st
+
+j27=1.5*(j6-a11)+j6;//200
+a27=1.5*(a6-a11)+a6;//300
+b27=1.5*(b6-b11)+b6;//400
+d27=1.5*(d6-b11)+d6;//500
+e27=1.5*(e6-b11)+e6;//600
+f27=1.5*(f6-b11)+f6;//700
+g27=1.5*(g6-C11)+g6;//800
+i27=1.5*(i6-C11)+i6;//900
+n27=1.5*(n6-C11)+n6;//1000
+a277=1.5*(a66-c11)+a66;//1000 t0 1300
+a2771=1.5*(a66-d11)+a66;//1300 t03000
+b277=1.5*(b66-d11)+b66;//above 3000
+
+//3rd tgt 2.25*1st
+
+j37=2.25*(j6-a11)+j6;//200
+a37=2.25*(a6-a11)+a6;//300
+b37=2.25*(b6-b11)+b6;//400
+d37=2.25*(d6-b11)+d6;//500
+e37=2.25*(e6-b11)+e6;//600
+f37=2.25*(f6-b11)+f6;//700
+g37=2.25*(g6-C11)+g6;//800
+i37=2.25*(i6-C11)+i6;//900
+n37=2.25*(n6-C11)+n6;//1000
+a377=2.25*(a66-c11)+a66;//1000 t0 1300
+a3771=2.25*(a66-d11)+a66;//1300 t03000
+b377=2.25*(b66-d11)+b66;//above 3000
+
+
+
+
+Title="\n DATE "+/*Date() +*/ WriteVal( DateTime(), formatDateTime )+ 
+
+
+
+
+EncodeColor(colorBlack) + " 0pen= "+O +
+EncodeColor(colorBlack) + " ,high= "+H+
+EncodeColor(colorBlack) + " ,low= "+L+
+EncodeColor(colorBlack) + " ,Close= "+C +"\n"+
+EncodeColor(colorRed) +"_________________________________________________________________________"+"\n"+
+
+
+
+
+EncodeColor( colorBlack ) + " high1 = "+H1+
+EncodeColor( colorBlack ) + " high2= "+H2+
+EncodeColor(colorBlack) + " high3= "+H3+
+EncodeColor(colorBlue) + " =HIGHESTHIGH "+S+"\n"+"\n"+
+
+
+EncodeColor(colorBlue) + " BUYABOVE = "+WriteVal(IIf(C<200 AND C>1 ,j5,IIf(C>201 AND C<300,a5,IIf(C>301 AND C<400 ,b5,IIf(C>401 AND C<500,d5,IIf(C>501 AND C<600,e5,
+IIf(C>601 AND C<700,f5,IIf(C>701 AND C<800,g5,IIf(C>801 AND C<900,i5,IIf(C>901 AND C<1000,n5,IIf(C>1001 AND C<3000,a55,IIf(C>3001,b55,0))))))))))),1.2)+
+
+
+EncodeColor(colorRed) + " ---------BUYINGSTOPLOSS = "+WriteVal(IIf(C>1 AND C<300,a4,IIf(C<700 AND C>300,b4,IIf(C>700 AND C<1300,C4,IIf(C>1300,d4,0)))),1.2)+"\n"+
+"\n"+
+
+
+EncodeColor(colorRed) + " 1ST TGT = "+WriteVal(IIf(C<200 AND C>1 ,j12,IIf(C>201 AND C<300,a12,IIf(C>301 AND C<400 ,b12,IIf(C>401 AND C<500,d12,IIf(C>501 AND C<600,e12,
+IIf(C>601 AND C<700,f12,IIf(C>701 AND C<800,g12,IIf(C>801 AND C<900,i12,IIf(C>901 AND C<1000,n12,IIf(C>1001 AND C<1300,a121,IIf(C>1300 AND C<3000,A121,IIf(C>3000,B121,0)))))))))))),1.2)+
+
+EncodeColor(colorGreen) + " 2ND TGT = "+WriteVal(IIf(C<200 AND C>1 ,j123,IIf(C>201 AND C<300,a123,IIf(C>301 AND C<400 ,b123,IIf(C>401 AND C<500,d123,IIf(C>501 AND C<600,e123,
+IIf(C>601 AND C<700,f123,IIf(C>701 AND C<800,g123,IIf(C>801 AND C<900,i123,IIf(C>901 AND C<1000,n123,IIf(C>1001 AND C<1300,a1211,IIf(C>1300 AND C<3000,A1211,IIf(C>3000,B1211,0)))))))))))),1.2)+
+
+EncodeColor(colorBlue) + " 3RD TGT = "+WriteVal(IIf(C<200 AND C>1 ,j124,IIf(C>201 AND C<300,a124,IIf(C>301 AND C<400 ,b124,IIf(C>401 AND C<500,d124,IIf(C>501 AND C<600,e124,
+IIf(C>601 AND C<700,f124,IIf(C>701 AND C<800,g124,IIf(C>801 AND C<900,i124,IIf(C>901 AND C<1000,n124,IIf(C>1001 AND C<1300,a1212,IIf(C>1300 AND C<3000,A1212,IIf(C>3000,B1212,0)))))))))))),1.2)+
+
+
+
+
+
+
+
+"\n"+
+EncodeColor(colorGreen) +"_________________________________________________________________________|"+"\n"+
+
+EncodeColor(colorBlack) +" low1= "+L1+
+EncodeColor(colorBlack) + " low2= "+L2 +
+EncodeColor(colorBlack) + " low3= "+L3
++EncodeColor(colorRed) + " =LOWESTLOW "+r+"\n"+"\n"+
+
+
+
+
+
+
+
+EncodeColor(colorRed) +" SELLBELOW = "+WriteVal(IIf(C<200 AND C>1 ,J6,IIf(C>201 AND C<300,A6,IIf(C>301 AND C<400,b6,IIf(C>401 AND C<500,d6,IIf(C>501 AND C<600,e6,
+IIf(C>601 AND C<700,f6,IIf(C>701 AND C<800,g6,IIf(C>801 AND C<900,i6,IIf(C>901 AND C<1000,n6,IIf(C>1001 AND C<3000,a66,IIf(C>3001,b66,0))))))))))),1.2)+
+EncodeColor(colorBlue) + " ---------SELLINGSTOPLOSS = "+WriteVal(IIf(C>1 AND C<300,a11,IIf(C<700 AND C>300,b11,IIf(C>700 AND C<1300,C11,IIf(C>1300,d11,0)))),1.2)+"\n"+
+"\n"+
+
+EncodeColor(colorRed) + " 1ST TGT = "+WriteVal(IIf(C<200 AND C>1 ,j7,IIf(C>201 AND C<300,a7,IIf(C>301 AND C<400 ,b7,IIf(C>401 AND C<500,d7,IIf(C>501 AND C<600,e7,
+IIf(C>601 AND C<700,f7,IIf(C>701 AND C<800,g7,IIf(C>801 AND C<900,i7,IIf(C>901 AND C<1000,n7,IIf(C>1001 AND C<1300,a77,IIf(C>1300 AND C<3000,A771,IIf(C>3000,B77,0)))))))))))),1.2)+
+
+EncodeColor(colorGreen) + " 2ND TGT = "+WriteVal(IIf(C<200 AND C>1 ,j27,IIf(C>201 AND C<300,a27,IIf(C>301 AND C<400 ,b27,IIf(C>401 AND C<500,d27,IIf(C>501 AND C<600,e27,
+IIf(C>601 AND C<700,f27,IIf(C>701 AND C<800,g27,IIf(C>801 AND C<900,i27,IIf(C>901 AND C<1000,n27,IIf(C>1001 AND C<1300,a277,IIf(C>1300 AND C<3000,A2771,IIf(C>3000,B277,0)))))))))))),1.2)+
+
+EncodeColor(colorBlue) + " 3RD TGT = "+WriteVal(IIf(C<200 AND C>1 ,j37,IIf(C>201 AND C<300,a37,IIf(C>301 AND C<400 ,b37,IIf(C>401 AND C<500,d37,IIf(C>501 AND C<600,e37,
+IIf(C>601 AND C<700,f37,IIf(C>701 AND C<800,g37,IIf(C>801 AND C<900,i37,IIf(C>901 AND C<1000,n37,IIf(C>1001 AND C<1300,a377,IIf(C>1300 AND C<3000,A3771,IIf(C>3000,B377,0)))))))))))),1.2)
+
+
+
+;
+
+_SECTION_END();
+
+_SECTION_BEGIN("Volume1");
+Plot( Volume, _DEFAULT_NAME(), ParamColor("Color", colorBlueGrey ), ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick, maskHistogram ), 2 );
+
+Plot(EMA(H,40),"high40",colorBlue);
+Plot(EMA(L,40),"low40",colorRed);
+
+
+function Lastthursday()
+{
+Daysinmonth=IIf(Month()==1 OR Month()==3 OR Month()==5 OR Month()==7 OR
+Month()==8 OR Month()==10 OR Month()==12,31,30);
+Daysinmonthfeb=IIf(Year()%4 == 0 AND Year()%100!=0,29,28);
+Daysinmonthfinal=IIf(Month()==2,Daysinmonthfeb,Daysinmonth);
+returnvalue=IIf(Daysinmonthfinal-Day()<7 AND DayOfWeek()==4,1,0);
+return returnvalue;
+}
+Graph0=Close;
+kth=shape=IIf(Lastthursday(),shapeSquare,shapeNone);
+
+
+PlotShapes(shape,colorYellow,0,Graph0,-24);
+_SECTION_END();

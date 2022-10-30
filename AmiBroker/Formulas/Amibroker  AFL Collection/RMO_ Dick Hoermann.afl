@@ -1,0 +1,49 @@
+
+
+//Then the top indicator, would be:
+
+_SECTION_BEGIN("RMO Sentiment 1 Indicator");
+#include <RMO code_include.AFL>;
+
+Plot(RMO,"SwTr1",colorBrightGreen,styleHistogram|styleThick);
+_SECTION_END();
+
+//The next indicator, the pink AND purple one, is
+
+_SECTION_BEGIN("RMO Sentiment 2&3 Indicator");
+
+#include <RMO Code_include.afl>;
+
+Plot(SwingTrd3,"SwTr3 -Long",ColorRGB(153,51,153),styleHistogram);
+Plot(SwingTrd2,"SwTr2 -Mid",colorPink,styleHistogram|styleThick);
+
+_SECTION_END();
+
+//AND finally, the price screen would be...
+
+_SECTION_BEGIN( "RMO Plots");
+
+#include <RMO Code_include.afl>;
+
+Plot(4, "", Ribbon_color, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+Plot(C,"",bar_color,1|styleBar| styleThick);
+PlotShapes( shape, IIf( BuyAlert ,ColorRGB(210,0,210), colorRed ),0, IIf( BuyAlert ,Low,High ) );
+GraphXSpace = 15;
+Buy = BuyAlert AND (Medium_Up_Trend + Bull_Trend) >=1;
+Sell = SellAlert AND (Medium_Down_Trend + Bear_Trend)>=1;
+Filter = Buy OR Sell;
+Result = WriteIf(Buy,"Buy","Sell");
+AddTextColumn( WriteIf(Buy,"Buy", "Sell" ) ,"TRADE",5,IIf(Buy,colorYellow, colorWhite), IIf(Buy, colorDarkGreen, colorDarkRed) );
+AddTextColumn(IndustryID(1) ,"     Industry Sector      ", 25.0, colorWhite, colorBlue);
+AddColumn( Close, "Close", 1.2, IIf( ROC(C, 1 ) >= 0, colorDarkGreen,colorRed ),50 );
+AddColumn(Ref(Close,-1),"Y-Close",1.2, IIf( ROC(Ref(C,-1),1)>=0,colorDarkGreen, colorRed ),50 );
+AddColumn( Volume, "Volume", 10.0, IIf( ROC(V, 1 ) >= 0,colorDarkGreen, colorRed ) );
+AddColumn( ROC( Close, 1 ), "ROC(1)", 1.2, IIf( ROC(C, 1 ) >= 0,colorDarkGreen, colorRed));
+AddColumn(IIf( Buy,66,IIf( Sell,83,32) ),"Hits",formatChar,colorWhite, bkcolor =IIf(Buy, colorGreen,IIf(Sell,colorRed, colorDefault) ));
+
+WriteIf(Medium_Up_Trend> 0,"Medium Trend is UP","Medium Trend is DOWN");
+WriteIf(BuyAlert,"Buy Alert - " +WriteIf(Bull_Trend,"and RMO is positive","BUT RMO is negative"),"");
+WriteIf(BuyAlert,"Best with Blue bar","");
+WriteIf(SellAlert,"Sell Alert - " +WriteIf(Bull_Trend,"and RMO is negative", "BUT RMO is positive"),"");
+WriteIf(SellAlert,"Best with Red bar","");
+_SECTION_END();

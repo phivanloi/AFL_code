@@ -1,0 +1,242 @@
+SetChartBkGradientFill( ParamColor("BgTop", ColorRGB( 172,172,172 )),
+
+ParamColor("BgBottom", ColorRGB( 172,172,172 )),ParamColor("titleblock",ColorRGB( 172,172,172 )));
+
+
+_SECTION_BEGIN("Fib_Levels");
+/*---------------------------------------------------
+   Automatic Fib Levels
+   Aron Pipa, December, 11, 2005
+--------------------------------------------------------*/
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+Plot(C,"", IIf(C>O,colorGreen,colorRed) , styleCandle);
+// Get values for fib levels
+
+StartBar=SelectedValue(BarIndex());
+FinishBar = EndValue( BarIndex() );
+i = startbar;
+period = FinishBar - StartBar;
+
+Lo =LLV(L,period);
+Hi = HHV(H,period);
+Line0 = 0;
+Line1 = 0;
+Line2 = 0;
+Line3 = 0;
+Line4= 0;
+Line100 = 0;
+
+for( i = startbar; i < finishbar; i++ )
+{
+if(EndValue(C)<SelectedValue(C))
+{
+Line0  = EndValue(Lo);
+Line100 = EndValue(Hi);
+Line1 = Line0 + abs(Line100-Line0)*0.236;
+Line2 = Line0 + abs(Line100-Line0)*0.382;
+Line3 = Line0 + abs(Line100-Line0)*0.5;
+Line4 = Line0 + abs(Line100-Line0)*0.618;
+
+}
+else
+{
+Line100  = EndValue(Lo);
+Line0 = EndValue(Hi);
+Line1 =Line0 - abs(Line100-Line0)*0.236;
+Line2 = Line0 - abs(Line100-Line0)*0.382;
+Line3 = Line0 - abs(Line100-Line0)*0.5;
+Line4 = Line0 - abs(Line100-Line0)*0.618;
+
+}
+}
+
+// external fib lines begining fom selecetdbarindex()
+fib0= LineArray(startbar, Line0, finishbar, Line0, 0, 1);
+fib100 = LineArray(startbar, Line100, finishbar, Line100, 0, 1);
+
+// depth of middle lines
+n= round((finishbar-startbar)/2);
+
+// middle lines
+fib1= LineArray((finishbar-n), Line1, finishbar, Line1, 0, 1);
+fib2= LineArray((finishbar-n), Line2, finishbar, Line2, 0, 1);
+fib3= LineArray((finishbar-n), Line3, finishbar, Line3, 0, 1);
+fib4= LineArray((finishbar-n), Line4, finishbar, Line4, 0, 1);
+
+Plot(fib0,"", colorGreen);
+Plot(fib100,"", colorRed);
+Plot(fib1,"", colorYellow, styleDashed);
+Plot(fib2,"", colorPink);
+Plot(fib3,"", colorOrange);
+Plot(fib4,"", colorLightBlue);
+
+Title = Name() + " -  FIB LEVELS ";
+_SECTION_END();
+_SECTION_BEGIN("Auto_Analysis_Short-term_Reversals_Explo");
+//------------------------------------------------------------------------------
+//
+//  Formula Name:    Auto Analysis Short-term Reversals Exploration
+//  Author/Uploader: Larry Lovrencic 
+//  E-mail:          lvl@firstpacific.net
+//  Date/Time Added: 2001-09-09 20:35:25
+//  Origin:          
+//  Keywords:        short term reversals closing price hook island gap
+//  Level:           basic
+//  Flags:           exploration
+//  Formula URL:     http://www.amibroker.com/library/formula.php?id=118
+//  Details URL:     http://www.amibroker.com/library/detail.php?id=118
+//
+//------------------------------------------------------------------------------
+//
+//  Find Short Term Reversals - Closing Price, Hook, Island, Key, Open-Close
+//  and Pivot Point Reversals using automatic analysis
+//
+//------------------------------------------------------------------------------
+
+//NumColumns =4;
+
+
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} 
+Open %g, Hi %g, Lo %g, Close %g (%.1f%%) 
+Vol " +WriteVal( V, 1.0 ) +"  >> KEY REVERSALS << ", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+
+Plot(C,"",colorBlack,styleBar);
+
+/*Closing Price Reversals Automatic Analysis
+by Larry Lovrencic*/
+CPRbuy=O<(L+0.2*(H-L)) AND C>(H-0.2*(H-L)) AND H<Ref(H,-1) AND L<Ref(L,-1) AND C>Ref(C,-1);
+CPRsell=O>(L+0.8*(H-L)) AND C<(H-0.8*(H-L)) AND H>Ref(H,-1) AND L>Ref(L,-1) AND C<Ref(C,-1);
+/*Hook Reversals Automatic Analysis
+by Larry Lovrencic*/
+
+HRbuy=O<(L+0.2*(H-L)) AND C>(H-0.2*(H-L)) AND H<Ref(H,-1) AND L>Ref(L,-1);
+HRsell=O>(L+0.8*(H-L)) AND C<(H-0.8*(H-L)) AND H<Ref(H,-1) AND L>Ref(L,-1);
+/*Island Reversals Automatic Analysis
+by Larry Lovrencic*/
+
+IRbuy=Ref(L,-2)>Ref(H,-1) AND L>Ref(H,-1); 
+IRsell=Ref(H,-2)<Ref(L,-1) AND H<Ref(L,-1);
+
+/*Key Reversals Automatic Analysis
+by Larry Lovrencic*/
+
+KRbuy=O<Ref(C,-1) AND L<Ref(L,-1) AND C>Ref(H,-1);
+KRsell=O>Ref(C,-1) AND H>Ref(H,-1) AND C<Ref(L,-1);
+
+/*Open/Close Reversals Automatic Analysis
+by Larry Lovrencic*/
+
+OCRbuy=O<(L+0.2*(H-L)) AND C>(H-0.2*(H-L)) AND H<Ref(H,-1) AND L<Ref(L,-1) AND C<Ref(C,-1);
+OCRsell=O>(L+0.8*(H-L)) AND C<(H-0.8*(H-L)) AND H>Ref(H,-1) AND L>Ref(L,-1) AND C>Ref(C,-1);
+/*Pivot Point Reversals Automatic Analysis
+by Larry Lovrencic*/
+
+PPRbuy=Ref(L,-1)<Ref(L,-2) AND Ref(L,-1)<L AND C>Ref(H,-1);
+PPRsell=Ref(H,-1)>Ref(H,-2) AND Ref(H,-1)>H AND C<Ref(L,-1);
+
+Buy=Cover=CPRbuy OR HRbuy OR IRbuy OR KRbuy OR OCRbuy OR PPRbuy;
+Sell=Short=CPRsell OR HRsell OR IRsell OR KRsell OR OCRsell OR PPRsell;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); Short=ExRem(Short,Cover); Cover=ExRem(Cover,Short);
+PlotShapes(shapeSmallCircle *Buy ,colorBlue,0,L,5);
+PlotShapes(shapeSmallCircle * Sell,colorWhite,0,H,5);
+
+Filter= CPRbuy OR CPRsell OR HRbuy OR HRsell OR IRbuy OR IRsell OR KRbuy OR KRsell OR OCRbuy OR OCRsell OR PPRbuy OR PPRsell;
+Filter=Buy OR Sell OR Short OR Cover;
+
+AddTextColumn(FullName(),"Name");
+AddColumn(Buy,"Buy");
+AddColumn(Sell,"sell");
+_SECTION_END();
+_SECTION_BEGIN("_Automatic Fib Levels");
+ /*--------------------------------------------------- 
+Automatic Fib Levels 
+Aron Pipa, December, 11, 2005 
+modified by Kook 30 December 2005 
+--------------------------------------------------------*/ 
+
+GraphXSpace=2; 
+Plot(C,"", colorWhite,styleBar); 
+
+// Get values for fib levels 
+
+StartBar=SelectedValue(BarIndex()); 
+FinishBar = EndValue( BarIndex() ); 
+i = startbar; 
+period = FinishBar - StartBar; 
+
+Lo =LLV(L,period); 
+Hi = HHV(H,period); 
+Line0 = 0; 
+Line1 = 0; 
+Line2 = 0; 
+Line3 = 0; 
+Line4 = 0; 
+Line5 = 0; 
+Line6 = 0; 
+Line100 = 0; 
+
+for( i = startbar; i < finishbar; i++ ) 
+{ 
+if(EndValue(C)<SelectedValue(C)) 
+{ 
+Line0 = EndValue(Lo); 
+Line100 = EndValue(Hi); 
+Line1 = Line0 + abs(Line100-Line0)*0.382; 
+Line2 = Line0 + abs(Line100-Line0)*0.5; 
+Line3 = Line0 + abs(Line100-Line0)*0.618; 
+Line4 = Line0 + abs(Line100-Line0)*0.786; 
+Line5 = Line0 + abs(Line100-Line0)*1.618; 
+Line6 = Line0 + abs(Line100-Line0)*2.618; 
+
+} 
+else 
+{ 
+Line100 = EndValue(Lo); 
+Line0 = EndValue(Hi); 
+Line1 =Line0 - abs(Line100-Line0)*0.382; 
+Line2 = Line0 - abs(Line100-Line0)*0.5; 
+Line3 = Line0 - abs(Line100-Line0)*0.618; 
+Line4 = Line0 - abs(Line100-Line0)*0.786; 
+Line5 = Line0 - abs(Line100-Line0)*1.618; 
+Line6 = Line0 - abs(Line100-Line0)*2.618; 
+
+} 
+} 
+
+// external fib lines begining fom selecetdbarindex() 
+fib0= LineArray(startbar, Line0, finishbar, Line0, 0, 1); 
+fib100 = LineArray(startbar, Line100, finishbar, Line100, 0, 1); 
+
+// depth of middle lines 
+n= round((finishbar-startbar)/2); 
+
+// middle lines 
+fib1= LineArray((finishbar-n), Line1, finishbar, Line1, 0, 1); 
+fib2= LineArray((finishbar-n), Line2, finishbar, Line2, 0, 1); 
+fib3= LineArray((finishbar-n), Line3, finishbar, Line3, 0, 1); 
+fib4= LineArray((finishbar-n), Line4, finishbar, Line4, 0, 1); 
+fib5= LineArray((finishbar-n), Line5, finishbar, Line5, 0, 1); 
+fib6= LineArray((finishbar-n), Line6, finishbar, Line6, 0, 1); 
+
+
+Plot(fib0,"", colorWhite, styleDashed, styleThick); 
+Plot(fib100,"", colorRed, styleDashed, styleThick); 
+Plot(fib1,"38.6%=", colorOrange); 
+Plot(fib2,"50%=", colorPink); 
+Plot(fib3,"61.8%=", colorPaleGreen); 
+Plot(fib4,"78.6%=", colorYellow); 
+Plot(fib5,"161.8%=", colorSkyblue); 
+//Plot(fib6,"", colorPink); 
+
+
+
+Title = Name() + " - Auto FIB LEVELS " 
++"\n"+EncodeColor(colorOrange)+"38.6% = "+line1 
++"\n"+EncodeColor(colorPink)+"50% = "+line2 
++"\n"+EncodeColor(colorPaleGreen)+"61.8% = "+line3 
++"\n"+EncodeColor(colorYellow)+"78.6% = "+line4 
++"\n"+EncodeColor(colorSkyblue)+"161.8%= "+line5 
++"\n " 
+;
+_SECTION_END();

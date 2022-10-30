@@ -1,0 +1,21 @@
+ttf6 = IIf(Ref(L,-2)==LLV(L,5),-1,0);
+ttf8 = IIf(LLVBars(L,5)<2 AND Ref(L,-2)==LLV(L,5),1,0);
+ttf10 = Ttf6 + TtF8;
+
+ttf5 = IIf(Ref(H,-2)==HHV(H,5),1,0);
+ttf7 = IIf(HHVBars(H,5)<2 AND Ref(H,-2)==HHV(H,5),-1,0);
+ttf9 = ttf5 + ttf7;
+
+arrow = ttf9+ttf10;
+hfk = HighestSinceBars(arrow==1,High,1);
+lfk = LowestSinceBars(arrow==-1,Low,2);
+lf = LowestSinceBars(arrow==-1,Low,1);
+hf = HighestSinceBars(arrow==1,High,2);
+ls = IIf(arrow == -1 AND hfk < lfk,-1,0);
+Hs = IIf(arrow == 1 AND lf < hf,1,0);
+
+Lows = IIf(L < ValueWhen(ls = -1,Ref(L,-2),1) AND H < ValueWhen(hs == 1,Ref(H,-2),1), -1,0);
+hb = IIf(H > ValueWhen(hs == 1,Ref(H,-2),1) AND L > ValueWhen(ls == -1,Ref(L,-2),1),1,0);
+
+Plot(Lows, "", 4);
+Plot(Hb, "",5);

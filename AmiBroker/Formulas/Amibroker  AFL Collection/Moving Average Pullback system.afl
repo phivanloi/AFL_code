@@ -1,0 +1,18 @@
+// Moving Average Pullback system
+RisingCloses = LLV( Close, 5 ) > Ref( HHV( Close, 20 ), -20 );
+PMA = MA( Close, 30 );
+NotBelowPullbackMA = Sum( Close < PMA, 30 ) == 0;
+CloseToPullbackMA = ( Close - PMA ) < 0.015 * Close;
+// setup conditions for next day buy stop order
+Setup = RisingCloses AND NotBelowPullbackMA AND CloseToPullbackMA;
+TriggerPrice = Ref( High, -1 );
+// buy only if stock opens higher than yesterdays high
+Buy = Ref( Setup, -1 ) AND High >  TriggerPrice;
+BuyPrice = Max( Open, TriggerPrice );
+Sell = False; // sell only via N-bar stop
+// time-based stop (for backtesting)
+ApplyStop( stopTypeNBar, stopModeBars, 5 );
+SetTradeDelays( 0, 0, 0, 0 );
+// no more than 3 simultaneous positions open
+SetOption("MaxOpenPositions", 3 );
+PositionSize = -33; // 3% of capital in single security

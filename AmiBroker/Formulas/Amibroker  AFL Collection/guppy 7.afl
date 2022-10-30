@@ -1,0 +1,42 @@
+_SECTION_BEGIN("guppy");
+e3 = EMA(Close,3); 
+e5 = EMA(Close,5);
+e8 = EMA(Close,8);
+e10 = EMA(Close,10);
+e12 = EMA(Close,12); 
+e15 = EMA(Close,15);
+
+e30 = EMA(Close,30);
+e35 = EMA(Close,35);
+e40 = EMA(Close,40); 
+e45 = EMA(Close,45);
+e50 = EMA(Close,50);
+e55 = EMA(Close,55);
+e60 = EMA(Close,60);
+Buy_guppy = e3>e45;
+Sell_guppy = e45 > e3;
+//Buy_guppy = ExRem (Buy_guppy,Sell_guppy);
+//Sell_guppy = ExRem(Sell_guppy,Buy_guppy);
+//PlotShapes(Buy_guppy*shapeUpTriangle, colorYellow);
+//PlotShapes(Sell_guppy*shapeDownTriangle,colorYellow);
+Col_e3 = IIf (e3 > Ref(e3,-1),colorAqua,colorBlue);
+Col_e5 = IIf (e5 > Ref(e5,-1),colorAqua,colorBlue);
+Col_e8 = IIf (e8 > Ref(e8,-1),colorAqua,colorBlue);
+Col_e10=IIf (e10 >Ref(e10,-1),colorAqua,colorBlue);
+Plot (C,"",colorWhite,styleLine);
+Plot (e3,"",col_e3,styleThick);
+Plot (e5,"",col_e5,styleThick);
+Plot (e8,"",col_e8,styleThick);
+Plot (e10,"",col_e10,styleThick);
+Plot (e12,"",colorBlue,styleNoLabel);
+Plot (e15,"",colorBlue,styleNoLabel);
+
+Plot (e30,"",colorYellow,styleNoLabel+styleThick);
+Plot (e35,"",colorRed,styleNoLabel+styleThick);
+Plot (e40,"",colorRed,styleNoLabel+styleThick);
+Plot (e45,"",colorRed,styleNoLabel+styleThick);
+Plot (e50,"",colorRed,styleNoLabel+styleThick);
+Plot (e55,"",colorRed,styleNoLabel+styleThick);
+Plot (e60,"",colorRed,styleNoLabel+styleThick);
+
+_SECTION_END();

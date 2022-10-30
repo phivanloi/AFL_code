@@ -1,0 +1,24 @@
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+/////////////
+_SECTION_BEGIN("plot vertical lines");
+ValueY = LowestVisibleValue(L);
+function DrawSeries( start, series, Color )
+{
+ x = BarsSince( start );
+ result = 0;
+ for( i = 0; ( bar = StrToNum( StrExtract( series, i ) ) ) != 0; i++ )
+ {
+  result += x == bar;
+  ValueX = SelectedValue(BarIndex()+0)+bar;
+  PlotText(""+bar,ValueX,ValueY,Color );
+ }
+ Plot( result, "", Color, styleHistogram|styleOwnScale|styleNoLabel|styleDashed , 0,1 );
+}
+verticallines = "-26,26";
+bi = BarIndex();
+start = bi == SelectedValue( bi-1 );
+DrawSeries( start, verticallines, ParamColor( "Line", colorRed)  );
+DrawSeries( bi == SelectedValue( bi-51 ), verticallines, ParamColor( "Line", colorRed)  );
+_SECTION_END();

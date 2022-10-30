@@ -1,0 +1,62 @@
+PosQty = 1000; // You can define here how many open positions you want
+SetOption("MaxOpenPositions", PosQty);
+//PositionSize = 1000/PosQty; // invest 100% of portfolio equity divided by Max. position count
+SetPositionSize( 1, spsShares ); 
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Range Constriction
+// Finds stocks that are trading in a reduced range compared to previous period.
+// Buys when in the reduced range at a recent high price, Shorts when in the reducred range at a recent low price.
+// Sells when the stock slows or it makes a sharp move up, Covers when the stock rises or makes a sharp move down
+
+
+H5 = HHV(H,5); L5 = LLV(L,5);
+H10 = HHV(H,10); L10 = LLV(L,10);
+H20 = HHV(H,20); L20 = LLV(L,20);
+H30 = HHV(H,30); L30 = LLV(L,30);
+
+Range1 = H5-L5 < (Ref(H5,-5)-Ref(L5,-5))*0.5;
+Range2 = H10-L10 < (Ref(H10,-10)-Ref(L10,-10))*0.5;
+Range3 = H20-L20 < (Ref(H20,-20)-Ref(L20,-20))*0.5;
+Range4 = H30-L30 < (Ref(H30,-30)-Ref(L30,-30))*0.5;
+
+Consolidation = Ref(Range1,-1) OR Ref(range2,-1) OR Ref(range3,-1) OR Ref(range4,-1) ;
+
+Top = C == HHV(C,5);
+Bottom = C == LLV(C,5);
+
+
+Buy = top AND Consolidation AND C>1  AND C*MA(V,30)>10000000 AND V>1000000 AND C>Ref(C,-1)*1.015  
+AND C>O AND C>MA(C,50) AND C>LLV(C,200)*2 AND Trix(12)>0;
+
+Sell = C<MA(C,5) AND NOT Buy OR C>MA(C,10)*1.25 AND NOT Buy OR RSI(2)>95 AND NOT Buy;
+InLong = Flip(Buy, Sell);
+
+Short = bottom AND Consolidation  AND C>5  AND V>1000000 AND C*MA(V,30)>10000000 AND C<O 
+AND C<HHV(C,200)*0.5 AND Trix(9)<0;
+
+Cover = C>MA(C,5) AND NOT Short OR C<MA(C,10)*0.75 AND NOT Short  OR RSI(2)<5 AND NOT Short;
+Inshort = Flip(Short, Cover);
+
+   // METHOD END
+
+NewLong = Buy;
+NewShort = Short;
+
+Any =  Newlong + newshort + inlong + inshort; 
+Short = ExRem(Short,Cover);
+Buy=ExRem(Buy,Sell);
+
+Sell = ExRem(Sell,Buy) ;
+Cover = ExRem(Cover, Short);
+
+bColorDefault = colorLightGrey;
+
+
+//Filter = 1;
+Filter = any!=0 ;
+
+AddColumn( Close, "Close", 1.2 );
+AddTextColumn( FullName(), "IB Symbol,IB Exchange,IB Currency");
+AddColumn(IIf(Sell, -99, (IIf(Cover, 99,(IIf(Buy>0, 1,(IIf(Short>0, -1,0))))))),"Buy/Sell",1.0);

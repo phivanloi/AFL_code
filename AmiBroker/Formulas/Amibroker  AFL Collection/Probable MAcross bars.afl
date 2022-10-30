@@ -1,0 +1,27 @@
+// Probable MAcross bars
+//http://finance.groups.yahoo.com/group/amibroker/message/44790
+
+p=20;MAp=MA(C,p);
+k=30;MAk=MA(C,k);
+y=p*MA(C,p)-(p-1)*Ref(MA(C,p-1),-1);
+tClose=(p*(k-1)*MA(C,k-1)-k*(p-1)*MA(C,p-1))/(k-p);
+DescCrossPrediction=Cross(tClose,C);
+AscCrossPrediction=Cross(C,tClose);
+ExpectMAcross=DescCrossPrediction OR AscCrossPrediction;
+Confirmed=Cross(MAk,MAp) OR Cross(MAp,MAk);
+UR=2*Highest(ROC(C,1));LR=2*Lowest(ROC(C,1));
+Ucoeff=1+UR/100;Lcoeff=1+LR/100;
+Filter=tClose<Lcoeff*C OR tClose>Ucoeff*C;
+AddColumn(MAp,"MAp");
+AddColumn(MAk,"MAk");
+Plot(C,"",7*Filter+1,64); //No. '64' designates price chart as candle
+Plot(MAp,"",4,1); //Red MA - The No. '4' designates the red color & No. '1' 
+Plot(MAk,"",5,1); //Green MA - - The No. '4' designates the red color & No. '1'
+bars=BarsSince(Cross(MAp,MAk) OR Cross(MAk,MAp));
+expect=NOT(Filter);
+Title=Name()+" , "+
+WriteIf(expect AND NOT(expectMAcross) AND NOT(Confirmed) AND bars>3 AND tClose<C,"EXPECT a bearish MAcross SOON","")+
+WriteIf(expect AND NOT(expectMAcross) AND NOT(Confirmed) AND bars>3 AND tClose>C,"EXPECT a bullish MAcross SOON","")+
+WriteIf(DescCrossPrediction,"EXPECT a bearish MAcross TOMORROW","")+
+WriteIf(AscCrossPrediction,"EXPECT a bullish MAcross TOMORROW","")+
+WriteIf(Confirmed,"MAcross","");

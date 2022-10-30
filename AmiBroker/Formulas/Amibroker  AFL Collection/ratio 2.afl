@@ -1,0 +1,8 @@
+_SECTION_BEGIN("NIFTY-BANKNIFTY SPREAD");
+
+a1 = Foreign( "BANKNIFTY", "c",1);
+b1 = Foreign( "S&PCNXNIFTY", "C",1);
+
+Plot(a1/B1,"INFY/TCS",colorBlue,styleLine|styleOwnScale);
+
+_SECTION_END();

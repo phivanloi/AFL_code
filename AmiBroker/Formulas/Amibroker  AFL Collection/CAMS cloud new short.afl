@@ -1,0 +1,54 @@
+_SECTION_BEGIN("price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorPink ), styleNoTitle | styleCandle|styleNoLabel ); 
+_SECTION_END();
+
+
+_SECTION_BEGIN("CAMS Cloud new short");
+Show_Prev = ParamToggle( "Display Pivots", "No|Yes", 1);
+// Get Previous Day's close, Low and High
+DayC=Prev_Close = TimeFrameGetPrice( "C", inDaily, -1, expandFirst) ;
+DayL=Prev_Low = TimeFrameGetPrice( "L", inDaily, -1, expandFirst) ;
+DayH=Prev_High = TimeFrameGetPrice( "H", inDaily, -1, expandFirst) ;
+Today = LastValue(Day( ) );
+P = (Prev_High + Prev_Low + Prev_Close)/ 3;
+
+
+R6 = (DayH / DayL) * DayC * 1.002;
+R5 = (DayH / DayL) * DayC;
+R4 = (((DayH / DayL) + 0.83) / 1.83) * DayC;
+R3 = ( ( (DayH / DayL) + 2.66) / 3.66) * DayC;
+
+R3 = ( ( (DayH / DayL) + 2.66) / 3.66) * DayC;
+//R2 = ( ( (DayH / DayL) + 4.5) / 5.5) * DayC;
+//R1 = ( ( (DayH / DayL) + 10) / 11) * DayC;
+ 
+//S1 = (2- ( ( (DayH / DayL) + 10) / 11)) * DayC;
+//S2 = (2-( (DayH / DayL) + 4.5) / 5.5) * DayC;
+S3 = (2-(( DayH / DayL) + 2.66) / 3.66) * DayC;
+S4 = (2-( (DayH / DayL) + 0.83) / 1.83) * DayC;
+S5 = (2-( DayH / DayL)) * DayC;
+S6 = (2-( DayH / DayL)) * DayC * 0.998;
+
+
+
+if(Show_Prev)
+{
+
+///////////////////////////////////// CAMS ///////////////////////////////////////
+XR3=(IIf(Today == Day(),R3, Null));
+XR4=(IIf(Today == Day(),R4, Null));
+
+
+XS3=(IIf(Today == Day(),S3, Null));
+XS4=(IIf(Today == Day(),S4, Null));
+
+
+
+PlotOHLC(XS3,XS3,XS4,XS4,"",ColorRGB(10,80,30),styleCloud);
+PlotOHLC(XR4,XR4,XR3,XR3,"",ColorRGB(80,10,30),styleCloud);
+}
+
+
+_SECTION_END();

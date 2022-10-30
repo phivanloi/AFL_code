@@ -1,0 +1,10 @@
+Buy = 	High > Ref( High , -1 )
+	AND Low > Ref( Low , -1 )
+	AND Volume > Ref( Volume , -1 )
+	AND MA(  Close , 3 ) > MA(  Close , 5 );
+
+Sell = 	High < Ref( High , -1 )
+	AND Low < Ref( Low , -1 )
+	AND Volume > Ref( Volume , -1 )
+	AND MA(  Close , 3 ) < MA(  Close , 5 );
+

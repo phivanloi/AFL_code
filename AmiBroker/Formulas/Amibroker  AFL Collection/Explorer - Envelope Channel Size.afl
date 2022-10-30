@@ -1,0 +1,19 @@
+//Autoenvelope Channel
+EMAP = Param("Base EMA",22,1,100,1);
+Factor = Param("Factor",27,1,50,1);
+Age = EMA(C,EMAP);
+csize = StDev(2*Max(abs(H-Age) ,abs(L-Age)) / Age,100)*Factor/10; 
+//{Use 100 days for stable channel size - default is 2.7 std}
+Csize1 = ValueWhen(DayOfWeek()<Ref(DayOfWeek() ,-1) OR (DayOfWeek()==Ref(DayOfWeek(),-1) AND Day() != Ref(Day(),-1)),Ref(csize,-1),1);
+//{ This pegs the StDev to last bar of week  AND only changes once per week}
+csize2 = LastValue(csize1);
+//{fix to constant using last value}
+channel=csize2*Age;
+
+perCent = 100*  (CHANNEL/ Age) > 20;
+channell = CHANNEL > 5;
+
+Filter = perCent AND channell;
+
+AddColumn(C, "Close", 12.2, IIf(ROC(C,1) > 0, colorGreen, colorRed));
+AddColumn(V, "Volume", 14.0 );

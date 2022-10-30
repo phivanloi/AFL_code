@@ -1,0 +1,36 @@
+_SECTION_BEGIN("Linkon's RSI"); 
+
+period = 14;
+StoRSI =EMA(100*( ( RSI( period ) - LLV( RSI( period ) , period ) ) / ( ( HHV( RSI( period ) , period ) ) - LLV(RSI( period ), period ) ) ),3);
+PlotOHLC(StoRSI,StoRSI+.5,StoRSI-.5,StoRSI,"stoRSI",colorWhite,styleCloud);
+Plot(80,"",colorGrey40);
+Plot(20,"",colorGrey40);
+Plot(50,"",colorGrey40); 
+
+bbtop = BBandTop(storsi,5,0.5);
+bbbot = BBandBot(storsi,5,0.5);
+//Plot( EMA(StoRSI,2) , "", colorBlue,styleNoLabel);
+//Plot( EMA(StoRSI,3) , "", colorBlue,styleNoLabel);
+//Plot( EMA(StoRSI,4) , "", colorBlue,styleNoLabel);
+//Plot( EMA(StoRSI,5) , "", colorBlue,styleNoLabel);
+
+Plot( EMA(StoRSI,8) , "", IIf(EMA(StoRSI,8) > Ref(EMA(StoRSI,8),-1),colorGreen,colorRed),styleNoLabel);
+Plot( EMA(StoRSI,9) , "", IIf(EMA(StoRSI,9) > Ref(EMA(StoRSI,9),-1),colorGreen,colorRed),styleNoLabel);
+Plot( EMA(StoRSI,10) , "", IIf(EMA(StoRSI,10) > Ref(EMA(StoRSI,10),-1),colorGreen,colorRed),styleNoLabel);
+Plot( EMA(StoRSI,11) , "", IIf(EMA(StoRSI,11) > Ref(EMA(StoRSI,11),-1),colorGreen,colorRed),styleNoLabel);
+Plot( EMA(StoRSI,12) , "", IIf(EMA(StoRSI,12) > Ref(EMA(StoRSI,12),-1),colorGreen,colorRed),styleNoLabel);
+Plot( EMA(StoRSI,13) , "", IIf(EMA(StoRSI,13) > Ref(EMA(StoRSI,13),-1),colorGreen,colorRed),styleNoLabel);
+Plot( EMA(StoRSI,14) , "", IIf(EMA(StoRSI,14) > Ref(EMA(StoRSI,14),-1),colorGreen,colorRed),styleNoLabel);
+Plot( EMA(StoRSI,15) , "", IIf(EMA(StoRSI,15) > Ref(EMA(StoRSI,15),-1),colorGreen,colorRed),styleNoLabel);
+Plot( EMA(StoRSI,16) , "", IIf(EMA(StoRSI,16) > Ref(EMA(StoRSI,16),-1),colorGreen,colorRed),styleNoLabel);
+Plot( EMA(StoRSI,17) , "", IIf(EMA(StoRSI,17) > Ref(EMA(StoRSI,17),-1),colorGreen,colorRed),styleNoLabel);
+Plot( EMA(StoRSI,18) , "", IIf(EMA(StoRSI,18) > Ref(EMA(StoRSI,18),-1),colorGreen,colorRed),styleNoLabel);
+Plot( EMA(StoRSI,19) , "", IIf(EMA(StoRSI,19) > Ref(EMA(StoRSI,19),-1),colorGreen,colorRed),styleNoLabel);
+Plot( EMA(StoRSI,20) , "", IIf(EMA(StoRSI,20) > Ref(EMA(StoRSI,20),-1),colorGreen,colorRed),styleNoLabel);
+
+Buy = Cross(StoRSI,EMA(StoRSI,5));
+Sell = Cross(EMA(StoRSI,5),StoRSI);
+
+//PlotShapes(shapeUpTriangle*Buy,colorYellow);
+//PlotShapes(shapeDownTriangle*Sell,colorYellow);
+_SECTION_END();

@@ -1,0 +1,60 @@
+Version(6.17);  //Code is Compatible with 6.17 and Higher
+
+
+TelegramAlerts = ParamTrigger("Telegram Alert","Send Alert"); // Button in Parameters window
+TelegramAPI_ID = ParamStr("Telegram Bot API Key","1200942736:AAEG8y9qyJ7aHefUm4vt_xKqkNBxfKd3qCc");  //Get the Bot API key via BotFather in Telgram
+TelgramCHAT_ID = ParamStr("Telegram Channel ID","@Victor_AlgoTrading");  //Channel ID example : @marketcalls_in
+
+
+if (TelegramAlerts) 
+{
+	exportPath = "C:\\Program Files\\AmiBroker\\ExportedImages\\"; // export path for chart image
+	fmkdir( exportPath ); // Create the path if it does not exists
+		AB = CreateObject("Broker.Application");
+		AW = AB.ActiveWindow;
+		AW.ExportImage( exportPath + Name()+" "+ Now(1)+".png"); //Export image with name XYZ dd/mm/yy.png
+	
+	//Image
+	My_exported_image = exportPath + Name()+" "+ Now(1)+".png";// Path to exported image
+	
+	my_test_image =fopen("C:\\Program Files\\AmiBroker\\ExportedImages\\Screenshot_5.png","rb"); // full path for testing
+	
+	
+	cat_image_test = "https://ichef.bbci.co.uk/news/1024/cpsprodpb/151AB/production/_111434468_gettyimages-1143489763.jpg";//testing image (it works in param "photo=")
+	emo = "u'\U000026C4'"; 
+	emoji = "\u2731" ;
+		
+		
+	if(my_test_image) 
+	{
+	
+		ph = InternetOpenURL("https://api.telegram.org/bot"+TelegramAPI_ID+"/sendPhoto?chat_id="+TelgramCHAT_ID,"files="+my_test_image/*there must be inserted local file fh*/+"&caption=somethingelse new"+emoji);
+		
+		if(ph)
+		{
+			
+			InternetClose(ph);
+			
+		
+		}
+		else
+		{
+		  printf("There is problem with POST Request !");
+		  
+		}
+		
+		fclose(my_test_image);
+
+	}	
+	else
+	{
+	
+		printf("There is problem with FILE opening !");
+	
+	
+	}
+	
+	
+}
+
+Plot(C,"",colorBlack,GetPriceStyle());

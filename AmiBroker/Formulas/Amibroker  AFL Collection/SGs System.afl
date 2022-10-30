@@ -1,0 +1,147 @@
+_SECTION_BEGIN("SG's MA Crossover Trading");
+//------------------------------------------------------------------------------
+//
+//  Formula Name:    MA Crossover trading
+//------------------------------------------------------------------------------
+//
+//  The default MAs are 5 and 6 Periods. The layout is simple and
+//  can easily be worked into your own favorite graphs.
+//
+//------------------------------------------------------------------------------
+MidRange=(H+L)/2;//Figure Used in Title for Middle of Price Range. 
+MyATR=ATR(10);//Enter ATR Average or use the 14 Day Moving Average of ATR 
+//------------------------------------------------------------------------------
+
+//************************************************************//
+StyleList= ParamList("Chart Style", "Candle,Bar");
+style =IIf(StyleList== "Candle",styleCandle, styleBar);
+//------------------------------------------------------------------------------
+
+Plot(C,"",colorWhite,style);
+
+
+SetChartBkGradientFill( ParamColor("BgTop", colorLavender),ParamColor("BgBottom", colorBlack)); 
+Plot(Close, "Price", colorBlack, styleBar);
+Plot(MA(Close,5),"5-MA",colorBlue,styleThick);
+Plot(MA(Close,6),"6-MA",colorRed,styleThick);
+
+Buy=Cross(MA(Close,5),MA(Close,6 )) ;
+Sell=Cross(MA(Close,6),MA(Close,5 )) ;
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+dist = 1.5*ATR(10); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "Buy\n@" + C[ i ], i, L[ i ]-dist[i], colorYellow); 
+if( Sell[i] ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorRed); 
+}
+
+Buy1=Cross(MA(Close,20),MA(Close,50 )) ;
+Sell1=Cross(MA(Close,50),MA(Close,20 )) ;
+shape = Buy1 * shapeUpArrow + Sell1 * shapeDownArrow;
+PlotShapes( shape, IIf( Buy1, colorGreen, colorRed ),0, IIf( Buy1, Low, High ) );
+/*
+dist = 1.5*ATR(10); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy1[i] ) PlotText( "2050/BUY\n@" +C[ i ], i, L[ i ]-dist[i], colorDarkRed,colorPink  ); 
+if( Sell1[i] ) PlotText( "5020SELL\n@" + C[ i ], i, H[ i ]+dist[i], colorGreen,colorWhite); 
+} 
+*/
+_SECTION_BEGIN("BBands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 9, 2, 100, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorBrightGreen);
+Style = ParamStyle("Style");
+BT= BBandTop( P, Periods, Width ); 
+BL= BBandBot( P, Periods, Width ); 
+Plot(BT,"BBTop", colorRed,styleLine);
+Plot(BL,"BBbot", colorRed,styleLine);
+PlotOHLC( 0, BT, BL, 0, "Cloud", colorBrightGreen, styleCloud );
+_SECTION_END();
+_SECTION_BEGIN("Volume");
+Plot( Volume, _DEFAULT_NAME(), IIf( C >= Ref(C,-1), ParamColor("Up Color", colorGreen ), ParamColor("Down Color", colorRed ) ), styleNoTitle | ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick | styleNoLabel, maskHistogram  ), 2 );
+P = ParamField("Volume field",5);
+Periods = Param("Periods", 5, 5, 200, 1, 5 );
+VMA = MA( Volume, Periods );
+//Plot( VMA, _DEFAULT_NAME(), ParamColor( "Color", colorYellow ), ParamStyle("Style", styleLine | styleNoRescale),2 );
+_SECTION_END();
+Buy2=Cross(C,HHV(Ref(H,-1),10));
+Buy3=Cross(C,HHV(Ref(H,-1),40));
+Buy4=Cross(C,EMA(C,20));
+Sell3=Cross(C,LLV(Ref(L,-1),40));
+shape = Buy3 * shapeUpArrow + Sell3 * shapeDownArrow;
+PlotShapes( shape, IIf( Buy3, colorGreen, colorRed ),0, IIf( Buy3, Low, High ) );
+/*
+dist = 1.5*ATR(10); 
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy3[i] ) PlotText( "2MBO/BUY\n@" +C[ i ], i, L[ i ]-dist[i], colorDarkRed,colorYellow  ); 
+if( Sell3[i] ) PlotText( "2MBDSELL\n@" + C[ i ], i, H[ i ]+dist[i], colorGreen,colorWhite); 
+} 
+*/
+
+//===============system================
+
+SellPrice=ValueWhen(Sell,L,1);
+BuyPrice=ValueWhen(Buy1,H,1);
+Long=Flip(Buy,Sell);
+Shrt=Flip(Sell,Buy );
+Filter=1;
+//Filter =Buy OR Buy1 OR Buy2 OR Buy3;
+//AddTextColumn( FullName(), "Full name", 77 , colorDefault, IIf( Close < 10, colorLightBlue, colorDefault ) );
+AddColumn(LLV(L,5),"Stop2050",1.2,colorGreen);
+AddColumn(H-(H*.02),"StopLong",1.2,colorGreen);
+AddColumn(C,"Close",1.2,colorGreen);
+AddColumn(H,"Buy Above",1.2,colorGreen);
+AddColumn((20000)*(0.01)/(H-(LLV(L,5))), "Max Pos",1);
+AddColumn(MA(Close,5)>MA(Close,6 ),"LONG",1.2,colorGreen);
+AddColumn(H+(H*.02),"Target",1.2,colorGreen);
+AddColumn(H+(H-LLV(L,5)),"Target2050",1.2,colorGreen);
+AddColumn(C-BuyPrice,"Profit/losss",1.2,colorGreen);
+AddColumn((C-BuyPrice)/BuyPrice*100,"%",1.2,colorGreen);
+AddColumn(Buy+Buy1+Buy2+Buy3+Buy4,"BUYS",1.2,colorGreen);
+AddColumn(Buy,"56BUY",1.2,colorGreen);
+AddColumn(Buy1,"2050Buy",1.2,colorGreen);
+AddColumn(Buy2,"BO",1.2,colorGreen);
+AddColumn(Buy3,"2MlyBO",1.2,colorGreen);
+AddColumn(Buy4,"20EMABUY",1.2,colorGreen);
+
+//===============system================
+
+SellPrice=ValueWhen(Sell,L,1);
+BuyPrice=ValueWhen(Buy1,H,1);
+Long=Flip(Buy,Sell);
+Shrt=Flip(Sell,Buy );
+
+Title = Name() +"   "+" (" + StrLeft(FullName(), 10) +")"+ "   "+ EncodeColor(colorBlue) +  "SG's MA Crossover Syatem" + "    "+Interval( format = 2 ) + Date() 
++ "\n" +   " Price: " + C + "  O: " + O + "  H: " + H + "  L: " + L + "\Vol: " +WriteVal( V, 1.0 ) + EncodeColor( colorRed ) + "   M:" + MidRange +  	" " + EncodeColor( colorBrown ) +"  Change"+ WriteVal(ROC( Close, 1) ) + "%" +"Vol Change"+ WriteVal(ROC( V, 1) ) + "%"; 
+Title=Title + "\n"+EncodeColor(19)+WriteIf (MA(C,20) > MA(C,50),"20 MA is greater than 50 MA","")+EncodeColor(32)+
+WriteIf (MA(C,20)< MA(C,50),"MA 20 is Less than MA 50","")+"     "+EncodeColor(19)+
+WriteIf (MA(C,5) > MA(C,6), "MA 5 is greater than MA 6","")+ EncodeColor(32)+
+WriteIf (MA(C,5) < MA(C,6), "MA 5 is Less than MA 6","")+"    "
++ "\n"+"ATR: " + WriteVal (MyATR,format=1.2)+ EncodeColor( colorRed )  +"StopLong =" +WriteVal (LLV(L,5),1.2)+"   " +"StopLoss =" +WriteVal (H-(H*.02),1.2)+"   "+EncodeColor( colorBlack )  + "EnterLong =" + WriteVal(H,1.2)
++"   "+EncodeColor( colorGreen) +"Profit Target =" +WriteVal(H+(H*.02),1.2)+" " +"Profit Target =" +WriteVal(H+(H-LLV(L,5)),1.2)
++ "\n"+ EncodeColor( colorRed) +"Risk =" + WriteVal(H*.02)+"  "+ EncodeColor( colorGreen) +"Reward =" + WriteVal(H*.02)+"  "+"Max POS"+" "+WriteVal((20000)*(0.01)/(H-LLV(L,5)),1)
++"\n"+EncodeColor(colorGreen)+
+WriteIf (Buy , " GO LONG / Reverse Signal at "+H+"  ","")+EncodeColor(colorRed)+
+WriteIf (Sell , " EXIT LONG / Reverse Signal at "+C+"  ","")+"\n"+EncodeColor(colorGreen)+
+WriteIf(Sell , "Total Profit/Loss for the Last Trade Rs."+(C-BuyPrice)+"","")+
+WriteIf(Buy  , "Total Profit/Loss for the Last trade Rs."+(SellPrice-C)+"","")+
+WriteIf(Long AND NOT Buy, "Trade : Long - Entry price Rs."+(BuyPrice),"")+
+WriteIf(shrt AND NOT Sell, "Trade : Short - Entry price Rs."+(SellPrice),"")+"\n"+ 
+WriteIf(Long AND NOT Buy, "Current Profit/Loss Rs."+(C-BuyPrice)+"   "+((C-BuyPrice)/BuyPrice)*100+"%"+"","")+
+WriteIf(shrt AND NOT Sell, "Current Profit/Loss Rs."+(SellPrice-C)+((SellPrice-C)/SellPrice)*100+"%"+"","");
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-20);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-30);                      
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-25); 
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=20);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=30);                      
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-25);
+_SECTION_END();
+GraphXSpace=20;
+_SECTION_END();

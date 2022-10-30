@@ -1,0 +1,10 @@
+ret = Study("RE", 1002);
+
+Buy   = Cross(C, ret);
+Sell  = Cross(ret,C) ; 
+
+AlertIf(Buy,   "", "",1,1 );
+AlertIf(Sell,  "", "",2,1 );
+
+AlertIf( Buy , "SOUND C:\\Windows\ \Media\\Ding. wav", "Audio alert", 1 );
+AlertIf( Sell, "SOUND C:\\WINDOWS\ \Media\\ir_ inter.wav", "Audio alert", 2); 

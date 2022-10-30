@@ -1,0 +1,36 @@
+/*
+   Zig-Hi-Zag-Lo
+
+   To use to plot the true Peak High and Trough Low
+   for study of chart pattern, to create trading system
+
+   Modified from http://trader.online.pl/MSZ/e-w-ZigZag_HiLo.html
+
+   By TohMz 
+*/
+pr=Param("ZigZag change amount", 5, 0.1,100,0.1);
+
+pk=PeakBars(H,pr)==0;
+tr=TroughBars(L,pr)==0;
+
+zzHi=Zig(H,pr);
+zzLo=Zig(L,pr);
+Avg=(zzHi+zzLo)/2;
+
+x=IIf(pk,zzHi,IIf(tr,zzLo,IIf(Avg>Ref(Avg,-1),H,L)));
+zzHiLo=Zig(x,pr);
+
+Plot( zzHiLo, "", ParamColor("Color",colorRed), ParamStyle("Style"));
+
+//-- Delete below, to allow attach to any price chart
+_N(Title = StrFormat("{{NAME}}- {{INTERVAL}} {{DATE}} O= %g, H= %g, L= %g, C=
+%g (%.1f%%) V= " +WriteVal( V, 1.0 ) +"\n{{VALUES}}", O, H, L, C, SelectedValue(
+ROC( C, 1 )) ));
+PriceStyle = GetPriceStyle();
+PriceStyleOpt = ParamStyle("Style") | PriceStyle;
+
+if (PriceStyle==styleCandle)
+   Plot( C, "", colorBlack,  PriceStyleOpt); 
+else
+   Plot( C, "", IIf( Close >= Ref(C, -1), colorBlue, colorRed ),
+PriceStyleOpt);

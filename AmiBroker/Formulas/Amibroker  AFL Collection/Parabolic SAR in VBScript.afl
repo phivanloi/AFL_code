@@ -1,0 +1,145 @@
+//------------------------------------------------------------------------------
+//
+//  Formula Name:    Parabolic SAR in VBScript
+//  Author/Uploader: Tomasz Janeczko 
+//  E-mail:          tj@amibroker.com
+//  Date/Time Added: 2002-12-18 07:09:00
+//  Origin:          Welles Wilder
+//  Keywords:        SAR
+//  Level:           medium
+//  Flags:           indicator
+//  Formula URL:     http://www.amibroker.com/library/formula.php?id=241
+//  Details URL:     http://www.amibroker.com/library/detail.php?id=241
+//
+//------------------------------------------------------------------------------
+//
+//  This sample code shows parabolic SAR re-implemented
+//
+//  in VBScript. Note that SAR is built-in function in AFL and
+//
+//  this code is provided as an example of AmiBroker scripting capabilities.
+//
+//------------------------------------------------------------------------------
+
+// *BEGIN Parabolic SAR Indicator
+
+EnableScript ( "vbscript" );
+psar = Low;
+
+<%
+
+function Min( x, y, z )
+
+if x < y Then
+ Min = x
+else
+ Min = y
+End if
+
+if z < Min Then
+   Min = z
+End if
+
+End function
+
+
+
+function Max( x, y, z )
+
+if x > y Then
+ Max = x
+else
+ Max = y
+End if
+
+if z > Max Then
+   Max = z
+End if
+
+End function
+
+
+StartAF = 0.02  '                           //acceleration factor
+MaxAF = 0.2  '                          //max acceleration
+
+Close = AFL ( "close" )
+High   = AFL ( "high" )
+Low    = AFL ( "low" )
+psar  =  AFL ( "psar" )
+
+psar( 0 ) = Close( 0 )      ' initialize
+LongPos = 1                    ' assume long for initial conditions
+af = StartAF               ' init acelleration factor
+ep = Low( 0 )                 ' init extreme point
+hp = High( 0 )
+lp = Low( 0 )
+
+for i = 2 To UBound( Close )
+
+     if LongPos Then
+        psar( i ) = psar( i-1 ) + af * ( hp - psar( i-1 ) )
+     else
+       psar( i ) = psar( i-1 ) + af * ( lp - psar ( i-1 ) )
+     End if
+
+     reverse =  0
+
+     ' check for reversal
+     
+     if LongPos Then
+       if  Low( i ) < psar ( i ) Then 
+              LongPos = 0
+  		reverse = 1 '            //reverse position to short
+              psar( i ) =  hp '                        //sar is high point in prev trade
+              lp = Low( i )
+              af = StartAF
+       End if
+     
+     else
+     
+         if High( i ) > psar( i ) Then
+              LongPos = 1    
+              reverse = 1 '        //reverse position to long
+              psar( i ) =  lp 
+              hp = High( i ) 
+              af = StartAF
+         End if  
+     End if
+
+     if reverse = 0 Then
+         if LongPos Then
+             if High( i ) > hp Then
+                  hp = High( i )
+                  af = af + StartAF 
+                  af = Min ( af, MaxAF, MaxAF )
+             End if
+                  
+             psar( i ) = Min ( psar( i ), Low( i - 1 ), Low ( i-2 ) )
+         else
+         
+             if  Low( i ) < lp Then
+                lp = Low( i )
+                af = af + StartAF 
+                af = Min ( af, MaxAF, MaxAF ) 
+             End if
+             psar( i ) = Max ( psar( i ), High( i - 1 ), High( i-2 ) )
+         End if
+     End if
+
+
+Next
+
+AFL( "psar" ) = psar
+%>
+
+Graph0 = Close;
+Graph0Style = 64 +32 ;
+//graph0Style = 128 +32 ;
+Graph0BarColor=1;
+Graph1 = psar;
+Graph1Style = 8 + 16 + 32;
+Graph1Color = 8;
+
+
+
+Title=Name() + " - Custom PSAR = "+WriteVal(psar);

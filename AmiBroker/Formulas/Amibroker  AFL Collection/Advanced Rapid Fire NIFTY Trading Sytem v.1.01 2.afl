@@ -1,0 +1,357 @@
+
+
+_SECTION_BEGIN("Advanced Rapid Fire NIFTY Trading System");
+T=20;
+K=((C-fun_M1(C,T,T+2))/fun_M1(C,T,T*2))*100;
+Graph0=K;
+Graph0Style=2+4;
+//Graph0BarColor=IIf(KMA>0,5,4);
+Graph0BarColor=IIf(K>0,colorGreen,colorRed);
+GraphXSpace=5;
+
+Title= "Symbol : "+ Name() + "\nThe Close is \n=> "+WriteVal(abs(K),format=1.2)+"%"+WriteIf(K>0," above"," below")+" the 13 period EMA";
+
+E30=((C-fun_E1(C,30,20))/fun_M1(C,30,15))*100;
+Title="=> "+WriteVal(abs(E30),format=1.2)+" %"+WriteIf(E30>0," above"," below")+" 30 period EMA";
+
+E50=((C-fun_E1(C,50,35))/fun_M1(C,50,20))*100;
+Title="=> "+WriteVal(abs(E50),format=1.2)+" %"+WriteIf(E50>0," above"," below")+" 50 period EMA";
+
+E200=((C-fun_E1(C,200,114))/fun_M1(C,200,105))*100;
+Title="=> "+WriteVal(abs(E200),format=1.2)+" %"+WriteIf(E200>0," above"," below")+" 200 period EMA\n";
+
+
+_SECTION_END();
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorLightGrey ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("Time Left");
+
+function GetSecondNum()
+{ 
+Time = Now( 4 );
+Seconds = int( Time % 100 );
+Minutes = int( Time / 100 % 100 );
+Hours = int( Time / 10000 % 100 );
+SecondNum = int( Hours * 60 * 60 + Minutes * 60 + Seconds );
+return SecondNum;
+}
+
+
+RequestTimedRefresh( 1 );
+TimeFrame = Interval();
+SecNumber = GetSecondNum();
+Newperiod = SecNumber % TimeFrame == 0;
+SecsLeft = SecNumber - int( SecNumber / TimeFrame ) * TimeFrame;
+SecsToGo = TimeFrame - SecsLeft;
+
+if ( NewPeriod ){ Say( "New period" );
+Plot( 1, "", colorYellow, styleArea | styleOwnScale, 0, 1 );
+}
+time = "Current Time: " + Now( 2 ) + "\n" + "Chart Interval: " + NumToStr( TimeFrame, 1.0 ) + " Seconds\n" + "Second Number: " + NumToStr( SecNumber, 1.0, False ) + "\n" + "Seconds Left: " + NumToStr( SecsLeft, 1.0, False ) + "\n" + "Seconds To Go: " + NumToStr( SecsToGo, 1.0, False );
+GfxSetTextColor(colorBrown);
+GfxSelectFont("Tahoma", 12,1200 );
+GfxTextOut("Seconds To Go: " + NumToStr( SecsToGo, 1.0, False ), 35, 200);
+
+printf("\n=====================");
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("Color Scheme");
+
+priceAxesWidth=0;
+dateAxesHeight=0;
+TitleHeight=0;
+
+pxwidth = Status("pxwidth");
+pxheight = Status("pxheight");
+
+chartwidth = pxwidth-priceAxesWidth;
+chartheight = pxheight-dateAxesHeight;
+
+topColor=ParamColor("topColor",colorCustom4 );
+centerColor=ParamColor("centerColor", ColorRGB(249,236,164));
+botColor=ParamColor("BottomColor", colorCustom4);
+priceAxesColor=ParamColor("priceAxesColor", colorWhite );
+dateAxesColor=ParamColor("dateAxesColor", colorWhite);
+
+relPos=Param("centerPosition%",50,0,100,1)/100;
+centerHeight=chartheight*Param("centerHeight%",10,0,100,1)/100;
+x0=0;
+y0=Max(TitleHeight,chartheight*relPos-centerHeight/2);
+x1=chartwidth;
+y1=Min(chartheight,chartheight*relPos+centerHeight/2);
+
+GfxSetBkMode( 1 );
+GfxSetOverlayMode(1);
+GfxGradientRect(0,0,chartwidth,TitleHeight, colorWhite ,colorWhite);
+GfxGradientRect(chartwidth,0,pxwidth,pxheight, priceAxesColor
+,priceAxesColor);
+GfxGradientRect(0,chartheight,chartwidth,pxheight, dateAxesColor
+,dateAxesColor);
+GfxGradientRect(x0,y0,x1,y1, CenterColor ,CenterColor );
+GfxGradientRect(0,TitleHeight,chartwidth, y0,topColor, CenterColor );
+GfxGradientRect(0,y1,chartwidth, chartheight, CenterColor ,botColor);
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("Price");
+SetChartBkGradientFill( ParamColor("BgTop",colorLightYellow),ParamColor("BgBottom",colorCustom4),ParamColor("Titleblock",colorLightYellow));
+SetChartOptions(0,chartShowDates|chartShowArrows|chartLogarithmic|chartWrapTitle);
+GraphXSpace = 5;
+
+_SECTION_END();
+
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Bollinger", 10, 2, 100, 1 );
+Width = Param("Width",0.55, 0, 10, 0.05 );
+Plot(fun_BBTp(P,Periods,Width),"BBTop",colorGreen,styleLine|styleThick|styleDots);
+Plot(fun_BBBt(P,Periods,Width),"BBBot",colorBrown,styleLine|styleThick|styleDots);
+_SECTION_END();
+
+
+_SECTION_BEGIN("Deep SL");
+
+bts=ParamToggle("BTS","No|Yes" ,1);
+btst=ParamToggle("DOT","No|Yes" ,1);
+btsl=ParamToggle("Deep SL","No|Yes" ,1);
+period=Param("Period",7,1,20,1);
+x1=53;
+x2=47;
+d=2.3;
+f=7;
+s=1.5;
+range=fun_A1(f,f-d);
+Range1 = fun_A1(f,f-s)/d;
+Range2 = (fun_A1(f,d-s)*s)/4;
+range3=fun_A1(10,s-f);
+R = ((fun_H1(H,period,period*s) - C) /(fun_H1 (H,period,period/d) -fun_L1 (L,period,d*s))) *-100;
+E1= fun_E1(R,Period,x1+x2);
+E2= fun_E1(E1,5,f*s);
+Difference= E1 - E2;
+ZeroLagE= E1 + Difference;
+value2=abs(ZeroLagE);
+function PercentR( periods )
+{
+return -100 * ( fun_H1( H, periods, periods*s) - C )/( fun_H1( H, periods, periods/d ) - fun_L1( L, periods, d*s ) );
+}
+
+
+
+_main_val=fun_MAIN(Range1,Range2,range3,value2,Close,H,L, period,BarCount,x1,x2);
+
+tm=fun_return_tm();
+bstop=fun_return_bstop();
+sstop=fun_return_sstop();
+
+
+
+//=============================SYSTEM======================================
+
+PlotShapes( shapeSmallCircle* (bts AND tm==1 AND Ref(tm,-1)==2),colorBlue, 0, bstop, -6 );
+PlotShapes( shapeSmallCircle* (bts AND tm==2 AND Ref(tm,-1)==1), colorCustom12, 0, sstop, -6 );
+
+Plot(IIf(btsl AND tm==1,bstop,Null),"",colorDarkGreen,styleLine|styleThick|styleDots);
+
+Plot(IIf(btsl AND tm==2,sstop,Null),"",colorPink,styleLine|styleThick|styleDots);
+_SECTION_END();
+
+//#include <T3_include.AFL>;
+
+TimeFrameSet(in5Minute*1);
+
+periodsLR = Param("PCurve",2,1,1,0);
+
+x=Param("Default1",14,3,50,1);
+x1=fun_C1(x,24);
+Y=Param("Default2",7,3,15,1);
+Y2=fun_D1(x1,Y,Y-X);
+Z=Param("Default3",3,3,9,1);
+Z2=fun_M1(Y2,Z,Z-Y);
+
+PCS = fun_PC1(Z2);
+TCB = fun_TC1(Z2);
+
+
+Cond5B = TCB ;
+
+Cond5S = PCS ;
+
+TimeFrameRestore();
+
+Buy = Cond5B ;
+Sell = Cond5S ;
+Buy =ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+Filter = Buy OR Sell;
+
+
+printf("\nwww.EarnByNifty.com this commentary is automatically generated for information purpose.");
+
+printf("\n=====================");
+
+
+b=ExRem(Buy,Sell);
+s=ExRem(Sell,Buy);
+
+
+WriteIf(b>0,"\nThe last Automated Signal generated was a Buy @ "+P+"\non "+Date()+"\nLow : "+L,"");
+
+WriteIf(s>0,"The last Automated Signal generated was a Sell @ "+P+"\non "+Date()+"\nHigh : "+H,"");
+
+TimeFrameSet(inHourly);
+
+x1=fun_C1(x,7);
+Y2=fun_D1(x1,Y,Y*2);
+Z2=fun_M1(Y2,Z,Z*Y);
+
+CondHB = z2>Ref(z2,-1) ;
+CondHS = Z2<Ref(Z2,1) ;
+
+PCRH = fun_PC1(Z2);
+TCRH = fun_TC1(Z2);
+
+
+CondSR = TCRH ;
+
+CondBR = PCRH ;
+
+TimeFrameRestore();
+WriteIf(CondHB>CondHS,"\nThe Hourly Trend is BULLISH, Buy Signals may be more profitable, Act Cautiously on Sell Signals",WriteIf((CondHB<CondHS),"The Hourly Trend is BEARISH, Sell Signals may be more profitable, Act Cautiously on Buy Signals",""));
+WriteIf(CondSR,"\nReversal of  Hourly BEARISH Trend","");
+WriteIf(CondBR,"Reversal of  Hourly BULLISH Trend","");
+WriteIf(CondSR OR CondBR,"=====================","");
+//printf("=====================");
+
+TimeFrameSet(in15Minute*2);
+
+x1=fun_C1(x,x-10);
+Y2=fun_D1(x1,Y,Y+5);
+Z2=fun_M1(Y2,Z,Z+2*Y);
+
+CondHB = z2>Ref(z2,-1) ;
+CondHS = Z2<Ref(Z2,1) ;
+
+PCR30 = fun_PC1(Z2);
+TCR30 = fun_TC1(Z2) ;
+CondSR30 = TCR30 ;
+CondBR30 = PCR30 ;
+TimeFrameRestore();
+
+
+printf("\nRSI : "+ WriteVal(RSI(14)));
+
+printf("\n=====================");
+
+
+p=ParamToggle("Support-Resistance ? ","No|Yes",0);
+TimeFrameRestore();
+
+//// ----------- Half Hourly - SUPPORT & RESISTANCE -------------
+dH1=SelectedValue(TimeFrameGetPrice( "H", 2*in15Minute, -1 ));
+dL1=SelectedValue(TimeFrameGetPrice( "L", 2*in15Minute, -1 ));
+dC1=SelectedValue(TimeFrameGetPrice( "C", 2*in15Minute, -1 ));
+
+dp = return_p(dH1,dL1,dC1)/3;
+ds1 = return_s1_r1(dp,dH1);			
+dr1 = return_s1_r1(dp,dL1);			
+ds2 = return_s2_s3(dp,dH1,dL1);		
+ds3 = return_s2_s3(dS1,dH1,dL1);	
+dr2 = return_r2_r3(dp,dH1,dL1);		
+dr3 = return_r2_r3(dR1,dH1,dL1);	
+
+printf("\nHalf Hourly Support & Resistance : ");
+printf("\nS1 : "+WriteVal(ds1));
+printf("\nS2 : "+WriteVal(ds2));
+printf("\nS3 : "+WriteVal(ds3));
+printf("\nr1 : "+WriteVal(dr1));
+printf("\nr2 : "+WriteVal(dr2));
+printf("\nr3 : "+WriteVal(dr3));
+
+printf("\n=====================");
+
+if(p)
+{
+
+Plot(ds1,"Daily Support 1",colorBrightGreen,styleLine);
+Plot(ds2,"Daily Support 2",colorDarkGreen,styleLine);
+Plot(ds3,"Daily Support 3",colorDarkGrey,styleLine);
+
+Plot(dr1,"Daily Resistance 1",colorRed,styleLine);
+Plot(dr2,"Daily Resistance 2",colorDarkRed,styleLine);
+Plot(dr3,"Daily Resistance 3",colorBrown,styleLine);
+
+}
+
+TimeFrameRestore();
+//-----------------------------------------------------
+
+//// ----------- Hourly - SUPPORT & RESISTANCE -------------
+wH1=SelectedValue(TimeFrameGetPrice( "H", inHourly, -1 ));
+wL1=SelectedValue(TimeFrameGetPrice( "L", inHourly, -1 ));
+wC1=SelectedValue(TimeFrameGetPrice( "C", inHourly, -1 ));
+
+wp = return_p(wH1,wL1,wC1)/3;
+ws1 = return_s1_r1(wp,wH1);			
+wr1 = return_s1_r1(wp,wL1);			
+ws2 = return_s2_s3(wp,wH1,wL1);		
+ws3 = return_s2_s3(wS1,wH1,wL1);	
+wr2 = return_r2_r3(wp,wH1,wL1);		
+wr3 = return_r2_r3(wR1,wH1,wL1);	
+
+printf("\nHourly Support & Resistance : ");
+printf("\nS1 : "+WriteVal(ws1));
+printf("\nS2 : "+WriteVal(ws2));
+printf("\nS3 : "+WriteVal(ws3));
+printf("\nr1 : "+WriteVal(wr1));
+printf("\nr2 : "+WriteVal(wr2));
+printf("\nr3 : "+WriteVal(wr3));
+
+printf("\n=====================");
+
+TimeFrameRestore();
+//-----------------------------------------------------
+
+//// ----------- Two Hourly - SUPPORT & RESISTANCE -------------
+mH1=SelectedValue(TimeFrameGetPrice( "H", 2*inHourly, -1 ));
+mL1=SelectedValue(TimeFrameGetPrice( "L", 2*inHourly, -1 ));
+mC1=SelectedValue(TimeFrameGetPrice( "C", 2*inHourly, -1 ));
+
+
+mp = return_p(mH1,mL1,mC1)/3;
+ms1 = return_s1_r1(mp,mH1);			
+mr1 = return_s1_r1(mp,mL1);			
+ms2 = return_s2_s3(mp,mH1,mL1);		
+ms3 = return_s2_s3(mS1,mH1,mL1);	
+mr2 = return_r2_r3(mp,mH1,mL1);		
+mr3 = return_r2_r3(mR1,mH1,mL1);	
+
+printf("\nTwo Hourly Support & Resistance : ");
+printf("\nS1 : "+WriteVal(ms1));
+printf("\nS2 : "+WriteVal(ms2));
+printf("\nS3 : "+WriteVal(ms3));
+printf("\nr1 : "+WriteVal(mr1));
+printf("\nr2 : "+WriteVal(mr2));
+printf("\nr3 : "+WriteVal(mr3));
+
+TimeFrameRestore();
+
+
+Plot( 2,"\Hourly Trend",IIf( Flip(CondSR,CondBR), colorGreen, IIf( Flip(CondBR,CondSR), colorRed, colorOrange)),styleOwnScale|styleArea|styleNoLabel, -0.75, 100 );
+Plot( 3.5,"\30min Trend",IIf( Flip(CondSR30,CondBR30), colorDarkBlue, IIf( Flip(CondBR30,CondSR30), colorTan, colorOrange)),styleOwnScale|styleArea|styleNoLabel, -0.85, 100 );
+Plot( 5,"\Buy/Sell Ribbon",IIf( Flip(Buy,Sell), colorBrightGreen, IIf( Flip(Sell,Buy), colorPink, colorOrange )),styleOwnScale|styleArea|styleNoLabel, -0.75, 100 );
+
+
+TimeFrameSet(in5Minute);
+shape = Buy * shapeUpTriangle + Sell * shapeDownTriangle;
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ), IIf( Buy, Low, High ) );
+TimeFrameRestore();

@@ -1,0 +1,17 @@
+wc = TimeFrameCompress(Close, inWeekly); 
+weeklyma = MA( wc, 10 );// 10 weeks
+weeklyema = EMA( wc, 30); // 30 weeks
+
+
+Filter = EMA(V, 60) > 150000 AND// a change may be required for low-volume markets
+L > Ref (L,-1) AND
+Ref (L,-1) > Ref (L,-2)AND
+MA(C,10) < EMA(C,30)AND
+C > MA(C,10)AND
+C < EMA(C,30)AND
+weeklyma < weeklyema AND 
+ADX(10) > 20.0 AND
+Close >= 10;//change if you trade junk (I do)
+
+AddColumn( Close, "Last Close" );
+AddColumn( V, "Volume",1 ); 

@@ -1,0 +1,6 @@
+q = Param( "Periods", 13, 1, 100, 1 );
+
+SM = C - 0.5 * (HHV(H,q) + LLV(L,q));
+
+Plot(SM, "SM("+q+")", colorRed);
+PlotGrid(0, colorLightGrey);

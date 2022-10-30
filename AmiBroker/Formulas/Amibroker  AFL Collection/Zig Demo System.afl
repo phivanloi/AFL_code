@@ -1,0 +1,52 @@
+Filename 	= StrLeft(_DEFAULT_NAME(),StrLen(_DEFAULT_NAME())-2);
+
+_SECTION_BEGIN("Zig Demo System");
+////////////////////////////// ZIG DEMO SYSTEM /////////////////////////////////
+// This system demonstrates the advantage of High-Frequency Trading Systems as 
+// I see it. Such systems can be implemented using the AmiBrioker IBc. 
+// Of course this is NOT a tradable system.
+//
+// The Title displays profit potential for combinations of trade duration and %
+// change. I am sure many traditional traders will argue against me and perhaps 
+// rightly so in view of the large sums of miney they may be trading. However,
+// for the small trader, assuming the same quality of trading system, I believe 
+// that shorter trade durations will give you greater the predicative power, 
+// smaller DDs, Lower Risk, and greater cumulative profits. 
+//
+// The old argument of commission cost killing a HF system no longer holds.
+// Today's tools allow you to run an automated system and easily make 100 
+// trades/Day. IMHO, this is where the future is, especially for the small-volume 
+// trader.
+//
+// Run this code in an indicator, vary the parameters, and convince yourself
+// where the profits are.
+
+Opt1 	= Param("% Zig (Change)",0.1,0,1,0.05);
+Opt2 	= Param("Min. Allowable Duration",1,1,20,1);
+Z 		= Zig(C,Opt1);
+Buy	= Z < Ref(Z,1) AND Z < Ref(Z,-1);
+Sell	= Z > Ref(Z,1) AND Z > Ref(Z,-1);
+Buy 	= Buy AND BarsSince(Sell) > Opt2;
+Sell 	= Sell AND BarsSince(Buy) > Opt2;
+Short = Sell;
+Cover	= Buy;
+
+Eq=Equity(1);
+
+Plot(C,"",colorBlack,styleBar);
+Plot(z,"",colorWhite,styleLine);
+ShowTriangles = ParamToggle("Arrows","HIDE|SHOW",1);
+if(showTriangles )
+	{
+	PlotShapes(IIf(Buy, 	shapeSmallUpTriangle, shapeNone),5,0,BuyPrice,0);
+	PlotShapes(IIf(Sell,	shapeHollowDownTriangle, shapeNone),4,0,SellPrice,0);
+	PlotShapes(IIf(Cover, shapeHollowUpTriangle, shapeNone),5,0,CoverPrice,0);
+	PlotShapes(IIf(Short, shapeSmallDownTriangle, shapeNone),4,0,ShortPrice,0);
+	}
+
+InitialEquity= GetOption("InitialEquity");
+Title = "\n"+
+Filename+"\n"+
+"Final Profit: "+NumToStr((LastValue(Eq)-InitialEquity)/InitialEquity*100,1.2)+"%\n";
+_SECTION_END();
+

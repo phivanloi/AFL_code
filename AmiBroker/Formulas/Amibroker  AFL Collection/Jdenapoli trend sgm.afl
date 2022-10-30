@@ -1,0 +1,21 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Sunando");
+
+EMA_Diff 	=	EMA( Close, 8.3896) - EMA( Close, 17.5185);
+Cond03		=	EMA_Diff  >= Ref(EMA_Diff,-1);
+Cond01		=	Close > Ref(MA(Close,3),-3);
+
+Buy 		=	Cond01 AND Cond03 ;
+Sell		=	NOT Cond01 AND NOT Cond03;
+
+Buy 		=	ExRem(Buy,Sell); 
+Sell 		=	ExRem(Sell,Buy);
+
+PlotShapes(shapeUpArrow * Buy, colorBlue, 0, L);
+PlotShapes(shapeDownArrow * Sell, colorRed, 0, H);
+_SECTION_END();

@@ -1,0 +1,35 @@
+//CCI(14) SMOOTHENED WITH SMA(9) --- CCI1
+//CCI(20) SMOOTHENED WITH SMA(9) --- CCI2
+//POWER BUY =  CCI 1 >100 & CCI 1 > CCI 2 (BLUE ARROW)
+//POWER SELL = CCI 1 < 100 AND CCI 1 < CCI 2 (SELL ARROW)
+
+_SECTION_BEGIN("CCI");
+pds1 = Param( "CCI1 PERIOD", 14, 2, 200, 1 );
+pds2 = Param( "CCI2 PERIOD", 20, 2, 200, 1 );
+pds3 = Param( "SMOOTH PERIOD",9, 2, 200, 1 );
+
+CCI1 = MA(CCI(pds1),pds3);
+CCI2 = MA(CCI(pds2),pds3);
+Plot (CCI1,"CCI1",colorBlue);
+Plot (CCI2,"CCI2",colorRed);
+_SECTION_END();
+
+Plot (0, "", colorBlack, styleDashed, styleNoLabel);
+Plot (100, "", colorBlack, styleNoLabel);
+Plot (-100, "", colorBlack, styleNoLabel);
+
+//POWER BUY/SELL
+_SECTION_BEGIN("BUY/SELL");
+Buy = CCI1 > 100 AND CCI1 > CCI2;
+Sell = CCI1 < 100 AND CCI1 < CCI2;
+PlotShapes( shapeUpArrow* Buy , colorBlue ,0);
+PlotShapes( shapeDownArrow* Sell, colorRed ,0);
+
+//AUTO ANALYSIS 
+Filter = Buy OR Sell;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); 
+AddTextColumn(FullName(),"Name");
+AddColumn( Buy, "BUY" );
+AddColumn( Sell, "SELL" );
+
+_SECTION_END();

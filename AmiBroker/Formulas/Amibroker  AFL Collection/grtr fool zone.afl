@@ -1,0 +1,23 @@
+_SECTION_BEGIN( "MA Envelope" );
+Type = ParamList( "Avg. Type", "SMA,EMA" );
+P = ParamField( "Price field", -1 );
+Periods = Param( "Avg. Periods", 20, 2, 300, 1, 10 );
+F = Param( "Filter %", 5, 0.05, 100, 1 );
+
+if ( Type == "SMA" )
+    A = MA( P, Periods );
+
+if ( Type == "EMA" )
+    A = EMA( P, Periods );
+
+EnvUp = A + A * F / 100;
+
+EnvDn = A - A * F / 100;
+
+Plot( A, _DEFAULT_NAME(),  IIf( Ref( A, 0 ) > Ref( A, -1 ), ParamColor( "ColorUp", colorWhite ), ParamColor( "ColorDown", colorOrange ) ), ParamStyle( "Style", styleThick ) );
+
+Plot( EnvUp, "EnvUp", ParamColor( "EnvUp Color", colorRed ), styleThick + styleNoLabel );
+Plot(C,"",colorBlue,styleCandle,styleThick);
+Plot( EnvDn, "EnvDn", ParamColor( "EnvDn Color", colorGreen ), styleThick + styleNoLabel );
+
+PlotOHLC( EnvUp, EnvDn, EnvUp, EnvDn, "", ParamColor( "Envelope Color", colorDarkOliveGreen ), styleCloud | 4096 );

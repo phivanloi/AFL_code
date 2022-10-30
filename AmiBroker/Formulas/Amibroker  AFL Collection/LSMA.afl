@@ -1,0 +1,25 @@
+//
+//		+---------------------------------------------
+//		|	LSMA by Ivanov Denis
+//		|	LSMA - indicator will be use for WoodieCCI
+//		+---------------------------------------------
+//
+
+p1 =			Param("Period-LSMA",25,1,100,1);
+summa=			0;
+len=			p1;
+i=				1;
+
+while (i<=len)
+{
+	lenvar=	(len+1)/3;
+	tmp= 		Ref(Close, i-len);
+	tmp= 		(i-lenvar)*tmp;
+	summa= 	summa+tmp;
+	i=			i+1;
+}
+
+LSMA=			summa*6/(len*(len+1));
+
+Plot(LSMA,"LSMA",colorRed,1+4);
+

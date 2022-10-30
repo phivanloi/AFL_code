@@ -1,0 +1,21 @@
+//MACD Moving Average ***Optimized***
+
+//Enters long/short when the MACD goes above/below its N-Day moving average. Trades are exited on reversing signals.
+
+//Note: Run Optimization first, insert optimized figure in ( pds= ) statement, then ( // ) out optimization line, click on backtest.
+
+pds=9;
+pds=Optimize("pds",9,3,15,3);
+
+Buy=MACD() > EMA(MACD(),pds);
+Sell=MACD() < EMA(MACD(),pds);
+Short=MACD() < EMA(MACD(),pds);
+Cover=MACD() > EMA(MACD(),pds);
+
+Filter=Buy OR Sell OR Short OR Cover;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); Short=ExRem(Short,Cover); Cover=ExRem(Cover,Short);
+
+AddColumn(Buy,"Buy");
+AddColumn(Sell,"sell");
+AddColumn(Short,"short");
+AddColumn(Cover,"cover");

@@ -1,0 +1,24 @@
+_SECTION_BEGIN("VOLUME_Hight of Volume Bars Control");
+
+
+PlotVOL = ParamToggle( "plot Volume?","No| Yes",0);
+
+VolColor = (C>O OR (C==O AND
+(H-C)<=(C-L) ))*ParamColor( "VUpColor" ,colorBlueGrey) +
+
+(C<O OR (C==O AND
+(H-C)>(C-L)) )*ParamColor( "VDnColor" ,colorPink) ;
+
+VolScale = Param("1/Vol. Height (TimeBar chart)(fraction of
+window) 5=1/5=20%",5, 2, 100, 1.0) ; // Timebars
+
+if (PlotVOL >0) 
+
+{
+
+Vheight = VolScale;
+
+Plot(Prec(Volume ,0),"V",VolColor,
+styleNoTitle| styleOwnScale| styleNoLabel| styleThick| ParamStyle( "VStyle", styleHistogram,maskHistogram| styleNoLabel) ,Vheight ); }
+//Plot(MA(Volume,50),"",colorLightBlue,styleLine);
+_SECTION_END();

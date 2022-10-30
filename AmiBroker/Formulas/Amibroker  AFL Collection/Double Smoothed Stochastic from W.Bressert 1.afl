@@ -1,0 +1,68 @@
+_SECTION_BEGIN("Double Smoothed Stochastic from W.Bressert");
+//------------------------------------------------------------------------------
+//
+//  Formula Name:    Double Smoothed Stochastic from W.Bressert
+//  Author/Uploader: Tom Supera 
+//  E-mail:          tom_supera@utanet.at
+//  Date/Time Added: 2001-07-20 15:39:11
+//  Origin:          
+//  Keywords:        
+//  Level:           basic
+//  Flags:           indicator
+//  Formula URL:     http://www.amibroker.com/library/formula.php?id=78
+//  Details URL:     http://www.amibroker.com/library/detail.php?id=78
+//
+//------------------------------------------------------------------------------
+//
+//  This is an Overbought/Oversold Indicator.
+//
+//  It works very well, but never use this indicator alone.
+//
+//  you always need a trend indicator.
+//
+//  Values about 80 shows overbought, under 20 shows oversold.
+//
+//  Formula:
+//
+//  title = "127-3 DSS" + " " + fullname() + " " + Date( ) ;
+//
+//  Slw = 4; Pds = 4;
+//
+//  Overbought = 80; Oversold = 20;
+//
+//  A = Ema((CLOSE-LLV(LOW,Pds))/(HHV(H,pds)-LLV(L,Pds)),Slw)*100;
+//
+//  DSS = ema((A-LLV(A,pds))/(HHV(A,Pds)-LLV(A,Pds)),Slw)*100;
+//
+//  maxgraph = 5;
+//
+//  graph0 = DSS; graph0color = 2; graph2 = DSS;
+//
+//  graph2barcolor = IIF (graph2 > overbought, 4,
+//
+//  IIF (graph2 < oversold,5,6));
+//
+//  buy = cross (DSS, 20);
+//
+//  sell = cross (80,DSS);
+//
+//------------------------------------------------------------------------------
+
+Title = "127-3 DSS" + "   "  +  FullName() + "   "  +  Date( ) ;
+
+Slw = Param("SC",3,200,2,1);  Pds =Param("Period", 14,2,200,1);
+
+A = EMA((Close-LLV(Low,Pds))/(HHV(H,pds)-LLV(L,Pds)),Slw)*100;
+
+DSS = EMA((A-LLV(A,pds))/(HHV(A,Pds)-LLV(A,Pds)),Slw)*100;
+
+MaxGraph = 10;
+Graph0 = DSS; Graph0Color = 2;    Graph2 = DSS; 
+Overbought = 80;  Oversold =  20; 
+
+Graph2BarColor = IIf (Graph2 > overbought, 4, 
+                                   IIf (Graph2 < oversold,5,6));
+
+Buy = Cross (DSS, 20);
+Sell = Cross (80,DSS);
+_SECTION_END();

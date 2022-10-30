@@ -1,0 +1,200 @@
+////// 01_w_market_breadth
+
+var sDBFileLocation = "C:\\Program Files\\AmiBroker\\EOD";
+
+var AB, AA;
+
+/* create AB object */
+AB = new ActiveXObject("Broker.Application");
+
+/* retrieve automatic analysis object */
+AA = AB.Analysis;
+
+/* display the AB application and the Analysis window */
+AB.Visible = True;
+ 
+/* load formula from external file */
+AA.LoadFormula("C:\\Program Files\\AmiBroker\\Explorations\\BATMAN\\1_W_Market_Breadth_STorM_v1.0.afl")
+
+/* optional: load settings */
+AA.LoadSettings("C:\\Program Files\\AmiBroker\\Explorations\\BATMAN\\Weekly_ABS_Settings.abs");
+ 
+/* setup filters */
+/* backtest over symbols present in market 0 only (zero-based number) */
+AA.ClearFilters();
+AA.Filter( 0, "watchlist" ) = 21;
+ 
+/* set apply to and range */
+AA.ApplyTo = 2; // 0=use symbols, 1=current, 2=filters
+AA.RangeMode = 0; // 0=all quotes
+
+/* run Scan */
+AA.Explore();
+
+/* export result list to CSV file */
+var currentTime = new Date()
+var Month = currentTime.getMonth() + 1
+var Day = currentTime.getDate()
+var Year = currentTime.getFullYear()
+AA.Export("C:\\Program Files\\AmiBroker\\Explorations\\BATMAN\\reports\\" + Year + "-" + Month + "-" + Day + "_1_W_MarketBreadth.csv");
+
+////// 02_w_sector_creation 
+
+var sDBFileLocation = "C:\\Program Files\\AmiBroker\\EOD";
+
+var AB, AA;
+
+/* create AB object */
+AB = new ActiveXObject("Broker.Application");
+
+/* retrieve automatic analysis object */
+AA = AB.Analysis;
+
+/* display the AB application and the Analysis window */
+AB.Visible = True;
+ 
+/* load formula from external file */
+AA.LoadFormula("C:\\Program Files\\AmiBroker\\Explorations\\BATMAN\\2_W_Sector_Creation_STorM_v1.0.afl")
+
+/* optional: load settings */
+AA.LoadSettings("C:\\Program Files\\AmiBroker\\Explorations\\BATMAN\\Weekly_ABS_Settings.abs");
+ 
+/* setup filters */
+/* backtest over symbols present in market 0 only (zero-based number) */
+AA.ClearFilters();
+AA.Filter( 0, "watchlist" ) = 2; // include main 2000 stocks
+AA.Filter( 1, "group" ) = 4; // exclude group 4
+ 
+/* set apply to and range */
+AA.ApplyTo = 2; // 0=use symbols, 1=current, 2=filters
+AA.RangeMode = 1; // 1=n last quotations
+AA.RangeN = 1;
+
+/* run Scan */
+AA.Scan();
+
+////// 03b_w_sector_signals
+
+var sDBFileLocation = "C:\\Program Files\\AmiBroker\\EOD";
+
+var AB, AA;
+
+/* create AB object */
+AB = new ActiveXObject("Broker.Application");
+
+/* retrieve automatic analysis object */
+AA = AB.Analysis;
+
+/* display the AB application and the Analysis window */
+AB.Visible = True;
+ 
+/* load formula from external file */
+AA.LoadFormula("C:\\Program Files\\AmiBroker\\Explorations\\BATMAN\\3B_W_Sector_Rank_STorM_v1.0.afl")
+
+/* optional: load settings */
+AA.LoadSettings("C:\\Program Files\\AmiBroker\\Explorations\\BATMAN\\Weekly_ABS_Settings.abs");
+ 
+/* setup filters */
+/* backtest over symbols present in market 0 only (zero-based number) */
+AA.ClearFilters();
+AA.Filter( 0, "watchlist" ) = 5; // include sector composites
+ 
+/* set apply to and range */
+AA.ApplyTo = 2; // 0=use symbols, 1=current, 2=filters
+AA.RangeMode = 1; // 1=n last quotations
+AA.RangeN = 1;
+
+/* run Scan */
+AA.Explore();
+
+/* export result list to CSV file */
+var currentTime = new Date()
+var Month = currentTime.getMonth() + 1
+var Day = currentTime.getDate()
+var Year = currentTime.getFullYear()
+AA.Export("C:\\Program Files\\AmiBroker\\Explorations\\BATMAN\\reports\\" + Year + "-" + Month + "-" + Day + "_3B_W_SectorRank.csv");
+
+////// 04_w_signals
+
+var sDBFileLocation = "C:\\Program Files\\AmiBroker\\EOD";
+
+var AB, AA;
+
+/* create AB object */
+AB = new ActiveXObject("Broker.Application");
+
+/* retrieve automatic analysis object */
+AA = AB.Analysis;
+
+/* display the AB application and the Analysis window */
+AB.Visible = True;
+ 
+/* load formula from external file */
+AA.LoadFormula("C:\\Program Files\\AmiBroker\\Explorations\\BATMAN\\4_W_Signals_STorM_v1.0.afl")
+
+/* optional: load settings */
+AA.LoadSettings("C:\\Program Files\\AmiBroker\\Explorations\\BATMAN\\Weekly_ABS_Settings.abs");
+ 
+/* setup filters */
+/* backtest over symbols present in market 0 only (zero-based number) */
+AA.ClearFilters();
+AA.Filter( 0, "watchlist" ) = 2; // include main 2000 stocks
+AA.Filter( 1, "group" ) = 4; // exclude industry group averages
+ 
+/* set apply to and range */
+AA.ApplyTo = 2; // 0=use symbols, 1=current, 2=filters
+AA.RangeMode = 1; // 1=n last quotations
+AA.RangeN = 1;
+
+/* run Scan */
+AA.Explore();
+
+/* export result list to CSV file */
+var currentTime = new Date()
+var Month = currentTime.getMonth() + 1
+var Day = currentTime.getDate()
+var Year = currentTime.getFullYear()
+AA.Export("C:\\Program Files\\AmiBroker\\Explorations\\BATMAN\\reports\\" + Year + "-" + Month + "-" + Day + "_4_W_Signal.csv");
+
+////// 05_d_signals
+
+var sDBFileLocation = "C:\\Program Files\\AmiBroker\\EOD";
+
+var AB, AA;
+
+/* create AB object */
+AB = new ActiveXObject("Broker.Application");
+
+/* retrieve automatic analysis object */
+AA = AB.Analysis;
+
+/* display the AB application and the Analysis window */
+AB.Visible = True;
+ 
+/* load formula from external file */
+AA.LoadFormula("C:\\Program Files\\AmiBroker\\Explorations\\BATMAN\\5_D_Signals_STorM_v1.0.afl")
+
+/* optional: load settings */
+AA.LoadSettings("C:\\Program Files\\AmiBroker\\Explorations\\BATMAN\\Daily_ABS_Settings.abs");
+ 
+/* setup filters */
+/* backtest over symbols present in market 0 only (zero-based number) */
+AA.ClearFilters();
+AA.Filter( 0, "watchlist" ) = 7; // include Top Sector Stocks - Weekly
+
+/* set apply to and range */
+AA.ApplyTo = 2; // 0=use symbols, 1=current, 2=filters
+AA.RangeMode = 2; // 2=n last days
+AA.RangeN = 5;
+
+/* run Scan */
+AA.Explore();
+
+/* export result list to CSV file */
+var currentTime = new Date()
+var Month = currentTime.getMonth() + 1
+var Day = currentTime.getDate()
+var Year = currentTime.getFullYear()
+AA.Export("C:\\Program Files\\AmiBroker\\Explorations\\BATMAN\\reports\\" + Year + "-" + Month + "-" + Day + "_5_D_Signal.csv");
+
+AB.SaveDatabase();

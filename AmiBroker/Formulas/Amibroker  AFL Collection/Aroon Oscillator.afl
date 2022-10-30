@@ -1,0 +1,13 @@
+PL = Param("Periods",14,4,45,1);
+
+AroonUp = 100 * (PL - (HHVBars(H, PL + 1))) / PL;
+AroonDn = 100 * (PL - (LLVBars(L, PL + 1))) / PL;
+AroonOsc = AroonUp - AroonDn;
+
+Plot(AroonOsc, "Aroon Oscillator("+PL+")", IIf(AroonOsc > 0,colorGreen,colorRed), styleHistogram| styleThick);
+PlotGrid(-50, colorLightGrey);
+PlotGrid(50, colorLightGrey);
+
+"The Aroon Oscillator indicates an upward trend when it is above zero and a downward trend when it is below zero.";
+"";
+"The farther away the oscillator is from the zero line, the stronger the trend.";

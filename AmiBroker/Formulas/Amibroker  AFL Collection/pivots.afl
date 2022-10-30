@@ -1,0 +1,17 @@
+_SECTION_BEGIN("Pivot Identifier");
+ SetChartOptions(0,chartShowArrows|chartShowDates);
+ _N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+ Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+
+ dist = 0.5*ATR(10);
+ //code and plot the pivot top
+ PivotTop = L < Ref(L,-1) AND H < Ref(H,-1) AND Ref(L,-1) < Ref(L,-2) AND Ref(H,-1) < Ref(H,-2) AND Ref(H,-2) > Ref(H,-3) AND Ref(L,-2) > Ref(L,-3);
+ PivotBottom = H > Ref(H,-1) AND L > Ref(L,-1) AND
+ Ref(H,-1) > Ref(H,-2) AND Ref(L,-1) > Ref(L,-2) AND
+ Ref(L,-2) < Ref(L,-3) AND Ref(H,-2) < Ref(H,-3);
+ for( i = 0; i < BarCount; i++ ) 
+ { 
+ if( PivotTop [i] ) PlotText( "PVT", i-2, H[ i-2 ], colorGreen ); 
+ if( PivotBottom [i] ) PlotText( "PVB", i-2, L[ i-2 ] - dist[i] , colorRed );
+ }
+ _SECTION_END();

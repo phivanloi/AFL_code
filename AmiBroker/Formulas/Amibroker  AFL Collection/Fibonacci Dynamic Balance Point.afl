@@ -1,0 +1,4 @@
+dt = DayOfWeek();
+DBC =(HighestSince(DayOfWeek()==dt,H,5)+
+LowestSince(DayOfWeek()==dt,L,5)+Close)/3;
+Plot(DBC, "Fibonacci Dynamic Balance Point", colorRed);

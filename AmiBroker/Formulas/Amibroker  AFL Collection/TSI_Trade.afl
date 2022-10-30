@@ -1,0 +1,22 @@
+r = Param( "TSI period 'Length':", 25, 1, 100, 1 );
+s = Param( "TSI period 'Smoothing':", 13, 1, 100, 1 );
+sig = Param( "Signal period:", 7, 1, 100, 1 );
+ 
+Mtm = C - Ref ( C, -1 );
+AbsMtm = abs ( Mtm );
+Num_T = EMA ( EMA ( Mtm, r ), s );
+Den_T = EMA ( EMA ( AbsMtm, r ), s );
+
+TSI = 100 * ( Num_T / Den_T );
+
+Value1 = TSI;
+
+Value2 = IIf(Value1 - Ref(Value1,-1) > 0 AND Value1 > 0, Value1,0);
+Value3 = IIf(Value1 - Ref(Value1,-1) < 0 AND Value1 < 0, Value1,0);
+TSI_Trade = Value2 + Value3;
+
+Plot(Value2, "", colorLime, styleHistogram);
+Plot(Value3, "", colorRed, styleHistogram);
+Plot(TSI_Trade, "TSI_Trade", colorOrange, styleThick);
+
+

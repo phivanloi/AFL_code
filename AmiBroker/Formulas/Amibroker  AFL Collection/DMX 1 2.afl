@@ -1,0 +1,211 @@
+
+_SECTION_BEGIN("ADX"); 
+pl = MA((H+L+C)/3,3);
+Col_pl = IIf(pl > Ref(pl,-1),colorGreen,colorRed); 
+Plot (PL,"trend",Col_pl,styleThick);
+range = Param("trend period", 14, 2, 200, 1 ); 
+em = Param("EMA Of the trend",5,1,20,1);
+p = EMA(PDI(range),em);
+m = EMA(MDI(range),em);
+pe = p-m;
+bbtop = BBandTop(pe,5,0.5);
+bbbot = BBandBot(pe,5,0.5);
+
+Col_pm = IIf(PDI(range) > MDI(range), colorBrightGreen,colorRed);
+Buy = PDI(range) > MDI(range) AND Close > BBandTop(Close,20,1); 
+Sell = MDI(range) > PDI(range) AND Close < BBandBot(Close,20,1);
+//Col_bar =IIf(Buy AND p > Ref(p,-1),colorAqua,IIf(Sell AND m > Ref(m,-1),colorRed,IIf(Buy,colorBlue, IIf(Sell,colorDarkRed,colorYellow))));
+//Col_bar =IIf(Buy ,colorGreen,IIf(Sell ,colorRed,colorYellow));
+Col_bar = IIf(PDI(range) > MDI(range),colorBrightGreen,colorRed);
+Plot(Close,"price",col_bar,styleCandle);
+//Plot(EMA(High,20),"",colorWhite,styleThick);
+//Plot(EMA(Low,20),"",colorWhite,styleThick);
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+Cover = Buy;
+Short = Sell;
+//PlotShapes(Buy*shapeHollowSmallUpTriangle,colorBlue);
+//PlotShapes(Sell*shapeHollowSmallDownTriangle,colorBlue);
+
+dist = 1.5*ATR(10); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+
+//if( Buy[i] ) PlotText( "Buy @ \n"+C[i] , i, L[ i ]-dist[i], colorBlack,colorGreen ); 
+//if( Sell[i] ) PlotText( "Sell@ \n"+C[i], i, H[ i ]+dist[i], colorBlack, colorRed ); 
+
+
+}  
+//PlotShapes( Buy * shapeUpArrow + Sell * shapeDownArrow, IIf( Buy, colorYellow, colorYellow ) );
+//PlotShapes( Buy * shapeSmallUpTriangle + Sell * shapeSmallDownTriangle, IIf( Buy, colorGreen, colorRed ) );
+
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+
+
+
+
+Plot(1, "", Col_pm, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+_SECTION_END();
+
+_SECTION_BEGIN("BB");
+bb2top = BBandTop(Close,20,2.25);
+bb1top = BBandTop(Close,20,1);
+bb2bot = BBandBot(Close,20,2.25);
+bb1bot = BBandBot(Close,20,1);
+//PlotOHLC( Cc,Cc,80,Cc, "", IIf( Cc > 0, colorGreen, colorRed ), styleCloud | styleClipMinMax, -80, 80 ); 
+Plot (bb2top,"",IIf(bb2top > Ref(bb2top,-1) AND bb2bot < Ref(bb2bot,-1),colorBlue,colorGrey40),styleNoLabel);
+Plot (bb2bot,"",IIf(bb2top > Ref(bb2top,-1) AND bb2bot < Ref(bb2bot,-1),colorBlue,colorGrey40),styleNoLabel);
+Col_action = IIf(Close >bb1top AND PDI(range) > MDI(range),colorBrightGreen,IIf(Close <bb1bot AND PDI(range) < MDI(range),colorRed,colorBlack));  
+Plot(2, "", IIf(ADX(range) > Ref(ADX(range),-1),colorBlue,colorBlack), styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+
+Plot(5, "", Col_action, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+
+_SECTION_END();
+
+//PlotOHLC(EMA( Close, 19 ),IIf(EMA( Close, 19 ) > EMA( Close, 21 ),EMA( Close, 19 ),EMA( Close, 21 )),IIf(EMA( Close, 19 )<EMA( Close, 21 ),EMA( Close, 19 ),EMA( Close, 21 )),EMA( Close, 20 ),"",IIf(EMA( Close, 20 ) > MA(EMA( Close, 20 ),3),colorDarkGreen,colorDarkRed),styleCloud); 
+
+_SECTION_END();
+
+
+
+_SECTION_BEGIN("SIMPLE_D-CAMS_SHOW");
+//---- pivot points 
+
+DayH = TimeFrameGetPrice("H", inDaily, -1);// yesterdays high 
+DayL = TimeFrameGetPrice("L", inDaily, -1);//low 
+DayC = TimeFrameGetPrice("C", inDaily, -1);//close 
+DayO = TimeFrameGetPrice("O", inDaily);// current day open 
+HiDay = TimeFrameGetPrice("H", inDaily); 
+LoDay = TimeFrameGetPrice("L", inDaily);
+
+
+TimeFrameSet( inDaily );
+
+R6 = (DayH / DayL) * DayC * 1.002;
+R5 = (DayH / DayL) * DayC;
+R4 = (((DayH / DayL) + 0.83) / 1.83) * DayC;
+R3 = ( ( (DayH / DayL) + 2.66) / 3.66) * DayC;
+R2 = ( ( (DayH / DayL) + 4.5) / 5.5) * DayC;
+R1 = ( ( (DayH / DayL) + 10) / 11) * DayC;
+ 
+S1 = (2- ( ( (DayH / DayL) + 10) / 11)) * DayC;
+S2 = (2-( (DayH / DayL) + 4.5) / 5.5) * DayC;
+S3 = (2-(( DayH / DayL) + 2.66) / 3.66) * DayC;
+S4 = (2-( (DayH / DayL) + 0.83) / 1.83) * DayC;
+S5 = (2-( DayH / DayL)) * DayC;
+S6 = (2-( DayH / DayL)) * DayC * 0.998;
+
+
+ShowR5 = ParamToggle("R5", "No|Yes");
+R5Color=ParamColor( "R5Color", colorDarkGrey );
+ShowR4 = ParamToggle("R4", "No|Yes");
+R4Color=ParamColor( "R4Color", colorBrightGreen );
+ShowR3 = ParamToggle("R3", "No|Yes");
+R3Color=ParamColor( "R3Color", colorBrightGreen );
+ShowR2 = ParamToggle("R2", "No|Yes");
+R2Color=ParamColor( "R2Color", colorGrey40 );
+ShowR1 = ParamToggle("R1", "No|Yes");
+R1Color=ParamColor( "R1Color", colorGrey40 );
+
+ShowS1 = ParamToggle("S1", "No|Yes");
+S1Color=ParamColor( "S1Color", colorGrey40 );
+ShowS2 = ParamToggle("S2", "No|Yes");
+S2Color=ParamColor( "S2Color", colorGrey40 );
+ShowS3 = ParamToggle("S3", "No|Yes");
+S3Color=ParamColor( "S3Color", colorRed );
+ShowS4 = ParamToggle("S4", "No|Yes");
+S4Color=ParamColor( "S4Color", colorRed );
+ShowS5 = ParamToggle("S5", "No|Yes"); 
+S5Color=ParamColor( "S5Color", colorDarkGrey );
+
+//Shadowcolor = ParamColor("Shadow",ColorRGB(40,30,20));
+//Shadowcolor1 = ParamColor("Shadow1",ColorRGB(20,30,20));
+//Shadowcolor2 = ParamColor("Shadow2",ColorRGB(30,40,0));
+
+//style = styleDots | styleThick + styleNoRescale ; 
+style = styleLine + styleNoRescale ; 
+
+if(ShowR5 == True)
+Plot(R5, "R5",R5Color,style);
+if(ShowR4 == False) 
+Plot(R4, "R4",R4Color,Style);
+if(ShowR3 == False)
+Plot(R3, "R3",R3Color,style);
+if(ShowR2 == True) 
+Plot(R2, "R2",R2Color,styleLine);
+if(ShowR1 == True)
+Plot(R1, "R1",R1Color,styleLine);
+
+if(ShowS1 == True)
+Plot(S1, "S1",S1Color,styleLine);
+if(ShowS2 == True)
+Plot(S2, "S2",S2Color,styleLine);
+if(ShowS3 == False)
+Plot(S3, "S3",S3Color,style);
+if(ShowS4 == False) 
+Plot(S4, "S4",S4Color,style);
+if(ShowS5 == True) 
+Plot(S5, "S5",S5Color,style); 
+
+ToolTip=StrFormat("Open: %g\nHigh: %g\nLow: %g\nClose: %g (%.1f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1)));
+TimeFrameRestore();
+_SECTION_END();
+
+PlotOHLC(bb2top,bb2top,bb1top,bb1top,"",IIf(C > BB1top AND bb1top > Ref(bb1top,-1) AND bb2top > Ref(bb2top,-1),colorDarkGreen,IIf(bb1top > Ref(bb1top,-1) AND bb2top > Ref(bb2top,-1),colorBlue,colorDarkGrey)),styleCloud); 
+  PlotOHLC(bb1bot,bb1bot,bb2bot,bb1bot,"",IIf(C < BB1bot AND bb1bot < Ref(bb1bot,-1) AND bb2bot < Ref(bb2bot,-1),colorDarkRed,  IIf(bb1bot < Ref(bb1bot,-1) AND bb2bot < Ref(bb2bot,-1),colorBlue,colorDarkGrey)),styleCloud);
+
+
+
+_SECTION_BEGIN("Fibo for all bars");
+
+TimeFrameSet( in15Minute*2 ); 
+DH=Ref(H,-1); 
+DL=Ref(L,-1);
+DC=Ref(C,-1);
+
+
+pd = (O+ DH+ DL + DC )/4;
+sd1 = (2*pd)-DH;
+sd2 = pd -(DH - DL);
+sd3 = Sd1 - (DH-DL); 
+rd1 = (2*pd)-DL;
+rd2 = pd +(DH -DL);
+rd3 = rd1 +(DH-DL);
+
+
+
+//Plot (pd,"Pivot",colorBlue,styleDots);
+//Plot (rd1," R1 ",35,styleDots);
+//Plot (rd2," R2 ",35,styleDots);
+//Plot (rd3," R3 ",35,styleDots);
+
+//Plot (sd1," S1 ",4,styleDots);
+//Plot (Sd2," S2 ",4,styleDots);
+//Plot (Sd3," S3 ",4,8+16);
+/*
+style = IIf(ParamList("Chart style", "styleCandle|styleBar")=="styleCandle",64,128+4);
+Plot (C,Date ()+" close",1,style); //ENABLE THIS TO HAVE CANDLES AS WELL
+*/
+TimeFrameRestore();
+
+
+Title = EncodeColor(colorWhite)+ "LINKON'S PIVOT TRADING SYSTEM" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "
+//+ WriteIf(Col_action==colorGreen, EncodeColor(colorGreen)+"stay LONG","")+ WriteIf(Col_action==colorRed, EncodeColor(colorRed)+"stay SHORT","")+  WriteIf(Col_action==colorBlack, EncodeColor(colorYellow)+"No Trend","")+"\n"
++ "Vol= "+ WriteVal(V) +WriteIf ( V > MA(V,26) ,EncodeColor(colorGreen)+"  UP "+ (V/MA(V,26))*100 + " %", EncodeColor(colorRed)+"  DOWN "+ (V/MA(V,26))*100 + " %")
++ EncodeColor(colorGreen)+   "\n R3 : "+ EncodeColor(colorWhite)+RD3
++ EncodeColor(colorGreen)+   "\n R2 : "+ EncodeColor(colorWhite)+RD2
++ EncodeColor(colorGreen)+   "\n R1 : "+ EncodeColor(colorWhite)+RD1+ EncodeColor(colorGreen)+   "`            Hi: "+ EncodeColor(colorWhite)+H
++ EncodeColor(colorBlue)+   "\n Pivot : "+ EncodeColor(colorWhite)+pd + EncodeColor(colorYellow)+   "`   Op: "+ EncodeColor(colorWhite)+O+ EncodeColor(colorAqua)+   "Cl: "+ EncodeColor(colorBrightGreen)+C
++ EncodeColor(colorRed)+   "\n S1 : "+ EncodeColor(colorWhite)+SD1+ EncodeColor(colorRed)+   "`            Lo: "+ EncodeColor(colorWhite)+L
++ EncodeColor(colorRed)+   "\n S2 : "+ EncodeColor(colorWhite)+SD2
++ EncodeColor(colorRed)+   "\n S3 : "+ EncodeColor(colorWhite)+SD3
+;
+
+_SECTION_END();

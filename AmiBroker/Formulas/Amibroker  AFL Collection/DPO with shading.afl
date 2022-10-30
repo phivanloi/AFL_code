@@ -1,0 +1,48 @@
+///////////////////////////////////////////////////////////////
+// DPO : With Shading
+// By  : Bill Halliday
+// Date: 2006-12-05
+// From: A customized version of the 'DPO - Detrended Price 
+//       Oscillator' Indicator found in:
+//       Program Files/AmiBroker/Formulas/Indicators that 
+//       displays a shaded plot using styleCloud
+//
+// Initial Alterations:
+//
+//       1) This documentation.
+//       2) Printf statement.
+//       3) Changed the Plot to include shading.
+//
+// Revision: 2006-12-07
+//
+//        Moved the Interpretation commentary to a "Status" 
+//        'if block' AND added line feeds to the Interpretation 
+//        printf for display clarity.
+
+
+// Define the DPO function
+
+function DetrendedPriceOsc( Periods ) 
+{ 
+return C - Ref( MA( C, Periods ), -( 1 + Periods/2 ) ); 
+} 
+
+// Start of program execution
+
+// Call the dpo function
+
+dpo = DetrendedPriceOsc( Param("Periods", 20, 1, 100 ) ); 
+
+//Plot the DPO Indicator
+
+PlotOHLC( dpo, dpo, 0,dpo ,  _DEFAULT_NAME(), colorLime, styleCloud ); 
+
+// Start Revision: 2006-12-07
+if( Status("action") == actionCommentary ) 
+{ 
+// this printf prints information into the Interpretation Window
+printf ( Interval(2) + " " + Name()+"("+FullName()+"):\n\n" + 
+         "High " + H + ",\nLow " + L + ",\nClose " + C + ", \n\n" +
+         "dpo: " + DetrendedPriceOsc( Param("Periods", 20, 1, 100 ) ));
+}
+// End Revision: 2006-12-07

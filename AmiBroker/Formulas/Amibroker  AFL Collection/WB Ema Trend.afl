@@ -1,0 +1,5 @@
+fm = EMA(C,23);
+sm = EMA(C,50);
+wbt = IIf(fm > sm,1,IIf(fm < sm,-1,0));
+
+Plot(wbt, "", 4);

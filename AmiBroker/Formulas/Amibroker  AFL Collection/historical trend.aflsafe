@@ -1,0 +1,30 @@
+/*HISTORICAL TRENDLINES*/
+x = Cum(1);
+per = 3;//Sensitivity Calibration
+RANK=2;//Replace 2 with 3,4,5 etc
+RANKT=RANK;
+RANKP=RANK;
+s1=L;s11=H;
+pS = TroughBars( s1, per, 1 ) == 0;
+endt= LastValue(ValueWhen( pS, x, RANKT ));
+startt=LastValue(ValueWhen( pS, x, RANKT+1 ));
+dtS =endt-startt;
+endS = LastValue(ValueWhen( pS, s1, RANKT) );
+startS = LastValue( ValueWhen( pS, s1, RANKT+1 ));
+aS = (endS-startS)/dtS;bS = endS;
+trendlineS = aS * ( x -endt ) + bS;//SUPPORT LINE
+pR = PeakBars( s11, per, 1 ) == 0;
+endt1= LastValue(ValueWhen( pR, x, RANKP));
+startt1=LastValue(ValueWhen( pR, x, RANKP+1 ));
+dtR =endt1-startt1;
+endR = LastValue(ValueWhen( pR, s11, RANKP ) );
+startR = LastValue( ValueWhen( pR, s11, RANKP+1 ));
+aR = (endR-startR)/dtR;bR = endR;
+trendlineR = aR * ( x -endt1 ) + bR;//RESISTANCE LINE 
+MaxGraph=8;Graph0 = C;
+Graph0Style=64;Graph0BarColor=1;
+Graph1 = IIf(x>startt-10,trendlineS,-1e10);Graph1Style = 1;Graph1Color = 3;
+Graph2 = IIf(x>startT1-10,trendlineR,-1e10);Graph2Style = 1;Graph2Color = 4;
+/*HZ=Zig(H,PER);Graph4=HZ;
+LZ=Zig(L,PER);Graph6=LZ;Graph6BarColor=10;*/
+GraphXSpace=5;

@@ -1,0 +1,12 @@
+_SECTION_BEGIN("UNITE COLORS OF SULTANJI 1.0");
+/***************************************/
+/* United Colors Of Sultanji version 1.1 */
+/* by sultans */
+/* The UCOS is a fancy gadget ...
+*/
+/***************************************/
+bc = Param("background color",16,1,55,1);
+use_your_color=IIf(ParamList("use_your_color?","no|yes")=="yes",1,0);
+SetChartBkColor(bc);
+if (use_your_color) 
+_SECTION_END();

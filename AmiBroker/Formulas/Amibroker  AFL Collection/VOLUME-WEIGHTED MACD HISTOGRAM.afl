@@ -1,0 +1,25 @@
+//In “Volume-Weighted Macd Histogram” in this issue, author David Hawkins 
+//presents an improved, Volume-weighted Version of the classic MACD histogram indicator.
+//Coding such an indicator is very straightforward. 
+//A ready-to-use AmiBroker formula for the indicator is presented in Listing 1.
+// To use it, enter the formula in the Afl Editor, then select “Insert indicator.” 
+//The same formula can also be used in the Automatic Analysis feature to perform backtesting.
+
+//AMIBROKER: VOLUME-WEIGHTED MACD HISTOGRAM
+
+PeriodS = Param("Short period", 12, 1, 500 ); 
+PeriodL = Param("Long period", 26, 2, 501 ); 
+PeriodSig = Param("Smoothing period", 9, 1, 200 ); 
+
+LongMA = EMA( V * C, PeriodL ) / EMA( V, PeriodL ); 
+ShortMA = EMA( V * C, PeriodS ) / EMA( V, PeriodS ); 
+
+VMACD = ShortMA - LongMA; 
+
+SignalLine = EMA( VMACD, PeriodSig ); 
+
+//Uncomment two lines below to see also MACD and signal line
+//Plot( VMACD, "Vol-weighted MACD", colorRed ); 
+//Plot( SignalLine, "Vol-weighted Signal", colorBlue ); 
+Plot( VMACD-SignalLine, "VMACD Histogram", colorGreen, styleHistogram ); 
+

@@ -1,0 +1,6 @@
+Filter= GapUp();
+AddColumn( Close, "Close  " );
+AddColumn( Open, "Open  " );
+AddColumn( High, "High  " );
+AddColumn( Low, "Low  " );
+AddColumn( Volume, "Volume      " );

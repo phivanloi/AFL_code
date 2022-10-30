@@ -1,0 +1,163 @@
+/* TSKPPivot
+	A PP (Pivot Point) occurs when A900 crosses over/under AutoStop and is
+	confirmed when ScoreCard value be >= 5/<= -5.
+	When A900 crosses over AutoStop and ScoreCard confirms with a reading
+	>= 5, then a new PL (Pivot Low) has been made.  The PL point is the bar
+	that has the lowest low price since the last PH.
+	When A900 crosses under AutoStop and ScoreCard confirms witha reading
+	<= -5, then a new PH (Pivot High) and been made.  The PH point is the bar
+	that has the highest high price since the last PL.
+	One can NOT have two consecutive PHs OR two consecutive PLs.
+	
+	PP Trend requires 3 Pivot Points.  THe PP trend is either Up (PPTrend = 1) or
+	Down (PPTrend = -1).  There are 2 basic Pivot Point patterns: PL-PH-PL or PH-PL-PH.
+
+*/
+SetBarsRequired(350, -0);
+
+//user parameters
+parmPlotA900AutoStop = ParamToggle("Plot A900/AutoStop", "No|Yes", 0);
+parmA900Color = ParamColor("A900 Color", colorWhite);
+parmA900Style = ParamStyle("A900 Style", styleLine, maskAll);
+parmAutoStopColor = ParamColor("AutoStop Color", colorGreen);
+parmAutoStopStyle = ParamStyle("AutoStop Style", styleLine, maskAll);
+parmPPTextColor = ParamColor("PP Text color", colorBlack);
+parmPPTrndColorUp = ParamColor("PP Trend Up color", ColorRGB(167,224,243) );
+parmPPTrndColorDn = ParamColor("PP Trend Dwn color", ColorRGB(255,192,203) );
+parmPPTextOffSet = Param("PP Text OffSet", 1, 0, 10);
+parmA900AutoStopX = ParamToggle("A900/AutoStop Cross", "No|Yes");
+parmA900AutoStopColorX = ParamColor("A900/AutoStop Cross Color", colorBlack);
+parmThreshold = Param("Threshold", 5, 0, 10, 1);
+ParmDebug = ParamToggle("Debug", "No|Yes", 0);
+
+// constants
+_N(PaneName = Name() + Interval(2));
+_N(NewBarName = "NewBar" + PaneName);
+
+//functions
+function NewBar()
+{
+	PrevDT = StaticVarGet( NewBarName);
+	DT = LastValue(DateTime());
+	StaticVarSet( NewBarName,DT);
+	return DT != PrevDT;
+}
+
+//miscellaneous setups
+ObjAB = CreateObject("Broker.Application");
+ticker = objAB.Stocks(Name() );
+if(ticker.TickSize == 0)
+	{
+		TickValue = 0.01;	//set TickValue to a penney
+	}
+else
+	{
+		TickValue = ticker.TickSize;	// use Tick Size for this symbol
+	}
+NewBarSignal = NewBar();
+//  KP Indicators
+KPA900 = E_TSKPA900(Close);
+KPAutoStop = E_TSKPAUTOSTOP(High,Low,Close);
+Ctmpl = E_TSKPCOLORTMPL(Open,High,Low,Close,Volume);	//ScoreCard
+KPScoreCard = 0;
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd0 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd1 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd2 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd3 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd4 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd5 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd6 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd7 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd8 > 0, 1, -1); 
+
+if(parmDebug == 1)
+	{
+		printf("a900: %0.6f% \nAutoStop: %0.6f%\nScoreCard: %0.0f%\n", KPA900, KPAutoStop, KPScoreCard);
+	}
+//user want A900/AutoStop plotted
+if(parmPlotA900AutoStop == 1)
+	{
+		Plot(KPA900, "A900", parmA900Color, parmA900Style);
+		Plot(KPAutoStop, "AutoStop", parmAutoStopColor, parmAutoStopStyle);
+	}
+// find A900/AutoStop cross over/under with ScoreCard confirmation.
+XOUp = (KPA900 > KPAutoStop) AND (KPScoreCard >= parmThreshold);	// New Pivot Low
+XODn = (KPA900 < KPAutoStop) AND (KPScoreCard <= -parmThreshold); // New Pivot High
+if(parmDebug == 1)
+	{
+		printf(WriteIf(XOUp, "before= XOUp: True", "before= XOUp: False") + WriteIf(XODn, " XODn: True\n", " XODn: False\n") );
+	}
+//remove duplicate signals
+XOUp = ExRem(XOUp, XODn);
+XODn = ExRem(XODn, XOUp);
+
+if(parmDebug == 1)
+	{
+		printf(WriteIf(XOUp, "after= XOUp: True", "after= XOUp: False") + WriteIf(XODn, " XODn: True\n", " XODn: False\n") );
+	}
+//find the current Pivot Points - PL and PH
+//remember XOUp = 1 means a PL and XODn =1 means a PH
+PLBars = IIf(XOUp, LowestSinceBars(XODn, L ,1), 0);	//find the bar that produced the Lowest Low
+PHBars = IIf(XODn, HighestSinceBars(XOUp, H, 1),0);	//find the bar that produced the Highest High
+//PLPrice = IIf(XOUp, Ref(L, -PLBars), 0);
+//PHPrice = IIf(XODn, Ref(H, -PHBars),0);
+PLPrice =  Ref(L, -PLBars);
+PHPrice =  Ref(H, -PHBars);
+
+//keep track of the previous Pivot Points
+PrevPLBars = Ref(BarsSince(XOUp), -1) +1;
+PrevPHBars =  Ref(BarsSince(XODn), -1) +1;
+PrevPLPrice =  Ref(PLPrice, -prevPLBars);
+PrevPHPrice =  Ref(PHPrice, -PrevPHBars );
+PPTrend = IIf(XOUp AND PLPrice > PRevPLPrice AND PrevPHPrice > PrevPLPrice AND PRevPHPrice > PLPrice, 1, 
+				IIf(XOUp AND PLPrice < PRevPLPrice AND PRevPHPrice > PrevPLPrice AND PrevPHPrice > PLPrice, -1,
+ 				IIf(XODn AND PHPrice > PrevPHPrice AND PrevPLPrice < PrevPHprice AND PrevPLPrice < PHPrice, 1,
+				IIf(XODn AND PHPrice < PrevPHPrice AND PrevPLPrice < PrevPHPrice AND PrevPLPrice < PHPrice, -1, 0)) ));
+if(ParmDebug)
+	{
+		printf("Current PH Bar: %g% /Price: %g%\n", PHBars, PHPrice);
+		printf("Current PL Bar: %g% /Price: %g%\n", PLBars, PLPrice);
+		printf("Previous PH Bar: %g% /Price: %g%\n", PrevPHBars, PrevPHPrice);
+		printf("Previous PL Bar: %g% /Price: %g%\n", PrevPLBars, PrevPLPrice) ;
+		printf("PP Trend: %g%\n", PPTrend);
+	}
+
+for( i = 0; i < BarCount -1; i++)
+	{
+		if(XOUp[i ] == 1 )	//cross up -plot the Pivot Low
+			{
+				PlotText("PL", i - PLBars[i], PLPrice[i] - (TickValue * parmPPTextOffSet) , parmPPTextColor, IIf(PPTrend[i] == 1, parmPPTrndColorUp, IIf(PPTrend[i] == -1, parmPPTrndColorDn, colorYellow) ));
+				
+			}
+		if(XODn[i ] == 1 )	//cross down - plot the pivot high
+			{
+				PlotText("PH", i - PHBars[i], PHPrice[i] + (TickValue * parmPPTextOffSet) , parmPPTextColor, IIf(PPTrend[i] == 1, parmPPTrndColorUp, IIf(PPTrend[i] == -1, parmPPTrndColorDn, colorYellow) ));
+				
+			}
+	}	//end For
+// Plot A900/AutoStop cross over/under
+if(parmA900AutoStopX == 1)
+	{
+		PlotShapes(IIf(Cross(KPA900, KPAutoStop), shapeUpTriangle, shapeNone), parmA900AutoStopColorX, 0, L - (TickValue * parmPPTextOffSet), -12);
+		PlotShapes(IIf(Cross(KPAutoStop, KPA900), shapeDownTriangle, shapeNone), parmA900AutoStopColorX, 0, H + (TickValue * parmPPTextOffSet), -12);
+	}
+//PHLine = LineArray(BarCount - LastValue(PHBars) -3, LastValue(PHPrice), BarCount - LastValue(PHBars) +2, LastValue(PHPrice), 0);
+//Plot(PHLine, "PH", colorBlack, styleLine);
+//PLLine = LineArray(BarCount - LastValue(PLBars) -3, LastValue(PLPrice), BarCount - LastValue(PLBars) +2, LastValue(PLPrice), 0);
+//Plot(PLLine, "PL", colorBlack, styleLine);
+// identify M, lazy M, W and Lazy W formations
+//voice
+if(NewBarSignal)
+	{
+	if( LastValue(Ref(XODn, -1)) == 1 AND LastValue(Ref(PPTrend, -1)) == 1)  Say(Interval(2) + " New pivot. Higher High.");
+	if( LastValue(Ref(XODn, -1)) == 1 AND LastValue(Ref(PPTrend, -1)) == -1) Say(Interval(2) + " New pivot. Lower high.");
+	if( LastValue(Ref(XODn, -1)) == 1 AND LastValue(Ref(PPTrend, -1)) == 0)  Say(Interval(2) + " New pivot. M Top.");
+
+	if( LastValue(Ref(XOUp,-1))  ==1 AND LastValue(Ref(PPTrend, -1)) == 1)   Say(Interval(2) + " New pivot. Higher low.");
+	if( LastValue(Ref(XOUp,-1))  ==1 AND LastValue(Ref(PPTrend, -1)) == -1)  Say(Interval(2) + " New pivot. Lower low.");
+	if( LastValue(Ref(XOUp,-1))  ==1 AND LastValue(Ref(PPTrend, -1)) == 0)   Say(Interval(2) + " New pivot. W bottom.");
+
+	}
+if(ParmDebug)
+	{
+	}

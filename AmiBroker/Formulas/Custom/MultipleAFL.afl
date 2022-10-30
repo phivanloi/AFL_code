@@ -1,0 +1,244 @@
+//www.aflcode.com
+
+DisplayAlerts = ParamToggle("Pop up Alerts","Off|On",0);
+VoiceAlerts = ParamToggle("Voice Alerts","Off|On",0);
+ 
+timeout = 1000;
+ 
+StaticVarSetText( "CurrPos", "" );
+ 
+function GetSecondNum()
+{
+    Time = Now( 4 );
+    Seconds = int( Time % 100 );
+    Minutes = int( Time / 100 % 100 );
+    Hours = int( Time / 10000 % 100 );
+    SecondNum = int( Hours * 60 * 60 + Minutes * 60 + Seconds );
+    return SecondNum;
+}
+ 
+function PopupWindowEx( popupID, bodytext, captiontext, timeout, left, top )
+{
+    displayText = bodytext + captiontext;
+ 
+    if ( ( StaticVarGetText( Name() + "prevPopup" + popupID ) != displayText ) OR ( StaticVarGet( Name() + "prevPopupTime" + popupID ) < GetSecondNum() ) )
+    {
+        StaticVarSetText( Name() + "prevPopup" + popupID, displayText );
+        StaticVarSet( Name() + "prevPopupTime" + popupID, GetSecondNum() + timeout );
+        if (DisplayAlerts ==1) {
+   PopupWindow( bodytext, Captiontext + popupID, timeout, Left, top );
+         PlaySound( "c:\\windows\\media\\ding.wav" );
+   }
+   if (VoiceAlerts ==1) Say (bodytext);
+    }
+}
+ 
+ 
+//=============================SETUP TREND======================================
+//SetBarsRequired(100000,0);
+pds = 20;
+MAFAST = EMA( Close, 20 );
+MASLOW = EMA( Close, 40 );
+ 
+DonchianUpper = HHV( Ref( H, -1 ), pds ); // Highest high value of highs in last 20 periods
+DonchianLower = LLV( Ref( L, -1 ), pds ); // Lowest low value of low in last 20 periods
+DonchianMiddle = ( DonchianUpper + DonchianLower ) / 2;
+ 
+UpTrend = C > ( LLV( L, 20 ) + 2 * ATR( 10 ) ) AND EMA( Close, 20 ) > EMA( Close, 40 );
+DnTrend = C < ( HHV( H, 20 ) - 2 * ATR( 10 ) ) AND EMA( Close, 20 ) < EMA( Close, 40 );
+Color = IIf( UpTrend, colorGreen, IIf( DnTrend, colorRed, colorCustom10 ) );
+ 
+// Plots a 20 period Donchian channel
+//Plot( C, "Price", Color, styleBar | styleThick );
+ 
+ 
+//=============================DISPLAY PARAMS======================================
+_SECTION_BEGIN("Price");
+ Buy=Sell=Short=Cover=0;
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, High %g, Low %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+ 
+_SECTION_BEGIN("Magnified Market Price");
+procedure DrawData (Text, x1, y1, x2, y2, BoxColor, FontSize)
+{
+ GfxSetOverlayMode(0);
+ GfxSelectFont("Segoe UI", FontSize, 600);
+ //FS=Param("Font Size",FontSize,FontSize,100,1);
+ //GfxSelectFont("Segoe UI", FS, 900, italic = False, underline = False, True );
+ GfxSetBkMode(1);
+ //GfxGradientRect(x1, y1, x2, y2, colorFrom, colorTo);
+ GfxSelectSolidBrush( BoxColor);
+ GfxRoundRect( x1, y1, x2, y2, 7, 7 );
+ GfxDrawText(Text, x1, y1, x2, y2, 32|0|4|16);
+}
+GfxSetTextColor(colorWhite);
+ 
+if(StaticVarGetText("firstflag")=="")
+{
+ StaticVarSetText ("firstflag","0");
+}
+ 
+if(StaticVarGetText("firstflag"+Name())=="")
+{
+ StaticVarSet(("BuyIndex" + Name()), 0);
+ StaticVarSet(("BuyCount" + Name()), 0);
+ StaticVarSet(("BuyFlag"  + Name()), 0);
+ StaticVarSet(("BuyPrice"  + Name()), 0);
+ StaticVarSet(("BuyQty"  + Name()), 0);
+ 
+ StaticVarSet(("SellIndex" + Name()), 0);
+ StaticVarSet(("SellCount" + Name()), 0);
+ StaticVarSet(("SellFlag"  + Name()), 0);
+ StaticVarSet(("SellPrice"  + Name()), 0);
+ StaticVarSet(("SellQty"  + Name()), 0);
+ 
+ StaticVarSet("LTPSave" + Name(), 0);
+ StaticVarSet("LTQSave" + Name(), 0);
+ StaticVarSet("VolumeTemp" + Name(), 0);
+ StaticVarSet("AskSave" + Name(), 0);
+ StaticVarSet("BidSave" + Name(), 0);
+ 
+ StaticVarSet("LastLTPColor" + Name(), colorGrey40);
+ StaticVarSet("LastLTQColor" + Name(), colorGrey40);
+ StaticVarSet("LastAskColor" + Name(), colorGrey40);
+ StaticVarSet("LastBidColor" + Name(), colorGrey40);
+ 
+ StaticVarSetText("firstflag"+Name(), "0");
+}
+ 
+CurrentAskPrice = LastValue(Aux1);
+CurrentBidPrice = LastValue(Aux2);
+CurrentTradedPrice = LastValue(C);
+CurrentVolume = LastValue(Volume);
+ 
+LTPTemp = StaticVarGet("LTPSave" + Name());
+LTQTemp = StaticVarGet("LTQSave" + Name());
+VolumeTemp = StaticVarGet("VolumeTemp" + Name());
+AskTemp = StaticVarGet("AskSave" + Name());
+BidTemp = StaticVarGet("BidSave" + Name());
+ 
+CurrentLTQ = (CurrentVolume - VolumeTemp);
+ 
+if(CurrentLTQ < 0)
+{
+ CurrentLTQ = CurrentLTQ * -1;
+}
+ 
+if(CurrentLTQ == 0)
+{
+ CurrentLTQ = LTQTemp;
+}
+ 
+LTPColor = StaticVarGet("LastLTPColor" + Name());
+LTQColor = StaticVarGet("LastLTQColor" + Name());
+AskColor = StaticVarGet("LastAskColor" + Name());
+BidColor = StaticVarGet("LastBidColor" + Name());
+ 
+if(LTPTemp > CurrentTradedPrice)
+{
+ LTPColor = colorRed;
+}
+else if(LTPTemp < CurrentTradedPrice)
+{
+ LTPColor = colorGreen;
+}
+ 
+if(LTQTemp > CurrentLTQ)
+{
+ LTQColor = colorRed;
+}
+else if(LTQTemp < CurrentLTQ)
+{
+ LTQColor = colorGreen;
+}
+ 
+StaticVarSet("LastLTPColor" + Name(), LTPColor);
+StaticVarSet("LastLTQColor" + Name(), LTQColor);
+StaticVarSet("LastAskColor" + Name(), AskColor);
+StaticVarSet("LastBidColor" + Name(), BidColor);
+ 
+StaticVarSet("LTPSave" + Name(), CurrentTradedPrice);
+StaticVarSet("LTQSave" + Name(), CurrentLTQ);
+StaticVarSet("VolumeTemp" + Name(), CurrentVolume);
+StaticVarSet("AskSave" + Name(), CurrentAskPrice);
+StaticVarSet("BidSave" + Name(), CurrentBidPrice);
+ 
+X0 = 10;
+Y0 = 100;
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+ 
+//DrawData ("" + CurrentTradedPrice +" ("+xx+"%)", X0, Y0, X0+320, Y0+50, LTPColor, 30);
+DrawData ("" + C, X0, Y0, X0+150, Y0+50, LTPColor, 30);
+DrawData (" ("+xx+"%) ", X0+155, Y0, X0+300, Y0+50, LTPColor, 24);
+DrawData (" LTQ : " + NumToStr(CurrentLTQ,1,0), X0, Y0+55, X0+100, Y0+85, LTQColor, 12);
+ 
+/*
+FS=Param("Font Size",30,30,100,1);
+GfxSelectFont("Arial", FS, 900, italic = False, underline = False, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor( ParamColor("Color",colorYellow) );
+//Hor=Param("Horizontal Position",800,800,800,800);
+  
+Hor=Param("Horizontal Position",100,100,100,100);  
+Ver=Param("Vertical Position",25,25,250,50);
+GfxTextOut(""+C,Hor , Ver );
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+GfxSelectFont("Arial", 12, 700, italic = False, underline = False, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor(ParamColor("Color",colorYellow) );
+GfxTextOut(""+DD+" ("+xx+"%)", Hor+5, Ver+45 );
+*/
+_SECTION_END();
+ 
+/*_SECTION_BEGIN("Name");
+GfxSetOverlayMode(0);
+GfxSelectFont("Tahoma", Status("pxheight")/8 );
+GfxSetTextAlign( 0 );// center alignment
+GfxSetTextColor( ColorHSB( 42, 42, 42 ) );
+GfxSetBkMode(1); // transparent
+Hor=Param("Horizontal Position",100,100,100,100);  
+Ver=Param("Vertical Position",360,360,250,50);
+GfxTextOut(""+Name(), Hor+5, Ver+45 );
+_SECTION_END();
+*/
+ 
+_SECTION_BEGIN( "GFX EMA" );
+procedure Plotlinewidth( pvalue, ptitle, pcolor, pstyle, pmin, pmax, pxshift, plinewidth, pshowdate )
+{
+    local pvalue, ptitle, pcolor, pstyle, pmin, pmax, pxshift, plinewidth, ppenstyle, pshowdate;
+    local Miny, Maxy;
+    local Lvb, fvb;
+    local pxwidth, pxheight;
+    local TotalBars, axisarea;
+    local i, x, y;
+ 
+    if ( plinewidth > 0 && Status( "action" ) == 1 && ( pstyle & styleLine == styleLine ) )
+    {
+        ////GfxSetOverlayMode( 0 );
+        Miny = Status( "axisminy" );
+        Maxy = Status( "axismaxy" );
+        lvb = Status( "lastvisiblebar" );
+        fvb = Status( "firstvisiblebar" );
+        pxwidth = Status( "pxwidth" );
+        pxheight = Status( "pxheight" );
+        TotalBars = Lvb - fvb;
+        xaxisarea = 56;
+ 
+        if ( pshowdate )
+            yaxisarea = 10;
+        else
+            yaxisarea = 0;
+ 
+        i = 0;
+ 
+        x = 5 + i * ( pxwidth - xaxisarea - 10 ) / ( TotalBars + 1 );
+ 
+        y = 5 + yaxisarea + ( pvalue[i+fvb] - Miny ) * ( pxheight - yaxisarea - 10 ) / ( Maxy - Miny );
+ 
+        GfxMoveTo( x, pxheight - y );

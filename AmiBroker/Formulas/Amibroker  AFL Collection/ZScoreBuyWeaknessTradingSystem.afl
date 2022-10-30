@@ -1,0 +1,37 @@
+// ZScoreBuyWeaknessTradingSystem.afl
+//
+//	Buys an downward fall through a z-score level
+//
+//	Run as a backtest with a watchlist
+//
+// Define the number of holdings
+PosQty = Optimize( "PosQty", 1, 1, 5, 1 );
+SetOption( "MaxOpenPositions", PosQty );
+// Equal funding for each track
+PositionSize = -100 / PosQty;
+
+// Profit Target
+ProfitPercent = Optimize( "ProfPct", 6, 1, 10, 1 );
+
+// Holding Period
+NHold = Optimize( "NHold", 2, 1, 10, 1 );
+
+// Choose the z-score Level to buy
+zsLevel = Optimize( "zsLevel", -3, -4.0, 4.0, 0.25 );
+
+// Calculate what price that is
+Pricezs = MA( C, 20 ) + zsLevel * StDev( C, 20 );
+
+// Buy on a limit order when the price drops through
+Buy = Ref( L, -1 ) > Ref( Pricezs, -1 ) AND L < Pricezs;
+BuyPrice = Pricezs;
+
+// Compute the profit target
+ProfitTargetPrice = ( 1 + 0.01 * ProfitPercent )
+                    * ValueWhen( Buy, BuyPrice, 1 );
+
+// Sell on either a profit target or holding period
+Sell = ( H > ProfitTargetPrice AND
+         ( BarsSince( Buy ) >= 1 AND BarsSince( Buy ) < NHold ) )
+       OR ( BarsSince( Buy ) >= NHold );
+SellPrice = IIf( BarsSince( Buy ) < NHold, ProfitTargetPrice, Close );

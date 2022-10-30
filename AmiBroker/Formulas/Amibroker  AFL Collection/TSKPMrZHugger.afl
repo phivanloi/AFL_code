@@ -1,0 +1,1 @@
+Plot( E_TSKPMRZHUGGER(High,Low,Close,Volume) , _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style", default=styleNoLabel+styleOwnScale, mask=maskDefault) );

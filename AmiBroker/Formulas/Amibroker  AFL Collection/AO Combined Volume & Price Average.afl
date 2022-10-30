@@ -1,0 +1,7 @@
+Pr = Param("Enter number of bars",20,1,1000,1);
+SPrice = Sum(C,Pr);
+SVolume = Sum(Volume,Pr)/Pr;
+SPVol = Sum(Volume*C,Pr)/Pr;
+AOCPV = SPVol/SVolume;
+
+Plot(AOCPV ,_DEFAULT_NAME(), ParamColor("color", colorCycle ), ParamStyle("Style") );

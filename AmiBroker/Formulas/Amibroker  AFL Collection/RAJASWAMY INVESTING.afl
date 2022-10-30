@@ -1,0 +1,79 @@
+//  Trend_Follow_V1.0T,  11/1/04
+//  Copyright John Bates 2004.  All Rights Reserved.
+//
+//  Restrictions on Usage:
+//     This program was developed for educational purposes and 
+//     to provide information for individual investors. User 
+//     understands that no commercial use of this program
+//     OR modified programs is permitted AND agrees to abide 
+//     by this use restriction. 
+//  -------------------------------------------------------------
+//  Disclaimer:
+//     Warning: This system is a mechanical system.  It has not 
+//     been rigorously tested in real time and is not designed
+//     to be a standalone Trading System.  It is recommended that
+//     Chart Analysis and other Indicators be used to confirm
+//     signals from this system. 
+//
+//     Users should be aware that all trading systems of this type
+//     involve some degree of curve fitting of past data so if Market
+//     characteristics change it may NOT work well in the future. No
+//     representation express OR implied is made that the system 
+//     alone will generate profits OR that the system is error free.
+//
+//     If you can NOT abide by these disclaimers AND are unwilling to
+//     accept full responsibility for your actions, please do NOT 
+//     use any part of this system. 
+//
+//  -------------------------------------------------------------
+//  Description:
+//     Trend_Follow is a long only Swing Trading System. It was 
+//     designed initially to trade vehicles based on the Russell 2000
+//     Index.  Its parameters may be altered to trade other Markets
+//     that trend well. 
+//
+//  Recommended Settings:
+//     Periodicity: Daily
+//     Position Types: Long 
+//     Allow Position Size Srinking (yes)
+//     Closing Prices and 0 Delay for all Trades
+//     All Stops Disabled
+//     Ticker Symbol:  Yahoo ^rut or a ticker for a data source
+//                     with High,Low,Open,and Close data.
+//----------------------------------------------------------------
+
+SetFormulaName("Trend_Follow_V1.0T");
+//---------------------------------------------
+// Initialize Parameters
+//---------------------------------------------
+p1   = Optimize("EMA Period", 7, 5, 25, 1);  //Period for EMA  
+p2   = Optimize("DI+ DI- Period", 5, 5, 25, 1);  //Period for PDI and MDI 
+
+//-------------------------------------
+// Long Buy Signal
+//-------------------------------------
+Cond1   = C > EMA(C,p1);
+
+Cond2   = PDI(p2) > MDI(p2);
+
+Buy     = Cond1 AND Cond2 ;
+//------------------------------------
+// Long Sell Signal
+//------------------------------------
+Sell  = C <= EMA(C,p1);
+
+//---------------------------------------------
+//  Create Equity Composite for Chart Analysis 
+//---------------------------------------------
+AddToComposite(Equity(0,0),"~TrendFollow", "X", 31);
+
+//---------------------------------------------
+// Exploration Code for detailed analysis of
+// Signals (Buy, Sell, Cover, Short) 
+//---------------------------------------------
+Filter = 1;
+AddColumn(C,"Close", 1.2);
+AddColumn (Cond1,  "Cond1",1.0);
+AddColumn (Cond2,  "Cond2",1.0);
+AddColumn (Buy,    "Buy",  1, colorDefault, IIf(Buy, colorGreen, colorDefault));
+AddColumn (Sell,   "Sell",  1, colorDefault, IIf(Sell,colorRed, colorDefault));

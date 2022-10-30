@@ -1,0 +1,28 @@
+_SECTION_BEGIN("RSI BB");
+
+A1=RSI(13); 
+A2= EMA(A1,13);
+A3= EMA(A1,39); 
+BBtop=BBandTop(A1,5,.5); 
+BBbot=BBandBot(A1,5,.5);
+Color=IIf(a1 > 70 OR a1<30, colorYellow,IIf(a1 < 50, colorRed,colorLightBlue));
+bbtop_col = IIf (BBtop > Ref(BBtop,-1),colorBlue,colorRed);
+bbbot_col = IIf (BBbot > Ref(BBbot,-1),colorBlue,colorRed);
+Plot(a1,"",color,styleLine);
+Plot(a2,"",colorGreen);
+Plot(a3,"",colorWhite,styleDots);
+
+//Plot(BBtop,"",colorYellow,styleDashed);
+//Plot(BBbot,"",colorYellow,styleDashed);
+Plot(70,"",31,1);
+Plot(50,"",31,1);
+Plot(30,"",31,1);
+Buy = a2 > a3;
+Sell = a2 < a3;
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+PlotShapes(Buy*shapeHollowSmallUpTriangle,colorYellow);
+PlotShapes(Sell*shapeHollowSmallDownTriangle,colorYellow);
+//Plot(6, "", Color, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+_SECTION_END();

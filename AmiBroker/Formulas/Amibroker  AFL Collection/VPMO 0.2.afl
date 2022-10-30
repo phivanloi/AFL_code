@@ -1,0 +1,24 @@
+_SECTION_BEGIN("VPMO");
+// http://www.positiveterritory.com/do/tw/vpmo11.htm
+/* First, calculate today’s V*PMO input value:
+  VTODAY * (CPTODAY – CPTODAY-1)
+where
+ VTODAY = today’s Volume
+ CPTODAY = today’s closing price
+ CPTODAY-1 = yesterday’s closing price
+
+Then smooth the values using a 3-Day exponential moving average (EMA):
+
+ V*PMO = EMA(3)(VTODAY,VTODAY-1,VTODAY-2)
+*/
+
+// version 0.2. (c) 19th Sept 2011, 12:10pm -  xytise@gmail.com
+
+VToday=V;
+CPToday=C;
+CPYest=Ref (C,-1);
+VPMO=VToday * (CPToday - CPYest);
+VPMOEma=EMA(VPMO,3);
+Plot(VPMOEma, "VPMO",colorRed,styleLine);
+Plot(0, "Zero",colorWhite,styleLine);
+_SECTION_END();

@@ -1,0 +1,116 @@
+//Coded by Rajandran R
+//Author - Marketcalls
+
+_SECTION_BEGIN("Double Donchain Trading System");
+
+SetBarsRequired(100000,0);
+
+GraphXSpace = 15;
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+SetChartBkColor(ParamColor("bkcolor",ColorRGB(0,0, 0)));
+
+GfxSetBkMode(0); 
+
+GfxSetOverlayMode(1);
+
+SetBarFillColor(IIf(C>O,ParamColor("Candle UP Color", colorGreen),IIf(C<=O,ParamColor("Candle Down Color", colorRed),colorLightGrey)));
+
+Plot(C,"\nPrice",IIf(C>O,ParamColor("Wick UP Color", colorDarkGreen),IIf(C<=O,ParamColor("Wick Down Color", colorDarkRed),colorLightGrey)),64,0,0,0,0);
+
+SetPositionSize(100,spsShares);
+
+pds1 = param("param1",79,30,100,1);      //5min - 79 15min - 38
+DonchianUpper1 = HHV( Ref( H, -1 ), pds1 ); // Highest high value of highs in last 40 periods
+DonchianLower1 = LLV( Ref( L, -1 ), pds1 ); // Lowest low value of low in last 40 periods
+
+pds2 = param("param2",24,5,50,1);;       //5min - 24 15min - 6
+DonchianUpper2 = HHV( Ref( H, -1 ), pds2 ); // Highest high value of highs in last 14 periods
+DonchianLower2 = LLV( Ref( L, -1 ), pds2 ); // Lowest low value of low in last 14 periods
+
+Plot( DonchianUpper1, "Donchian U1", ParamColor( "DU Color1", colorBlue ), ParamStyle( "DU Style", styleLine ) );
+Plot( DonchianLower1, "Donchian L1", ParamColor( "DL Color1", colorBlue ), ParamStyle( "DL Style", styleLine ) );
+Plot( DonchianUpper2, "Donchian U2", ParamColor( "DU Color2", colorRed ), ParamStyle( "DU Style", styleLine ) );
+Plot( DonchianLower2, "Donchian L2", ParamColor( "DL Color2", colorRed ), ParamStyle( "DL Style", styleLine ) );
+
+Buy = H>Ref(DonchianUpper1,-1);
+Short = L<Ref(DonchianLower1,-1);
+Cover = H>Ref(DonchianUpper2,-1);
+Sell = L<Ref(DonchianLower2,-1);
+
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+
+Short = ExRem(Short,Cover);
+Cover = ExRem(Cover,Short);
+
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+
+PlotShapes(IIf(Short, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+
+PlotShapes(IIf(Short, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+
+PlotShapes(IIf(Short, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+
+PlotShapes(IIf(Cover, shapeStar, shapeNone),colorRed, 0,L, Offset=-45); 
+
+PlotShapes(IIf(Sell, shapeStar, shapeNone),colorGreen, 0, H, Offset=40);
+
+
+
+
+
+_SECTION_END();
+
+// Downloaded From https://www.WiseStockTrader.com
+_SECTION_BEGIN("BATS");
+
+// Ref: http://thepatternsite.com/stops.html & http://thepatternsite.com/stops.html
+// compute the average daily high-low price range for the prior month, multiply by 2, and then subtract the result from the current low price.
+  
+dif=Ref(High,0)-Ref(Low,0);
+dif1=Ref(High,-1)-Ref(Low,-1);
+dif2=Ref(High,-2)-Ref(Low,-2);
+dif3=Ref(High,-3)-Ref(Low,-3);
+dif4=Ref(High,-4)-Ref(Low,-4);
+dif5=Ref(High,-5)-Ref(Low,-5);
+dif6=Ref(High,-6)-Ref(Low,-6);
+dif7=Ref(High,-7)-Ref(Low,-7);
+dif8=Ref(High,-8)-Ref(Low,-8);
+dif9=Ref(High,-9)-Ref(Low,-9);
+dif10=Ref(High,-10)-Ref(Low,-10);
+dif11=Ref(High,-11)-Ref(Low,-11);
+dif12=Ref(High,-12)-Ref(Low,-12);
+dif13=Ref(High,-13)-Ref(Low,-13);
+dif14=Ref(High,-14)-Ref(Low,-14);
+dif15=Ref(High,-15)-Ref(Low,-15);
+dif16=Ref(High,-16)-Ref(Low,-16);
+dif17=Ref(High,-17)-Ref(Low,-17);
+dif18=Ref(High,-18)-Ref(Low,-18);
+dif19=Ref(High,-19)-Ref(Low,-19);
+dif20=Ref(High,-20)-Ref(Low,-20);
+dif21=Ref(High,-21)-Ref(Low,-21);
+  
+Sumdif=(dif+dif1+dif2+dif3+dif4+dif5+dif6+dif7+dif8+dif9+dif10+dif11+dif12+dif13+dif14+dif15+dif16+dif17+dif18+dif19+dif20+dif21)/22;
+  
+Sumdifml=(Sumdif*1);
+Sumdifml2=(Sumdif*1.5); 
+Sumdifml3=(Sumdif*2);
+  
+Betastops=HHV(C,22) - Sumdifml;
+Betastops2=HHV(C,22) - Sumdifml2;
+Betastops3=HHV(C,22) - Sumdifml3;
+
+bsd=IIf(C>Ref(Betastops3,-1),1,IIf(C<Ref(Betastops3,-1),-1,0));
+bsn=ValueWhen(bsd!=0,bsd,1);
+
+colbs = IIf(bsn==1,colorGreen,colorRed);
+  
+Plot(Betastops3, "BATS", colbs,ParamStyle("Style2",styleThick,maskAll));
+ 
+_SECTION_END();

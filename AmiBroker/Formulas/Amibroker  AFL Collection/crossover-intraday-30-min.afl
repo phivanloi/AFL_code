@@ -1,0 +1,45 @@
+_SECTION_BEGIN("315 cross");
+Plot(Close,"Price",colorBlack, styleCandle);
+Plot(EMA(Close,3),"3EMA",colorBlue,style=styleThick);
+Plot(EMA(Close,15),"15EMA",colorRed,style=styleThick);
+
+Buy=Cross(EMA(Close,3),EMA(Close,15));
+Sell=Cross(EMA(Close,15),EMA(Close,3));
+Short=Sell;
+Cover=Buy;
+
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ), 0, IIf( Buy, Low, High ) );
+_SECTION_END();
+
+_SECTION_BEGIN("Magnified Market Price");
+//by Vidyasagar, vkunisetty@yahoo.com// 
+FS=Param("Font Size",30,11,100,1);
+GfxSelectFont("Times New Roman", FS, 700, True ); 
+GfxSetBkMode( colorWhite );  
+GfxSetTextColor( ParamColor("Color",colorBlack) ); 
+Hor=Param("Horizontal Position",600,1,1200,1);
+Ver=Param("Vertical Position",1,1,830,1); 
+GfxTextOut("Cls :"+C, Hor , Ver );
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+GfxSelectFont("Times New Roman", 11, 700, True ); 
+GfxSetBkMode( colorWhite );  
+GfxSetTextColor(ParamColor("Color",colorBlack) ); 
+//GfxTextOut(""+DD+"  ("+xx+"%)", Hor , Ver+45 );
+_SECTION_END();
+
+_SECTION_BEGIN("Ribbon");
+
+no=Param( "Swing", 20, 1, 55 );
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+tsl=IIf(avn==1,sup,res);
+
+Plot( 2, "Ribbon",IIf(C>tsl,colorBlue,colorRed),styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+_SECTION_END();

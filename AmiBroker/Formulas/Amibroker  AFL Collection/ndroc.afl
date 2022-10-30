@@ -1,0 +1,34 @@
+_SECTION_BEGIN(" ndROC");
+
+a = ROC (C, 50);
+b = ROC (C, 100);
+C= ROC (C, 200);
+
+A = a+ b + C;
+
+Plot (A, " ndROC", colorBlack);
+Plot (2.5, "", colorRed, styleLine, styleDashed);
+Plot (2, "", colorRed, styleLine, styleDashed);
+Plot (.78, "", colorGreen, styleDashed, styleDashed);
+Plot (1, "", colorRed, styleNoLabel, styleDashed);
+Plot (1.5, "", colorRed, styleNoLabel, styleDashed);
+Plot (.618, "", colorGreen, styleDashed, styleDashed);
+Plot (.38, "", colorGreen, styleDashed, styleDashed);
+Plot (.23, "", colorGreen, styleDashed, styleDashed);
+Plot (0, "", colorBlue, styleNoLabel, styleDashed);
+Plot (-2.5, "", colorGreen, styleNoLabel, styleDashed);
+Plot (-2, "", colorGreen, styleNoLabel, styleDashed);
+Plot (-1.5, "", colorGreen, styleNoLabel, styleDashed);
+Plot (-1, "", colorGreen, styleNoLabel, styleDashed);
+Plot (-.23, "", colorRed, styleDashed, styleDashed);
+Plot (-.38, "", colorRed, styleDashed, styleDashed);
+Plot (-.618, "", colorRed, styleDashed, styleDashed);
+Plot (-.78, "", colorRed, styleDashed, styleDashed);
+
+Buy = A <-2.5 AND A<-1.5; Sell = A >1.5 AND A>2.5; 
+
+buyshape = Buy * shapeUpArrow; SellShape = Sell * shapeDownArrow;
+PlotShapes(BuyShape, colorGreen, 0); PlotShapes(SellShape, colorRed, 0);
+
+
+_SECTION_END();

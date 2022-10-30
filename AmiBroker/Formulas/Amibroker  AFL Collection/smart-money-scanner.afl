@@ -1,0 +1,29 @@
+//******************************
+_SECTION_BEGIN("EMA");
+
+P = Volume;
+Periods = Param("PeriodsEMA", 9, 2, 300, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), colorRed, styleLine, styleThick);
+_SECTION_END();
+
+Period = Param("Period", 10, 2, 300, 1, 10 );;
+LowColor = colorYellow;
+ClimaxColor = colorRed;
+ChurnColor = colorGreen;
+ClimaxChurnColor=colorBlue;
+LowChurnColor= colorLime;
+
+Value1 = V;
+Value2 = V*(H-L);
+Value3 = V/(H-L);
+
+BarColor = IIf( (Value1 == LLV(Value1,Period)), LowColor,
+IIf( (Value2 == HHV(Value2,Period)), ClimaxColor,
+IIf( (Value3 == HHV(Value3,Period)), ChurnColor,
+IIf( ((Value2 == HHV(Value2,Period) AND (Value3 == HHV(Value3,Period)))), ClimaxChurnColor,
+IIf( (Value3 == LLV(Value3,Period)), LowChurnColor, colorBlueGrey)))));
+
+_SECTION_BEGIN("Volume");
+Plot( Volume, _DEFAULT_NAME(), BarColor, ParamStyle( "Style", styleHistogram+styleThick, maskHistogram ), 2 );
+_SECTION_END();
+//******************************

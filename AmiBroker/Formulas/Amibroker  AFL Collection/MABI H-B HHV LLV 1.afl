@@ -1,0 +1,76 @@
+
+///////////////////////
+//_SECTION_BEGIN("MABIUTS-H");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+p1=15;p2=15;
+X=EMA(C,p1);Y=EMA(X,p2);
+D=X-Y;
+BBT=BBandTop(D,5,1);BBB=BBandBot(D,5,1);
+
+Buy=Cross(D,BBB) AND abs((D-BBB)/BBB)>=0.01;
+Sell=Cross(BBT,D)AND abs((BBT-D)/D)>=0.01;
+Short=Cross(BBT,D)AND abs((BBT-D)/D)>=0.01;
+Cover=Cross(D,BBB) AND abs((D-BBB)/BBB)>=0.01;
+
+
+Bprice=IIf(Buy,Ref(O,1),0); //Buying Price
+Sprice=IIf(Sell,Ref(O,1),0); //Selling Price
+MYcolor = IIf( EMA(C,13)>EMA(EMA(C,9),3) AND  C>Peak(C,2,1), colorAqua, IIf(EMA(C,13)>EMA(EMA(C,13),9) AND C<Peak(C,2,1),colorBlue, colorBlack ));
+
+PlotOHLC( Open,  High,  Low,  Close, "MABI H-B", Mycolor, styleCandle   ); 
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ),0, IIf( Buy, Low, High ) );
+
+GraphXSpace = 10;
+dist = 1.5*ATR(10); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "\n@" + C[ i ], i, L[ i ]-dist[i], colorLime ); 
+if( Sell[i] ) PlotText( "\n@" + C[ i ], i, H[ i ]+dist[i], colorRed); 
+}
+Filter=Buy OR Sell OR Short OR Cover;
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+Short=ExRem(Short,Cover);
+Cover=ExRem(Cover,Short);
+
+
+SetOption("NoDefaultColumns", True );
+
+//The following line may be commented out if testing a single stock
+AddTextColumn(FullName(),"Name");
+AddTextColumn( Name(), "Symbol", 20 , colorDefault);
+AddColumn(Ref(DateTime(),1), "Date", formatDateTime );
+AddColumn( IIf( Buy, 66, 83 ), "Signal", formatChar, colorWhite, bkcolor =IIf (Buy,colorGreen, colorRed ));
+AddColumn(Bprice,"Buy Price",6.2,colorGreen);
+AddColumn(Sprice,"Sell Price",6.2,colorRed);
+/////////////////////////
+LongPer = Param("Long Period", 7, 8, 100, 5 ); /* select periods with parameter window */
+ShortPer = Param("Short Period", 3, 3, 20, 1 ); 
+
+LongMA = EMA( C, LongPer );
+ShortMA = EMA( C, ShortPer );
+LastHigh = HHV( H, LongPer );
+LASTLOW=LLV(L,ShortPER);
+
+Plot( Ref(Lasthigh,-1), " HHV(H,"+WriteVal(LongPer,1)+")", colorYellow, styleNoLine|styleDots|styleNoRescale );
+Plot( Ref(Lastlow,1), " LLV(V,"+WriteVal(SHORTPer,1)+")", colorBlue, styleNoLine|styleDots|styleNoRescale );
+//Buy = Cross( ShortMA, LongMA ) AND H > Ref( LastHigh, -1 );
+//Sell = Cross( LongMA, ShortMA );
+SetFormulaName("");
+	SetTradeDelays(1, 1, 1, 1);
+	PositionScore	=100/Close;
+	PositionSize	= - 20;		// 20% of Portfolio
+
+/////////////////////////
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 100, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), Color, Style ); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), Color, Style ); 
+_SECTION_END();

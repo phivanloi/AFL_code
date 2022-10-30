@@ -1,0 +1,14 @@
+_SECTION_BEGIN("Three Track");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+NewDay = Day()!= Ref(Day(), -1);
+DH = HHV( H, NewDay);
+DL =  LLV(L, NewDay);
+Plot(DH,"DAY HIGH",colorBlue,ParamStyle("Style"),0,0,0);
+Plot(DL,"DAY LOW",colorRed,ParamStyle("Style"),0,0,0);
+R1=((DH-DL)*0.33)+DL;
+R2=((DH-DL)*0.66)+DL;
+Plot(R1,"FIB38%",colorGreen,styleDashed,0,0,0);
+Plot(R2,"FIB62%",colorGreen,styleDashed,0,0,0);
+_SECTION_END();

@@ -1,0 +1,10 @@
+x = 15;
+bp = HHV(H,x)-Ref(LLV(L,x),-x);
+sp = Ref(HHV(H,x),-x)-LLV(L,x);
+ttf = ((bp-sp)/(0.5*(bp+sp)))*100;
+green = Cross(ttf,100);
+red = Cross(-100,ttf);
+
+Color = IIf(ttf > 100, colorLime, IIf(ttf < -100, colorRed,IIf(ttf > 0 AND ttf > -100 AND ttf < 100, colorWhite,0)));
+
+Plot(C, "", Color, styleBar);

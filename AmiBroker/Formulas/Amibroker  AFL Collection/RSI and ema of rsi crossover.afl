@@ -1,0 +1,21 @@
+_SECTION_BEGIN("RSI");
+SetChartOptions(0,0,chartGrid30|chartGrid70);
+periodRSI = Param( "Periods", 15, 1, 200, 1 );
+Plot( RSI(periodRSI ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style")  );
+
+
+P= Param("ema of rsi", 39, 2, 300, 1, 10 );
+Plot( EMA( RSI(periodRSI ), p ),"", colorBlue, styleThick ); 
+
+_SECTION_END();
+
+
+
+RS = RSI (periodRSI);
+emRS= EMA(RSI(periodRSI),p);
+
+RSIEMABuy =Cross(rs, emrs);
+RSIEMAShort = Cross(emRS,RS);
+
+PlotShapes(shapeUpArrow * RSIEMABuy, colorGreen);
+PlotShapes(shapeDownArrow * RSIEMAShort, colorRed);

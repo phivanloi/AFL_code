@@ -1,0 +1,125 @@
+//------------------------------------------------------------------------------
+//  Formula Name	:      Coral Trend Indicator for Amibroker AFL by pipschart
+//  Author	:      UPTREND.VN
+//  Uploader	:      www.UPTREND.VN
+//  E-mail		:      phamduy6886@gmail.com
+//------------------------------------------------------------------------------
+
+_SECTION_BEGIN("Uptrend.vn");
+GfxSetBkMode(1);
+X=50;
+Y=50;
+Font=15;
+
+GfxSelectFont("Segoe UI",Font*2.2, 700);GfxSetTextColor( ColorRGB(146, 187, 86));GfxTextOut("Uptrend.vn",x,y);
+GfxSelectFont("Segoe UI",Font*2.2, 700);GfxSetTextColor( ColorRGB(146, 187, 86));GfxTextOut("",x+120,Y);
+
+
+_SECTION_END();
+
+//------------------------------------------------------------------------------
+
+
+_SECTION_BEGIN("Coral Trend Indicator");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+
+
+sm = Param("Smoothing Period",21,2,40,1);
+cd = Param("Constant D",0.4,0.1,2,0.1);
+
+di = (sm - 1.0) / 2.0 + 1.0;
+c1 = 2 / (di + 1.0);
+c2 = 1 - c1;
+c3 = 3.0 * (cd * cd + cd * cd * cd);
+c4 = -3.0 * (2.0 * cd * cd + cd + cd * cd * cd);
+c5 = 3.0 * cd + 1.0 + cd * cd * cd + 3.0 * cd * cd;
+
+src = Close;
+i1=0;
+i2=0;
+i3=0;
+i4=0;
+i5=0;
+i6=0;
+
+
+for(i=1;i<BarCount;i++)
+{
+
+i1[i] = c1[i]*src[i] + c2[i]*i1[i-1];
+i2[i] = c1[i]*i1[i] + c2[i]*i2[i-1];
+i3[i] = c1[i]*i2[i] + c2[i]*i3[i-1];
+i4[i] = c1[i]*i3[i] + c2[i]*i4[i-1];
+i5[i] = c1[i]*i4[i] + c2[i]*i5[i-1];
+i6[i] = c1[i]*i5[i] + c2[i]*i6[i-1];
+
+}
+
+bfr = -cd*cd*cd*i6 + c3*(i5) + c4*(i4) + c5*(i3);
+
+color = IIf(bfr>Ref(bfr,-1),colorGreen,colorRed);
+
+Plot(bfr,"Coral Trend Indicator", color,styleDots|styleNoLine|styleThick);
+
+
+_SECTION_END();
+
+// Downloaded From https://www.WiseStockTrader.com
+_SECTION_BEGIN("BATS");
+
+// Ref: http://thepatternsite.com/stops.html & http://thepatternsite.com/stops.html
+// compute the average daily high-low price range for the prior month, multiply by 2, and then subtract the result from the current low price.
+  
+dif=Ref(High,0)-Ref(Low,0);
+dif1=Ref(High,-1)-Ref(Low,-1);
+dif2=Ref(High,-2)-Ref(Low,-2);
+dif3=Ref(High,-3)-Ref(Low,-3);
+dif4=Ref(High,-4)-Ref(Low,-4);
+dif5=Ref(High,-5)-Ref(Low,-5);
+dif6=Ref(High,-6)-Ref(Low,-6);
+dif7=Ref(High,-7)-Ref(Low,-7);
+dif8=Ref(High,-8)-Ref(Low,-8);
+dif9=Ref(High,-9)-Ref(Low,-9);
+dif10=Ref(High,-10)-Ref(Low,-10);
+dif11=Ref(High,-11)-Ref(Low,-11);
+dif12=Ref(High,-12)-Ref(Low,-12);
+dif13=Ref(High,-13)-Ref(Low,-13);
+dif14=Ref(High,-14)-Ref(Low,-14);
+dif15=Ref(High,-15)-Ref(Low,-15);
+dif16=Ref(High,-16)-Ref(Low,-16);
+dif17=Ref(High,-17)-Ref(Low,-17);
+dif18=Ref(High,-18)-Ref(Low,-18);
+dif19=Ref(High,-19)-Ref(Low,-19);
+dif20=Ref(High,-20)-Ref(Low,-20);
+dif21=Ref(High,-21)-Ref(Low,-21);
+  
+Sumdif=(dif+dif1+dif2+dif3+dif4+dif5+dif6+dif7+dif8+dif9+dif10+dif11+dif12+dif13+dif14+dif15+dif16+dif17+dif18+dif19+dif20+dif21)/22;
+  
+Sumdifml=(Sumdif*1);
+Sumdifml2=(Sumdif*1.5); 
+Sumdifml3=(Sumdif*2);
+  
+Betastops=HHV(C,22) - Sumdifml;
+Betastops2=HHV(C,22) - Sumdifml2;
+Betastops3=HHV(C,22) - Sumdifml3;
+
+bsd=IIf(C>Ref(Betastops3,-1),1,IIf(C<Ref(Betastops3,-1),-1,0));
+bsn=ValueWhen(bsd!=0,bsd,1);
+
+colbs = IIf(bsn==1,colorGreen,colorRed);
+  
+Plot(Betastops3, "BATS", colbs,ParamStyle("Style2",styleThick,maskAll));
+ 
+_SECTION_END();
+
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), Color, Style ); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), Color, Style ); 
+_SECTION_END();

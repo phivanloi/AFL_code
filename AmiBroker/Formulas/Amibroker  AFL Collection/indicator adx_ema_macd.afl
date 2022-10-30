@@ -1,0 +1,55 @@
+_SECTION_BEGIN("ADX + EMA + MACD");
+// This combines three indicators into one timing Signal
+
+//function ParamOptimize( description, default, minv, maxv, step )
+//    { return Optimize(description, Param(description,default, minv, maxv, step ), minv, maxv, step ); }
+
+tgl = ParamToggle("Result", "AND logic|Compare");
+// ema 
+emaPrice = ParamField("Ema Price field", 3);
+PeriodShort = Param("Ema Short Periods", 5, 2, 20, 1);
+PeriodLong = Param("Ema Long Periods", 15, 2, 100, 1);
+pS = EMA(emaPrice , PeriodShort);
+pL = EMA(emaPrice , PeriodLong);
+upEma = IIf(pS > pL, 1, 0);		// fast ema is above slow, long condition
+
+// adx di lines
+range = Param("ADX Periods", 10, 2, 200, 1 );
+myPdi = PDI(range );
+myMdi = MDI(range );
+upAdx = IIf( myPdi > myMdi, 1, 0);
+
+// macd 
+r1 = Param( "Macd Fast avg", 12, 2, 200, 1 );
+r2 = Param( "Macd Slow avg", 26, 2, 200, 1 );
+r3 = Param( "Macd Signal avg", 9, 2, 200, 1 ); 
+myMacd = MACD(r1,r2);
+mySignal = Signal(r1,r2,r3);
+upMacd = IIf(myMacd  > mySignal, 1, 0);
+
+// switch test calculation and compare the results
+if(tgl)
+{
+myBuy = upEma AND upAdx  AND upMacd;
+myShort = !upEma AND !upAdx AND !upMacd; 
+}
+else
+{
+myBuy = IIf(pS > pL AND myMacd > mySignal AND myPdi > myMdi,1,0);
+myShort = IIf(pS < pL AND myMacd < mySignal AND myPdi < myMdi,1,0);
+}
+
+Buy = Cover = ExRem(myBuy, myShort);
+Short = Sell = ExRem(myShort, myBuy);
+
+Plot( Buy * C, "ADX(" + NumToStr(range,1.0) + ") EMA(" + NumToStr(PeriodShort,1.0) + "," + NumToStr(PeriodLong,1.0) +
+	") MACD(" + NumToStr(r1,1.0) + "," + NumToStr(r2,1.0) + "," + NumToStr(r3,1.0) + ") - myBuy ",  colorGreen); // a positive spike that indicates a buy or cover trade.
+Plot( -Short * C , "myShort ", colorRed); 
+
+// exploration
+Filter = Buy OR Short; 
+AddColumn(Close, "Close", 1.2);
+AddColumn(Buy, "Buy", 1.0);
+AddColumn(Short, "Short",1.0);
+
+_SECTION_END();

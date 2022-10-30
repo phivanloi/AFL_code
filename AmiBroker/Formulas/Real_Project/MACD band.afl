@@ -1,0 +1,244 @@
+// Downloaded From https://www.WiseStockTrader.com
+/*
+Original MACD BAND Code - Author Unknown 
+Original Code is parameterized with 14 Different Averages.
+Multiple Averages Parameters Concept is  used by Pattern Explorer the same concept is used with 6 to 8  Added averages.
+Modified By Abhimanyu. Y Altekar on  20/02/2020
+
+
+A) Pink may be beginning for down trend, Red is strong down trend
+B) Green may be beginning for up trend, Bright Green is strong up trend
+C) Check Color of Band and match with cross over
+     Sky Blue - Cover, Light Green - Buy, Pink - Sell, Orange- Short
+
+1) Look for Pink  cross over for sell
+2) Look for Red  cross over for short
+2) Look for Green Cross over for Cover  
+3) Bright Green  cross over for Buy
+*/
+
+function MCGin(periods)
+{
+n=periods;
+MD[0] = C[0]; 
+  
+for( i = 1; i < BarCount; i++ ) 
+{ 
+MD[ i ] = MD[ i - 1 ] + (C[i]-MD[i-1])/( N*(C[i] / MD[i-1])^4)  ; 
+} 
+return MD;
+}
+
+function VWMA( p, period )
+{
+return Sum( p * V, period ) / Sum( V, period );
+}
+
+// T3 Average
+
+function T3Avg(p,period)
+ 
+{
+s = 0.84;
+e1=EMA(p,period);
+e2=EMA(e1,Period);
+e3=EMA(e2,Period);
+e4=EMA(e3,Period);
+e5=EMA(e4,Period);
+e6=EMA(e5,Period);
+c1=-s*s*s;
+c2=3*s*s+3*s*s*s;
+c3=-6*s*s-3*s-3*s*s*s;
+c4=1+3*s+s*s*s+3*s*s;
+Ti3=c1*e6+c2*e5+c3*e4+c4*e3;
+return ti3;
+}
+
+function KAMA( P, Period )
+{
+    Direction = P - Ref( P, -period );
+    Volatility = Sum( abs( P - Ref( P, -1 ) ), period );
+    Volatility = IIf( Volatility > 0, Volatility, 0.00001 );
+    ER = abs( Direction / Volatility );
+    FastSC = 2 / ( 2 + 1 );
+    SlowSC = 2 / ( 30 + 1 );
+    SSC = ER * ( FastSC - SlowSC ) + SlowSC;
+    Constant = SSC ^ 2;
+    return AMA( P,  Constant );
+}
+
+
+function VarPeriodRSI( array, periods ) 
+{ 
+  Chg = array - Ref( array, -1 ); 
+  pc = Max( Chg, 0 ); 
+  nc = Max( -Chg, 0 ); 
+
+  pa = AMA( pc, 1/periods ); 
+  na = AMA( nc, 1/periods ); 
+
+  return 100 * pa / ( pa + na ); 
+} 
+	
+	
+Function MyAvgParam( type )
+{
+    global AvgText;
+    global AvgType;
+    global AvgTextname;
+    ParamAverage =
+        ParamList( "Type",
+                   List = "1 - McGinley Dynamic, 2 - SMA, 3 - EMA, 4 - WMA, 5 - DEMA, 6 - TEMA, 7 - WILDERS, 8 - LINEAR REGRESSION, 9 - TIME SERIES FORECAST, 10 - KAMA, 11 - VWMA, 12 - T3, 13 - Hull, 14 - VarPeriodRSI", type - 1 );
+
+    for ( i = 0; i < 16; i++ )
+        if ( StrExtract( List,  i ) == ParamAverage )
+            AvgType = i + 1;
+
+    if		( AvgType == 1 )
+        AvgTextname = "McGinley Dynami";
+    else
+        if	( AvgType == 2 )
+            AvgTextname = "SMA";
+        else
+            if	( AvgType == 3 )
+                AvgTextname = "EMA";
+            else
+                if	( AvgType == 4 )
+                    AvgTextname = "WMA";
+                else
+                    if	( AvgType == 5 )
+                        AvgTextname = "DEMA";
+                    else
+                        if	( AvgType == 6 )
+                            AvgTextname = "TEMA";
+                        else
+                            if	( AvgType == 7 )
+                                AvgTextname = "WILDERS";
+                            else
+                                if	( AvgType == 8 )
+                                    AvgTextname = "LINEARREG";
+                                else
+                                    if	( AvgType == 9 )
+                                        AvgTextname = "TSF";
+                                    else
+                                        if	( AvgType == 10 )
+                                            AvgTextname = "KAMA";
+										else
+											if	( AvgType == 11 )
+													AvgTextname = "VWMA";
+											else
+												if	( AvgType == 12 )
+												         AvgTextname = "T3";
+												else
+													if	( AvgType == 13 )
+												         AvgTextname = "Hull";
+													else
+														if	( AvgType == 14 )
+															AvgTextname = "VarPeriodRSI";
+														
+													
+														 
+    AvgText = " - " + AvgTextname;
+}
+
+Function Average( array, period, type )
+{
+    if		( Type == 1 )
+        //Value = PeGMA( Array, Period );
+        Value =MCGin(  Period );
+    else
+        if	( Type == 2 )
+            Value = MA ( Array, Period );
+        else
+            if	( Type == 3 )
+                Value = EMA( Array, Period );
+            else
+                if	( Type == 4 )
+                    Value = WMA( Array, Period );
+                else
+                    if	( Type == 5 )
+                        Value = DEMA( Array, Period );
+                    else
+                        if	( Type == 6 )
+                            Value = TEMA( Array, Period );
+                        else
+                            if	( Type == 7 )
+                                Value = Wilders( Array, Period );
+                            else
+                                if	( Type == 8 )
+                                    Value = LinearReg( Array, Period );
+                                else
+                                    if	( Type == 9 )
+                                        Value = TSF( Array, Period );
+                                    else
+                                        if	( Type == 10 )
+                                            Value = KAMA( Array, Period );
+										else
+											if	( Type == 11 )
+												Value = VWMA( Array, Period );
+											else
+												if	( Type == 12 )
+													Value = T3Avg( Array, Period );
+												else
+													if	( Type == 13 )
+														Value = WMA( 2*WMA(Array,int(Period/2))- WMA(Array,Period),int(sqrt(Period)));
+													else
+														if	( Type == 14 )
+															Value = VarPeriodRSI( Array, period );
+															
+    return Value;
+}
+
+
+function AddAverage( SectionText, DefaultPeriod, DefaultType, def_PriceField, Defaultshift, Defaultcolor, Defaultstyle, default_AvgSwitch )
+{
+    global MyAverage_opt;
+    global MyAverage;
+    _SECTION_BEGIN( SectionText );
+    MyAverage_opt = ParamToggle( "On/Off",  "Off|On", default_AvgSwitch );
+    MyAvgParam( DefaultType );
+    P = ParamField( "Price field", def_PriceField );
+    Period = Param( "Periods", DefaultPeriod, 2, 250, 1 );
+    Shift = Param( "Shift", Defaultshift, -50, 50, 1 );
+    MyAverage = Average( P, Period, AvgType );
+    MyAvgStyle = ParamStyle( "Style", Defaultstyle, maskAll );
+    MyAvgColor = ParamColor( "Color", Defaultcolor );
+
+    if ( MyAverage_opt )
+        Plot( MyAverage, _DEFAULT_NAME() + AvgText, MyAvgColor, MyAvgStyle | styleNoRescale, Null, Null, shift );
+
+    _SECTION_END();
+}
+	
+
+SetChartBkColor( ParamColor("background",colorLightYellow) ); 
+
+	_SECTION_BEGIN("Main Parameters");
+	//AddparamUsefromChart(1);
+	side = 1;
+	MyAvgParam(1);
+	sia = Param("Smoothness if any", 5, 1, 200, 1 );
+	lia = Param("Length if any", 21, 1, 200, 1 );
+	Periods = Param("Periods", 20, 2, 300, 1 );
+
+
+_SECTION_BEGIN("MACD"); 
+A1= Average( C,12,AvgType )-Average( C,25,AvgType );
+B1 =Average( C,25,AvgType )-Average( C,12,AvgType ) ;
+//A1=EMA(C,12)-EMA(C,26); 
+//B1=EMA(C,26)-EMA(C,12); 
+BBtop=BBandTop(A1,periods,1); 
+BBbot=BBandBot(A1,periods,1);
+Color=IIf(a1<0 AND a1>Ref(a1,-1), colorGreen,IIf(a1>0 AND a1>Ref(a1,-1) ,colorBrightGreen,IIf(a1>0 AND a1<Ref(a1,-1),colorCustom12,colorRed)));
+Color1=IIf(a1<0 AND a1>Ref(a1,-1), colorPaleTurquoise,IIf(a1>0 AND a1>Ref(a1,-1) ,colorpaleGreen,IIf(a1>0 AND a1<Ref(a1,-1),colorrose,colorLightOrange)));
+
+
+
+Plot(a1,"MACD",color,styleDots+styleLine+styleThick);
+
+Plot(B1,"MACD",color,styleDots+styleLine+styleThick);
+Plot(BBtop,"BBtop",colorDarkBlue,styleDashed);
+Plot(BBbot,"BBbot",colorDarkBlue,styleDashed);
+PlotOHLC(BBtop,BBbot,BBtop,BBbot,"",color1,stylecloud|styleClipMinMax,5,5.0,0,-1);
+Plot(0,"",colorBlack,1);
+_SECTION_END();

@@ -1,0 +1,31 @@
+////Chaloke System3 with ATR Trailing Stop///// 
+
+P1=Param("ShortTerm Period",9,3,15,1); 
+P2=Param("MidTerm Period",15,9,24,1); 
+P3=Param("LongTerm Period",24,15,50,1); 
+P4=Param("Invesment Term",5,1,12,1); 
+P5=Param("ATR Period",5,1,25,1); 
+Sm=2*P5/10; 
+ATRX=Sm*ATR(P4); 
+S=EMA(C,P1) - ATRX; 
+M=EMA(C,P2) -ATRX; 
+lg=EMA(C,P3) -ATRX; 
+
+Sht=IIf(C==HHV(C,3),S,Ref(EMA(C,9),-1)-ATRX); 
+Mid=IIf(C==HHV(C,3),M,Ref(EMA(C,15),-1)-ATRX); 
+Lng=IIf(C==HHV(C,3),Lg,Ref(EMA(C,24),-1)-ATRX); 
+
+Color=IIf(Sht>Mid AND C > Sht ,colorBrightGreen,IIf(C < lng OR Sht<lng,colorRed,colorBlack)); 
+Plot(C,"",Color,64); 
+
+///// Trailing Stop Module ///// 
+P6=Param("Trailing Stop Risk",2.5,2,3.5,0.1); 
+P7=Param("Trailing Stop LookBack",14,5,25,1); 
+P8=Param("Trailing Stop PrevLow Switch",0,0,1,1); 
+P9=ParamDate("Trailing Stop Entry Date","Date()"); 
+PrevLow=IIf(P8==1, Ref(C,-TroughBars(C,5,1)) ,Null); 
+Bars=BarIndex() - ValueWhen( DateNum() == P9, BarIndex() ) ; 
+
+ATRLong=HHV(H - P6*ATR(P7),Bars); 
+Plot(ATRLong,"Chaloke System3 with ATR Trailing Stop",colorBlue,1); 
+Plot(PrevLow,"",colorRed);

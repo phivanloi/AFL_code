@@ -1,0 +1,36 @@
+function ampl(P,range)
+{
+Imult=0.635;
+Qmult=0.338;
+InPhase[0]=0;
+Quadrature[0]=0;
+Amplitude[0]=0;
+
+Value1=P*0;
+Value2=Value1;
+
+Inphase=P*0;
+Quadrature=Inphase+1;
+
+//Detrend Price
+for(i=7;i<BarCount;i++)
+{
+Value1[i] = P[i] - P[i-7];
+
+//Compute Hilbert Transform outputs
+Inphase[i] = 1.25*(Value1[i-4] - Imult*Value1[i-2]) + Imult*InPhase[i-3];
+Quadrature[i] = Value1[i-2] - Qmult*Value1[i] + Qmult*Quadrature[i-2];
+
+//Compute smoothed Signal amplitude
+Value2[i] = 0.2*(InPhase[i]*InPhase[i] + Quadrature[i]*Quadrature[i]) + 0.8*Value2[i-1];
+}
+
+//Compute smoothed SNR in Decibels, guarding against a divide by zero error, AND compensating for Filter loss
+Value2=Max(Value2 ,0.001);
+Amplitude = 0.25*(10*log(Value2/(Range*Range+0.0001))/log(10) + 1.9) + 0.75*Ref(Amplitude,-1);
+
+return Amplitude;
+}
+
+Price = (H+L)/2;
+Plot(ampl(Price,0.005), "Amplitude", colorRed, styleLine);

@@ -1,0 +1,72 @@
+/* Tick Counter */
+
+// user parameters
+parmWarningLevel = Param("% Warning Level", 90, 50, 99, 1);
+parmWarningLevelColor = ParamColor("Warning Color", colorYellow);
+parmTextColor = ParamColor("Text Color", colorBlack);
+parmBGColor = ParamColor("Background Color", colorWhite);
+// constants
+_N(PaneName = Name() + Interval(2) );
+_N(NewBarName = "NewBar" + PaneName);
+_N(TickCounterName = "TickCounter" + PaneName);
+_N(VolumeName = "Volume" + PaneName);
+function NewBar()
+{
+	PrevDT = StaticVarGet(NewBarName);
+	//DT = LastValue(DateTime());
+	DT = LastValue(TimeNum() );
+	StaticVarSet(NewBarName,DT);
+	return DT != PrevDT;
+}
+/*
+function GetSecondNum()
+	{
+	Time 		= Now(4);
+	Seconds 	= int(Time%100);
+	Minutes 	= int(Time/100%100);
+	Hours 	= int(Time/10000%100);
+	SecondNum= int(Hours*60*60+Minutes*60+Seconds);
+	return SecondNum;
+	}
+
+function GetElapsedSeconds( reset ) 
+	{
+	NowSecs 	= GetSecondNum();
+	if( Reset ) StaticVarSet("SecondTimer", NowSecs );
+	PrevSecs = StaticVarGet("SecondTimer");
+	ESecs = NowSecs - PrevSecs;
+	return eSecs;
+	}
+
+function GetBarSecsLeft() 
+	{
+	BarInterval	= Interval();
+	NowSecs 		= GetSecondNum();
+	PrevSecs 	= StaticVarGet("SecondTimer");
+	ESecs 		= BarInterval - (NowSecs - PrevSecs);
+	if( eSecs < 0 ) eSecs = 0;
+	else if ( eSecs > 60 ) eSecs = 60;
+	return eSecs;
+	}
+*/
+// begin code
+TickCount = StaticVarGet(TickCounterName);
+if( IsNull(TickCount) ) StaticVarSet(TickCounterName ,0 );
+PrevVolume = StaticVarGet(VolumeName);
+if( IsNull( PrevVolume ) ) PrevVolume = 0;
+
+if(NewBar() )
+	{
+		AlertIf(True,"", "New Bar");
+		TickCount = 0;
+		PrevVolume = 0;
+	}
+
+if( LastValue(V) != PrevVolume )
+	{
+	// Here we would place Code that needs to be executed only whentheree is a new quote
+	StaticVarSet(VolumeName, LastValue(V) );
+	StaticVarSet(TickCounterName, ++TickCount);
+	}
+
+PlotText("T: " + NumToStr(StaticVarGet(TickCounterName), 1.0) , BarCount + 1, LastValue(O),parmTextColor ,IIf(StaticVarGet(TickCounterName) >= abs(Interval(1)) * (parmWarningLevel / 100), parmWarningLevelColor, parmBGColor) );

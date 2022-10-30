@@ -1,0 +1,227 @@
+// Downloaded From https://www.WiseStockTrader.com
+_SECTION_BEGIN("Auto Fib Ext&Retrace");
+//	
+//	TimingPundit.com
+//	4/14/2022
+//	Based on Candle body. I found this slightly better than tails 
+//	and much better than closing price.
+//
+
+Mode=ParamList("Retrace and/or Extensions","Both|Retracements|Extensions");
+FibLines=ParamToggle("Fib Lines Shown","All|Last",1);
+FibLabels=ParamToggle("Label Fibs?","No|Yes",1);
+SPWidth=param("Swing Point Width",9,7,13,2); //suggest 7,9,13
+arrows=ParamToggle("Swing POint Arrows","No|Yes",1);
+NE=Param("Number of Extensions",1,1,5,1);
+
+HV=HighestVisibleValue(H);
+LV=LowestVisibleValue(L);
+ymin=LV-.05*(hv-lv);
+ymax=HV+.05*(hv-lv);
+SetChartOptions(1,0,chartGridMiddle,ymin,ymax);
+
+HB=Max(C,O);
+LB=Min(C,O);
+sp1=sp2=0;
+
+sph = (HB==HHV(HB,SPWidth)) AND (HB==Ref(HHV(HB,SPWidth),SPWidth-1));
+spl = (LB==LLV(LB,SPWidth)) AND (LB==Ref(LLV(LB,SPWidth),SPWidth-1));
+
+fibmult1=.236;
+fibmult2=.382;
+fibmult3=.5;
+fibmult4=.618;
+fibmult5=.786;
+fibmult6=1;
+fibmult7=1.272;
+fibmult8=1.618;
+fibmult9=2.618;
+
+txt1=NumToStr(fibmult1);
+txt2=NumToStr(fibmult2);
+txt3=NumToStr(fibmult3);
+txt4=NumToStr(fibmult4);
+txt5=NumToStr(fibmult5);
+txt6=NumToStr(fibmult6);
+txt7=NumToStr(fibmult7);
+txt8=NumToStr(fibmult8);
+txt9=NumToStr(fibmult9);
+
+////// Eliminates 2 SPL or 2 SPH in a row. Picks most extreme  /////////
+lasti=0;
+for(i=0;i<=BarCount-1;i++){
+	if(sph[i] AND sph[lasti]){
+		if(HB[i]>HB[lasti]){
+			sph[lasti]=0;
+		}else{
+			sph[i]=0;
+		}	
+	}	
+	if(spl[i] AND spl[lasti]){
+		if(LB[i]<LB[lasti]){
+			spl[lasti]=0;
+		}else{
+			spl[i]=0;
+		}	
+	}
+	if(sph[i] OR spl[i])	
+		lasti=i;
+}		
+///////////////////////////////////////////////////////////////////////////////////////	
+LB1=HB1=fib1=fib2=fib3=fib4=fib5=fib6=fib7=fib8=fib9=Null;
+Lastfib=B=S=range=i=m=0;
+
+function SetFibs(){
+	if(sph[i] OR spl[i]){
+		fib1[i]=B+S*range*FibMult1;
+		fib2[i]=B+S*range*FibMult2;
+		fib3[i]=B+S*range*FibMult3;
+		fib4[i]=B+S*range*FibMult4;
+		fib5[i]=B+S*range*FibMult5;
+		fib6[i]=B+S*range*FibMult6;
+		fib7[i]=B+S*range*FibMult7;
+		fib8[i]=B+S*range*FibMult8;
+		fib9[i]=B+S*range*FibMult9;
+	}
+	fib1[i+1]=fib1[i];
+	fib2[i+1]=fib2[i];
+	fib3[i+1]=fib3[i];
+	fib4[i+1]=fib4[i];
+	fib5[i+1]=fib5[i];
+	fib6[i+1]=fib6[i];
+	fib7[i+1]=fib7[i];
+	fib8[i+1]=fib8[i];
+	fib9[i+1]=fib9[i];
+	if(fib1[i]!=fib1[i-1]){
+		lastfib=i;
+		if(FibLabels AND NOT fiblines){
+			PlotText(txt1,i,fib1[i],colorblack,colorDefault);
+			PlotText(txt2,i,fib2[i],colorblack,colorDefault);
+			PlotText(txt3,i,fib3[i],colorblack,colorDefault);
+			PlotText(txt4,i,fib4[i],colorblack,colorDefault);
+			PlotText(txt5,i,fib5[i],colorblack,colorDefault);
+			PlotText(txt6,i,fib6[i],colorblack,colorDefault);
+			PlotText(txt7,i,fib7[i],colorblack,colorDefault);
+			PlotText(txt8,i,fib8[i],colorblack,colorDefault);
+			PlotText(txt9,i,fib9[i],colorblack,colorDefault);
+		}
+		fib1[i]=Null;
+		fib2[i]=Null;
+		fib3[i]=Null;
+		fib4[i]=Null;
+		fib5[i]=Null;
+		fib6[i]=Null;
+		fib7[i]=Null;
+		fib8[i]=Null;
+		fib9[i]=Null;
+	}	
+}
+function PlotFibs(){
+	if(fiblabels AND fiblines){
+		PlotText(txt1,LastFib,fib1[lastfib+1],colorblack,colorDefault);
+		PlotText(txt2,LastFib,fib2[lastfib+1],colorblack,colorDefault);
+		PlotText(txt3,LastFib,fib3[lastfib+1],colorblack,colorDefault);
+		PlotText(txt4,LastFib,fib4[lastfib+1],colorblack,colorDefault);
+		PlotText(txt5,LastFib,fib5[lastfib+1],colorblack,colorDefault);
+		PlotText(txt6,LastFib,fib6[lastfib+1],colorblack,colorDefault);
+		PlotText(txt7,LastFib,fib7[lastfib+1],colorblack,colorDefault);
+		PlotText(txt8,LastFib,fib8[lastfib+1],colorblack,colorDefault);
+		PlotText(txt9,LastFib,fib9[lastfib+1],colorblack,colorDefault);
+	}	
+	if(FibLines){
+		for(i=0;i<lastfib;i++){
+			fib1[i]=Null;
+			fib2[i]=Null;
+			fib3[i]=Null;
+			fib4[i]=Null;
+			fib5[i]=Null;
+			fib6[i]=Null;
+			fib7[i]=Null;
+			fib8[i]=Null;
+			fib9[i]=Null;
+		}		
+	}
+	Plot(fib1,txt1,colorLightBlue);
+	Plot(fib2,txt2,colorLightBlue);
+	Plot(fib3,txt3,colorLightBlue);
+	Plot(fib4,txt4,colorRed,4);
+	Plot(fib5,txt5,colorLightBlue);
+	Plot(fib6,txt6,colorRed,4);
+	Plot(fib7,txt7,colorbrightgreen);
+	Plot(fib8,txt8,colorbrightgreen,4);
+	Plot(fib9,txt9,colorbrightgreen);	
+}
+
+if(Mode=="Both" OR Mode=="Retracements"){
+/////////////  Retracements ////////////////////		
+	m=1;
+	for(i=1;i<BarCount-1;i++){
+		if(sph[i]){
+			B=HB1=HB[i];
+			S=-1;
+			range=(HB1-LB1);
+		}
+		if(spl[i]){
+			B=LB1=LB[i];
+			S=1;
+			range=(HB1-LB1);
+		}
+		SetFibs();
+	}
+	PlotFibs();
+}	
+
+if(mode=="Both" OR Mode=="Extensions"){
+//////////////////  Extensions //////////////////
+	n=0;
+	S=1;
+	for(i=1;i<BarCount-1;i++){
+		if(sph[i]){
+			n++;
+			sp2=sp1;
+			sp1=HB[i];
+			delta[n]=sp1-sp2;
+		}
+		if(spl[i]){
+			n++;
+			sp2=sp1;
+			sp1=LB[i];
+			delta[n]=sp1-sp2;	
+		}
+	}
+	for(j=1;j<=NE;j++){
+		n=0;
+		for(i=1;i<BarCount-1;i++){
+			if(sph[i]){
+				n++;
+				B=HB[i];
+			}
+			if(spl[i]){
+				n++;
+				B=LB[i];
+			}
+			m=n-(j*2-1);
+			if(m>0){
+				range=delta[m];
+				SetFibs();
+			}	
+		}
+		PlotFibs();
+	}
+}				
+
+/*
+BuyPrice=LB;
+SellPrice=HB;
+Buy=spl;
+Sell=sph;
+Cover=Buy;
+Short=Sell;
+*/
+
+if(arrows){
+	shape=spl*shapeUpArrow+sph*shapeDownArrow;
+	PlotShapes(shape,colorBlue,0,IIf(spl,Low,High));	
+}
+
+_SECTION_END();

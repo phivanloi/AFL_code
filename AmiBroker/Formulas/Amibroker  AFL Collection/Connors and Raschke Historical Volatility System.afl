@@ -1,0 +1,28 @@
+/* Connors and Raschke Historical Volatility System
+    For further explanation, refer to "Street Smarts"
+    from Connors and Raschke.
+    Ported from Metastock code by Daniel Ervi           */
+
+NumColumns = 5;
+
+VolRatio =  StDev(log(C/Ref(C,-1)),5) / StDev(log(C/Ref(C,-1)),99);
+Column0 =  VolRatio;
+Column0Name = "VolRatio";
+
+NR4Day = (H - L) < Ref(LLV(H-L,3),-1);
+Column1 =  NR4Day;
+Column1Name = "Nr4Day";
+
+InsideDay = H < Ref(High,-1) AND Low > Ref(Low,-1);
+Column2 =  InsideDay;
+Column2Name = "Inside Day";
+
+Column3 =  High + 0.125;
+Column3Name = "Buy Stop";
+
+Column4 =  Low - 0.125;
+Column4Name = "Sell Stop";
+
+Filter = VolRatio < 0.5 AND (NR4Day == 1 AND InsideDay == 1);
+
+Buy = Filter;

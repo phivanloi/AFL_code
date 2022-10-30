@@ -1,0 +1,14 @@
+r = Param( "TSI period 'Length':", 25, 1, 100, 1 );
+s = Param( "TSI period 'Smoothing':", 13, 1, 100, 1 );
+//sig = Param( "Signal period:", 7, 1, 100, 1 );
+
+x = C-O;
+x1 = H-L; 
+
+a = EMA(EMA(x,r),s);
+b = EMA(EMA(x1,r),s);
+
+Csi = 100 * Nz ( a / b );
+Plot( Csi, "CSI("+r+","+s+")", ParamColor( "Color", colorRed ), ParamStyle("Style") );
+//Plot(EMA(TSI,Len_sig), "", colorLightBlue);
+PlotGrid(0, colorLightGrey);

@@ -1,0 +1,79 @@
+_SECTION_BEGIN("FIB");
+
+
+Plot(C,"", colorBlack,styleCandle);
+
+// Get values for fib levels 
+
+StartBar=SelectedValue(BarIndex());
+FinishBar = EndValue( BarIndex() ); 
+i = startbar;
+period = FinishBar - StartBar;
+
+Lo =LLV(L,period);
+Hi = HHV(H,period);
+Line0 = 0; 
+Line1 = 0;
+Line2 = 0;
+Line3 = 0;
+Line4= 0;
+Line100 = 0;
+
+
+for( i = startbar; i < finishbar; i++ )
+{
+if(EndValue(C)<SelectedValue(C))
+{
+Line0  = EndValue(Hi);
+Line100 = EndValue(Lo);
+Line1 = Line0 + abs(Line100-Line0)*0.236;
+Line2 = Line0 + abs(Line100-Line0)*0.382;
+Line3 = Line0 + abs(Line100-Line0)*0.5;
+Line4 = Line0 + abs(Line100-Line0)*0.618;
+}
+else
+{
+Line100  = EndValue(Lo);
+Line0 = EndValue(Hi);
+Line1 =Line0 - abs(Line100-Line0)*0.236;
+Line2 = Line0 - abs(Line100-Line0)*0.382;
+Line3 = Line0 - abs(Line100-Line0)*0.5;
+Line4 = Line0 - abs(Line100-Line0)*0.618;
+}
+}
+
+// external fib lines begining fom selecetdbarindex()
+fib0= LineArray(startbar, Line0, finishbar, Line0, 0, 1);
+fib100 = LineArray(startbar, Line100, finishbar, Line100, 0, 1);
+
+// depth of middle lines
+n= round((finishbar-startbar)/2);
+
+// middle lines
+fib1= LineArray((finishbar-n), Line1, finishbar, Line1, 0, 1);
+fib2= LineArray((finishbar-n), Line2, finishbar, Line2, 0, 1);
+fib3= LineArray((finishbar-n), Line3, finishbar, Line3, 0, 1);
+fib4= LineArray((finishbar-n), Line4, finishbar, Line4, 0, 1);
+
+Plot(fib0,"", colorYellow);
+Plot(fib100,"", colorRed);
+Plot(fib1,"", colorBlue);
+Plot(fib2,"", colorGrey50);
+Plot(fib3,"", colorOrange);
+Plot(fib4,"", colorGreen);
+
+Title = Name() + " -  FIB LEVELS ";
+
+/*
+Plot(C,"price",colorBlack,styleCandle);
+Plot(IIf(BarIndex()>=(BarCount-1- H52bar), H52, Null), "H52", 
+colorRed,styleLine);
+Plot(IIf(BarIndex()>=(BarCount-1- H52bar), Retrace38, Null), "Retr 
+38%", colorYellow,styleLine);
+Plot(IIf(BarIndex()>=(BarCount-1- H52bar), Retrace50, Null), "Retr 
+50%", colorBlue,styleLine);
+Plot(IIf(BarIndex()>=(BarCount-1- H52bar), Retrace62, Null), "Retr 
+62%", colorGreen,styleLine);
+Plot(IIf(BarIndex()>=(BarCount-1- H52bar), Retrace100, Null), "Retr 
+100%", colorRed,styleLine);
+_SECTION_END();

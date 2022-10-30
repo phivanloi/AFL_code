@@ -1,0 +1,127 @@
+ _SECTION_BEGIN("Live01");
+////////////////////////////////////////////////////////////////////////////////////
+// Global variables
+GraphXSpace=10;
+SetBarsRequired(10000,10000);
+
+lperiod = Param("Long Period", 90,3,200,1);
+P = ParamField("Price field",4);
+
+a = Param("Angle",30,15,45,1);
+a = (22/7)*(a/180);
+Num = sin(1*a) * P + sin(2*a) * Ref(P,-1) + sin(3*a) * Ref(P,-2) + sin(4*a) * Ref(P,-3) + sin(5*a) * Ref(P,-4);
+Den = sin(a) + sin(2*a) + sin (3*a) + sin(4*a) + sin(5*a);
+kolkata = Num / Den;
+
+movAvg = MA(P,lperiod);
+
+
+////////////////////////////////////////////////////////////////////////////////////
+// Desicion
+Buy = kolkata > movAvg AND kolkata < L AND kolkata > movAvg;
+Sell = kolkata < movAvg OR H < kolkata;
+Short = movAvg > kolkata AND kolkata > H AND kolkata < movAvg;
+Cover = kolkata > movAvg OR L > kolkata;
+
+Buy = ExRem(Buy, Sell);
+Sell = ExRem(Sell, Buy);
+Short = ExRem(Short, Cover);
+Cover = ExRem(Cover, Short);
+
+////////////////////////////////////////////////////////////////////////////////////
+// Graphics
+Plot(kolkata, "Kolkata ", colorBrown, 5);
+Plot(movAvg, "MA " + lperiod, colorIndigo, 5);
+
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorBrightGreen);
+PlotShapes(IIf(Short,shapeDownArrow,shapeNone),colorRed);
+PlotShapes(IIf(Sell,shapeSmallCircle,shapeNone),colorBrightGreen);
+PlotShapes(IIf(Cover,shapeSmallCircle,shapeNone),colorRed);
+
+_SECTION_END();
+/*
+
+
+// AFL - formula -- which I use
+wvap = WMA(V*P,period)/WMA(V,period);
+
+also,... for camarilla levels... you might have the actual formula... in case you dont have AND still use 1.1 as the factor .. you can change it with ...
+
+factor = sqrt(22/7)... square root of PI.
+
+it works better on nifty also...
+
+regards,
+pramod
+
+
+Here's the camarilla AFL....which I use.. I have an extra level 3.5 on both sides.. this level acts as a resting place...sometimes.*/
+
+_SECTION_BEGIN("Camarilla");
+
+tom = -1 * Param("Day",1,0,100,1);
+
+TimeFrameSet(inDaily);
+yyo = Ref(O,tom + 1);
+yyh = Ref(H,tom + 1);
+yyl = Ref(L,tom + 1);
+yyc = Ref(C,tom + 1);
+TimeFrameRestore();
+
+tyo = TimeFrameExpand( yyo, inDaily, expandLast);
+tyh = TimeFrameExpand( yyh, inDaily, expandLast);
+tyl = TimeFrameExpand( yyl, inDaily, expandLast);
+tyc = TimeFrameExpand( yyc, inDaily, expandLast);
+
+x = LastValue(Cum(1)) - 1;
+
+yo = tyo[x];
+yh = tyh[x];
+yl = tyl[x];
+yc = tyc[x];
+
+fac = sqrt(22/7);
+
+r4 = ( yh - yl ) * ( fac/2) + yc;
+r35 = ( yh - yl ) * ( fac/3) + yc;
+r3= ( yh - yl ) * ( fac/4) + yc;
+r2 = ( yh - yl ) * ( fac/6) + yc;
+r1 = ( yh - yl ) * ( fac/12) + yc;
+
+s1 = yc - ( yh - yl ) * (fac/12);
+s2 = yc - ( yh - yl ) * (fac/6);
+s3 = yc - ( yh - yl ) * (fac/4);
+s35 = yc - ( yh - yl ) * (fac/3);
+s4 = yc - ( yh - yl ) * (fac/2);
+
+pivot = (r4 + s4)/2;
+
+Plot(r4,"\nR4",colorYellow,1);
+Plot(r35,"R3.5",colorYellow,styleDashed|styleThick );
+Plot(r3,"R3",colorYellow,1);
+Plot(r2,"R2",colorYellow,1);
+Plot(r1,"R1",colorYellow,1);
+
+Plot(pivot," Pivot",colorOrange,5);
+
+Plot(s1," S1",colorDarkBlue,1);
+Plot(s2,"S2",colorDarkBlue,1);
+Plot(s3,"S3",colorDarkBlue,1);
+Plot(s35,"S3.5",colorDarkBlue,styleDashed|styleThick);
+Plot(s4,"S4",colorDarkBlue,1);
+_SECTION_END();
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+Plot( C, "Close", ParamColor("Color", colorWhite ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+if( ParamToggle("Tooltip shows", "Only Prices|All Values" ) )
+{
+ToolTip=StrFormat("Open: %g\nHigh: %g\nLow: %g\nClose: %g (%.1f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 )));
+}
+
+su = Study("SU", GetChartID() );
+re = Study("RE", GetChartID() );
+PlotOHLC( re, re, su, su, "", ParamColor("Shade Color", colorPlum),styleCloud );
+_SECTION_END();
+
+

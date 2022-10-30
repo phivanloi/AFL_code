@@ -1,0 +1,7 @@
+// this example plots filled area between 
+// support (SU) and resistance (RE) lines 
+
+Plot(C, "Price", colorBlack, styleCandle ); 
+su = Study("SU", GetChartID() ); 
+re = Study("RE", GetChartID() ); 
+PlotOHLC( re,  re,  su, su, "", colorYellow,styleCloud ); 

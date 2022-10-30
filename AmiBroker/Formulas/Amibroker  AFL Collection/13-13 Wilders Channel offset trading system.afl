@@ -1,0 +1,59 @@
+/* Done      by    Rajandran R */
+/* Author of www.marketcalls.in  */
+
+_SECTION_BEGIN("13-13 Wilders Channel Offset Trading System ");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+
+
+A = Wilders( H,13 );
+B = Wilders( L,13 );
+
+ 					
+x= Ref(A,-13);
+y= Ref(B,-13);
+
+D=.0009;
+xt=x+x*D;
+xb=x-x*D;
+
+yt=y+y*D;
+yb=y-y*D;
+
+/* Buy or Sell Condition */
+Buy = Cross(Close,xt);
+Sell = Cross(yt,Close);
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+Filter = Buy OR Sell;
+/* Exploration Parameters */
+AddTextColumn( FullName(), "Company Name" );
+AddColumn( Buy, "Buy", 1 );
+AddColumn( Sell, "Sell", 1 );
+AddColumn( C, "Close", 1.3 );
+AddColumn( H, "High", 1.3 );
+
+/* Plotting the Channel Cloud */
+
+PlotOHLC( 0,xt,xb,xb ,"",colorBlue, styleCloud);
+PlotOHLC( 0,yt,yb,yb ,"",colorBlue, styleCloud);
+PlotOHLC( 0,xt,yb,yb ,"",colorRed, styleCloud);
+
+Title = EncodeColor(colorWhite)+ "5-13 EMA Channel Trading System" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"\n" +EncodeColor(colorRed) +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+
+"Cl-"+C+"  "+ "Vol= "+ WriteVal(V)+"\n"+ 
+EncodeColor(colorLime)+
+WriteIf (Buy , " GO LONG / Reverse Signal at "+C+"  ","")+
+WriteIf (Sell , " EXIT LONG / Reverse Signal at "+C+"  ","")+"\n"+EncodeColor(colorWhite)+
+WriteIf(Sell , "Total Profit/Loss for the Last Trade Rs."+(C-BuyPrice)+"","")+
+WriteIf(Buy  , "Total Profit/Loss for the Last trade Rs."+(SellPrice-C)+"","");
+
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+_SECTION_END();

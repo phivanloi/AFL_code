@@ -1,0 +1,27 @@
+_SECTION_BEGIN("Larry William's Volatility Channels");
+/* Larry William's Volatility Channels 
+Right Click select Param "parameters" and select variable you need..*/
+
+/* AFL code by Prakash Shenoi*/
+
+// Enable radio button "middle" for grid lines.
+
+
+MaxGraph = 4;
+Vc= Param("Volatility channel -",10,2,14);
+Up=HHV(((((H+L+C)/3)*2)- H),Vc);
+Lo=LLV(((((H+L+C)/3)*2)- L),Vc);
+Graph0=C;
+Graph0Style=128+4;
+Graph0BarColor = IIf( Close > Ref( Close, -1 ), colorDarkGreen, colorDarkRed );
+Graph0Style = styleBar;
+Graph0 = Close;
+Graph1=Up;
+Graph1Style=styleLine;
+Graph1Color=colorBlue;
+Graph2=Lo;
+Graph2Style=styleLine;
+Graph2Color=colorBlue;
+Title=Name() + "  Volatiltiy Channels - LC" + WriteVal( Graph2 )+ ", UC" + WriteVal( Graph1 )+
+", Close" + WriteVal( Graph0 );
+_SECTION_END();

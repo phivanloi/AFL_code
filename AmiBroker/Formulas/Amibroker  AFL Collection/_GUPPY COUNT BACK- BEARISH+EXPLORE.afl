@@ -1,0 +1,61 @@
+_SECTION_BEGIN("GUPPY COUNT BACK--KAKA BEARISH_BULLISH");
+/////////////////////////SELL  SET  UP  /////////////////////////////////////////////////////////////////
+MASK= ParamStyle("MASK",styleCandle, maskPrice);
+barcolor = IIf(C > Ref(C,-1), ParamColor("Up Color",colorBrightGreen), IIf(C ==Ref(C,-1),colorOrange, ParamColor("Dn Color",colorOrange))); 
+Plot( C, "Close", barcolor,MASK|styleNoLabel);
+
+
+
+H1=0;
+L1=0;
+H2=0;
+L2=0;
+H3=0;
+L3=0;
+
+
+for( i = BarCount-20; i < BarCount; i++ ) 
+{ 
+if(H[i]>H[i-1])
+{ H1=H[i];L1=L[i] ;H1bar=i;
+for( j = H1bar-20; j < H1bar; j++ ) 
+{
+if(H[j]<H1 AND L[j]<L1)
+{ H2=H[j];L2=L[j] ;H2bar=j;
+for( k = H2bar-20; k < H1bar; k++ ) 
+{
+if(H[k]<H2 AND L[k]<L2){H3=H[k];L3=L[k] ;H3bar=k;
+
+
+}
+}
+}
+}
+}
+}
+
+Plot( L3, "", colorOrange,styleDashed);
+Plot( H1, "", colorOrange,styleDashed);
+TgtL=(L3-(H1-L3));
+Plot( TgtL, "TGT", colorOrange,styleLine|styleDots|styleThick);
+//PlotOHLC(L3,L3,TgtL,TgtL,"",ColorRGB(50,20,10),styleCloud|styleNoLabel);
+//PlotOHLC(H1,H1,L3,L3,"",ColorRGB(50,20,10),styleCloud|styleNoLabel);
+_SECTION_END();
+
+
+//Buy=Cross(C,H3);
+Sell=Cross(L3,C);
+//Buy = ExRem( Buy, Sell );
+//Sell = ExRem( Sell, Buy );
+
+//////////////////////////////////////////////////////////////////////////////////////
+//PlotShapes(Buy*shapeUpArrow,colorBrightGreen, 0, Low, Offset =-10);
+//PlotShapes(Buy*shapeDigit1,colorBrightGreen, 0, Low, Offset =-25);
+
+//PlotShapes(Sell*shapeDownArrow,colorRed, 0, High, Offset =-25);
+//PlotShapes(Sell*shapeDigit2,colorRed, 0, High, Offset =35);
+//////////////////////////////////////////////////////////////////////////////////////////////
+Filter = IIf(Sell,-1,Null) ;
+AddColumn( IIf(Sell,L3,Null) ,"E1030",1.0,colorWhite,IIf(Sell,colorDarkRed,Null));
+
+_SECTION_END();

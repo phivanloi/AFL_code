@@ -1,0 +1,4 @@
+price = (H + L) / 2;
+Pds = Param("Periods", 10,2,25,1);
+Plot(sbCGO(price,Pds),"CGO("+pds+")",4,1);
+Plot(Ref(sbCGO(price,Pds),-1),"Signal",3,1);

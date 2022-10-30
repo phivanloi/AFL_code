@@ -1,0 +1,38 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+
+//MVPT CODE for AMIBROKER 
+Version( 5.25 ); 
+Level = Param("Level", 0, -100, 100 ); 
+Scale = Param("Scale", 1, 0.1, 10, 0.1 ); 
+
+AutoScale = ParamToggle("AutoScale", "No|Yes", 1 ); 
+
+rV = V/50000; 
+AvgFour = ( O + H + L + C )/4; 
+
+MVPT = Cum( rV * (AvgFour - Ref( AvgFour, -1 ) )/Ref( AvgFour, -1 ) ); 
+
+Plot( C, "Price", colorBlack, styleBar ); 
+
+if( AutoScale ) 
+{ 
+ fvb = Status("firstvisiblebar"); 
+ rangePrice = HighestVisibleValue( H ) - LowestVisibleValue( L ); 
+ rangeMVPT = HighestVisibleValue( MVPT ) - LowestVisibleValue( MVPT ); 
+ Scale = rangePrice / rangeMVPT; 
+ MVPT *= Scale; 
+ Level = AvgFour[ fvb ] - MVPT[ fvb ]; 
+} 
+else 
+{ 
+ MVPT *= Scale; 
+} 
+
+MVPT = MVPT + Level; 
+
+Plot( MVPT, "MVPT" + StrFormat("(Scale=%g, Level=%g)", Scale, Level), colorRed, styleThick );

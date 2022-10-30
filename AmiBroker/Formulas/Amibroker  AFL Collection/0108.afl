@@ -1,0 +1,47 @@
+    dt = ParamDate("Date of the trend", "2009-01-01" ); 
+    Value1 = Param("Bearish Periods", 21, 3, 55 );
+    Value2 = Param("Multiplication Factor", 3.8, 1, 10 );
+    Value3 = Param("Initial Stop", 10, 0, 1e6 );
+    Value4 = Param("Channel Periods", 21, 3, 55 ); // Channel Periods
+    Value5 = Param("Overbought region", 75, 1, 100 ); // Overbought region
+    Value6 = Param("Channel Smoothing", 1, 1, 10 );
+
+
+    HoldingDays = BarsSince( DateNum() < dt );
+
+
+    Index = RSI( Value4 );
+    OB = EMA( Index - Value5, Value6 );
+    Bullish = Close - ( Close * OB/100 );
+
+
+    Bearish = Sum( abs( Low - Ref( Low, -1 ) ), Value1 ) / Value1;
+    RangeA = Sum( Close - Low, Value1 ) / Value1;
+    Stop = Close - ( ( Bearish + RangeA ) * Value2 );
+
+
+    TL = Null;
+
+
+    for( i = 1; i < BarCount; i++ )
+    {
+     Prev = TL[ i - 1 ];
+     Cond1 = Stop[ i ] > Prev;
+
+
+     TL[ i ] = IIf( Cond1 AND Stop[ i ] > Value3, Stop[ i ],
+               IIf( Cond1 AND Stop[ i ] < Value3, Value3,
+               IIf( NOT Cond1, Prev, Stop[ i ] * HoldingDays[ i ] ) ) );
+    }
+
+
+    TL = IIf( HoldingDays == 0, Null, TL );
+    Bullish = IIf( HoldingDays == 0, Null, Bullish );
+
+
+    Plot( C, "Price",  IIf( C > O, colorGreen, colorRed ), styleBar );
+
+    Plot( TL, "TL", colorBlue );
+    Plot( Bullish, "Bullish", colorLightGrey );
+    PlotOHLC( TL, TL, Bullish, Bullish, "", ColorRGB( 230, 230, 230), styleCloud | styleNoLabel );
+    Title = "{{NAME}} - {{DATE}} - {{VALUES}}";

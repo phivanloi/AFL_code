@@ -1,0 +1,3 @@
+Buy1 = H >= HHV(C,18) AND Volume >= 1.5*MA(Volume,5) AND Volume >40000 ;
+Buy2 = C >= HHV(C,18) AND Volume >45000 ;
+Buy  = (Buy1 OR Buy2); 

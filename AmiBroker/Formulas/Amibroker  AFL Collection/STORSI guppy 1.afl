@@ -1,0 +1,416 @@
+
+
+_SECTION_BEGIN("Background_Setting");
+SetChartBkGradientFill( ParamColor("BgTop", colorBlack),
+
+ParamColor("BgBottom", colorBlack),ParamColor("titleblock",colorDarkTeal ));
+_SECTION_END();
+
+
+_SECTION_BEGIN("The_Beast_2");
+SetBarsRequired(10000,10000); /* this ensures that the charts include all bars
+AND NOT just those on screen */
+Prd1=Param("ATR Period 1-20",4,1,20,1);//{Default = 4 Because most traders use 5}
+Prd2=Param("LookBack Period 1-20",7,1,20,1);//{Default = 11 Because most traders use 10}
+//{Green} {Start Long position when Close>Green}
+Green=HHV(LLV(L,Prd1)+ATR(Prd1),Prd2);
+//{Red} {Stop loss when Close<Red}
+RED=LLV(HHV(H,Prd1)-ATR(Prd1),Prd2);
+
+
+HaClose =EMA((O+H+L+C)/4,3);
+HaOpen = AMA( Ref( HaClose, -1 ), 0.5 );
+HaHigh = Max( H, Max( HaClose, HaOpen ) );
+HaLow = Min( L, Min( HaClose, HaOpen ) );
+Color = IIf(C>Green ,colorBrightGreen,IIf(C < RED,colorRed,colorWhite));
+
+PlotOHLC( HaOpen, HaHigh, HaLow, HaClose, "", color, styleCandle,styleThick );
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+
+
+_SECTION_END();
+
+_SECTION_BEGIN("Trailing_Stop_Short");
+stoplossPercentage = Param("Stoploss Percentage", 5, 2, 10);
+lookbackPeriod = Param("Lookback period", 10, 5, 30);
+Plot(HHV(C,lookbackPeriod) - HHV(C,lookbackPeriod) * (stoplossPercentage / 100), "Trailing stoploss", ParamColor( "Color", colorCycle ),ParamStyle("Style",styleLine|Stylehidden ,maskAll));
+_SECTION_END();
+
+_SECTION_BEGIN("Trailing_Stop_Long");
+//ATR values can be changed from 1 to 3 multiplications in steps of 0.25
+//ATR value or the last low pivot value can be selected. This feature can be overridden from the parameter window. It is recommended to use only ATR Value
+//Choice of plots line or just dots from the parameter window is also possible
+mf = Param("ATR multiplier",3,1,3,0.25);
+ap=Param("ATR Period",10,5,30,1);
+Lb=Param("Lookback Period",20,10,40,1);
+ps=ParamToggle("Use last low pivot","Use,Dont",1);
+//Thick = Param("Thick" , 0.02, 0.01, 0.2, 0.01);
+
+t1=HHV(C,Lb);
+t2=(mf*ATR(ap));
+t3=Trough(C,2,1);
+t4=t1-t2;
+t5=Min(t4,t3);
+
+if(ps)
+{
+t6 = t1-t2;
+}
+else
+{
+t6=t5;
+}
+
+initial=t6;
+stop[ 0 ] = Close[ 0 ];
+
+for( i = 1 ; i < BarCount; i++)
+{
+if( Close[ i ] > stop[ i - 1])
+{
+temp = t6[ i ];
+if( temp > stop[ i - 1 ] ) stop[ i ] = temp;
+else stop[ i ] = stop[ i - 1 ];
+}
+else
+stop[ i ] = initial[ i ];
+
+}
+
+Plot(stop,"ATR Stop",ParamColor( "Color", colorSeaGreen ),ParamStyle("Style",styleLine|Stylehidden,maskAll ));
+
+_SECTION_END();
+
+_SECTION_BEGIN("Trailing_Lines");
+Plot(LLV(HHV(H,5)-ATR(5),8),"",ParamColor( "Color Line 0", colorDarkGreen ),ParamStyle("Style Line 0",styleLine,maskAll));
+Plot(LLV(HHV(H,5)-ATR(5),7),"",ParamColor( "Color Line 1", colorDarkGrey),ParamStyle("styleLine 1",styleLine,maskAll));
+Plot(LLV(HHV(H,5)-ATR(5),6),"",ParamColor( "Color Line 2", colorDarkGrey ),ParamStyle("Style Line 2",styleLine,maskAll));
+Plot(LLV(HHV(H,5)-ATR(5),5),"",ParamColor( "Color Line 3", colorDarkGrey),ParamStyle("Style Line 3",styleLine,maskAll));
+Plot(LLV(HHV(H,5)-ATR(5),4),"",ParamColor( "Color Line 4", colorDarkGrey ),ParamStyle("Style Line 4",styleLine,maskAll));
+Plot(LLV(HHV(H,5)-ATR(5),3),"",ParamColor( "Color Line 5", colorDarkYellow ),ParamStyle("Style Line 5",styleLine,maskAll));
+
+_SECTION_END();
+
+
+
+
+/*_SECTION_BEGIN("Stop_loss");
+
+lookbackPeriod = Param("Lookback period", 10, 5, 30);
+stoplossPercentage = Param("Stoploss Percentage", 5, 2, 10);
+Thick = Param("Thick" , 0.02, 0.01, 0.2, 0.01);
+
+
+StopLoss=(HHV(C,lookbackPeriod) - HHV(C,lookbackPeriod) * (stoplossPercentage / 100));
+function SPlot( Pr, Txt, Co, St )
+{
+PlotOHLC(Pr, Pr,Pr+Thick, Pr+Thick, "",Co,styleCloud );
+}
+SPlot(StopLoss,"" ,ParamColor( "Color", colorCycle ), 2) ;
+
+_SECTION_END();*/
+
+
+
+
+
+_SECTION_BEGIN("Pivot_Finder");
+/* **********************************
+
+Code to automatically identify pivots
+
+********************************** */
+
+// -- what will be our lookback range for the hh and ll?
+farback=Param("How Far back to go",100,0,5000,10);
+nBars = Param("Number of bars", 12, 5, 40);
+
+
+GraphXSpace=7;
+
+// -- Create 0-initialized arrays the size of barcount
+
+aHPivs = H - H;
+
+aLPivs = L - L;
+
+// -- More for future use, not necessary for basic plotting
+
+aHPivHighs = H - H;
+
+aLPivLows = L - L;
+
+aHPivIdxs = H - H;
+
+aLPivIdxs = L - L;
+
+nHPivs = 0;
+
+nLPivs = 0;
+
+lastHPIdx = 0;
+
+lastLPIdx = 0;
+
+lastHPH = 0;
+
+lastLPL = 0;
+
+curPivBarIdx = 0;
+
+// -- looking back from the current bar, how many bars
+
+// back were the hhv and llv values of the previous
+
+// n bars, etc.?
+
+aHHVBars = HHVBars(H, nBars);
+
+aLLVBars = LLVBars(L, nBars);
+
+aHHV = HHV(H, nBars);
+
+aLLV = LLV(L, nBars);
+
+// -- Would like to set this up so pivots are calculated back from
+
+// last visible bar to make it easy to "go back" and see the pivots
+
+// this code would find. However, the first instance of
+
+// _Trace output will show a value of 0
+
+aVisBars = Status("barvisible");
+
+nLastVisBar = LastValue(Highest(IIf(aVisBars, BarIndex(), 0)));
+
+_TRACE("Last visible bar: " + nLastVisBar);
+
+// -- Initialize value of curTrend
+
+curBar = (BarCount-1);
+
+curTrend = "";
+
+if (aLLVBars[curBar] <
+
+aHHVBars[curBar]) {
+
+curTrend = "D";
+
+}
+
+else {
+
+curTrend = "U";
+
+}
+
+// -- Loop through bars. Search for
+
+// entirely array-based approach
+
+// in future version
+
+for (i=0; i<farback; i++) {
+
+curBar = (BarCount - 1) - i;
+
+// -- Have we identified a pivot? If trend is down...
+
+if (aLLVBars[curBar] < aHHVBars[curBar]) {
+
+// ... and had been up, this is a trend change
+
+if (curTrend == "U") {
+
+curTrend = "D";
+
+// -- Capture pivot information
+
+curPivBarIdx = curBar - aLLVBars[curBar];
+
+aLPivs[curPivBarIdx] = 1;
+
+aLPivLows[nLPivs] = L[curPivBarIdx];
+
+aLPivIdxs[nLPivs] = curPivBarIdx;
+
+nLPivs++;
+
+}
+
+// -- or current trend is up
+
+} else {
+
+if (curTrend == "D") {
+
+curTrend = "U";
+
+curPivBarIdx = curBar - aHHVBars[curBar];
+
+aHPivs[curPivBarIdx] = 1;
+
+aHPivHighs[nHPivs] = H[curPivBarIdx];
+
+aHPivIdxs[nHPivs] = curPivBarIdx;
+
+nHPivs++;
+
+}
+
+// -- If curTrend is up...else...
+
+}
+
+// -- loop through bars
+
+}
+
+// -- Basic attempt to add a pivot this logic may have missed
+
+// -- OK, now I want to look at last two pivots. If the most
+
+// recent low pivot is after the last high, I could
+
+// still have a high pivot that I didn't catch
+
+// -- Start at last bar
+
+curBar = (BarCount-1);
+
+candIdx = 0;
+
+candPrc = 0;
+
+lastLPIdx = aLPivIdxs[0];
+
+lastLPL = aLPivLows[0];
+
+lastHPIdx = aHPivIdxs[0];
+
+lastHPH = aHPivHighs[0];
+
+if (lastLPIdx > lastHPIdx) {
+
+// -- Bar and price info for candidate pivot
+
+candIdx = curBar - aHHVBars[curBar];
+
+candPrc = aHHV[curBar];
+
+if (
+
+lastHPH < candPrc AND
+
+candIdx > lastLPIdx AND
+
+candIdx < curBar) {
+
+
+// -- OK, we'll add this as a pivot...
+
+aHPivs[candIdx] = 1;
+
+// ...and then rearrange elements in the
+
+// pivot information arrays
+
+for (j=0; j<nHPivs; j++) {
+
+aHPivHighs[nHPivs-j] = aHPivHighs[nHPivs-
+
+(j+1)];
+
+aHPivIdxs[nHPivs-j] = aHPivIdxs[nHPivs-(j+1)];
+
+}
+
+aHPivHighs[0] = candPrc ;
+
+aHPivIdxs[0] = candIdx;
+
+nHPivs++;
+
+}
+
+} else {
+
+
+// -- Bar and price info for candidate pivot
+
+candIdx = curBar - aLLVBars[curBar];
+
+candPrc = aLLV[curBar];
+
+if (
+
+lastLPL > candPrc AND
+
+candIdx > lastHPIdx AND
+
+candIdx < curBar) {
+
+
+// -- OK, we'll add this as a pivot...
+
+aLPivs[candIdx] = 1;
+
+// ...and then rearrange elements in the
+
+// pivot information arrays
+
+for (j=0; j<nLPivs; j++) {
+
+aLPivLows[nLPivs-j] = aLPivLows[nLPivs-(j+1)];
+
+aLPivIdxs[nLPivs-j] = aLPivIdxs[nLPivs-(j+1)];
+
+}
+
+aLPivLows[0] = candPrc;
+
+aLPivIdxs[0] = candIdx;
+
+nLPivs++;
+
+}
+
+}
+
+// -- Dump inventory of high pivots for debugging
+
+
+
+for (k=0; k<nHPivs; k++) {
+
+_TRACE("High pivot no. " + k
+
++ " at barindex: " + aHPivIdxs[k] + ", "
+
++ WriteVal(ValueWhen(BarIndex()==aHPivIdxs[k],
+
+DateTime(), 1), formatDateTime)
+
++ ", " + aHPivHighs[k]);
+
+}
+
+
+
+// -- OK, let's plot the pivots using arrows
+
+PlotShapes(
+
+IIf(aHPivs==1, shapeSmallSquare, shapeNone), colorCustom12, 0, H, 25);
+
+PlotShapes(
+
+IIf(aLPivs==1, shapeSmallSquare , shapeNone), colorOrange, 0, L, -20);
+
+_SECTION_BEGIN("Graphics");
+GrpPrm=Param("Graphic Space",1,0,10);
+GraphXSpace=GrpPrm; 

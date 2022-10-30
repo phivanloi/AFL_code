@@ -1,0 +1,18 @@
+_SECTION_BEGIN("Price");
+SetChartBkGradientFill( ParamColor("BgTop", colorBlack),ParamColor("BgBottom", colorBlack),ParamColor("Titleblock",colorLightGrey));
+SetChartOptions(0,chartShowDates|chartShowArrows|chartLogarithmic|chartWrapTitle);
+GraphXSpace = 5;
+Plot(C,"",colorWhite,styleCandle);
+_SECTION_END();
+
+_SECTION_BEGIN("ATP");
+B=Volume;
+//A=Avg;
+Value=B;
+Barsfromtodaybegin = 1 + BarsSince( Day() != Ref(Day(), -1));
+Totalvalue=Sum(Value,Barsfromtodaybegin);
+Totalvolume=Sum(V,Barsfromtodaybegin);
+ATP=(Totalvalue/Totalvolume);
+ColorATP=IIf(ATP>Ref(ATP,-1),colorBrightGreen,colorRed);
+Plot(ATP,"ATP",colorATP,styleLine,styleThick);
+_SECTION_END();

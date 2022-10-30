@@ -1,0 +1,43 @@
+ _SECTION_BEGIN("Chart Settings");
+ SetChartOptions(0,chartShowArrows|chartShowDates);
+ SetChartBkColor(ParamColor("Outer panel color ",colorPaleGreen)); // color of outer border
+ SetChartBkGradientFill( ParamColor("Inner panel color upper half", colorWhite),
+ ParamColor("Inner panel color lower half", colorWhite)); // color of inner panel
+ GraphXSpace=Param("GraphXSpace",20,0,100,1);
+
+ Plot(C,"C",colorBlack,64);
+ HiDay = TimeFrameGetPrice("H", inDaily);
+ LoDay = TimeFrameGetPrice("L", inDaily);
+ Plot(HiDay ,"",colorGreen,styleDots | styleNoLine);
+ Plot(LoDay ,"",colorRed,styleDots | styleNoLine);
+
+
+ //================================
+ HiHrly = TimeFrameGetPrice("H", inHourly);
+ LoHrly = TimeFrameGetPrice("L", inHourly);
+ //Plot(HiHrly ,"",colorBlue,styleDots | styleNoLine);
+ //Plot(LoHrly ,"",colorDarkRed,styleDots | styleNoLine);
+
+ Plot(HiHrly ,"",colorBlue,styleLine );
+ Plot(LoHrly ,"",colorDarkRed,styleLine );
+
+ //================================
+ RangeTitle = EncodeColor(colorBlack) + "Day Range= " + EncodeColor(colorBlack) + StrToNum(NumToStr(round((HiDay - LoDay)), 4.4));
+ Hodcolorsheme=colorDarkBlue;
+ LodColorscheme=colorOrange;
+ Title = EncodeColor(colorDarkBlue)+ "HULK HOD-LOD" + " - " + Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorRed) +
+ " - " + Date() +" - "+"\n" +EncodeColor(colorBlack) +"Op-"+O+" "+"Hi-"+H+" "+"Lo-"+L+" "+
+ "Cl-"+C+" "+ "Vol= "+ WriteVal(V,1.0)+"\n" +
+ EncodeColor(Hodcolorsheme) + "HOD= " + EncodeColor(colorBlack) + Hiday + "\n" +
+ EncodeColor(LodColorscheme) + "LOD= " + EncodeColor(colorBlack) + Loday + "\n" + RangeTitle;
+ _SECTION_END();
+
+
+ RangeTitle = EncodeColor(colorBlack) + "Hourly Range= " + EncodeColor(colorBlack) + StrToNum(NumToStr(round((Hihrly - Lohrly)), 4.4));
+
+ HoHcolorsheme=colorBlue;
+ LoHColorscheme=colorRed;
+
+ EncodeColor(HoHcolorsheme) + "HOH= " + EncodeColor(colorBlack) + HiHrly + "\n" +
+ EncodeColor(LoHColorscheme) + "LOH= " + EncodeColor(colorBlack) + LoHrly + "\n" + RangeTitle;
+ _SECTION_END();

@@ -1,0 +1,15 @@
+_SECTION_BEGIN("OsSetting");
+
+Ovos = ParamToggle("Display_OVOS", "No|Yes", 0);
+OBSetting=Param("Setting",40,1,500,1);
+Bline = StochD(OBSetting);
+Oversold=Bline<=30;
+Overbought=Bline>=85;
+
+if(Ovos)
+{
+PlotShapes (IIf(Oversold, shapeHollowSmallCircle, shapeNone) ,38, layer = 0, yposition = haLow, offset = -8 );
+PlotShapes (IIf(Overbought, shapeHollowSmallCircle, shapeNone) ,colorBrown, layer = 0, yposition = haHigh, offset = 7 );
+}
+
+_SECTION_END();

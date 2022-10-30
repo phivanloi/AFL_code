@@ -1,0 +1,125 @@
+_SECTION_BEGIN("HLCby3");
+
+pivot = (H +L+C)/3; 
+piv = EMA (pivot,Param("short ema",5,1,20,1));
+piv2 = EMA (pivot,Param("fast ema",10,1,50,1));
+Buy = Cross (piv, piv2);
+Short = Cross (piv2,piv);
+pivot_col =  IIf (pivot > Ref(pivot,-1), colorBlue,colorRed);
+piv_col = IIf (piv > Ref(piv,-1), colorBlue,colorRed);
+piv2_col = IIf (piv2 > Ref(piv2,-1),colorBlue, colorRed);
+//Plot (pivot , "pivot", piv_col, styleThick);
+
+bar_col = IIf (MACD( 4, 34 ) > Signal( 4, 34, 10 ), colorBlue, colorRed);
+//Plot (pivot , "pivot", pivot_col, styleThick);
+Plot (piv , "piv", piv_col, styleThick);
+Plot (piv2 , "piv2", piv2_col, styleThick);                
+Col = IIf (H > Ref(H,-1) AND L > Ref(L,-1), colorBlue, IIf (Low < Ref(L,-1) AND High < Ref(H,-1),colorRed, colorYellow));
+Plot( C, "Close", bar_Col, styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+PlotShapes (shapeUpArrow*Buy, colorGreen);
+PlotShapes (shapeDownArrow*Short, colorRed);
+
+//pv_col = IIf ( ADX(9) > Ref(ADX(9),-1) AND PDI( 9 ) > MDI( 9 ),colorBlue,IIf (ADX(9) > Ref(ADX(9),-1) AND PDI( 9 ) < MDI( 9 ),colorRed, colorYellow));
+pv_col = IIf (  piv_col == colorBlue AND piv2_col ==colorBlue,colorBlue,IIf ( piv_col == colorRed AND piv2_col ==colorRed,colorRed,colorYellow));
+
+Plot(3, "ribbon", piv_col, styleOwnScale| styleArea|styleNoLabel,-0.5,100); 
+_SECTION_END();
+
+_SECTION_BEGIN("Auto trendline1");
+/*
+
+trend channel development 
+Edward Pottasch, nov 2004
+
+*/
+
+
+per = 15; per = Param( "period", 15, 1, 500, 1);
+
+mm = C;
+
+x = Cum(1);
+lastx = LastValue(x); 
+selv = SelectedValue(x);
+
+aaa = LinRegIntercept(mm, per);
+bbb = LinRegSlope(mm, per);
+
+daa = SelectedValue(ValueWhen(x, aaa, 1));
+dbb = SelectedValue(ValueWhen(x, bbb, 1));
+
+xx = IIf(x > selv - per AND x <= selv, x - (selv - per),Null);
+
+yy = daa + dbb * xx;
+
+dhh = abs(H - yy);
+dll = abs(L - yy);
+dtt = Max(dhh,dll);
+
+wd = SelectedValue(HHV(dtt,per));
+
+SetChartOptions(0, chartShowDates);
+GraphXSpace = 5;
+
+//Plot(C,"",colorWhite,64);
+//Plot(yy, "LinReg", colorBlue );
+Plot(yy + wd, "Upper Boundary", colorRed, 4 );
+Plot(yy - wd, "Lower Boundary", colorBrightGreen, 4 );
+_SECTION_END();
+
+_SECTION_BEGIN("macd rsi");
+EMA3 = EMA(RSI(14),3);
+ema27 = EMA(RSI(14),27); 
+
+diff = ema3-EMA27;
+ema_short = EMA(diff,Param("short ema",3,1,20,1));
+EMA_Long = EMA(diff,Param("long ema",5,1,20,1));
+
+Col_rsi = IIf (EMA_long > Ref(EMA_long,-1),colorBlue,colorRed);
+//Plot (EMA_short,"diff in rsi1",colorYellow,styleThick);
+//Plot (EMA_long,"diff in rsi5",Col_rsi,styleThick);
+//Plot (0,"",colorWhite,styleThick);
+
+Buy = Cross (EMA_short,EMA_long);
+Sell = Cross (EMA_long, EMA_short);
+Short = Sell;
+Cover = Buy;
+
+PlotShapes (shapeUpTriangle*Buy,colorYellow);
+PlotShapes (shapeDownTriangle*Sell,colorYellow);
+_SECTION_END();
+
+//source http://www.traderji.com/amibroker/24404-help-amibroker-forumla-afl-saintjis-going-60min-flow-practice-2.html
+
+// Written by Abhay (aad on www.traderji.com)
+
+// Previous version 1.0 on 28.07.2008.
+// Current Version 1.1 on 31.07.2008.
+
+///////////////////////////////////////////////////////////
+///// Major changes done from previous version 1.0 : //////
+
+// The method of pivot definition is changed. 
+// Now it does not use zig() or related functions anywhere.
+
+// Stoploss line error, that it moves in both directions after a position is taken,
+// is removed. Now stoploss lines are unidirectional.
+
+// To protect profit on long positions, SELL is triggered either when trailing buy stop
+// is hit OR when previous lower pivot is cracked. Fresh long position will be initiated 
+// if uptrend continues after previous high pivot is cracked.   
+
+///////////////////////////////////////////////////////////
+
+
+// This is simple YET powerful pivot based trading system.
+// Used only for intraday. Not suitable for EOD data.
+// Designed for continuous trading. i.e. short=sell and cover=buy
+// When long, watch crack of close in green line ONLY. Ignore red line.
+// When short, watch crack of close in red line ONLY. Ignore green line.
+// You will have to tweak the parameters as per your trading style.
+
+// Warning : 	I have tried to develop this method from Saint's Pivot Based System (www.traderji.com) 
+// 		However, it is very well possible that its performance is not as per actual system
+// 		suggested by Saint due to programming errors and inadequate knowledge level at my end.
+// Warning : 	Traders are advised to trade on their own, knowing very well that it is their money.

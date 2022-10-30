@@ -1,0 +1,15 @@
+//Source = Leon Wilson, www.wilsontechstats.com/software/MMAConstruction.htm
+//AFL Translation = Mubashar Virk, mavirk@gmail.com
+
+short1=(EMA(Close,3)+EMA(Close,5)+
+EMA(Close,8)+EMA(Close,10)+
+EMA(Close,12)+EMA(Close,15));
+
+long2=(EMA(Close,30)+EMA(Close,35)+
+EMA(Close,40)+EMA(Close,45)+
+EMA(Close,50)+EMA(Close,60));
+
+GMMACD=(((short1-Long2)/long2)*100)-
+EMA(((short1-long2)/long2)*100,9);
+
+Plot (GMMACD, "GMMA Convergence Divergence Histogram", colorRed, styleHistogram);

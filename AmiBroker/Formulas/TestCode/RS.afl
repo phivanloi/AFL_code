@@ -1,0 +1,67 @@
+
+
+_SECTION_BEGIN("so sanh RS CO PHIEU");
+Cl0=ColorRGB(0,128,255);
+Cl1=colorOrange;
+Cl2=colorGreen;
+Cl3=colorRed;
+
+//Set Variables
+barvisible = Status("barvisible");
+FVB = barvisible AND NOT Ref( barvisible, -1 );
+CVB = ValueWhen(  FVB,C) ;
+Leftbar=ValueWhen(Ref(barvisible,-1)==0 AND barvisible,DateTime() );
+Rightbar=LastValue(DateTime() );
+DateSpan = EndValue(BarIndex()) - BeginValue(BarIndex());
+Range = DateSpan ;
+StartDate = BeginValue(BarIndex());
+EndDate = EndValue(BarIndex());
+
+//Select Tickers
+Fn0=ParamStr( "Fund0", "VNINDEX");
+Fn1=ParamStr( "Fund1", "HNXINDEX");
+Fn3=ParamStr( "Fund3", "UPCOMINDEX");
+Fn2=ParamStr( "Fund2", name());
+
+////////////
+
+
+//Normalized to left edge
+//THI TRUONG CHUNG
+Fa0=Prec(100*(Foreign(Fn0,"C")/ValueWhen(FVB,Foreign(Fn0,"C"))-1),2.2);//VNINDEX
+Fa1=Prec(100*(Foreign(Fn1,"C")/ValueWhen(FVB,Foreign(Fn1,"C"))-1),2.2);//HNXINDEX
+Fa3=Prec(100*(Foreign(Fn3,"C")/ValueWhen(FVB,Foreign(Fn3,"C"))-1),2.2);//UPCOMINDEX
+Fa2=Prec(100*(Foreign(Fn2,"C")/ValueWhen(FVB,Foreign(Fn2,"C"))-1),2.2);//
+
+
+
+
+
+
+Plot(Fa0,Fn0,Cl0,4);
+Plot(Fa1,Fn1,Cl1,4);
+Plot(Fa2,Fn2,Cl2,4);
+Plot(Fa3,Fn3,Cl3,4);
+//Calculate % Change between markers
+//CHI SO CHUNG
+Fv0=IIf(startdate==0,Fa0,100*(EndValue(Foreign(Fn0,"C")-BeginValue(Foreign(Fn0,"C"))))/BeginValue(Foreign(Fn0,"C")));
+Fv1=IIf(startdate==0,Fa1,100*(EndValue(Foreign(Fn1,"C")-BeginValue(Foreign(Fn1,"C"))))/BeginValue(Foreign(Fn1,"C")));
+Fv2=IIf(startdate==0,Fa2,100*(EndValue(Foreign(Fn2,"C")-BeginValue(Foreign(Fn2,"C"))))/BeginValue(Foreign(Fn2,"C")));
+Fv3=IIf(startdate==0,Fa3,100*(EndValue(Foreign(Fn3,"C")-BeginValue(Foreign(Fn3,"C"))))/BeginValue(Foreign(Fn3,"C")));
+
+
+////////////NGANH THEP
+Title=""+EncodeColor(colorBlue)+ "SO SANH RS CO PHIEU - "+EncodeColor(colorWhite)+
+//Right Bar Date
+WriteIf(EndValue(DateTime() )==rightbar, " "+Date(),"   "+WriteVal(Range,1)+" days "+WriteVal(EndValue(Month()),1.0) +"/" + 
+WriteVal(EndValue(Day()),1.0) + "/20" + StrRight( WriteVal(EndValue(Year()),1.0),2))+
+//////////////
+"  "+EncodeColor(ColorRGB(0,128,255))+ "VN-INDEX: "+EncodeColor(colorBlack)+WriteIf(IsTrue(fa0)," "+WriteVal(fv0,1.2)+ "  ","")+
+"  "+EncodeColor(colorOrange)+ "HNX-INDEX: "+EncodeColor(colorBlack)+WriteIf(IsTrue(fa1)," "+WriteVal(fv1,1.2)+ "  ","")+
+"  "+EncodeColor(colorRed)+ "UPCOMINDEX: "+EncodeColor(colorBlack)+WriteIf(IsTrue(fa3)," "+WriteVal(fv3,1.2)+ "  ","")+
+"  "+EncodeColor(colorGreen)+ Name()+": " +EncodeColor(colorBlack)+WriteIf(IsTrue(fa2)," "+WriteVal(fv2,1.2)+ "  ","")
+
+;
+
+
+_SECTION_END();

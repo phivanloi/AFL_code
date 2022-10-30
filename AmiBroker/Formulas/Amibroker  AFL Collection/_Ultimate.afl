@@ -1,0 +1,15 @@
+_SECTION_BEGIN("Stochastic %K");
+periods = Param( "Periods", 15, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 3, 1, 200, 1 );
+UL=Param("UPPER LIMIT",70,60,90,1);
+Ll=Param("LOWER LIMIT",30,10,40,1);
+R=StochK( periods , Ksmooth);
+GraphXSpace=10;
+Plot( StochK( periods , Ksmooth), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+_SECTION_BEGIN("Stochastic %D");
+periods = Param( "Periods", 15, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 3, 1, 200, 1 );
+Dsmooth = Param( "%D avg", 3, 1, 200, 1 );
+Plot( StochD( periods , Ksmooth, DSmooth ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+_SECTION_END();
+PlotOHLC( R,R,50,r, "", IIf( R > 50, colorRed , colorLime ), styleCloud | styleClipMinMax, LL, UL );

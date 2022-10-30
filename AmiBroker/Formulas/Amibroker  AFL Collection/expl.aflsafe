@@ -1,0 +1,69 @@
+//Amibroker Code: (Metastock code follows)
+
+/*
+These calculations are made more complex because zero Volume trading days are NOT shown.  Volume data is shown in 100's. Apply this Exploration to the last traded Date and update the 'Filter=' instruction to include correct date (optional).
+*/
+
+e=126;
+b=(DayOfYear()-Ref(DayOfYear(),-1));
+n=Cum(IIf(DayOfYear()<Ref(DayOfYear(),-1),b+(Year()-Ref(Year(),-1))*365.25,b));
+
+//Q1: Days traded
+m=100*(365.25/252*e)/(n-Ref(n,-e));
+
+//Q2: Dollar Volume
+dv_=Cum(V*Avg>500);
+dv=Min(100,1.3*(dv_-Ref(dv_,-m*e/100))/e*100);
+
+//Q3: Price
+p=Min(C,1.5)/1.5*100;
+
+//Q4: Price Consistency
+s_=Cum(Avg<Ref(H,-1) AND Avg>Ref(L,-1));
+s=Min(100,2*(s_-Ref(s_,-m*e/100))/e*100);
+
+//Q5: Volume Consistency
+u_=Cum(V>AMA(V,2/(1+m*e/100)));
+u=Min(100,2*(u_-Ref(u_,-m*e/100))/e*100);
+
+x=MA(m+dv+p+s+u,20);
+Filter=Cum(1)>200 AND x>250; // AND DateNum()>1040601 <-add this with correct date to filter out stocks trading within the last few days
+
+AddTextColumn(FullName(),"",0.0);
+AddColumn(m,"",1.2);
+AddColumn(dv,"",1.2);
+AddColumn(p,"",1.2);
+AddColumn(s,"",1.2);
+AddColumn(u,"",1.2);
+
+AddColumn((x-Ref(x,-50))/500,"",1.4);
+AddColumn(x,"",1.0);
+AddColumn(RSI(),"RSI",1.2);
+AddColumn(RSI()-Ref(RSI(),-10),"RSI",1.2);
+
+
+//Metastock Code:
+
+//i have modified the code to work with metastock.  it is NOT an exact duplicate, although the results are Close enough.  you must type in a Date from 6 months ago into the code, AND the results are good for only the most recent Date. before running the exploration, you need to set the Data Loading (under Explorer Options) to Load 300 records.
+
+
+//{*** this is the Date 6 months ago ***}
+//tdayofmonth:=28;tmonth:=11;tyear:=2003;
+
+//tf:=tyear*10000+tmonth*100+tdayofmonth;
+//a:=(C+H+L)/3;
+//q1t:=BarsSince(10000*Year()+Month()*100+DayOfMonth()<tf);
+//q1:=q1t/126*100;
+//x:=LastValue(q1t);
+//q2t:=Cum(V*a>500);
+//q2:=Min(100,1.3*(q2t-Ref(q2t,-x))/x*100);
+//q3:=Min(C,1.5)/1.5*100;
+
+//q4t:=Cum( a<Ref(H,-1) AND a>Ref(L,-1));
+//q4:=Min(100,2*(q4t-Ref(q4t,-x))/x*100);
+
+//q5t:=Cum(V>Mov(V,100,S));
+//q5:=Min(100,2*(q5t-Ref(q5t,-x))/x*100);
+
+//q1+q2+q3+q4+q5
+

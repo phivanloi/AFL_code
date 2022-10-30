@@ -1,0 +1,36 @@
+_SECTION_BEGIN("BB_KB_LINE with 5EMA+20MA");
+
+
+////KELTENER BAND/////////////////////////////
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 20, 2, 100, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+
+CenterLine = MA( P, 20 );
+KT = KTop = CenterLine + 2 * ATR( 20 );
+KB = KBot = CenterLine - 2 * ATR( 20 );
+
+//Plot( KT, "KBTop" + _PARAM_VALUES(), colorBlue, styleDashed | styleThick| styleNoLabel); 
+//Plot( KB, "KBBot" + _PARAM_VALUES(), colorBlue, styleDashed | styleThick| styleNoLabel); 
+//Plot(MA(C,20),"MA20",colorPaleBlue, styleThick|styleDashed|styleNoLabel);
+////BOL BAND 20////////////////////////////////////////////////////////
+
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 20, 2, 100, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+
+BT = BBandTop( C, 20, 2 ); 
+BB = BBandBot( C, 20, 2 );
+Plot( BT, "BBTop" + _PARAM_VALUES(), colorPaleBlue, styleDashed | styleNoLabel); 
+Plot( BB, "BBBot" + _PARAM_VALUES(), colorPaleBlue, styleDashed | styleNoLabel); 
+
+
+
+Plot( EMA( C, 20 ),"",colorCustom1, styleNoLabel|styleThick|styleDots);
+Plot( EMA( H, 5 ),"",colorCustom12, styleNoLabel|styleThick);
+Plot( EMA( L, 5 ),"",colorCustom12, styleNoLabel|styleThick);
+
+ 
+_SECTION_END();

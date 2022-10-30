@@ -1,0 +1,69 @@
+_SECTION_BEGIN("Sentimental Dashboard");
+
+
+function jmatrix(timeframe)
+{
+
+
+TimeFrameSet( timeframe ); // switch to 5 minute frame 
+
+rmat = HMA(RSIa((H+L+C+O)/4,5),5);   
+   
+TimeFrameRestore(); // restore time frame to original
+
+return rmat;
+
+}
+
+rsx =jmatrix(in5Minute);
+rsx15  =jmatrix(in15Minute);
+rsx60  =jmatrix(inHourly);
+rsx1D  =jmatrix(inDaily);
+rsx1w = jmatrix(inWeekly);
+rsx1m = jmatrix(inMonthly);
+
+
+Plot(0,"",colorBlack,styleNoDraw);
+Plot(100,"",colorBlack);
+
+PlotTextSetFont("", "Arial", 9, BarCount-1, Close[ BarCount - 3 ], colorGreen, colorDefault, -20 ); 
+
+
+PlotText(NumToStr(Ref(rsx,-1),1.1,False), BarCount-1, 65, colorWhite, ColorHSB(10+(rsx[BarCount-1]*2),160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx,-2),1.1,False), BarCount-6, 65, colorWhite, ColorHSB(10+rsx[BarCount-2]*2,160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx,-3),1.1,False), BarCount-11, 65, colorWhite, ColorHSB(10+rsx[BarCount-3]*2,160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx,-4),1.1,False), BarCount-16, 65, colorWhite, ColorHSB(10+rsx[BarCount-4]*2,160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx,-5),1.1,False), BarCount-21, 65, colorWhite, ColorHSB(10+rsx[BarCount-5]*2,160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx,-6),1.1,False), BarCount-26, 65, colorWhite, ColorHSB(10+rsx[BarCount-6]*2,160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx,-7),1.1,False), BarCount-31, 65, colorWhite, ColorHSB(10+rsx[BarCount-7]*2,160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx,-8),1.1,False), BarCount-36, 65, colorWhite, ColorHSB(10+rsx[BarCount-8]*2,160,140), yoffset = 0 ) ;
+
+PlotText("15 min ", BarCount-43, 65, colorRed, colorBlack, yoffset = 0 ) ;
+
+
+PlotText(NumToStr(rsx15,1.1,False), BarCount-1, 50, colorWhite, ColorHSB(10+rsx[BarCount-1]*2,160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx15,-1),1.1,False), BarCount-6, 50, colorWhite, ColorHSB(10+rsx15[BarCount-2]*2,160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx15,-2),1.1,False), BarCount-11, 50, colorWhite, ColorHSB(10+rsx15[BarCount-3]*2,160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx15,-3),1.1,False), BarCount-16, 50, colorWhite, ColorHSB(10+rsx15[BarCount-4]*2,160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx15,-4),1.1,False), BarCount-21, 50, colorWhite, ColorHSB(10+rsx15[BarCount-5]*2,160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx15,-5),1.1,False), BarCount-26, 50, colorWhite, ColorHSB(10+rsx15[BarCount-6]*2,160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx15,-6),1.1,False), BarCount-31, 50, colorWhite, ColorHSB(10+rsx15[BarCount-7]*2,160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx15,-7),1.1,False), BarCount-36, 50, colorWhite, ColorHSB(10+rsx15[BarCount-8]*2,160,140), yoffset = 0 ) ;
+
+PlotText("60min ", BarCount-43, 50, colorRed, colorBlack, yoffset = 0 ) ;
+
+
+PlotText(NumToStr(rsx60,1.1,False), BarCount-1, 35, colorWhite, ColorHSB(10+rsx60[BarCount-1]*2,160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx60,-1),1.1,False), BarCount-6, 35, colorWhite, ColorHSB(10+rsx60[BarCount-2]*2,160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx60,-2),1.1,False), BarCount-11, 35, colorWhite, ColorHSB(10+rsx60[BarCount-3]*2,160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx60,-3),1.1,False), BarCount-16, 35, colorWhite, ColorHSB(10+rsx60[BarCount-4]*2,160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx60,-4),1.1,False), BarCount-21, 35, colorWhite, ColorHSB(10+rsx60[BarCount-5]*2,160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx60,-5),1.1,False), BarCount-26, 35, colorWhite, ColorHSB(10+rsx60[BarCount-6]*2,160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx60,-6),1.1,False), BarCount-31, 35, colorWhite, ColorHSB(10+rsx60[BarCount-7]*2,160,140), yoffset = 0 ) ;
+PlotText(NumToStr(Ref(rsx60,-7),1.1,False), BarCount-36, 35, colorWhite, ColorHSB(10+rsx60[BarCount-8]*2,160,140), yoffset = 0 ) ;
+
+PlotText("Daily ", BarCount-43, 35, colorRed, colorBlack, yoffset = 0 ) ;
+
+
+
+_SECTION_END();

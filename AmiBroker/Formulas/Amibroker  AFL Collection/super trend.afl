@@ -1,0 +1,62 @@
+_SECTION_BEGIN("ATRtrading");
+SetChartBkColor( colorBlack ) ;
+period = Param("Period", 13, 1, 240, 1);
+mult = Param("Multiplier", 1.7, 1, 240, 0.1);
+
+f=ATR(period);
+
+VS[0] = Close[0];
+trend[0] = 0;
+HighC[0]=0;
+Lowc[0]=0;
+
+for( i = period+1; i < BarCount; i++ )
+{
+
+vs[i] = vs[i-1];
+trend[i] = trend[i-1];
+highC[i] = HighC[i-1];
+lowc[i] = lowc[i-1];
+
+if ((trend[i]>=0) && ( C[i] <VS[i] ))
+{
+trend[i] =-1;
+HighC[i] = C[i];
+lowc[i] = C[i];
+}
+
+if ((trend[i]<=0) && (C[i] >VS[i]))
+{
+trend[i]=1;
+HighC[i] = C[i];
+lowc[i] = C[i];
+}
+
+if (trend[i]==-1)
+{
+if (C[i]<lowc[i]) lowc[i] = C[i];
+VS[i]= lowc[i]+ (mult*f[i]);
+}
+
+
+if (trend[i]==1)
+{
+if (C[i]>HighC[i]) HighC[i] = C[i];
+VS[i]= HighC[i]-(mult*f[i]);
+}
+
+}
+
+
+Buy=Cross(Trend,0);
+Sell=Cross(0, Trend);
+
+Plot(Close,"Close",colorBlue,styleCandle);
+Plot(VS, "Vol Stop",IIf(trend==1,10,11 ),styleThick);
+
+mkol = IIf( Trend==1, 10, 11);
+Plot(5, "ribbon", mkol, styleOwnScale|styleArea|styleNoLabel, 500, -5); // Weekly trend
+
+//shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+//PlotShapes( shape, IIf( Buy, colorGreen, colorRed ), 0, IIf( Buy, Low-f, High+f));
+_SECTION_END();

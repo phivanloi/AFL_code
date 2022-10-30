@@ -1,0 +1,73 @@
+ /*Volume-weighted average = Sum {closing price (I) * [Volume (I)/(total range)]} where I = given Day’s action.*/
+
+
+
+
+Days = Days1 =LINE_ZERO =0;
+vpci_zero= 0;
+S_PERIOD = Param("vm sHORT",5,1,50,1);
+L_PERIOD = Param("vm LONG",20,1,100,1);
+
+
+/////////****************VWMA********************/
+
+S_VWMA = Sum(C*V,S_PERIOD)/Sum(V,S_PERIOD);
+L_VWMA = Sum(C*V,L_PERIOD)/Sum(V,L_PERIOD);
+VWMA = S_VWMA + L_VWMA;
+
+
+printf("Close Short %g \n",Ref(C,S_PERIOD-1));
+printf("VOLCUM %g \n",(Ref(V,S_PERIOD)+Ref(V,L_PERIOD)));
+printf("LPERIODA %g \n",L_PERIOD);
+printf("LVWMA %g \n",L_VWMA);
+printf("SPERIODA %g \n",S_PERIOD);
+printf("SVWMA %g \n",S_VWMA);
+printf("VWMA %g \n\n",VWMA);
+
+/////////****************VPC********************/
+
+VPC = L_VWMA - MA(C,L_PERIOD);
+printf("MA long %g \n",MA( C,L_PERIOD));
+
+
+VPR = S_VWMA / MA(C,S_PERIOD);
+printf("VPR %g \n",VPR);
+
+
+Vol_multi = MA(V,S_PERIOD)/MA(V,L_PERIOD);
+printf("VPC %g \n",VPC);
+
+printf("vOL_MULTI %g \n",Vol_multi);
+
+VPCI = VPR * Vol_multi * VPC;
+printf("VPCI = %g \n",VPCI);
+
+
+
+Plot(vpci_zero,"",colorWhite);
+Plot(VPCI,"",colorRed);
+
+
+// and VPCI smoothed
+aperiod = Param("Smoothing period", 20, 1, 30, 1 );
+VPCI_SMOOTH = MA( VPCI, aperiod);
+Plot( VPCI_SMOOTH, "MA("+aperiod+")", colorBlue );
+
+
+
+
+VPCI_BUY = VPCI > VPCI_SMOOTH AND ADX(7) > 10 AND MACD( 12, 26 ) > Signal( 12, 26, 9 );
+
+
+VPCI_SELL = VPCI< VPCI_SMOOTH;
+
+
+PlotShapes(IIf(VPCI_BUY,shapeUpArrow,Null),colorGreen,0,Min(0,0),-20); 
+PlotShapes(IIf(VPCI_SELL,shapeDownArrow,Null),colorBrown,0,Min(0,0),-20); 
+//** simple trading system follows***
+ //Buy = Vp > Vps AND**
+     //ADX( 7 ) > 10 AND**
+     // MACD( 12, 26 ) > Signal( 12, 26, 9 );**
+// Sell = Vps < Vp;**
+
+

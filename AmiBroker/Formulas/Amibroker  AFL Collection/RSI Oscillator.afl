@@ -1,0 +1,5 @@
+PDS = 14;
+RSIO = (C-Ref(C,-pds))/MA((abs(C-Ref(C,-1))),pds);
+
+Plot( RSIO, "RSI Oscillator", ParamColor("Color",  colorCycle ), ParamStyle("Style")  );
+PlotGrid(0, colorLightGrey);

@@ -1,0 +1,123 @@
+Filename = StrLeft(_DEFAULT_NAME(),StrLen(_DEFAULT_NAME())-2);
+
+BuyOrderTrigger 		= ParamTrigger("Place/Modify Buy order","BUY");
+SellOrderTrigger 		= ParamTrigger("Place/Modify Sell order","SELL");
+CancelOrderTrigger	= ParamTrigger("Cancel All Orders","CANCEL-ALL");
+ClosePositionTrigger	= ParamTrigger("Close All Positions","CLOSE");
+TransmitTrigger 		= ParamTrigger("Transmit Order","TRANSMIT");
+DebugViewOn			= ParamToggle("DebugView Logging","OFF|ON",0);
+ResetIBc	 			= ParamTrigger("ReConnect IBc->TWS","RECONNECT");
+if( ParamTrigger("Clear DebugView","CLEAR") ) _TRACE("# DBGVIEWCLEAR");
+
+function Trace( DBVString )
+	{
+	global ibc, IBPosSize;
+	IBPosSizeStr = NumToStr(IBPosSize,1.0 );
+	if( DebugViewOn ) _TRACE("# "+Now(2)+", PS: "+IBPosSizeStr+", "+DBVString );
+	}
+
+function ReconnectIBc() // CAUTION: this call clears all OrderIDs from the IBc!
+	{
+	global ibc;
+	ibc.ReConnect();
+	Trace("ReConnect IBc");
+	}
+
+function CancelAllPendingOrders()
+	{
+	global ibc;
+	Trace( "Cancelling All Orders" );
+	StaticVarSetText("OrderID","");
+	return ibc.CancelAllPendingOrders();
+	}
+
+function CloseAllOpenPositions()
+	{
+	global ibc;
+	CancelAllPendingOrders();
+	ibc.Sleep(300);
+	St = ibc.CloseAllOpenPositions();
+	Trace( "Closing All Positions");
+	StaticVarSetText("OrderID","");
+	return St;
+	}
+
+function ModifyOrder( OrderID, Symbol, Action, Qty, Type, LMT, STP, TIF, Tx)
+	{
+	global ibc;
+	if( DebugViewOn ) _TRACE("# Modifying OrderID: "+ORderID ); // Conditional Trace
+	TRACE("ModifyOrder: "+ORderID+
+		","+Action+
+		","+NumToStr(Qty,1.0,False)+
+		","+Type+
+		","+NumToStr(LMT,1.2)+
+		","+NumToStr(STP,1.2)+
+		","+TIF+
+		","+NumToStr(Tx,1.0));
+	OrderID = ibc.ModifyOrder( OrderID,Symbol,Action, Qty,Type, LMT, STP, TIF, Tx);
+	StaticVarSetText("OrderID",OrderID);
+
+	return ORderID;
+	}
+
+function IsOrderPending( ORderID )
+	{
+	global ibc;
+	IsPending = ibc.IsOrderPending( ORderID );
+	TRACE("Pending Status for OrderID: " + ORderID + " is"+NumToStr(IsPending,1.0));
+	return IsPending;
+	}
+
+function Transmit( ORderID )
+	{
+	global ibc;
+	Tx = ibc.Transmit( ORderID );
+	TRACE("OrderTransmitted: "+ ORderID );
+	return Tx;
+	}
+
+global ibc;
+// Header
+ibc 			= GetTradingInterface("IB");
+OrderID 		= StaticVarGetText("OrderID");
+ORderStatus 	= ibc.GetStatus( ORderID, True );
+IBPosSize		= ibc.GetPositionSize( Name());
+OrderID 		= StaticVarGetText("OrderID");
+
+// Readable main code
+if( BuyOrderTrigger )
+	{
+	OrderID = ModifyOrder( OrderID, Name(), "Buy", 100, "MKT", 0, 0, "Day", TransmitTrigger);
+	}
+else if( SellOrderTrigger )
+	{
+	OrderID = ModifyOrder( OrderID, Name(), "Sell", 100, "MKT", 0, 0, "Day", TransmitTrigger);
+	}
+else if( CancelOrderTrigger )
+	{
+	CancelAllPendingOrders();
+	}
+else if( ClosePositionTrigger )
+	{
+	CloseAllOpenPositions();
+	}
+else if( TransmitTrigger )
+	{
+	if( IsOrderPending( ORderID ) ) Transmit( ORderID );
+	}
+else if( ResetIBc )
+	{
+	ReConnectIBc();
+	}
+
+// Only log TWSErrors if the change
+LastTWSMsg = ibc.getLastError( 0 );
+PrevTWSMsg = StaticVarGetText("LastTWSErrorMsg");
+StaticVarSetText("LastTWSErrorMsg", LastTWSMsg);
+if( LastTWSMsg != PrevTWSMsg ) TRACE(LastTWSMsg);
+
+// Display Status in Title
+Title = "\n"+"Filename: "+Filename+"\n"+
+"Last TWS Error Msg: "+LastTWSMsg+"\n"+
+"OrderID "+OrderID+", Status: "+ORderStatus+"\n"+
+"Current PosSize: "+NumToStr( IBPosSize,1.0,False);

@@ -1,0 +1,16 @@
+//AFL by Kamalesh Langote. Email:kpl@vfmdirect.com
+no=Param( "Swing", 2, 1, 55 );
+tsl_col=ParamColor( "Color", colorCycle );
+
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+tsl=IIf(avn==1,sup,res);
+
+Plot(tsl, _DEFAULT_NAME(), tsl_col, styleStaircase);
+
+Buy=Cross(C,tsl);
+Sell=Cross(tsl,C);
+shape=Buy*shapeUpArrow + Sell*shapeDownArrow;
+PlotShapes(shape,IIf(Buy,tsl_col,tsl_col),0,IIf(Buy,Low,High));

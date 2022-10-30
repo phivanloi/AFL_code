@@ -1,0 +1,6 @@
+updown7 = 0.5*(High+Low) - E_TSKPSTOPLINE(High,Low,Close);
+PlotShapes( 
+IIf( updown7 >0, shapeSmallCircle, IIf(updown7 <0,shapeSmallCircle+shapePositionAbove,shapeNone)), 
+IIf(updown7 >0,colorBlue,colorRed),
+0,
+IIf( updown7 >0, Low, High ) ); 

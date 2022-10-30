@@ -1,0 +1,48 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle+styleNoDraw | ParamStyle("Style") | GetPriceStyle() ); 
+/*************************************************************************************************
+Display a White price bar when Fast2 Transitions; as well as displaying ScoreCardColors
+
+*************************************************************************************************/
+_SECTION_END();
+
+_SECTION_BEGIN("TSKPScoreCardColors");
+Ctmpl = E_TSKPCOLORTMPL(Open,High,Low,Close,Volume);
+total = 0;
+total = total  + IIf(tskp_colortmplcnd0 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd1 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd2 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd3 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd4 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd5 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd6 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd7 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd8 > 0, 1, -1); 
+//tskp_fast2val1, tskp_fast2val2
+dummy = E_TSKPFAST2(Open,High,Low,Close,Volume);
+KPFast2Val = IIf ((tskp_fast2val1 > 0),1,-1); 
+PrevFast2Val = Ref(KPFast2Val,-1);
+
+for( i = 1; i < BarCount; i++ ) 
+{
+
+	if( total[i] >= 5 )
+		Color[i] = colorBlue;
+	else if(  total[i] <= -5 )
+		Color[i] = colorRed;
+	else
+		Color[i] = colorYellow;
+
+	if(KPFast2Val[i] != PrevFast2Val[i])
+      Color[i] = colorWhite;
+
+} 
+
+CO = Open;
+CH = High;
+CL = Low;
+CC = Close;
+PlotOHLC( CO,CH,CL,CC, "Price", color, styleCandle );//Plot Selected Ticker
+_SECTION_END();

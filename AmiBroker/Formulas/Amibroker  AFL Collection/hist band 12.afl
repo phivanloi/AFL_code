@@ -1,0 +1,35 @@
+_SECTION_BEGIN("MACD");
+r1 = Param( "Fast avg", 11, 3, 20, 1 );
+r2 = Param( "Slow avg", 35, 10, 35, 1 );
+r3 = Param( "Signal avg", 6, 3, 20, 1 ); 
+ml = MACD(r1, r2);
+sl = Signal(r1,r2,r3);
+Hst = ml-sl;
+
+//Plot( ml = MACD(3, 11), StrFormat(_SECTION_NAME()+"(%g,%g)", r1, r2), ParamColor("MACD color", colorRed ), ParamStyle("MACD style") );
+//Plot( sl = Signal(3,11,16), "Signal" + _PARAM_VALUES(), ParamColor("Signal color", colorBlue ), ParamStyle("Signal style") );
+bbtop = BBandTop( Hst, 10, 1 );
+bbbot = BBandBot( Hst, 10,1 );
+Plot( BBandTop( Hst, 9, 1 ), "BBTop", colorYellow, styleDashed ); 
+Plot( BBandBot( Hst, 9,1 ), "BBBot", colorYellow, styleDashed ); 
+
+Color = IIf (Hst > BBtop,colorBlue,IIf(hst < bbbot,colorRed, IIf (Hst > 0,colorBlue,colorRed)));
+Plot( Hst, "MACD Histogram",  color , styleThick  );
+/*
+Buy = Cross (Hst,bbtop);
+Sell = Cross (bbtop,Hst);
+Short = Cross (bbbot,Hst);
+Cover = Cross (Hst,bbbot);
+*/
+Buy = Color == colorBlue;
+Short = color== colorRed;
+Sell = Short;
+Cover = Buy ;
+
+//PlotShapes (Buy*shapeUpArrow,colorYellow);
+//PlotShapes (Short*shapeDownArrow,colorYellow);
+//PlotShapes (Sell*shapeHollowCircle,colorRed);
+//PlotShapes (Cover*shapeHollowCircle,colorGreen);
+
+Plot(6, "ribbon", Color, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+_SECTION_END();

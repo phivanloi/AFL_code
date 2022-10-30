@@ -1,0 +1,93 @@
+SetOption("EveryBarNullCheck", True);
+ SetChartOptions(0,chartShowArrows|chartShowDates | chartWrapTitle | chartLogarithmic);
+
+ _SECTION_BEGIN("Trading System");
+
+ Periods = Param("Fast Avg", 15, 2, 300, 1, 10 );
+ Plot( EMA( Close, Periods ), "Fast Avg", ParamColor( "Color-Fast", colorRed ), ParamStyle("Style") ); 
+
+ Periods = Param("Stop Avg", 21, 2, 300, 1, 10 );
+ Plot( EMA( Close, Periods ), "Stop Avg", ParamColor( "Color-Stop", colorBlue ), ParamStyle("Style") ); 
+
+ Periods = Param("Slow Avg", 52, 2, 300, 1, 10 );
+ Plot( EMA( Close, Periods ), "Slow Avg", ParamColor( "Color-Slow", colorGreen ), ParamStyle("Style") ); 
+
+ fa=15; //17;
+ sa=52; //49; //59;
+ st=21; //35;
+ InitStop = 20; //11; 
+ TRStop = 40;// 84; 
+
+
+ //FA = Optimize("FastAvg",15,10,33,1);
+ //SA = Optimize("SlowAvg",44,15,75,1);
+ //ST = Optimize("StopAvg",21,3,39,1);
+ //TRStop = Optimize("TrailingStop", 60,40, 100,1);
+ //InitStop = Optimize("Initial Stop", 10,1,40,1);
+
+
+ ApplyStop(stopTypeTrailing, stopModePoint, TRStop, 0, False, 0);
+ ApplyStop(stopTypeLoss, stopModePoint, InitStop, 0, False, 0);
+
+
+ FastAvg = EMA(Close, FA);
+ SlowAvg = EMA(Close, SA);
+ StopAvg = EMA(Close, ST);
+
+ UpTrend = Cross(FastAvg, SlowAvg);
+ StopUpTrend = Cross( Max(SlowAvg, StopAvg), FastAvg);
+ downTrend = Cross(SlowAvg, FastAvg);
+ StopDownTrend = Cross(FastAvg, Max(SlowAvg, StopAvg));
+
+ Buy = UpTrend;
+ Sell = StopUpTrend;
+ Short = downTrend;
+ Cover = StopDownTrend;
+ Buy=ExRem(Buy,Sell);
+ Sell=ExRem(Sell,Buy);
+ Short=ExRem(Short,Cover);
+ Cover=ExRem(Cover,Short);
+ PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorBlack, 0,Low,-15); 
+ PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorBlack, 0,High,-15); 
+ PlotShapes(IIf(Cover, shapeUpArrow, shapeNone),colorBlack, 0,Low,-25); 
+ PlotShapes(IIf(Short, shapeDownArrow, shapeNone),colorBlack, 0,High,-25); 
+
+ dist = 1.5*ATR(10);
+
+ for( i = 0; i < BarCount; i++ )
+ {
+ if( Buy[i] ) PlotText( "Buy\n@" + C[ i ], i, L[ i ]-dist[i], colorBlack ); 
+ if( Sell[i] ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorBlack ); 
+ if( Cover[i] ) PlotText( "Cover\n@" + C[ i ], i, H[ i ]+dist[i], colorBlack ); 
+ if( Short[i] ) PlotText( "Short\n@" + C[ i ], i, H[ i ]+dist[i], colorBlack );} 
+
+
+ t1= Flip(Buy,Sell);
+ t2= Flip(Short,Cover);
+ BPrice=ValueWhen(t1 AND Ref(t1,-1)==0,C,1);
+ SPrice=ValueWhen(t2 AND Ref(t2,-1)==0,C,1);
+
+ Buyplus=(Bprice+20);
+ Buyminus=(Bprice-20);
+ Plot(Buyplus,"R1",colorGreen,styleLine|styleDashed |styleNoTitle);
+ Plot(Buyminus,"R2",colorGreen,styleLine|styleDashed|styleNoTitle);
+
+ Sellplus=(Sprice-20);
+ Sellminus=(Sprice+20);
+ Plot(Sellplus,"R3",colorRed,styleLine|styleDashed| styleNoTitle);
+ Plot(Sellminus,"R4",colorRed,styleLine|styleDashed |styleNoTitle);
+
+
+
+ //Settings for Backtesting to keep lot size fixed // Need help here
+ SetOption("MaxOpenPositions",1);
+ RoundLotSize = 50;
+ SetOption("MinShares",RoundLotSize);
+ PositionSize = C*50*2;
+ //End of Backtesting Se
+
+_SECTION_BEGIN("Price1");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

@@ -1,0 +1,91 @@
+/*AROON*/
+/////////////////AROON////////////////////
+Period = 14;
+LLVBarsSince = LLVBars(L, Period) + 1;
+HHVBarsSince = HHVBars(H, Period) + 1;
+
+AroonDn = 100 * (Period - LLVBarsSince) / (Period - 1);
+AroonUp = 100 * (Period - HHVBarsSince) / (Period - 1);
+
+
+/* SubScore1 - Price vs. Medium MA */
+SubScore1 = IIf (Close > MA(Close, 14), 1, -1);
+SubScore1_Status = WriteIf(SubScore1 > 0,"Bullish","Bearish");
+SubScore1_Col = IIf(SubScore1 > 0, colorGreen, colorRed);
+
+/* SubScore2 - Price vs. Long MA */
+SubScore2 = IIf (Close > MA(Close, 45), 1, -1);
+SubScore2_Status = WriteIf(SubScore2 > 0,"Bullish","Bearish");
+SubScore2_Col = IIf(SubScore2 > 0, colorGreen, colorRed);
+
+/* SubScore3 - Medium MA vs Long MA */
+SubScore3 = IIf (MA(Close, 14) > MA(Close, 45), 1, -1);
+SubScore3_Status = WriteIf(SubScore3 > 0,"Bullish","Bearish");
+SubScore3_Col = IIf(SubScore3 > 0, colorGreen, colorRed);
+
+/* SubScore4 - RSI Overbought or Oversold */
+SubScore4 = IIf (RSIa(Close,14) < 30, 1, 0);
+SubScore4a = IIf (RSIa(Close,14) > 70, -1, 0);
+
+r=RSI(14) < 70 AND Ref (RSI(14),-1) > 70 AND Ref (RSI(14),-2) > 70;
+r2= RSI(14) > 70 AND Ref (RSI(14),-1) < 70 AND Ref (RSI(14),-2) < 70;
+r_status= WriteIf(r, "Declining", WriteIf(r2, "Improving", "Neutral"));
+r_Col=IIf(r, colorGreen, IIf(r2, colorRed, colorLightGrey));
+
+//Bollinger Bands
+bb= C > BBandTop( C, 20, 2) AND Ref (C,-1) < Ref(BBandTop( C, 20, 2),-1);
+bb1= C < BBandBot( C, 20, 2) AND Ref (C,-1) > Ref(BBandBot( C, 20, 2),-1);
+bb_status= WriteIf(BB, "AboveTop", WriteIf(r2, "BelowBottom", "Neutral"));
+bb_Col=IIf(r, colorGreen, IIf(r2, colorRed, colorLightGrey));
+
+
+/* SubScore6 - MACD crosses above 0 */
+SubScore6 = IIf (MACD(12, 26) > 0, 1, -1);
+SubScore6_Status = WriteIf(SubScore6 > 0,"Bullish","Bearish");
+SubScore6_Col = IIf(SubScore6 > 0, colorGreen, colorRed);
+
+/* SubScore7 - MACD crosses above Signal */
+SubScore7 = IIf (Cross ( MACD( 12, 26), Signal( 12, 26, 9 )) OR MACD(12,26) > Signal(12,26,9), 1, -1);
+SubScore7_Status = WriteIf(SubScore7 > 0,"Bullish","Bearish");
+SubScore7_Col = IIf(SubScore7 > 0, colorGreen, colorRed);
+
+/* SubScore8 - AROON Score */
+SubScore8 = IIf (AroonUp > 70 AND AroonDn < 30, 1, -1 );
+SubScore8_Status = WriteIf(SubScore8 > 0,"Bullish","Bearish");
+SubScore8_Col = IIf(SubScore8 > 0, colorGreen, colorRed);
+
+/* SubScore9 - MFI Overbought or Oversold */
+SubScore9 = IIf (MFI(7) < 20, 1, 0);
+SubScore9a = IIf (MFI(7) > 80, -1, 0);
+m = MFI(7) < 20;
+m2 = MFI(7) > 80;
+MFI_status = WriteIf(m, "Oversold", WriteIf(m2, "Overbought", "Neutral"));
+MFI_col = IIf(m, colorGreen, IIf(m2, colorRed, colorLightGrey));
+
+/* SubScore10 - Stochastic */
+Subscore10 = IIf (StochK(14,3) > StochD(14,3,3), 1, -1);
+SubScore10_Status = WriteIf(SubScore10 > 0,"Bullish","Bearish");
+SubScore10_Col = IIf(SubScore10 > 0, colorGreen, colorRed);
+
+
+/* TOTAL SCORE */
+Score = SubScore1 + SubScore2 + SubScore3 + SubScore4 + SubScore4a + SubScore6 + SubScore7 + SubScore8 + SubScore9 + SubScore9a + SubScore10;
+Score_Col=IIf(Score > 0, bkcolor = colorGreen, bkcolor = colorRed);
+
+/* RESULTS */
+Filter = MA(Volume,21) > 40000;
+AddColumn( Close, "Close " );
+AddColumn( Volume, "Volume " );
+AddTextColumn(bb_status, "BBand", 1, colorWhite, bb_Col);
+AddTextColumn(SubScore1_status, "Med MA",1, colorWhite, SubScore1_Col);
+AddTextColumn(SubScore2_status, "Long MA",1, colorWhite, SubScore2_Col);
+AddTextColumn(SubScore3_status, "Med MA vs. Long MA",1, colorWhite, SubScore3_Col);
+AddTextColumn(SubScore6_status, "MACD ",1, colorWhite, SubScore6_Col);
+AddTextColumn(Subscore7_status, "MACD/Signal ",1, colorWhite, SubScore7_Col);
+AddTextColumn(SubScore8_status, "AROON",1, colorWhite, SubScore8_Col);
+AddTextColumn(SubScore10_status, "Stochastic",1, colorWhite, SubScore10_Col);
+AddTextColumn(r_status,"RSI-14",1, colorWhite, r_Col);
+AddTextColumn(MFI_status, "MFI", 1, colorWhite, MFI_Col);
+AddColumn(Score, "Score ",1.0, colorWhite, Score_Col);
+
+

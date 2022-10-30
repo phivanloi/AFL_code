@@ -1,0 +1,67 @@
+
+_SECTION_BEGIN("SIMPLE_D-CAMS_Cloud");
+//---- pivot points 
+
+
+
+
+
+DayH = TimeFrameGetPrice("H", inDaily, -1);// yesterdays high 
+DayL = TimeFrameGetPrice("L", inDaily, -1);//low 
+DayC = TimeFrameGetPrice("C", inDaily, -1);//close 
+DayO = TimeFrameGetPrice("O", inDaily);// current day open 
+HiDay = TimeFrameGetPrice("H", inDaily); 
+LoDay = TimeFrameGetPrice("L", inDaily);
+
+
+
+
+
+
+
+
+TimeFrameSet( inDaily );
+
+
+R6 = (DayH / DayL) * DayC * 1.002;
+R5 = (DayH / DayL) * DayC;
+R4 = (((DayH / DayL) + 0.83) / 1.83) * DayC;
+R3 = ( ( (DayH / DayL) + 2.66) / 3.66) * DayC;
+R2 = ( ( (DayH / DayL) + 4.5) / 5.5) * DayC;
+R1 = ( ( (DayH / DayL) + 10) / 11) * DayC;
+ 
+S1 = (2- ( ( (DayH / DayL) + 10) / 11)) * DayC;
+S2 = (2-( (DayH / DayL) + 4.5) / 5.5) * DayC;
+S3 = (2-(( DayH / DayL) + 2.66) / 3.66) * DayC;
+S4 = (2-( (DayH / DayL) + 0.83) / 1.83) * DayC;
+S5 = (2-( DayH / DayL)) * DayC;
+S6 = (2-( DayH / DayL)) * DayC * 0.998;
+
+
+ASPR = MA( ( ( ( DayH - DayL ) * 0.5 ) + DayC ) , 1 );
+ASPS = MA( ( ( DayC - ( DayH - DayL ) * 0.5 ) ) , 1 );
+style = styleDots + styleThick ; 
+ASPRColor = colorBlack ;
+
+Plot(ASPR, "ASPR", colorBlack, style); 
+Plot(ASPS, "ASPS", colorBlack, style);
+
+Plot(R1, "R1",colorBlack,style|styleNoLabel); 
+Plot(S1, "S1",colorBlack,style|styleNoLabel); 
+
+Shadowcolor = ParamColor("Shadow",ColorRGB(40,30,80));
+Shadowcolor1 = ParamColor("Shadow1",ColorRGB(20,30,80));
+Shadowcolor2 = ParamColor("Shadow2",ColorRGB(30,40,30));
+
+style = styleDots | styleThick + styleNoRescale ; 
+rcolor = colorCustom13;
+scolor = colorGreen;
+Plot(R5, "R5",Shadowcolor,style); 
+Plot(S5, "S5",Shadowcolor2,style);
+
+
+PlotOHLC( 0, R4 , R3 , R3 , "Cloud3", IIf(R4 > R3 ,Shadowcolor,colorBlack), styleCloud | styleNoLabel);
+PlotOHLC( 0, R2 , S2 , S2 , "Cloud4", IIf(R2 > S2 ,Shadowcolor1,colorBlack), styleCloud | styleNoLabel);
+PlotOHLC( 0, s3 , s4 , s4 , "Cloud5", IIf(S3 > S4 ,Shadowcolor2,colorBlack), styleCloud | styleNoLabel);
+
+_SECTION_END();

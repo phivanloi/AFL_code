@@ -1,0 +1,12 @@
+_SECTION_BEGIN("Trandline Crack");
+Buy = Cross(C, Study("RE",1149));
+Sell = Cross(Study("SU",1149),C);
+
+Short = Cross(Study("RE",1149), C);
+Cover = Cross(C,Study("SU",1149));
+
+AlertIf(Buy, "SOUND C:\\Windows\\Media\\chimes.wav", "Buy",1,1,100 );
+AlertIf(Sell, "SOUND C:\\Windows\\Media\\ding.wav", "Sell",2,1,100);
+AlertIf(Short, "SOUND C:\\Windows\\Media\\chimes.wav", "Short",3,1,100);
+AlertIf(Cover, "SOUND C:\\Windows\\Media\\ding.wav", "Cover",4,100);
+_SECTION_END();

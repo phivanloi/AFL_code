@@ -1,0 +1,25 @@
+//Set the amount of open positions
+PosQty = Param ( "PosQty", 5, 1, 10, 1); // You can define here how many open positions you want
+SetOption("MaxOpenPositions", PosQty );
+
+//Divide your total amount of equity across your number of positions.
+PositionSize = -100/PosQty; // invest 100% of portfolio equity divided by max. position count
+
+//Buy on the first day of the year
+Buy = IIf(DayOfYear() < Ref(DayOfYear(), -1), 1, 0);
+
+//Sell On the Last Day Of the Year (this is only used for backtesting since you will always close your positions
+// on the last day of the year.
+Sell = IIf(DayOfYear() > Ref(DayOfYear(), 1), 1, 0);
+
+//Determine which of the 30 dow stocks you are going to buy or sell based upon 
+//the ones that have went down the most over the past Year
+YearRoc = ROC(Close, 252);
+// The position score allows you to pick the one that has decreased by the most.  By taking the negative of that 
+// you get the one that you want to buy.   You could use PositionScore = YearRoc; if you were  
+// looking to Short stocks
+PositionScore = -YearRoc;
+
+// This just lets you explore at the end of the year which stocks you would want to buy.
+AddColumn(YearRoc, "YearRoc");
+Filter = Status("lastbarinrange");

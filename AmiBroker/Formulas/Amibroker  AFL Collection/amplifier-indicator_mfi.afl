@@ -1,0 +1,16 @@
+HaClose =EMA((O+H+L+C)/4,3);
+
+HaOpen = AMA( Ref( HaClose, -1 ), 0.5 );
+
+HaHigh = Max( H, Max( HaClose, HaOpen ) );
+
+HaLow = Min( L, Min( HaClose, HaOpen ) );
+
+Periods=Param( "Periods",14, 2, 222, 1);
+
+tp=(HaClose +HaHigh +HaLow )/3*(1+(HaClose -HaOpen )/HaOpen)*(1+(HaClose -Ref( HaClose, -1 ))/Ref( HaClose, -1) )*(1+(HaOpen -Ref( HaOpen, -1 ))/Ref( HaOpen, -1) )*(1+(Close -Ref( Close, -1 ))/Ref( Close, -1) )*(1+(Open -Ref( Open, -1 ))/Ref( Open, -1) )*(1+(Close -Open)/Open );
+
+newMFI=100 -(100 /(1 + Sum(IIf(Tp>Ref(Tp,-1),V*Tp,0),Periods) /
+Sum(IIf(Tp<Ref(Tp,-1),V * Tp,0),Periods) ) );
+
+Plot(newMFI, _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") );

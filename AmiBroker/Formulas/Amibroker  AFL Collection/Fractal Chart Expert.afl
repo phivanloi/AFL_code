@@ -1,0 +1,86 @@
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );
+
+
+//RIBBON - Streaker.
+
+fim = (H-L)/V;
+slick = IIf((V>Ref(V,-1) AND fim < Ref(fim,-1)),2,0);
+rake = IIf(V < Ref(V,-1) AND fim > Ref(fim,-1),-2,0);
+fall = IIf(fim < Ref(fim,-1) AND V < Ref(V,-1), -1,0);
+green = IIf(V > Ref(V,-1) AND fim > Ref(fim,-1), 1,0);
+prft = slick + rake + fall + green;
+downthumb = IIf(L<ValueWhen(LLV(L,7),L,2) AND ValueWhen(LLV(L,7),L,2)<ValueWhen(LLV(L,7),L,3) AND H<ValueWhen(LLV(L,7),H,2) AND ValueWhen(LLV(L,7),H,2)<ValueWhen(LLV(L,7),H,3),-1,0);
+ttflng = IIf(downthumb == -1 AND prft == 1 OR 2 AND ((ValueWhen(LLV(L,7), prft,2)== 1 OR 2) OR (ValueWhen(LLV(L,7), prft,3)==1 OR 2)) AND H > ValueWhen(HHV(H,7),H,3),1,0);
+
+ttfut = IIf(H>ValueWhen(HHV(H,7),H,2) AND ValueWhen(HHV(H,7),H,2)>ValueWhen(HHV(H,7),H,3) AND L>ValueWhen(HHV(H,7),L,2) AND ValueWhen(HHV(H,7),L,2)>ValueWhen(HHV(H,7),L,3),1,0);
+fim = (H-L)/V;
+slick = IIf((V>Ref(V,-1) AND fim < Ref(fim,-1)),2,0);
+rake = IIf(V < Ref(V,-1) AND fim > Ref(fim,-1),-2,0);
+fall = IIf(fim < Ref(fim,-1) AND V < Ref(V,-1), -1,0);
+green = IIf(V > Ref(V,-1) AND fim > Ref(fim,-1), 1,0);
+prft = slick + rake + fall + green;
+Shrt = IIf(ttfut == 1 AND prft == 1 OR 2 AND ((ValueWhen(HHV(H,7), prft,2)==1 OR 2) OR (ValueWhen(HHV(H,7),prft,3) == 1 OR 2)) AND L < ValueWhen(LLV(L,7),L,3),-1,0);
+
+thu = ttflng + Shrt;
+
+ttf6 = IIf(Ref(L,-2)==LLV(L,5),-1,0);
+ttf8 = IIf(LLVBars(L,5)<2 AND Ref(L,-2)==LLV(L,5),1,0);
+ttf10 = Ttf6 + TtF8;
+
+ttf5 = IIf(Ref(H,-2)==HHV(H,5),1,0);
+ttf7 = IIf(HHVBars(H,5)<2 AND Ref(H,-2)==HHV(H,5),-1,0);
+ttf9 = ttf5 + ttf7;
+
+arrow = ttf9+ttf10;
+hfk = HighestSinceBars(arrow==1,High,1);
+lfk = LowestSinceBars(arrow==-1,Low,2);
+lf = LowestSinceBars(arrow==-1,Low,1);
+hf = HighestSinceBars(arrow==1,High,2);
+ls = IIf(arrow == -1 AND hfk < lfk,-1,0);
+Hs = IIf(arrow == 1 AND lf < hf,1,0);
+
+Lows = IIf(L < ValueWhen(ls = -1,Ref(L,-2),1) AND H < ValueWhen(hs == 1,Ref(H,-2),1), -1,0);
+hb = IIf(H > ValueWhen(hs == 1,Ref(H,-2),1) AND L > ValueWhen(ls == -1,Ref(L,-2),1),1,0);
+
+FSB = Lows + Hb;
+
+strk = thu+ fsb;
+
+Plot( 1, "",IIf(strk > 0, colorDarkGreen, IIf(strk < 0, colorDarkRed,0)) , styleOwnScale|styleArea|styleNoLabel, -0.1, 50 );
+
+//HightLights
+//TFF Tide
+tide = IIf((MA(Close,5)>MA(Close,13) AND MA(Close,5)>MA(Close,34)),1,0);
+blTWR = tide == 1;
+//TFF Surf
+surf = IIf((MA(Close,5)>MA(Close,13) AND MA(Close,5)< MA(Close,34)) OR ((MA(Close,5)<MA(Close,13) AND MA(Close,5)>MA(Close,34))),-1,0);
+nTWR = Surf == - 1;
+//TFF Ripple
+ripple = IIf((MA(Close,5)< MA(Close,13) AND MA(Close,5)<MA(Close,34)),-1,0);
+BrTWR = ripple = -1;
+
+bcolor = IIf(bltwr, colorLime, IIf(ntwr, colorLightBlue, IIf(brtwr, colorRed,0)));
+
+_N( Title = StrFormat( "{{NAME}} - " + SectorID( 1 ) + " - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", bColor, styleBar  | styleNoTitle );
+
+
+//MACD CURRENT BULL
+ttfosc = MA(C, 5) - MA(C, 34);
+fivebar = MA(ttfosc, 5);
+PriceUp = ROC( C, 1 ) > 0 ; 
+ind = ROC( ttfosc, 1 ) > 0; 
+BullishDiv = NOT PriceUP AND ind;
+BearishDiv = PriceUP AND NOT ind;
+xfac = IIf(BullishDiv OR BearishDiv >=0.75,1,0);
+eot = IIf(xfac == 1 AND ttfosc > 0, 1, 0);
+bs = IIf(ttfosc > fivebar AND eot < 1, 1,-1);
+MACDcb = bs == 1;
+MACDbr = bs == -1;
+
+PlotShapes( IIf(MACDcb , shapeSmallCircle,0) , colorLime,0,L,-10);
+PlotShapes( IIf(MACDbr , shapeSmallCircle,0) , colorOrange,0,H,10);
+
+//Alerts
+
+AlertIf(strk > 0 AND bs==1,"SOUND C:\\Windows\\Media\\Ding.wav", "Audio alert", 2 );

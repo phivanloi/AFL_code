@@ -1,0 +1,30 @@
+_SECTION_BEGIN("10 Day High Low System");
+pds = Optimize("pds" ,10,2,25, 1); 
+ 
+ CB = LLV(C,pds); 
+ CS = HHV(C,pds); 
+ mav = TEMA(C,50); 
+
+ Plot(Ref(CB, -1),"Long setup",colorBrightGreen); 
+ Plot(Ref(CS, -1),"Short setup",colorRed) ; 
+ Plot(Ref(mav, -1),"MA", colorBlue, styleThick) ; 
+ Plot(EMA(C,22),"",colorBlack,styleThick);
+ 
+ Buy= C < Ref(CB,-1); 
+ Buy = Ref(Buy,-1); 
+ BuyPrice = O; 
+ 
+ Sell = C > Ref(CS,-1); 
+ Sell = Ref(Sell,-1) ; 
+ SellPrice = O; 
+ 
+ Buy = ExRem(Buy,Sell) ; 
+ Sell = ExRem(Sell,Buy) ; 
+ 
+ SetChartOptions( 0, chartShowDates) ; 
+ GraphXSpace = 5; 
+ Plot(C,"Close",IIf(C>=O,colorBrightGreen,colorRed), 64); 
+ 
+ PlotShapes(IIf( Buy,shapeUpArrow, 0),colorGreen, layer = 0,yposition = BuyPrice, offset = 0 ); 
+ PlotShapes(IIf( Sell,shapeDownArrow,0),colorRed, layer = 0,yposition = SellPrice,offset = 0 ); 
+_SECTION_END();

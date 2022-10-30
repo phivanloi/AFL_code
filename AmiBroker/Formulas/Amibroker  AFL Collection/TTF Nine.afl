@@ -1,0 +1,6 @@
+ttf5 = IIf(Ref(H,-2)==HHV(H,5),1,0);
+ttf7 = IIf(HHVBars(H,5)<2 AND Ref(H,-2)==HHV(H,5),-1,0);
+ttf9 = ttf5 + ttf7;
+Plot(ttf9, "", 4);
+
+

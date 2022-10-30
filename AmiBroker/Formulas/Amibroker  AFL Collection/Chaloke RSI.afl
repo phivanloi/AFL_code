@@ -1,0 +1,19 @@
+ /// Chaloke RSI /// 
+
+X= Param("RSI",14,1,50,1); 
+R=RSI(X); 
+Plot(R,"",colorGrey40); 
+
+Y= Param("Smooth 1",7,1,9,1); 
+Y1= EMA(R,Y); 
+Y2= EMA(Y1,Y); 
+Diff= Y1 - Y2; 
+Y3= Y1 + Diff; 
+Plot(Y3,"Chaloke RSI",colorRed,4); 
+
+Z= Param("Smooth 2",9,1,25,1); 
+Z1= EMA(Y3,Z); 
+Z2= EMA(Z1,Z); 
+Diff= Z1 - Z2; 
+Z3= Z1 + Diff; 
+Plot(Z3,"signal",colorYellow);

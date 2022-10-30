@@ -1,0 +1,65 @@
+/******************************************************************
+ * TD Moving Average I:
+ * Enter long: if "matrend" > 0
+ * Enter short: if "matrend" < 0
+ *
+ * Notes: Moving average turns green whenever an uptrend trend starts.
+ * It turns red whenever a down trend starts.
+ *
+ * Improvements: Stops are not set up to indicate that an exit was hit.
+ *
+ *******************************************************************/
+TDBullishColor = ParamColor( "Bullish Color:", colorGreen );
+TDBearishColor = ParamColor( "Bearish Color:", colorRed );
+TDPlotStyle = ParamStyle("Plot Style", styleLine );
+barlows12 = Ref( HHV( L, 12),-1);
+barhighs12 = Ref( LLV( H, 12),-1);
+mabearish5 = MA( H,5);
+mabullish5 = MA( L,5);
+mabullish = L > barlows12;
+mabearish = H < barhighs12;
+maplotvalue[0] = 0;
+matrend[0] = 0; //no trend
+nDaysCountDown = 0;
+bTrend = 0;
+fLastValue = 0;
+for( x=0; x < BarCount; x++ )
+	{
+	if( mabullish[x] == 1 )
+		{
+		fLastValue = maplotvalue[x] = mabullish5[x];
+		nDaysCountDown = 3;
+		bTrend = 1;
+		matrend[x] = 1;
+		}
+	else if( mabearish[x] == 1 )
+		{
+		fLastValue = maplotvalue[x] = mabearish5[x];
+		nDaysCountDown = 3;
+		bTrend = 0-1;
+		matrend[x] = 0-1;
+		}
+	else
+		{
+		nDaysCountDown = nDaysCountDown - 1;
+		if( nDaysCountDown > 0-1 )
+			{
+			matrend[x] = bTrend; //trend extends to the 3 extra bars
+			if( bTrend == 1 )
+				{
+				fLastValue = maplotvalue[x] = mabullish5[x];
+				}
+			else if( bTrend < 0 )
+				{
+				fLastValue = maplotvalue[x] = mabearish5[x];
+				}
+			}
+		else
+			{
+			maplotvalue[x] = fLastValue;
+			matrend[x] = 0; //no trend
+			}
+		}
+	}
+
+Plot( maplotvalue, "TDMA I", IIf( mabullish > 0, TDBullishColor,	IIf( mabearish > 0, TDBearishColor, colorYellow)),TDPlotStyle);

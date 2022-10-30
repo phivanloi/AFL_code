@@ -1,0 +1,34 @@
+_SECTION_BEGIN("RSI");
+TimeFrameSet(in15Minute);
+a15 = EMA(RSI(5),21);
+bbtop15 = BBandTop(a15,5,0.5);
+bbbot15 = BBandBot(a15,5,0.5);
+Col15 = IIf(a15 > bbtop15,colorBrightGreen,IIf(a15 < bbbot15,colorRed,colorDarkGrey));
+TimeFrameRestore();
+
+SetChartBkColor( colorBlack ) ;
+A1=EMA(RSI(5),21); 
+BBtop=BBandTop(A1,5,.5); 
+BBbot=BBandBot(A1,5,.5);
+Color=IIf(a1>Ref(a1,-1), colorGreen,colorRed);
+Plot(a1,"RSI",color,styleLine);
+Plot(BBtop,"BBtop",colorBrightGreen,styleDashed+styleNoLabel);
+Plot(BBbot,"BBbot",colorCustom12,styleDashed+styleNoLabel);
+Plot(50,"",Col15,styleThick);
+Plot(70,"",Col15,styleThick);
+Plot(30,"",Col15,styleThick);
+
+Buy = a1 > bbtop;
+Sell = a1 < bbbot;
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+PlotShapes(Buy*shapeHollowSmallUpTriangle,colorYellow);
+PlotShapes(Sell*shapeHollowSmallDownTriangle,colorYellow);
+Title = 
+WriteIf(H > Ref(H,-1),EncodeColor(colorGreen),EncodeColor(colorRed))+"ex " + Ref(H,-1)+" Hi = " +H+
+WriteIf(C > O,EncodeColor(colorBrightGreen),EncodeColor(colorRed))+"\nOp "+O+  "Cl = "+C+
+WriteIf(L < Ref(L ,-1), EncodeColor(colorRed),EncodeColor(colorGreen))+"\nex "+Ref(L,-1)+"Lo = "+L
+;
+Plot( EMA( a1, 9 ), "", colorWhite, styleThick ); 
+_SECTION_END();

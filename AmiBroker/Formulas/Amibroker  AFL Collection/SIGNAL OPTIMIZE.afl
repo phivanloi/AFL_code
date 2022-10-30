@@ -1,0 +1,64 @@
+/*						SIGNAL OPTIMIZE.afl, Bill Barnard, 11-27-05			
+	Insert an #include file or complete Buy and Sell rules in the area marked below.
+	This formula is setup to use the #include files which are a part of SIGNAL STUDY.afl.
+*/
+
+#include <Util1x.afl>
+
+//	Initialize variables
+LBuyC = LSellC = Buy = Sell = SellCond = Close - Close;
+ind1 = ind2 = ind3 = ind4 = ind5 = ind6 = ind7 = ind8 = Null;
+Name1 = Name2 = Name3 = Name4 = Name5 = Name6 = Name7 = Name8 = "";
+Param1 = Param2 = Param3 = Param4 = Param5 = Param6 = Param7 = Param8 = Null;
+
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+//XXXXXXXXXXXXXXXXXXXXXXXXX     start Buy/Sell rules      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+fast	= Optimize("fast", 5, 1, 10, 1);
+slow	= Optimize("slow", 50, 5, 55, 5);
+
+Buy 	= Cross(EMA(Close, fast), EMA(Close, slow) );
+Sell 	= Cross(EMA(Close, slow), EMA(Close, fast) );
+
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+//XXXXXXXXXXXXXXXXXXXXXXXXX      end Buy/Sell rules       XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+
+BuySig	= Buy;
+SellSig	= Sell;
+
+Buy		= Flip(Buy, Sell);
+Sell		= NOT Buy;
+
+Short		= Sell;
+Cover		= Buy;
+
+if (Status("action")==4)	// if this code is being used in an Exploration
+{
+	Filter = BuySig OR SellSig;
+	AddTextColumn(Nam, "IndSym");
+	if (NOT IsNull(param1))	AddColumn(param1, "par1", 1.1);
+	if (NOT IsNull(param2))	AddColumn(param2, "par2", 1.1);
+	if (NOT IsNull(param3))	AddColumn(param3, "par3", 1.1);
+	if (NOT IsNull(param4))	AddColumn(param4, "par4", 1.1);
+	if (NOT IsNull(param5))	AddColumn(param5, "par5", 1.1);
+	if (NOT IsNull(param6))	AddColumn(param6, "par6", 1.1);
+	if (NOT IsNull(param7))	AddColumn(param7, "par7", 1.1);
+	if (NOT IsNull(param8))	AddColumn(param8, "par8", 1.1);
+	AddColumn(Buy, "Buy", 1.0);
+	AddColumn(Sell, "Sell", 1.0);
+	if (LastValue(Cum(ind1))!=0)	AddColumn(ind1, "ind1", 1.2);
+	if (LastValue(Cum(ind2))!=0)	AddColumn(ind2, "ind2", 1.2);
+	if (LastValue(Cum(ind3))!=0)	AddColumn(ind3, "ind3", 1.2);
+	if (LastValue(Cum(ind4))!=0)	AddColumn(ind4, "ind4", 1.2);
+	if (LastValue(Cum(ind5))!=0)	AddColumn(ind5, "ind5", 1.2);
+	if (LastValue(Cum(ind6))!=0)	AddColumn(ind6, "ind6", 1.2);
+	if (LastValue(Cum(ind7))!=0)	AddColumn(ind7, "ind7", 1.2);
+	if (LastValue(Cum(ind8))!=0)	AddColumn(ind8, "ind8", 1.2);
+}

@@ -1,0 +1,50 @@
+_SECTION_BEGIN("DPO + MACD + TRIX"); 
+// Written by Barry Scarborough 2/15/05
+// Updated 8/10/05 - corrected DPO formula
+//
+// This Signal was discussed on the VV forum. I am not sure who developed it.
+// It combines the three indicators, MACD, DPO AND Trix into one timing Signal. 
+// A Signal will only occur when all three conditions exist. 
+// The two timing signals are buy/cover and short/sell signal. The purpose is to keep the user in the market all the time.
+
+// macd 
+// Param allows changing parameters without changing the code, the default are the standard defaults for MACD
+r1 = Param( "Macd Fast avg", 12, 2, 200, 1 );
+r2 = Param( "Macd Slow avg", 26, 2, 200, 1 );
+r3 = Param( "Macd Signal avg", 9, 2, 200, 1 ); 
+upMacd = IIf(MACD(r1,r2) > Signal(r1,r2,r3), 1, 0); // up and down signal
+
+// dpo - detrended price oscillator
+n = Param("DPO period", 14, 2, 100, 1);
+p = int( ( n / 2) + 1);
+movA = MA(C, n);
+dpo = C -  Ref(movA, -p); // changed to use C, 8/1-/05
+upDpo = dpo > 0; 
+dnDpo = dpo < 0; 
+
+// TRIX
+periods = Param("TRIX period", 10, 2, 100, 1 ); // default is 10
+sig = Param("TRIX signal", 5, 2, 100, 1);  // default is 5
+pTrix = Trix(periods) ;
+sTrix = Trix(sig);
+upTrix = sTrix > pTrix;
+
+// signal conditions
+myBuy   = upDpo AND upMacd  AND upTrix;
+myShort = dnDpo AND !upMacd AND !upTrix; 
+
+Buy = Cover = ExRem(myBuy, myShort);	// this removes additional signals between the first buy up to the short signal
+Short = Sell = ExRem(myShort, myBuy);
+
+Plot( Buy * C, "DPO(" + NumToStr(n,1.0) + 
+	") MACD(" + NumToStr(r1,1.0) + "," + NumToStr(r2,1.0) + "," + NumToStr(r3,1.0) +  
+	") TRIX(" + NumToStr(periods,1.0) + 
+	") - myBuy ",  colorGreen); // a positive spike that indicates a buy or cover trade.
+Plot( -Short * C , "myShort ", colorRed); // a negative signal that indicates a short or sell signal
+
+// explore varables
+Filter = Buy OR Short; 
+AddColumn(Close, "Close", 1.2);
+AddColumn(Buy, "Buy/Cover", 1.0);
+AddColumn(Short, "Sell/Short",1.0);
+_SECTION_END();

@@ -1,0 +1,58 @@
+//Volume Bar Chart Version V.1.0 -5-05-2016
+// AFL by Karthik Marar 
+// Details at www.karthikmarar.blogspot.com
+//=========================================================================|
+//                    Volume Bar Chart                                     |
+//=========================================================================|
+
+_SECTION_BEGIN("Volume Bar Chart");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+SetChartOptions(0,chartShowArrows|chartShowDates);
+Title = ("Marar Volume Histogram - " + Name()+"  " + Date() +"  "+Interval(2) +"  "+ EncodeColor(colorLime)+",Open "+Open +" ,High "+H+" ,Low "+L+" ,Close "+C+" "+"{{VALUES}}");
+Vlp=Param("Volume lookback period",150,20,300,10);
+SetChartOptions(0,chartShowArrows|chartShowDates);
+DTL=Param("Linear regression period",60,10,100,10); 
+Vlp=Param("Volume lookback period",30,20,300,10);
+Vrg=MA(V,Vlp);// average volume
+rg=(H-L);
+arg=Wilders(rg,30);
+Vh=V>Ref(V,-1) AND Ref(V,-1)>Ref(V,-2);
+Cloc=C-L;
+x=(H-L)/Cloc;
+x1=IIf(Cloc==0,arg,x);
+Vb=V>Vrg OR V>Ref(V,-1);
+ucls=x1<2;
+dcls=x1>2;
+mcls=x1<2.2 AND x1>1.8 ;
+Vlcls=x1>4;
+Vhcls=x1<1.35;
+j=MA(C,5);
+TLL=LinRegSlope(j,40) ;
+Tlm=LinRegSlope(j,10) ;
+tls=LinRegSlope(j,3);
+upbar=C>Ref(C,-1); 
+dnbar=C<Ref(C,-1); 
+CloseUp =  C>Ref(C,-1);
+Closedn =  C<Ref(C,-1);
+VolUp   =  V>Ref(V,-1);
+VolDn   =  V<Ref(V,-1);
+bb1 = upbar AND CloseUp AND ucls AND L>Ref(L,-1);
+bb2 = upbar AND VolUp;
+bb3 = dnbar AND CloseDn AND VolDn;
+bb4 = dnbar AND CloseDn AND C>Ref(L,-1);
+db1 = dnbar AND CloseDn AND dcls;
+db2 = dnbar AND VolUp  ;
+db3 = upbar AND CloseDn AND VolUp;
+db4 = upbar AND CloseDn AND C<Ref(L,-1) AND dcls;
+db5 = upbar AND CloseUp AND ucls AND L<Ref(L,-1);
+db6 = upbar AND CloseUp AND dcls;
+bb=(bb1 OR bb2 OR bb3 OR bb4);
+db=(db1 OR db2 OR db3 OR db4 OR db5 OR db6);
+Plot(Vrg,"average volume",colorYellow,32|styleThick);
+Plot(WMA(V,150),"Long term average",colorOrange,32|styleThick);
+GraphXSpace = 5;
+GraphXSpace = 5;
+SetBarFillColor( IIf(bb AND tls>0, colorGreen,IIf(db AND tls<0,colorDarkRed,colorWhite)) ); 
+PlotOHLC(0,V,0,V,"price",IIf(bb AND tls>0, colorLime,IIf(db AND tls<0,colorRed,colorGrey50)), styleCandle ) ;
+Plot(Vrg,"average volume",colorYellow,32|styleThick);
+PlotOHLC( Vrg,  Vrg,  0, 0, "", 31,styleCloud ); 

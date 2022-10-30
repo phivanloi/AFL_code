@@ -1,0 +1,173 @@
+_SECTION_BEGIN("smart trail stop");
+SetTradeDelays (0,0,0,0);
+SetOption("InitialEquity", 100000);
+SetOption("AccountMargin", 10);
+SetOption("CommissionMode", 1);
+SetOption("CommissionAmount", 0.10); // .1% commission per entry / exit
+SetOption("MaxOpenPositions", 12);
+SetOption("AllowSameBarExit", True);
+// FIXED FRACTIONAL POSITION SIZING
+CapRisk = Param("CapitalRisk", 2, 1,5,0.5); // capital risk %
+MaxCap = 10; // max capital % in one trade (10% capital = 2% stop)
+StopPct = Param("StopPct", 20, 1,25,1)/100; // stop % - initial risk
+FFRisk = Min(CapRisk/(StopPct*BuyPrice)*BuyPrice/10, MaxCap);
+"FF risk = " +WriteVal(ffrisk, 1.2);
+SetPositionSize(FFRisk * 10, spsPercentOfEquity);
+// POS SCORE - BANG FOR BUCK ($10,000)
+B4B = 10000/Ref(C,-1)*Ref(ATR(200),-1)/100;
+"10k BFB = " +WriteVal(B4B, 1.2);
+PositionScore = B4B;
+
+// INDEX TREND FILTER - 2 x moving averages
+SetForeign("$DJ"); // change to whatever index is of interest
+IFa = Param("IF FMA", 30,0,100,5); IFb = Param("IF SMA", 100,0,300,5);
+IFx = EMA(C,IFa);
+IFy = MA(C,IFb);
+IndexFilter = IFx > IFy;
+
+//PlotForeign("XAO", "All Ords", colorBlack, styleLine);
+//Plot(IndexFilter,"Index Filter", colorBlack, styleLine);
+RestorePriceArrays();
+
+// TREND FILTER - 2 x moving averages
+j = Param("FMA", 30,0,50,5); k = Param("SMA", 100,0,100,5);
+FMA = EMA(C,j); SMA = EMA(C,k); TF = FMA > SMA;
+//Plot(FMA, "FMA", colorBlue, styleLine);
+Plot(SMA, "SMA", colorOrange,styleLine);
+// VOL FILTER - MONEY FLOW > $1 MILLION
+VF = EMA(V*C,21) > 1000000;
+Filter = VF; AddColumn(VF, "volFilter"); AddColumn(EMA(V*C,21), "V*C",
+1.2); // leaves approx 225 from ASX 300
+
+BDC1 = Param("#buydays", 20, 5,50,5);
+BDC2 = Param("#buydays2", 70, 5,100,5);
+Cond1 = H > Ref(HHV(H,BDC1),-1) + 0.01;
+Cond2 = H > Ref(HHV(H,BDC2),-1) + 0.01;
+Buy = Cond1 AND Cond2 AND IndexFilter AND VF AND TF;
+BuyPrice = Max(O, Ref(HHV(H,BDC1),-1) + 0.01);
+
+Sell = 0;
+
+// REDUCE RISK - RAISE STOP X 2, RAISE TO BREAKEVEN, TIGHTEN AFTER 3 DOWN DAYS
+MSD = Param("#DaysB4MoveStop1", 5, 0,50,1) -1; // needs -1 to calculate correctly
+RSP = (100-Param("%raiseStop1By", 50, 0, 100, 5)) / 100;
+MSD2 = Param("#DaysB4MoveStop2", 15, 0,50,1) -1;
+RSP2 = (100-Param("%raiseStop2By", 50, 0, 100, 5)) / 100;
+MSBE = Param("#DaysB4MoveStopBE", 10, 0,50,1) -1;
+TSDM = 1 + Param("%raiseStop3DownDays", 25, 0,100,5) / 100 * StopPct;
+WriteVal(tsdm);
+IS = BuyPrice - (BuyPrice*StopPct);
+NS = Ref(C,-1) - (Ref(C,-1)*StopPct); // initial stop
+NS2 = Ref(C,-1) - (Ref(C,-1)*StopPct*RSP); // reduce risk
+NS3 = Ref(C,-1) - (Ref(C,-1)*StopPct*RSP*RSP2); // reduce risk again
+
+TS = 0; OpenPos = 0; j = 0; BES = Null; TSD = 0; LowDown = 0;
+TSa = Null; Spa = Null; ja = Null; nsa = Null; ns2a = Null;
+bpa = Null; besa = Null; ns3a = Null; TSDa = Null; Checka = Null;
+
+for(i=1; i<BarCount; i++)
+{
+if(Buy[i] AND OpenPos == 0 AND TS[i] == 0) {
+Buy[i] = 1;
+bpa[i] = BuyPrice[i];
+bes[i] = BuyPrice[i] * 1.005; // .5% to cover comissions, etc
+besa[i] = bes[i];
+TS = IS[i];
+OpenPos = 1;
+j = 0;
+TSD = L[i] - TS;
+TSDa[i] = TSD;
+}
+else Buy[i] = 0;
+if(OpenPos == 1 AND TS[i] > 0 AND L[i] <= TS[i]) {
+Sell[i] = 1;
+SellPrice[i] = Min(O[i], TS[i]);
+SPa[i] = SellPrice[i];
+TS = 0;
+OpenPos = 0;
+j = 0;
+BES[i] = 0;
+TSD = 0;
+TSDa[i] = TSD;
+LowDown = 0;
+}
+else Sell[i] = 0;
+// reduce risk after x days, first time
+if(TS[i] > 0 AND j <= MSD) {
+TS = Max(TS[i], NS[i]);
+TSa[i] = TS[i];
+NSa[i] = NS[i];
+}
+if(TS[i] > 0 AND j > MSD) {
+TS = Max(TS[i], NS2[i]);
+TSa[i] = TS[i];
+NS2a[i] = NS2[i];
+}
+// reduce risk after x days, second time
+if(TS[i] > 0 AND j >= MSD2) {
+TS = Max(TS[i], NS3[i]);
+TSa[i] = TS[i];
+NS3a[i] = NS3[i];
+}
+// raise stop to BE after x days
+if(OpenPos == 1) {
+BES[i] = Max(BES[i], BES[i-1]);
+BESa[i] = BES[i];
+}
+if(OpenPos == 1 AND j == MSBE) {
+TS = Max(TS[i], BES[i]);
+TSa[i] = TS[i];
+BESa[i] = BES[i];
+}
+// TSD getting smaller over last 3 days
+if(TS[i] > 0) {
+TSD[i] = L[i] - TS[i];
+TSDa[i] = TSD[i];
+if(TSD[i] < TSD[i-1] AND TSD[i-1] < TSD[i-2] AND TSD[i-2] < TSD[i-3]) {
+
+TS = Max(TS[i], TS[i] * TSDM);
+TSa[i] = TS[i];
+LowDown = 1;
+Checka[i] = LowDown;
+}
+}
+j++; ja[i] = j;
+}
+
+Plot(TSa, "Trail Stop", colorBlue, styleLine);
+//Plot(bpa, "buyprice", colorGreen, styleLine);
+//Plot(spa, "sellprice2", colorRed, styleLine);
+//Plot(ja, "j", colorBlack, styleNoLine);
+//Plot(NSa, "NS", colorBlack, styleLine);
+//Plot(NS2a, "NS2", colorOrange, styleLine);
+//Plot(NS3a, "NS3", colorBrown, styleLine);
+//Plot(besa, "BES", colorBrightGreen, styleLine);
+//Plot(TSDa, "TSD", colorRed, styleLine);
+//Plot(Checka, "checkTSD", colorGreen, styleLine);
+
+
+// GRAPH / INDICATOR PLOT
+arrows = ParamToggle("Show Buy / Sell arrows?", "Yes please", 0);
+if(arrows == 1) {
+PlotShapes(Buy*shapeUpArrow,colorBrightGreen,0,Low );
+PlotShapes(Sell*shapeDownArrow,colorRed,0,High);
+}
+bliss = ParamToggle("Show Buy / Sell Prices", "Oh yeah! ",0);
+if(bliss == 1) {
+PlotShapes( IIf(Buy, shapeSmallCircle, shapeNone),colorBrightGreen, 0,
+BuyPrice, 0 );
+PlotShapes( IIf( Sell, shapeSmallCircle, shapeNone),colorRed, 0
+,SellPrice, 0 );
+FirstVisibleBar = Status( "FirstVisibleBar" );
+Lastvisiblebar = Status("LastVisibleBar");
+for( b = Firstvisiblebar; b <= Lastvisiblebar AND b < BarCount; b++)
+{
+if( Buy[b] ) PlotText("\n Buy\n
+else if( Sell[b] )
+for( b = Firstvisiblebar; b <= Lastvisiblebar AND b < BarCount; b++)
+{
+
+else if( Sell[b] )
+PlotText( " \n Sell\n" + NumToStr(SellPrice[b],1.2),b,SellPrice[b],colorRed);
+
+_SECTION_END();

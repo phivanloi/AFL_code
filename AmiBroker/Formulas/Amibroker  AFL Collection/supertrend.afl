@@ -1,0 +1,102 @@
+// Supertrend - Translated from Kolier MQ4
+// see: http://kolier.li/indicator/kolier-supertrend-indi
+// translation in Amibroker AFL code by E.M.Pottasch, 2011
+
+procedure calcTrend_proc(ATR_Period,tr,ATR_Multiplier,TrendMode,CalcPrice)
+{
+global buffer_line_down;
+global buffer_line_up;
+buffer_line_down = Null;
+buffer_line_up = Null;
+
+PHASE_NONE = 0;
+PHASE_BUY = 1;
+PHASE_SELL = -1;
+
+phase=PHASE_NONE;
+band_upper = 0;
+band_lower = 0;
+  
+for(i = ATR_Period + 1; i < BarCount; i++)
+{
+	band_upper = CalcPrice[i] + ATR_Multiplier * tr[i];
+	band_lower = CalcPrice[i] - ATR_Multiplier * tr[i];
+	
+	if(phase==PHASE_NONE)
+	{
+		buffer_line_up[i] = CalcPrice[i];
+		buffer_line_down[i] = CalcPrice[i];
+	}
+	if(phase!=PHASE_BUY && Close[i]>buffer_line_down[i-1] && !IsEmpty(buffer_line_down[i-1])) 
+	{
+		phase = PHASE_BUY;
+		buffer_line_up[i] = band_lower;
+		buffer_line_up[i-1] = buffer_line_down[i-1];
+	}
+	if(phase!=PHASE_SELL && Close[i]<buffer_line_up[i-1] && !IsEmpty(buffer_line_up[i-1]))
+	{
+		phase = PHASE_SELL;
+		buffer_line_down[i] = band_upper;
+		buffer_line_down[i-1] = buffer_line_up[i-1];
+	}	
+	if(phase==PHASE_BUY && ((TrendMode==0 && !IsEmpty(buffer_line_up[i-2])) || TrendMode==1) )
+	{
+		if(band_lower>buffer_line_up[i-1]) 
+		{
+			buffer_line_up[i] = band_lower;
+		}
+		else 
+		{
+			buffer_line_up[i] = buffer_line_up[i-1];
+		}
+	}
+	if(phase==PHASE_SELL && ((TrendMode==0 && !IsEmpty(buffer_line_down[i-2])) || TrendMode==1) )
+	{
+		if(band_upper<buffer_line_down[i-1])
+		{
+			buffer_line_down[i] = band_upper;
+		}
+		else
+		{
+			buffer_line_down[i] = buffer_line_down[i-1];
+		}
+	}
+}
+}
+
+SetBarsRequired(sbrAll,sbrAll);
+
+TrendMode = ParamToggle("TrendMode","Off|On",1);
+ATR_Multiplier = Param("ATR_Multiplier",2,0.1,10,0.1);
+ATR_Period = Param( "ATR_Period",5,1,20,1);
+tr = ATR(ATR_Period);
+
+CalcPrice = (H+L)/2;
+calcTrend_proc(ATR_Period,tr,ATR_Multiplier,TrendMode,CalcPrice);
+
+SetChartOptions(0,chartShowDates);
+Plot(C,"Close",IIf(C>=O,colorBrightGreen,colorRed),64);
+Plot(buffer_line_up,"\nTrnd Up",ColorRGB(28,134,238),styleThick);
+Plot(buffer_line_down,"\nTrnd Dn",ColorRGB(205,51,51),styleThick);
+
+Plot( 2,"",IIf(buffer_line_up,colorBrightGreen,colorBlack),styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+Plot( 4,"",IIf(buffer_line_down,colorRed,colorBlack),styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+
+_SECTION_BEGIN("Magnified Market Price");
+//by Vidyasagar, vkunisetty@yahoo.com//
+FS=Param("Font Size",28,11,100,1);
+GfxSelectFont("Arial", FS, 700, italic = False, underline = False, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor( ParamColor("Color",colorViolet) );
+Hor=Param("Horizontal Position",766,1,1200,1);
+Ver=Param("Vertical Position",1,1,1,1);
+GfxTextOut("C:"+C,Hor , Ver );
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+GfxSelectFont("Arial", 12, 700, italic = False, underline = False, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor(ParamColor("Color",colorViolet) );
+//GfxTextOut(""+DD+" ("+xx+"%)", Hor+5, Ver+45 );
+
+_SECTION_END();

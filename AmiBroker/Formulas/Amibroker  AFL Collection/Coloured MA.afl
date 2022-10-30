@@ -1,0 +1,2 @@
+m = MA(C,30);
+Plot(m,"m",IIf(m > Ref(m,-1),colorGreen,colorRed),styleDashed);

@@ -1,0 +1,16 @@
+/*Moving Average "Crash" Test
+by Dimitris Tsokakis*/
+MaxGraph=10;
+PI=4*atan(1);X=Cum(1)-1;XL=LastValue(Cum(1)-1);
+D1=IIf(X>XL-50,20,10);
+D11=MA(D1,10);
+D12=-Ref(MA(D1,10),-10)+30;
+S=15+5*sin( 2*PI*0.05*(X+15));
+s1=Ref(s,-(XL-50));
+C0=IIf(X>XL-50 AND X<XL-30,S1,10);      /*SINUSOIDAL*/
+C1=IIf(X>XL-50 AND X<XL-30,20,10);         /*STEP*/
+C2=IIf( X<XL-40,D11,D12);                        /*LINEAR*/
+Graph0=C0;
+Graph1=C1;
+Graph2=C2;
+Graph2Style=1;

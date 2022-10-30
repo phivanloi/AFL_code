@@ -1,0 +1,67 @@
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Kolkata Meet - Bands");
+//..........................................................................
+ 
+a = Param("Angle Degrees",30,15,90,15);
+n = Param("Slope_Bars",5,10,50,1);
+
+a    = (22 / 7) * (a / 180);
+
+Num = NumL = NumH = 0;
+Den = 0;
+
+for (i = 1;i < n+1;i++)
+{
+	Num  = Num  + sin(i * a) * Ref(C,-i-1);
+	NumL = NumL + sin(i * a) * Ref(L,-i-1);
+	NumH = NumH + sin(i * a) * Ref(H,-i-1);
+	Den = Den + sin(i * a);
+}
+
+j  = Num/Den;
+jL = NumL/Den;
+jH = NumH/Den;
+
+Plot(j, "Slope", IIf(j > Ref(j,-1), colorBlueGrey,colorLime), styleThick | styleDashed);
+Plot(jL, "LB", colorLime,styleThick | styleDashed);
+Plot(jH, "UB", colorBlueGrey,styleThick | styleDashed);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Signal 04");
+Buy  = C > jH;
+Sell = C < jL;
+
+Buy  = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+Short = Sell;
+Cover = Buy;
+
+Short = ExRem(Short,Cover);
+Cover = ExRem(Cover,Short);
+_SECTION_END();
+
+
+_SECTION_BEGIN("Plot Arrows");
+//Position size fixed 100 units
+SetPositionSize(100,4);
+SetTradeDelays(1,1,1,1);
+
+
+PlotShapes(shapeUpArrow * Buy, colorBlue,0, L,-20);
+PlotShapes(shapeDownArrow * Short, colorRed,0, H, -20);
+
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 100, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), Color, Style ); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), Color, Style ); 
+_SECTION_END();

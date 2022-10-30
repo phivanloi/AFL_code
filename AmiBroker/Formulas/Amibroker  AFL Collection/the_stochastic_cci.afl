@@ -1,0 +1,3 @@
+StochCCI=100*(CCI(14)-LLV(CCI(14),14))/(HHV(CCI(14),14)-LLV(CCI(14),14));
+Plot(StochCCI,"StochCCI",1,1);
+Plot(80,"",2,1);Plot(20,"",2,1);

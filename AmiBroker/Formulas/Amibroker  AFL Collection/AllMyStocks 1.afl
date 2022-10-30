@@ -1,0 +1,20 @@
+_SECTION_BEGIN("AllMyStocks");
+/* AllMyStocks.AFL : To get All stocks in the database for assigning sectors and Industries 
+written by murthymsr
+*/ 
+
+// inputs
+myvolume = 0;
+myclose = 0;
+myLakhs = 0; 
+
+// list stocks symbols meeting the inputted criteria
+
+// Buy  = Volume > myvolume;
+Buy  = Close > myclose AND Volume > myvolume AND Close * Volume / 100000 > mylakhs;
+
+
+Sell=0;
+Buy   = ExRem(Buy, Sell);
+Sell  = ExRem(Sell, Buy);
+_SECTION_END();

@@ -1,0 +1,154 @@
+/*Name: ALL in One Candle Explorer
+//Source: forum.9trading.com
+//Explorer Editing: Mubashar Virk, mavirk@gmail.com
+
+//1. Morning Doji Star 
+
+//A three Day bullish reversal pattern that is very similar to the Morning 
+
+Star. The first 
+//Day is in a downtrend with a long black body. The next Day opens lower 
+
+with a Doji that 
+//has a small trading range. The last Day closes above the midpoint of the 
+
+first Day. */
+
+MDS = Ref(Close,-2)<Ref(Open,-2) AND Ref(Open,-1) < Ref(Close,-2) AND 
+Ref(C,-1) < Ref(Close,-2) AND Open > Ref(C,-1) AND Close > 
+
+(Ref(Close,-2)+Ref(O,-2))/2 AND Ref(Open,-1) == Ref(Close,-1) ; 
+
+
+
+/*2. Morning Star 
+A three Day bullish reversal pattern consisting of three candlesticks - a 
+
+long-bodied black candle extending the current downtrend, a Short middle candle that 
+
+
+gapped down on the Open, AND a long-bodied white candle that gapped up on the Open AND 
+
+
+closed above the midpoint of the body of the first Day.*/
+
+
+MS = Ref(Close,-2)<Ref(Open,-2) AND Ref(Open,-1) < Ref(Close,-2) AND 
+Ref(C,-1) < Ref(Close,-2) AND Open > Ref(C,-1) AND Close > (Ref(Close,-2)+Ref(O,-2))/2;
+
+
+
+
+/*3. Three White Soldiers 
+A bullish reversal pattern consisting of three consecutive white bodies, 
+
+each with a higher 
+Close. Each should Open within the previous body AND the Close should be 
+
+near the High of the Day.*/
+
+TWS = Ref(Close,-2)>Ref(Open,-2) AND Ref(Close,-1)>Ref(Open,-1) 
+AND Close>Open AND Ref(Close,-1)>Ref(Close,-2) AND Close>Ref(Close,-1);
+
+
+/*4. Piercing Line 
+A bullish two Day reversal pattern. The first Day, in a downtrend, is a 
+
+long black Day. 
+The next Day opens at a new Low, then closes above the midpoint of the 
+
+body of the first Day. */
+
+PL = Ref(Close,-1)<Ref(Open,-1) AND Open<Ref(C,-1) AND Close>Open AND C>Ref(Close,-1);
+
+C>Ref(Close,-1);
+
+
+/*5. Downside Tasuki Gap 
+A continuation pattern with a long black body followed by another black 
+
+body that has 
+gapped below the first one. The third Day is white AND opens within the 
+
+body of the Second 
+Day, then closes in the gap between the first two days, but does NOT Close 
+
+the gap.*/
+
+DTG = Ref(Close,-2)<Ref(Open,-2) AND Ref(Open,-1) < Ref(Close,-2) AND Ref(C,-1) < Ref(O,-1) AND 
+
+
+Open > Ref(C,-1) AND Open < Ref(O,-1) AND Close > O AND C > Ref(O,-1) AND C < Ref(C,-2);
+
+
+
+
+/*6. Engulfing Pattern 
+A reversal pattern that can be bearish OR bullish depending upon whether 
+
+it is in an uptrend OR downtrend. 
+The first Day is characterized by a small body, followed by a Day whose 
+
+body completely engulfs the previous Day's body. */
+
+EP = Ref(Close,-1)/Ref(Open,-1)<0.97 AND Close/Open>1.03 AND 
+
+Open<Ref(Close,-1) AND Close>Ref(Close,-1); 
+
+
+/*7. Abandoned Baby 
+A rare reversal pattern characterized by a gap followed by a Doji, which 
+
+is then followed 
+by another gap in the opposite direction. The shadows on the Doji must 
+
+completely gap below OR above the shadows of the first AND third Day. */
+
+AB = Ref(Close,-2)<Ref(Open,-2) AND Ref(Open,-1) < Ref(Close,-2) AND Ref(C,-1) == Ref(O,-1)
+
+ 
+AND Open > Ref(C,-1) AND Close > O AND Ref(Close,-2)/ Ref(Open,-2)<0.99 AND Close/O>1.01;
+
+
+
+
+/*8. Dragonfly Doji 
+A Doji line where the Open AND Close price are at the High of the Day. 
+
+Like other Doji days, this one normally appears at market turning points.*/
+
+DF = High == Max(Open,Close) AND High-Low > 3*(High-Min(Open,Close)) AND Close < MA(Close,5);
+
+
+
+
+/*8.Harami 
+A two Day pattern that has a small body Day completely contained within 
+
+the range of the previous body, AND is the opposite color.*/ 
+
+HR = abs(Ref(Close,1)-Ref(Open,1))/Ref(Close,1) > 0.04 AND Close=Open 
+AND Close < Max(Ref(Close,1),Ref(Open,1)) AND Close > Min(Ref(Close,1),Ref(Open,1));
+
+
+
+
+//Filtration & Exploration Section
+
+Bullish = MDS>0.5 OR MS>0.5 OR TWS>0.5 OR PL>0.5 OR DTG>0.5 OR EP>0.5 OR AB>0.5 OR DF>0.5 OR HR>0.5;
+Bearish = MDS<0.25 OR MS<0.25 OR TWS<0.25 OR PL<0.25 OR DTG<0.25 OR EP<0.25 OR AB<0.25 OR DF<0.25 OR HR<0.25;
+Color = IIf(Bullish,colorGreen,IIf(Bearish,colorRed,colorBlue));
+Filter = 1;
+
+
+AddColumn(C, "Close",1.2);
+AddColumn(V, "Volume",1); 
+AddColumn(MDS, "Morning Doji Star",1,Color);
+AddColumn(MS, "Morning Star",1,color);
+AddColumn(TWS, "Three White Soldiers",1,color);
+AddColumn(PL, "Piercing Line",1,color);
+AddColumn(DTG, "Downside Tasuki Gap",1,color);
+AddColumn(EP, "Engulfing Pattern",1,color);
+AddColumn(AB, "Abandoned Baby",1,color);
+AddColumn(DF, "Dragonfly Doji",1,color);
+AddColumn(HR, "Harami",1,color);

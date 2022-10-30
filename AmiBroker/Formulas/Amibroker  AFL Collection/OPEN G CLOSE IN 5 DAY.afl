@@ -1,0 +1,16 @@
+/* Create date: 13 Apr 2011
+The Close Price of the current bar is greater than the Open Price of 1 bar ago */
+
+Filter = 
+Ref(Close,-5) > Ref( Open, -5 )
+AND Ref(Close,-4) > Ref( Open, -4 )
+AND Ref(Close,-3) > Ref( Open, -3 )
+AND Ref(Close,-2) > Ref( Open, -2 )
+AND Ref(Close,-1) > Ref( Open, -1 )
+AND Ref(Close, 0) > Ref( Open,  0 );
+
+AddColumn( Close, "Close  " );
+AddColumn( Open, "Open  " );
+AddColumn( High, "High  " );
+AddColumn( Low, "Low  " );
+AddColumn( Volume, "Volume      " );

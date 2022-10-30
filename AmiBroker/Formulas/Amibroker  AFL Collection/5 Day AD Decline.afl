@@ -1,0 +1,6 @@
+Filter = AccDist() < Ref (AccDist(), -1) AND Ref (AccDist(),-1) < Ref (AccDist(), -2)
+AND Ref (AccDist(),-2) < Ref (AccDist(), -3) AND Ref (AccDist(),-3) < Ref (AccDist(), -4);
+
+
+AddColumn( Close, "Close" );
+AddColumn( V, "Volume",1 );

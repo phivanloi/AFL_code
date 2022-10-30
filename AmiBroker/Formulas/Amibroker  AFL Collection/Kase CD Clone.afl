@@ -1,0 +1,16 @@
+Per1=Param("Max length",8,1,100,1);
+RWH = (H-Ref(L,-Per1))/(ATR(Per1)*sqrt(Per1));
+RWL =(Ref(H,-Per1)-L)/(ATR(Per1)*sqrt(Per1));
+PK =MA(WMA((RWH-RWL),3),3);
+KCD =PK-MA(PK,8);
+MN =MA(KCD,Per1);
+SD =StDev(KCD,Per1);
+Val1 =IIf(MN+(1.33*SD)>2.08,MN+(1.33*SD),2.08);
+Val2 =IIf(MN-(1.33*SD)<-1.92,MN-(1.33*SD),-1.92);
+lne =IIf(Ref(KCD,-1)>=0 AND KCD>0,Val1,IIf(Ref(KCD,-1)<=0 AND KCD<0,Val2,0));
+Red =IIf(Ref(KCD,-1)>KCD,KCD,0);
+Green =IIf(KCD>Ref(KCD,-1),KCD,0);
+
+Plot(Red,"Red",colorRed,styleHistogram|styleThick);
+Plot(Green,"Green",colorGreen,styleHistogram|styleThick);
+Plot(lne,"LN",colorBlue,styleLine);

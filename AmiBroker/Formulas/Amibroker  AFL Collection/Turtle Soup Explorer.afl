@@ -1,0 +1,12 @@
+//Turtle Soup Explorer
+//Coded by: Mubashar Virk, mavirk@gmail.com
+
+B = BarsSince(L <=  LLV (L,20));
+
+Filter = L <=  LLV (L,20) AND
+Ref (L, -1) > Ref (LLV(L,-1), 20) AND
+Ref (L, -2) > Ref (LLV(L,-2), 20) AND
+B <= 20;
+
+AddColumn(Close,"Close",1.2);
+AddColumn(Volume,"Volume",1.0);

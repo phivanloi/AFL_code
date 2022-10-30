@@ -1,0 +1,19 @@
+Plot (C,"Price",colorLime,styleBar);
+Plot (MA(C,24),"ma 24",colorRed,1);
+
+Plot (MA(C,2),"ma 24",colorYellow,1);
+rawrng=HHV(C,50)-LLV(C,50);//calculate the difference betwen highest and lowest clsoe vlaues in the last 50 bars
+rngup=(MA(C,24)+rawrng*0.05); // 5% of the rawrange taken as the vicinity band
+rngdown=(MA(C,24)-rawrng*0.05); 
+
+k1=MA(C,24);
+k2=rngup;
+K3=rngdown;
+
+j1= Close > MA( Close, 24 ) AND Open > MA( Close, 24 ) AND Open < rngup ;
+j2= Close < MA( Close, 24 ) AND Close > rngdown AND Open < MA( Close, 24) ;
+
+PlotShapes( shapeSmallCircle* j1,colorYellow, 0,H, 10);
+PlotShapes( shapeSmallCircle* j2,colorBlue, 0,L, -10);
+PlotOHLC(k1,k1,k2,k2,"",colorGrey40, styleCloud);
+PlotOHLC(k1,k1,k3,k3,"",colorGrey40, styleCloud);

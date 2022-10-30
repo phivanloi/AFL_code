@@ -1,0 +1,18 @@
+/*
+HaDiffCo for use with Heikin-Ashi Modified Candlestick Chart
+*/
+HaClose=(O+H+L+C)/4;
+HaOpen=AMA(Ref(HaClose,-1),0.5);
+HaHigh=Max(H,Max(HaClose,HaOpen));
+HaLow=Min(L,Min(HaClose,HaOpen));
+
+HaDiffCO = HaClose-HaOpen;
+
+Per = Param("MA Periods",8,3,50,1);
+Plot(HaDiffCO,"HaDiffCO",colorWhite);
+Plot(WMA(HaDiffCO,5),"HaDiffCO",colorRed);
+//Plot(WMA(HaDiffCO,15),"HaDiffCO",colorWhite);
+Plot(MA(HaDiffCO,per),"MA("+per+")",colorBlue);
+
+VarHa1 = (HaDiffCO + WMA(HaDiffCO,5))/2;
+Plot(VarHa1,"VarHa1",colorYellow);

@@ -1,0 +1,56 @@
+_SECTION_BEGIN("GMMA");
+/* ------------------------------------------------------------------------------------------------- GUPPY MULTIPLE MOVING AVEREGES ------------------
+   Guppy GMMA from AmiBroker Library, enhanced with "derived" Indicators 
+ ---------------------------------------------------------------------------*/
+EnableTextOutput(False);
+GuppyGraphType  = ParamList("Type of Guppy Graphic","Guppy GMMA,Guppy Compressions,Guppy Sonar",0);
+// Normalization   = ParamToggle("Normalization Array","CLOSE,EMA30",0);
+LocalBuySignal  = LocalSellSignal = 0;
+MinMaxPeriod    = 20;
+// --- DEFINE/CALCULATE ALL DATA NEEDED FOR BUY & SELL COMPOSITE SIGNALS outside the IndicatorType IF --- 
+EMA03           = EMA(Close,3); 
+EMA15           = EMA(Close,15);
+EMA30           = EMA(Close,30);
+EMA60           = EMA(Close, 60);
+NormalizerArray = EMA30;   // IIf(Normalization == 0, Close, EMA30);
+//
+GMMADeltaPerc   = ((EMA15 - EMA30) / NormalizerArray) * 100;
+switch(GuppyGraphType)
+{
+   case "Guppy GMMA":
+       SetChartOptions( 1, chartShowDates | chartWrapTitle, ChartGridMargins ); 
+       SetChartBkColor(ColorRGB(222,222,222));
+       Plot(Close, "\\c16Guppy GMMA: \\c43 Close", colorBrightGreen, styleLine | styleThick );   
+       Plot( EMA03,          "EMA(3)",  colorSkyblue,     styleLine | styleNoLabel ); 
+       Plot( EMA(Close, 5),  "EMA(5)",  colorAqua,        styleLine | styleNoLabel ); 
+       Plot( EMA(Close, 8),  "EMA(8)",  colorTurquoise,   styleLine | styleNoLabel ); 
+       Plot( EMA(Close, 10), "EMA(10)", colorLightBlue,   styleLine | styleNoLabel ); 
+       Plot( EMA(Close, 12), "EMA(12)", colorBlue,        styleLine | styleNoLabel ); 
+       Plot( EMA15,          "EMA(15)", colorBlueGrey,    styleLine | styleNoLabel );       
+       Plot( EMA30,          "EMA(30)", colorYellow,      styleLine | styleNoLabel ); 
+       Plot( EMA(Close, 35), "EMA(35)", colorGold,        styleLine | styleNoLabel ); 
+       Plot( EMA(Close, 40), "EMA(40)", colorLightOrange, styleLine | styleNoLabel ); 
+       Plot( EMA(Close, 45), "EMA(45)", colorOrange,      styleLine | styleNoLabel ); 
+       Plot( EMA(Close, 50), "EMA(50)", colorRed,         styleLine | styleNoLabel ); 
+       Plot( EMA60,          "EMA(60)", colorDarkRed,     styleLine | styleNoLabel ); 
+       break;
+   case "Guppy Compressions":
+       SetChartOptions( 1, chartShowDates | chartWrapTitle, ChartGridMiddle ); 
+       Plot((Max(EMA03, EMA15) - Min(EMA03, EMA15)) / NormalizerArray * 100,"TRADERS Width, % vs EMA(30)",  colorBlue, styleLine | styleThick);
+       Plot((Max(EMA30, EMA60) - Min(EMA30, EMA60)) / NormalizerArray * 100,"INVESTORS Width, % vs EMA(30)", colorRed, styleLine | styleThick);  
+       Plot((Max(EMA03, EMA60) - Min(EMA03, EMA60)) / NormalizerArray * 100,"TOTAL GUPPY Width, % vs EMA(30)",   colorGold, styleLine | styleThick); 
+       break; 
+   case "Guppy Sonar":
+       SetChartOptions( 1, chartShowDates | chartWrapTitle, ChartGridMiddle);  
+       GMMAUP    = GMMADeltaPerc > Ref(GMMADeltaPerc,-1);
+       GMMADOWN  = GMMADeltaPerc < Ref(GMMADeltaPerc,-1);
+       BarColor  = IIf(GMMAUP AND GMMADeltaPerc >= 0,colorBrightGreen, IIf(GMMADOWN AND GMMADeltaPerc > 0,colorGreen, IIf(GMMAUP AND GMMADeltaPerc < 0, colorRed, colorDarkRed)));
+       Plot(GMMADeltaPerc, "\\c16Guppy SONAR, % Gap \\c29TRADERS\\c16 - \\c32INVESTORS\\c16 vs EMA(30)", BarColor, styleHistogram | styleThick );   
+}
+_SECTION_END();
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

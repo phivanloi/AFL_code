@@ -1,0 +1,11 @@
+EntryDateNum = ParamDate( "EntryDate", "2005-06-23" );
+DateAfterEntry = IIf( DateNum() >= EntryDateNum, 1, Null );
+target = Param("Price Target", 68, 1, 1E3, 0 );
+MinDRR = Param("Minimum Dynamic Reward Risk", 3, 0.01, 100, 0 );
+shift = ParamToggle("Mode", "Realistic|Review", 0 );
+SB = C - ( Target - C ) / MinDRR;
+SBV = DateAfterEntry  * IIf( shift == 0, SB, Ref( SB, -1 ) );
+Plot( C, Date() + ", Price", colorBlack, styleCandle );
+Plot( target, "PriceTarget", colorBlue );
+Plot( SBV, "Stops Barrier"+_PARAM_VALUES(), colorRed, styleThick );
+PlotShapes( DateNum() == EntryDateNum * shapeUpArrow, colorBlue, 0, Low, -30 );

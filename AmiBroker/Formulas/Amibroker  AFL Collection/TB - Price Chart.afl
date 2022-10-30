@@ -1,0 +1,27 @@
+//|------------------------------------------------------------------
+//|Tradingbasis.com - Price chart
+//|Version:1.7   18-May-2006
+//|Copyright © 2005, Tradingbasis.com
+//|http://www.tradingbasis.com
+//|e-mail: support@tradingbasis.com
+//|------------------------------------------------------------------
+SetChartOptions(0,chartShowDates|chartShowArrows|chartLogarithmic|chartWrapTitle);
+
+#pragma nocache
+#include  <\TBInc\Tradingbasis_f0.afl>  
+#include  <\TBInc\Tradingbasis_1.afl>  
+
+//The code below can be used to plot shapes at average crosses
+/*
+PlotShapes(shapeUpArrow * Cross(TBavg1,TBavg2)*TBavg1switch*TBavg2switch,colorLime,0,L,-12);
+PlotShapes(shapeDownArrow * Cross(TBavg2,TBavg1)*TBavg1switch*TBavg2switch,colorRed,0,H,12);
+PlotShapes(shapeSmallCircle * Cross(TBavg3,TBavg4)*TBavg3switch*TBavg4switch,colorLime,0,L,-12);
+PlotShapes(shapeSmallCircle * Cross(TBavg4,TBavg3)*TBavg3switch*TBavg4switch,colorRed,0,H,12);
+*/
+
+Filter = NOT GroupID()==253;
+
+Adddefaultcolumns(1,1);
+AddTextColumn(FullName(),"Full name");
+
+Title = "Tradingbasis.com - Price Chart" + default_title+" ";

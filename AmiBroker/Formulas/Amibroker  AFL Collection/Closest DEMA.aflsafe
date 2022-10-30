@@ -1,0 +1,33 @@
+//Suppose you use EMA(C,20) as your basic moving average.
+//You may replace it by the closest DEMA approximation, ie the DEMA which makes the error EMA-DEMA minimum for the last n bars [after the blue dot].
+//The closest DEMA is sometimes faster AND may anticipate the EMA exit points.
+
+// The closest DEMA for a given EMA, by D. Tsokakis, March 2005
+Plot ( C , "" , 1 , 64 ) ;
+p = Param ( "p" , 10 , 5 , 50 , 5 ) ;
+B = Cum ( 1 ) ; 
+LB = LastValue ( B ) ; 
+x = EMA ( C , 2 * p ) ;
+Plot ( x , "EMA(" + WriteVal ( 2 * p , 1.0 ) + ")" , colorRed , 1 ) ;
+n = 250 ;
+j0 = 0 ;
+Y0 = 0 ;
+PlotShapes ( shapeCircle * ( B == LB - N ) , colorBlue ) ;
+d0 = LastValue ( Sum ( x , n ) ) ;
+for ( j = p ; j < 10 * p ; j = j + 1 )
+{
+y = DEMA ( C , j ) ;
+d = LastValue ( Sum ( abs ( y - x ) , n ) ) ;
+if ( d < d0 )
+{
+d0 = d ;
+j0 = j ;
+Y0 = Y ;
+}
+}
+Plot ( Y0 , "DEMA(" + WriteVal ( J0 , 1.0 ) + ")" , colorWhite , 8 ) ;
+
+//The closest DEMA period depends on the history of the recent trend AND varies from stock to stock. 
+//for a given EMA period p the closest DEMA period is, in general, a bit higher than 2*p.
+//The code may give the substitute of any smoothing function, provided we have its analytic formula.
+//A given EMA has a closest MA, a given DEMA has a closest Ti3 etc, etc  

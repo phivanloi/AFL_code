@@ -1,0 +1,10 @@
+fh = fopen("C:\\Program Files\\AmiBroker\\ExportedImages\\test.png", "r"); 
+if( fh ) 
+{ 
+   fputs( "Testing", fh ); 
+   fclose(fh);
+} 
+else 
+{ 
+   printf("Error opening file"); 
+} 

@@ -1,0 +1,67 @@
+_SECTION_BEGIN("CCT StochasticRSI");
+//------------------------------------------------------------------------------
+//
+//  Formula Name:    CCT StochasticRSI 
+//  Author/Uploader: Tomasz Janeczko  
+//  E-mail:          tj@amibroker.com
+//  Date/Time Added: 2001-07-20 10:03:37
+//  Origin:          Originally developed by Steve Karnish, http://www.cedarcreektrading.com
+//  Keywords:        
+//  Level:           basic
+//  Flags:           indicator
+//  Formula URL:     http://www.amibroker.com/library/formula.php?id=76
+//  Details URL:     http://www.amibroker.com/library/detail.php?id=76
+//
+//------------------------------------------------------------------------------
+//
+//  Steve Karnish wrote:
+//
+//  "Roger Altman, William Blau, Stanley Kroll, and Tushar Chande have all
+//  improved on J. Welles Wilder&amp;#8217;s Relative Strength Index. I believe
+//  the best of these derivative indicators is the Stochastic RSI. [...] This
+//  version is just one of many I use. I like substituting the numbers 3, 5, 8
+//  &amp; 13 in this formula. "
+//
+//------------------------------------------------------------------------------
+
+/* CCT StochRSI
+**
+** Originally developed by Steve Karnish 
+** http://www.cedarcreektrading.com
+**
+** AFL translation by Tomasz Janeczko
+**
+** Set scaling: Custom 0..100
+** Grid: 30/70
+*/
+
+period = 14;
+StoRSI =EMA(100*( ( RSI( period ) - LLV( RSI( period ) , period ) ) / ( ( HHV( RSI( period ) , period ) ) - LLV(RSI( period ), period ) ) ),3);
+//Plot( StoRSI , "StoRSI", IIf(StoRSI > Ref(StoRSI,-1),colorBrightGreen, colorRed), styleThick,styleOwnScale);
+PlotOHLC(StoRSI,StoRSI+.5,StoRSI-.5,StoRSI,"stoRSI",colorWhite,styleCloud);
+//IIf(StoRSI > Ref(StoRSI,-1),colorBrightGreen, colorRed)
+Plot(80,"",colorGrey40);
+Plot(20,"",colorGrey40);
+Plot(50,"",colorGrey40);
+
+//GraphXSpace = 2;
+_SECTION_END();
+bbtop = BBandTop(storsi,5,0.5);
+bbbot = BBandBot(storsi,5,0.5);
+//Plot(bbtop,"top band",colorYellow,styleDashed);
+//Plot(bbbot,"bot band",colorYellow,styleDashed);
+Plot( EMA(StoRSI,2) , "", IIf(EMA(StoRSI,2)> Ref(EMA(StoRSI,2),-1),colorGreen,colorRed),styleNoLabel);
+Plot( EMA(StoRSI,3) , "", IIf(EMA(StoRSI,3)> Ref(EMA(StoRSI,3),-1),colorGreen,colorRed),styleNoLabel);
+Plot( EMA(StoRSI,4) , "", IIf(EMA(StoRSI,4)> Ref(EMA(StoRSI,4),-1),colorGreen,colorRed),styleNoLabel);
+Plot( EMA(StoRSI,5) , "", IIf(EMA(StoRSI,5)> Ref(EMA(StoRSI,5),-1),colorGreen,colorRed),styleNoLabel);
+Buy = storsi > bbtop OR storsi > EMA(StoRSI,5) ;
+Sell = storsi < bbbot OR storsi < EMA(StoRSI,5);
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+_SECTION_BEGIN("Price");
+//Buy=ExRem(Buy,Sell);
+//Sell = ExRem(Sell,Buy);
+
+//PlotShapes( Buy * shapeHollowSmallUpTriangle + Sell * shapeHollowSmallDownTriangle, IIf( Buy, colorYellow, colorYellow ) );
+_SECTION_END();

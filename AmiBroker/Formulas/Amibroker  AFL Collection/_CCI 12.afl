@@ -1,0 +1,11 @@
+_SECTION_BEGIN("CCI");
+periods = Param( "Periods", 14, 2, 200, 1 );
+i1 = CCI( periods );
+//Plot( i1 = CCI( periods ), _DEFAULT_NAME(), ParamColor( "Color",  colorCycle ), ParamStyle("Style")  );
+p = Param("short ema",3,1, 20,1);
+r = Param("long ema",5,2,20,1);
+
+em1 = DEMA(i1,p);
+em2 = DEMA(i1,r);
+Plot(em1,"",colorBlue);
+Plot(em2,"",colorRed);

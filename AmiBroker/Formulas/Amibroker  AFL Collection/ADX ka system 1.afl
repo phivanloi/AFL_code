@@ -1,0 +1,32 @@
+_SECTION_BEGIN("ADX"); 
+range = Param("ADX Periods", 7, 2, 200, 1 );
+Col_adx = IIf(ADX(range) > Ref(ADX(range),-1) AND ADX(range) > 20,colorBlue, colorGrey40);
+em = Param("EMA Of ADX",3,1,20,1);
+p = EMA(PDI(range),em); 
+m = EMA(MDI(range),em);
+
+Plot( ADX(range), "", Col_adx ,  styleThick  );
+btp = BBandTop( P, 5, 0.4 ); 
+bbp = BBandBot( P, 5, 0.4 );
+btm = BBandTop( m, 5, 0.4 );
+bbm = BBandBot( m, 5, 0.4 );
+Plot(btp , "" , colorDarkGreen, styleDashed ); 
+Plot(bbp , "" , colorDarkGreen, styleDashed ); 
+Plot( btm, "" , colorDarkRed, styleDashed ); 
+Plot( bbm, "" , colorDarkRed, styleDashed ); 
+Col_p = IIf(p > btp, colorBrightGreen,colorDarkGreen);
+Col_m = IIf(m > btm,colorRed,colorDarkRed);
+Plot( p, "+DI", Col_p, styleDots );
+Plot( M, "-DI", Col_m, styleDots );
+
+Buy = ADX(range) > MDI(range)  AND PDI(range) > MDI(range);
+Sell = ADX(range) > PDI(range) AND MDI(range) > PDI(range);
+Buy_sell = IIf(Buy,colorGreen,IIf(Sell,colorRed,colorBlack)); 
+
+Buy_p = p > btp AND m < bbm;
+Sell_m = m > btm AND p < bbp;
+Bs = IIf(Buy_p,colorGreen,IIf(Sell_m,colorRed,colorBlack)); 
+
+_SECTION_END();
+
+Plot(5, "", Bs, styleOwnScale| styleArea|styleNoLabel,-0.5,100);

@@ -1,0 +1,50 @@
+GraphXSpace = 5;
+
+_SECTION_BEGIN("Current Trend");
+smap = Param("SMA Length", 9,5,20,1);
+WMAp = Param("WMA Length", 45,9,75,1);
+rpds = Param("RSI Length", 14,3,50,1);
+
+/*
+smap = Optimize("SMA Length", 9,5,20,1);
+WMAp = Optimize("WMA Length", 45,9,75,1);
+rpds = Optimize("RSI Length", 14,3,50,1);
+*/
+
+p1 = MA( C, smap); //9-period on price (MA)
+p2 = WMA( C, WMAp); //45-period on price (WMA)
+
+r1 = MA( RSI(rpds), smap); //9-period on RSI (MA)
+r2 = WMA( RSI(rpds), WMAp); //45-Period on RSI (WMA)
+
+up = p1 > p2 AND r1 > r2; //trend is up
+dn = p1 < p2 AND r1 < r2; //trend is down
+sup = p1 > p2 AND r1 < r2; //trend is sideways to up
+sdn = p1 < p2 AND r1 > r2; //trend is sideways to down
+
+"Currend TREND is:";
+t = 
+WriteIf(up, "UP",
+WriteIf(dn, "DOWN",
+WriteIf(sup, "SIDEWAYS TO UP",
+WriteIf(sdn, "SIDEWAYS TO DOWN",
+""))));
+
+Color = IIf(up, colorLime, IIf(dn, colorRed, IIf(sup, colorLightBlue, IIf(sdn, colorOrange, 0))));
+
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );
+_N( Title = StrFormat( "{{NAME}} - " + SectorID( 1 ) + " - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", color, styleBar | styleNoTitle | ParamStyle( "Style" ) | GetPriceStyle() );
+
+if ( ParamToggle( "Tooltip shows", "All Values|Only Prices" ) )
+{
+    ToolTip = StrFormat( "Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: " + NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 ) ) );
+}
+
+Plot(MA(C,9), "MA(9)", colorLime, styleDashed);
+Plot(WMA(C,45), "WMA(45)", colorRed, styleDashed);
+Plot(MA(C,50), "MA(50)", colorGreen, styleThick);
+Plot(MA(C,200), "MA(200)", colorRed, styleThick);
+_SECTION_END();
+
+

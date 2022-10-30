@@ -1,0 +1,20 @@
+SetOption("CommissionMode",3);
+SetOption("CommissionAmount", 0.005);
+SetTradeDelays(0,0,0,0);
+Buy = O < Ref(L,-1);
+BuyPrice = O;
+Sell = L < Ref(L,-1);
+SellPrice = C;
+Short = O > Ref(H,-1);
+ShortPrice = O;
+Cover = H > Ref(H,-1);
+CoverPrice = C;
+E=Equity(1);
+Plot(C,"",1,128);
+if( PlotTriangles = ParamToggle("Triangles","HIDE|SHOW",1) )
+{
+PlotShapes(IIf(Buy, shapeSmallUpTriangle, shapeNone),5,0,BuyPrice,0);
+PlotShapes(IIf(Sell, shapeHollowDownTriangle, shapeNone),4,0,SellPrice,0);
+PlotShapes(IIf(Cover, shapeHollowUpTriangle, shapeNone),5,0,CoverPrice,0);
+PlotShapes(IIf(Short, shapeSmallDownTriangle, shapeNone),4,0,ShortPrice,0);
+}

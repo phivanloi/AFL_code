@@ -1,0 +1,81 @@
+//|------------------------------------------------------------------
+//|Tradingbasis.com - Alert 3 - Custom Condition
+//|Version:1.5   23-June 2006
+//|Copyright © 2005, Tradingbasis.com
+//|http://www.tradingbasis.com
+//|e-mail: support@tradingbasis.com
+//|------------------------------------------------------------------
+#pragma nocache
+#include  <\TBInc\Tradingbasis_f0.afl>
+AddAlertParam(1,0,0);
+#include  <\TBInc\Tradingbasis_1.afl>  
+SetChartOptions(0,chartShowDates|chartLogarithmic|chartWrapTitle);
+
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//This part is used to define your personal signals.
+//Please rename this file to assure that your modifications 
+//will NOT be overwritten when installing tradingbasis updates.
+//Write = 0; to deativate alerts. Example: Short = 0;
+
+Buy = Ref(Taio,-1)==LLV(Taio,3)AND Ref(Taio,-1)<-80;
+Buytext = "Sample buy signal";
+
+Sell = Ref(Taio,-1)==HHV(Taio,3)AND Ref(Taio,-1)>80;
+Selltext = "Sample sell signal";
+
+Short = Cross(80,StochD()); //Your short condition
+Shorttext = "Sample short signal";
+
+Cover = Cross(StochD(),20); //Your cover condition
+Covertext = "Sample cover signal";
+
+/*
+You can use this code block to use buy signals only if last long trade was closed and 
+short signals only if last short trade was closed.
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+Cover = ExRem(Cover,Short);
+Short = ExRem(Short,Cover);
+*/
+
+
+/*
+The code below shows some basic implementation of stops AND profits with optimization.
+
+Digits = 0.001;
+TakeProfit=Optimize("profit",0.001*Digits,0.0006*Digits,0.002*Digits,0.0001*Digits);
+LossStop=Optimize("stop",0.0009*Digits,0.0006*Digits,0.002*Digits,0.0001*Digits);
+ApplyStop(type = 0, mode = 2, amount = LossStop, exitatstop = 1, volatile = False, ReEntryDelay = 0 );
+ApplyStop(type = 1, mode = 2, amount = Takeprofit, exitatstop = 1, volatile = False, ReEntryDelay = 0 );
+
+*/
+
+//Equity(1); //This line will also plot your exits at applystop/takeprofit
+
+//////////////////////////////////////////////////////////////
+AddAlert(Buy,Audio,Email,Buytext,1,BarComplete);
+AddAlert(Sell,Audio,Email,Selltext,2,BarComplete);
+AddAlert(Short,Audio,Email,Shorttext,3,BarComplete);
+AddAlert(Cover,Audio,Email,Covertext,4,BarComplete);
+//////////////////////////////////////////////////////////////
+
+Filter = NOT GroupID()==253;
+Filter = Filter AND (Buy OR Sell OR Short OR Cover);
+
+
+Adddefaultcolumns(3,1);
+AddTextColumn(FullName(),"Full name");
+
+PlotShapes(shape=1*Buy,color=colorLime,layer=0,yposition=Low,offset=-12); 
+PlotShapes(shape=2*Sell,color=colorRed,layer=0,yposition=High,offset=-12);
+PlotShapes(shape=3*Cover,color=colorLime,layer=0,yposition=Low,offset=-12);
+PlotShapes(shape=4*Short,color=colorRed,layer=0,yposition=High,offset=-12);
+
+Title = "Tradingbasis.com - Alert 3" + default_title 
++EncodeColor(colorAqua)+", Activated Alerts:"
++WriteIf(Audio AND NOT Email," Audio ",
+ WriteIf(Email AND NOT Audio," Email ",
+ WriteIf(Email AND Audio," Audio & Email "," None ")));

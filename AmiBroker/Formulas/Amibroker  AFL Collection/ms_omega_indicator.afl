@@ -1,0 +1,74 @@
+Can anybody help me with translating this code for Omega indicator to AmiBroker? 
+
+To be honest, i dont expect somebody will do this hard work, but maybe.. 
+
+Inputs: Price(Close), Length(96), Norm(0), Sglagivanie(2),LenNorm(2000); 
+Vars: avg_proizv(0),proizv(0), color(red), Normfact(0),pro(0),pro_avg(0),sec_pro_avg(0), std_sec_pro_avg(0),sec_pro_avg_Norm(0); 
+Vars: Value1(0), Value2(0),Value3(0), Value4(0),Value5(0), Value6(0); 
+
+if CurrentBar > Length*2.3 Then 
+begin 
+color = darkbrown; 
+pro = (XAverage(Price, Length)-XAverage(Price, Length)[Sglagivanie])/Sglagivanie; 
+
+Value1 = AbsValue(Lowest(pro,LenNorm)); 
+Value2 = Highest(pro,LenNorm); 
+if Value2 > Value1 then Value3 = Value2/3 else Value3 = Value1/3; 
+if Norm = 0 Then Normfact = Value3 else Normfact = Norm; 
+if Normfact<>0 then proizv = pro/Normfact else proizv = 0 ; 
+
+avg_proizv = XAverage(proizv,Length*1/2); 
+pro_avg = (avg_proizv[0] - avg_proizv[4])/4; 
+sec_pro_avg = (pro_avg[0] - pro_avg[2])/2; 
+
+Value4 = AbsValue(Lowest(sec_pro_avg,LenNorm)); 
+Value5 = AbsValue(Highest(sec_pro_avg,LenNorm)); 
+if Value5 > Value4 then std_sec_pro_avg = Value5/3 else std_sec_pro_avg = Value4/3; 
+if std_sec_pro_avg <> 0 then sec_pro_avg_Norm = sec_pro_avg/std_sec_pro_avg else sec_pro_avg_Norm = 0 ; 
+
+
+Input: p(NumericSeries); 
+
+if( p[2] >= p[1] AND p[1] < p[0]) 
+Then razvverh = True 
+else razvverh = False; 
+
+
+
+Input: p(NumericSeries); 
+
+if( p[2] <= p[1] AND p[1] > p[0]) 
+Then razvvniz = True 
+else razvvniz = False; 
+
+
+if (razvverh(proizv[0]) AND avg_proizv[1] > proizv[1] AND proizv[1] < proizv[0] AND 
+((proizv[1] < -{1.65}1.7 AND proizv[1] > -2.30 AND proizv[7] > proizv[1]) 
+OR (avg_proizv[1] > -0.38 AND proizv[1] < -0.7 AND proizv[7] > proizv[1]))) 
+OR (razvverh(sec_pro_avg_Norm) AND sec_pro_avg_Norm[1] < -1.59) then 
+begin 
+color = red; 
+if (avg_proizv[1] >-0.38 AND proizv[1] < -0.7) then color = yellow; 
+if(razvverh(sec_pro_avg_Norm) AND sec_pro_avg_Norm[1] < -1.59) then color = white; 
+
+Plot1(Low*0.996,"Order_Buy",color); 
+end; 
+
+if razvverh(proizv[0]) AND proizv[1] < -2.30 AND proizv[1] < proizv[0] then 
+Plot2(Low*0.996,"Buy",magenta); 
+
+if (razvvniz(proizv[0]) AND avg_proizv[0] < proizv[0] AND proizv[1] > proizv[0] AND 
+((proizv[1] > {1.65}1.7 AND proizv[1] < 2.30 AND proizv[7] < proizv[1]) 
+OR (avg_proizv[1] < 0.38 AND proizv[1] > 0.7 AND proizv[7] < proizv[1]))) 
+OR (razvvniz(sec_pro_avg_Norm) AND sec_pro_avg_Norm[1] > 1.59) then 
+begin 
+color = blue; 
+if (avg_proizv[1] < 0.38 AND proizv[1] > 0.7) then color = yellow; 
+if (razvvniz(sec_pro_avg_Norm) AND sec_pro_avg_Norm[1] > 1.59) then color = white; 
+
+Plot3(High*1.004,"Order_Sell",color); 
+end; 
+
+if razvvniz(proizv[0]) AND proizv[1] > 2.30 AND proizv[1] > proizv[0] then 
+Plot4(High*1.004,"Sell",cyan); 
+

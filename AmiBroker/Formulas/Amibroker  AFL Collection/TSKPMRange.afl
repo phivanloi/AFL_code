@@ -1,0 +1,18 @@
+
+mp = 0.5 * (High + Low);
+tightstop = E_TSKPTIGHTSTOP(High,Low,Close);
+stopline = E_TSKPSTOPLINE(High,Low,Close);
+Color = colorWhite;
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+	if( mp[i] > stopline[i] && mp[i] > tightstop[i]  )
+		Color[i] = colorBlue;
+	else if(  mp[i] < stopline[i] && mp[i] < tightstop[i])
+		Color[i] = colorRed;
+	else
+		Color[i] = colorWhite;
+} 
+
+Plot( 0, "MRange0", Color, styleNoDraw );
+Plot( 1, "MRange1", Color, styleNoLabel + styleArea + styleHistogram ); 

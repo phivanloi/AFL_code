@@ -1,0 +1,20 @@
+//Williams %R -20/-80 Peaks with stops ***Non-Optimized***
+
+//Enters long/short trades on Troughs/Peaks using Williams %R. Exit trades when the oscillator goes back over the signal lines.
+
+pds=14;
+
+R = ((HHV(H,pds) - C) /(HHV (H,pds) -LLV (L,pds))) *-100;
+
+Buy=Ref(R,-1) < -80 AND MA(R,2) <= R;
+Sell=Ref(R,-1) > -80 AND R < -80 OR Ref(R,-2) > -20 AND MA(R,2) >= R;
+Short=Ref(R,-2) > -20 AND MA(R,2) >= R;
+Cover=Ref(R,-1) < -20 AND R > -20 OR Ref(R,-1) < -80 AND MA(R,2) <=R;
+
+Filter=Buy OR Sell OR Short OR Cover;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); Short=ExRem(Short,Cover); Cover=ExRem(Cover,Short);
+
+AddColumn(Buy,"Buy");
+AddColumn(Sell,"sell");
+AddColumn(Short,"short");
+AddColumn(Cover,"cover");

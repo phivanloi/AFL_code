@@ -1,0 +1,50 @@
+_SECTION_BEGIN("RSI");
+SetChartOptions(0,0,ChartGrid30|ChartGrid70,0,100);
+periods = Param( "Periods", 14, 1, 200, 1 );
+z = RSI( periods);
+ 
+RSILineColor = ParamColor("RSI Line Color",colorGreen);
+RSIOverboughtColor = ParamColor("RSI Overbought Color",Colorcustom6);
+RSIOversoldColor = ParamColor("RSI Oversold Color",colorRed);
+ 
+ 
+Plot( z, _DEFAULT_NAME(), RSILineColor , styleThick  );
+Plot( 50, _DEFAULT_NAME(), RSILineColor , styleDashed|styleNoTitle  );
+Plot( 70, _DEFAULT_NAME(), RSILineColor , styleLine|styleNoTitle  );
+Plot( 30, _DEFAULT_NAME(), RSILineColor , styleLine|styleNoTitle  );
+PlotOHLC(z,z,50,z,"",IIf(z>50,RSIOverboughtColor,RSIOversoldColor),styleCloud|styleClipMinMax,30,70);
+ 
+ 
+_SECTION_END();
+_SECTION_BEGIN("Price");
+Title = EncodeColor(colorYellow)+ FullName()+"("+Name()+") - " + "Hotline :" + EncodeColor(colorRed)+ " 0372.095.129" + EncodeColor(colorYellow)+ " - Website :  "+ EncodeColor(colorRed)+"Nududo.com" + EncodeColor(colorWhite) + " - " + Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +"\n" +EncodeColor(colorWhite) +"Mo cua-"+O+"  "+"Cao-"+H+"  "+"Thap-"+L+"  "+
+"Dong cua-"+C+"  "+ "Khoi Luong= "+ WriteVal(V);
+_SECTION_BEGIN("Magnified Market Price");
+FS=Param("Font Size",35,11,100,1);
+GfxSelectFont("Times New Roman", 34, 700, italic = True, underline = False, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor( ParamColor("Color",colorCustom9) );
+Hor=Param("Horizontal Position",234,1,1200,1);
+Ver=Param("Vertical Position",1,1,1,1);
+GfxTextOut(""+C,Hor-150 , Ver+30 );
+GfxTextOut( Name(), Hor,Ver-50 );
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+GfxSelectFont("Times New Roman", 14, 700, italic =True, underline = False, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor(ParamColor("Color",colorCustom9) );
+GfxTextOut(""+DD+" ("+xx+"%)", Hor-150, Ver+85 );
+GfxSelectFont("arial", 18 );
+GfxSetTextColor(ParamColor("dong",colorCustom8) );
+GfxSetTextAlign( 6 );// center alignment
+GfxSetTextColor( ColorRGB( 255, 255, 0 ) );
+GfxSetBkMode(0); // transparent
+GfxSelectFont("UVN But Long 1", Status("pxheight")/26 );
+GfxTextOut( "RSI QUA MUA QUA BAN", Status("pxwidth")/2, Status("pxheight")/18 );
+GfxSetTextColor( colorRed );
+GfxSelectFont("UVN But Long 1", Status("pxheight")/36 );
+GfxTextOut( "Hotline : 0372.095.129 - Website : Nududo.com" , Status("pxwidth")/2, Status("pxheight")/8 );
+GfxTextOut( "("+Name()+") "+ FullName() , Status("pxwidth")/2, Status("pxheight")/6 );
+_SECTION_END();

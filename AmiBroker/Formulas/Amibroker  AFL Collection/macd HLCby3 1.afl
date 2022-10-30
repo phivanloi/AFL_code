@@ -1,0 +1,24 @@
+_SECTION_BEGIN("macd HLCby3");
+
+pivot = (H +L+C)/3; 
+piv1 = EMA (pivot,Param("short ema",5,1,20,1));
+piv2 = EMA (pivot,Param("med ema",12,1,20,1));
+piv3 = EMA (pivot,Param("fast ema",34,1,50,1));
+
+diff1 = piv2-piv3 ;
+diff2 = piv1-piv2 ;
+diff3 = piv1-piv3 ;
+
+diff1_col = IIf (diff1 > Ref(diff1,-1),colorBlue,colorRed);
+diff2_col = IIf (diff2 > Ref(diff2,-1),colorBlue,colorRed);
+diff3_col = IIf (diff3 > Ref(diff3,-1),colorBlue,colorRed);
+
+
+//Plot(diff1, "diff1", diff1_col, styleThick);
+//Plot(diff2, "diff2", diff2_col, styleThick);
+Plot (diff3, "diff3", diff3_col, styleThick);
+Plot(0,"",colorGrey40);
+
+Plot( BBandTop( diff3, 5, 0.5 ), "BBTop", colorYellow, styleDashed ); 
+Plot( BBandBot( diff3, 5, 0.5 ), "BBBot", colorYellow, styleDashed ); 
+_SECTION_END();

@@ -1,0 +1,60 @@
+_SECTION_BEGIN("DPO + EMA +  MACD"); 
+// Written by Barry Scarborough 2/15/05
+// Updated 8/10/05 - corrected DPO formula
+// 
+// This atempts to combine the three indicators into one timing signal
+
+tgl = ParamToggle("Signal", "No|YES", 1); //  default 1 to show signal spikes
+// ema 
+pf = ParamField("Ema Price field", 3);
+perFast = Param("EMA fast period", 5, 2, 40, 1, 10 );
+PerSlow = Param("EMA slow period", 15, 2, 100, 1, 10 );
+pFast = EMA(pf, perFast );
+pSlow = EMA(pf, PerSlow );
+upEma = IIf(pFast > pSlow , 1, 0);		// fast ema is above slow, long condition
+
+// macd 
+r1 = Param( "Macd Fast period", 12, 2, 200, 1 );
+r2 = Param( "Macd Slow period", 26, 2, 200, 1 );
+r3 = Param( "Macd Signal period", 9, 2, 200, 1 ); 
+myMacd = MACD(r1,r2);
+mySig = Signal(r1,r2,r3); 
+upMacd = IIf(myMacd > mySig ,1, 0);
+
+// dpo - detrended price oscillator
+n = Param("DPO period", 14, 2, 100, 1);
+p = int( ( n / 2) + 1);
+movA = MA(C, n);
+dpo = C -  Ref(movA, -p); // change to use C, 8/10/05
+upDpo = dpo > 0; 
+dnDpo = dpo < 0; 
+
+// signal conditions
+myBuy   = upEma AND upDpo AND upMacd;
+myShort = !upEma AND dnDpo AND !upMacd; 
+
+Buy = Cover = ExRem(myBuy, myShort);
+Short = Sell = ExRem(myShort, myBuy);
+
+if(tgl)
+{
+Plot( Buy * C, "DPO(" + NumToStr(n,1.0) + 
+	") EMA(" + NumToStr(perSlow,1.0) + "," + NumToStr(perSlow,1.0) + 
+	") MACD(" + NumToStr(r1,1.0) + "," + NumToStr(r2,1.0) + "," + NumToStr(r3,1.0) +
+	") - myBuy ",  colorGreen);
+Plot( -Short * C , "myShort ", colorRed); 
+}
+else
+{
+Plot(pFast, "EMA1 MACD DPO- EMA1", colorRed); 
+Plot(pSlow, "EMA2", colorGreen);  
+Plot(myMacd, "MACD", colorBlack);
+Plot(mySig, "Signal", colorBrown);
+Plot(dpo, "DPO", colorBlue);
+} 
+// explore vars
+Filter = Buy OR Short; 
+AddColumn(Close, "Close", 1.2);
+AddColumn(Buy, "Buy/Cover", 1.0);
+AddColumn(Short, "Sell/Short",1.0);
+_SECTION_END();

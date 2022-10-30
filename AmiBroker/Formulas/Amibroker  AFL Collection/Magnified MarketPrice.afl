@@ -1,0 +1,21 @@
+SetChartOptions(0,chartShowArrows|chartShowDates);
+GraphXSpace=5;
+Plot(C,"",colorBlack,styleCandle);
+
+_SECTION_BEGIN("Magnified Market Price");
+//by Vidyasagar, vkunisetty@yahoo.com// 
+FS=Param("Font Size",30,11,100,1);
+GfxSelectFont("Times New Roman", FS, 700, True ); 
+GfxSetBkMode( colorWhite );  
+GfxSetTextColor( ParamColor("Color",colorGreen) ); 
+Hor=Param("Horizontal Position",1050,1,1200,1);
+Ver=Param("Vertical Position",1,1,830,1); 
+GfxTextOut(""+C, Hor , Ver );
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+GfxSelectFont("Times New Roman", 11, 700, True ); 
+GfxSetBkMode( colorWhite );  
+GfxSetTextColor(ParamColor("Color",colorGreen) ); 
+GfxTextOut(""+DD+"  ("+xx+"%)", Hor , Ver+45 );
+_SECTION_END();

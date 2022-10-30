@@ -1,0 +1,38 @@
+_SECTION_BEGIN("VarMACD");
+
+MAType = ParamList("MA Type", "Simple,Exponential,Double Exponential,Triple Exponential,Wilders,Weighted");
+PriceField = ParamField("Price Field");
+
+r1 = Param( "Fast avg", 12 );
+r2 = Param( "Slow avg", 26 );
+r3 = Param( "Signal avg", 9 );
+
+if (MAType == "Simple")					{ a = MA(PriceField, r1); b = MA(PriceField, r2); }
+if (MAType == "Exponential")			{ a = EMA(PriceField, r1); b = EMA(PriceField, r2); }
+if (MAType == "Double Exponential")	{ a = DEMA(PriceField, r1); b = DEMA(PriceField, r2); }
+if (MAType == "Triple Exponential")	{ a = TEMA(PriceField, r1); b = TEMA(PriceField, r2); }
+if (MAType == "Wilders")				{ a = Wilders(PriceField, r1); b = Wilders(PriceField, r2); }
+if (MAType == "Weighted")				{ a = WMA(PriceField, r1); b = WMA(PriceField, r2); }
+
+varMACD = a - b;
+
+if (MAType == "Simple")					{ VarSignal = MA(VarMACD, r3); }
+if (MAType == "Exponential")			{ VarSignal = EMA(VarMACD, r3); }
+if (MAType == "Double Exponential")	{ VarSignal = DEMA(VarMACD, r3); }
+if (MAType == "Triple Exponential")	{ VarSignal = TEMA(VarMACD, r3); }
+if (MAType == "Wilders")				{ VarSignal = Wilders(VarMACD, r3); }
+if (MAType == "Weighted")				{ VarSignal = WMA(VarMACD, r3); }
+
+
+Plot( ml = varMACD, StrFormat(_SECTION_NAME()+"(%g,%g)", r1, r2), ParamColor("MACD color", colorRed ), ParamStyle("MACD style") );
+Plot( sl = VarSignal, "Signal" + _PARAM_VALUES(), ParamColor("Signal color", colorBlue ), ParamStyle("Signal style") );
+
+//HistogramColor = IIf(ml-sl > Ref(ml,-1)-Ref(sl,-1), colorSeaGreen, colorPink);
+//Plot( ml-sl, "MACD Histogram", HistogramColor, styleNoLabel | styleNoTitle | styleHistogram | styleThick );
+
+//ribbonHistogram = IIf( ml-sl > 0, colorGreen, IIf( ml-sl < 0, colorRed, colorLightGrey) );
+//Plot(1, "", ribbonHistogram, styleOwnScale | styleArea | styleNoLabel | styleNoTitle, -0.5, 100);
+GraphXSpace = 5;
+
+
+_SECTION_END();

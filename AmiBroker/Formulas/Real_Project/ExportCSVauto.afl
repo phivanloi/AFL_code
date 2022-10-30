@@ -1,0 +1,92 @@
+Filter=1; 
+ 
+AddColumn(O,"Open"); 
+AddColumn(H,"High"); 
+AddColumn(L,"Low"); 
+AddColumn(C,"Close"); 
+AddColumn(V,"Volume",1.0); 
+AddColumn(OI,"Open Interest",1.0); 
+AddColumn(IIf(Name() == "VN30F1M", C * 0.18 * V * 100000,  C*V),"Value",1.0); 
+AddColumn(H-L,"Spread", 1.2);
+AddColumn(ATR(5), "ATR5", 1.2);
+AddColumn(ATR(10), "ATR10", 1.2); 
+AddColumn(ATR(20), "ATR20", 1.2); 
+ 
+AddColumn(HHV(H,30), "HHV");
+AddColumn(HHVBars(C,30), "HHVBar");
+AddColumn(LLV(L,30), "LLV");
+AddColumn(LLVBars(C,30), "LLVBar");
+AddColumn(Trough(C,30), "Trough");
+AddColumn(TroughBars(C,30), "TroughBar");
+AddColumn(LLV(L,30), "LLV");
+AddColumn(LLVBars(C,30), "LLVBar");
+/*
+AddColumn(atr1,"Spread_ATR10", 1.2);
+AddColumn(atr2,"Spread_ATR20", 1.2);
+AddColumn(atr0,"Spread_ATR1", 1.2);
+AddColumn(atr01,"Spread_ATR5", 1.2);
+AddColumn(emac1, "EMA1", 1.2);
+AddColumn(emac2, "EMA2", 1.2); 
+AddColumn(self_corr, "self_corr", 1.2);
+AddColumn(corr_vn30, "corr_VN30", 1.2); 
+AddColumn(corr_ATR10, "corr_ATR10", 1.2);
+AddColumn(corr_ATR20, "corr_ATR20", 1.2); 
+AddColumn(corr_ATR1, "corr_ATR1", 1.2);
+AddColumn(corr_ATR5, "corr_ATR5", 1.2); 
+
+AddColumn(pd, "Pivot Daily", 1.2);
+AddColumn(sd1, "Support 1 Daily", 1.2);
+AddColumn(sd2, "Support 2 Daily", 1.2);
+AddColumn(sd3, "Support 2 Daily", 1.2);
+AddColumn(rd1, "Resistance 1 Daily", 1.2);
+AddColumn(rd2, "Resistance 2 Daily", 1.2);
+AddColumn(rd3, "Resistance 3 Daily", 1.2);
+AddColumn(pw, "Pivot Weekly", 1.2);
+AddColumn(sw1, "Support 1 Weekly", 1.2);
+AddColumn(sw2, "Support 2 Weekly", 1.2);
+AddColumn(rw1, "Resistance 1 Weekly", 1.2);
+AddColumn(rw2, "Resistance 2 Weekly", 1.2);
+AddColumn(pm, "Pivot Weekly", 1.2);
+AddColumn(sm1, "Support 1 Monthly", 1.2);
+AddColumn(sm2, "Support 2 Monthly", 1.2);
+AddColumn(rm1, "Resistance 1 Monthly", 1.2);
+AddColumn(rm2, "Resistance 2 Monthly", 1.2);
+ 
+*/
+
+fmkdir("c:\\Users\\Admins\\Desktop\\stock_price\\amibroker_data\\");
+SetBarsRequired(100000,100000);
+fname = "c:\\Users\\Admins\\Desktop\\stock_price\\amibroker_data\\" +  Name() + ".csv";
+fh = fopen( fname, "w" );
+if( fh ) 
+{ 
+  dt = DateTime();
+  for( i = 0; i < BarCount; i++ )
+  {
+    line = Name() + "," + 
+		   DateTimeToStr( dt[ i ] ) + "," +
+           Open[ i ] + "," +
+           High[ i ] + "," +
+           Low[ i ] + "," +
+           Close[ i ] + "," +
+           Volume[ i ] + "," +
+      //     High[ i ] - Low [ i ] + "," +
+       //    Close[ i ] *  Volume[ i ] + "\n"; 
+ 
+            OI[ i ] + "\n";
+    fputs( line, fh );
+   // fputs( line, fh );
+  }
+ 
+  fclose( fh );
+} 
+else 
+{ 
+   "ERROR: file can not be open"; 
+} 
+
+/*
+Buy=Sell=0; // for scan
+Filter = Status("lastbarinrange");
+AddTextColumn("Export done", "Status")
+ */

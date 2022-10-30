@@ -1,0 +1,72 @@
+//http://amibrokertraders.blogspot.com
+
+SetChartOptions(1, chartShowDates);   // put dates at bottom of chart
+
+pr = Param("Elliot Wave minimum % move", 2, 1, 100);
+// Beginner Elliot Wave stuff 
+EWpk = PeakBars(H, pr, 1) == 0;
+EWtr = TroughBars(L, pr, 1) == 0;
+
+// Intermediate Elliot Wave stuff 
+zz = Zig(C, pr);
+zzHi = Zig(H, pr);
+zzLo = Zig(L, pr);
+Avg = (zzHi+zzLo)/2;
+
+// Advanced Elliot Wave stuff 
+RetroSuccessSecret = IIf(EWpk, zzHi, IIf(EWtr, zzLo, IIf(Avg > Ref(Avg,-1), H, L)));
+EW = Zig(RetroSuccessSecret, pr);
+
+// Plot on price chart 
+Plot(C, "Close", colorBlack, styleCandle);
+Plot(EW, "EW", colorBlue, styleLine);
+
+// Plot buy and sell arrows 
+Buy = TroughBars(EW, pr, 1) == 0;
+Sell = PeakBars(EW, pr, 1) ==0;
+Buy = ExRem(Buy, Sell);
+Sell = ExRem(Sell, Buy);
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorBlue,0,L,-15);
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorBlue,0,L,-15);
+PlotShapes(IIf(Buy,shapeSmallCircle,shapeNone),colorWhite,0,BuyPrice,0);
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed,0,H,-15);
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed,0,H,-15);
+PlotShapes(IIf(Sell,shapeSmallCircle,shapeNone),colorWhite,0,SellPrice,0);
+
+_SECTION_BEGIN("Elliot wave indicator 2 % exact");
+SetChartOptions(1, chartShowDates);   // put dates at bottom of chart
+
+pr = Param("Elliot Wave minimum % move", 2, 1, 100);
+// Beginner Elliot Wave stuff 
+EWpk = PeakBars(H, pr, 1) == 0;
+EWtr = TroughBars(L, pr, 1) == 0;
+
+// Intermediate Elliot Wave stuff 
+zz = Zig(C, pr);
+zzHi = Zig(H, pr);
+zzLo = Zig(L, pr);
+Avg = (zzHi+zzLo)/2;
+
+// Advanced Elliot Wave stuff 
+RetroSuccessSecret = IIf(EWpk, zzHi, IIf(EWtr, zzLo, IIf(Avg > Ref(Avg,-1), H, L)));
+EW = Zig(RetroSuccessSecret, pr);
+
+// Plot on price chart 
+Plot(C, "Close", colorBlack, styleCandle);
+Plot(EW, "EW", colorBlue, styleLine);
+
+// Plot buy and sell arrows 
+Buy = TroughBars(EW, pr, 1) == 0;
+Sell = PeakBars(EW, pr, 1) ==0;
+Buy = ExRem(Buy, Sell);
+Sell = ExRem(Sell, Buy);
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorBlue,0,L,-15);
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorBlue,0,L,-15);
+PlotShapes(IIf(Buy,shapeSmallCircle,shapeNone),colorWhite,0,BuyPrice,0);
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed,0,H,-15);
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed,0,H,-15);
+PlotShapes(IIf(Sell,shapeSmallCircle,shapeNone),colorWhite,0,SellPrice,0);
+
+AlertIf( Buy, "SOUND C:\\Windows\\Media\\ringin.wav", "Audio alert", 2 );
+AlertIf( Sell, "SOUND C:\\Windows\\Media\\ringout.wav", "Audio alert", 2 );
+_SECTION_END();

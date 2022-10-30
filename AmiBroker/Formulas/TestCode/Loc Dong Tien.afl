@@ -1,0 +1,33 @@
+//Huy Tuan - 0937798534
+BarColor=IIf(C>O,colorBlue,IIf(C<O,colorCustom12,colorBlack));
+GraphXSpace = Param("Zoom",2,1);
+PlotOHLC( Close,  High,  Low,  Close, "", BarColor, styleBar |styleThick );//Price
+// Range Calculations //
+r=H-L; //daily range
+Hb=(H+L)/2; //Half Back
+ar=MA(r,30); //avg range
+uwrb=IIf(r>2*ar,1,Null); // ultra wide range bar
+wrb=IIf(r>1.33*ar AND r<2*ar,1,Null); //wide range bar
+
+Filter=
+C>3 
+AND C>O
+AND C>(H+L)/2
+AND ((C-O)/O)>0.025
+AND C>Ref(C,-1)
+AND C>Ref(HHV(H,5),-1)
+AND H==HHV(H,5)
+AND V>MA(V,15)
+AND V==HHV(V,5)
+AND V > 100000
+AND MA(V,15)>100000
+AND C*V>1000000 
+AND C*V<500000000
+AND (uwrb OR wrb);
+////////
+PlotShapes(Filter*shapeUpArrow,colorGreen,0,L,-20);
+///////
+AddColumn(C,"Close",1.2,colorWhite,IIf(C>Ref(C,-1),colorGreen,colorRed),50);
+AddColumn(V,"Volume",1,colorWhite,IIf((C>=4 AND V>=1.2*MA(V,30) AND C*V>1000000),colorGreen,colorRed),90);
+AddColumn(C*V,"Gia tri GD ",1,colorWhite,colorGreen,90);
+AddtextColumn(WriteIf(Filter,"        BUY",""),"DONG TIEN",1.0,colorWhite,IIf(Filter,colorGreen,colorWhite),100);

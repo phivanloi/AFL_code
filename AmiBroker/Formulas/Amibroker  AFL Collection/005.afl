@@ -1,0 +1,14 @@
+TA = 2.5*StDev(C,20)/MA(C,20)*1000;
+BA = -2.5*StDev(C,20)/MA(C,20)*1000;
+TB = 1.5*StDev(C,20)/MA(C,20)*1000;
+BB = -1.5*StDev(C,20)/MA(C,20)*1000;
+Op=(O/MA(C,20)-1)*1000;
+Hi=(H/MA(C,20)-1)*1000;
+Lo=(L/MA(C,20)-1)*1000;
+Cl=(C/MA(C,20)-1)*1000;
+
+Plot(TA,"",4,4);
+Plot(BA,"",4,4);
+Plot(TB,"",7,4);
+Plot(BB,"",7,4);
+PlotOHLC(Op,Hi,Lo,Cl,"",1,styleCandle);

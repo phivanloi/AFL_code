@@ -1,0 +1,70 @@
+// you would need to 
+// adjust symbol used in Foreign() function calls 
+// according to symbology of your data provider 
+
+SEC2 = Foreign( "^XAU", "C" ); 
+SEC3 = Foreign( ".CRB", "C" ); 
+SEC5 = 100 - Foreign( "@:YBAc1", "C" ); 
+SEC6 = Foreign( "EURJPY=", "C" ); 
+sec1BOL = 1 + ( ( C - MA( C, 30 ) + 2 * StDev( C, 30 ) ) / ( 4 * StDev( C, 30 ) + .0001 ) ); 
+sec2BOL = 1 + ( ( SEC2 - MA( SEC2, 30 ) + 2 * StDev( SEC2, 30 ) ) / ( 4 * StDev( SEC2, 30 ) + .0001 ) ); 
+sec3BOL = 1 + ( ( SEC3 - MA( SEC3, 30 ) + 2 * StDev( SEC3, 30 ) ) / ( 4 * StDev( SEC3, 30 ) + .0001 ) ); 
+DIV2 = ( sec2BOL - sec1BOL ) / sec1bol * 100; 
+DIV3 = ( sec3BOL - sec1BOL ) / sec1bol * 100; 
+DIV1 = Max( DIV2, DIV3 ); 
+
+// divergence plots 
+Plot( Div2, "Divergence XAU", colorDarkGreen ); 
+Plot( Div3, "Divergence CRB", colorDarkRed ); 
+
+Buy = ( HHV( DIV1, 3 ) > 10 AND 
+         DIV1 < Ref( DIV1, -1 ) AND 
+        ROC( C, 2 ) > 0 AND 
+        C > ( 1 + .7 / 100 ) * LLV( L, 4 ) AND 
+        MA( SEC5, 40 ) > Ref( MA( SEC5, 40 ), -1 ) ) 
+      OR 
+       ( DIV1 > 40 AND 
+         DIV2 + DIV3 > 80 AND 
+         DIV1 < Ref( DIV1, -1 ) AND 
+        C > Ref( C, -1 ) AND 
+        C > ( 1 + .7 / 100 ) * LLV( L, 4 ) ) 
+      OR 
+       ( Cross( MA( C, 15 ), MA( C, 50 ) ) AND 
+        MA( SEC5, 40 ) > Ref( MA( SEC5, 40 ), -1 ) ); 
+
+Sell = ( Cross( EMA( MACD(), 9 ), MACD() ) 
+         AND HHV( MACD(), 5 ) > Ref( HHV( MACD(), 50 ), -5 ) ) 
+       OR 
+       ( DIV1 < -30 AND 
+         ( ROC( SEC2, 1 ) < -.5 OR 
+           ROC( SEC3, 1 ) < -.5 ) AND 
+         C < ( 1 - .7 / 100 ) * HHV( H, 4 ) ) 
+       /*Negative Divergence*/ 
+       OR 
+       ( DIV1 < 0 
+         AND ROC( SEC6, 2 ) < -1 
+         AND C < ( 1 - .7 / 100 ) * HHV( H, 4 ) 
+         AND MA( SEC6, 40 ) < Ref( MA( SEC6, 40 ), -1 ) ); 
+      /* Carry trade liquidation */ 
+
+Short = ( LLV( DIV1, 3 ) < -10 AND 
+           DIV1 > Ref( DIV1, -1 ) AND 
+          ROC( C, 2 ) < 0  AND 
+          C < ( 1 - .7 / 100 ) * HHV( H, 4 ) AND 
+          MA( SEC5, 40 ) < Ref( MA( SEC5, 40 ), -1 ) ) 
+        OR 
+         ( DIV1 < -20 
+          AND DIV2 + DIV3 < -40 AND 
+           DIV1 > Ref( DIV1, -1 ) AND 
+          C < Ref( C, -1 ) AND 
+          C < ( 1 - .7 / 100 ) * HHV( H, 4 ) ) OR 
+         ( Cross( MA( C, 50 ), MA( C, 15 ) ) 
+          AND MA( SEC5, 40 ) < Ref( MA( SEC5, 40 ), -1 ) ); 
+
+Cover = ( Cross( MACD(), MA( MACD(), 9 ) )  AND 
+          LLV( MACD(), 5 ) < Ref( LLV( MACD(), 50 ), -5 ) ) OR 
+         ( DIV1 > 30 
+          AND ( ROC( SEC2, 1 ) > .5 OR 
+                ROC( SEC3, 1 ) > .5 ) AND 
+          C > ( 1 + .7 / 100 ) * HHV( H, 4 ) ); 
+

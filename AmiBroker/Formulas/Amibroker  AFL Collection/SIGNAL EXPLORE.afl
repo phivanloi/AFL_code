@@ -1,0 +1,166 @@
+/*	SIGNAL EXPLORE.afl, Bill Barnard, 2/10/06	
+	Reads two FNU-type files , one holding information about the Buys of a signal, 
+	and the other the Sells, and then calculates the trading result.  The files can have 
+	values of either 2 and 1 for True and False, or 1 and 0 for True and False. They 
+	can come from either the FastTrack or the AmiBroker database.  Use in AA, verify
+	that parameters are as desired, run Explore with symbols and dates of interest.
+*/
+
+Version(4.72);		//	requires at least this version of Amibroker
+
+#include <util1x.afl>
+
+//	set up the parameters
+_SECTION_BEGIN("Trading Details");
+MinAge		= Param("Minimum Fund Age (market days)", 500, 20, 5000, 20);
+ShFund		= StrToUpper(ParamStr("Short Fund", ""));
+trades		= ParamList("Trading Style" , "Long Trades Only,Long & Short,Short Trades Only", 0);
+tradetype 	= IIf(trades=="Long Trades Only", 0, IIf(trades=="Long & Short", 1, 2));
+MMFund		= StrToUpper(ParamStr("Money Market Fund", ""));
+riskfree		= Param("Risk Free Annual Return", 3, 1, 20, 1);
+dela			= ParamList("Trading Delay", "Delay = 0,Delay = 1,Delay = 2,Delay = 3,Delay = 4,Delay = 5", 1);
+delay			= IIf(dela=="Delay = 0", 0, IIf(dela=="Delay = 1", 1, IIf(dela=="Delay = 2", 2, IIf(dela=="Delay = 3", 3,
+					IIf(dela=="Delay = 4", 4, 5)))));
+bDays			= StrToUpper(ParamStr("Symbol for Buy Signal File", "~RUBC"));
+sDays			= StrToUpper(ParamStr("Symbol for Sell Signal File", "~RUSC"));
+_SECTION_END();
+
+BIn			= BarIndex();
+startbar		= LastValue(ValueWhen(Status("firstbarinrange"), BIn));
+endbar		= LastValue(ValueWhen(Status("lastbarinrange"), BIn));
+barintest		= BIn >= startbar AND BIn <= endbar;
+
+Buy1 			= Foreign(bDays, "Close");
+Sell1			= Foreign(sDays, "Close");
+
+Buy			= IIf(Highest(Buy1)==2, Buy1 - 1, Buy1);
+Sell			= IIf(Highest(Buy1)==2, Sell1 - 1, Sell1);
+
+// make every bar either a buy condition (state) or sell condition
+n	= 0;
+while (Buy[n]==0 AND Sell[n]==0 AND n < BarCount - 1)	{n = n + 1; }
+if (Buy[n]==1)
+{
+	LBuyC 	= Flip(Buy, Sell);
+	SbuyC		= (NOT LBuyC);
+}
+else
+{
+	SbuyC		= Flip(Sell, Buy);
+	LBuyC 	= (NOT SbuyC);
+}
+
+
+BHBuyC		= barintest;	//	Buy condition for buy and hold
+
+//	incorporate delay
+debar			= startbar + delay;
+LBuyC 		= IIf(BIn>debar, Ref(LBuyC, -delay-1), IIf(BIn==debar, Ref(LBuyC, -delay), LBuyC));
+SBuyC		= IIf(BIn>debar, Ref(SBuyC, -delay-1), IIf(BIn==debar, Ref(SBuyC, -delay),SBuyC));
+BHBuyC 		= IIf(BIn>debar, Ref(BHBuyC , -delay-1), IIf(BIn==debar, Ref(BHBuyC , -delay), BHBuyC ));
+
+
+//	make an inverse of the fund if no index is specified
+fun 			= Close;
+if (ShFund=="")	
+{
+	shrt 		= 0;
+	rc			= 0.01*ROC(fun, 1);
+	Ohead	= 0;//0.0001;	//  <<<< Put in a number for short fund overhead, if desired
+	shrt[0]	= Close[0];
+	for (i = 1; i < BarCount; i++)    shrt[i] =  shrt[i-1] * (1 -rc[i] - Ohead); //  Create inverse of fund
+}
+else 	shrt	= Foreign(ShFund, "Close");
+
+fun			= IIf(tradetype != 2, fun, 0);		//  Determine via Parameters whether to trade long
+ind				= IIf(tradetype != 0, shrt, 0);	//  Determine via Parameters whether to trade short
+LBuyC			= IIf(tradetype != 2, LBuyC, 0);	//  Determine via Parameters whether to trade long
+SBuyC		= IIf(tradetype != 0, SBuyC, 0);	//  Determine via Parameters whether to trade short
+
+//	establish money market buy condition
+MMBuyC		= IIf((LBuyC + SBuyC)==0, 1, 0);
+
+//	find the daily rate of change of the money market fund
+if (MMFund=="" )	{	MM = 0;	RCMM	 = 0;	MMFund = "0%";	}
+else
+{
+	MM		= Foreign(MMFund, "Close");
+	RCM		= Nz(ROC(MM, 21)/21 );					//	this and the next line make a MM
+	RCMM		= Nz(Ref(ROC(MM, 21)/21, 21) );		//	with daily increases, like Trade
+
+	//RCMM		= Nz(ROC(MM, 1));					// 	this MM increases once a month, like FastTrack
+}
+
+
+//	calculate the trading result and the buy and hold result
+result 		= 1000;
+bh				= 1000;
+dailyGain 	= LBuyC*ROC(fun,1) + SBuyC*ROC(ind, 1) + MMBuyC*RCMM;
+bhGain		= BHBuyC*ROC(Close, 1);
+
+for ( m = startbar+1; m < endbar+1; m++)
+{
+	result[m] = result[m-1]	*0.01*(100 + dailyGain[m]);
+	bh[m]		= bh[m-1]		*0.01*(100 + bhGain[m]);
+}
+
+
+//	calculate the performance measures
+period		= BarsSince(BIn==startbar);
+Length		= endbar - startbar;
+Yrs 			= Length / 251.5;		//	252 to match FT's calc of ann gain
+
+resGain		= 100*(result[endbar] / result[startbar] - 1);
+resAnnGn	= 100*LastValue((((resGain)/100+1)^(1 / yrs)) - 1);
+resHiPt		= HHV(result, period +1);
+resCdd		= 100*(result - resHiPt) / resHiPt;
+resMDD		= Nz(LastValue(Lowest(resCdd)));
+resUI			= LastValue(sqrt(Sum(resCdd^2, Length)/Length));
+resUPI		= Nz((resAnnGn - riskfree) / resUI);
+resRC			= IIf(BarIndex()==0, 0, ROC(result, 1));
+resStdDev 	= LastValue(ValueWhen(BarIndex()==endbar, StDev(resRC, Length)));
+resSharp		= Nz((resAnnGn - (riskfree + 2)) / (resStdDev*sqrt(252)));
+resAOM		= Nz(-resAnnGn/resMDD);
+
+bhGain		= 100*(bh[endbar] / bh[startbar] - 1);
+bhAnnGn		= 100*LastValue((((bhGain)/100+1)^(1 / yrs)) - 1);
+bhHiPt		= HHV(bh, period +1);
+bhCdd			= 100*(bh - bhHiPt) / bhHiPt;
+bhMDD		= Nz(LastValue(Lowest(bhCdd)));
+bhUI			= LastValue(sqrt(Sum(bhCdd^2, Length)/Length));
+bhUPI			= Nz((bhAnnGn - riskfree) / bhUI);
+bhRC			= IIf(BarIndex()==0, 0, ROC(bh, 1));
+bhStdDev 	= LastValue(ValueWhen(BarIndex()==endbar, StDev(bhRC, Length)));
+bhSharp		= Nz((bhAnnGn - (riskfree + 2)) / (bhStdDev*sqrt(252)));
+bhAOM		= Nz(-bhAnnGn/bhMDD);
+
+RRR			= resAnnGn*resAOM/10;
+RRI			= (resAnnGn*resAOM) / (bhAnnGn*bhAOM);
+
+
+//	output the results to a table
+Filter 				= BIn==endbar AND bhMDD < -2 AND StrLeft(Name(), 1) !="$" AND BarCount > MinAge;	//	 
+AddTextColumn(MMFund, "Index", 1.2, 16, 55, 50);
+AddColumn(Buy, "Buy", 1.0, 16, 55, 30);
+AddColumn(Sell, "Sell", 1.0,16, 55, 30);
+AddColumn(result,"Result", 1.2, 16, 55, 65);
+AddTextColumn("Trading-->", " ", 1.2, 55, 32, 60);
+AddColumn(Nz(resAnnGn), "AnnGn %", 1.2, 16, 55, 60);
+AddColumn(Nz(resGain), "Gain %", 1.2, 16, 55, 60);
+AddColumn(Nz(resMDD), "MDD %", 1.2, 16, 55, 50);
+AddColumn(Nz(resUI), "UI %", 1.2, 16, 55, 40);
+AddColumn(Nz(resStdDev), "SD  %", 1.2, 16, 55, 45);
+AddColumn(Nz(resSharp), "Sharpe", 1.2, 16, 55, 50);
+AddColumn(Nz(resAOM), "Ann/MDD", 1.2, 16, 51, 65);
+AddColumn(Nz(resUPI), "UPI  %", 1.2, 16, 55, 50);
+AddColumn(RRR, "RRR", 1.2, 16, 42,  40);
+AddColumn(RRI, "RRI", 1.2, 16, 41, 40);
+AddTextColumn("BaH-->", " ", 1.2, 55, 39, 45);
+AddColumn(Nz(bhAnnGn), "AnnGn %", 1.2, 16, 55, 60);
+AddColumn(Nz(bhGain), "Gain %", 1.2, 16, 55, 60);
+AddColumn(Nz(bhMDD), "MDD %", 1.2, 16, 55, 50);
+AddColumn(Nz(bhUI), "UI %", 1.2, 16, 55, 40);
+AddColumn(Nz(bhStdDev), "SD  %", 1.2, 16, 55, 45);
+AddColumn(Nz(bhSharp), "Sharpe", 1.2, 16, 55, 50);
+AddColumn(Nz(bhAOM), "Ann/MDD", 1.2, 16, 55, 65);
+AddColumn(Nz(bhUPI), "UPI  %", 1.2, 16, 55, 50);

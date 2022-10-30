@@ -1,0 +1,21 @@
+Factor=Param("Factor",3,1,10,1);
+Pd=Param("ATR Periods",10,1,100,1);
+Up=(H+L+C)/3+(Factor*ATR(Pd));
+Dn=(H+L+C)/3-(Factor*ATR(Pd));
+PREV1=1;
+PREV1=Ref(IIf(Cross(C,LLV(Up,13)),1,IIf(Cross(HHV(Dn,13),C ),-1,PREV1)),-1);
+Td=IIf(Cross(C,LLV(Up,13)),1,IIf(Cross(HHV(Dn,13),C ),-1,PREV1));
+
+PREV2=Dn;
+PREV2=Ref(IIf(Dn==HighestSince(Cross(Td,0),Dn,1),Dn,PREV2),-1);
+Dnx=IIf(Dn==HighestSince(Cross(Td,0),Dn,1),Dn,PREV2) ;
+
+PREV3=Up;
+PREV3=Ref(IIf(Up==LowestSince(Cross(0,Td),Up,1),Up,PREV3),-1);
+Upx=IIf(Up==LowestSince(Cross(0,Td),Up,1),Up,PREV3);
+
+PREV4=Dnx;
+PREV4=IIf(Td==1,Dnx,IIf(Td==-1,Upx,PREV4));
+ST=IIf(Td==1,Dnx,IIf(Td==-1,Upx,PREV4));
+Plot(ST,"SuperStrength",colorRed,styleLine);
+Plot(C,"",colorGreen,styleCandle);

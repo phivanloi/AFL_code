@@ -1,0 +1,66 @@
+NumColumns =12;
+
+/*Closing Price Reversals Automatic Analysis
+by Larry Lovrencic*/
+
+CPRbuy=O<(L+0.2*(H-L)) AND C>(H-0.2*(H-L)) AND H<Ref(H,-1) AND L<Ref(L,-1) AND C>Ref(C,-1);
+CPRsell=O>(L+0.8*(H-L)) AND C<(H-0.8*(H-L)) AND H>Ref(H,-1) AND L>Ref(L,-1) AND C<Ref(C,-1);
+Column0 = CPRbuy;
+Column0Name = "Closing Price Reversal BUY";
+Column1= CPRsell;
+Column1Name= "Closing Price Reversal SELL";
+
+/*Hook Reversals Automatic Analysis
+by Larry Lovrencic*/
+
+HRbuy=O<(L+0.2*(H-L)) AND C>(H-0.2*(H-L)) AND H<Ref(H,-1) AND L>Ref(L,-1);
+HRsell=O>(L+0.8*(H-L)) AND C<(H-0.8*(H-L)) AND H<Ref(H,-1) AND L>Ref(L,-1);
+Column2 = HRbuy;
+Column2Name = "Hook Reversal BUY";
+Column3= HRsell;
+Column3Name= "Hook Reversal SELL";
+
+/*Island Reversals Automatic Analysis
+by Larry Lovrencic*/
+
+IRbuy=Ref(L,-2)>Ref(H,-1) AND L>Ref(H,-1); 
+IRsell=Ref(H,-2)<Ref(L,-1) AND H<Ref(L,-1);
+Column4 = IRbuy;
+Column4Name = "Island Reversal BUY";
+Column5= IRsell;
+Column5Name= "Island Reversal SELL";
+
+/*Key Reversals Automatic Analysis
+by Larry Lovrencic*/
+
+KRbuy=O<Ref(C,-1) AND L<Ref(L,-1) AND C>Ref(H,-1);
+KRsell=O>Ref(C,-1) AND H>Ref(H,-1) AND C<Ref(L,-1);
+Column6 = KRbuy;
+Column6Name = "Key Reversal BUY";
+Column7= KRsell;
+Column7Name= "Key Reversal SELL";
+
+/*Open/Close Reversals Automatic Analysis
+by Larry Lovrencic*/
+
+OCRbuy=O<(L+0.2*(H-L)) AND C>(H-0.2*(H-L)) AND H<Ref(H,-1) AND L<Ref(L,-1) AND C<Ref(C,-1);
+OCRsell=O>(L+0.8*(H-L)) AND C<(H-0.8*(H-L)) AND H>Ref(H,-1) AND L>Ref(L,-1) AND C>Ref(C,-1);
+Column8 = OCRbuy;
+Column8Name = "Open Close Reversal BUY";
+Column9= OCRsell;
+Column9Name= "Open Close Reversal SELL";
+
+/*Pivot Point Reversals Automatic Analysis
+by Larry Lovrencic*/
+
+PPRbuy=Ref(L,-1)<Ref(L,-2) AND Ref(L,-1)<L AND C>Ref(H,-1);
+PPRsell=Ref(H,-1)>Ref(H,-2) AND Ref(H,-1)>H AND C<Ref(L,-1);
+Column10 = PPRbuy;
+Column10Name = "Pivot Point Reversal BUY";
+Column11= PPRsell;
+Column11Name= "Pivot Point Reversal SELL"; 
+
+Buy=CPRbuy OR HRbuy OR IRbuy OR KRbuy OR OCRbuy OR PPRbuy;
+Sell=CPRsell OR HRsell OR IRsell OR KRsell OR OCRsell OR PPRsell;
+
+Filter= CPRbuy OR CPRsell OR HRbuy OR HRsell OR IRbuy OR IRsell OR KRbuy OR KRsell OR OCRbuy OR OCRsell OR PPRbuy OR PPRsell;

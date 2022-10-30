@@ -1,0 +1,51 @@
+/* Bollinger - Keltner Bands */
+
+/* AFL code by Prakash Shenoi */
+
+/* Change BB Length and Std dev / Keltner Band periods and ATR settings by
+using Param function (CTLR-R) to your preferred settings. */ 
+
+BBLength= Param("BBLength",10,2,30,1);
+StdDv= Param("Stdev",2,0.5,5,0.1);
+K1= Param("Kelt EMA Periods?",5,3,50);
+K2= Param("ATR Periods?",10,2,50);
+Mul= Param("ATR Multiplier?",1,0.5,5,0.5);
+Mi=EMA(C, K1);
+Kel= ATR(K2)*Mul;
+UB= Mi + Kel;
+LB= Mi - Kel;
+UpB=BBandTop(H,BBLength,StdDv);
+MdB=MA(C, BBLength);
+DnB=BBandBot(L,BBLength,StdDv);
+Plot (Close, "close",1,64);
+Plot (Mi,"Mi",35,1);
+Plot (UB,"UB",32,1);
+Plot (LB,"LB",46,1);
+Plot(UpB,"UpB",12,1);
+Plot(MdB,"MdB",15,1);
+Plot(DnB,"DnB",11,1);
+GraphXSpace=10;
+
+ Title=Name()+ EncodeColor (colorViolet )+  "   Bollinger - Keltner Bands: "
++ "\n Mi = "+WriteVal(Mi,1.2) + " ,   MdB = " +WriteVal (MdB,1.2)
++ "\n  RESISTANCE :   UpB = "+WriteVal(UpB,1.2) + " ,   UB = " +WriteVal (UB,1.2) 
++ "       SUPPORT :   LB = " +WriteVal (LB,1.2) + " ,   DnB = "+ WriteVal(DnB,1.2);
+
+
+Buy = Cross( Mi, MdB ) ;
+/* ref,-1 is used for the high to have todays high greater than the previous 50
+bar high.   To just use H==LastHigh couold mean a previous high was equal to currenthigh */
+Sell = Cross( MdB, Mi );
+/* exrem is one method to remove surplus strade signals*/
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+/* styleNoRescale in the plots stops the added plots from compressing the
+original bar chart to the middle of the pane */
+
+PlotShapes( shapeUpArrow*Buy, colorGreen, 0, L, -10 );
+PlotShapes( shapeDownArrow*Sell, colorRed, 0, H, -10 );
+
+_SECTION_BEGIN("Volume");
+Plot( Volume, _DEFAULT_NAME(), ParamColor("Color", colorBlueGrey ), ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick, maskHistogram  ), 2 );
+_SECTION_END();

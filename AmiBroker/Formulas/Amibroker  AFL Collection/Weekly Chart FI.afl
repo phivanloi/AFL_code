@@ -1,0 +1,7 @@
+_SECTION_BEGIN("Weekly Force Index Thirteen Period");
+TimeFrameSet( inWeekly ); 
+FI=EMA(V*(C-Ref(C,-1)),13);
+TimeFrameRestore();
+Plot(FI,"FI",colorTurquoise,styleLine);
+Plot(0,"ZERO LINE",colorWhite,styleThick);
+_SECTION_END();

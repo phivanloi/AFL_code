@@ -1,0 +1,59 @@
+_SECTION_BEGIN("rsi");
+
+SetChartBkColor( colorBlack ) ; 
+f = Param("Rsi of",14,1,50,1);
+s = Param("ema of rsi",21,2,100,1);
+A1=EMA(RSI(f),s);
+BBtop=BBandTop(A1,5,.5); 
+BBbot=BBandBot(A1,5,.5);
+//Color=IIf(a1<0 AND a1>Ref(a1,-1), colorBrightGreen,IIf(a1>0 AND a1>Ref(a1,-1),colorBrightGreen,IIf(a1>0 AND a1<Ref(a1,-1),colorRed,colorRed)));
+Color = IIf(A1 > Ref(A1,-1), colorBrightGreen, colorRed);
+Plot(a1,"rsi",color,styleDots+styleLine);
+RSI13 = EMA( a1, 13 );
+RSI39 = EMA( a1, 39 );
+//Plot(BBtop,"",colorYellow,styleDashed+styleNoLabel);
+//Plot(BBbot,"",colorYellow,styleDashed+styleNoLabel);
+//Plot(80,"",31,1);
+//Plot(20,"",31,1);
+
+_SECTION_END(); 
+
+
+Plot( EMA( a1, 13 ), "", IIf(EMA( a1, 13 ) > Ref(EMA( a1, 13 ),-1),colorWhite,colorGrey40), styleThick ); 
+Plot( EMA( a1, 39 ), "", IIf(EMA( a1, 39 ) > Ref(EMA( a1, 39 ),-1),colorAqua,colorBlue), styleThick+styleDashed ); 
+
+thick = Param("thickness",0.25,0.1,5,0.1);
+//Plot(6, "", Color, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+//PlotOHLC(50,50+thick,50-thick,50,"",Color,styleCloud);
+
+diff = round((a1 - Ref(a1,-1))*10)/10;
+diff13 = round((RSI13 - Ref(RSI13,-1))*10)/10;
+diff39 = round((RSI39 - Ref(RSI39,-1))*10)/10;
+
+Title = 
+//EncodeColor(colorYellow)+"scorecard = " + WriteIf(total > 0, EncodeColor(colorBlue)+total,EncodeColor(colorRed)+total)
+//+"\n"
+EncodeColor(colorWhite)+"RSI = " + A1
++" diff : " + WriteIf(diff > 0, EncodeColor(colorGreen)+diff,EncodeColor(colorRed)+diff)
++"\n"+EncodeColor(colorWhite)+"RSI-13 = " + RSI13
++" diff : " + WriteIf(diff13 > 0, EncodeColor(colorGreen)+diff13,EncodeColor(colorRed)+diff13)
++"\n"+EncodeColor(colorWhite)+"RSI-39 = " + RSI13
++" diff : " + WriteIf(diff39 > 0, EncodeColor(colorGreen)+diff39,EncodeColor(colorRed)+diff39)
+
+;
+//Plot(80,"",colorDarkGreen,styleDashed+styleNoLabel);
+//Plot(70,"",colorDarkGreen,styleDashed+styleNoLabel);
+//Plot(60,"",colorDarkGreen,styleDashed+styleNoLabel);
+//Plot(50,"",colorDarkGreen,styleDashed+styleNoLabel);
+//Plot(40,"",colorDarkGreen,styleDashed+styleNoLabel);
+//Plot(30,"",colorDarkGreen,styleDashed+styleNoLabel);
+
+//Plot(20,"",colorDarkGreen,styleDashed+styleNoLabel);
+Buy = A1 > RSI13 AND A1 > RSI39;
+Sell = A1 < RSI13 AND A1 < RSI39;
+HI = IIf(A1 > RSI13 AND A1 > RSI39,A1,IIf(A1 < RSI13 AND A1 < RSI39 AND RSI13 <RSI39,RSI13,IIf(A1 < RSI13 AND A1 < RSI39 AND RSI13 >RSI39,RSI39,A1))); 
+LO = IIf(A1 < RSI13 AND A1 < RSI39,A1,IIf(A1 > RSI13 AND A1 > RSI39 AND RSI13 >RSI39,RSI13,IIf(A1 > RSI13 AND A1 > RSI39 AND RSI13 <RSI39,RSI39,A1))); 
+
+PlotOHLC(A1,HI,LO,A1,"",IIf(A1 > RSI13 AND A1 > RSI39, colorBrightGreen, IIf(A1 < RSI13 AND A1 < RSI39, colorRed, colorYellow)),styleCloud+styleNoLabel); 
+_SECTION_END();
+_SECTION_END();

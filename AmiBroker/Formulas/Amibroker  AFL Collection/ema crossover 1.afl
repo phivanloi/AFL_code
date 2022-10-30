@@ -1,0 +1,23 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("ema");
+
+fast = Optimize("fast ema", 3,2,15,1);
+med = Optimize("med ema", 30,5,35,1);
+Long = Optimize("long ema", 43,15,89,1);
+
+Plot( MA( Close, fast ),"fast ema", colorYellow, styleThick ); 
+Plot( EMA( Close, med ),"med ema", colorRed, styleThick ); 
+Plot( EMA( Close, Long ),"long ema", colorBlue, styleThick ); 
+
+Buy = Cross (MA( Close, fast ), EMA( Close, Long )) OR Cross (MA( Close, fast ), EMA( Close, med )) ;
+Short=Cross (EMA( Close, Long ), MA( Close, fast )) OR Cross (EMA( Close, med ), MA( Close, fast ));
+Sell = Cross (MA( Close, med ), EMA( Close, fast ));
+Cover = Cross (MA( Close, fast ), EMA( Close, med ));
+ 
+PlotShapes (Buy*shapeUpTriangle,colorGreen);
+PlotShapes (Short*shapeDownTriangle,colorRed); 

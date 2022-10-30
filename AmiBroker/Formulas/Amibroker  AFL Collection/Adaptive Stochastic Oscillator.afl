@@ -1,0 +1,19 @@
+prd=Param("Periods", 20, 1, 100 );
+Lmin=Param("Min",7,1,100);
+Lmax=Param("Max",28,Lmin,100);
+
+V1=StDev(C,prd);
+V2=HHV(V1,prd);
+V3=LLV(V1,prd);
+
+V4=(V1-V3)/(V2-V3);
+
+CurLen=int(Lmin+(Lmax-Lmin)*(1-V4));
+
+Hh=HHV(H,CurLen);
+Ll=LLV(L,CurLen);
+stoch=(C-Ll)/(Hh-Ll)*100;
+
+Plot( stoch, _DEFAULT_NAME(), ParamColor("Color", ColorCycle ) );
+Plot( 80, "Overbought", colorBlue, styleDashed|styleNoLabel|styleNoTitle );
+Plot( 20, "Oversold", colorBlue, styleDashed|styleNoLabel|styleNoTitle );

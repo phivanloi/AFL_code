@@ -1,0 +1,39 @@
+//PART BUY =  MACD (9,12,26) > SIGNAL LINE &  TODAY'S EMA(2) > YESTERDAY'S EMA(2)
+//PART  SELL = MACD (9,12,26) < SIGNAL LINE 
+//RED ARROW = PART BUY CNDITION SATISFIED
+//GREEN ARROW = PART SELL CONDITION SATISFIED
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("MACD");
+PeriodFast = Param( "Fast EMA", 12, 2, 200, 1 );
+PeriodSlow = Param( "Slow EMA", 26, 2, 200, 1 );
+PeriodSignal = Param( "Signal EMA", 9, 2, 200, 1 );
+MACDInd = MACD(PeriodFast, PeriodSlow );
+SigInd = Signal(PeriodFast, PeriodSlow , PeriodSignal );
+_SECTION_END();
+
+//PLOTTING PART BUY CONDITION
+_SECTION_BEGIN("EMA");
+Periods = Param("EMA PERIOD", 2, 2, 200, 1, 10 );
+Plot( EMA( C, Periods ),_DEFAULT_NAME() ,ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+Buy = EMA(C,Periods)>LLV(EMA(C,Periods),2) AND MACDInd > SigInd;
+PlotShapes( shapeHollowUpArrow* Buy , colorGreen ,0);
+
+//PLOTTING PART SELL CONDITION
+Sell = MACDInd < SigInd;
+PlotShapes( shapeHollowDownArrow* Sell , colorRed ,0);
+
+//AUTO ANALYSIS
+Filter = Buy OR Sell;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); 
+AddTextColumn(FullName(),"Name");
+AddColumn( Buy, "BUY" );
+AddColumn( Sell, "SELL" );
+
+ 
+_SECTION_END();

@@ -1,0 +1,13 @@
+//Zero-lag moving average 
+
+function ZeroLagMA( data, periods )
+{
+EMA1 = EMA( data, periods );
+EMA2 = EMA( EMA1, periods );
+Diff = EMA1 - EMA2;
+return EMA1 + Diff;
+}
+
+Periods = Param("Periods", 20, 2, 100 );
+
+Plot( ZeroLagMA( Close, Periods ), "ZeroLagMA-"+Periods, colorRed );

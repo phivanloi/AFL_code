@@ -1,0 +1,104 @@
+SetChartOptions(3, chartShowDates);
+GfxSetOverlayMode( mode = 1 );
+
+nn = StrToNum(ParamList("Days", "1|2|3", 1));
+box = Param("step", 10, 1, 100, 1)*TickSize;
+
+NewDay = Day()!= Ref(Day(), -1);
+DH = LastValue(HighestSince(NewDay, H, nn));
+DL = LastValue(LowestSince(NewDay, L, nn));
+Range = DH - DL;
+steps = ceil(Range/box);								// linage
+height = Status("pxheight") - 50;					// width of the profile (indention overhand 30 from below 20 pixels)
+boxheight = LastValue(height/steps);			// size of the box
+
+width = (Status("pxwidth")-110)/3;				// offset of the profiles
+
+bars = Highest(BarsSince(NewDay));
+ColorStep = LastValue(185/bars);
+
+// закрываем внутридневные гэпы
+L = IIf(C > Ref(C, -1) AND L > Ref(C, - 1) AND NOT NewDay, Ref(C, -1), L);
+H = IIf(C < Ref(C, -1) AND H < Ref(C, - 1) AND NOT NewDay, Ref(C, -1), H);
+
+function GetDayPrice( fild, shift)
+{
+	DayPrice = LastValue(TimeFrameGetPrice(fild, inDaily, -shift));
+	return DayPrice;
+}
+
+function pixlev(price)
+{
+	result = 30 + (DH - price)/box * boxheight;
+	return result;
+}
+
+procedure PlotProfile(DH, DL, begini, endi, disp)
+{
+	m = 0;
+	for(j = DH; j > DL; j = j-box)
+	{
+		n = 0;
+		for(i = begini; i < endi; i++)
+		{
+			if(H[i] >= j AND L[i] <= j)
+			{
+				GfxSelectPen( colorBlack, 1, 0);
+				GfxSelectSolidBrush(ColorHSB((i-begini)*ColorStep, 255, 255));
+				GfxRectangle( disp+n*boxheight, 30+m*boxheight, disp+(n+1)*boxheight, 30+(m+1)*boxheight);
+				n++;
+			}
+		}
+		m++;
+	}
+}
+
+procedure PlotLine(x1, y1, x2, y2, Color)
+{
+	GfxSelectPen(Color, 1, 0);
+	GfxPolyline( x1, y1, x2, y2);
+}
+
+procedure PlotRect(x1, y1, x2, y2, Color)
+{
+	GfxSelectPen(Color, 0, 5);
+	GfxSelectSolidBrush(Color);
+	GfxRectangle(x1, y1, x2, y2);
+}
+
+procedure PlotPrice(Text, FontName, FontSize, Color, x, y, yAlign, xAlign)
+{
+	GfxSetBkMode(1);
+	GfxSetTextColor(Color);
+	GfxSetTextAlign( xAlign|yAlign);
+	GfxSelectFont(FontName, FontSize, 600);  // dont work orientation 
+	GfxTextOut(Text, x, y);
+}
+
+for(q = nn; q > 0; q--)
+{ 
+	begini = LastValue(ValueWhen(NewDay, BarIndex(), q));
+	endi = LastValue(IIf(q == 1, BarCount, ValueWhen(NewDay, BarIndex(), q-1)));
+	PlotRect(50 + width*(nn-q), pixlev(GetDayPrice("H", q-1)),							// day range
+		50 + width*(nn-q+1), pixlev(GetDayPrice("L", q-1)), colorLightYellow);
+	PlotRect(50 + width*(nn-q), pixlev(GetDayPrice("O", q-1)),							// open-close range
+		50 + width*(nn-q+1), pixlev(GetDayPrice("C", q-1)), 
+		IIf(GetDayPrice("O", q-1) > GetDayPrice("C", q-1), ColorHSB(15, 40, 255), 
+		ColorHSB(80, 40, 255)));
+	PlotLine(50 + width*(nn-q), pixlev(GetDayPrice("C", q-1)),							// close line
+		50 + width*(nn-q+1), pixlev(GetDayPrice("C", q-1)), 
+		IIf( GetDayPrice("O", q-1) > GetDayPrice("C", q-1), colorRed, colorGreen));
+	PlotProfile(DH, DL, begini, endi, 50 + width*(nn-q));
+	PlotLine(50 + width*(nn-q), height+40, 50 + width*(nn-q), 0, colorBlack);	// vertical line
+	PlotPrice( " close  " + NumToStr(GetDayPrice("C", q-1))+" ", "Tahoma", 10,	// plot close price 
+		IIf( GetDayPrice("O", q-1) > GetDayPrice("C", q-1), colorRed, colorGreen), 
+		50+width*(nn-q+1), pixlev(GetDayPrice("C", q-1)), 
+		IIf( GetDayPrice("O", q-1) > GetDayPrice("C", q-1), 0, 8), 2);
+	PlotPrice( " open  " + NumToStr(GetDayPrice("O", q-1))+" ", "Tahoma", 10,	// plot open price
+		colorBlack, 50+width*(nn-q+1), pixlev(GetDayPrice("O", q-1)), 
+		IIf( GetDayPrice("O", q-1) > GetDayPrice("C", q-1), 8, 0), 2);
+	PlotPrice( " "+NumToStr(GetDayPrice("H", q-1)), "Tahoma", 10, 						// plot high price
+		colorBlack, 50+width*(nn-q), pixlev(GetDayPrice("H", q-1)), 8, 0);
+	PlotPrice(" "+NumToStr(GetDayPrice("L", q-1)), "Tahoma", 10,						// plot low price
+		colorBlack, 50+width*(nn-q), pixlev(GetDayPrice("L", q-1)), 0, 0);
+}

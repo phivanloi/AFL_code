@@ -1,0 +1,29 @@
+// By Ahmed Mohammed Al-asmari 
+//-----------------------------------------------------------------------------------------------------------------
+MaxGraph =10;
+//---------------------
+Graph0 = 70;
+Graph1 = 60;
+Graph2 = 50;
+Graph3 = 40;
+Graph4 = 20;
+//---------------------
+Graph0Color = 2 ;
+Graph1Color = 2;
+Graph2Color = 2;
+Graph3Color = 1;
+Graph4Color = 3;
+//---------------------
+Graph0Style = 13;
+Graph1Style = 1;
+Graph2Style = 1;
+Graph3Style = 1;
+Graph4Style = 1;
+//Graph5Style = 1;
+
+//-----------------------------------------------------------------------------------------------------------------
+range = Param("Periods", 14, 2, 200, 1 );
+Plot( ADX(range), _DEFAULT_NAME(), ParamColor( "ADX color", colorBlue ), ParamStyle("ADX style", styleThick ) );
+Plot( PDI(range), "+DI", ParamColor( "+DI color", colorGreen ), ParamStyle("+DI style") );
+Plot( MDI(range), "-DI", ParamColor( "-DI color", colorRed ), ParamStyle("-DI style") );
+//-----------------------------------------------------------------------------------------------------------------

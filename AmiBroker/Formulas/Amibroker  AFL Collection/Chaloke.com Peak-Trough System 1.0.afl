@@ -1,0 +1,11 @@
+///// Chaloke.com Peak-Trough System ///// 
+
+Sens=Param("Sens",1,0.25,5,0.25); 
+PK=Peak(Close,Sens,1); 
+TGH=Trough(Close,Sens,1); 
+Color=IIf(BarsSince(Cross(C,Ref(PK,-1)))<BarsSince(Cross(Ref(TGH,-1),C)),colorBrightGreen,colorRed); 
+
+Plot(C,"Chaloke.com Peak-Trough System 1.0",Color,64); 
+PlotShapes( Cross(C,Ref(PK,-1))*shapeUpArrow,colorYellow,0,L); 
+PlotShapes( Cross(Ref(TGH,-1),C)*shapeDownArrow,colorRed,0,H); 
+Plot(Zig(C,Sens),"",colorWhite,1);

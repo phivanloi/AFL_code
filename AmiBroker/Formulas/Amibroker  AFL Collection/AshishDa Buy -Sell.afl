@@ -1,0 +1,29 @@
+_SECTION_BEGIN("AshishDa Buy-Sell");
+
+///////////////////// BULLISH SETUP ///////////////////////////////
+
+WillR=-100 * ( HHV( H, 14 ) - C )/( HHV( H, 14 ) - LLV( L, 14 ) );
+a= IIf(LLV(RSI(14),20)< Ref(LLV(RSI(14),20),-2) AND LLV(RSI(14),20) < 35,1,0);
+b= IIf(Ref(a,-1) ==1 AND a ==0 ,1,0);
+m= IIf(Hold(b,10) AND WillR < -95,1,0);
+n= IIf(Ref(m,-1) ==1 AND m ==0 ,1,0);
+PlotShapes(shapeUpArrow*n,colorGreen,0, L,-15 );
+
+
+////////////////////////////// BEARISH SETUP /////////////////////////////
+aWillR=-100 * ( HHV( H, 14 ) - C )/( HHV( H, 14 ) - LLV( L, 14 ) );
+aa= IIf(HHV(RSI(14),20)> Ref(HHV(RSI(14),20),-2) AND HHV(RSI(14),20) > 65,1,0);
+ab= IIf(Ref(aa,-1) ==1 AND aa ==0 ,1,0);
+am= IIf(Hold(ab,10) AND aWillR > -10,1,0);
+an= IIf(Ref(am,-1) ==1 AND am ==0 AND C<O,1,0);
+PlotShapes(shapeDownArrow*an,colorRed,0, H,-15 );
+
+
+Filter=n>0 OR AN>0;
+
+
+
+AddColumn( IIf(n>0,1,IIf(an>0,-1,Null)) ,"B_S",1.0,colorWhite,IIf(n>0,colorGreen,IIf(an>0,colorRed,colorBlack))); 
+
+
+_SECTION_END();

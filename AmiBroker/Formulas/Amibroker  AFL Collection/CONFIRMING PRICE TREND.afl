@@ -1,0 +1,6 @@
+Periods = Param("Periods", 20, 2, 200, 1, 10 ); 
+Plot( LinRegSlope( C, Periods ), "LinRegSlope("+Periods+")", colorGreen, styleHistogram | styleThick ); 
+
+
+ 
+

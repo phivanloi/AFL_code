@@ -1,0 +1,12 @@
+_SECTION_BEGIN("EMA");
+//The Title of the graph will show the price required to generate a crossover of the EMAs.  For instance, if you want to buy a stock if the 5 Day EMA crosses above the 10 Day EMA, you will know what price is needed to make that happen on the next day by the figure that is displayed in the Title.  Take the Formula and the AFL and work it into your own favorite graphs.
+
+Plot(Close, "Price", colorBlack, styleBar);
+Plot(EMA(Close,10),"5-EMA",colorBlue,styleLine);
+Plot(EMA(Close,20),"10-EMA",colorRed,styleLine);
+
+//Formula for EMA Crossover Price
+XR=(EMA(Close,10) * (2 / 6 - 1) - EMA(Close,20) * (2 / 11 - 1)) / (2 / 6 - 2 / 11);
+
+Title = Name() + " " + Date() + EncodeColor( colorBlue ) + "  Close: " + C + EncodeColor( colorBlack ) + "   Open: " + O + "   High: " + H + "   Low: " + L + EncodeColor( colorBlue )+  "\n" + EncodeColor(colorDarkGreen) + WriteVal (XR, format=1.2 ) + " Price Required for EMA Crossover";
+_SECTION_END();

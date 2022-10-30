@@ -1,0 +1,94 @@
+/*
+	rRSI.p1.afl
+
+	"r"emote RSI set up via static variables written by cooperating strategy.
+
+	Written by:	Progster
+
+	Copyright 2009 - Distributed under license by CodeForTraders.com.
+	Other distribution prohibited.
+
+*/
+_SECTION_BEGIN("rRSI");
+
+//	Name of indicator to be displayed.
+//	This is used for fetching of static variables (written elsewhere).  ]
+
+Ind01_Name = "RSI" ;
+
+//	Parameter settings
+ShowRaw = ParamToggle( "ShowRaw", "No|Yes", 1 ) ;
+ShowSmooth = ParamToggle( "ShowSmooth", "No|Yes", 1 ) ;
+ShowThreshholds = ParamToggle( "ShowThreshholds", "No|Yes", 1 ) ;
+TimedRefresh = ParamToggle( "Do TimedRefresh? ", "No|Yes", 0 ) ;
+
+//	if visible, optionally refresh every 1 second (to pick up change in static variables)
+if (TimedRefresh){	RequestTimedRefresh( 1, True );	}
+
+//	Read static variables set by strategy formula: #P_RSI_06a.afl
+//	Set generic local variables.
+
+RawPeriod = StaticVarGet(Ind01_Name + "_Length");
+SmoothPeriod = StaticVarGet(Ind01_Name + "_Smooth");
+LowLine = StaticVarGet(Ind01_Name + "_LowLvl");
+HighLine = StaticVarGet(Ind01_Name + "_HighLvl");
+
+LX_Line = StaticVarGet(Ind01_Name + "_LX_Above_Lvl");
+SX_Line = StaticVarGet(Ind01_Name + "_SX_Below_Lvl");
+
+RawValue = RSI(RawPeriod) ;
+SmoothValue = MA(RawValue, SmoothPeriod);
+
+//	Commented out in favor of alternate version later
+/*
+printf( "RawValue("  + NumToStr(RawPeriod, 3.0) + ") = " + NumToStr(RawValue, 8.5) + "\n" ) ;
+printf( "SmoothValue("  + NumToStr(SmoothPeriod, 3.0) + ") = " + NumToStr(SmoothValue, 8.5) + "\n" ) ;
+printf( "HighLine: "  + NumToStr(HighLine, 8.8) + "\n" ) ;
+printf( "LX_Line: "  + NumToStr(LX_Line, 8.8) + "\n" ) ;
+printf( "SX_Line: "  + NumToStr(SX_Line, 8.8) + "\n" ) ;
+printf( "LowLine: "  + NumToStr(LowLine, 8.8) + "\n" ) ;
+*/
+
+SetChartOptions(0,0,chartGrid30|chartGrid70);
+
+//	Calculate a color array that is different for high, low, and in-between indicator values.
+SmoothColor = IIf( SmoothValue > HighLine, ParamColor( "High Color", colorYellow ), 
+IIf( SmoothValue < LowLine, ParamColor( "Low Color", colorYellow ), 
+ParamColor( "Smooth Color", colorTeal ) )  );
+
+ShowTitle = ParamToggle( "ShowTitle", "No|Yes", 1 ) ;
+
+if (ShowTitle){
+	Title = "rRSI.p1 " + "RawValue(" + RawPeriod + ") = " + RawValue + " SmoothValue(" + SmoothPeriod + ") = " + SmoothValue ;
+}
+else{
+	Title = "" ;
+}
+
+//	Plot of raw indicator
+if (ShowRaw){ Plot( RawValue, _DEFAULT_NAME(), ParamColor( "Raw Color", colorDarkRed ), ParamStyle("Style")  ); } 
+
+//	Plot of smoothed indicator
+if (ShowSmooth){ Plot( SmoothValue, _DEFAULT_NAME(), SmoothColor, ParamStyle("Style")  );	} 
+
+//	Plots of action thresholds
+if (ShowThreshholds) {
+	Plot( LowLine, _DEFAULT_NAME(), ParamColor( "Low Line Color", colorGreen ), ParamStyle("Style")  );
+	Plot( HighLine, _DEFAULT_NAME(), ParamColor( "High Line Color", colorRed), ParamStyle("Style")  );
+	Plot( LX_Line, _DEFAULT_NAME(), ParamColor( "LX Line Color", colorDarkGreen ), ParamStyle("Style")  );
+	Plot( SX_Line, _DEFAULT_NAME(), ParamColor( "SX Line Color", colorDarkRed), ParamStyle("Style")  );
+}
+
+printf( "Raw " + Ind01_Name + ": " + WriteVal(RawValue, 1.2) 		+ "  " ) ;
+printf( "   Smoothed " + Ind01_Name + ": " + WriteVal(SmoothValue, 1.2) 	+ "  " + "\n" ) ;
+
+printf( "LowLine: " + WriteVal(LowLine, 1.2) 		+ "  " ) ;
+printf( "   HighLine: " + WriteVal(HighLine, 1.2) 		+ "  " + "\n" ) ;
+
+printf( "LX_Line: " + WriteVal(LX_Line, 1.2) 		+ "  " ) ;
+printf( "   SX_Line: " + WriteVal(SX_Line, 1.2) 		+ "  " ) ;
+
+
+//	_N(TitlePriceStr = StrFormat( "Raw RSI %.5f, Smoothed RSI %.5f", O, H, L, C, NetPft )) ;
+
+_SECTION_END();

@@ -1,0 +1,31 @@
+// compute 1-day rate of change of 8-day volume moving average
+VMAC = ROC( MA( Volume, 8 ), 1 );
+// Finding top 30% and bottom 30% ranks during last 130 bars
+Top30V = Percentile( VMAC, 130, 70 ) ;
+Bot30V = Percentile( VMAC, 130, 30 ) ;
+// strong increase/decrease in volume
+VolUp = VMAC >= Top30V;
+VolDown = VMAC <= Bot30V;
+// one-day rate of change bigger or lower than 1/-1 %
+Rise = ROC( C, 1 ) > 1;
+Fall = ROC( C, 1 ) < -1;
+InRange = DateNum() > 1020101;
+sys = Param("Sys", 2, 0, 3, 1 );
+Buy = IIf( sys == 0, Rise AND VolUp,
+IIf( sys == 1, Fall AND VolUp,
+IIf( sys == 2, Rise AND VolDown,
+Fall AND VolDown ) ) );
+Buy = Buy AND InRange;
+BuyPrice = Close;
+Sell = Ref( Buy, -1 ); // sell next day
+SellPrice = Open;
+Diff = Sell * ( O-Ref(C,-1) );
+Profit = 100 * Diff;
+AddColumn( sys, "Comb.", 1.0 );
+AddColumn( 100 * Cum( Diff )/Cum(Buy), "avg. gain (cents)", 1.4 );
+AddColumn( Cum( Buy ), "# trades", 1.0 );
+AddColumn( Cum( Diff > 0 ), "# positive", 1.0 );
+AddColumn( Cum( Diff < 0 ), "# negative", 1.0 );
+AddColumn( Max( 0, Cum( Profit ) ), "Profit long", 1.0 );
+AddColumn( Max( 0, Cum( -Profit ) ), "Profit short", 1.0 );
+Filter = BarIndex() == LastValue(BarIndex());

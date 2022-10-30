@@ -1,0 +1,45 @@
+//Shall the nextMACD Cross its Signal ?
+//The following AFL code calculates the necessary next ROC for this.
+
+// The probable Cross between MACD and its Signal, by D. Tsokakis, Feb2005
+SetBarsRequired(10000,0);
+function EMAn ( Cnext , p)
+{
+return ( 2 * Cnext + ( P - 1 ) * EMA ( C , P ) ) / ( P + 1 ) ;
+}
+function MACDn ( Cnext , p1 , p2 )
+{
+return EMAn ( Cnext ,p1 ) - EMAn ( Cnext , p2 ) ;
+}
+p1=12;p2=26;p=9;
+det = 500 ;
+perc = 25/100 ;
+Clast = SelectedValue ( C ) ;
+Plot ( MACD() , "" , colorBlack , 8 ) ; Plot (Signal() , "" , colorRed , 1 ) ;
+MACDlast = SelectedValue ( MACD() ) ; 
+SIGNALlast=SelectedValue(Signal());
+Title = Name ( ) + ", " + Date ( ) + ", MACD=" + WriteVal ( MACDlast )+ " ,SIGNAL=" + WriteVal ( SignalLAST ) +
+"\nThe nextMACD will be higher if the next ROC will be > ";
+Cnextmin = ( 1 - perc ) * Clast ;Cnextmax = ( 1 + perc ) * Clast ;
+step = ( Cnextmax - Cnextmin ) / det ;
+nextROC1 = -100 * perc ;
+nextROC2 = -100 * perc ;
+for ( Cnext = Cnextmin ; Cnext <= Cnextmax ; Cnext = Cnext + step )
+{
+X = MACDn ( Cnext , 12 , 26 ) ;
+Y = EMA ( X , 9 ) ;
+MACDnext = SelectedValue ( X );
+SIGNALnext = SelectedValue( Y );
+NextROC = 100 * ( -1 + Cnext / Clast ) ;
+NextROC0 = 100 * ( -1 + Cnext / Clast ) ;
+if ( macdnext < SignalLAST )
+{
+NextROC1 = NextROC ; 
+}
+if ( MACDnext < MACDlast )
+{
+nextROC2 = nextROC0;
+}
+}
+Title = Title + WriteIf ( NextRoc2 >= 0.1 , "+" , "" ) + WriteVal ( NextROC2 , 1.2 ) + "%" + "\nThe nextMACD will be above the lastSIGNAL if the next ROC will be > " + WriteIf ( NextRoc1 >= 0.1 , "+" , "" ) + WriteVal ( nextROC1 , 1.2 )+"%" ;
+Plot ( 0 ,"", colorBlack ,styleDashed ) ;

@@ -1,0 +1,48 @@
+///////////////////////////////////
+//Coded by Rajandran R
+//Date : 20th May 2014
+//www.marketcalls.in
+///////////////////////////////////
+
+_SECTION_BEGIN("Positive Bars Percentage");
+
+BarsUp=0;
+BarsDown=0;
+PCount = 0;
+NCount = 0;
+NewDay = Day() != Ref(Day(), -1);
+
+for(i=0;i<BarCount;i++)
+{
+if(NewDay[i]==True)
+{
+BarsUp[i]=0;
+BarsDown[i]=0;
+PCount = 0;
+NCount = 0;
+}
+//positive count
+if(C[i]-O[i]>0)
+{
+PCount++;
+BarsUp[i]=PCount;
+BarsDown[i]=NCount;
+}
+//negative count
+if(C[i]-O[i]<0)
+{
+NCount++;
+BarsUp[i]=PCount;
+BarsDown[i]=NCount;
+}
+
+}
+
+BarsToday = 1 + BarsSince(NewDay);
+PositiveBarsPercentage = BarsUp*100/BarsToday;
+//Plot(BarsToday,"Today Bars",colorRed);
+//Plot(BarsUp,"Positive Bars",colorblue);
+//Plot(BarsDown,"Negative Bars",colorRed);
+Plot(PositiveBarsPercentage,"PositiveBars Percentage",colorGreen);
+
+_SECTION_END();

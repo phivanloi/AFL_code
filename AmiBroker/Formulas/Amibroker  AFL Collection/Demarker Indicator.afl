@@ -1,0 +1,11 @@
+/*
+** Tom Demark's DeMarker Indicator
+** AFL Implementation by Tomasz Janeczko
+*/
+
+highm = IIf( H > Ref( H, -1 ), H - Ref( H, - 1), 0 );
+lowm = IIf( L < Ref( L, -1 ), Ref( L, - 1 ) - L, 0 );
+
+DeMarker = 100 *  Sum( highm, 13 )/( Sum( lowm, 13 ) + Sum( highm, 13 ) );
+
+Plot(DeMarker, "TD_Demarker", colorRed);

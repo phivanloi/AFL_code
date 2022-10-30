@@ -1,0 +1,3 @@
+SetBarsRequired(200,0);
+price = (H + L) / 2;
+Plot(sbDC(price),"DC",4,1);

@@ -1,0 +1,100 @@
+//------------------------------------------------------------------------------
+//  Formula Name	:      Valid Supply-Demand Zone by pipschart
+//  Author	:      KrT group
+//  Uploader            :      www.pipschart.com
+//  E-mail		:      info@pipschart.com
+//  Amibroker Blog	:      www.pipschart.com/amibroker
+//  Origin		:      Modified & Collected from different sources.
+//------------------------------------------------------------------------------
+
+_SECTION_BEGIN("KrT group");
+GfxSetBkMode(1);
+X=750;
+Y=1;
+Font=10;
+GfxSelectFont("Impact",Font*2.2, 550);GfxSetTextColor(colorRed);GfxTextOut("KrT group",x,y);
+GfxSelectFont("Impact",Font*2.2, 550);GfxSetTextColor(colorGreen);GfxTextOut("RESEARCH",x+120,Y);
+
+_SECTION_END();
+
+
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+bk=ParamColor( "Bk col",ColorRGB(85,90,60)); 
+SetChartBkColor(bk);
+
+amount = Param("Sensitivity", 0.5, 0.1, 2, 0.1 );
+
+array = C ;
+zz0 = Zig( array, amount );
+zz1 = Ref( zz0, -1 );
+zz2 = Ref( zz0, -2 );
+
+tr = ValueWhen(zz0 > zz1 AND zz1 < zz2, zz1);
+pk = ValueWhen(zz0 < zz1 AND zz1 > zz2, zz1);
+PU = tr + 0.01 * abs(tr)*amount;
+PD = pk - 0.01 * abs(pk)*amount;
+
+ZZT = IIf( array >= PU AND zz0 > zz1, 1,
+       IIf( array <= PD AND zz0 < zz1, -1, 0 ) );
+
+ZZT = ValueWhen( ZZT != 0, ZZT );
+
+Buy_Valid_=zzt>0;
+Sell_Valid_=zzt<0;
+Buy_Valid = ExRem(Buy_Valid_,Sell_Valid_);
+Sell_Valid = ExRem(Sell_Valid_,Buy_Valid_);
+Plot(Ref(Buy_valid,0),"",ColorRGB(0,0,100),styleHistogram|styleDashed|styleOwnScale|styleNoLabel,0,0,0,-1);
+Plot(Ref(Sell_valid,0),"",ColorRGB(100,0,0),styleHistogram|styleDashed|styleOwnScale|styleNoLabel,0,0,0,-1);
+
+Candlecol=IIf(BarsSince(Buy_Valid)<BarsSince(Sell_Valid) AND BarsSince(Buy_Valid)!=0,5,
+          IIf(BarsSince(Buy_Valid)>BarsSince(Sell_Valid) AND BarsSince(Sell_Valid)!=0,4,1));
+cc1=IIf(Buy_valid,colorYellow,IIf(Sell_valid,colorBlack,Candlecol));
+SetBarFillColor(Cc1);
+Plot(C,"pipschart.com",Cc1,64,0,0,0,0);
+
+pk=BarsSince(Buy_Valid)<BarsSince(Sell_Valid) ;//AND BarsSince(Buy_Valid)!=0;//Zz>Ref(zz,-1);
+tr=BarsSince(Buy_Valid)>BarsSince(Sell_Valid) ;//AND BarsSince(Sell_Valid)!=0;//Zz<Ref(zz,-1);
+
+Ll=LowestSince(sell_valid,L,1);
+hH=HighestSince(Buy_Valid,H,1);
+Llm=LowestSince(sell_valid,Min(O,C),1);
+hHm=HighestSince(Buy_Valid,Max(O,C),1);
+
+xx=Cum(1);
+NoLines = Param("No of Lines",5,1,10,1);
+
+Col2=ParamColor( "Res Color", colorRed );
+Col1=ParamColor( "Sup Color", colorGreen );
+
+for( i = 1; i < NoLines+1 ; i++ )
+{
+scol=ColorBlend(Col1,2,0.1*i);
+rcol=ColorBlend(Col2,2,0.1*i);
+
+px1 = LastValue(ValueWhen(Buy_valid,Cum(1),i)) ;
+py1 = LastValue(ValueWhen(Buy_valid,Ll,i)) ;
+pz1 = LineArray(px1, py1, (BarCount-1), py1);
+Plot(pz1,"",scol,32);
+
+tx1 = LastValue(ValueWhen(sell_valid,Cum(1),i)) ;
+ty1 = LastValue(ValueWhen(sell_valid,Hh,i)) ;
+tz1 = LineArray(tx1, ty1, (BarCount-1), ty1);
+Plot(tz1,"",rcol,32);
+
+px1m = LastValue(ValueWhen(Buy_valid,Cum(1),i)) ;
+py1m = LastValue(ValueWhen(Buy_valid,Llm,i)) ;
+pz1m = LineArray(px1m, py1m, (BarCount-1), py1m);
+PlotOHLC(pz1,pz1,pz1m,pz1m,"",scol,styleCloud|styleNoLabel,0,0,0,-i-nolines);
+
+tx1m = LastValue(ValueWhen(sell_valid,Cum(1),i)) ;
+ty1m = LastValue(ValueWhen(sell_valid,Hhm,i)) ;
+tz1m = LineArray(tx1m, ty1m, (BarCount-1), ty1m);
+PlotOHLC(tz1,tz1,tz1m,tz1m,"",rcol,styleCloud|styleNoLabel,0,0,0,-i-nolines);
+}
+
+for( j = 0; j < BarCount; j++ ) 
+{ 
+if( Buy_valid [j])  PlotText( "Trn"+Ll[ j ], j, Ll[j], colorPaleGreen ); 
+if( Sell_valid[j] ) PlotText( "Pkn"+Hh[ j ], j, Hh[j], colorRose); 
+}

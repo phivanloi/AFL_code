@@ -1,0 +1,21 @@
+/* Create date: 12 Apr 2011
+The Close Price of 15 bars ago is greater than the Simple MA (Short) of 15 bars ago */
+
+Filter = Ref( Close, -12 ) < Ref( MA( Close, 15 ), -12 )
+         AND Ref( Close, -11 ) < Ref( MA( Close, 15 ), -11 )
+         AND Ref( Close, -10 ) < Ref( MA( Close, 15 ), -10 )
+         AND Ref( Close, -9 ) < Ref( MA( Close, 15 ), -9 )
+         AND Ref( Close, -8 ) < Ref( MA( Close, 15 ), -8 )
+        AND Ref( Close, -7 ) > Ref( MA( Close, 15 ), -7 )
+       AND Ref( Close, -6 ) < Ref( MA( Close, 15 ), -6 )
+        AND Ref( Close, -5 ) < Ref( MA( Close, 15 ), -5 )
+       AND Ref( Close, -4 ) < Ref( MA( Close, 15 ), -4 )
+       AND Ref( Close, -3 ) < Ref( MA( Close, 15 ), -3 )
+      AND Ref( Close, -2 ) < Ref( MA( Close, 15 ), -2 )
+     AND Ref( Close, -1 ) < Ref( MA( Close, 15 ), -1 )
+     AND Ref( Close, 0 ) < Ref( MA( Close, 15 ), 0 ) ;
+AddColumn( Close, "Close  " );
+AddColumn( Open, "Open  " );
+AddColumn( High, "High  " );
+AddColumn( Low, "Low  " );
+AddColumn( Volume, "Volume      " );

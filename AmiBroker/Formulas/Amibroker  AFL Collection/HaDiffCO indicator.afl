@@ -1,0 +1,8 @@
+HaClose = (O+H+L+C)/4;
+HaOpen = AMA( Ref( HaClose, -1 ), 0.5 );
+HaHigh = Max( H, Max( HaClose, HaOpen ) );
+HaLow = Min( L, Min( HaClose, HaOpen ) );
+HaDiffCO = HaClose - HaOpen;
+per = Param("MA Periods", 3, 3, 50, 1 );
+Plot( HaDiffCo, "HaDiffCO", colorRed );
+Plot( MA( HaDiffCo, per ), "MA("+per+")", colorBlue );

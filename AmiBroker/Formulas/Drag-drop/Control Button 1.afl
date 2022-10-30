@@ -1,0 +1,165 @@
+// Downloaded From https://www.WiseStockTrader.com
+Title = "";
+formulaName = "Control Panel";
+GfxSetBkMode(1);
+GfxSelectFont("Verdana", 18, 700, italic=False);
+GfxSetTextColor(colorBrightGreen);
+GfxTextOut(FormulaName, 20, 10);
+
+_SECTION_BEGIN("Control Panel");
+// Base point - Left Up Corner
+X0 = Param ("X - Left Up Corner",   20,   4,  200, 10);
+Y0 = Param ("Y - Right Up Corner",   120,  40, 200, 10);
+
+// --- Button pressed
+LBClick = GetCursorMouseButtons() == 9;	// Click
+MouseX  = Nz(GetCursorXPosition(1));		// 
+MouseY  = Nz(GetCursorYPosition(1));		// 
+
+// --- Button Draw
+procedure DrawBut (Text, x1, y1, x2, y2, colorFrom, colorTo)
+{
+	GfxSetOverlayMode(0);
+	GfxSelectFont("Verdana", 9, 700);
+	GfxSetBkMode(1);
+	GfxGradientRect(x1, y1, x2, y2, colorFrom, colorTo);
+	GfxDrawText(Text, x1, y1, x2, y2, 32|1|4|16);
+}
+GfxSetTextColor(colorWhite);
+
+// Button Begin
+DrawBut ("Begin", X0, Y0, X0+170, Y0+30, colorGrey40, colorGrey40);
+CursorInResetBut = MouseX >= X0 AND MouseX <= X0+170 AND MouseY >= Y0 AND MouseY <= Y0+30;
+ResetPressed = CursorInResetBut AND LBClick;
+if (ResetPressed) 
+{ 
+StaticVarSet ("RS", 1);      
+StaticVarSet ("AutoOn",  0); 
+StaticVarSet ("AutoOff", 1); 
+StaticVarSet ("SMKT",    0); 
+StaticVarSet ("BMKT",    0);
+StaticVarSet ("CLPOS",   0);
+StaticVarSet ("CANC",    0);
+StaticVarSet ("ExpOn",   0); 
+StaticVarSet ("ExpOff",  1);
+}
+
+// Button Auto on
+DrawBut ("Auto on", X0, Y0+40, X0+170, Y0+70, colorDarkGreen, colorDarkGreen);
+CursorInAutoOnBut = MouseX >= X0 AND MouseX <= X0+170 AND MouseY >= Y0+40 AND MouseY <= Y0+70;
+AutoOnPressed = CursorInAutoOnBut AND LBClick;
+if (AutoOnPressed) 
+{ 
+StaticVarSet ("RS", 0);
+StaticVarSet ("AutoOn",  1);
+StaticVarSet ("AutoOff", 0);
+StaticVarSet ("SMKT",    0); 
+StaticVarSet ("BMKT",    0);
+StaticVarSet ("CLPOS",   0);
+StaticVarSet ("CANC",    0);
+}
+
+// Button Auto off
+DrawBut ("Auto off", X0, Y0+80, X0+170, Y0+110, colorDarkRed, colorDarkRed);
+CursorInAutoOffBut = MouseX >= X0 AND MouseX <= X0+170 AND MouseY >= Y0+80 AND MouseY <= Y0+110;
+AutoOffPressed = CursorInAutoOffBut AND LBClick;
+if (AutoOffPressed) 
+{ 
+StaticVarSet ("RS", 0);
+StaticVarSet ("AutoOn",  0); 
+StaticVarSet ("AutoOff", 1);
+StaticVarSet ("SMKT",    0); 
+StaticVarSet ("BMKT",    0);
+StaticVarSet ("CLPOS",   0);
+StaticVarSet ("CANC",    0);
+}
+
+// Button Sell Market
+DrawBut ("Sell Market", X0, Y0+130, X0+170, Y0+180, colorRed, colorRed);
+CursorInSMKTBut = MouseX >= X0 AND MouseX <= X0+170 AND MouseY >= Y0+130 AND MouseY <= Y0+180;
+SMKTPressed = CursorInSMKTBut AND LBClick;
+if ( SMKTPressed AND StaticVarGet ("AutoOff")==1  AND StaticVarGet ("ExpOn")==1 )
+{ 
+StaticVarSet ("RS", 0);
+StaticVarSet ("SMKT",  1);
+StaticVarSet ("BMKT",  0);
+StaticVarSet ("CLPOS", 0);
+StaticVarSet ("CANC",  0);
+}
+
+// Button Buy Market
+DrawBut ("Buy Market", X0, Y0+190, X0+170, Y0+240, colorLime, colorLime);
+CursorInBMKTBut = MouseX >= X0 AND MouseX <= X0+170 AND MouseY >= Y0+190 AND MouseY <= Y0+240;
+BMKTPressed = CursorInBMKTBut AND LBClick;
+if ( BMKTPressed AND StaticVarGet ("AutoOff")==1  AND StaticVarGet ("ExpOn")==1 )
+{ 
+StaticVarSet ("RS", 0);
+StaticVarSet ("SMKT",  0); 
+StaticVarSet ("BMKT",  1);
+StaticVarSet ("CLPOS", 0);
+StaticVarSet ("CANC",  0);
+}
+
+// Button Close Position
+DrawBut ("Close Position", X0, Y0+250, X0+170, Y0+300, colorGrey40, colorGrey40);
+CursorInCloseBut = MouseX >= X0 AND MouseX <= X0+170 AND MouseY >= Y0+250 AND MouseY <= Y0+300;
+ClosePressed = CursorInCloseBut AND LBClick;
+if ( ClosePressed AND StaticVarGet ("AutoOff")==1  AND StaticVarGet ("ExpOn")==1 )
+{ 
+StaticVarSet ("RS", 0);
+StaticVarSet ("SMKT",  0); 
+StaticVarSet ("BMKT",  0);
+StaticVarSet ("CLPOS", 1);
+StaticVarSet ("CANC",  0);
+}
+
+// Button Cancel All Orders
+DrawBut ("Cancel All Orders", X0, Y0+310, X0+170, Y0+360, colorGrey40, colorGrey40);
+CursorInCancelBut = MouseX >= X0 AND MouseX <= X0+170 AND MouseY >= Y0+310 AND MouseY <= Y0+360;
+CancelPressed = CursorInCancelBut AND LBClick;
+if ( CancelPressed AND StaticVarGet ("AutoOff")==1 AND StaticVarGet ("ExpOn")==1 )
+{ 
+StaticVarSet ("RS", 0);
+StaticVarSet ("SMKT",  0); 
+StaticVarSet ("BMKT",  0);
+StaticVarSet ("CLPOS", 0);
+StaticVarSet ("CANC",  1);
+}
+
+// Button Export On
+DrawBut ("Export On", X0, Y0+380, X0+170, Y0+410, colorDarkGreen, colorDarkGreen);
+CursorInExpOnBut = MouseX >= X0 AND MouseX <= X0+170 AND MouseY >= Y0+380 AND MouseY <= Y0+410;
+ExpOnPressed = CursorInExpOnBut AND LBClick;
+if ( ExpOnPressed )
+{ 
+StaticVarSet ("RS", 0);
+StaticVarSet ("ExpOn",  1);
+StaticVarSet ("ExpOff", 0); 
+}
+
+// Button Export Off
+DrawBut("Export Off", X0, Y0+420, X0+170, Y0+450, colorDarkRed, colorDarkRed);
+CursorInExpOffBut = MouseX >= X0 AND MouseX <= X0+170 AND MouseY >= Y0+420 AND MouseY <= Y0+450;
+ExpOffPressed = CursorInExpOffBut AND LBClick;
+if ( ExpOffPressed )
+{ 
+StaticVarSet ("RS", 0);
+StaticVarSet ("ExpOn", 0); 
+StaticVarSet ("ExpOff",1);
+StaticVarSet ("SMKT",  0); 
+StaticVarSet ("BMKT",  0);
+StaticVarSet ("CLPOS", 0);
+StaticVarSet ("CANC",  0);
+}
+
+if(StaticVarGet("RS")==1)			{DrawBut("", X0+180, Y0,     X0+210, Y0+30,  colorGrey40, colorGrey40);		}// RS=1			
+if(StaticVarGet("AutoOn")==1)	{DrawBut("", X0+180, Y0+40,  X0+210, Y0+70,  colorDarkGreen, colorDarkGreen);}// AutoOn		
+if(StaticVarGet("AutoOff")==1)	{DrawBut("", X0+180, Y0+80,  X0+210, Y0+110, colorDarkRed, colorDarkRed);	}// AutoOff	
+if(StaticVarGet("SMKT")==1)		{DrawBut("", X0+180, Y0+130, X0+210, Y0+180, colorRed, colorRed);				}// SMKT			
+if(StaticVarGet("BMKT")==1)		{DrawBut("", X0+180, Y0+190, X0+210, Y0+240, colorLime, colorLime);			}// BMKT			
+if(StaticVarGet("CLPOS")==1)		{DrawBut("", X0+180, Y0+250, X0+210, Y0+300, colorGrey40, colorGrey40);		}// CLPOS		
+if(StaticVarGet("CANC")==1)		{DrawBut("", X0+180, Y0+310, X0+210, Y0+360, colorGrey40, colorGrey40);		}// CANC			
+if(StaticVarGet("ExpOn")==1)		{DrawBut("", X0+180, Y0+380, X0+210, Y0+410, colorDarkGreen, colorDarkGreen);}// ExpOn		
+if(StaticVarGet("ExpOff")==1)	{DrawBut("", X0+180, Y0+420, X0+210, Y0+450, colorDarkRed, colorDarkRed);		}// ExpOff		
+
+_SECTION_END();

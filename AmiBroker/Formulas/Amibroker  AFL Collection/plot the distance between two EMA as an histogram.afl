@@ -1,0 +1,14 @@
+period1=Param("period1",9,10,200,10);
+period2=Param("period2",21,10,200,10);
+firstEMA=EMA(C,period1);
+secondEMA=EMA(C,period2);
+diffEMA=firstEMA-SecondEMA;
+Plot(C,"Close",1,1);
+Plot(firstEMA,"firstEMA",colorYellow,1);
+Plot(secondEMA,"secondEMA",colorBlue,1);
+Plot(diffEMA,"",colorGreen,
+styleHistogram|styleOwnScale);
+GraphXSpace=3;
+Title=EncodeColor(colorGreen)+"Difference of
+"+EncodeColor(colorYellow)+"EMA(C,"+NumToStr(period1,1)+")="+NumToStr(firstEMA,1)+EncodeColor(colorGreen)+" minus
+"+EncodeColor(colorBlue)+"EMA(C,"+NumToStr(period2,1)+")="+NumToStr(SecondEMA,1);

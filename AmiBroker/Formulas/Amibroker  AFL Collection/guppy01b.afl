@@ -1,0 +1,64 @@
+//  Guppy01b.AFL MMA   7/26/2006   KSC 
+SetChartOptions(2,chartShowDates);
+GraphXSpace=20;
+
+st2	= EMA(C,2);
+st3	= EMA(C,3);
+st4	= EMA(C,4);
+st5	= EMA(C,5);
+mt12	= EMA(C,12);
+mt15	= EMA(C,15);
+mt18	= EMA(C,18);
+mt21	= EMA(C,21);
+Lt30	= EMA(C,30);
+Lt35	= EMA(C,35);
+Lt40	= EMA(C,40);
+Lt45	= EMA(C,45);
+Lt50	= EMA(C,50);
+
+Plot(st2,"2",colorWhite,1);
+Plot(st3,"3",colorWhite,1);
+Plot(st4,"4",colorWhite,1);
+Plot(st5,"5",colorWhite,1);
+
+Plot(mt12,"12",colorYellow,1);
+Plot(mt15,"15",colorYellow,1);
+Plot(mt18,"18",colorYellow,1);
+Plot(mt21,"21",colorYellow,1);
+
+Plot(Lt30,"\n30",colorRed,1);
+Plot(Lt35,"35",colorRed,1);
+Plot(Lt40,"40",colorRed,1);
+Plot(Lt45,"45",colorRed,1);
+Plot(Lt50,"50",colorRed,1);
+
+Price = C;//Foreign(Issue,"C");
+FName = FullName();
+RestorePriceArrays();
+StartD = BeginValue(DateTime());
+Length      = EndValue(BarIndex()) - BeginValue(BarIndex());
+Days        = EndValue(BarIndex()) - SelectedValue(BarIndex()); 
+Period      = BarsSince(IIf(BarIndex()==BeginValue(BarIndex()), 1, 0));
+Period      = BarsSince(IIf(BarIndex()==BeginValue(BarIndex()), 1, 0));
+Cdd         = 100*(HHV(Price, Period+1) - Price)/HHV(Price, Period+1);
+MaxDD       = HHV(Cdd, Period);
+Gain        = 100*(EndValue( Price ) - BeginValue( Price ))/BeginValue( Price );
+ANN         = 100 * (((Gain/100+1)^(252/Length)) - 1);
+Pole        = SelectedValue(Price);
+C1			   = Ref(Price,-1);
+Pole_1      = SelectedValue(C1);
+Pole_1D     = Pole - Pole_1;
+Pole_1Percent = 100*(Pole - Pole_1)/Pole_1;
+
+//  Note c55 is same as Encodecolor(ColorWhite), \\c42 is Yellow, \\c32 is Red
+Title = EncodeColor(colorRed) + "  " + Name() + "  " +  "  ---" + FName + "---  "+
+"\\c55EMAs 2,3,4,5" + "\\c42  EMAs 12,15,18,21" + "\\c32  EMAs 30,35,40,45,50" + 
+"\n  \\c55Pole at \\c42  " + WriteVal(SelectedValue(DateTime()),formatDateTime) +
+ "  \\c55Days \\c42(" + WriteVal(Days,1.0) + ")" +
+ "  \\c55Price ="+"\\c42 " + WriteVal(Pole) + "  " + 
+"\\c55 1 Day Diff = \\c42"+WriteVal(Pole_1D) + "    (" + WriteVal(Pole_1Percent)+" %)\n"+
+" \\c55 Range dates      =  \\c42" + WriteVal( StartD, formatDateTime )+
+"\\c55 to \\c42"+WriteVal( EndValue( DateTime() ), formatDateTime )+ " ("+WriteVal(Length,1.0)+") \\c55days"+
+"\n \\c55 Total Gain           =  \\c42" + WriteVal(Gain, 3.2 ) + " %"+
+"\n \\c55 Ann Gain             =  \\c42" + WriteVal(ANN, 1.2 ) + " %"+
+"\n \\c55 Max DrawDown  =  \\c42" + WriteVal(EndValue(MaxDD), 1.2 ) + " %";//<<<<<<<<<<<<

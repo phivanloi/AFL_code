@@ -1,0 +1,87 @@
+_SECTION_BEGIN("stochParameters"); 
+  
+  
+Plot(Param("Wyprzedanie",25,0,100),"",ParamColor("Level-color",colorGrey50), ParamStyle ( "Level-style" ,styleDashed |styleNoTitle | styleNoRescale ) ); 
+Plot(Param("Wykupienie",75,0,100) ,"",ParamColor("Level-color",colorGrey50), ParamStyle ( "Level-style" ,styleDashed |styleNoTitle | styleNoRescale ) ); 
+  
+TimeframeL = ParamList("Time Frame Short",List = "5 min,15 min,Hourly,4 Hour,Daily,Weekly",2); 
+TFl = 
+IIf(TimeframeL == "5 min",in5Minute, 
+IIf(TimeframeL == "15 min",in15Minute, 
+IIf(TimeframeL == "Hourly",inHourly, 
+IIf(TimeframeL == "4 Hour",inHourly*4, 
+IIf(TimeframeL == "Daily",inDaily, 
+IIf(TimeframeL == "Weekly",inWeekly, 
+IIf(TimeframeL == "Weekly",inMonthly,Null))))))); 
+  
+  
+_SECTION_END(); 
+  
+  
+  
+_SECTION_BEGIN("Stochastic %D"); 
+  
+periods = Param( "Periods", 8, 1, 65, 1 ); 
+Ksmooth = Param( "%K avg", 3, 1, 65, 1 ); 
+Dsmooth = Param( "%D avg", 3, 1, 65, 1 ); 
+Plot( StochD( periods , Ksmooth, DSmooth ), _DEFAULT_NAME(), ParamColor( "Color", colorBlue ), ParamStyle("Style") ); 
+SD=StochD( periods , Ksmooth, DSmooth );  
+_SECTION_END(); 
+  
+_SECTION_BEGIN("Stochastic %K"); 
+  
+periods = Param( "Periods", 8, 1, 65, 1 ); 
+Ksmooth = Param( "%K avg", 3, 1, 65, 1 ); 
+Plot( StochK( periods , Ksmooth), _DEFAULT_NAME(), ParamColor( "Color", colorRed ), ParamStyle("Style") ); 
+SK=StochK( periods , Ksmooth);  
+  
+  
+_SECTION_END(); 
+  
+_SECTION_BEGIN("Stoch.%D-H"); 
+  
+periods = Param( "Periods", 8, 1,30, 1 ); 
+Ksmooth = Param( "%K avg", 3, 1, 30, 1 ); 
+Dsmooth = Param( "%D avg", 3, 1, 30, 1 ); 
+  
+TimeFrameSet(TFl); 
+StochDh= StochD( periods , Ksmooth, DSmooth ); 
+TimeFrameRestore(); 
+  
+  
+Plot( TimeFrameExpand( StochDh, TFl), _DEFAULT_NAME(), ParamColor( "Color", colorYellow ), ParamStyle("Style") ); 
+  
+_SECTION_END(); 
+  
+  
+_SECTION_BEGIN("Stoch.%K-H"); 
+  
+periods = Param( "Periods", 8, 1,30, 1 ); 
+Ksmooth = Param( "%K avg", 3, 1, 30, 1 ); 
+  
+TimeFrameSet(TFl); 
+StochDk = StochK( periods , Ksmooth); 
+TimeFrameRestore(); 
+  
+Plot( TimeFrameExpand( StochDk, TFl) , _DEFAULT_NAME(), ParamColor( "Color", colorWhite ), ParamStyle("Style") ); 
+_SECTION_BEGIN("Change Background Color"); 
+SetChartBkGradientFill( ParamColor("BgTop", ColorRGB( 172,172,172 )), 
+  
+ParamColor("BgBottom", ColorRGB( 172,172,172 )),ParamColor("titleblock",ColorRGB( 172,172,172 ))); 
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Sell=SD>75 AND Cross(SD,SK);
+Buy=SD<25 AND Cross(SK,SD);
+
+
+Filter =Buy OR Sell;
+
+//AddTextColumn(FullName(),"Full name");
+
+
+AddColumn(IIf(Buy,1,IIf(Sell,-5,0)) ,"BS",1.0,colorBlack,IIf(Buy,colorGreen,IIf(Sell,colorRed,colorBlack)));
+
+
+
+_SECTION_END();

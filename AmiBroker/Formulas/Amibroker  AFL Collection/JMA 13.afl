@@ -1,0 +1,5 @@
+
+//Plot( JurikJMA( Close, 8, 0), "", colorGreen, styleThick );
+Plot( JurikJMA( Close, 15, 0), "", colorRed, styleThick+styleNoLabel );
+
+PlotOHLC (JurikJMA( Close, 8, 0), IIf(JurikJMA( Close, 8, 0) > JurikJMA( Close, 15, 0), JurikJMA( Close, 8, 0),JurikJMA( Close, 15, 0)), IIf(JurikJMA( Close, 8, 0) < JurikJMA( Close, 15, 0),JurikJMA( Close, 8, 0),JurikJMA( Close, 15, 0)),JurikJMA( Close, 15, 0), "ma-15", colorWhite,styleCloud);

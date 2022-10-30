@@ -1,0 +1,66 @@
+_SECTION_BEGIN("TD sequential setup");
+// TD Sequential Setup 
+Plot( C, "Price", colorBlack, styleCandle ); 
+y = ParamField("Price field"); 
+
+Buy = Sum( y < Ref( y, -4 ), 9 ) == 9 AND Ref( y, -9) > Ref( y, -13 ); 
+Sell = Sum( y > Ref( y, -4 ), 9 ) == 9 AND Ref( y, -9) < Ref( y, -13 ); 
+
+PlotShapes( Buy * shapeUpArrow + Sell * shapeDownArrow, IIf( Buy, colorGreen, colorRed ), 0, IIf( Buy, L, H ) );
+//LISTING 2
+// Ermanometry 
+Plot( C, "Price", colorBlack, styleCandle ); 
+dt = DateTime(); 
+Start = dt == SelectedValue( dt ); 
+
+EF = Param("Seed Seg EF", 48, 1, 900 ); 
+DE = Param("Seed Seg DE", 40, 1, 900 ); 
+
+Ratio = EF/DE; 
+InverseRatio = 1/Ratio; 
+
+x = BarsSince( start ); 
+CD = DE * Inverseratio; 
+BC = CD * Inverseratio; 
+AB = BC * Inverseratio; 
+FG = EF* Ratio; 
+GH = FG * Ratio; 
+HI = GH * Ratio; 
+IJ = HI * Ratio; 
+
+FH = sqrt( FG * FG  + GH * GH  ); 
+
+Erman = 
+x == int(FH) OR /* Erman */ 
+x == int(GH) OR /* Erman */ 
+x == int(HI) OR /* Erman */ 
+x == int(IJ) OR /* Erman */ 
+x == int(DE+EF+CD) OR /* Erman */ 
+x == int(GH+HI+IJ) OR /* Erman */ 
+x == int(CD+DE+EF+FG+GH+HI) OR /* Erman */ 
+x == int(EF+FG+GH) OR /* Erman */ 
+x == int(CD+DE+EF+FG+GH) OR /* Erman */ 
+x == int(CD+DE+EF+FG+GH+HI) OR /* Erman */ 
+x == int(GH+IJ+CD+AB+EF); /* Erman */ 
+
+Plot( Erman, "Erman", colorRed, styleHistogram | styleOwnScale ); 
+
+FH = sqrt( FG * FG  + GH * GH  ); 
+
+Coles = 
+x == int(FH+FG+GH) OR /* Coles */ 
+x == int(AB+BC+CD+DE) OR /* Coles */ 
+x == int(AB+BC+CD+DE+GH) OR /* Coles */ 
+x == int(FG+GH) OR /* Coles */ 
+x == int(GH+HI) OR /* Coles */ 
+x == int(FG+BC+CD) OR /* Coles */ 
+x == int(FG+BC+CD+DE) OR /* Coles */ 
+x == int(CD+BC) OR /* Coles */ 
+x == int(DE+BC) OR /* Coles */ 
+x == int(sqrt(CD*CD+DE*DE)+CD+DE) OR /* Coles */ 
+x == int(sqrt(EF*EF+FG*FG)+EF+FG); /* Coles */ 
+
+Plot( Coles, "Coles", colorGreen, styleHistogram | styleOwnScale );
+
+
+_SECTION_END();

@@ -1,0 +1,52 @@
+// RAJASWAMY VOLUMEDISTRIBUTION.AFL    KSC     3/16/2010
+
+IDOW	= 	Foreign("DJ-30","C");
+INAS	=	Foreign("OTC-C","C");
+ISP	=	Foreign("SP-CP","C");
+NVOL	=	Foreign("$TVOL","C");
+NSVOL	=	Foreign("TVOLQ","C");
+
+RDOW	=	IDOW - Ref(IDOW,-1);
+RNAS	=	INAS - Ref(INAS,-1);
+RSP	=	ISP - Ref(ISP,-1);
+
+DVNY	=	ROC(NVOL,1);
+DVNS	=	ROC(NSVOL,1);
+
+
+Filter = 1;
+Buy = 0;
+
+C0		=	colorDefault;
+C1		=	colorGreen;
+C2		=	colorRed;
+C3		= 	colorPink;
+C4		=	colorYellow;
+C5		=	colorPaleGreen;
+AddColumn(RDOW,"Dow",1.2,IIf(RDOW>0,C1,C2),C0,60);
+AddColumn(RSP,"SP-500",1.2,IIf(RSP>0,C1,C2),C0,60);
+AddColumn(RNAS,"Nasdaq",1.2,IIf(RNAS>0,C1,C2),C0,60);
+AddColumn(DVNY,"Vol NY",1.0,IIf(DVNY>0,C1,C2),C0,60);
+AddColumn(DVNS,"Vol Nas",1.0,IIf(DVNS>0,C1,C2),C0,60);
+
+PSum	=	(RDOW>0)*1 + (RSP>0)*1 + (RNAS>0)*1;
+VSum	=	(DVNY>0)*1 + (DVNS>0)*1;
+Str	=	IIf(DVNY > 9 AND DVNS > 9, 1, 0);
+
+Acc	=	IIf(PSum == 3 AND Vsum == 2 AND Str == 1,C1,
+			IIf(Psum == 3 AND Vsum == 2 AND Str == 0,C5,
+			IIf(PSum == 3 AND Vsum == 0,C4,
+			IIf(PSum == 0 AND Vsum == 2 AND Str == 1,C2,
+			IIf(Psum == 0 AND Vsum == 2 AND Str == 0,C4,C0)))));
+
+
+
+//AddColumn(Psum,"Psum",1.0,C0,C0,50);
+//AddColumn(Vsum,"Vsum",1.0);
+AddColumn(Psum+Vsum,"Acc or Dis",1.0,C0,Acc,90);
+//AddColumn(Dcc,"Dcc",1.0,C0,IIf(Dcc==1,C2,C0),50);
+
+
+
+
+

@@ -1,0 +1,8 @@
+Pe = Param("Enter number of bars",20,1,1000,1);
+TRH = IIf(H>Ref(C,-1),H,Ref(C,-1));
+TRL = IIf(L<Ref(C,-1),L,Ref(C,-1));
+ADm = ((C-TRL)-(TRH-C))/(TRH-TRL)*V;
+x = (Ref(Sum(ADm,Pe),-1)*(Pe-1)/Pe+ADm)/(Ref(Sum(V,Pe),-1)*(Pe-1)/Pe+V);
+
+Plot(x ,_DEFAULT_NAME(), ParamColor("color", colorCycle ), ParamStyle("Style") );
+PlotGrid(0, colorLightGrey);

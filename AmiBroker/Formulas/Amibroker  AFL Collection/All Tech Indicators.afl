@@ -1,0 +1,137 @@
+//Exploration for Technical Indicators By Prashanth.K 
+
+Filter=1;
+// 52 Week High Low
+A = IIf(H > HHV(H,250),1,0);
+B = IIf(L < LLV(L,250),1,0);
+
+// Strong Volume Gainers, Decliners
+
+D = IIf((V > MA(V,50) AND C > Ref(C,-1) + C * (5/100)),1,0);
+E = IIf((V > MA(V,50) AND C < Ref(C,-1) - C * (5/100)),1,0);
+
+// Bullish 50/200-day MA Crossovers
+
+F = Cross(EMA(C,50),EMA(C,200));
+
+// Bearish 50/200-day MA Crossovers
+
+G = Cross(EMA(C,200),EMA(C,50));
+
+// Overbought with a Declining RSI
+
+I = IIf(RSI(14)>70 AND RSI(14) < Ref(RSI(14),-1),1,0);
+
+// Oversold with an Improving RSI 
+
+J = IIf(RSI(14)<30 AND RSI(14) > Ref(RSI(14),-1),1,0);
+
+// Moved Above Upper Bollinger Band 
+
+K = IIf(C > BBandTop(C,15),1,0);
+
+// Moved Below Lower Bollinger Band 
+
+M = IIf(C < BBandBot(C,15),1,0);
+
+// Improving Chaikin Money Flow
+
+N = IIf(Chaikin(9,14) > Ref(Chaikin(9,14),-1),1,0);
+
+// Declining Chaikin Money Flow 
+
+P = IIf(Chaikin(9,14) < Ref(Chaikin(9,14),-1),1,0);
+
+// New CCI Buy Signals 
+
+Q = IIf(Cross(CCI(14),100),1,0);
+
+// New CCI Sell Signals 
+
+R = IIf(Cross((-100),CCI(14)),1,0);
+
+// Parabolic SAR Buy Signals
+
+S = IIf(Cross(C,SAR(0.02)),1,0);
+
+// Parabolic SAR Sell Signals
+
+T = IIf(Cross(SAR(0.02),C),1,0);
+
+// Stocks in a New Uptrend (Aroon) 
+
+Period = 14;
+LLVBarsSince = LLVBars(L, Period) + 1;
+HHVBarsSince = HHVBars(H, Period) + 1;
+
+Aroon_Down = 100 * (Period - LLVBarsSince) / (Period - 1);
+Aroon_Up   = 100 * (Period - HHVBarsSince) / (Period - 1);
+Aroon_Osc  = Aroon_Up - Aroon_Down;
+
+U = IIf((Cross(Aroon_Osc,0)), 1,0);
+
+// Stocks in a New Downtrend (Aroon) 
+
+W = IIf((Cross(0,Aroon_Osc)), 1,0);
+
+// Stocks in a New Uptrend (ADX) 
+
+X = IIf(Cross(ADX(14),20),1,0);
+
+// Stocks in a New Downtrend (ADX) 
+
+Y = IIf(Cross(40, ADX(14)),1,0);
+
+// Gap Ups
+
+Z = IIf(O > Ref(H,-1),1,0);
+
+// Breakaway Gap Ups 
+
+AA = IIf(O AND L > Ref(H,-1),1,0);
+
+// Runaway Gap Ups 
+
+BB = IIf( L > (Ref(H,-1) + (Ref(H,-1) * 2.50) /100 ),1,0);  
+
+// Gap Downs
+
+CC = IIf(O < Ref(L,-1),1,0);
+
+// Breakaway Gap Downs 
+
+DD = IIf(O AND L AND H < Ref(L,-1),1,0);
+
+// Runaway Gap Downs
+
+EE = IIf( H < ((Ref(L,-1) - (Ref(L,-1) * 2.50) /100 )),1,0);  
+
+AddColumn(A, "52 Week High");
+AddColumn(B, "52 Week Low");
+AddColumn(D, "Vol Gain");
+AddColumn(E, "Vol Loss");
+AddColumn(F, "Bullish Cross");
+AddColumn(G, "Bearish Cross");
+AddColumn(I, "Decl RSI");
+AddColumn(J, "Adv RSI");
+AddColumn(K, "B Top");
+AddColumn(M, "B Bot");
+AddColumn(N, "Chaikin Adv");
+AddColumn(P, "Chaikin Decl");
+AddColumn(Q, "CCI Buy");
+AddColumn(R, "CCI Sell");
+AddColumn(S, "SAR Buy");
+AddColumn(T, "SAR Sell");
+AddColumn(U, "Aroon Buy");
+AddColumn(W, "Aroon Sell");
+AddColumn(X, "ADX Buy");
+AddColumn(Y, "ADX Sell");
+AddColumn(Z, "Gap Up");
+AddColumn(AA, "Br.Gap Up");
+AddColumn(BB, "Run.Gap Up");
+AddColumn(CC, "Gap Down");
+AddColumn(DD, "Br.Gap Dwn");
+AddColumn(EE, "Run.Gap Dwn");
+
+
+

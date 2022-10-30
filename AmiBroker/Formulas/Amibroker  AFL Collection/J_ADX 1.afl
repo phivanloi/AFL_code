@@ -1,0 +1,14 @@
+_SECTION_BEGIN("JDMXall");
+//SetBarsRequired(10000, 0); 
+ 
+
+Length=Param( "Length ", 20, 0, 100);
+
+//Plot( JurikDMXPlus( 20), "DI plus ", colorBrightGreen, styleDashed );
+//Plot( JurikDMXMinus( 20),"DI Minus ",colorRed,styleDashed );
+Plot( JurikDMX( Length), "JMX", IIf(JurikDMX( Length) < Ref(JurikDMX( Length),-1),colorOrange,colorBlue), styleThick+styleOwnScale );
+_SECTION_END();
+
+j = JurikJMA(JurikDMX( 20) , 15, 0);
+
+//Plot( j, "", colorWhite, styleThick+styleDashed );

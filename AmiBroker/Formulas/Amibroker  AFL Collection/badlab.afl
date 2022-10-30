@@ -1,0 +1,336 @@
+_SECTION_BEGIN("Trade Variables"); 
+priceRL=Param("Price Range Min",15,1,20000,1);
+priceRH=Param("Price Range Max",20000,1,20000,1);
+riskAmount=Param("Risk Amount",500,50,10000,50);
+factor=Param("Factor %",20,0.1,100,0.1);
+profitfactor=Param("TP Ratio before entry",2,0.1,100,0.1);
+Profit=Param("TP Ratio after entry",3,0.1,100,0.1);
+trades=Param("ENTRY RULES: 1-NR7,2-NR8, 3-NR1&NR7, 4-NR1&NR7&NR8",3,1,4,1);
+
+_SECTION_BEGIN ("Synchronise Factors");
+synch=ParamToggle("Synch with Index", "No|Yes", 0);
+Vr=ParamList("Index",List = "^NSEI,^NSEBANK,^CNXIT,^NSMIDCP,RELIANCE.NS,SBIN.N S",0);
+//synch1=ParamToggle("Since Today", "No|Yes", 1);
+Slope=ParamToggle("Slope", "No|Yes", 0);
+Limit=Param("Trading Time(HHMMSS)",145500,103000,153000,100);
+
+_SECTION_BEGIN ("Hide/Show");
+pShowMarkers = ParamToggle("Show Markers", "No|Yes", 1);
+pShowtradeLines = ParamToggle("Show Trade Lines", "No|Yes", 1);
+
+
+_SECTION_BEGIN("Price");
+Plot( C, "Close", ParamColor("Color", colorWhite ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+
+//sma
+_SECTION_BEGIN("SMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 20, 2, 300, 1, 10 );
+Plot( MA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorYellow ), ParamStyle("Style", styleThick) );
+_SECTION_END();
+
+//measure limit
+synch1=1;
+since=(TimeNum() >= 095959 AND TimeNum()<= Limit) AND (DateNum()==LastValue(DateNum()));
+
+//nr7 / nr1 /nr8
+rang=High-Low;
+//nr7s=IIf(rang==LLV(rang,7) AND since ,shapeDigit7+shapePositionAbove,shapeNone);
+nr7=IIf(rang==LLV(rang,7) ,shapeDigit7+shapePositionAbove,shapeNone);
+//nr8s=IIf(Ref(nr7s,-1) AND rang==LLV(rang,8) AND since ,shapeDigit8+shapePositionAbove,shapeNone);
+nr8=IIf(Ref(nr7,-1) AND rang==LLV(rang,8) ,shapeDigit8+shapePositionAbove,shapeNone);
+//nr7=IIf(synch1,nr7s,nr7h);
+//nr8=IIf(synch1,nr8s,nr8h);
+InsideBar = Inside() ;
+nr1=IIf(nr7 AND InsideBar, shapeDigit1,shapeNone);
+
+//slopes
+isSlopeUP=(MA( P, Periods )<L) AND Ref(MA( P, Periods ),-1)>Ref(MA( P, Periods ),-2) AND Ref(MA( P, Periods ),-2)>Ref(MA( P, Periods ),-3) AND Ref(MA( P, Periods ),-3)>Ref(MA( P, Periods ),-4) AND Ref(MA( P, Periods ),-4)>Ref(MA( P, Periods ),-5) AND Ref(MA( P, Periods ),-5)>Ref(MA( P, Periods ),-6);
+isSlopeDN=(MA( P, Periods )>H) AND Ref(MA( P, Periods ),-1)<Ref(MA( P, Periods ),-2) AND Ref(MA( P, Periods ),-2)<Ref(MA( P, Periods ),-3) AND Ref(MA( P, Periods ),-3)<Ref(MA( P, Periods ),-4) AND Ref(MA( P, Periods ),-4)<Ref(MA( P, Periods ),-5) AND Ref(MA( P, Periods ),-5)<Ref(MA( P, Periods ),-6);
+
+
+//foreign
+_SECTION_BEGIN ("foreign Index bar graph");
+SetForeign(Vr);
+HaC =(O+H+L+C)/4;
+HaO = AMA( Ref( HaC, -1 ), 0.5 );
+HaH = Max( H, Max( HaC, HaO) );
+HaL = Min( L, Min( HaC, HaO) );
+BG3=HHV(LLV(HaL,4)+ATR(4),8);
+BR3=LLV(HHV(HaH ,4)-ATR(4),8);
+co = IIf(Hac>BG3 ,colorBrightGreen,IIf(Hac < BR3,colorRed,colorGrey50));
+Plot(4, "", Co,styleArea+styleOwnScale | styleNoLabel, -1, 100);
+P1 = (C);
+Periods1 = 20;
+INDSlopeUP=(MA( P1, Periods1 )<L) AND Ref(MA( P1, Periods1 ),-1)>Ref(MA( P1, Periods1 ),-2) AND Ref(MA( P1, Periods1 ),-2)>Ref(MA( P1, Periods1 ),-3) AND Ref(MA( P1, Periods1 ),-3)>Ref(MA( P1, Periods1 ),-4);// AND Ref(MA( P, Periods ),-4)>Ref(MA( P, Periods ),-5) AND Ref(MA( P, Periods ),-5)>Ref(MA( P, Periods ),-6);
+INDSlopeDN=(MA( P1, Periods1 )>H) AND Ref(MA( P1, Periods1 ),-1)<Ref(MA( P1, Periods1 ),-2) AND Ref(MA( P1, Periods1 ),-2)<Ref(MA( P1, Periods1 ),-3) AND Ref(MA( P1, Periods1 ),-3)<Ref(MA( P1, Periods1 ),-4);
+RestorePriceArrays();
+_SECTION_END();
+
+//Short entry exits
+prc=(C>=priceRL AND C<=priceRH);
+Buycalc1=((High+(((Ref(High,-1)-Ref(Low,-1))*factor)/100)) AND isSlopeUP AND prc );
+Buycalc2=((High+(((Ref(High,-1)-Ref(Low,-1))*factor)/100)) AND prc);
+Buycalc=IIf(Slope,Buycalc1,Buycalc2);
+Buy1=IIf((Ref(nr7,-1) AND trades==1) OR ((Ref(nr7,-1) AND Ref(nr7,-2) AND Ref(nr7,-3) AND Ref(nr7,-4)) AND trades==1),Buycalc,0);
+Buy2=IIf((Ref(nr8,-1) AND trades==2) OR ((Ref(nr7,-1) AND Ref(nr7,-2) AND Ref(nr7,-3) AND Ref(nr7,-4)) AND trades==2),Buycalc,0);
+Buy3=IIf(((Ref(nr1,-1) AND Ref(nr7,-1)) AND trades==3) OR ((Ref(nr7,-1) AND Ref(nr7,-2) AND Ref(nr7,-3) AND Ref(nr7,-4)) AND trades==3),Buycalc,0);
+Buy4=IIf(((Ref(nr1,-1) AND Ref(nr7,-1) AND Ref(nr8,-1)) AND trades==4) OR ((Ref(nr7,-1) AND Ref(nr7,-2) AND Ref(nr7,-3) AND Ref(nr7,-4)) AND trades==4),Buycalc,0);
+Buy5=Buy1+Buy2+Buy3+Buy4 AND since;
+Buy6=Buy1+Buy2+Buy3+Buy4 AND (Hac>BG3) AND since;
+Buy7 = IIf(synch,Buy6,Buy5);
+BuyPrice1=IIf(Buy7==1,(round(( (Ref(High,-1))+(((Ref(High,-1)-Ref(Low,-1))*factor)/100))*10)/10),0);
+BuyTP=IIf(Buy7==1,((Ref(High,-1)+((Ref(High,-1)-Ref(Low,-1))*profitfactor))),0);
+Buy8=((H>=BuyPrice1) AND Buy7==1);
+Buy9=BarsSince(Buy8);
+Short10=ValueWhen(Buy8,Ref(L,-1));
+Short11=ValueWhen(Buy8,Ref(H,-1));
+Short12=(Short11-Short10);
+BuyTP1=ValueWhen(Buy8,BuyTP);
+BuyTP2=IIf(Buy9>=0,Cross(H,BuyTP1) OR Cross(C,BuyTP1),0);
+BuyTP3=BarsSince(BuyTP2);
+BuyTP4=IIf(BuyTP3>=0,Hold(BuyTP2==1,Limit),0);
+Short= (Buy9>=0 AND IsEmpty(BuyTP4) AND since AND (Cross(Short10,L) OR Cross(Short10,C)));
+ShortPrice=(round(ValueWhen(Short,Short10)*10)/10);
+
+//Long entry exits
+Shortcalc1=((Low-(((Ref(High,-1)-Ref(Low,-1))*factor)/100)) AND isSlopeDN AND prc);
+Shortcalc2=((Low-(((Ref(High,-1)-Ref(Low,-1))*factor)/100)) AND prc);
+Shortcalc=IIf(Slope,Shortcalc1,Shortcalc2);
+Short1=IIf((Ref(nr7,-1) AND trades==1) OR (Ref(nr7,-1) AND Ref(nr7,-2) AND Ref(nr7,-3) AND Ref(nr7,-4) AND trades==1),Shortcalc,0);
+Short2=IIf((Ref(nr8,-1) AND trades==2) OR (Ref(nr7,-1) AND Ref(nr7,-2) AND Ref(nr7,-3) AND Ref(nr7,-4) AND trades==2),Shortcalc,0);
+Short3=IIf(((Ref(nr1,-1) AND Ref(nr7,-1)) AND trades==3) OR (Ref(nr7,-1) AND Ref(nr7,-2) AND Ref(nr7,-3) AND Ref(nr7,-4) AND trades==3),Shortcalc,0);
+Short4=IIf(((Ref(nr1,-1) AND Ref(nr7,-1) AND Ref(nr8,-1)) AND trades==4) OR (Ref(nr7,-1) AND Ref(nr7,-2) AND Ref(nr7,-3) AND Ref(nr7,-4) AND trades==4),Shortcalc,0);
+Short5=Short1+Short2+Short3+Short4 AND since;
+Short6=Short1+Short2+Short3+Short4 AND (Hac<BR3) AND since;
+Short7= IIf(synch,Short6,Short5);
+ShortPrice1=IIf(Short7==1,(round(( (Ref(Low,-1))-(((Ref(High,-1)-Ref(Low,-1))*factor)/100))*10)/10),0);
+ShortTP=IIf(Short7==1,(round(((Ref(Low,-1)-((Ref(High,-1)-Ref(Low,-1))*profitfactor)))*10)/10),0);
+Short8=((L<=ShortPrice1) AND Short7==1);
+Short9=BarsSince(Short8);
+Buy10=ValueWhen(Short8,Ref(H,-1));
+Buy11=ValueWhen(Short8,Ref(L,-1));
+Buy12=(Buy10-Buy11);
+ShortTP1=ValueWhen(Short8,ShortTP);
+ShortTP2=IIf(Short9>=0,Cross(ShortTP1,L) OR Cross(ShortTP1,C),0);
+ShortTP3=BarsSince(ShortTP2);
+ShortTP4=IIf(ShortTP3>=0,Hold(ShortTP2==1,Limit),0 );
+Buy= (Short9>=0 AND IsEmpty(ShortTP4) AND since AND (Cross(H,Buy10) OR Cross(C,Buy10)));
+BuyPrice=(round(ValueWhen(Buy,Buy10)*10)/10);
+
+//stop levels
+Buystopprice=(round((Buy11-((Buy12*factor*2)/100))*10)/10); // multiply by 2 for more sl
+Buystop=Cross(Buystopprice,L) OR Cross(Buystopprice,C);
+Shortstopprice=(round((Short11+((Short12*factor*2)/100))*10)/10);
+Shortstop=Cross(H,Shortstopprice) OR Cross(C,Shortstopprice);
+
+//profit levels
+BuyProfitprice=(round((Buy10+(Profit*Buy12))*10)/10);
+Buyprofit=(Cross(H,BuyProfitprice) OR Cross(C,BuyProfitprice));
+ShortProfitprice=(round((Short10-(Profit*Short12))*10)/10);
+Shortprofit=Cross(ShortProfitprice,L) OR Cross(ShortProfitprice,C);
+
+//cumulative trades individual
+
+tradesB=Cum(Buy);
+TSB1=IIf(tradesB>=1,(Cross(H,Buyprofitprice) OR Cross(C,Buyprofitprice)) AND since,0);
+BSL1=IIf(tradesB>=1,(Cross(Buystopprice,L) OR Cross(Buystopprice,C)) AND since,0);
+tradesBTP=Cum(TSB1);
+tradesBSL=Cum(BSL1);
+tradesS=Cum(Short);
+TSS1=IIf(tradesS>=1,(Cross(Shortprofitprice,L) OR Cross(Shortprofitprice,C)) AND since,0);
+SSL1=IIf(tradesS>=1,(Cross(H,Shortstopprice) OR Cross(C,Shortstopprice)) AND since,0);
+tradesSTP=Cum(TSS1);
+tradesSSL=Cum(SSL1);
+Sell1=IIf(TradesBTP==1,TSB1,0);
+Sell2=IIf(TradesBTP>=1,Hold(Sell1==1,Limit),0);
+Cover1=IIf(tradesSTP==1,TSS1,0);
+Cover2=IIf(tradesSTP>=1,Hold(Cover1==1,Limit),0);
+bstop1=IIf(tradesBSL==1,BSL1,0);
+bstop2=IIf(tradesBSL>=1,Hold(bstop1==1,Limit),0);
+sstop1=IIf(tradesSSL==1,SSL1,0);
+sstop2=IIf(tradesSSL>=1,Hold(sstop1==1,Limit),0);
+Sell=IIf(bstop2==1,0,Sell1);
+bstop=IIf(Sell2==1,0,bstop1);
+Cover=IIf(sstop2==1,0,Cover1);
+sstop=IIf(Cover2==1,0,sstop1);
+
+//money management
+lotSizeb = round((riskAmount/(BuyPrice-Buystopprice)));
+lotSizes = round((riskAmount/(Shortstopprice-ShortPrice)));
+
+//shapes
+PlotShapes(nr1,colorGreen,0,L);
+PlotShapes(nr7,colorGreen,0,H);
+PlotShapes(nr8,colorRed,0,(L-(H-L)/4));
+PlotShapes(IIf((pShowMarkers AND Buy), shapeUpArrow, Null), colorWhite, 0,L,Offset=-45);
+PlotShapes(IIf((pShowMarkers AND Short), shapeDownArrow, Null), colorOrange, 0,H,Offset=-45);
+
+//line plot basic
+Bars = BarsSince(TimeNum() >= 094500 AND TimeNum() < 100000);//,BarInde),1); // AND DateNum()==LastValue(DateNum());
+x0 = BarCount-LastValue(Bars);
+x1 = BarCount-1;
+BuyStopline=LineArray(x0,LastValue(Buystopprice),x1,LastValue(Buystopprice),0);
+BuyTPline=LineArray(x0,LastValue(Buyprofitprice),x1,LastValue(Buyprofitprice),0);
+SellStopline=LineArray(x0,LastValue(Shortstopprice ),x1,LastValue(Shortstopprice),0);
+SellTPline=LineArray(x0,LastValue(Shortprofitprice ),x1,LastValue(Shortprofitprice),0);
+BuyPriceline=LineArray(x0,LastValue(BuyPrice),x1,LastValue(BuyPrice),0);
+SellPriceline=LineArray(x0,LastValue(ShortPrice),x1,LastValue(ShortPrice),0);
+
+//tradelines plot
+Plot(IIf(pShowtradeLines AND BuyPrice,BuyPriceline,Null),"",colorBrightGreen,styleDots|styleNoRescale);
+Plot(IIf(pShowtradeLines AND ShortPrice,SellPriceline,Null),"",colorRed,styleDots|styleNoRescale);
+Plot(IIf(pShowtradeLines AND BuyPrice,BuyStopline,Null),"",colorBrightGreen,styleDots|styleNoRescale| styleNoLine);
+Plot(IIf(pShowtradeLines AND BuyPrice,BuyTPline,Null),"",colorBrightGreen,styleDashed|styleNoRescale);
+Plot(IIf(pShowtradeLines AND ShortPrice,SellStopline,Null),"",colorRed,styleDots|styleNoRescale| styleNoLine);
+Plot(IIf(pShowtradeLines AND ShortPrice,SellTPline,Null),"",colorRed,styleDashed|styleNoRescale);
+
+//indicator
+if( Status("action") == actionIndicator )
+(
+Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Hi %g, Lo %g (%.1f%%) {{VALUES}}", H, L, SelectedValue( ROC( C, 1 ) ) )+"\n"+EncodeColor(colorWhite)+ "NR7 System" + " - " + Name() + EncodeColor(colorWhite) +
+
+"\n" +EncodeColor(colorYellow) + WriteIf(((BuyPrice) ) AND since, "Position Size : "+( lotSizeb )+" ","")+ WriteIf(((ShortPrice) ) AND since, "Position Size : "+( lotSizes )+" ","")+
+WriteIf( rang, "Range "+(rang)+" ","")+EncodeColor(colorBrightGreen)+"\n" +
+WriteIf((BuyPrice), "GO LONG : "+( BuyPrice)+" ","")+
+WriteIf( Buyprofitprice, " - LONG TP : "+(Buyprofitprice)+" ","")+
+WriteIf(Buystopprice, " - LONG SL : "+(Buystopprice),"")+
+
+"\n"+
+EncodeColor(colorRed) +
+WriteIf(ShortPrice, "GO Short : "+( ShortPrice)+" ","")+
+WriteIf(Shortprofitprice, " - Short TP : "+(Shortprofitprice),"")+
+WriteIf( Shortstopprice, " - Short SL : "+(Shortstopprice)+" ",""));
+
+//exploration
+AddColumn( IIf(Buy OR bstop OR Sell, TimeNum(), IIf(Short OR sstop OR Cover, TimeNum(),01 )), "Time", 1, colorWhite, bkcolor= IIf(Short OR sstop OR Cover,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy, 66, IIf(Short, 83,01 )), "GO", formatChar, colorWhite, bkcolor= IIf(Short,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Sell, 80, IIf(Cover, 80,01 )), "PR", formatChar, colorWhite, bkcolor= IIf(Cover ,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(bstop, 76, IIf(sstop, 76,01 )), "SL", formatChar, colorWhite, bkcolor= IIf(sstop ,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy OR bstop OR Sell, BuyPrice, IIf(Short OR sstop OR Cover, ShortPrice,01 )), "ENTRY@", 1.2, colorWhite, bkcolor= IIf(Short OR sstop OR Cover,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy OR bstop OR Sell, BuyStopprice, IIf(Short OR sstop OR Cover, ShortStopprice,01 )), "STPLS@", 1.2, colorWhite, bkcolor= IIf(Short OR sstop OR Cover,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy OR bstop OR Sell, Buyprofitprice, IIf(Short OR sstop OR Cover, Shortprofitprice,01 )), "PROFIT@", 1.2, colorWhite, bkcolor= IIf(Short OR sstop OR Cover,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy OR bstop OR Sell, Lotsizeb, IIf(Short OR sstop OR Cover, Lotsizes,01 )), "QTY", 1.0, colorWhite, bkcolor= IIf(Short OR sstop OR Cover,colorDarkRed,colorDarkGreen) );
+
+//Alerts
+AlertIf( Buy, "SOUND C:\\Windows\\Media\\Windows XP Startup.wav", "Buy",2);
+AlertIf( Short, "SOUND C:\\Windows\\Media\\Windows XP Startup.wav", "Short", 2 );
+AlertIf( BuyStop, "SOUND C:\\Windows\\Media\\Ringin.wav", "BuyStop Hit", 2 );
+AlertIf( Buyprofit, "SOUND C:\\Windows\\Media\\Ringin.wav", "Buy Take Profit", 2 );
+AlertIf( ShortStop, "SOUND C:\\Windows\\Media\\Ringin.wav", "Short Stop Hit", 2 );
+AlertIf( Shortprofit, "SOUND C:\\Windows\\Media\\Ringin.wav", "Short Take Profit", 2 );
+
+
+
+// csv file
+
+if (IsEmpty(StaticVarGet("EntrySignal"+Name())))
+{
+StaticVarSet("EntrySignal"+Name(), 1);
+}
+
+
+if (IsEmpty(StaticVarGet("BuySL"+Name())))
+{
+StaticVarSet("BuySL"+Name(), 1);
+}
+if (IsEmpty(StaticVarGet("BuyTP"+Name())))
+{
+StaticVarSet("BuyTP"+Name(), 1);
+}
+
+if (IsEmpty(StaticVarGet("SellSL"+Name())))
+{
+StaticVarSet("SellSL"+Name(), 1);
+}
+
+if (IsEmpty(StaticVarGet("SellTP"+Name())))
+{
+StaticVarSet("SellTP"+Name(), 1);
+}
+
+
+
+
+
+
+if ((StaticVarGet("EntrySignal"+Name()) == 1) && LastValue( Buy ) ) {
+fh = fopen( "C:\\signals\\trades_buy_"+Name()+".csv", "awr");
+if( fh)
+{
+fputs(Name()+","+Date()+","+BuyPrice+","+Buyprofitprice+","+Buystopprice+","+ round(Buystopprice*0.9995*10)/10+","+lotSizeb, fh);
+StaticVarSet("EntrySignal"+Name() , 0);
+fclose( fh );
+}
+}
+
+
+
+
+if ((StaticVarGet("EntrySignal"+Name()) == 1) && LastValue( Short ) ) {
+fh = fopen( "C:\\signals\\trades_sell_"+Name()+".csv", "awr");
+if( fh)
+{
+fputs(Name()+","+Date()+","+SellPrice+","+Shortprofitprice+","+ Shortstopprice+","+round(Shortstopprice*1.0005*10)/10+","+lotSizes , fh);
+StaticVarSet("EntrySignal"+Name() , 0);
+fclose( fh );
+}
+}
+
+
+
+
+
+// buy sl to file
+
+if ((StaticVarGet("BuySL"+Name()) == 1) && LastValue( bstop) ) {
+fh = fopen( "C:\\signals\\results\\buy_sl_"+Name()+".csv", "awr");
+if( fh)
+{
+fputs(Name()+","+Date(), fh);
+StaticVarSet("BuySL"+Name() , 0);
+fclose( fh );
+}
+}
+
+// buy tp to file
+
+if ((StaticVarGet("BuyTP"+Name()) == 1) && LastValue( Sell) ) {
+fh = fopen( "C:\\signals\\results\\buy_tp_"+Name()+".csv", "awr");
+if( fh)
+{
+fputs(Name()+","+Date(), fh);
+StaticVarSet("BuyTP"+Name() , 0);
+fclose( fh );
+}
+}
+
+
+// sell sl to file
+
+if ((StaticVarGet("SellSL"+Name()) == 1) && LastValue( sstop) ) {
+fh = fopen( "C:\\signals\\results\\sell_sl_"+Name()+".csv" , "awr");
+if( fh)
+{
+fputs(Name()+","+Date(), fh);
+StaticVarSet("SellSL"+Name() , 0);
+fclose( fh );
+}
+}
+
+// sell tp to file
+
+if ((StaticVarGet("SellTP"+Name()) == 1) && LastValue( Cover) ) {
+fh = fopen( "C:\\signals\\results\\sell_tp_"+Name()+".csv" , "awr");
+if( fh)
+{
+fputs(Name()+","+Date(), fh);
+StaticVarSet("SellTP"+Name() , 0);
+fclose( fh );
+}
+}
+
+
+
+//filter
+Filter = Buy OR Short OR Sell OR Cover OR bstop OR sstop ; 

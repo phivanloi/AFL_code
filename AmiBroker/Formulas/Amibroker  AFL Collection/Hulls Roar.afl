@@ -1,0 +1,25 @@
+Enter = 30; //Define values used to turn indicator On and OFF 
+Exit = 20; 
+
+TimeFrameSet(inWeekly); 
+ROAR = int(5200 * LinRegSlope(Close,26)/LinearReg(Close,26)); 
+roar30 = int(LinearReg(roar, 5)); // smooth for values over 30 by using nested linear regression 
+RAW = ROAR; // uncorrected value 
+for (i = 1; i < BarCount; i++ ) 
+{ 
+if (ROAR[i] >= Enter AND roar30[i] >= Enter) // smooth values over 30 
+ROAR[i] = roar30[i]; 
+if (ROAR[i] < Exit) // if below Exit value 
+ROAR[i] = 0; // then set to zero 
+if (ROAR[i] < Enter AND ROAR[i-1] == 0) // and hold at zero until it rises above Enter value 
+ROAR[i] = 0; 
+} 
+TimeFrameRestore(); 
+
+Plot(ROAR,"ROAR",colorBlue,1); // plot switched ROAR 
+ROAR = TimeFrameExpand(ROAR,inWeekly); 
+
+Plot(RAW,"RAW",colorPink,1); // also plot unswitched if desired 
+
+Plot(Enter,"",colorGreen,1); // show switching levels 
+Plot(Exit,"",colorRed,1);

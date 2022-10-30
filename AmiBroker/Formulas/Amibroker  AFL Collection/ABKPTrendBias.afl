@@ -1,0 +1,64 @@
+/* TSKPTrendBias with TSKPSEB */
+// user parameters
+parmTBStyle = ParamStyle("TB Style", styleLine, maskAll);
+parmTBColor = ParamColor("TB color", colorRed);
+parmTBSlowStyle = ParamStyle("TB Slow Style", styleLine | styleThick, maskAll);
+parmTBSlowColor = ParamColor("TB Slow color", colorBlue);
+parmPlotOsc = ParamToggle("Plot as Oscillator", "No|Yes", 0);
+parmTBOscStyle = ParamStyle("TB Osc. Style", styleHistogram, maskAll);
+parmPlotOscRibbon = ParamToggle("Plot Osc. as Ribbon", "No|Yes", 0);
+parmRibbonSize = Param("RibbonSize", 1, 0.5, 10, 0.5);
+parmPlotSEBands = ParamToggle("Plot SEBands", "No|Yes", 0);
+Periods = Param("Standard Error", 80, 3, 200, 1); 
+Smooth  = Param("Smooth",14,2,100,1);
+parmMBColor = ParamColor("Color MB",colorBlack);  
+parmMBStyle = ParamStyle("Style MB", style=styleDashed | styleNoLabel, Mask=maskAll );
+parmUBColor = ParamColor("Color UB",colorBlack);
+parmUBStyle = ParamStyle("Style UB", style=styleLine | styleNoLabel, Mask=maskAll ); 
+parmLBColor = ParamColor("Color LB",colorBlack);
+parmLBStyle = ParamStyle("Style LB", style=styleLine | styleNoLabel, Mask=maskAll ); 
+parmToneColorUp = ParamColor("Tone Color Up", ColorRGB(167, 224, 243) );
+parmToneColorDn = ParamColor("Tone Color Dn", ColorRGB(255, 192, 203) );
+parmTrendColorUp = ParamColor("Trend Color Up", ColorRGB(167, 224, 243) );
+parmTrendColorDn = ParamColor("Trend Color Dn", ColorRGB(255, 192, 203) );
+// KP indicators
+dummy =  E_TSKPTRENDBIAS(High,Low,Close);
+KPTB = tskp_sb;
+KPTBSlow = tskp_tbxavg;
+if(parmPlotOsc == 1 OR parmPlotOscRibbon == 1)
+	{
+		KPTBOsc = KPTB - KPTBSlow;
+	}
+// calculations
+if(parmPlotSEBands == 1)
+	{
+		LRCurve = LinearReg( KPTB, periods ); 
+		MALRCurve  = MA(LRCurve, Smooth);
+		SEValue = StdErr(KPTB, periods ); 
+		SErrorAvg =  MA(SEValue, Smooth);
+		LowerBand = MALRCurve - SErrorAvg ;
+		UpperBand = MALRCurve + SErrorAvg ;
+	}
+// plots
+if(parmPlotOsc == 0 AND parmPlotOscRibbon == 0)
+	{
+		Plot(KPTB, "TB", parmTBColor, parmTBStyle); 
+		Plot(KPTBSlow, "TBSlow", parmTBSlowColor, parmTBSlowStyle); 
+		if(parmPLotSEBands == 1)
+			{
+				Plot( MALRCurve , "MidBand", parmMBColor , parmMBStyle); 
+				Plot( UpperBand , "UpperBand",parmUBColor ,parmUBStyle );
+				Plot( LowerBand , "LowerBand", parmLBColor , parmLBStyle);
+				PlotOHLC( UpperBand, UpperBand, LowerBand, LowerBand, "Band", IIf(KPTBSlow >= MALRCurve, parmTrendColorUp, parmToneColorDn) , styleCloud | styleNoLabel); 
+				//plot Tone
+				Plot( parmRibbonSize, "Tone", IIf(KPTB > KPTBSlow, parmToneColorUp, parmToneColorDn) , styleArea |  styleNoLabel | styleOwnScale , 0, 10);
+			}
+	}
+else if(parmPlotOsc == 1)
+		{
+			Plot( KPTBOsc, "Tone", IIf(KPTBOsc >= 0, parmToneColorUp, parmToneColorDn) , parmTBOscStyle);
+		}
+else if(parmPlotOscRibbon == 1)
+		{
+			Plot( parmRibbonSize, "Tone", IIf(KPTBOsc >= 0, parmToneColorUp, parmToneColorDn) , styleArea |  styleNoLabel | styleOwnScale , 0, 10);
+		}

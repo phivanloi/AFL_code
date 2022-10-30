@@ -1,0 +1,90 @@
+_SECTION_BEGIN( "Save" );
+save = ParamTrigger( "Save Parameter?", "KLIK DISINI UNTUK SAVE" ) ;
+_SECTION_END( ); 
+
+_SECTION_BEGIN("Stochastic");
+
+//Buka file
+input_file = Name() + ".txt";
+input_folder = "vierbox";
+fh = fopen( input_folder + "\\" + input_file, "r" );
+
+if ( fh )
+{
+strFile = fgets( fh );
+fclose( fh );
+
+strperiods = StrExtract( strfile, 0 );
+strksmooth = StrExtract( strFile, 1 );
+strdsmooth = StrExtract( strFile, 2 );
+strmystochD = StrExtract( strFile, 3 );
+strmystochK = StrExtract( strFile, 4 );
+
+
+periods = Param( "Periods", StrToNum(strperiods ), 1, 200, 1 );
+Ksmooth = Param( "%K avg", StrToNum(strksmooth ), 1, 200, 1 );
+Dsmooth = Param( "%D avg", StrToNum(strdsmooth ), 1, 200, 1 );
+myStochD=StochD( periods , Ksmooth, DSmooth );
+myStochK=StochK( periods , Ksmooth);
+Overbought=80;
+Oversold=20;
+
+
+
+}
+else //jika file yang mau dibuka gak ada, bikin jadi default dan save
+{
+printf( "error open file" );
+
+periods = Param( "Periods", 15, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 3, 1, 200, 1 );
+Dsmooth = Param( "%D avg", 3, 1, 200, 1 );
+myStochD=StochD( periods , Ksmooth, DSmooth );
+myStochK=StochK( periods , Ksmooth);
+Overbought=80;
+Oversold=20;
+
+//save
+Output_file = Name() + ".txt";
+Output_folder = "vierbox";
+fmkdir( Output_folder );
+fh = fopen( Output_folder + "\\" + Output_file, "w" );
+fputs( NumToStr( periods, 1.0, False ) + "," + NumToStr( ksmooth, 1.0, False ) + "," +
+NumToStr( dsmooth, 1.0, False ) + "," + NumToStr( Stochastic %D, 1.0, False ) + "," +
+NumToStr( Stochastic %K, 1.0, False ) + "," , fh );
+fclose( fh );
+fclose( fh );
+
+}
+
+if ( save == 1 )
+{
+Output_file = Name() + ".txt";
+Output_folder = "vierbox";
+fmkdir( Output_folder );
+fh = fopen( Output_folder + "\\" + Output_file, "w" );
+fputs( NumToStr( periods, 1.0, False ) + "," + NumToStr( ksmooth, 1.0, False ) + "," +
+NumToStr( dsmooth, 1.0, False ) + "," + NumToStr( mystochd, 1.0, False ) + "," +
+NumToStr( mystochk, 1.0, False ) + "," , fh );
+fclose( fh );
+} //end if
+
+Buy = Cross(myStochK, myStochD );
+Sell = Cross( myStochD, myStochK );
+
+Plot( myStochD, "Stochastic %D"+_PARAM_VALUES( ), colorRed );
+Plot( myStochK, "Stochastic %K", colorBlue );
+
+PlotShapes(IIf( Sell, shapeHollowDownArrow , shapeNone), colorRed);
+PlotShapes(IIf( Buy, shapeHollowUpArrow , shapeNone), colorGreen);
+
+Plot(Overbought,"Overbought Level",colorRed);
+Plot(Oversold,"Oversold Level",colorGreen) ; 
+
+PlotOHLC( myStochK,myStochK, 50,myStochK, "", colorAqua, styleCloud | styleClipMinMax, 20, 80 );
+PlotOHLC( myStochD,myStochD, 50,myStochD, "", colorPink, styleCloud | styleClipMinMax, 20, 80 );
+
+PlotOHLC( Null,myStochD, myStochK, Null, "", colorLightGrey, styleCloud); 
+
+_SECTION_END( ); 
+

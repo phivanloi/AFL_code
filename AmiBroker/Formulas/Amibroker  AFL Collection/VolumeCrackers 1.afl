@@ -1,0 +1,3 @@
+_SECTION_BEGIN("VolumeCrackers");
+Buy = V>3*MA(V,10);
+_SECTION_END();

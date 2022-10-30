@@ -1,0 +1,98 @@
+_SECTION_BEGIN("BoonC Peak 'n Trough V 1.1");
+//{BoonC Peak 'n Trough V 1.1} 
+//{Buy} 
+SetChartBkGradientFill( ParamColor("Inner panel upper",colorWhite),ParamColor("Inner panel lower",colorLightYellow));
+
+x1=5; x2=4; x3=3; x4=2; x5=1; x6=.5; 
+//{Lowest price stock <5} 
+AA=IIf(C<5,Cross(C,ValueWhen(Peak(H,x1,1) !=Ref(Peak(H,x1,1),-1),H,1)), 
+//{Price between 5 AND 20} 
+IIf(C>5 AND C<20,Cross(C,ValueWhen(Peak(H,x2,1) !=Ref(Peak(H,x2,1),-1),H,1)), 
+//{Price between 20 AND 70} 
+IIf(C>20 AND C<70,Cross(C,ValueWhen(Peak(H,x3,1) !=Ref(Peak(H,x3,1),-1),H,1)), 
+//{Price between 70 AND 150} 
+IIf(C>70 AND C<150,Cross(C,ValueWhen(Peak(H,x4,1) !=Ref(Peak(H,x4,1),-1),H,1)), 
+//{Price between 150 AND 300} 
+IIf(C>150 AND C<300,Cross(C,ValueWhen(Peak(H,x5,1) !=Ref(Peak(H,x5,1),-1),H,1)), 
+//{Price over 300} 
+Cross(C,ValueWhen(Peak(H,x6,1)!=Ref(Peak(H,x6,1),-1),H,1))))))); 
+
+//{Sell } 
+x1=5; x2=4; x3=3; x4=2; x5=1; x6=.5; 
+//{Lowest price stock <5} 
+BB=IIf(C<5,Cross(ValueWhen(Trough(L,x1,1) !=Ref(Trough(L,x1,1),-1),L,1),C), 
+//{Price between 5 AND 20} 
+IIf(C>5 AND C<20,Cross(ValueWhen(Trough(L,x2,1) !=Ref(Trough(L,x2,1),-1),L,1),C), 
+//{Price between 20 AND 70} 
+IIf(C>20 AND C<70,Cross(ValueWhen(Trough(L,x3,1) !=Ref(Trough(L,x3,1),-1),L,1),C), 
+//{Price between 70 AND 150} 
+IIf(C>70 AND C<150,Cross(ValueWhen(Trough(L,x4,1) !=Ref(Trough(L,x4,1),-1),L,1),C), 
+//{Price between 150 AND 300} 
+IIf(C>150 AND C<300,Cross(ValueWhen(Trough(L,x5,1) !=Ref(Trough(L,x5,1),-1),L,1),C), 
+//{Price over 300} 
+Cross(ValueWhen(Trough(L,x6,1)!=Ref(Trough(L,x6,1),-1),L,1),C)))))); 
+
+Color=IIf(BarsSince(AA)>BarsSince(BB),colorRed,IIf(RSI()>70,colorCustom1,colorDarkGreen)); 
+Plot(C,"",Color,styleCandle); 
+///// Trailing Stop Module ///// 
+
+P6=Param("Trailing Stop Risk",2.5,2,3.5,0.1); 
+P7=Param("Trailing Stop LookBack",14,5,25,1); 
+P8=Param("Trailing Stop PrevLow Switch",0,0,1,1); 
+PrevLow=IIf(P8==1, Ref(C,-TroughBars(C,5,1)) ,Null); 
+Plot(PrevLow,"",colorRed); 
+
+//Position sizing// 
+MyTotalPort = Param("MyTotalPort",1000000,10000,10000000,100000); 
+AcceptableRisk = Param("AcceptableRisk",0.5,0.1,3,0.1); 
+BarsFromStart = BarsSince(Cross(AA,BB)AND Ref(Color,-1)==colorRed) ; 
+InitialStopLoss =Ref( H - P6*ATR(P7),-BarsFromStart); 
+PositionSizing = 0.01*AcceptableRisk*MyTotalPort/( C - InitialStopLoss ); 
+
+Plot(IIf( HHV(H - P6*ATR(P7),BarsFromStart+1) <C ,HHV(H - P6*ATR(P7),BarsFromStart+1),Null) ,"",colorBlue,1); 
+PlotShapes(shapeDownArrow*Cross(Ref(HHV(H - P6*ATR(P7),BarsFromStart+1),-1),C),colorCustom1,0,H,Offset=-43); 
+Title=Name()+" "+Date()+" "+EncodeColor(colorBrown)+"BoonC Peak'nTrough V 1.1"+EncodeColor(colorBlack)+" Vol="+NumToStr(Volume ,1.0)+" "+EncodeColor(1)+"Position Sizing ( " +AcceptableRisk+ "% Risk ) = " + WriteIf(color==colorDarkGreen,NumToStr(PositionSizing ,1.0),"0")+ 
+EncodeColor(colorBlue)+"\nO="+O+EncodeColor(colorBrown)+" Pk-Tgh Exit"+EncodeColor(colorCustom1)+" ATR Trailing Exit"+EncodeColor(colorBlack)+" RSI Exit"+EncodeColor(colorBlack)+" ADX = "+ADX()+EncodeColor(colorBlue)+"\nH="+H+"\nL="+L+"\nClose="+ C+""+"\nchange= "+NumToStr((Ref(C,-1)-Close) ,1.2) + 
+" "; 
+PlotShapes( AA*shapeSmallUpTriangle,colorCustom12,0,L-0.2); 
+PlotShapes( BB*shapeHollowSmallDownTriangle,colorCustom12,0,H+0.2); 
+
+PlotShapes( IIf( AA, shapeUpArrow, shapeNone ), colorBlack, layer = 0, yposition = L, offset = -15  ); 
+PlotShapes( IIf( BB, shapeDownArrow, shapeNone ), colorBlack, layer = 0, yposition = H, offset = -15  );
+
+dist = 0.5*ATR(20);
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( AA[i] ) PlotText( "  Buy\n@ " + C[ i ], i, L[ i ]-dist[i], colorBlack ); 
+if( BB[i] ) PlotText( "  Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorBlack ); 
+}
+
+GfxSetBkMode(1);
+GfxSelectPen( colorBlack, 1, 0) ;
+GfxSelectSolidBrush( colorGreen ); 
+GfxRoundRect( 3, 3, 250, 65, 9, 9 ) ;
+GfxSelectFont("Courier New", 9, 700 ); 
+
+GfxTextOut("BOON's PnT  ", 25, 10);
+//GfxTextOut((WriteIf(Buy ,  "Last Buy Trigger at  : "+C+" ", "")), 25, 45);
+//GfxTextOut((WriteIf(Sell , "Last Sell Trigger at : "+C+" ", "")), 25, 45);
+GfxTextOut("Current Price : " + C, 25, 25);
+GfxTextOut(""+Date() , 25, 45);
+
+
+GraphXSpace=3;
+_SECTION_END();
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 100, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), colorBlue, styleThick ); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), colorBlue, styleThick ); 
+_SECTION_END();

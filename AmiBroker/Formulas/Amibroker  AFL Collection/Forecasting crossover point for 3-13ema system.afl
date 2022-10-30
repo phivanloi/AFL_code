@@ -1,0 +1,38 @@
+a=EMA(C,3);
+b=EMA(C,13);
+d=EMA(C,34);
+d=a*.5;
+e=b*.1429;
+f=(Ref(b,-1)*(1-.1429)-Ref(a,-1)*(1-.5))/(.5-.1429);
+
+Plot(C,"close", colorBlack,styleLine);
+Plot(EMA(C,3),"3ema",colorRed,styleLine);
+Plot(EMA(C,13),"13ema",colorBlue,styleLine);
+Plot(EMA(C,200),"200ema",colorGreen,styleLine);
+
+Plot(f,"BP or SP",colorWhite,styleLine); //BP Buying or Selling point
+Plot (b,"stop Loss",colorBrown,styleDots);
+
+
+Buy=Cross(a,b) ;
+
+Sell=Cross(b,a) ;
+
+
+PlotShapes(IIf
+(Buy,shapeUpArrow,shapeNone) ,colorBrightGreen,0,Graph0,-15);
+
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed,0,Graph1,-15);
+Title="\\c55"
++Name()
++" " + WriteVal(C)+" "+Date()+" "+"\\c44"+"3ema"+WriteVal(a)
++" "+"\\c33"+" "+"BP or SP"+WriteVal(f)+" "+"\\c33"+" "+"stop
+loss"+WriteVal(b);
+
+
+
+
+
+
+
+ 

@@ -1,0 +1,20 @@
+PL = Param("Periods",14,4,45,1);
+
+AroonUp = 100 * (PL - (HHVBars(H, PL + 1))) / PL;
+AroonDn = 100 * (PL - (LLVBars(L, PL + 1))) / PL;
+
+Plot(AroonUp, "Aroon Up("+PL+")", colorBrightGreen, styleThick);
+Plot(AroonDn, "Aroon Dn("+PL+")", colorRed, styleThick);
+
+PlotGrid(70, colorLightGrey);
+PlotGrid(50, colorLightGrey);
+PlotGrid(30, colorLightGrey);
+
+"Aroon(up) dipping below 50 indicates that the current trend's upward momentum is gone.";
+"";
+"Similarly, Aroon(down) dipping below 50 indicates that the current trend's downward momentum is gone.";
+"";
+"";
+"Values above 70 indicate a strong trend in the same direction as the Aroon (Up or Down).";
+"";
+"Values below 30 indicate a strong trend in the opposite direction.";

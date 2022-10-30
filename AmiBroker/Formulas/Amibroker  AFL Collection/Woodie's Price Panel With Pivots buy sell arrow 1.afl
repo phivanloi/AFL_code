@@ -1,0 +1,235 @@
+_SECTION_BEGIN("Woodie's Price Panel With Pivots");
+////////////////////////////////////
+// 
+// CCI Price Panel For Amibroker
+// Coded by Crasher_FL 
+// Modified by Dennis 
+//
+////////////////////////////////////
+
+SetChartBkColor(ParamColor("Outer panel color ",colorPaleBlue)); // color of outer border 
+
+SetChartBkGradientFill( ParamColor("Inner panel color upper half",
+colorPaleBlue),ParamColor("Inner panel color lower half",  
+
+colorPaleBlue)); // color of inner panel
+
+Titledisplay= ParamToggle("Display pivot stats","No|Yes",1); 
+
+barcolor = IIf(C > Open, colorBlack, IIf(C == Open, colorBlack, colorBlack)); 
+
+Plot( C, "Close", barcolor, styleCandle  ); 
+
+EMA34 = EMA(C,34); 
+
+LSMA = LinearReg(C,25); 
+
+PI = atan(1.00) * 4; 
+
+periods = 30; 
+
+HighHigh = HHV(H, periods); 
+
+LowLow = LLV(L, periods); 
+
+range = 25 / (HighHigh - LowLow) * LowLow; 
+
+x1_EMA34 = 0; 
+
+x2_EMA34 = 2; 
+
+y1_EMA34 = 0; 
+
+y2_EMA34 = (Ref(EMA34, -2) - EMA34) / Avg * range; 
+
+c_EMA34 = sqrt((x2_EMA34 - x1_EMA34)*(x2_EMA34 - x1_EMA34) + (y2_EMA34 -
+y1_EMA34)*(y2_EMA34 - y1_EMA34)); 
+
+angle_EMA34 = round(180 * acos((x2_EMA34 - x1_EMA34)/c_EMA34) / PI); 
+
+TitleAngleEMA34 = EncodeColor(colorWhite) + "\nEMA34 angle = "; 
+
+angle_EMA34 = IIf(y2_EMA34 > 0, - angle_EMA34, angle_EMA34); 
+
+Cziparam= Param("CZI angle parameter",5,0,360,1);
+
+Color_ema_eangle= IIf(angle_ema34>=Cziparam,ParamColor("EMA34 trending
+up",colorTurquoise),IIf(angle_ema34<=-1*Cziparam,ParamColor("EMA34 trending
+down",colorDarkRed),ParamColor("EMA34 NOT trending",colorYellow))); 
+
+Plot(EMA34,"EMA 34",Color_ema_eangle,styleLine | styleThick | styleNoLabel );
+
+
+Plot(lsma,"LSMA 25",IIf(C > lsma, ParamColor("Close > LSMA",colorLime),
+
+IIf(C == lsma, ParamColor("Close = LSMA",colorTeal),ParamColor("Close < LSMA",colorRed))), styleLine | styleThick |styleNoLabel);
+
+//**************************************//
+
+Buy = angle_ema34>=Cziparam;
+Sell = angle_ema34<=-1*Cziparam;
+
+
+PlotShapes(Buy*shapeUpArrow,colorLime,0,Graph0);
+PlotShapes(Sell*shapeDownArrow,colorRed,0,Graph0);
+
+
+
+
+
+//---- pivot points 
+DayH = TimeFrameGetPrice("H", in1Minute*30, -1);// yesterdays high 
+
+DayL = TimeFrameGetPrice("L", in1Minute*30, -1);//low 
+
+DayC = TimeFrameGetPrice("C", in1Minute*30, -1);//close 
+
+DayO = TimeFrameGetPrice("O", in1Minute*30);// current day open 
+
+HiDay = TimeFrameGetPrice("H", in1Minute*30); 
+
+LoDay = TimeFrameGetPrice("L", in1Minute*30); 
+
+PP = (DayH + DayL + DayO + DayO) / 4 ; 
+
+R1 = (2 * PP) - DayL; 
+
+S1 = (2 * PP) - DayH; 
+
+R2 = PP + R1 - S1; 
+
+S2 = PP + S1 - R1; 
+
+R3 = R2 + (R1 - PP); 
+
+S3 = S2 - (PP - S1); 
+
+style = styleLine | styleThick + styleNoRescale; 
+
+rcolor = ParamColor("R1 R2 R3 color",colorBlue); 
+
+scolor = ParamColor("S1 S2 S3 color",colorRed); 
+
+pcolor = ParamColor("Pivot color",colorBlack); 
+
+Plot(R1, "R1",rcolor,styleDots+styleNoLine); 
+
+Plot(S1, "S1",scolor,styleDots+styleNoLine); 
+
+Plot(R2, "R2",rcolor,styleDots+styleNoLine); 
+
+Plot(S2, "S2",scolor,styleDots+styleNoLine); 
+
+Plot(PP, "PP",pcolor,styleDots+styleNoLine); 
+
+Plot(s3, "S3", scolor, styleDots+styleNoLine); 
+
+Plot(R3, "R3", rcolor, styleDots+styleNoLine); 
+
+//HiDayTitle = EncodeColor(colorBlack) + "HOD "; 
+
+//HiDayTitle = HiDayTitle + EncodeColor(colorBlack) + HiDay; 
+
+//LoDayTitle = EncodeColor(colorBlack) + ", LOD "; 
+
+//LoDayTitle = LoDayTitle + EncodeColor(colorBlack) + LoDay; 
+
+RangeTitle = EncodeColor(colorBlack) + "Range= " + EncodeColor(colorBlack) + StrToNum(NumToStr(HiDay - LoDay, 4.4)) + " points"; 
+
+// High/Low of the Day plotting. 
+
+Hodcolorsheme=ParamColor("High of day color",colorYellow);
+
+LodColorscheme=ParamColor("Low of day color",colorDarkRed);
+
+tempnum = TimeNum(); 
+
+temphi[0] = H[0]; 
+
+temphiColor[0] = Hodcolorsheme; 
+
+templo[0] = L[0]; 
+
+temploColor[0] = LodColorscheme; 
+
+for( i = 1; i < BarCount; i++ ) 
+{ 
+if(tempnum[i] - tempnum[i-1] > Interval()) 
+{ 
+if(H[i] > temphi[i-1]) 
+{ 
+temphi[i] = H[i]; 
+
+temphiColor[i] = Hodcolorsheme; 
+} 
+else 
+{ 
+temphi[i] = temphi[i-1]; 
+
+temphiColor[i] = Hodcolorsheme; 
+} 
+if(L[i] < templo[i-1]) 
+{ 
+templo[i] = L[i]; 
+
+temploColor[i] = LodColorscheme; 
+} 
+else 
+{ 
+templo[i] = templo[i-1]; 
+
+temploColor[i] = LodColorscheme; 
+} 
+} 
+else 
+{ 
+temphi[i] = H[i]; 
+
+temphiColor[i] = Hodcolorsheme; 
+
+templo[i] = L[i]; 
+
+temploColor[i] = LodColorscheme; 
+} 
+} 
+Plot(temphi,"", temphiColor,styleBar); 
+
+Plot(templo,"", temploColor,styleBar);
+
+Titledisplaycode = "\n"+"" + Name() + ", " + Interval(2) + ", " + Date() + "\n" +
+
+EncodeColor(colorBlack) + "O " + EncodeColor(colorBlack) + O + 
+
+EncodeColor(colorBlack) + "     H " + EncodeColor(colorBlack) + H + 
+
+EncodeColor(colorBlack) + "     L " + EncodeColor(colorBlack) + L + 
+
+EncodeColor(colorBlack) + "     C " + EncodeColor(colorBlack) + C + "\n" + 
+
+EncodeColor(rcolor) + "R1= " + EncodeColor(colorBlack) + R1 + "\n" +
+
+EncodeColor(rcolor) + "R2= " + EncodeColor(colorBlack) + R2 + "\n" +
+
+EncodeColor(rcolor) + "R3= " + EncodeColor(colorBlack) + R3 + "\n" +
+
+EncodeColor(pcolor) + "PP= " + EncodeColor(colorBlack) + PP + "\n" +
+
+EncodeColor(scolor) + "S1= " + EncodeColor(colorBlack) + S1 + "\n" +
+
+EncodeColor(scolor) + "S2= " + EncodeColor(colorBlack) + S2+ "\n" +
+
+EncodeColor(scolor) + "S3= " + EncodeColor(colorBlack) + S3 + "\n" +
+
+EncodeColor(Hodcolorsheme) + "HOD= " + EncodeColor(colorBlack) + Hiday + "\n" +
+
+EncodeColor(LodColorscheme) + "LOD= " + EncodeColor(colorBlack) + Loday + "\n" + RangeTitle;
+
+Title=WriteIf(Titledisplay==1,Titledisplaycode, "\n"+"" + Name() + ", " + Interval(2) + ", " + Date() + "\n" +
+
+EncodeColor(colorBlack) + "O " + EncodeColor(colorBlack) + O + 
+
+EncodeColor(colorBlack) + "     H " + EncodeColor(colorBlack) + H + 
+
+EncodeColor(colorBlack) + "     L " + EncodeColor(colorBlack) + L + 
+
+EncodeColor(colorBlack) + "     C " + EncodeColor(colorBlack) + C + "\n");

@@ -1,0 +1,21 @@
+/*Positive RSI Divergence for use in 
+Indicator Builder and Automatic Analysis (scan mode),
+by Dimitris Tsokakis*/
+
+ST33=RSI(15);
+TR1=LLVBars(ST33,4);
+TR2=IIf(ST33<30 AND TR1>0 AND Ref(TR1,-1)==0,Ref(ST33,-1),0);
+TRC=IIf(TR2>0,C,0);
+vs=ValueWhen(tr2, Ref(st33,-1), 1);
+dvs=vs-Ref(vs,-1);
+vc=ValueWhen(trc, LLV(C,3), 1);
+dvc=vc-Ref(vc,-1);
+diver=IIf(dvs>0 AND dvc<0,30,0);
+DAS=BarsSince(Ref(TR2,-1)>0);
+DD=IIf(DAS<20 AND C>=Ref(C,-1),DIVER,0);
+Graph0=TR2;
+Graph0Style=2;
+Graph0BarColor=12;
+Graph1=dd;
+Graph1BarColor=5;
+Buy=DD>0 ;

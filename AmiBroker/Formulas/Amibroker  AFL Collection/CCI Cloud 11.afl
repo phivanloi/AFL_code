@@ -1,0 +1,166 @@
+GfxSelectFont("Times New Roman", 10, 700, True );
+//GfxTextOut(" Short : Pr HH -- os LH  and Pr LH -- os HH [] Long  : Pr LL -- os HL  AND Pr HL -- os LL ", 250 , 5 );
+
+
+_SECTION_BEGIN("CCI Cloud");
+tcci=Param("tcci",6,1,100,1);
+Zt=Param("CCI",14,1,150,1); 
+j = Param("length of JMA",8,2,100,1);
+
+z = CCI(zt);
+
+function Consecutive( array ) 
+{ 
+return BarsSince( NOT( array ) ); 
+} 
+function Occurrences( array , period ) 
+{ 
+return Sum( array, period ); 
+} 
+array = z; 
+HighBars = Consecutive( array > 0 ); 
+LowBars = Consecutive( array < 0 ); 
+UpCondition = BarsSince( HighBars >= 6 AND Occurrences( array > 100 , 5 ) > 0 ); 
+DnCondition = BarsSince( LowBars >= 6 AND Occurrences( array < -100 , 5 ) > 0 ); 
+UpTrend = ( array > 0 ) AND ( UpCondition < DnCondition ); 
+DnTrend = ( array < 0 ) AND ( UpCondition > DnCondition ); 
+TrTrend = ( HighBars >= 5 AND NOT UpTrend ) OR ( LowBars >= 5 AND NOT DnTrend ); 
+Color = IIf( UpTrend, colorBlue, IIf( DnTrend, colorRed, IIf( TrTrend, colorYellow, colorGrey40 ) ) );  
+
+TTMperiod = 6; 
+Low_ma = EMA(L, TTMperiod); 
+High_ma = EMA(H, TTMperiod); 
+Low_third = (High_ma - Low_ma) / 3 + Low_ma; 
+High_third = 2 * (High_ma - Low_ma) / 3 + Low_ma; 
+tempnum = Now( 4 ) - TimeNum(); 
+TimeRem = Interval() - ((int(tempnum[BarCount - 1] / 100) * 60) + (tempnum[BarCount - 1] - int(tempnum[BarCount - 1] / 100) * 100)); 
+if (TimeRem[BarCount - 1] < 0) TimeRem = 0; 
+MinuteVar = int(TimeRem / 60); 
+SecondsVar = int(frac(TimeRem / 60) * 60); 
+if (TimeRem[BarCount - 1] > 60) 
+{ 
+TitleTimeRem = EncodeColor(colorWhite) + MinuteVar + ":" + WriteIf(SecondsVar > 9, "", "0") +  SecondsVar; 
+} 
+else if (TimeRem[BarCount - 1] > 20) 
+{ 
+TitleTimeRem =  EncodeColor(colorYellow) + MinuteVar + ":" + WriteIf(SecondsVar > 9, "", "0") + SecondsVar; 
+} 
+else 
+{ 
+TitleTimeRem = EncodeColor(colorRed) + MinuteVar + ":" + WriteIf(SecondsVar > 9, "", "0") +  SecondsVar; 
+} 
+
+
+Plot(CCI(tcci),"cci",colorYellow );
+Plot(CCI(zt),"",Color, styleHistogram+styleNoLabel);
+Plot(CCI(zt),"cci",IIf(CCI(zt) > Ref(CCI(zt),-1), colorAqua,colorOrange), styleDots+styleNoLabel);
+Plot(CCI(zt),"cci",colorWhite, styleThick);
+Plot(CCI(50),"cci",colorGrey40,styleDots);
+
+Plot(0,"", colorDarkGrey, styleNoLabel);
+CCI_50 = round(CCI(50));
+cci_50_diff = CCI_50 -Ref(CCI_50,-1); 
+
+CCI_14 = round(CCI(ZT));
+CCI_6 = round(CCI(tcci));
+cci_14_diff = CCI_14 -Ref(CCI_14,-1); 
+CCI_6_diff = CCI_6 - Ref(CCI_6,-1);
+jma = JurikJMA( Close, j, 0);
+jma_diff = round((jma-Ref(jma,-1))*10)/10;
+str = round((EMA(Close,20) - EMA(Close,34))*10)/10;
+str1 = round((JurikJMA( Close, 3, 0) - JurikJMA( Close, 15, 0))*10)/10;
+
+PlotShapes(IIf(C > JMA,shapeSmallCircle,shapeNone),colorLime,0,0,0); 
+PlotShapes(IIf(C <= JMA,shapeSmallCircle,shapeNone),colorRed,0,0,0);
+
+// JMA Angle
+PI = atan(1.00) * 4; 
+periods = 10; 
+HighHigh = HHV(H, periods); 
+LowLow = LLV(L, periods); 
+range = 25 / (HighHigh - LowLow) * LowLow;
+
+EMA34 = JurikJMA(C,50,0);
+x1_EMA34 = 0; 
+x2_EMA34 = 1; 
+y1_EMA34 = 0; 
+y2_EMA34 = (Ref(EMA34, -1) - EMA34) / Avg * range; 
+c_EMA34 = sqrt((x2_EMA34 - x1_EMA34)*(x2_EMA34 - x1_EMA34) + (y2_EMA34 - y1_EMA34)*(y2_EMA34 - y1_EMA34)); 
+angle_EMA34 = round(180 * acos((x2_EMA34 - x1_EMA34)/c_EMA34) / PI); 
+angle_EMA34 = IIf(y2_EMA34 > 0, - angle_EMA34, angle_EMA34); 
+Lastpricetitlehi= WriteIf(H>Ref(H,-1),EncodeColor(colorLime) + Ref(H,-1) + "  " + H , EncodeColor(colorLightGrey)+ Ref(H,-1) + "  " + H);
+
+Lastpricetitlelo= WriteIf(L<Ref(L,-1),EncodeColor(colorLightOrange) + Ref(L,-1) + "  " + L , EncodeColor(colorLightGrey)+ Ref(L,-1) + "  " + L);
+
+ColorANGLE_EMA = IIf(JurikJMA(C,50,0)> Ref(JurikJMA(C,50,0),-1),colorAqua,colorBrown) ;
+
+
+Plot(200,"", ColorANGLE_EMA , styleLine | styleThick | styleNoLabel); 
+Plot(199,"", ColorANGLE_EMA , styleLine | styleThick | styleNoLabel); 
+Plot(198,"", ColorANGLE_EMA , styleLine | styleThick | styleNoLabel); 
+Plot(201,"", ColorANGLE_EMA , styleLine | styleThick | styleNoLabel); 
+Plot(202,"", ColorANGLE_EMA , styleLine | styleThick | styleNoLabel); 
+
+COL_25 = IIf(JurikJMA(C,30,0)> Ref(JurikJMA(C,30,0),-1),colorAqua,colorBrown) ;
+
+Plot(102,"", Col_25 , styleLine | styleThick | styleNoLabel); 
+Plot(101,"", Col_25 , styleLine | styleThick | styleNoLabel); 
+Plot(100,"", Col_25 , styleLine | styleThick | styleNoLabel); 
+Plot(99,"", Col_25 , styleLine | styleThick | styleNoLabel); 
+Plot(98,"", Col_25 , styleLine | styleThick | styleNoLabel); 
+
+COL_15 = IIf(JurikJMA(C,15,0)> Ref(JurikJMA(C,15,0),-1),colorAqua,colorBrown) ;
+Plot(-102,"", Col_15 , styleLine | styleThick | styleNoLabel); 
+Plot(-101,"", Col_15 , styleLine | styleThick | styleNoLabel); 
+Plot(-100,"", Col_15 , styleLine | styleThick | styleNoLabel); 
+Plot(-99,"", Col_15 , styleLine | styleThick | styleNoLabel); 
+Plot(-98,"", Col_15 , styleLine | styleThick | styleNoLabel); 
+
+COL_8 = IIf(JurikJMA(C,8,0)> Ref(JurikJMA(C,8,0),-1),colorAqua,colorBrown) ;
+Plot(-202,"", Col_8 , styleLine | styleThick | styleNoLabel); 
+Plot(-201,"", Col_8 , styleLine | styleThick | styleNoLabel); 
+Plot(-200,"", Col_8 , styleLine | styleThick | styleNoLabel); 
+Plot(-199,"", Col_8 , styleLine | styleThick | styleNoLabel); 
+Plot(-198,"", Col_8 , styleLine | styleThick | styleNoLabel); 
+
+
+
+//Plot(-96,"", Col_adx , styleLine | styleThick | styleNoLabel); 
+//Plot(-95,"", Col_adx , styleLine | styleThick | styleNoLabel); 
+
+Plot(-50,"", colorDarkGrey , styleLine | styleThick | styleNoLabel); 
+Plot( 50,"", colorDarkGrey , styleLine | styleThick | styleNoLabel); 
+
+//PlotOHLC(100,IIf(CCI(zt) > 100,CCI(zt),100),100,100,"",colorGreen,styleCloud);
+//PlotOHLC(-100,-100, IIf(CCI(zt) < -100,CCI(zt),-100),-100,"",colorRed,styleCloud);
+
+
+Title = 
+EncodeColor(colorCustom12)+   "CCI-50 :" +WriteIf(cci_50 > 0, EncodeColor(colorGreen), EncodeColor(colorRed))+CCI_50
+
++EncodeColor(colorCustom12)+   "   DIFF- :  " + WriteIf(cci_50_diff > 0, EncodeColor(colorGreen), EncodeColor(colorRed))+CCI_50_diff
++ EncodeColor(colorWhite)+   "  Time remaining : "+ TitleTimeRem
+
+
++EncodeColor(colorWhite)+   "\nCCI-"+ZT +" : " +WriteIf(cci_14 > 0, EncodeColor(colorGreen), EncodeColor(colorRed))+CCI_14
++EncodeColor(colorWhite)+   "   DIFF- :  " + WriteIf(cci_14_diff > 0, EncodeColor(colorGreen), EncodeColor(colorRed))+CCI_14_diff
+
++EncodeColor(colorYellow)+   "\nTCCI-"+tcci +" : " +WriteIf(cci_6 > 0, EncodeColor(colorGreen), EncodeColor(colorRed))+CCI_6
++EncodeColor(colorYellow)+   "   DIFF- :  " + WriteIf(cci_6_diff > 0, EncodeColor(colorGreen), EncodeColor(colorRed))+CCI_6_diff
++"\n"
++EncodeColor(colorWhite)+   "\nJMA-"+j+ " : " +WriteIf(jma > Ref(jma,-1), EncodeColor(colorGreen), EncodeColor(colorRed))+JMA
++EncodeColor(colorWhite)+   "      DIFF- :  " + WriteIf(jma_diff > 0, EncodeColor(colorGreen), EncodeColor(colorRed))+jma_diff
++"\n"
++"\n"
+
++EncodeColor(colorWhite)+   "Angle of 50JMA :" + WriteIf(angle_ema34 > 0, EncodeColor(colorGreen), EncodeColor(colorRed))+angle_ema34
+
++"\n"
++EncodeColor(colorWhite)+ "\nlong  term  strength :   "+ WriteIf(str > 0, EncodeColor(colorGreen), EncodeColor(colorRed))+str
++EncodeColor(colorWhite)+ "\nshort term  strength :   "+ WriteIf(str1 > 0, EncodeColor(colorGreen), EncodeColor(colorRed))+str1
++ "\n"+ "\n"+ Lastpricetitlehi + "\n" + EncodeColor(colorLightGrey) +  "     " + C  + "\n" + Lastpricetitlelo + "\n"
+
+;
+
+
+_SECTION_END();

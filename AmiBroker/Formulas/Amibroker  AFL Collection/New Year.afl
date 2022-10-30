@@ -1,0 +1,81 @@
+_SECTION_BEGIN("New Year"); 
+for( i = 1; i < BarCount; i++ )
+z = (GetPerformanceCounter()/100)%30;
+y = (GetPerformanceCounter()/100)%255;
+Col=ColorHSB( ( i + y ) % 256, 255, 255 );
+x=Cum(1);L1=LastValue(x);
+F=StochD()+30*sin(Cum(1/5))+20*sin(10*Cum(1/10));
+RequestTimedRefresh(1);
+Plot(F,"",Col+z,styleNoLine+styleNoLabel);
+PlotShapes(shapeStar*(F>95)*(X>L1-180),1+(x%35)+z);
+PlotShapes(shapeHollowStar*(F<30>10)*(X>L1-180),Col);
+y0=20;y1=60;y=0.5*(y0+y1);Plot(0,"",1,styleNoLine+ styleNoLabel);
+Plot(y0+y1,"",3,styleNoLine+styleNoLabel);
+n=4;d0=140;dd=10;
+
+d=d0;Plot(LineArray(x[L1-d],y0[d],x[L1-d+1],y1[d],0),"",3,1);
+Plot(LineArray(x[L1-d-1],y[L1-d-1],x[L1-d-1+5],y[L1-d-1+4],0),"",3,1);
+d1=d-n;Plot(LineArray(x[L1-d1],y0[d1],x[L1-d1+1],y1[d1],0),"",3,1);
+
+d=d0-dd;Plot(LineArray(x[L1-d],y0[d],x[L1-d+1],y1[d],0),"",3,1);
+Plot(LineArray(x[L1-d-1],y[L1-d-1],x[L1-d-1+5],y[L1-d-1+4],0),"",3,1);
+Plot(LineArray(x[L1-d-1+1],y1[L1-d-1],x[L1-d-1+5+1],y1[L1-d-
+1+4],0),"",3,1);
+d1=d-n;Plot(LineArray(x[L1-d1],y0[d1],x[L1-d1+1],y1[d1],0),"",3,1);
+
+d=d-dd;Plot(LineArray(x[L1-d],y0[d],x[L1-d+1],y1[d],0),"",3,1);
+Plot(LineArray(x[L1-d-1],y[L1-d-1],x[L1-d-1+5],y[L1-d-1+4],0),"",3,1);
+Plot(LineArray(x[L1-d-1+1],y1[L1-d-1],x[L1-d-1+5+1],y1[L1-d-
+1+4],0),"",3,1);
+d1=d-n;Plot(LineArray(x[L1-d1],y[d1],x[L1-d1+1],y1[d1],0),"",3,1);
+
+d=d-dd;Plot(LineArray(x[L1-d],y0[d],x[L1-d+1],y1[d],0),"",3,1);
+Plot(LineArray(x[L1-d-1],y[L1-d-1],x[L1-d-1+5],y[L1-d-1+4],0),"",3,1);
+Plot(LineArray(x[L1-d-1+1],y1[L1-d-1],x[L1-d-1+5+1],y1[L1-d-
+1+4],0),"",3,1);
+d1=d-n;Plot(LineArray(x[L1-d1],y[d1],x[L1-d1+1],y1[d1],0),"",3,1);
+
+d=d-dd;Plot(LineArray(x[L1-d],y0[d],x[L1-d+3],y1[d],0),"",3,1);
+Plot(LineArray(x[L1-d],y1[d],x[L1-d+1],y[d],0),"",3,1);
+
+d=d-2*dd;Plot(LineArray(x[L1-d],y0[d],x[L1-d+1],y1[d],0),"",3,1);
+d1=d-n;Plot(LineArray(x[L1-d1],y0[d1],x[L1-d1+1],y1[d1],0),"",3,1);
+Plot(LineArray(x[L1-d+1],y1[d],x[L1-d+4],y0[d],0),"",3,1);
+
+d=d-dd;Plot(LineArray(x[L1-d],y0[d],x[L1-d+1],y1[d],0),"",3,1);
+Plot(LineArray(x[L1-d-1],y[L1-d-1],x[L1-d-1+5],y[L1-d-1+4],0),"",3,1);
+Plot(LineArray(x[L1-d-1+1],y1[L1-d-1],x[L1-d-1+5+1],y1[L1-d-
+1+4],0),"",3,1);
+Plot(LineArray(x[L1-d-1+1],y0[L1-d-1],x[L1-d-1+5+1],y0[L1-d-
+1+4],0),"",3,1);
+
+d=d-dd;Plot(LineArray(x[L1-d],y0[d],x[L1-d+1],y1[d],0),"",3,1);
+Plot(LineArray(x[L1-d],y0[L1-d-1],x[L1-d-1+4],y[L1-d-1+3],0),"",3,1);
+d1=d-n+1;Plot(LineArray(x[L1-d1],y[d1],x[L1-d1+2],y0
+[d1],0),"",3,1);d=d-5;
+Plot(LineArray(x[L1-d],y0[d],x[L1-d+1],y1[d],0),"",3,1);
+
+d=d-dd;Plot(LineArray(x[L1-d],y0[d],x[L1-d+3],y1[d],0),"",3,1);
+Plot(LineArray(x[L1-d],y1[d],x[L1-d+1],y[d],0),"",3,1);
+
+d=d-7;Plot(LineArray(x[L1-d],y0[d],x[L1-d+1],y1[d],0),"",3,1);
+Plot(LineArray(x[L1-d-1],y[L1-d-1],x[L1-d-1+5],y[L1-d-1+4],0),"",3,1);
+Plot(LineArray(x[L1-d-1+1],y1[L1-d-1],x[L1-d-1+5+1],y1[L1-d-
+1+4],0),"",3,1);
+Plot(LineArray(x[L1-d-1+1],y0[L1-d-1],x[L1-d-1+5+1],y0[L1-d-
+1+4],0),"",3,1);
+
+d=d-dd;Plot(LineArray(x[L1-d],y0[d],x[L1-d+1],y1[d],0),"",3,1);
+Plot(LineArray(x[L1-d-1],y[L1-d-1],x[L1-d-1+5],y[L1-d-1+4],0),"",3,1);
+Plot(LineArray(x[L1-d-1+1],y1[L1-d-1],x[L1-d-1+5+1],y1[L1-d-
+1+4],0),"",3,1);
+d1=d-n;Plot(LineArray(x[L1-d1],y0[d1],x[L1-d1+1],y1[d1],0),"",3,1);
+
+d=d-dd;Plot(LineArray(x[L1-d],y0[d],x[L1-d+1],y1[d],0),"",3,1);
+Plot(LineArray(x[L1-d-1],y[L1-d-1],x[L1-d-1+5],y[L1-d-1+4],0),"",3,1);
+Plot(LineArray(x[L1-d-1+1],y1[L1-d-1],x[L1-d-1+5+1],y1[L1-d-
+1+4],0),"",3,1);
+d1=d-n;Plot(LineArray(x[L1-d1],y[d1],x[L1-d1+1],y1[d1],0),"",3,1);
+Plot(LineArray(x[L1-d],y[d],x[L1-d+5],y0[d],0),"",3,1);
+Title="HAPPY NEW YEAR 2011";
+_SECTION_END(); 

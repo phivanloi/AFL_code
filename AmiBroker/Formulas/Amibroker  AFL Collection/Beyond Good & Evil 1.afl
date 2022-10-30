@@ -1,0 +1,15 @@
+_SECTION_BEGIN("Beyond Good & Evil");
+#include <T3_include.afl>;
+ti3 = T3(C,3);
+ti5 = T3(C,5);
+ti8 = t3(C,8);
+y = (ti3-ti5);
+z = (ti5-ti8);
+
+x = y+z;
+Plot(x, "Beyond Good & Evil", 2);
+Plot(y, "The Good", colorGreen, styleArea);
+Plot(z, "The Evil", colorRed, styleArea);
+
+//GraphZOrder = 2;
+_SECTION_END();

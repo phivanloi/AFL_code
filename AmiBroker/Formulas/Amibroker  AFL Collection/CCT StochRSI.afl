@@ -1,0 +1,13 @@
+/* CCT StochRSI
+**
+** Originally developed by Steve Karnish 
+** http://www.cedarcreektrading.com
+**
+** AFL translation by Tomasz Janeczko
+**
+** Set scaling: Custom 0..100
+** Grid: 30/70
+*/
+
+period = 13;
+Graph0=100*( ( RSI( period ) - LLV( RSI( period ) , period ) ) / ( ( HHV( RSI( period ) , period ) ) - LLV(RSI( period ), period ) ) );

@@ -1,0 +1,9 @@
+/*RSI 12*/
+t=12;
+Up=IIf(C>Ref(C,-1),abs(C-Ref(C,-1)),0);
+Dn=IIf(C<Ref(C,-1),abs(C-Ref(C,-1)),0);
+Ut=Wilders(Up,t);
+Dt=Wilders(Dn,t);
+RSIt=100*(Ut/(Ut+Dt));
+Graph0=RSIt;
+ 

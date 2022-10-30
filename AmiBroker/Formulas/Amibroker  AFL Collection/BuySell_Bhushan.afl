@@ -1,0 +1,12 @@
+_SECTION_BEGIN("BuySell_Bhushan");
+
+
+Buy = Close > EMA(Close,200) AND Close < EMA(Close,13)  AND RSI(2) > Ref(RSI(2),-1)AND RSI(2) < EMA(RSI(2),25)  AND MA(Volume,5) > 100000;
+Sell = Close < EMA(Close,200) AND Close >EMA(Close,13) AND RSI(2) < Ref(RSI(2),-1) AND RSI(2) > EMA(RSI(2),25) AND MA(Volume,5) > 100000;
+
+PlotShapes(Buy*shapeHollowUpTriangle,colorBrightGreen, 0, Low, Offset =-35);
+PlotShapes(Buy*shapeDigit9,colorBrightGreen, 0, Low, Offset =-50);
+PlotShapes(Sell*shapeHollowDownTriangle,colorRed, 0, High, Offset =-10);
+PlotShapes(Sell*shapeDigit9,colorRed, 0, High, Offset =25);
+
+_SECTION_END();

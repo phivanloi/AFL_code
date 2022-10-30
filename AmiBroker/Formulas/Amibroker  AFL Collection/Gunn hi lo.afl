@@ -1,0 +1,65 @@
+/*name = Gunn hi lo*/
+
+GraphMax=6;
+
+Graph0=C;
+
+Periods= 6;    /* Change this value as needed */
+HLd=IIf(Close>Ref(MA(H,Periods),-1),
+/*then*/ 1,
+/*else*/IIf(Close<Ref(MA(L,Periods),-1),
+/*then*/-1,
+/*else*/0));
+HLv=ValueWhen(HLd != 0,HLd,1);
+HiLo=IIf(HLv=-1,
+/*then*/MA(H,Periods),
+/*else*/MA(L,Periods));
+Graph1=HiLo;
+
+/*Name = Gunn hi lo invert*/
+
+Periods = 3;  /* Change this as needed */
+HLd=IIf(Close>Ref(MA(H,Periods),-1),
+/*then*/1,
+/*else*/IIf(Close<Ref(MA(L,Periods),-1),
+/*then*/-1,
+/*else*/0));
+HLv=ValueWhen(HLd != 0,HLd,1);
+HiLoInvert=IIf(HLv=-1,
+/*then*/MA(H,Periods),
+/*else*/MA(L,Periods));
+Graph2=HiLoInvert;
+
+Graph2Style=4;
+Graph0Style=68;
+
+Buy= Cross(HiLo,HiLoInvert) ;
+Sell=Cross(HiLoInvert,HiLo) ;
+
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+
+Short=Sell;
+Cover=Buy;
+
+Filter=  (Buy==1)  ;
+NumColumns = 5;
+Column0 =Ref(HiLo,-1);
+Column0Format = 1.2;
+Column0Name = "Trigger Price";
+Column1 = C;
+Column1Name = "Close       ";
+Column1Format = 1.2;
+Column2 = MA(V,17);
+Column2Name = "Volume    ";
+Column2Format = 1.0;
+Column3 = MA(C,17)/MA(C,50);
+Column3Name = "% 17/50 ";
+Column3Format = 1.2;
+Column3Format = 1.2;
+Column4= MA(C,17);
+Column4Name="17 C ma";
+Column4Format = 1.2;
+Column4= MA(C,50);
+Column4Name="50 C ma";
+Column4Format = 1.2;

@@ -1,0 +1,23 @@
+/* Exploration, System and Indicator */
+    Author: Steve Wiser
+   Email address: slwiserr@erols.com
+   May 5, 2001 */
+
+outsidebar = Outside();
+insidebar = H <= Ref(H,-1) AND L >= Ref(L,-1);
+upbar = H > Ref(H,-1) AND L >= Ref(L, -1);
+downbar = L < Ref(L,-1) AND H <= Ref(H,-1);
+barcolor=IIf(outsidebar, 1, 
+               IIf(downbar,   4, 
+               IIf(upbar,        5, 
+               IIf(insidebar,6, 0 ) ) ) );
+
+var1=MA( A , 34);
+var2=MA( A,5);
+var3=var2-var1;
+var4=var3-MA(var3,5);
+Graph0=var4;
+Graph0Style=2+4;
+Graph1=Wilders(var4,5);
+Graph1Style=5;
+Graph0BarColor=Barcolor;

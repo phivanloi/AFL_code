@@ -1,0 +1,89 @@
+_SECTION_BEGIN("ICHIMOKU");
+SetBarFillColor(IIf(C>O,ParamColor("Candle UP Color", colorGreen),IIf(C<=O,ParamColor("Candle Down Color", colorRed),colorLightGrey)));
+Plot(C,"\nPrice",IIf(C>O,ParamColor("Wick UP Color", colorCustom9),IIf(C<=O,ParamColor("Wick Down Color", colorCustom5),colorLightGrey)),64,0,0,0,0);
+SetTradeDelays(1,1,1,1);
+_SECTION_END();
+/*******************************************************************************************/
+
+
+	#pragma nocache
+	#include_once  <\PEInc\PatternExplorer_f0.afl>
+	#include_once "C:\Program Files\AmiBroker\Formulas\PatternExplorer\#Defaults & Mods\PE - Mods.afl"
+	/*******************************************************************************************/
+	_SECTION_BEGIN("Main Parameters");
+	p1 = Param("Turning Line",9,5,20,1);//also known as Kijun Sen
+	p2 = Param("Standard Line",26,5,40,1);//also known as Tenkan Sen
+	p3 = Param("Delayed Line",26,0,40,1);//also known as Chikou Span
+	p4 = Param("Cloud F-Bars",26,0,40,1);//also known as Chikou Span
+
+		_SECTION_END();
+	/*******************************************************************************************/
+	_SECTION_BEGIN("Styles");
+	TLstyle = ParamStyle("Turning Line",styleThick);
+	SLstyle = ParamStyle("Standard Line",styleThick);
+	DLstyle = ParamStyle("Delayed Line",styleThick);
+	_SECTION_END();
+	/*******************************************************************************************/
+	GraphZOrder = 0;
+	AddICHIMOKU2(p1,p2,p3,p4);
+	HSB = 0;
+	/*******************************************************************************************/
+	
+	_SECTION_BEGIN("Colors");
+	TLcolor = ParamColor("Turning Line",colorCustom7);
+	SLcolor = ParamColor("Standard Line",colorCustom10);
+	DLcolor = ParamColor("Delayed Line",colorCustom11);
+	Cloud1color = ParamColor("Cloud 1",colorTeal);
+	Cloud2color = ParamColor("Cloud 2",colorGrey50);
+	_SECTION_END();
+				_SECTION_BEGIN("Lines");
+// simple trading system
+Buy = Cross( TL, SL );
+Sell = Cross( SL, TL );
+PlotShapes( shapeUpArrow * Buy, colorYellow, 0, HaLow );
+PlotShapes( shapeDownArrow * Sell, colorPink, 0, HaHigh );
+
+	Plot(TL, "TL", TLcolor,TLstyle);
+	Plot(SL, "SL", SLcolor,SLstyle);
+	Plot(DL, "DL", DLcolor,DLstyle);
+	PlotOHLC( 0, SpanA_ahead, SpanB_ahead, SpanB_ahead, "Cloud", IIf(SpanA_ahead>SpanB_ahead,Cloud1color,Cloud2color), styleCloud+styleNoTitle+styleNoLabel,Null,Null,p4 );
+
+Cover = Cross(DL, C);
+Short = Cross ( C, DL);
+
+PlotShapes( shapeUpArrow * Cover, colorCustom7, 0,Low);
+PlotShapes( shapeDownArrow * Short, colorCustom7, 0,High );
+	
+	/*******************************************************************************************/
+_SECTION_BEGIN("Price");
+Title = EncodeColor(colorYellow)+ FullName()+"("+Name()+") - " + "Hotline :" + EncodeColor(colorRed)+ " 0372.095.129" + EncodeColor(colorYellow)+ " - Website :  "+ EncodeColor(colorRed)+"Nududo.com" + EncodeColor(colorWhite) + " - " + Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +"\n" +EncodeColor(colorWhite) +"Mo cua-"+O+"  "+"Cao-"+H+"  "+"Thap-"+L+"  "+
+"Dong cua-"+C+"  "+ "Khoi Luong= "+ WriteVal(V);
+_SECTION_BEGIN("Magnified Market Price");
+FS=Param("Font Size",35,11,100,1);
+GfxSelectFont("Times New Roman", 34, 700, italic = True, underline = False, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor( ParamColor("Color",colorCustom9) );
+Hor=Param("Horizontal Position",234,1,1200,1);
+Ver=Param("Vertical Position",1,1,1,1);
+GfxTextOut(""+C,Hor-150 , Ver+30 );
+GfxTextOut( Name(), Hor,Ver-50 );
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+GfxSelectFont("Times New Roman", 14, 700, italic =True, underline = False, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor(ParamColor("Color",colorCustom9) );
+GfxTextOut(""+DD+" ("+xx+"%)", Hor-150, Ver+85 );
+GfxSelectFont("arial", 18 );
+GfxSetTextColor(ParamColor("dong",colorCustom8) );
+GfxSetTextAlign( 6 );// center alignment
+GfxSetTextColor( ColorRGB( 255, 255, 0 ) );
+GfxSetBkMode(0); // transparent
+GfxSelectFont("UVN But Long 1", Status("pxheight")/26 );
+GfxTextOut( "ICHIMOKU", Status("pxwidth")/2, Status("pxheight")/18 );
+GfxSetTextColor( colorRed );
+GfxSelectFont("UVN But Long 1", Status("pxheight")/36 );
+GfxTextOut( "Hotline : 0372.095.129 - Website : Nududo.com" , Status("pxwidth")/2, Status("pxheight")/8 );
+GfxTextOut( "("+Name()+") "+ FullName() , Status("pxwidth")/2, Status("pxheight")/6 );
+_SECTION_END();

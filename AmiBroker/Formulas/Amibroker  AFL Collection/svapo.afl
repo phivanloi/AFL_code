@@ -1,0 +1,34 @@
+_SECTION_BEGIN("SVAPO");
+// input parameters
+Period = Param("SVAPO period", 8, 2, 20, 1 );
+CutOff = Param("Min. % price change", 1, 0, 10, 0.1 );
+devH = Param("Std. Dev High", 1.5, 0.1, 5, 0.1 );
+devL = Param("Std. Dev Low", 1.3, 0.1, 5, 0.1 );
+StDevPer = Param("Std. Dev. Period", 100, 1, 200, 1 );
+// heikin-ashi smoothing
+Av4 = (O+H+L+C)/4;
+HaOpen = AMA( Ref( Av4, -1 ), 0.5 );
+HaCl = ( Av4 + HaOpen + Max( Av4, Max( H, HaOpen ) ) + Min( Av4, Min( L, HaOpen ) ) ) / 4;
+HaC = TEMA( HaCl, period/1.6 );
+// medium term MA of volume to limit extremes
+Vave = Ref( MA( V, period * 5 ), -1 );
+Vmax = Vave * 2;
+Vc = Min( V, Vmax );
+// basic volume trend
+Vtr = TEMA( LinRegSlope( V, period ), period );
+HaCLimitUp = Ref( HaC, -1 ) * (1 + Cutoff/1000);
+HaCLimitDn = Ref( HaC, -1 ) * (1 - Cutoff/1000);
+// SVAPO result of price and volume
+SVAPOSum = Sum( IIf( ( HaC > HaCLimitUp ) AND Hold( Vtr >= Ref( Vtr,-1 ), 2 ), Vc,
+                IIf( ( HaC < HaCLimitDn ) AND Hold( Vtr > Ref( Vtr, -1 ), 2 ), -Vc, 0 ) ),period );
+SVAPO = TEMA( SVAPOSum / (Vave+1), period );
+PlotGrid( 0 );
+Plot( SVAPO, "SVAPO", colorBlue, styleThick );
+Plot( devH * StDev( SVAPO, StDevPer ), "Up", colorGreen );
+Plot( -devL * StDev( SVAPO, StDevPer ), "Dn", colorRed );
+Chg = SVAPO - Ref( SVAPO, -1 );
+BuySig = Chg > 0 AND Sum( Chg < 0, 5 ) == 4;
+SellSig = Chg < 0 AND Sum( Chg > 0, 5 ) == 4;
+PlotShapes( shapeUpArrow * BuySig, colorGreen );
+PlotShapes( shapeDownArrow * SellSig, colorRed );
+_SECTION_END();

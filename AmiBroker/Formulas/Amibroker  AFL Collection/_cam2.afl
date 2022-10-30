@@ -1,0 +1,28 @@
+//---- pivot points
+DayH = TimeFrameGetPrice("H", inDaily, -1); // yesterdays high
+DayL = TimeFrameGetPrice("L", inDaily, -1); // low
+DayC = TimeFrameGetPrice("C", inDaily, -1); // close
+DayO = TimeFrameGetPrice("O", inDaily); // current day open
+
+
+//............camarilla pivots
+
+H4 = ( (DayH-DayL) * (1.1/2) ) + DayC;
+H3 = ( (DayH-DayL) * (1.1/4) ) + DayC;
+H2 = ( (DayH-DayL) * (1.1/6) ) + DayC;
+H1 = ( (DayH-DayL) * (1.1/12) ) + DayC;
+
+L1 = DayC - ( (DayH-DayL) * (1.1/12) );
+L2 = DayC - ( (DayH-DayL) * (1.1/6) ) ;
+L3 = DayC - ( (DayH-DayL) * (1.1/4) ) ;
+L4 = DayC - ( (DayH-DayL) * (1.1/2) ) ;
+
+Plot(H4, "H4",colorGold,styleLine+styleNoLabel);
+Plot(H3, "H3",colorOrange,styleLine+styleNoLabel);
+Plot(H2, "H2",colorLightOrange,styleLine+styleNoLabel);
+Plot(H1, "H1",colorTan,styleLine+styleNoLabel);
+
+Plot(L4, "L4",colorPaleGreen,styleLine+styleNoLabel);
+Plot(L3, "L3",colorBrightGreen,styleLine+styleNoLabel);
+Plot(L2, "L2",colorSeaGreen,styleLine+styleNoLabel);
+Plot(L1, "L1",colorGreen,styleLine+styleNoLabel);

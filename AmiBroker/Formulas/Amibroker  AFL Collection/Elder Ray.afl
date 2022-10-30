@@ -1,0 +1,12 @@
+GraphXSpace = 3;
+_SECTION_BEGIN("Bear Power EMA");
+Lookback = Param ("EMA Lookback", 13,1,50,1);
+BearPower = Low - EMA(Close,Lookback);
+Plot (BearPower, "Bear Power("+Lookback +")", ParamColor ("Color", colorRed), styleHistogram );
+_SECTION_END();
+
+_SECTION_BEGIN("Bull Power EMA");
+Lookback = Param ("EMA Lookback",13,1,50,1);
+BullPower = High - EMA(Close,Lookback);
+Plot (BullPower, "Bull Power("+Lookback +")", ParamColor ("Color", colorGreen), styleHistogram | styleThick );
+_SECTION_END();

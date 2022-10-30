@@ -1,0 +1,14 @@
+red = IIf((MA(((H+L)/2),5)-MA(((H+L)/2),34))-MA((MA(((H+L)/2),5)-
+MA(((H+L)/2),34)),5)<(Ref(MA(((H+L)/2),5),-1)-Ref(MA(((H+L)/2),34),-1))-
+MA((Ref(MA(((H+L)/2),5),-1)-Ref(MA(((H+L)/2),34),-1)),5),(MA(((H+L)/2),5)-
+MA(((H+L)/2),34))-MA((MA(((H+L)/2),5)-MA(((H+L)/2),34)),5),0);
+
+Plot(Red, "AC Red", colorRed, styleHistogram| styleThick);
+
+green = (IIf((MA(((H+L)/2),5)-MA(((H+L)/2),34))-
+MA((MA(((H+L)/2),5)-MA(((H+L)/2),34)),5)>
+(Ref(MA(((H+L)/2),5),-1)-Ref(MA(((H+L)/2),34),-1))-
+MA((Ref(MA(((H+L)/2),5),-1)-Ref(MA(((H+L)/2),34),-1)),5),
+(MA(((H+L)/2),5)-MA(((H+L)/2),34))-MA((MA(((H+L)/2),5)-MA(((H+L)/2),34)),5),0));
+
+Plot(Green, "AC Green", colorLime, styleHistogram | styleThick);

@@ -1,0 +1,8 @@
+r1 = 13;
+r2 = 21;
+r3 = 5;
+MOS = (EMA(C,r1) - EMA(C,r2))-(EMA((EMA(C,r1) - EMA(C,r2)),r3));
+
+Plot( MOS , "MACD Oscillator("+r1+","+r2+","+r3+")", ParamColor("color", colorCycle ), ParamStyle("Style") );
+
+PlotGrid(0, colorLightGrey);

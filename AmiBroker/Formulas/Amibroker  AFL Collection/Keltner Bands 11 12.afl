@@ -1,0 +1,18 @@
+_SECTION_BEGIN("Keltner Bands"); 
+piv = C;
+CenterLine = EMA(C,34);
+KTop   = CenterLine + 2 * ATR( 15 );
+KBot = CenterLine - 2 * ATR( 15 );
+Plot( KTop, "KBTop" + _PARAM_VALUES(), IIf(ktop > Ref(ktop,-1) AND kbot > Ref(kbot,-1),colorBlue,IIf(ktop < Ref(ktop,-1) AND kbot < Ref(kbot,-1),colorRed,colorYellow)), styleThick ); 
+Plot( KBot, "KBBot" + _PARAM_VALUES(), IIf(ktop > Ref(ktop,-1) AND kbot > Ref(kbot,-1),colorBlue,IIf(ktop < Ref(ktop,-1) AND kbot < Ref(kbot,-1),colorRed,colorYellow)), styleThick ); 
+CenterLine1 = JurikJMA( Close, 4, 0);
+KTop1   = CenterLine1 + 0.5 * ATR( 5 );
+KBot1 = CenterLine1 - 0.5 * ATR( 5 );
+Col= IIf(ktop1 < kbot, colorCustom12, IIf(kbot1 > ktop,colorBlue,IIf(Centerline1 >Ref(Centerline1,-1),colorBrightGreen,colorRed))); 
+Plot(C,"",col,styleBar+styleThick);
+
+em34 = EMA(C,34);
+em20 = EMA(C,20);
+Plot(em34,"",colorWhite,styleThick);
+Plot(em20,"",colorAqua,styleThick);
+PlotOHLC(em34,IIf(em34 > em20,em34,em20),IIf(em34 < em20,em34,em20),em34,"",IIf(em20 > em34,colorBlue,colorBrown),styleCloud+styleNoLabel);

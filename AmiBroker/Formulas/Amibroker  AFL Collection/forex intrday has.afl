@@ -1,0 +1,934 @@
+/*================================================= =====
+ FOREX INTRADAY HEIKIN ASHI + PIVOT POINTS
+ ================================================== ====*/
+
+ _SECTION_BEGIN("The_Beast_2");
+ SetBarsRequired(10000,10000); /* this ensures that the charts include all bars
+ AND NOT just those on screen */
+ Prd1=Param("ATR Period 1-20",4,1,20,1);//{Default = 4 Because most traders use 5} 
+ Prd2=Param("LookBack Period 1-20",7,1,20,1);//{Default = 11 Because most traders use 10} 
+ //{Green} {Start Long position when Close>Green} 
+ Green=HHV(LLV(L,Prd1)+ATR(Prd1),Prd2); 
+ //{Red} {Stop loss when Close<Red} 
+ RED=LLV(HHV(H,Prd1)-ATR(Prd1),Prd2); 
+
+ HaClose =EMA((O+H+L+C)/4,3); 
+ HaOpen = AMA( Ref( HaClose, -1 ), 0.5 ); 
+ HaHigh = Max( H, Max( HaClose, HaOpen ) ); 
+ HaLow = Min( L, Min( HaClose, HaOpen ) ); 
+ Color = IIf(C>Green ,colorBrightGreen,IIf(C < RED,colorRed,colorBlue)); 
+
+ PlotOHLC( HaOpen, HaHigh, HaLow, HaClose, "", color, styleCandle,styleThick );
+
+ /////////////////////////////////////////////////////////////////////////////////////////////////
+
+ Odd=13;//enter Odd numbers only
+ CoefOdd=round(Odd/2);
+
+ Even=12;//enter Even numbers only
+ Coefeven=Even/2;
+ Coefeven2=Coefeven+1;
+
+ CongestionPercent=2.8;/*Set % above/below Moving average for congestion / sideways market*/
+
+ TriangularOdd=MA(MA(C,CoefOdd),CoefOdd);
+ TriangularEven=MA(MA(C,Coefeven),Coefeven2);
+
+ finalMov_avg=IIf(Odd > even,triangularOdd,TriangularEven);
+
+ Color=colorBrightGreen;//select Moving average line color
+ tickercolor=colorBlack;//select price color
+
+ Plot(finalMov_avg,"",IIf(C < finalmov_avg,colorRed,Color),styleLine|styleThick) ;
+
+ /////////////////////////////////////////////////////////////////////////////////////////////////
+
+ LB= Param("Look Back Periods",10,1,30,1);
+ R=ValueWhen(Cross(MA(C,LB),C),HHV(H,LB),1);
+ S=ValueWhen(Cross(C,MA(C,LB)),LLV(L,LB),1);
+ //UpClose = Close - Ref(Close,-1); 
+ //Color = IIf(UpClose >= 0, colorBlue, colorRed); 
+
+ UpClose = Close - Ref(Close,-1); 
+ Color = IIf(UpClose > 0, colorBrightGreen, colorRed); 
+
+
+ Plot (R,"Resz",ParamColor("R Color",colorRed),8+16);
+ Plot (S,"Supp",ParamColor("S Color",colorGreen),8+16);
+
+ //Plot (R,"Resz",22,8+16);
+ //Plot (S,"Supp",19,8+16);
+ // Plot (C,"Close",color,64,32);
+ GraphXSpace=4;
+
+ //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ _N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} - "+ EncodeColor(colorYellow)+"Open = "+ EncodeColor(colorYellow) +"%g "+ EncodeColor(colorBrightGreen)+"High = "+ EncodeColor(colorBrightGreen) +"%g - "+ EncodeColor(colorRed)+"Low = "+ EncodeColor(colorRed) +"%g "+ EncodeColor(colorYellow) +"Close = "+ EncodeColor(colorYellow) +" %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+
+
+ ///////////////////////////////////////////////////////////////////////////////////////// ///////////////////
+
+
+
+ ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+ //Previous Days HI LO //
+
+ DayH = TimeFrameGetPrice("H", inDaily, -1); DayHI = LastValue (DayH,1);// yesterdays high
+ DayL = TimeFrameGetPrice("L", inDaily, -1); DayLI = LastValue (DayL,1); // yesterdays low
+ DayC = TimeFrameGetPrice("C", inDaily, -1); // yesterdays close
+ DayO = TimeFrameGetPrice("O", inDaily); // current day open
+ DayH2= TimeFrameGetPrice("H", inDaily, -2); DayH2I = LastValue (DayH2,1); // Two days before high
+ DayL2= TimeFrameGetPrice("L", inDaily, -2); DayL2I = LastValue (DayL2,1); // Two days before low
+ DayH3= TimeFrameGetPrice("H", inDaily, -3); DayH3I = LastValue (DayH3,1); // Three days before high
+ DayL3= TimeFrameGetPrice("L", inDaily, -3); DayL3I = LastValue (DayL3,1); // Three days before low
+
+ numbars = LastValue(Cum(Status("barvisible")));
+ hts = -33.5;
+
+ YHL = ParamToggle("Yesterday HI LO","Show|Hide",1);
+ if(YHL==1) {
+ Plot(DayL,"YL",colorTurquoise,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ Plot(DayH,"YH",colorTurquoise,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ PlotText(" YH " , LastValue(BarIndex())-(numbars/Hts), DayHI, colorTurquoise);
+ PlotText(" YL " , LastValue(BarIndex())-(numbars/Hts), DayLI, colorTurquoise);
+ }
+
+ TDBHL = ParamToggle("2/3Days before HI LO","Show|Hide",0);
+ if(TDBHL==1) {
+ Plot(DayL2,"2DBL",colorTurquoise,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ Plot(DayH2,"2DBH",colorTurquoise,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ Plot(DayL3,"3DBL",colorTurquoise,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ Plot(DayH3,"3DBH",colorTurquoise,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ PlotText(" 2DBH " , LastValue(BarIndex())-(numbars/Hts), DayH2I, colorTurquoise);
+ PlotText(" 2DBL " , LastValue(BarIndex())-(numbars/Hts), DayL2I, colorTurquoise);
+ PlotText(" 3DBH " , LastValue(BarIndex())-(numbars/Hts), DayH3I, colorTurquoise);
+ PlotText(" 3DBL " , LastValue(BarIndex())-(numbars/Hts), DayL3I, colorTurquoise);
+ }
+
+ // Pivot Levels //
+ PP = (DayL + DayH + DayC)/3; PPI = LastValue (PP,1); // Pivot
+ R1 = (PP * 2) - DayL; R1I = LastValue (R1,1); // Resistance 1
+ S1 = (PP * 2) - DayH; S1I = LastValue (S1,1); // Support 1
+ R2 = PP + R1 - S1; R2I = LastValue (R2,1); // Resistance 2
+ S2 = PP - R1 + S1; S2I = LastValue (S2,1); // Support 2
+ R3 = PP + R2 - S1; R3I = LastValue (R3,1); // Resistance 3
+ S3 = PP - R2 + S1; S3I = LastValue (S3,1); // Support 3
+
+ ppl = ParamToggle("Pivot Levels","Show|Hide",1);
+ if(ppl==1) {
+ Plot(PP, "PP",colorYellow,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ Plot(R1, "R1",colorViolet,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ Plot(S1, "S1",colorViolet,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ Plot(R2, "R2",colorViolet,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ Plot(S2, "S2",colorViolet,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ Plot(R3, "R3",colorViolet,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ Plot(S3, "S3",colorViolet,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+
+ PlotText(" Pivot ", LastValue(BarIndex())-(numbars/Hts), PPI, colorYellow);
+ PlotText(" R1 " , LastValue(BarIndex())-(numbars/Hts), R1I, colorViolet);
+ PlotText(" S1 " , LastValue(BarIndex())-(numbars/Hts), S1I, colorViolet);
+ PlotText(" R2 " , LastValue(BarIndex())-(numbars/Hts), R2I, colorViolet);
+ PlotText(" S2 " , LastValue(BarIndex())-(numbars/Hts), S2I, colorViolet);
+ PlotText(" R3 " , LastValue(BarIndex())-(numbars/Hts), R3I, colorViolet);
+ PlotText(" S3 " , LastValue(BarIndex())-(numbars/Hts), S3I, colorViolet);
+ }
+ // Camerilla Levels //
+
+ rg = (DayH - DayL);
+
+ H5=DayC+1.1*rg; H5I = LastValue (H5,1);
+ H4=DayC+1.1*rg/2; H4I = LastValue (H4,1);
+ H3=DayC+1.1*rg/4; H3I = LastValue (H3,1);
+ H2=DayC+1.1*rg/6; H2I = LastValue (H2,1);
+ H1=DayC+1.1*rg/12; H1I = LastValue (H1,1);
+ L1=DayC-1.1*rg/12; L1I = LastValue (L1,1);
+ L2=DayC-1.1*rg/6; L2I = LastValue (L2,1);
+ L3=DayC-1.1*rg/4; L3I = LastValue (L3,1);
+ L4=DayC-1.1*rg/2; L4I = LastValue (L4,1);
+ L5=DayC-1.1*rg; L5I = LastValue (L5,1);
+
+ pcl = ParamToggle("Camerilla Levels","Show|Hide",0);
+ if(pcl==1) {
+ Plot(H5,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ Plot(H4,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ Plot(H3,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ Plot(H2,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ Plot(H1,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ Plot(L1,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ Plot(L2,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ Plot(L3,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ Plot(L4,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ Plot(L5,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+ PlotText(" H5 = " , LastValue(BarIndex())-(numbars/Hts), H5I +0.05, colorRose);
+ PlotText(" H4 = " , LastValue(BarIndex())-(numbars/Hts), H4I +0.05, colorRose);
+ PlotText(" H3 = " , LastValue(BarIndex())-(numbars/Hts), H3I +0.05, colorRose);
+ PlotText(" H2 = " , LastValue(BarIndex())-(numbars/Hts), H2I +0.05, colorRose);
+ PlotText(" H1 = " , LastValue(BarIndex())-(numbars/Hts), H1I +0.05, colorRose);
+ PlotText(" L1 = " , LastValue(BarIndex())-(numbars/Hts), L1I +0.05, colorRose);
+ PlotText(" L2 = " , LastValue(BarIndex())-(numbars/Hts), L2I +0.05, colorRose);
+ PlotText(" L3 = " , LastValue(BarIndex())-(numbars/Hts), L3I +0.05, colorRose);
+ PlotText(" L4 = " , LastValue(BarIndex())-(numbars/Hts), L4I +0.05, colorRose);
+ PlotText(" L5 = " , LastValue(BarIndex())-(numbars/Hts), L5I +0.05, colorRose);
+ }
+
+ // Current Days Hi Lo //
+ THL = ParamToggle("Todays Hi Lo","Show|Hide",1);
+ if(THL==1) {
+ isRth = TimeNum() >= 084500 & TimeNum() <= 085959;
+ isdRth = TimeNum() >= 084500 & TimeNum() <= 160000;
+ aRthL = IIf(isRth, L, 1000000);
+ aRthH = IIf(isdRth, H, Null);
+ aRthLd = IIf(isdRth, L, 1000000);
+ DayH = TimeFrameCompress( aRthH, inDaily, compressHigh );
+ DayH = TimeFrameExpand( DayH, inDaily, expandFirst );
+ DayL = TimeFrameCompress( aRthLd, inDaily, compressLow );
+ DayL = TimeFrameExpand( DayL, inDaily, expandFirst );
+ Bars = BarsSince(TimeNum() >= 94500 AND TimeNum() < 095959);//,BarIndex(),1); // AND DateNum()==LastValue(DateNum());
+ x0 = BarCount-LastValue(Bars);
+ x1 = BarCount-1;
+ DayHline=LineArray(x0,LastValue(DayH),x1,LastValue (DayH),0); 
+ DayLline=LineArray(x0,LastValue(DayL),x1,LastValue (DayL),0); 
+ DayHlineI = LastValue (DayHline,1);
+ DayLlineI = LastValue (DayLline,1);
+ Plot(DayHline,"DayH",colorYellow,styleBar|styleNoRescale|styleNoTitle);
+ Plot(DayLline,"DayL",colorYellow,styleBar|styleNoRescale|styleNoTitle);
+ PlotText(" Day Hi " , LastValue(BarIndex())-(numbars/Hts), DayHlineI +0.05, colorYellow);
+ PlotText(" Day Lo " , LastValue(BarIndex())-(numbars/Hts), DayLlineI +0.05, colorYellow);
+ }
+
+ /////////////////////////////////////////////////////////////////////////////////////////////////
+
+ _SECTION_BEGIN("Pivot_Finder");
+ /* **********************************
+
+ Code to automatically identify pivots
+
+ ********************************** */
+
+ // -- what will be our lookback range for the hh and ll?
+ farback=Param("How Far back to go",200,0,5000,10);
+ nBars = Param("Number of bars", 12, 5, 40);
+
+
+ // -- Create 0-initialized arrays the size of barcount
+
+ aHPivs = H - H;
+
+ aLPivs = L - L;
+
+ // -- More for future use, not necessary for basic plotting
+
+ aHPivHighs = H - H;
+
+ aLPivLows = L - L;
+
+ aHPivIdxs = H - H;
+
+ aLPivIdxs = L - L;
+
+ nHPivs = 0;
+
+ nLPivs = 0;
+
+ lastHPIdx = 0;
+
+ lastLPIdx = 0;
+
+ lastHPH = 0;
+
+ lastLPL = 0;
+
+ curPivBarIdx = 0;
+
+ // -- looking back from the current bar, how many bars
+
+ // back were the hhv and llv values of the previous
+
+ // n bars, etc.?
+
+ aHHVBars = HHVBars(H, nBars);
+
+ aLLVBars = LLVBars(L, nBars);
+
+ aHHV = HHV(H, nBars);
+
+ aLLV = LLV(L, nBars);
+
+ // -- Would like to set this up so pivots are calculated back from
+
+ // last visible bar to make it easy to "go back" and see the pivots
+
+ // this code would find. However, the first instance of
+
+ // _Trace output will show a value of 0
+
+ aVisBars = Status("barvisible");
+
+ nLastVisBar = LastValue(Highest(IIf(aVisBars, BarIndex(), 0)));
+
+ _TRACE("Last visible bar: " + nLastVisBar);
+
+ // -- Initialize value of curTrend
+
+ curBar = (BarCount-1);
+
+ curTrend = "";
+
+ if (aLLVBars[curBar] <
+
+ aHHVBars[curBar]) {
+
+ curTrend = "D";
+
+ }
+
+ else {
+
+ curTrend = "U";
+
+ }
+
+ // -- Loop through bars. Search for
+
+ // entirely array-based approach
+
+ // in future version
+
+ for (i=0; i<farback; i++) {
+
+ curBar = (BarCount - 1) - i;
+
+ // -- Have we identified a pivot? If trend is down...
+
+ if (aLLVBars[curBar] < aHHVBars[curBar]) {
+
+ // ... and had been up, this is a trend change
+
+ if (curTrend == "U") {
+
+ curTrend = "D";
+
+ // -- Capture pivot information
+
+ curPivBarIdx = curBar - aLLVBars[curBar];
+
+ aLPivs[curPivBarIdx] = 1;
+
+ aLPivLows[nLPivs] = L[curPivBarIdx];
+
+ aLPivIdxs[nLPivs] = curPivBarIdx;
+
+ nLPivs++;
+
+ }
+
+ // -- or current trend is up
+
+ } else {
+
+ if (curTrend == "D") {
+
+ curTrend = "U";
+
+ curPivBarIdx = curBar - aHHVBars[curBar];
+
+ aHPivs[curPivBarIdx] = 1;
+
+ aHPivHighs[nHPivs] = H[curPivBarIdx];
+
+ aHPivIdxs[nHPivs] = curPivBarIdx;
+
+ nHPivs++;
+
+ }
+
+ // -- If curTrend is up...else...
+
+ }
+
+ // -- loop through bars
+
+ }
+
+ // -- Basic attempt to add a pivot this logic may have missed
+
+ // -- OK, now I want to look at last two pivots. If the most
+
+ // recent low pivot is after the last high, I could
+
+ // still have a high pivot that I didn't catch
+
+ // -- Start at last bar
+
+ curBar = (BarCount-1);
+
+ candIdx = 0;
+
+ candPrc = 0;
+
+ lastLPIdx = aLPivIdxs[0];
+
+ lastLPL = aLPivLows[0];
+
+ lastHPIdx = aHPivIdxs[0];
+
+ lastHPH = aHPivHighs[0];
+
+ if (lastLPIdx > lastHPIdx) {
+
+ // -- Bar and price info for candidate pivot
+
+ candIdx = curBar - aHHVBars[curBar];
+
+ candPrc = aHHV[curBar];
+
+ if (
+
+ lastHPH < candPrc AND
+
+ candIdx > lastLPIdx AND
+
+ candIdx < curBar) {
+
+
+ // -- OK, we'll add this as a pivot...
+
+ aHPivs[candIdx] = 1;
+
+ // ...and then rearrange elements in the
+
+ // pivot information arrays
+
+ for (j=0; j<nHPivs; j++) {
+
+ aHPivHighs[nHPivs-j] = aHPivHighs[nHPivs-
+
+ (j+1)];
+
+ aHPivIdxs[nHPivs-j] = aHPivIdxs[nHPivs-(j+1)];
+
+ }
+
+ aHPivHighs[0] = candPrc ;
+
+ aHPivIdxs[0] = candIdx;
+
+ nHPivs++;
+
+ }
+
+ } else {
+
+
+ // -- Bar and price info for candidate pivot
+
+ candIdx = curBar - aLLVBars[curBar];
+
+ candPrc = aLLV[curBar];
+
+ if (
+
+ lastLPL > candPrc AND
+
+ candIdx > lastHPIdx AND
+
+ candIdx < curBar) {
+
+
+ // -- OK, we'll add this as a pivot...
+
+ aLPivs[candIdx] = 1;
+
+ // ...and then rearrange elements in the
+
+ // pivot information arrays
+
+ for (j=0; j<nLPivs; j++) {
+
+ aLPivLows[nLPivs-j] = aLPivLows[nLPivs-(j+1)];
+
+ aLPivIdxs[nLPivs-j] = aLPivIdxs[nLPivs-(j+1)];
+
+ }
+
+ aLPivLows[0] = candPrc;
+
+ aLPivIdxs[0] = candIdx;
+
+ nLPivs++;
+
+ }
+
+ }
+
+ // -- Dump inventory of high pivots for debugging
+
+
+
+ for (k=0; k<nHPivs; k++) {
+
+ _TRACE("High pivot no. " + k
+
+ + " at barindex: " + aHPivIdxs[k] + ", "
+
+ + WriteVal(ValueWhen(BarIndex()==aHPivIdxs[k],
+
+ DateTime(), 1), formatDateTime)
+
+ + ", " + aHPivHighs[k]);
+
+ }
+
+ //////////////////////////////////////////////////////////////////////////////
+
+ // -- OK, let's plot the pivots using arrows
+
+ PlotShapes(
+
+ IIf(aHPivs==1, shapeStar, shapeNone), colorBrightGreen, 0, H, 25);
+
+ PlotShapes(
+
+ IIf(aLPivs==1, shapeStar , shapeNone), colorRed, 0, L, -20);
+
+ //////////////////////////////////////////////////////////////////////////////
+
+
+ /* **********************************
+
+ Code to automatically identify pivots
+
+ ********************************** */
+ // -- what will be our lookback range for the hh and ll?
+ farback=Param("How Far back to go",200,12,30,1);
+ nBars = Param("Number of bars", 12, 1, 30, 1);
+ // -- Create 0-initialized arrays the size of barcount
+ aHPivs = H - H;
+ aLPivs = L - L;
+ // -- More for future use, not necessary for basic plotting
+ aHPivHighs = H - H;
+ aLPivLows = L - L;
+ aHPivIdxs = H - H;
+ aLPivIdxs = L - L;
+ nHPivs = 0;
+ nLPivs = 0;
+ lastHPIdx = 0;
+ lastLPIdx = 0;
+ lastHPH = 0;
+ lastLPL = 0;
+ curPivBarIdx = 0;
+ // -- looking back from the current bar, how many bars 
+ // back were the hhv and llv values of the previous 
+ // n bars, etc.?
+ aHHVBars = HHVBars(H, nBars);
+ aLLVBars = LLVBars(L, nBars);
+ aHHV = HHV(H, nBars);
+ aLLV = LLV(L, nBars);
+ // -- Would like to set this up so pivots are calculated back from
+ // last visible bar to make it easy to "go back" and see the pivots
+ // this code would find. However, the first instance of 
+ // _Trace output will show a value of 0
+ aVisBars = Status("barvisible");
+ nLastVisBar = LastValue(Highest(IIf(aVisBars, BarIndex(), 0)));
+ _TRACE("Last visible bar: " + nLastVisBar);
+ // -- Initialize value of curTrend
+ curBar = (BarCount-1);
+ curTrend = "";
+ if (aLLVBars[curBar] < 
+ aHHVBars[curBar]) {
+ curTrend = "D";
+ }
+ else {
+ curTrend = "U";
+ }
+ // -- Loop through bars. Search for 
+ // entirely array-based approach
+ // in future version
+ for (i=0; i<farback; i++) {
+ curBar = (BarCount - 1) - i;
+ // -- Have we identified a pivot? If trend is down...
+ if (aLLVBars[curBar] < aHHVBars[curBar]) {
+ // ... and had been up, this is a trend change
+ if (curTrend == "U") {
+ curTrend = "D";
+ // -- Capture pivot information
+ curPivBarIdx = curBar - aLLVBars[curBar];
+ aLPivs[curPivBarIdx] = 1;
+ aLPivLows[nLPivs] = L[curPivBarIdx];
+ aLPivIdxs[nLPivs] = curPivBarIdx;
+ nLPivs++;
+ }
+ // -- or current trend is up
+ } else {
+ if (curTrend == "D") {
+ curTrend = "U";
+ curPivBarIdx = curBar - aHHVBars[curBar];
+ aHPivs[curPivBarIdx] = 1;
+ aHPivHighs[nHPivs] = H[curPivBarIdx];
+ aHPivIdxs[nHPivs] = curPivBarIdx;
+ nHPivs++;
+ }
+ // -- If curTrend is up...else...
+ } 
+ // -- loop through bars
+ } 
+ // -- Basic attempt to add a pivot this logic may have missed
+ // -- OK, now I want to look at last two pivots. If the most 
+ // recent low pivot is after the last high, I could
+ // still have a high pivot that I didn't catch
+ // -- Start at last bar
+ curBar = (BarCount-1);
+ candIdx = 0;
+ candPrc = 0;
+ lastLPIdx = aLPivIdxs[0];
+ lastLPL = aLPivLows[0];
+ lastHPIdx = aHPivIdxs[0];
+ lastHPH = aHPivHighs[0];
+ if (lastLPIdx > lastHPIdx) {
+ // -- Bar and price info for candidate pivot
+ candIdx = curBar - aHHVBars[curBar];
+ candPrc = aHHV[curBar]; 
+ if (
+ lastHPH < candPrc AND
+ candIdx > lastLPIdx AND
+ candIdx < curBar) {
+ // -- OK, we'll add this as a pivot...
+ aHPivs[candIdx] = 1;
+ // ...and then rearrange elements in the 
+ // pivot information arrays
+ for (j=0; j<nHPivs; j++) {
+ aHPivHighs[nHPivs-j] = aHPivHighs[nHPivs-
+ (j+1)];
+ aHPivIdxs[nHPivs-j] = aHPivIdxs[nHPivs-(j+1)];
+ }
+ aHPivHighs[0] = candPrc ;
+ aHPivIdxs[0] = candIdx;
+ nHPivs++;
+ } 
+ } else {
+ // -- Bar and price info for candidate pivot
+ candIdx = curBar - aLLVBars[curBar];
+ candPrc = aLLV[curBar]; 
+ if (
+ lastLPL > candPrc AND
+ candIdx > lastHPIdx AND
+ candIdx < curBar) {
+ // -- OK, we'll add this as a pivot...
+ aLPivs[candIdx] = 1;
+ // ...and then rearrange elements in the 
+ // pivot information arrays
+ for (j=0; j<nLPivs; j++) {
+ aLPivLows[nLPivs-j] = aLPivLows[nLPivs-(j+1)];
+ aLPivIdxs[nLPivs-j] = aLPivIdxs[nLPivs-(j+1)];
+ }
+ aLPivLows[0] = candPrc;
+ aLPivIdxs[0] = candIdx;
+ nLPivs++;
+ }
+ }
+ // -- Dump inventory of high pivots for debugging
+ /*
+ for (k=0; k<nHPivs; k++) {
+ _TRACE("High pivot no. " + k
+ + " at barindex: " + aHPivIdxs[k] + ", " 
+ + WriteVal(ValueWhen(BarIndex()==aHPivIdxs[k], 
+ DateTime(), 1), formatDateTime)
+ + ", " + aHPivHighs[k]);
+ }
+ */
+ // -- OK, let's plot the pivots using arrows
+ PlotShapes(IIf(aHPivs==1, shapeSmallDownTriangle, shapeNone), colorCustom12, 0, High, Offset=-5);
+ PlotShapes(IIf(aLPivs==1, shapeSmallUpTriangle , shapeNone), colorCustom11, 0, Low, Offset=-5);
+
+ Sell = aHPivs == 1 ;
+ Buy = aLPivs == 1 ;
+ Filter=Buy OR Sell; 
+ Sell=ExRem(Sell,Buy); 
+ Buy=ExRem(Buy,Sell);
+
+ ///////////////////////////////////////////////////////////////////
+
+
+ //////////////////////////////////////////////////////////////////
+
+ R=3;//Marking circle radius
+ m=0.015*(HHV(H,159)-LLV(L,159));//scaling factor
+ x=Cum(1);
+ per = 2.5;//Sensitivity Calibration
+pR = PeakBars( H, per, 1 ) == 0;//Peak condition
+ x01= LastValue(ValueWhen( pR, x, 1 ));
+ x02=LastValue(ValueWhen( pR, x, 2 ));
+ x03=LastValue(ValueWhen( pR, x, 3 ));
+ y01 = LastValue(ValueWhen( pR, H, 1 ) );
+ y02=LastValue(ValueWhen( pR, H, 2 ) );
+ y03 = LastValue( ValueWhen( pR, H, 3 ));
+
+ y0=y01;x0=x01;
+ y=y0+m*sqrt(R^2-(x-x0)^2);
+ y1=y0-m*sqrt(R^2-(x-x0)^2);
+ Plot(y,"",4,1);Plot(y1,"",4,1);
+ y0=y02;x0=x02;
+ y=y0+m*sqrt(R^2-(x-x0)^2);
+ y1=y0-m*sqrt(R^2-(x-x0)^2);
+ Plot(y,"",4,1);Plot(y1,"",4,1);
+ y0=y03;x0=x03;
+ y=y0+m*sqrt(R^2-(x-x0)^2);
+ y1=y0-m*sqrt(R^2-(x-x0)^2);
+ Plot(y,"",4,1);Plot(y1,"",4,1);
+ TpR = TroughBars( L, per, 1 ) == 0;//Trough condition
+ x01T= LastValue(ValueWhen( TpR, x, 1 ));
+ x02T=LastValue(ValueWhen( TpR, x, 2 ));
+ x03T=LastValue(ValueWhen( TpR, x, 3 ));
+ y01T = LastValue(ValueWhen( TpR, L, 1 ) );
+ y02T=LastValue(ValueWhen( TpR, L, 2 ) );
+ y03T = LastValue( ValueWhen( TpR, L, 3 ));
+ y0T=y01T;x0T=x01T;
+ y=y0T+m*sqrt(R^2-(x-x0T)^2);
+ y1=y0T-m*sqrt(R^2-(x-x0T)^2);
+ Plot(Y,"",5,1);Plot(Y1,"",5,1);
+ y0T=y02T;x0T=x02T;
+ y=y0T+m*sqrt(R^2-(x-x0T)^2);
+ y1=y0T-m*sqrt(R^2-(x-x0T)^2);
+ Plot(y,"",5,1);Plot(y1,"",5,1);
+ y0T=y03T;x0T=x03T;
+ y=y0T+m*sqrt(R^2-(x-x0T)^2);
+ y1=y0T-m*sqrt(R^2-(x-x0T)^2);
+ Plot(y,"",5,1);Plot(y1,"",5,1);
+
+ R=2;//Marking circle radius
+ m=0.015*(HHV(H,159)-LLV(L,159));//scaling factor
+ x=Cum(1);
+ per = 1.5;//Sensitivity Calibration
+pR = PeakBars( H, per, 1 ) == 0;//Peak condition
+ x01= LastValue(ValueWhen( pR, x, 1 ));
+ x02=LastValue(ValueWhen( pR, x, 2 ));
+ x03=LastValue(ValueWhen( pR, x, 3 ));
+ y01 = LastValue(ValueWhen( pR, H, 1 ) );
+ y02=LastValue(ValueWhen( pR, H, 2 ) );
+ y03 = LastValue( ValueWhen( pR, H, 3 ));
+
+ y0=y01;x0=x01;
+ y=y0+m*sqrt(R^2-(x-x0)^2);
+ y1=y0-m*sqrt(R^2-(x-x0)^2);
+ Plot(y,"",4,1);Plot(y1,"",4,1);
+ y0=y02;x0=x02;
+ y=y0+m*sqrt(R^2-(x-x0)^2);
+ y1=y0-m*sqrt(R^2-(x-x0)^2);
+ Plot(y,"",4,1);Plot(y1,"",4,1);
+ y0=y03;x0=x03;
+ y=y0+m*sqrt(R^2-(x-x0)^2);
+ y1=y0-m*sqrt(R^2-(x-x0)^2);
+ Plot(y,"",4,1);Plot(y1,"",4,1);
+ TpR = TroughBars( L, per, 1 ) == 0;//Trough condition
+ x01T= LastValue(ValueWhen( TpR, x, 1 ));
+ x02T=LastValue(ValueWhen( TpR, x, 2 ));
+ x03T=LastValue(ValueWhen( TpR, x, 3 ));
+ y01T = LastValue(ValueWhen( TpR, L, 1 ) );
+ y02T=LastValue(ValueWhen( TpR, L, 2 ) );
+ y03T = LastValue( ValueWhen( TpR, L, 3 ));
+ y0T=y01T;x0T=x01T;
+ y=y0T+m*sqrt(R^2-(x-x0T)^2);
+ y1=y0T-m*sqrt(R^2-(x-x0T)^2);
+ Plot(Y,"",5,1);Plot(Y1,"",5,1);
+ y0T=y02T;x0T=x02T;
+ y=y0T+m*sqrt(R^2-(x-x0T)^2);
+ y1=y0T-m*sqrt(R^2-(x-x0T)^2);
+ Plot(y,"",5,1);Plot(y1,"",5,1);
+ y0T=y03T;x0T=x03T;
+ y=y0T+m*sqrt(R^2-(x-x0T)^2);
+ y1=y0T-m*sqrt(R^2-(x-x0T)^2);
+ Plot(y,"",5,1);Plot(y1,"",5,1);
+
+
+ ////////////////////////////////////////////////////////////////////////////////
+
+ R=1;//Marking circle radius
+ m=0.015*(HHV(H,159)-LLV(L,159));//scaling factor
+ x=Cum(1);
+ per = 0.325;//Sensitivity Calibration
+pR = PeakBars( H, per, 1 ) == 0;//Peak condition
+ x01= LastValue(ValueWhen( pR, x, 1 ));
+ x02=LastValue(ValueWhen( pR, x, 2 ));
+ x03=LastValue(ValueWhen( pR, x, 3 ));
+ y01 = LastValue(ValueWhen( pR, H, 1 ) );
+ y02=LastValue(ValueWhen( pR, H, 2 ) );
+ y03 = LastValue( ValueWhen( pR, H, 3 ));
+
+ y0=y01;x0=x01;
+ y=y0+m*sqrt(R^2-(x-x0)^2);
+ y1=y0-m*sqrt(R^2-(x-x0)^2);
+ Plot(y,"",4,1);Plot(y1,"",4,1);
+ y0=y02;x0=x02;
+ y=y0+m*sqrt(R^2-(x-x0)^2);
+ y1=y0-m*sqrt(R^2-(x-x0)^2);
+ Plot(y,"",4,1);Plot(y1,"",4,1);
+ y0=y03;x0=x03;
+ y=y0+m*sqrt(R^2-(x-x0)^2);
+ y1=y0-m*sqrt(R^2-(x-x0)^2);
+ Plot(y,"",4,1);Plot(y1,"",4,1);
+ TpR = TroughBars( L, per, 1 ) == 0;//Trough condition
+ x01T= LastValue(ValueWhen( TpR, x, 1 ));
+ x02T=LastValue(ValueWhen( TpR, x, 2 ));
+ x03T=LastValue(ValueWhen( TpR, x, 3 ));
+ y01T = LastValue(ValueWhen( TpR, L, 1 ) );
+ y02T=LastValue(ValueWhen( TpR, L, 2 ) );
+ y03T = LastValue( ValueWhen( TpR, L, 3 ));
+ y0T=y01T;x0T=x01T;
+ y=y0T+m*sqrt(R^2-(x-x0T)^2);
+ y1=y0T-m*sqrt(R^2-(x-x0T)^2);
+ Plot(Y,"",5,1);Plot(Y1,"",5,1);
+ y0T=y02T;x0T=x02T;
+ y=y0T+m*sqrt(R^2-(x-x0T)^2);
+ y1=y0T-m*sqrt(R^2-(x-x0T)^2);
+ Plot(y,"",5,1);Plot(y1,"",5,1);
+ y0T=y03T;x0T=x03T;
+ y=y0T+m*sqrt(R^2-(x-x0T)^2);
+ y1=y0T-m*sqrt(R^2-(x-x0T)^2);
+ Plot(y,"",5,1);Plot(y1,"",5,1);
+
+ EMA34 = EMA(C,34); 
+ LSMA = LinearReg(C,23);
+
+ /////////////////////////////////////////////////////////////////////////////////////////////////
+
+ _SECTION_BEGIN("Price");
+
+ SetChartOptions(0,chartShowArrows|chartShowDates);
+
+ _N(Title = EncodeColor(colorCustom12) +StrFormat(" {{NAME}} - {{INTERVAL}} {{DATE}} "+ EncodeColor(colorWhite) +" Open = "+ EncodeColor(colorWhite) +"%g "+ EncodeColor(colorBrightGreen) +" High : "+ EncodeColor(colorBrightGreen) +" %g "+ EncodeColor(colorRed) +" - Low : "+ EncodeColor(colorRed) +" %g "+ EncodeColor(colorWhite) +" Close = "+ EncodeColor(colorWhite) +"%g 
+ {{VALUES}}",O,H,L,C ));
+
+ _SECTION_END();
+
+ /////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+ _SECTION_BEGIN("Break Outs");
+ //{Buy} 
+ x1=5; x2=4; x3=3; x4=2; x5=1; x6=.5; 
+ //{Lowest price stock <5} 
+ AA=IIf(C<5,Cross(C,ValueWhen(Peak(H,x1,1) !=Ref(Peak(H,x1,1),-1),H,1)), 
+ //{Price between 5 AND 20} 
+ IIf(C>5 AND C<20,Cross(C,ValueWhen(Peak(H,x2,1) !=Ref(Peak(H,x2,1),-1),H,1)), 
+ //{Price between 20 AND 70} 
+ IIf(C>20 AND C<70,Cross(C,ValueWhen(Peak(H,x3,1) !=Ref(Peak(H,x3,1),-1),H,1)), 
+ //{Price between 70 AND 150} 
+ IIf(C>70 AND C<150,Cross(C,ValueWhen(Peak(H,x4,1) !=Ref(Peak(H,x4,1),-1),H,1)), 
+ //{Price between 150 AND 300} 
+ IIf(C>150 AND C<300,Cross(C,ValueWhen(Peak(H,x5,1) !=Ref(Peak(H,x5,1),-1),H,1)), 
+ //{Price over 300} 
+ Cross(C,ValueWhen(Peak(H,x6,1)!=Ref(Peak(H,x6,1),-1),H,1))))))); 
+
+ //{Sell } 
+ x1=5; x2=4; x3=3; x4=2; x5=1; x6=.5; 
+ //{Lowest price stock <5} 
+ BB=IIf(C<5,Cross(ValueWhen(Trough(L,x1,1) !=Ref(Trough(L,x1,1),-1),L,1),C), 
+ //{Price between 5 AND 20} 
+ IIf(C>5 AND C<20,Cross(ValueWhen(Trough(L,x2,1) !=Ref(Trough(L,x2,1),-1),L,1),C), 
+ //{Price between 20 AND 70} 
+ IIf(C>20 AND C<70,Cross(ValueWhen(Trough(L,x3,1) !=Ref(Trough(L,x3,1),-1),L,1),C), 
+ //{Price between 70 AND 150} 
+ IIf(C>70 AND C<150,Cross(ValueWhen(Trough(L,x4,1) !=Ref(Trough(L,x4,1),-1),L,1),C), 
+ //{Price between 150 AND 300} 
+ IIf(C>150 AND C<300,Cross(ValueWhen(Trough(L,x5,1) !=Ref(Trough(L,x5,1),-1),L,1),C), 
+ //{Price over 300} 
+ Cross(ValueWhen(Trough(L,x6,1)!=Ref(Trough(L,x6,1) ,-1),L,1),C)))))); 
+
+ Color=IIf(BarsSince(AA)>BarsSince(BB),colorRed,IIf (RSI()>70,colorCustom11,colorDarkGreen)); 
+
+
+ ///// Trailing Stop Module ///// 
+
+ P6=Param("Trailing Stop Risk",2.5,2,3.5,0.1); 
+ P7=Param("Trailing Stop LookBack",2,5,25,1); 
+ P8=Param("Trailing Stop PrevLow Switch",0,0,1,1); 
+ PrevLow=IIf(P8==1, Ref(C,-TroughBars(C,3,1)) ,Null); 
+ //Plot(PrevLow,"",colorRed); 
+
+ //Position sizing// 
+ MyTotalPort = Param("MyTotalPort",1000000,10000,10000000,100000) ; 
+ AcceptableRisk = Param("AcceptableRisk",0.5,0.1,3,0.1); 
+ BarsFromStart = BarsSince(Cross(AA,BB)AND Ref(Color,-1)==colorRed) ; 
+ InitialStopLoss =Ref( H - P6*ATR(P7),-BarsFromStart); 
+ PositionSizing = 0.01*AcceptableRisk*MyTotalPort/( C - InitialStopLoss ); 
+
+ PPP = IIf( HHV(H - P6*ATR(P7),BarsFromStart+1) <C ,HHV(H - P6*ATR(P7),BarsFromStart+1),Null);
+ Plot( PPP ,"",colorCustom12); 
+
+ /////////////////////////////////////////////////////////////////////////////////////////////////
+
+ /////////////////////////////////////////////////////////////////////////////////////////////////
+
+ _SECTION_BEGIN("Magnified Market Price");
+ //by Vidyasagar, vkunisetty@yahoo.com//
+ FS=Param("Font Size",30,30,100,1);
+ GfxSelectFont("Arial", FS, 900, italic = False, underline = False, True );
+ GfxSetBkMode( colorWhite );
+ GfxSetTextColor( ParamColor("Color",colorYellow) );
+ Hor=Param("Horizontal Position",1350,1350,1350,1350);
+ Ver=Param("Vertical Position",12,14,16,18);
+ GfxTextOut(""+C,Hor , Ver );
+ YC=TimeFrameGetPrice("C",inDaily,-1);
+ DD=Prec(C-YC,2);
+ xx=Prec((DD/YC)*100,2);
+ GfxSelectFont("Arial", 12, 700, italic = False, underline = False, True );
+ GfxSetBkMode( colorWhite );
+ GfxSetTextColor(ParamColor("Color",colorYellow) );
+ GfxTextOut(""+DD+" ("+xx+"%)", Hor+5, Ver+45 );
+ _SECTION_END();
+
+ /////////////////////////////////////////////////////////////////////////////////////////////////
+
+ _SECTION_BEGIN("Ribbon");
+ uptrend=PDI()>MDI()AND Signal()<MACD();
+ downtrend=MDI()>PDI()AND Signal()>MACD();
+ Plot( 1, /*efines the height of the ribbon in percent of pane width */"ribbon",
+ IIf( uptrend, colorLime, IIf( downtrend, colorRed,IIf(Signal()<MACD(), colorBlack, colorBlack ))), /* choose color */
+ styleOwnScale|styleArea|styleNoLabel, -01, 50 );
+ _SECTION_END();
+
+ //////////////////////////////////////////////////////////////////////////////////////////////////
+
+ GraphXSpace=10;
+
+ /////////////////////////////////////////////////////////////////////////////////////////////////
+
+ _SECTION_BEGIN("3 color gradient");
+
+ priceAxesWidth=0;
+ dateAxesHeight=0;
+ TitleHeight=0;
+
+ pxwidth = Status("pxwidth");
+ pxheight = Status("pxheight");
+
+ chartwidth = pxwidth-priceAxesWidth;
+ chartheight = pxheight-dateAxesHeight;
+
+ topColor=ParamColor("topColor",ColorRGB(207,254,240) );
+ centerColor=ParamColor("centerColor", ColorRGB(249,236,164));
+ botColor=ParamColor("BottomColor", ColorRGB( 253,223,196));
+ priceAxesColor=ParamColor("priceAxesColor", colorWhite );
+ dateAxesColor=ParamColor("dateAxesColor", colorWhite);
+
+ relPos=Param("centerPosition%",50,0,100,1)/100;
+ centerHeight=chartheight*Param("centerHeight%",10, 0,100,1)/100;
+ x0=0;
+ y0=Max(TitleHeight,chartheight*relPos-centerHeight/2);
+ x1=chartwidth;
+ y1=Min(chartheight,chartheight*relPos+centerHeight/2);
+
+ GfxSetBkMode( 1 );
+ GfxSetOverlayMode(1);
+ GfxGradientRect(0,0,chartwidth,TitleHeight, colorWhite ,colorWhite);
+ GfxGradientRect(chartwidth,0,pxwidth,pxheight, priceAxesColor
+ ,priceAxesColor);
+ GfxGradientRect(0,chartheight,chartwidth,pxheight, dateAxesColor
+ ,dateAxesColor);
+ GfxGradientRect(x0,y0,x1,y1, CenterColor ,CenterColor );
+//GfxGradientRect(0,TitleHeight,chartwidth, y0,topColor, CenterColor );
+ GfxGradientRect(0,y1,chartwidth, chartheight, CenterColor ,botColor);
+
+ _SECTION_END();

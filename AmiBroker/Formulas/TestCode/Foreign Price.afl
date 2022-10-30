@@ -1,0 +1,19 @@
+// Downloaded From https://www.WiseStockTrader.com
+_SECTION_BEGIN("Foreign Volume");
+
+Ticker = ParamStr("Symbol", Name());
+
+SetForeign(Ticker, True, True ); 
+
+Plot( Volume, _DEFAULT_NAME(), IIf( C > O, ParamColor("Up Color", colorGreen ), ParamColor("Down Color", colorRed ) ), ParamStyle( "Style", styleArea | styleOwnScale| styleThick, maskHistogram  ) );
+
+Title = Name() + " - " + Date() + ", " 
+	+" Open=" 	+WriteVal(O,1.0)+ ", "
+	+" High=" +WriteVal(H,1.0)+  ", "
+	+" Low=" +WriteVal(L,1.0)+ ", "
+	+" Close=" +WriteVal(C,1.0) 
+	+" Volume=" +WriteIf(O>C, EncodeColor(colorRed), EncodeColor(colorGreen)) +WriteVal(V,1.0);
+
+RestorePriceArrays(); 
+
+_SECTION_END();

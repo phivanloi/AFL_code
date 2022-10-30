@@ -1,0 +1,46 @@
+_SECTION_BEGIN("CCI + EMA + RSI");
+
+// This combines three signals into a trading Signal, EMA crossing, CCI and RSI. 
+// The default values are:
+// EMA 5 and 15 crossing 
+// RSI > 30 = Buy, < 70 = short
+// CCI > 100 = Buy, < -100 = short
+// all the parameters are exposed for ease of use
+// two functions are exposed, plot and signal (default)
+
+PositionSize = 100000 / 15;
+sigPlot = ParamToggle("Display signal", "No|Yes", 1);
+
+perCCI = Param( "CCI Period", 30, 2, 200, 1 );
+ptCrossCCI = Param("CCI crossover point", 100, 10, 200, 1);
+myCCI = CCI( perCCI );
+
+perRSI = Param( "RSI Period", 15, 1, 200, 1 );
+ptBuyRsi = Param("RSI Buy point", 30, 0, 100, 1);
+ptShtRsi = Param("RSI Short point", 30, 0, 100, 1);
+myRSI = RSI( perRSI );
+
+pf = ParamField("EMA Price field", 3);
+PeriodShort = Param("EMA1 Period", 5, 2, 200, 1, 10 );
+myEma1 = EMA( pf, PeriodShort );
+
+PeriodLong = Param("EMA2 Period", 15, 2, 200, 1, 10 );
+myEma2 = EMA( pf, PeriodLong );
+
+
+// ema 
+upEma = IIf(myEma1 > myEma2 , 1, 0);		// fast ema is above slow, long condition
+
+myBuy = upEma AND myRSI > ptBuyRsi AND myCCI > ptCrossCCI ;
+myShort = !upEma AND myRSI < 70 AND myCCI < -ptCrossCCI ;
+Buy = Cover = ExRem(myBuy, myShort);
+Short = Sell = ExRem(myShort, myBuy);
+
+PlotShapes(Buy*shapeUpArrow,colorGreen);
+PlotShapes(Sell*shapeDownArrow,colorRed);
+// exploration
+Filter = Buy OR Short; 
+AddColumn(Close, "Close", 1.2);
+AddColumn(Buy, "Buy/Cover", 1.0);
+AddColumn(Short, "Sell/Short",1.0);
+_SECTION_END();

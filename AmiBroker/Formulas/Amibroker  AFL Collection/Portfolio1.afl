@@ -1,0 +1,149 @@
+#pragma nocache
+
+MaxGraph    = 10;
+GraphZOrder =  1;
+GraphYSpace =  5;
+
+BIR      = IIf(Status("BarInRange") > 0, 1, 0);
+
+CurEq    = Foreign("~~~Equity", "C", 1);
+BarEnt   = Foreign("~~~Equity", "V", 1);
+CurSig   = Foreign("~~IO~Trades", "C", 0);
+CurSigX  = CurSig;
+
+CS8      = IIf(CurSigX >= 8, 1, 0);
+CurSigX  = IIf(CS8     == 1, CurSigX - 8, CurSigX);
+CS4      = IIf(CurSigX >= 4, 1, 0);
+CurSigX  = IIf(CS4     == 1, CurSigX - 4, CurSigX);
+CS2      = IIf(CurSigX >= 2, 1, 0);
+CurSigX  = IIf(CS2     == 1, CurSigX - 2, CurSigX);
+CS1      = IIf(CurSigX >= 1, 1, 0);
+CurSigX  = IIf(CS1     == 1, CurSigX - 1, CurSigX);
+
+EntrySig = CS1 == 1 OR CS4 == 1;
+EntryCum = Cum(EntrySig);
+EntryTot = LastValue(EntryCum);
+BarsSig  = Ref(BarsSince(CurSig != 0), -1);
+PrvSig   = Ref(CurSig, -(BarsSig + 1));
+PrvEq    = Ref(CurEq, -(BarsSig + 1));
+
+ProfSig  = (CurSig != 0 OR Status("LastBarInRange") > 0) AND 
+           (PrvSig == 1 OR PrvSig == 4 OR PrvSig == 6 OR PrvSig == 9) AND CurEq > PrvEq;
+ProfCum  = Cum(ProfSig);
+ProfTot  = LastValue(ProfCum);
+ProfPct  = 100 * ProfTot / EntryTot;
+
+MaxEq    = Highest(CurEq);
+FlatEq   = IIf(BIR, BarsSince(MaxEq > Ref(MaxEq,-1)),0);
+MaxFlat  = Highest(FlatEq);
+LMaxFlat = LastValue(MaxFlat) * (1 + GraphYSpace / 100);
+LogEq    = log10(CurEq);
+
+CurDD    = IIf(CurEq < MaxEq, 100 * (MaxEq - CurEq) / MaxEq, 0);
+RCurDD   = round(CurDD * 100) / 100;
+MaxDD    = Highest(CurDD);
+RMaxDD   = round(MaxDD * 100) / 100;
+LMaxDD   = LastValue(MaxDD) * (1 + GraphYSpace / 100);
+SqrDD    = CurDD ^ 2;
+CumDD    = Cum(SqrDD);
+
+CurEnt   = IIf(EntrySig == 1, CurEq, 0);
+MaxEnt   = Highest(CurEnt);
+
+CurDDE   = IIf(CurEq < MaxEnt, 100 * (MaxEnt - CurEq) / MaxEnt, 0);
+RCurDDE  = round(CurDDE * 100) / 100;
+MaxDDE   = Highest(CurDDE);
+RMaxDDE  = round(MaxDDE * 100) / 100;
+
+FirstBar = LastValue(ValueWhen(Status("FirstBarInRange") > 0, Cum(1)));
+LastBar  = LastValue(ValueWhen(Status("LastBarInRange") > 0, Cum(1)));
+TotBars  = LastValue(Cum(1));
+BarNo    = ValueWhen(BIR > 0, Cum(1) - FirstBar + 1);
+NoBars   = LastValue(BarNo);
+
+Dates    = DateNum();
+Days     = ValueWhen(BIR > 0, IIf(Dates != Ref(Dates,-1), 1, 0));
+TotDays  = Cum(Days);
+BPD      = round(BarNo / TotDays);
+
+BAHEq    = ValueWhen(BIR > 0, Ref(CurEq, -(BarNo - 1)) * (C / Ref(C, -(BarNo - 1))));
+LogBAHEq = log10(BAHEq);
+
+CAR      = ValueWhen(BIR > 0, 100 * ((CurEq / Ref(CurEq, -(BarNo - 1))) ^ (1 / (BarNo / BPD / 252)) -1));
+Ann      = ValueWhen(BIR > 0, 100 * ((CurEq / Ref(CurEq, -(252 * BPD)) - 1)));
+MAR      = ValueWhen(BIR > 0, CAR / MaxDD);
+UI       = ValueWhen(BIR > 0, sqrt(CumDD / BarNo));
+UPI      = (CAR - 5.4) / UI;
+TPI      = UPI / MaxDD;
+
+b0       = LastValue(LinRegIntercept(Ref(LogEq, -(TotBars - LastBar)), NoBars));
+m        = LastValue(LinRegSlope(Ref(LogEq, -(TotBars - LastBar)), NoBars));
+y        = m * BarNo + b0;
+
+BarsCum  = ValueWhen(BIR > 0, Cum(BarNo));
+AvgBar   = LastValue(BarsCum) / NoBars;
+SRDevSQ  = ValueWhen(BIR > 0, sqrt(Cum((BarNo - AvgBar) ^ 2)));
+ErrEq    = LastValue(StdErr(Ref(logEq, -(TotBars - LastBar)), NoBars));
+KRatio   = ValueWhen(BIR > 0, m * SRDevSQ / ErrEq / sqrt(NoBars));
+
+Title1 = EncodeColor(colorGrey50) + "Equity   = " + EncodeColor(colorWhite)        + WriteVal(CurEq,    3.0)  + " " +
+         EncodeColor(colorGrey50) + "CurFlat = "  + EncodeColor(colorGold)         + WriteVal(FlatEq,   3.0)  + " " +
+         EncodeColor(colorGrey50) + "CAR = "      + EncodeColor(colorBrightGreen)  + WriteVal(CAR,      3.2)  + "% " +
+         EncodeColor(colorGrey50) + "CDDE = "     + EncodeColor(colorOrange)       + WriteVal(CurDDE,   3.2)  + "%  " +
+         EncodeColor(colorGrey50) + "CDD = "      + EncodeColor(colorRed)          + WriteVal(CurDD,    3.2)  + "%  " +
+         EncodeColor(colorGrey50) + "MAR = "      + EncodeColor(colorBrightGreen)  + WriteVal(MAR,      3.2)  + "  " +
+         EncodeColor(colorGrey50) + "UI = "       + EncodeColor(11)                + WriteVal(UI,       3.2)  + "  ";
+
+if(EntryTot > 0)
+{
+         Title1 = Title1 + 
+         EncodeColor(colorGrey50) + "Trades = "   + EncodeColor(colorWhite)        + WriteVal(EntryTot, 3.0);
+}
+
+Title2 = "\n" +
+         EncodeColor(colorGrey50) + "LinReg = "   + EncodeColor(colorLightBlue)    + WriteVal(10 ^ y,   3.0) + " " +
+         EncodeColor(colorGrey50) + "MaxFlat = "  + EncodeColor(colorGold)         + WriteVal(MaxFlat,  3.0) + " " +
+         EncodeColor(colorGrey50) + "Ann = "      + EncodeColor(colorBrightGreen)  + WriteVal(Ann,      3.2) + "% " +
+         EncodeColor(colorGrey50) + "MDDE = "     + EncodeColor(colorOrange)       + WriteVal(MaxDDE,   3.2) + "% " +
+         EncodeColor(colorGrey50) + "MDD = "      + EncodeColor(colorRed)          + WriteVal(MaxDD,    3.2) + "% " + 
+         EncodeColor(colorGrey50) + "UPI = "      + EncodeColor(colorBrightGreen)  + WriteVal(UPI,      3.2) + " " +
+         EncodeColor(colorGrey50) + "KR = "       + EncodeColor(colorPaleGreen)    + WriteVal(KRatio,   3.2) + " ";
+         
+if(EntryTot > 0)
+{
+         Title2 = Title2 + 
+         EncodeColor(colorGrey50) + "Wins =  "    + EncodeColor(colorWhite)        + WriteVal(ProfPct,  3.1) + "% ";
+}
+
+Title3 = "\n" +
+         EncodeColor(colorGrey50) + "B & H    = " + EncodeColor(colorGrey50)       + WriteVal(BAHEq,    3.0);
+
+Title = Title1 + Title2 + Title3;
+
+Plot(IIf(BarNo > 0 AND BIR >  0, -RCurDD,  -1e10), "CDD",  colorDarkRed,   styleThick | styleOwnScale | styleArea, -LMaxDD,   LMaxDD);
+Plot(IIf(BarNo > 0 AND BIR == 0, -RCurDD,  -1e10), "CDD",  colorDarkRed,   styleThick | styleOwnScale | styleLine, -LMaxDD,   LMaxDD);
+Plot(IIf(BarNo > 0,              -RMaxDD,  -1e10), "MDD",  colorDarkRed,   styleThick | styleOwnScale,             -LMaxDD,   LMaxDD);
+Plot(IIf(BarNo > 0 AND BIR >  0, -RCurDDE, -1e10), "CDDE", colorOrange,    styleThick | styleOwnScale | styleArea, -LMaxDD,   LMaxDD);
+Plot(IIf(BarNo > 0 AND BIR == 0, -RCurDDE, -1e10), "CDDE", colorOrange,    styleThick | styleOwnScale | styleLine, -LMaxDD,   LMaxDD);
+Plot(IIf(BarNo > 0,              -RMaxDDE, -1e10), "MDDE", colorOrange,    styleThick | styleOwnScale,             -LMaxDD,   LMaxDD);
+Plot(IIf(BarNo > 0,               FlatEq,  -1e10), "CF",   colorGold,      styleThick | styleOwnScale | styleArea, -LMaxFlat, LMaxFlat);
+Plot(IIf(BarNo > 0,               MaxFlat, -1e10), "MF",   colorGold,      styleThick | styleOwnScale,             -LMaxFlat, LMaxFlat);
+
+Plot(IIf(BIR > 0, Y,        -1e10), "L/R Eq", colorBlue,      styleThick | styleNoLabel);
+Plot(IIf(BIR > 0, LogBAHEq, -1e10), "BAH Eq", colorGrey50,    styleThick | styleNoLabel);
+Plot(IIf(BIR > 0, LogEq,    -1e10), "Sys Eq", colorLightGrey, styleThick | styleNoLabel);
+
+S1 = (CS1   == 1) * shapeUpArrow;
+S2 = (CS2   == 1) * shapeDownArrow;
+S4 = (CS4   == 1) * shapeDownArrow;
+S8 = (CS8   == 1) * shapeUpArrow;
+
+PlotShapes(S2, colorWhite,       0, LogEq, -11);
+PlotShapes(S8, colorWhite,       0, LogEq, -11);
+PlotShapes(S1, colorBrightGreen, 0, LogEq, IIf(CS8, -17, -11));
+PlotShapes(S4, colorRed,         0, LogEq, IIf(CS2, -17, -11));
+
+Filter = 1;
+
+AddColumn(S1, "Cs1");
+AddColumn(S2, "cs2");

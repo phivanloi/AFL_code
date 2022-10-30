@@ -1,0 +1,21 @@
+/*
+a = Foreign("VN30INDEX", "C");
+
+Plot( a, "", IIf( a > O, ColorRGB( 0, 255, 0 ), IIf( a <= O, ColorRGB( 255, 0, 0 ), colorLightGrey ) ), 64, Null, Null, 0, 0, 1 );
+*/
+
+_SECTION_BEGIN("Price & Volume - Foreign");
+SetForeign("VN30INDEX"); 
+Plot( C, _default_name(), IIf( C > O, ColorRGB( 0, 255, 0 ), IIf( C <= O, ColorRGB( 255, 0, 0 ), colorLightGrey ) ), 64, Null, Null, 0, 0, 1); 
+
+Ticker = ParamStr("Symbol", Name());
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot(Volume, _DEFAULT_NAME(), IIf( C > O, ParamColor("Up Color", colorGreen ), ParamColor("Down Color", colorRed ) ), ParamStyle( "Style", styleHistogram | styleThick, maskHistogram));
+Plot( Percentile(Ref(P,-1), Periods,25), _DEFAULT_NAME(), colorCustom5, styleDashed); 
+Plot( Percentile(Ref(P,-1), Periods,50), _DEFAULT_NAME(), colorWhite, styleDashed); 
+Plot( Percentile(Ref(P,-1), Periods,75), _DEFAULT_NAME(), colorCustom5, styleDashed); 
+Plot( MA( P, Periods ), _DEFAULT_NAME(), colorBrown, ParamStyle("Style") ); 
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+RestorePriceArrays(); 
+_SECTION_END();

@@ -1,0 +1,241 @@
+_SECTION_BEGIN("Tracking");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+VN30F1M = Param("Price", 1556, 1300, 1600, 0.1, 10);
+
+Ticker = ParamStr("Symbol", Name());
+PlotForeign( Ticker, Ticker, ParamColor("Color", colorCycle ), ParamStyle("Style") | GetPriceStyle() ); 
+Plot( MA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+
+// Percentile
+Plot( Percentile( P, Periods,50), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+Plot( Percentile( P, Periods,75), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+Plot( Percentile( P, Periods,90), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+
+_SECTION_END();
+
+//Volume Price Analysis AFL - VPA Version 3.0 -15-06-2015
+// Revision Details
+// V-2.0 AFL - fully re written for clarity, Minor bugs removed
+// V-2.1 support and resistance line added
+// V-2.2 Commentary for support and resistance line breaks Added.
+// V-2.3 Revision detail- High volume Lines added
+// V-2.4 Toggle switch for plotting S/R, High volume and Trend lines added
+// V-2.5 Bar coloring option included - VSA based or Trend Based
+// V-3.0 Trend detection Method changed to "Random Walk"
+//===================Version V.3.0 ======================
+//=========================================================================|
+//                    VPA Basic Module                                     |
+//=========================================================================|
+_SECTION_BEGIN("VPA Basic Module");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+gxs=Param("GRAPH spaceing",10,5,50,5);        
+GraphXSpace = gxs; 
+ SetChartBkColor(ParamColor("Outer panel",colorBlack)); // color of outer border 
+    SetChartBkGradientFill( ParamColor("Inner panel upper",colorBlack),ParamColor("Inner panel lower",colorBlack));
+ 
+//===================== Basic Definitions =======================================
+volAvg    = MA(V,90);
+volMean    =  StDev(volAvg,30); 
+volUpBand3   =  volAvg + 3*volMean; 
+volUpband2   =  volAvg + 2*volMean;; 
+volUpBand1   =  volAvg + 1*volMean;; 
+volDnBand1   =  volAvg -1*volMean; 
+volDnBand2   =  volAvg -2*volMean; 
+midprice   = (H+L)/2;
+spread    = (H-L);
+avgSpread   = MA(spread,90);
+wideRangeBar  = spread>(1.5*avgSpread);
+narrowRangeBar = spread<(0.7*avgSpread);
+lowVolume   = V<Ref(V,-1) AND V<Ref(V,-2);
+upBar    = C>Ref(C,-1); 
+downBar   = C<Ref(C,-1); 
+highVolume   = V>Ref(V,-1) AND Ref(V,-1)>Ref(V,-2);
+closeFactor  = C-L;
+clsPosition  = spread/closeFactor;
+closePosition  = IIf(closeFactor==0,avgSpread,clsPosition);
+Vb     = V>volAvg OR V>Ref(V,-1);
+upClose   = C>=((spread*0.7)+L);// close is above 70% of the Bar
+downClose   = C<=((spread*0.3)+L);// close is below the 30% of the bar
+aboveClose   = C>((spread*0.5)+L);// close is between 50% and 70% of the bar
+belowClose   = C<((spread*0.5)+L);// close is between 50% and 30% of the bar
+midClose   = C>((spread*0.3)+L) AND C<((spread*0.7)+L);// close is between 30% and 70% of the bar
+veryLowClose  = closePosition>4;//close is below 25% of the bar
+veryHighClose  = closePosition<1.35;// Close is above 80% of the bar
+ClosePos   =  IIf(C<=((spread*0.3)+L),1,IIf(C<=((spread*0.5)+L),2,IIf(C<=((spread*0.7)+L),3,4)));
+                    // 1 = downclose, 2 = belowclose, 3 = aboveClose, 4 = Upclose
+Volpos    =   IIf(V>volAvg*2,1,IIf(V>volAvg*1.3,2,IIf(V>volAvg,3,IIf(V<volAvg AND V>volAvg*0.7,4,5))));
+      // 1 = Very High, 2 = High, 3 = Above Average, 4 = Less than Average, 5 = Low
+freshGndHi       =  C > HHV(H,5);
+freshGndLo       =  C < LLV(L,5);
+ 
+//========================Trend Estimation =========================
+j=MA(C,5);
+trendLongTerm     =  LinRegSlope(j,40) ;
+trendMediumTerm   =  LinRegSlope(j,10) ;
+trendShortTerm    =  LinRegSlope(j,3);
+tls=LinRegSlope(j,3);
+_SECTION_END();
+//=========================================================================|
+//                    Trend Analysis Module                                |
+//=========================================================================|
+_SECTION_BEGIN("Trend Analysis");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+ minperiodsRWIst = Param ( "Short term Min Periods", 2, 1, 9, 1); 
+ maxperiodsRWIst = Param ( "Short term Max Periods", 8, 1, 9, 1); 
+ 
+ minperiodsRWIlt = Param ( "Long Term Min Periods", 10, 1, 32, 1); 
+ maxperiodsRWIlt = Param ( "Long term Max Periods", 40, 1, 64, 1);  
+ 
+ Ground = RWIHi (minperiodsRWIst, maxperiodsRWIst); 
+ Sky    = RWILo (minperiodsRWIst, maxperiodsRWIst);  
+ j      = RWI(minperiodsRWIlt, maxperiodsRWIlt);
+ k      =  RWI(minperiodsRWIst, maxperiodsRWIst);
+ j2     = RWIHi (minperiodsRWIlt, maxperiodsRWIlt); 
+ k2     = RWILo (minperiodsRWIlt, maxperiodsRWIlt); 
+ ja     = Cross(j,1); // The followign section check the diffeent condition of the RWi above and below zero
+ jb     = Cross(1,j); // In oder to check which trend is doing what
+ jc     = Cross(-1,j);
+ jd     = Cross(j,-1);
+ j2a    = Cross(j2,1);
+ j2b    = Cross(1,j2);
+ k2a    = Cross(k2,1);
+ k2b    = Cross(1,k2);
+//Define the Major, Minor and Immediate trend Sttatus
+upmajoron   = j > 1 AND Ref(ja,-1);
+upmajoroff  = j < 1 AND Ref(jb,-1);
+upminoron   = j2 > 1 AND Ref(j2a,-1);
+upminoroff  = j2 < 1 AND Ref(j2b,-1);
+dnmajoron   = j < -1 AND Ref(jc,-1);
+dnmajoroff  = j > -1 AND Ref(jd,-1);
+dnminoron   = k2 > 1 AND Ref(k2a,-1);
+dnminoroff  = k2 < 1 AND Ref(k2b,-1);
+upimd       = IIf(ground > 1, 1,0);
+dnimd       = IIf(sky > 1, 1, 0);
+upmajor     = IIf(j>1,1,IIf(j<(-1),-1,0));
+upminor     = IIf(j2>1,1,-1);
+dnminor     = IIf(k2>1,1,-1);
+_SECTION_END();
+//======================================================================|
+//                      VSA Signal generation                           |
+//======================================================================| 
+_SECTION_BEGIN("Signal Generation");
+ 
+upThrustBar  = wideRangeBar AND downClose  AND trendShortTerm>0 AND H>Ref(H,-1);//WRB and UHS and Fresh Ground
+nut              =   wideRangeBar AND downClose  AND freshGndHi AND HighVolume;// NEW SIGNAL
+bc               =    wideRangeBar AND aboveclose AND V == HHV(V,60) AND upmajor==1;// NEW SIGNAL
+upThrustBartrue = wideRangeBar AND downClose AND upmajor>0 AND H>Ref(H,-1);//occurs after a major uptrend
+upThrustTHV  = upThrustBartrue AND (VolPos == 2 OR VolPos == 1);
+upThrustCond1  = Ref(upThrustBar,-1) AND downBar ;
+upThrustCond2  = Ref(upThrustBar,-1) AND downBar AND VolPos == 2;
+upThrustCond3  = upThrustBar AND VolPos ==1;
+topRevBar   = Ref(V,-1)>volAvg  AND Ref(upBar,-1) AND Ref(wideRangeBar,-1) AND downBar AND downClose AND wideRangeBar AND trendLongTerm>0 AND H==HHV(H,10);
+PseudoUpThrust = Ref(upBar,-1) AND Ref(V,-1)>1.5*volAvg AND downBar AND downClose AND  NOT upThrustBar;
+pseudoUtCond  = Ref(PseudoUpThrust,-1) AND downBar AND downClose AND NOT upThrustBar;
+trendChange  = Ref(upBar,-1) AND H==HHV(H,5)AND downBar AND (downClose OR midClose) AND V>volAvg AND NOT wideRangeBar AND NOT PseudoUpThrust ;
+sellCond1   = (upThrustCond1 OR upThrustCond2 OR upThrustCond3) ;
+sellCond2   = Ref(sellCond1,-1)==0;
+sellCond   = sellCond1 AND sellCond2;
+strengthDown0  =  trendLongTerm<0 AND V>Ref(V,-1) AND Ref(downBar,-1) AND upBar AND (upClose OR midClose) AND trendShortTerm<0 AND trendMediumTerm<0;// strength after a long down trend
+strengthDown  =  V>Ref(V,-1) AND Ref(downBar,-1) AND upBar AND (upclose OR midClose) AND trendShortTerm<0 AND trendMediumTerm<0;// Strength after a down trend
+strengthDown1  =  trendLongTerm<0 AND V>(volAvg*1.5) AND Ref(downBar,-1) AND upBar AND (upClose OR midClose)AND trendShortTerm<0 AND trendMediumTerm<0;//Strength after downtrend . High volume
+strengthDown2  = trendShortTerm<0 AND Ref(V,-1)<volAvg  AND upBar AND veryHighClose AND V>volAvg;
+buyCond1   =  strengthDown OR strengthDown1;
+buyCond   =  upBar  AND Ref(buyCond1,-1);
+stopVolume   =  L==LLV(L,5)  AND (upClose OR midClose) AND V>1.5*volAvg AND trendLongTerm<0;
+bullBar   = (V>volAvg OR V>Ref(V,-1)) AND closePosition <2 AND upBar ;
+bearBar   = vb  AND downClose AND downBar AND spread>avgSpread;
+noDemandBar  = upBar AND narrowRangeBar AND lowVolume  AND belowClose ;
+strengthUp   =  trendShortTerm>0 AND trendLongTerm<0 AND upBar AND V>Ref(V,-1) AND V>Ref(V,-2) AND upClose;
+strengthBar  = trendLongTerm>0 AND upBar AND V>Ref(V,-1) AND V>Ref(V,-2) AND upClose;
+weakBar   = trendLongTerm>0 AND trendShortTerm>0 AND spread>avgSpread AND veryLowClose;
+weakUp    = Ref(upBar,-1)AND Ref(wideRangeBar,-1)AND Ref(V,-1)>(2*volAvg) AND downBar AND V<Ref(V,-1) AND trendShortTerm>0;
+noSupplyBar  = downBar AND narrowRangeBar AND lowVolume  AND belowClose ;
+revUpThrust  = trendLongTerm<0 AND upBar AND upClose AND V>Ref(V,-1) AND V>volAvg AND  wideRangeBar AND Ref(downBar,-1) AND Ref(downClose,-1);
+noBuyPress   =  C>Ref(C,-1) AND lowVolume AND narrowRangeBar AND aboveClose;
+ownerTransfer  = wideRangeBar  AND V>(1.5*volAvg)AND midClose;
+interSupport  = trendShortTerm<0 AND trendLongTerm>0 AND upBar AND L<Ref(L,-1) AND L<Ref(L,-2) AND upClose;
+confirmWeak  =  Ref(topRevBar,-1) AND downBar AND V>Ref(V,-1) AND downClose;
+testbar   = L==LLV(L,5) AND upClose AND lowVolume;
+testBar1   = L==LLV(L,5) AND upClose AND wideRangeBar AND trendLongTerm<0 AND trendMediumTerm<0 AND lowVolume ;
+lowVolTest     = lowVolume AND L<Ref(L,-1) AND upClose;
+lowVolTest1  =  V<volAvg AND L<Ref(L,-1) AND upClose AND trendLongTerm>0 AND trendMediumTerm>0 AND wideRangeBar;
+lowVolTest2  =  Ref(lowVolTest,-1) AND upBar AND upClose;
+confirmStrength =  Ref(lowVolTest,-1) AND upBar AND V>Ref(V,-1) AND upClose AND trendShortTerm<0;
+distributeBar  =  V>2*volAvg AND downClose AND upBar AND trendShortTerm>0 AND trendMediumTerm>0 AND NOT sellCond1 AND NOT upThrustBar;
+confirmWeak1  = Ref(pseudoUtCond,-1) AND L<Ref(L,-1);
+effortUp   = H>Ref(H,-1) AND L>Ref(L,-1) AND C>Ref(C,-1) AND C>=((H-L)*0.7+L) AND spread>avgSpread AND V>Ref(V,-1);//AND O<=((H-L)*0.3+L) 
+effortUpfail  = Ref(effortUp,-1) AND (upThrustBar OR upThrustCond1 OR upThrustCond2 OR upThrustCond3);
+effortDown   = H<Ref(H,-1) AND L<Ref(L,-1) AND C<Ref(C,-1) AND  C<=((H-L)*0.25+L) AND spread>avgSpread AND V>Ref(V,-1);//O>=((H-L)*0.75+L) AND
+_SECTION_END();
+//|============================================================================================|
+//|                                       TITLE                                                |
+//|============================================================================================|
+_SECTION_BEGIN("Title");
+if( Status("action") == actionIndicator ) 
+(
+Title = Title + "\n" +EncodeColor(colorWhite)+ "Volume= "+WriteVal(V, 1.0)+"      "+EncodeColor(colorYellow)+
+ 
+WriteIf (upThrustBartrue, " An Upthrust Bar after upmove. A Sure sign of weakness. ","")+
+WriteIf (upThrustBar AND NOT upThrustBartrue, " An Upthrust Bar. A sign of weakness. ","")+
+WriteIf (upThrustCond1, " A downbar after an Upthrust. Confirm weakness. ","")+
+WriteIf (upThrustCond2 AND NOT upThrustCond1, " A High Volume downbar after an Upthrust. Confirm weakness.","")+
+WriteIf (upThrustCond3, "This upthrust at very High Voume, Confirms weakness","")+
+WriteIf (strengthDown1, "Strength seen returning after a down trend. High volume adds to strength. ","")+
+WriteIf (strengthDown0 AND NOT strengthDown, "Strength seen returning after a down trend. ","")+
+WriteIf (strengthDown AND NOT strengthDown1, "Strength seen returning after a down trend. ","")+
+WriteIf (lowVolTest, "Test for supply. ","")+
+WriteIf (lowVolTest2, "An upBar closing near High after a Test confirms strength. ","")+
+WriteIf (buyCond, "An upBar closing near High. Confirms return of Strength. ","")+
+WriteIf (distributeBar, "A High Volume Up Bar closing down in a uptrend shows Distribution. ","")+
+WriteIf (PseudoUpThrust, "Psuedo UpThrust.   A Sign of Weakness. ","")+
+WriteIf (pseudoUtCond, "A Down Bar closing down after a Pseudo Upthrust confirms weakness. ","")+
+WriteIf (lowVolTest1, "Test for supply in a uptrend. Sign of Strength. ","")+
+WriteIf (strengthDown2, "High volume upBar closing on the high indicates strength. ","")+
+WriteIf (trendChange, "High volume Downbar after an upmove on high volume indicates weakness. ","")+
+WriteIf (noDemandBar, "No Demand. A sign of Weakness. ","")+
+WriteIf (noSupplyBar, "No Supply. A sign of Strength. ","")+
+WriteIf (stopVolume, "Stopping volume. Normally indicates end of bearishness is nearing. ","")+
+WriteIf (revUpThrust, "Reverse upthrust. Indicates strength. ","")+
+WriteIf (effortUp, "Effort to Rise. Bullish sign ","")+
+WriteIf (effortDown, "Effort to Fall. Bearish sign ","")+
+WriteIf (effortUpfail, "Effort to Move up has failed. Bearish sign ","")+
+WriteIf (bc,"Potential Buying climax","")+
+("\n Volume: ")+WriteIf(V>volAvg*2,EncodeColor(colorGreen)+"Very High",WriteIf(V>volAvg*1.3,EncodeColor(colorGreen)+
+" High",WriteIf(V>volAvg,EncodeColor(colorGreen)+"Above Average",
+WriteIf(V<volAvg AND V>volAvg*0.7,EncodeColor(colorRed)+"Less than Average",WriteIf(V<volDnBand1,"Low","")))))+
+(EncodeColor(colorYellow)+"      Spread: ")+WriteIf(spread >(avgSpread*1.5),EncodeColor(colorGreen)+" Wide",
+WriteIf(spread>avgSpread,EncodeColor(colorGreen)+" Above Average",EncodeColor(colorRed)+WriteIf((spread < avgSpread AND spread >= (AvgSpread*0.7)),"Below Average",
+WriteIf(spread < AvgSpread*0.5,EncodeColor(colorRed)+"Very Narrow"," Narrow"))))+
+(EncodeColor(colorYellow)+"      Close:  ")+WriteIf(veryHighClose,EncodeColor(colorGreen)+"Very High",WriteIf(upClose,EncodeColor(colorGreen)+"High",WriteIf(midClose,EncodeColor(colorYellow)+"Mid",
+WriteIf(downClose,EncodeColor(colorRed)+"Down","Very Low"))))+ 
+EncodeColor(colorYellow)+("\n Major Trend:  ")+WriteIf(upmajor==1,EncodeColor(colorGreen)+"Major Trend UP",WriteIf(upmajor== -1,EncodeColor(colorRed)+
+"Major Trend Down",EncodeColor(colorYellow)+"No Trend"))+
+WriteIf(upmajoroff,EncodeColor(colorRed)+"    Major UpTrend Ended",WriteIf(dnmajoroff,EncodeColor(colorGreen)+"  Major Down Trend Ended","" ))+
+EncodeColor(colorYellow)+("\n Minor Trend:  ")+WriteIf(upminor==1,EncodeColor(colorGreen)+"Minor trend up",WriteIf(dnminor==1,
+EncodeColor(colorRed)+"Minor Trend Down",EncodeColor(colorYellow)+"No Trend"))+
+EncodeColor(colorYellow)+("\n Immediate Trend:  ")+WriteIf(upimd==1,EncodeColor(colorGreen)+"Immediate trend up",WriteIf(dnimd==1,
+EncodeColor(colorRed)+"Immediate Trend Down",EncodeColor(colorYellow)+"No Trend")));
+_SECTION_END();
+//====================================================================================|
+//                        Plotting Module                                             |
+//====================================================================================|
+_SECTION_BEGIN("Plotting");
+//Bar coloring formula 1 _ Preferred - Based on VSA Strength
+Vscolor=IIf(lowVolTest,colorTurquoise,IIf(distributeBar,colorPink,IIf(ownerTransfer,colorDarkRed ,IIf(upThrustBar,colorYellow ,IIf(bullbar,colorLime ,
+IIf(bearbar,colorRed,IIf(noDemandBar,colorWhite ,IIf(noSupplyBar,colorCustom12,IIf(upbar,colorGreen,IIf(downbar,colorOrange,colorBlue))))))))));
+//Bar coloring formula 2 _  Based on Trend 
+Trcolor=IIf(trendShortTerm>0 AND trendMediumTerm>0 AND trendLongTerm>0,colorLime,IIf(trendShortTerm>0 AND trendMediumTerm>0 AND trendLongTerm<0,colorGreen,
+IIf(trendShortTerm>0 AND trendMediumTerm<0 AND trendLongTerm<0,colorPaleGreen,IIf(trendShortTerm<0 AND trendMediumTerm<0 AND trendLongTerm<0,colorRed,IIf(trendShortTerm<0 AND trendMediumTerm>0 AND trendLongTerm>0,colorPaleGreen,
+IIf(trendShortTerm<0 AND trendMediumTerm<0 AND trendLongTerm>0,colorOrange,colorBlue))))));
+SelectedIndicator = ParamList( "Chart Coloring", "VSA Based,Trend Based", 1 );
+switch ( SelectedIndicator )
+{
+case "VSA Based":
+//PlotOHLC( Open,  High,  Low,  Close, "", VScolor, styleBar |styleThick );
+break;
+case "Trend Based":
+//PlotOHLC( Open,  High,  Low,  Close, "", Trcolor, styleBar |styleThick );
+break;
+}

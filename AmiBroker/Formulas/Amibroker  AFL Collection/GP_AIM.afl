@@ -1,0 +1,55 @@
+/*
+        AIM plot
+
+		Last change: WS 10/09/2004 9:34:18 PM
+*/                                                                                                                              
+
+GP_AimGain = 0;
+GP_AimQty = 0;
+GP_AimCashReserve = 0;
+
+//----------------------------------------------------------------------------
+
+
+//      The main program ....
+
+Plot(Close, "Price", -1, styleCandle);
+
+iniInvest = Param("1. Start investment ($)?", 10000, 1000, 100000, 1000);
+iniCash = Param("2. Start cash reserve ($)?", 10000, 0, 100000, 1000);
+maxCash = Param("3. Maximum cash reserve ($)?", 100000, 5000, 1000000, 5000);
+minTrans = Param("4. Minimum transaction ($)?", 500, 0, 20000, 100);
+brokerage = Param("5. Brokerage ($)?", 30, 0, 100, 1);
+buySafe = Param("6. Buy SAFE percentage?", 10, 0, 99, 1);
+sellSafe = Param("7. Sell SAFE percentage?", 10, 0, 99, 1);
+timeInterval = Param("8. Time in days (0=Monthly)?", 0, 0, 120, 1);
+ptype = Param("9. Price type (0=C, 1=O, 2=H/L, 3=O/C)?", 2, 0, 3, 1);
+
+bi = BarIndex();            //  This gets the start and end bars of a range
+startIx = BeginValue(bi) - bi[0];
+endIx = EndValue(bi) - bi[0];
+if (endIx < startIx)
+    endIx = startIx;
+if (startIx == 0)
+    startIx = -1;
+
+bsAim = GP_AIM(startIx, endIx, iniInvest, iniCash, maxCash, minTrans, brokerage, buySafe, sellSafe, timeInterval, ptype);
+
+if (startIx > 0) {                  //  Remove any data before start
+    for (i = 0; i < startIx; i++)
+        bsAim[i] = -1e10;
+    }
+if (endIx < BarCount-1) {           //  Remove any data after end
+    for (i = endIx+1; i < BarCount; i++)
+        bsAim[i] = -1e10;
+    }
+
+Buys = IIf(bsAim == 1, 1, 0);
+Sells = IIf(bsAim == 0, 1, 0);
+
+dummy1 = -1e10;      //  As indicator can't display enough text in one parameter
+buyStr = StrFormat("Qty = %1.0f, Cash = $%1.2f, Gain = %1.2f%%", GP_AimQty, GP_AimCashReserve, GP_AimGain);   //  Format string to display
+Plot(dummy1, buyStr, colorBlue, styleDots);      //  Plot nothing to display this text
+
+PlotShapes(IIf(Buys, shapeUpArrow, shapeNone), colorGreen, Graph0, Low-Low*0.07);
+PlotShapes(IIf(Sells, shapeDownArrow, shapeNone), colorRed, Graph0, Low-Low*0.07);

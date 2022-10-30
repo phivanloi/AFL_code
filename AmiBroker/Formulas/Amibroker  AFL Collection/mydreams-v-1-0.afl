@@ -1,0 +1,311 @@
+_SECTION_BEGIN("Price");
+   SetChartOptions(0,chartShowArrows|chartShowDates,colorRed); 
+   SetChartBkColor(colorBlack);
+   function PlotGradientArea( array, caption, ColorTop, ColorBottom ) 
+    { bkclr = GetChartBkColor(); HH = HighestVisibleValue( array ); 
+    if( NOT IsNull( hh ) ) SetChartBkGradientFill( ColorTop, ColorBottom, bkclr, Null, HH ); 
+    PlotOHLC( HH, HH, array, HH, "", bkclr, styleNoLabel | styleNoTitle | styleCloud, Null, Null, 0, -10 ); } 
+ 
+    PlotGradientArea( C, "Close", colorRed, colorPaleTurquoise );
+_SECTION_END();
+
+
+_SECTION_BEGIN("RSI in ribbon color");
+  Line_RSI = RSI();
+  RSI_OB = Line_RSI > 70;
+  RSI_OS = Line_RSI < 30;
+  RSI_30_50 = Line_RSI > 30 AND Line_RSI <= 50;
+  RSI_50_70 = Line_RSI > 50 AND Line_RSI <= 70;
+  Raising_RSI = Line_RSI > Ref(Line_RSI,-1);
+
+  Plot( 1,"",IIf(RSI_OS,colorGreen,IIf(RSI_OB,colorRed,IIf(rsi_30_50,colorBrightGreen,colorPink))),styleOwnScale|styleArea|styleNoLabel, -.5, 100 );
+_SECTION_END();
+
+
+_SECTION_BEGIN(" MACD with color candle");
+  n_macd=(EMA(C,12)+(EMA(C,12)-EMA(EMA(C,12),12))) - (EMA(C,26)+(EMA(C,26)-EMA(EMA(C,26),26)));
+  n_signal=(EMA(n_macd,9)+(EMA(n_macd,9)-EMA(EMA(n_macd,9),9))); 
+  m_up_s  =n_MACD>n_Signal; m_down_S=n_MACD<n_Signal;
+  m_up  =n_MACD>0; m_down=n_MACD<0;
+  Strong_up = m_up_s AND m_up; 
+  Weak_down = m_down_s AND m_up; 
+  Weak_up = m_up_s AND m_down; 
+  Strong_down = m_down_s AND m_down;
+  Raising_MACD = n_MACD > Ref(n_MACD,-1);
+
+  Plot(C,"Price",IIf( Strong_up,colorGreen,IIf(Weak_down,colorYellow,IIf(Weak_up, colorPink,colorRed))),styleCandle|styleNoTitle|styleNoLabel);
+
+  mh = n_MACD - n_Signal;
+  mc = IIf(mh>Ref(mh,-1),IIf(mh > 0,colorGreen,colorYellow),IIf(mh > 0,colorPink,colorRed));
+  Halp= (H-L)/2;
+//  Plot(IIf(mh>0,H+Halp,L-Halp),"",mc,styleNoTitle|styleStaircase |styleNoLabel); 
+//  PlotShapes(IIf(Dbuy, shapeHollowUpArrow, shapeNone),colorBrightGreen, 0,L, Offset=-13);
+//  PlotShapes(IIf(Raising_MACD,shapeHollowSmallUpTriangle,shapeHollowSmallDownTriangle),mc, 0,IIf(mh>0,H,L), IIf(mh>0,Offset=-0.5,Offset=0.5));
+
+
+_SECTION_END();
+
+
+_SECTION_BEGIN(" EMA5 Cross EMA20 EMA50 EMA200");
+  Line_MA5    = EMA(C,5)+(EMA(C,5)-EMA(EMA(C,5),5));
+  Raising_MA5 = Line_MA5 > Ref(Line_MA5,-1);
+  Plot(Line_MA5,"",IIf(Raising_MA5,colorGreen,colorOrange), styleNoTitle | styleThick | styleNoLabel);
+  
+  Line_MA20    = EMA(C,20)+(EMA(C,20)-EMA(EMA(C,20),20));
+  Raising_MA20 = Line_MA20 > Ref(Line_MA20,-1);
+  Plot(Line_MA20,"",IIf(Raising_MA20,colorYellow,colorPink),styleNoTitle | styleThick| styleNoLabel);
+
+  Line_MA50    = EMA(C,50)+(EMA(C,50)-EMA(EMA(C,50),50));
+  Raising_MA50 = Line_MA50 > Ref(Line_MA50,-1);
+  Plot(Line_MA50,"",IIf(Raising_MA50,colorBlue,colorOrange),styleNoTitle | styleThick| styleNoLabel);
+
+  Line_MA200    = EMA(C,200)+(EMA(C,200)-EMA(EMA(C,200),200));
+  Raising_MA200 = Line_MA200 > Ref(Line_MA200,-1);
+  Plot(Line_MA200,"",IIf(Raising_MA200,colorWhite,colorViolet),styleNoTitle | styleThick| styleNoLabel);
+
+  PlotOHLC(Line_ma5,Line_ma5,Line_ma50,Line_ma50,"",IIf(Line_MA5>Line_MA50,colorGreen,colorOrange),styleCloud | styleNoLabel | styleNoTitle);
+  PlotOHLC(Line_ma5,Line_ma5,Line_ma20,Line_ma20,"",IIf(Line_MA5>Line_MA20,colorBrightGreen,colorPink),styleCloud | styleNoLabel | styleNoTitle);
+  PlotOHLC(Line_ma5,Line_ma5,Line_ma200,Line_ma200,"",IIf(Line_MA5>Line_MA200,colorWhite,colorViolet),styleCloud | styleNoLabel | styleNoTitle);  
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("BullBear Volume");
+  C1 = Ref(C, -1);
+  uc = C > C1; dc = C <= C1;
+  ud = C > O; dd = C <= O;
+  green = 1; blue = 2; yellow = 3; red = 4; white = 5;
+  VType = IIf(ud,             
+            IIf(uc, green, yellow),
+         IIf(dd, 
+            IIf(dc, red, blue), white)); 
+  gv = IIf(VType == green, V, 0); 
+  yv = IIf(VType == yellow, V, 0); 
+  rv = IIf(VType == red, V, 0); 
+  bv = IIf(VType == blue, V, 0); 
+ 
+  uv = gv + bv; uv1 = Ref(uv, -1); /* up volume */
+  dv = rv + yv; dv1 = Ref(dv, -1); /* down volume */
+ 
+  VolPer = 34; ConvPer = 9;
+
+  MAuv = TEMA(uv, VolPer ); mauv1 = Ref(mauv, -1);
+  MAdv = TEMA(dv, VolPer ); madv1 = Ref(madv, -1);
+  MAtv = TEMA(V, VolPer );//total volume
+ 
+_SECTION_END();
+
+
+_SECTION_BEGIN("Judul");
+
+  Title = EncodeColor(colorYellow)+Title = FullName()+" - "+Name()+"  "+ EncodeColor( colorBrightGreen) + Date() +
+    EncodeColor(55)+ "   Open:  "+ WriteIf(O> Ref(O,-1),EncodeColor(colorBrightGreen),EncodeColor(colorRed))+ WriteVal(O,format=1.2) + 
+    EncodeColor(55)+ "   High:  "+ WriteIf(H> Ref(H,-1),EncodeColor(colorBrightGreen),EncodeColor(colorRed))+  WriteVal(H,format=1.2) +
+    EncodeColor(55)+ "   Low:  "+ WriteIf(L> Ref(L,-1),EncodeColor(colorBrightGreen),EncodeColor(colorRed))+  WriteVal(L,format=1.2) + 
+    EncodeColor(55)+ "   Close:  "+ WriteIf(C> Ref(C,-1),EncodeColor(colorBrightGreen),EncodeColor(colorRed))+ WriteVal(C,format=1.2)+
+    EncodeColor(55)+ "   Change:  "+WriteIf(C> Ref(C,-1),EncodeColor(5),EncodeColor(55))+ WriteVal((C-Ref(C,-1)),format=1.2)+  "  ("+ WriteVal(ROC(C,1),format=1.2)+ "%"+ ")  "+
+    "\n"+
+    WriteIf(Raising_MA5 , EncodeColor(colorBrightGreen)+"EMA5   uptrend : ", EncodeColor(colorRed)+"EMA5   downtrend : ")+WriteVal(Line_MA5,format=1,0) +"       "+
+    WriteIf(Raising_MA20, EncodeColor(colorBrightGreen)+"EMA20  uptrend : ", EncodeColor(colorRed)+"EMA20  downtrend : ")+WriteVal(Line_MA20,format=1,0)+"       "+
+    WriteIf(Raising_MA50, EncodeColor(colorBrightGreen)+"EMA50  uptrend : ", EncodeColor(colorRed)+"EMA50  downtrend : ")+WriteVal(Line_MA50,format=1,0)+"       "+
+    WriteIf(Raising_MA200,EncodeColor(colorBrightGreen)+"EMA200 uptrend : ", EncodeColor(colorRed)+"EMA200 downtrend : ")+WriteVal(Line_MA200,format=1,0)+
+    "\n"+
+    WriteIf(Raising_RSI, EncodeColor(colorBrightGreen)+"RSI uptrend : ", EncodeColor(colorRed)+"RSI downtrend : ")+WriteVal(Line_RSI,format=1,0)+"   "+
+    WriteIf(RSI_OS,EncodeColor(colorGreen)+"RSI Over Sold ","")+
+    WriteIf(RSI_30_50, EncodeColor(colorBrightGreen)+"RSI antara 30 - 50 ","")+
+    WriteIf(RSI_50_70,EncodeColor(colorPink)+"RSI antara 50 - 70","")+
+    WriteIf(RSI_OB,EncodeColor(colorRed)+"RSI Over Bought ","")+
+    "      "+
+    WriteIf(Cross(n_MACD,n_Signal),
+       WriteIf(n_MACD>=0,EncodeColor(colorBrightGreen)+"-- MACD - GOLDEN CROSS -- diatas atau pada titik nol ",EncodeColor(colorPink)+"-- MACD - GOLDEN CROSS -- dibawah titik nol --"),
+       WriteIf(Cross(n_Signal,n_MACD),
+         WriteIf(n_MACD>=0,EncodeColor(colorYellow)+"-- MACD - DEATH CROSS -- diatas atau pada titik nol ",EncodeColor(colorRed)+"-- MACD - DEATH CROSS -- dibawah titik nol "),
+           WriteIf(strong_up,EncodeColor(colorBrightGreen)+"MACD diatas Signal dan MACD atau keduanya sudah berada diatas nol     "+"MACD : "+WriteVal(n_MACD,format=1.2),"")+
+           WriteIf(weak_down,EncodeColor(colorYellow)+"MACD dibawah Signal dan keduanya masih berada diatas nol    "+"MACD : "+WriteVal(n_MACD,format=1.2),"")+
+           WriteIf(weak_up,EncodeColor(colorPink)+"MACD diatas Signal tapi keduanya masih berada dibawah nol    "+"MACD : "+WriteVal(n_MACD,format=1.2),"")+
+           WriteIf(strong_down,EncodeColor(colorRed)+"MACD dibawah Signal dan MACD atau keduanya sudah berada dibawah nol    "+"MACD : "+WriteVal(n_MACD,format=1.2),"")));
+_SECTION_END();
+
+
+_SECTION_BEGIN("Buy or Sell");
+   Buy   = Cross(n_MACD,n_Signal) AND n_MACD>=0 AND NOT RSI_OB AND MAuv > MAdv AND MAuv > Ref(MAuv,-1);
+   Cover = Cross(n_MACD,n_Signal) AND n_MACD<0 AND NOT RSI_OB  AND MAuv > MAdv AND MAuv > Ref(MAuv,-1);
+
+   Sell  = Cross(n_signal,n_MACD) AND n_MACD<0  AND NOT RSI_OS AND MAuv < MAdv AND MAuv < Ref(MAuv,-1);
+   Short = Cross(n_signal,n_MACD) AND n_MACD>=0 AND NOT RSI_OS AND MAuv < MAdv AND MAuv < Ref(MAuv,-1);
+_SECTION_END();
+
+
+_SECTION_BEGIN("Fib Retracements");
+//	fibs = ParamToggle("Plot Fibs","Off|On",1);
+   fibs = 0;
+	pctH = Param ("Pivot Hi %", 0.325,0.001,2.0,0.002);
+	HiLB = Param ("Hi LookBack",1,1,BarCount-1,1);
+	pctL = Param ("Pivot Lo %", 0.325,0.001,2.0,0.002);
+	LoLB = Param ("Lo LookBack",1,1,BarCount-1,1);
+	Back = Param ("Extend Left = 2",1,1,500,1);
+	Fwd  = Param("Plot Forward", 0, 0, 500, 1);
+	text = ParamToggle("Plot Text","Off|On",1);
+	hts  = Param ("Text Shift", -33.5,-50,50,0.10);
+	style =ParamStyle("Line Style",styleLine,styleNoLabel);
+    x = BarIndex();
+    pRp  = PeakBars( H, pctH, 1) == 0;
+    yRp0 = SelectedValue(ValueWhen( pRp, H, HiLB));
+    xRp0 = SelectedValue(ValueWhen( pRp, x, HiLB));
+    pSp  = TroughBars( L, pctL, 1) == 0;
+    ySp0 = SelectedValue(ValueWhen( pSp, L, LoLB));
+    xSp0 = SelectedValue(ValueWhen( pSp, x, LoLB));
+    Delta = yRp0 - ySp0;
+
+   function fib(ret)
+   { retval = (Delta * ret);
+     Fibval = IIf(ret < 1.0 
+     AND xSp0 < xRp0, yRp0 - retval, IIf(ret < 1.0 
+     AND xSp0 > xRp0, ySp0 + retval,IIf(ret > 1.0 
+     AND xSp0 < xRp0, yRp0 - retval, IIf(ret > 1.0 
+     AND xSp0 > xRp0, ySp0 + retval, Null)))); 
+     return FibVal;
+  }
+
+x0 = Min(xSp0,xRp0)-Back;
+x1 = (BarCount -1);
+//////////////////////////////////////////////////////////////////
+r236 = fib(0.236);	r236I = LastValue (r236,1);
+r382 = fib(0.382);	r382I = LastValue (r382,1);
+r050 = fib(0.50);		r050I = LastValue (r050,1);
+r618 = fib(0.618);	r618I = LastValue (r618,1);
+r786 = fib(0.786);	        r786I = LastValue (r786,1);
+e127 = fib(1.27);		e127I = LastValue (e127,1);
+e162 = fib(1.62);		e162I = LastValue (e162,1);
+e200 = fib(2.00);		e200I = LastValue (e200,1);
+e262 = fib(2.62);		e262I = LastValue (e262,1);
+e424 = fib(4.24);		e424I = LastValue (e424,1);
+//////////////////////////////////////////////////////////////////
+p00 = IIf(xSp0 > xRp0,ySp0,yRp0); 	p00I = LastValue (p00,1);
+p100 = IIf(xSp0 < xRp0,ySp0,yRp0); 	p100I = LastValue (p100,1);
+color00 =IIf(xSp0 > xRp0,colorLime,colorRed);
+color100 =IIf(xSp0 < xRp0,colorLime,colorRed);
+//////////////////////////////////////////////////////////////////
+numbars = LastValue(Cum(Status("barvisible")));
+fraction= IIf(StrRight(Name(),3) == "", 3.2, 3.2);
+//////////////////////////////////////////////////////////////////
+if(fibs==1)
+{
+Plot(LineArray(xRp0-Fwd,yRp0,x1,yRp0,Back),"PR",32,8|styleNoRescale|styleNoLabel,Null,
+Null,Fwd);
+Plot(LineArray(xSp0-Fwd,ySp0,x1,ySp0,Back),"PS",27,8|styleNoRescale|styleNoLabel,Null,
+Null,Fwd);
+Plot(LineArray(x0-Fwd,r236,x1,r236,Back),"",45,style|styleNoRescale|styleNoLabel,Null,
+Null,Fwd);
+Plot(LineArray(x0-Fwd,r382,x1,r382,Back),"",44,style|styleNoRescale|styleNoLabel,Null,
+Null,Fwd);
+Plot(LineArray(x0-Fwd,r050,x1,r050,Back),"",41,style|styleNoRescale|styleNoLabel,Null,
+Null,Fwd);
+Plot(LineArray(x0-Fwd,r618,x1,r618,Back),"",43,style|styleNoRescale|styleNoLabel,Null,
+Null,Fwd);
+Plot(LineArray(x0-Fwd,r786,x1,r786,Back),"",42,style|styleNoRescale|styleNoLabel,Null,
+Null,Fwd);
+Plot(LineArray(x0-Fwd,e127,x1,e127,Back),"e127",47,style|styleNoRescale|styleNoLabel,Null,
+Null,Fwd);
+Plot(LineArray(x0-Fwd,e162,x1,e162,Back),"e162",47,style|styleNoRescale|styleNoLabel,Null,
+Null,Fwd);
+Plot(LineArray(x0-Fwd,e200,x1,e200,Back),"p200",47,style|styleNoRescale|styleNoLabel,Null,
+Null,Fwd);
+Plot(LineArray(x0-Fwd,e262,x1,e262,Back),"p262",47,style|styleNoRescale|styleNoLabel,Null,
+Null,Fwd);
+Plot(LineArray(x0-Fwd,e424,x1,e424,Back),"p424",25,style|styleNoRescale|styleNoLabel,Null,
+Null,Fwd);
+}
+//////////////////////////////////////////////////////////////////
+if(text==1)
+{ 
+PlotText(" 0% = " + WriteVal(p00,fraction),
+	LastValue(BarIndex())-(numbars/hts), p00I  + 0.05, color00);
+PlotText("23% = " + WriteVal(r236,fraction),
+LastValue(BarIndex())-(numbars/hts), r236I + 0.05, 45);
+PlotText("38% = " + WriteVal(r382,fraction),
+LastValue(BarIndex())-(numbars/hts), r382I + 0.05, 44);
+PlotText("50% = " + WriteVal(r050,fraction),
+LastValue(BarIndex())-(numbars/hts), r050I + 0.05, 41);
+PlotText("62% = " + WriteVal(r618,fraction),
+LastValue(BarIndex())-(numbars/hts), r618I + 0.05, 43);
+PlotText("78% = " + WriteVal(r786,fraction),
+LastValue(BarIndex())-(numbars/hts), r786I + 0.05, 42);
+PlotText("100% = " + WriteVal(p100,fraction),
+LastValue(BarIndex())-(numbars/hts),p100I + 0.05, color100);
+PlotText("127% = " + WriteVal(e127,fraction),
+LastValue(BarIndex())-(numbars/hts),e127I + 0.05, 47);
+PlotText("162% = " + WriteVal(e162,fraction),
+LastValue(BarIndex())-(numbars/hts),e162I + 0.05, 47);
+PlotText("200% = " + WriteVal(e200,fraction),
+LastValue(BarIndex())-(numbars/hts),e200I + 0.05, 47);
+PlotText("262% = " + WriteVal(e262,fraction),
+LastValue(BarIndex())-(numbars/hts),e262I + 0.05, 47);
+PlotText("424% = " + WriteVal(e424,fraction),
+LastValue(BarIndex())-(numbars/hts),e424I + 0.05, 25);
+}
+
+_SECTION_END();
+
+_SECTION_BEGIN(" Main Darvas Box ");
+  box1=0; box2=0;
+  procedure fillDarvas(start,end,swap,top, bottom )
+  {for ( j = start; j < end; j++)
+     {if( box1[j] == swap) box1[j]= top ; else box1[j]= bottom;
+      if( box2[j] == swap) box2[j]= bottom ; else box2[j]= top;
+     }
+   }
+
+   BoxArr1 = 0; BoxArr2 = 0; StateArray = 0;
+   DBuy = 0; DSell = 0;
+   TopArray = 0; BotArray = 0; tick=0;
+
+   BoxTop = High[0]; BoxBot = Low[0];
+   swap=0; state = 0; BoxStart = 0;
+
+   for (i=0; i<BarCount; i++)
+   { if (state==5)
+     { TopArray[i]=BoxTop;
+       BotArray[i]=BoxBot;
+       if (Low[i]<(BoxBot*(1-tick/100)) || High[i]>(BoxTop*(1+tick/100)))
+       { fillDarvas(BoxStart,i,swap,BoxTop,BoxBot);
+         state = 1; swap =  !swap;
+         BoxTop = High[i]; BoxStart = i;
+       }
+     }
+     else
+     { if (High[i]<BoxTop)
+      { if ((state<3) || (Low[i]>BoxBot)) { state++; } else { state=3; }
+        if (state==3) BoxBot=Low[i];
+      }
+       else
+     {  state=1;
+        BoxTop=High[i];
+     }
+    }
+    StateArray[i] = state;
+  }
+
+  fillDarvas(BoxStart,BarCount,swap,BoxTop,BoxBot);
+
+
+  Buyrule=H>Ref(box1,-1) AND H>Ref(box2,-1) AND Ref(statearray,-1)==5;
+  Sellrule=L<Ref(box1,-1) AND L<Ref(box2,-1) AND Ref(statearray,-1)==5;
+
+  Plot( box2, "" , 1 + statearray , styleLine );
+  Plot( box1, " Status = "+WriteVal(statearray,1.0) , 1 + statearray, styleLine );
+
+  DBuy = Buyrule;
+  statopt = Optimize("statopt var", 3, 1, 5, 1 ); 
+  lossopt= Optimize("lossopt var", 5, 3, 10, 1 ); 
+  //statopt=5;
+  //lossopt=7;
+
+  topvalue=IIf(box1>box2,box1,box2);
+  Sellrule2 = (((topvalue-Close)*100/topvalue) > lossopt) AND (statearray == statopt);
+  DSell = Sellrule;// OR Sellrule2;
+
+  PlotShapes(IIf(Dbuy, shapeHollowUpArrow, shapeNone),colorBrightGreen, 0,L, Offset=-13);
+  PlotShapes(IIf(DSell, shapeHollowDownArrow, shapeNone),colorDarkRed, 0,H, Offset=-13);
+
+_SECTION_END();

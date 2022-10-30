@@ -1,0 +1,109 @@
+/*
+_ Canh bao Vung Khang Cu / Ho Tro (HHV, LLV)
+_ Canh bao cac moc Pivot Daily 
+_ Canh bao Volume va Spread tang dot bien
+_ Canh bao chi so VN30, luc cung cau 
+_ Canh bao Oscilator qua cao, qua thap 
+*/
+
+_SECTION_BEGIN("RSI_Alert");
+RSI_alert = ParamToggle("RSi_Alert", "No|Yes",0);
+period = Param("period", 10, 1,100,1);
+r = RSI(period);
+Buy = Cross(r, 20);
+Sell = Cross(r, 80); 
+
+TelegramAlerts = ParamTrigger("Telegram Alert","Send Alert");
+TelegramAPI_ID = ParamStr("Telegram Bot API Key","1200942736:AAEG8y9qyJ7aHefUm4vt_xKqkNBxfKd3qCc");
+TelgramCHAT_ID = ParamStr("Telegram Channel ID","@Victor_AlgoTrading");  
+
+Message = numtostr(C) + " Spead = " + NumToStr(H - L) + " Volume =   " + NumToStr(V) + "   " + WriteVal(ROC(V, 1), 1.2) + ROC(V, 1) + " " 
++ " \n" + TimeNum() + "    " + Interval() + "  " + "RSI_Alert, " + " rsi = " + numtostr(r) ;
+
+// for( i = 0, i < BarCount, i++)
+//{if(Buy[i] =1  }
+
+if(Buy[BarCount - 1] == 1 OR Sell[BarCount - 1] == 1)
+{
+	if(RSI_alert)
+//if (TelegramAlerts)
+	{
+	ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message ); 
+	InternetClose(ih);
+	}
+}
+// AlertIf(Buy,"EXEC https://api.telegram.org/bot"+TelegramAPI_ID+"/sendMessage?chat_id="+TelgramGroupCHAT_ID+"&text=+"+message,"",1,4+8);
+_SECTION_END();
+
+
+_SECTION_BEGIN("MACD");
+MACD_Alert = ParamToggle("MACD", "No|Yes", 0);
+m = MACD(12.26); 
+s = Signal(12,26,9);
+b1 = Cross(s,m);
+s1 = Cross(m,s);
+Message_buy = "Buy" + "  "  + numtostr(C) + " Spead = " + NumToStr(H - L) + " Volume =   " + NumToStr(V) + "   " + WriteVal(ROC(V, 1), 1.2) + ROC(V, 1) + " " 
++ " \n" + TimeNum() + "    " + Interval() + "  " + "RSI_Alert, " + " rsi = " + numtostr(r) ;
+Message_sell = "Sell" + "  "  + numtostr(C) + " Spead = " + NumToStr(H - L) + " Volume =   " + NumToStr(V) + "   " + WriteVal(ROC(V, 1), 1.2) + ROC(V, 1) + " " 
++ " \n" + TimeNum() + "    " + Interval() + "  " + "RSI_Alert, " + " rsi = " + numtostr(r) ;
+
+for(i = 0; i < BarCount; i++)
+{
+if(b1[i] == 1)
+	{if(MACD_alert)
+	{ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message_buy); 
+	InternetClose(ih);};
+	}
+if(b1[i] == 1)
+	{if(MACD_alert)
+	{ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message_sell); 
+	InternetClose(ih);};
+	}
+}
+_SECTION_END();
+
+
+/*
+
+_SECTION_BEGIN("Telegram Alerts");
+TelegramAlerts = ParamTrigger("Telegram Alert","Send Alert");
+TelegramAPI_ID = ParamStr("Telegram Bot API Key","1200942736:AAEG8y9qyJ7aHefUm4vt_xKqkNBxfKd3qCc");  //Get the Bot API key via BotFather in Telgram
+TelgramCHAT_ID = ParamStr("Telegram Channel ID","@Victor_AlgoTrading"); 
+EnableScript("VBScript"); 
+<% 
+Public Sub Telegram(Message_Text)
+sAPI_ID = AFL.Var("TelegramAPI_ID")
+sChat_ID = AFL.Var("TelgramCHAT_ID")
+sMSG = Message_Text
+
+'URL to open....
+sUrl = "https://api.telegram.org/bot" & sAPI_ID & "/sendMessage"
+'POST Request to send.
+sRequest = "text=" & sMSG & "&chat_id=" & sChat_ID
+
+set oHTTP = CreateObject("Microsoft.XMLHTTP")
+oHTTP.open "POST", sUrl,false
+oHTTP.setRequestHeader "Content-Type", "application/x-www-form-urlencoded"
+oHTTP.setRequestHeader "Content-Length", Len(sRequest)
+oHTTP.send sRequest
+HTTPPost = oHTTP.responseText
+
+'Store response 
+'msgbox(objXmlHttpMain.responseText)
+'response.Write (objXmlHttpMain.responseText) 
+End Sub 
+
+%> 
+tg = GetScriptObject(); 
+if((Buy[BarCount-1]==True AND (Status("action") == actionExplore OR StaticVarGet(Name()+GetChartID()+"TGCLongEntry")==0)) OR TelegramAlerts)
+{
+tg.Telegram("Supply_Demand_Zone" + Name() + "Current Price" + BuyPrice + " Times " + TimeNum());
+}
+if*
+
+_SECTION_END();
+
+
+
+
+ 

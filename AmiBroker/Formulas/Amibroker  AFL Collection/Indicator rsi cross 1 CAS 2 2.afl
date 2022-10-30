@@ -1,0 +1,31 @@
+/*MODIFIED BY =CASONI 07012007*/
+_SECTION_BEGIN("rsi cross");
+r = RSI(9);
+e = EMA(RSI(9),9);
+
+Plot(r,"RSI(9)",colorRed,styleThick);
+Plot(e,"emaRSI(9)", colorGreen,1);
+Plot(70,"70",colorGrey40,1);
+Plot(30,"30",colorGrey40,1);
+Buy=Cover = Cross(r,e);// AND EMA(V,20) >=40000;
+Sell=Short = Cross(e,r);
+PlotShapes(IIf(Ref(R,-1)<35 AND R>35,shapeUpArrow,shapeNone),
+IIf(Ref(R,-1)<35 AND R>35,colorRed,shapeNone),0,30,-15); 
+PlotShapes(IIf(Ref(R,-1)>68 AND R<68,shapeDownArrow,shapeNone),
+IIf(Ref(R,-1)>68 AND R<68,colorBlack,shapeNone),0,70,-15); 
+
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+Short=ExRem(Short,Cover);
+Cover=ExRem(Cover,Short);
+Filter =EMA (V, 20) >=50000;
+
+Filter = Buy OR Sell OR Short OR Cover;
+AddTextColumn(FullName(),"Name");
+AddColumn(Close,"Close",1.2);
+AddColumn(Volume,"Volume",1.0);
+AddColumn( RSI(), "RSI", 1.2 );
+AddColumn( Buy, "BUY", 1.2 );
+AddColumn( Sell, "SELL", 1.2 );
+
+

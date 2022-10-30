@@ -1,0 +1,142 @@
+_SECTION_BEGIN("Background");
+	SetChartOptions(0,chartShowArrows|chartShowDates);
+	SetChartBkColor(ParamColor("Outer panel",colorBlack)); // color of outer border 
+	SetChartBkGradientFill( ParamColor("Inner panel upper",colorBlack),ParamColor("Inner panel lower",colorBlack));
+	tchoice=Param("Title Selection ",2,1,2,1);
+_SECTION_BEGIN("Simple Pivot based Trading System");
+
+// User defined parameters.
+
+GraphXSpace = 10; //defines how much extra space should be added above and below graph line (in percent).
+
+dist = 0.25*ATR(10); 
+Capital=Param("Total capital",100000,10000,1000000,1000);
+drawdown=Param("Max. loss per trade as % of Capital", 1.0,0.5,25.0,0.1);
+room=Param("Room for S/L as % of Pivot value",0.001,0.001,0.02,0.001);
+
+// Now calculate pivots. Method courtesy : Kenneth (www.traderji.com)
+
+PH= ValueWhen(
+(Ref(H,-2) > Ref(H, -4)) AND
+(Ref(H,-2) > Ref(H, -3)) AND
+(Ref(H,-2) > Ref(H, -1)) AND
+(Ref(H,-2) > H), Ref(H,-2));
+
+PL= ValueWhen(
+(Ref(L,-2) <= Ref(L, -4)) AND
+(Ref(L,-2) <= Ref(L, -3)) AND
+(Ref(L,-2) <= Ref(L, -1)) AND
+(Ref(L,-2) <= L), Ref(L,-2));
+
+// filter lines
+
+phfilter=PH+(room*PH);
+plfilter=PL-(room*PL);
+
+//Uncomment following code if you wish to see the pivot lines.
+//Plot(Ref(PH,2), "UpPivot", ParamColor("UpPivot Color",colorRed), styleDashed);
+//Plot(Ref(PL,2), "DownPivot",ParamColor("DownPivot Color",colorGreen), styleDashed);
+
+Plot(Ref(Phfilter,2), "Upfilter", ParamColor("upfilter Color",colorRed), styleLine);
+Plot(Ref(Plfilter,2), "Downfilter",ParamColor("dnfilter Color",colorGreen), styleLine);
+
+
+//Plot(Ref(UpFractal,2), "Up Fractal", ParamColor("Up Fractal Color",colorRed),8);
+//Plot(Ref(DownFractal,2), "Down Fractal",ParamColor("Down Fractal Color",colorGreen),8);
+
+
+
+/* 
+for (a=4;a<BarCount;a++)
+{
+if ((H[a-2] >= H[a-4]) AND
+(H[a-2] >= H[a-3]) AND
+(H[a-2] >= H[a-1]) AND
+(H[a-2] >= H[a]))
+PlotText("PH \n"+H[a-2], a-2, H[a-2], colorGreen);
+
+if ((L[a-2] <= L[a-4]) AND
+(L[a-2] <= L[a-3]) AND
+(L[a-2] <= L[a-1]) AND
+(L[a-2] <= L[a]))
+PlotText("PL \n"+L[a-2], a-2, L[a-2]-dist[a-2], colorRed);
+}
+*/
+//Condition for buy : Enter when Close crosses latest pivot high.
+Buy = C> (PH+(room*PH));
+
+initialStopBuy=Ref(PL,2)-(Ref(PL,2)*room/100);
+trailStopBuy=IIf(C>PH,Ref(initialStopBuy,-1),initialStopBuy);
+
+newStopBuy=trailStopBuy;
+
+BuyLimitCapital=int(Capital/C);
+SLbuy=round(C-initialStopBuy);
+BuyLimitSL=int((Capital*drawdown)/(100*SLbuy));
+
+//Condition for sell : Exit when previous pivot low is cracked.
+Sell = C< (PL-(room*PL));
+
+Buy = ExRem(Buy,Sell);
+Sell= ExRem(Sell,Buy);
+
+//Short = Sell;
+//Cover = Buy;
+
+//Short=ExRem(Short,Cover);
+//Cover=ExRem(Cover,Short);
+
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, colorBrightGreen, colorRed ),0, IIf( Buy, Low, High ) );
+
+
+_SECTION_END();
+Q=Param("% Change",0.2,0.1,10,0.1);
+/*
+Z= Zig(C ,q ) ;
+HH=((Z<Ref(Z,-1) AND Ref(Z,-1) > Ref(Z,-2)) AND (Peak(z,q,1 ) >Peak(Z,q,2)));
+LH=((Z<Ref(Z,-1) AND Ref(Z,-1) > Ref(Z,-2)) AND (Peak(Z,q,1 ) <Peak(Z,q,2)));
+HL=((Z>Ref(Z,-1) AND Ref(Z,-1) < Ref(Z,-2)) AND (Trough(Z,q,1 ) >Trough(Z,q,2)));
+LL=((Z>Ref(Z,-1) AND Ref(Z,-1) < Ref(Z,-2)) AND (Trough(Z,q,1 ) <Trough(Z,q,2)));
+GraphXSpace = 5;
+dist = 0.5*ATR(20); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( HH[i] ) PlotText( "HH  \n"+Ref(H[i],-1), i, H[ i ]+dist[i], colorBlack,colorGreen );
+if( LH[i] ) PlotText( "SAR \n"+Ref(H[i],-1), i, H[ i ]+dist[i], colorBlack, colorRed ); 
+if( HL[i] ) PlotText( "SAR \n"+Ref(L[i],-1), i, L[ i ]-dist[i], colorBlack, colorGreen );
+if( LL[i] ) PlotText( "LL  \n"+Ref(L[i],-1), i, L[ i ]-dist[i], colorBlack,colorRed );
+
+}
+*/
+
+SL = ( HHV( H, 26 ) + LLV( L, 26) )/2;
+TL = ( HHV( H, 9 ) + LLV( L, 9 ) )/2;
+Plot (TL, "Stop line", colorYellow,styleThick); 
+Plot (SL, "K line", colorWhite,styleThick); 
+
+breakeven = Param ("brokerage",2,0,500,0.05);
+
+
+risk_long = PH -SL-breakeven;
+risk_short = SL - PL-breakeven;
+range = PH-PL;
+key = range / 2;
+Short_tgt1 = PL- range*1.68;
+Short_tgt2 = PL- range*2.68;
+Long_tgt1 = PH + range*1.68;
+Long_tgt2 = PH + range*2.68;
+
+Color_buy = IIf (Close > sl AND Close > TL, colorBlue, IIf (Close < sl AND Close < TL,colorRed,colorYellow));
+PlotOHLC( Open, High, Low, Close, "", Color_buy, styleCandle ); 
+
+
+ Title = EncodeColor(colorWhite)+ "LINKON'S PIVOT SYSTEM" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+ "Cl-"+C+"  "+ "Vol= "+ WriteVal(V,1.0) + WriteIf ( V > MA(V,26),EncodeColor(colorGreen)+"  UP "+ ((V/MA(V,26))*100-100) + " %", EncodeColor(colorRed)+"  DOWN "+ ((100- V/MA(V,26)*100)) + " %")
++ EncodeColor(colorRed)+   "\n Pivot High : "+ EncodeColor(colorWhite)+PH+EncodeColor(colorRed)+ "  Place LONG    Trigger at :"+EncodeColor(colorWhite)+ phfilter + EncodeColor(colorRed)+ "   SL of :"+ EncodeColor(colorWhite)+SL+ EncodeColor(colorRed)+ "    Risk of " + EncodeColor(colorWhite)+risk_long
++ EncodeColor(colorYellow)+ "\n Long Target of : "+Long_tgt1 +"  and second target of :" + Long_tgt2   
++ "\n"
++ EncodeColor(colorGreen)+ "\n Pivot  Low : "+EncodeColor(colorWhite)+PL+EncodeColor(colorGreen)+"  Place SHORT Trigger at :"+ EncodeColor(colorWhite)+plfilter + EncodeColor(colorGreen)+"   SL of :"+ EncodeColor(colorWhite)+SL+ EncodeColor(colorGreen)+"    Risk of " + EncodeColor(colorWhite)+risk_short
++ EncodeColor(colorYellow)+ "\n Short Target of : "+short_tgt1 +"  and second target of :" + short_tgt2   
+;

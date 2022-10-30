@@ -1,0 +1,42 @@
+_SECTION_BEGIN("holy");
+p=Param("period",20,1,52,1);
+High20 = HHV(High,p);
+Low20 = LLV (Low,p);
+Plot(Close,"",colorWhite,styleCandle);
+Plot (High20,"high of the last 20 bars",colorRed,styleThick);
+Plot (low20,"low of the last 20 bars",colorGreen,styleThick);
+
+H_ex = Ref(H,-1);
+L_ex = Ref(L,-1);
+
+em34 = EMA(Close,34);
+em21 = EMA (Close,21);
+
+
+Buy = em21 > em34 AND
+L < L_ex AND
+H < H_ex AND
+L_ex < Ref(L,-2) AND
+H_ex < Ref(H,-2);
+
+Sell = em21 < em34 AND
+L > L_ex AND
+H > H_ex AND
+L_ex > Ref(L,-2) AND
+H_ex > Ref(H,-2);
+
+
+Title = EncodeColor(colorWhite)+ "Linkon Holy grail System" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"\n" +EncodeColor(colorYellow) +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+ "Cl-"+C+"  "+ "Vol= "+ WriteVal(V)+ "\n"+
+EncodeColor(colorLime)+
+WriteIf (Buy , " GO LONG at "+H_ex+"  "+"Target of :"+High20+"  SL @ "+L_ex,"")+
+EncodeColor(colorRed)+
+WriteIf (Sell , " GO short at "+L_ex+"  "+"Target of :"+Low20+"  SL @ "+H_ex,"")
+;
+piv_col = IIf(Buy,colorBlue,IIf(Sell,colorRed,colorYellow));
+Plot(3, "", piv_col, styleOwnScale| styleArea|styleNoLabel,-0.5,100); 
+ 
+
+
+
+_SECTION_END();

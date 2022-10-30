@@ -1,0 +1,9 @@
+#include <T3_include.afl>;
+ti3 = T3(C,3);
+ti5 = T3(C,5);
+x = ti3-ti5;
+//Plot(x, "", 2);
+TiO = MA(x,3);
+
+Plot(TiO, "", 4);
+PlotGrid(0, colorLightGrey);

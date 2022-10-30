@@ -1,0 +1,21 @@
+_SECTION_BEGIN("JRSX");
+//SetBarsRequired(10000, 0); 
+
+
+
+Plot( JurikRSX( C,6)," 6 ", colorWhite, styleThick );
+Plot( JurikRSX( C,7),"", colorBlue, styleThick );
+Plot( JurikRSX( C,8),"", colorBlue, styleThick );
+//Plot( JurikRSX( C,9),"", colorBlue, styleThick );
+
+Plot( JurikRSX( C,14),"", colorYellow, styleThick );
+Plot( JurikRSX( C,15),"", colorRed, styleThick );
+Plot( JurikRSX( C,16),"", colorRed, styleThick );
+Plot( JurikRSX( C,17),"", colorRed, styleThick );
+Plot( JurikRSX( C,18),"", colorRed, styleThick );
+Plot( JurikRSX( C,19),"", colorRed, styleThick );
+Plot( JurikRSX( C,20),"", colorRed, styleThick );
+Plot( JurikRSX( C,21),"", colorRed, styleThick );
+
+
+_SECTION_END();

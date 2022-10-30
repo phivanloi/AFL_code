@@ -1,0 +1,47 @@
+//Title="Indicator Developed and Conceptualised by Debdulal And Soumya";
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +
+WriteVal( V, 1.0 ) +" {{VALUES}}", 
+O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+
+// This part will plot the EMA value And type of user choice
+
+EMAstyle=ParamStyle("MAType",styleLine,maskAll );
+Ocolor=ParamColor("Open EMA Colour" ,colorGreen);
+Ccolor=ParamColor("Close EMA Colour",colorRed);
+CPeriod=Param("EMA CLOSE Period",5); 
+OPeriod=Param("EMA OPEN Period",6); 
+Plot(EMA(Close,CPeriod),"Close EMA of "+CPeriod+" Days" , Ccolor, EMAstyle, Null, Null ); 
+Plot(EMA(O,OPeriod), "Open EMA of "+OPeriod+" Days", Ocolor, EMAstyle, Null, Null ); 
+
+// This part will plot Closing price with barstyle choosen by user
+
+ChartStyl=ParamStyle("Chart Type", styleBar,maskAll );
+Chartcolor=ParamColor("Chart Colour",colorGreen); 
+Plot(Close,"Debdulal",Chartcolor,ChartStyl);
+
+// This part will find the buy and sell point in the chart
+//sl=0;
+//sl=IIf(LLV(Low,4)>Low,1,0);
+
+Selltrigger=IIf(EMA(Open,Operiod)>EMA(Close,Cperiod),1,0);
+//Selltrigger=MACD(26,12)<Signal(12,26,9);
+Buy=Cross(MACD(12,26),Signal(12,26,9));
+Sell=Cross(Signal(12,26,9),MACD(12,26))AND Selltrigger=1;
+//Sell=EMA(Open,Operiod)>=EMA(Close,Cperiod) AND Selltrigger;
+
+//Buy= MACD(12,26)>=Signal(12,26,9);
+//Sell=MACD(12,26)<Signal(12,26,9);
+//Sell=Cross(EMA(Open,Operiod),EMA(Close,Cperiod))AND MACD(12,26)<Signal(12,26,9);
+
+Buy     = ExRem(Buy, Sell);
+Sell    = ExRem(Sell, Buy);
+Signalshape=Buy*shapeUpArrow + Sell*shapeDownArrow;
+PlotShapes( Signalshape, IIf( Buy, colorGreen, colorRed ),0, IIf( Buy, Low, High ) );
+pos = 1.5*ATR(15);
+for( i = 0; i < BarCount; i++ ) {
+       if( Buy[i] ) PlotText( "Buy\n@" +Close[i], i, Low[i] - pos[i], colorGreen );
+
+       if( Sell[i] ) PlotText( "sell\n@" + Close[i], i, Low[i] + pos[i], colorRed );
+	}

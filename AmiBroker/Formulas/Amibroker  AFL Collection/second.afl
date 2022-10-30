@@ -1,0 +1,80 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+SetChartBkColor(ParamColor("Outer panel",colorGrey40)); // color of outer border 
+SetChartBkGradientFill( ParamColor("Inner panel upper",colorGrey40),ParamColor("Inner panel lower",colorBlack));
+SetBarFillColor(IIf(O>C,24,19));
+Plot(C,"Price",IIf(O>C,32,34),64);
+
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+if( ParamToggle("Tooltip shows", "All Values|Only Prices" ) )
+{
+ ToolTip=StrFormat("Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 )));
+}
+
+_SECTION_END();
+
+
+
+/*
+_SECTION_BEGIN("Volume");
+Plot( Volume, _DEFAULT_NAME(), ParamColor("Color", colorLavender ), styleNoTitle | ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick | styleNoLabel, maskHistogram  ), 2 );
+_SECTION_END();
+*/
+grid_day = IIf(Day()!=Ref(Day(),-1),1,0);  
+Plot(grid_day,"",colorDarkGrey,styleHistogram|styleDashed|styleNoLabel|styleOwnScale);
+
+no=Param( "Swing", 5, 1, 55 ); 
+tsl_col=ParamColor( "Color", colorCycle ); 
+res=HHV(H,no); sup=LLV(L,no); 
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0)); 
+avn=ValueWhen(avd!=0,avd,1); 
+tsl=IIf(avn==1,sup,res); 
+
+Plot(tsl, _DEFAULT_NAME(), tsl_col, styleStaircase); 
+// or styleaArea 
+Buy=Cross(C,tsl); 
+Sell=Cross(tsl,C); 
+shape=Buy*shapeUpArrow + Sell*shapeDownArrow; 
+PlotShapes(shape,IIf(Buy,tsl_col,tsl_col),0,IIf(Buy,Low,High)); 
+
+
+      
+
+TimeFrameSet( in15Minute ); 
+SetTradeDelays( 1, 1, 1, 1 );
+BuyPrice=ValueWhen(Buy, C);
+SellPrice=ValueWhen(Sell, C);
+BuyPrice=SellPrice=Open;
+p1=C-BuyPrice;
+p2=SellPrice-C;
+
+ 
+
+
+Filter=Buy OR Sell ;//AND Interval(in5Minute)  ;
+//Filter=TimeNum() >= 090000 AND TimeNum() <= 233000 ;
+//Filter=0<L -1;
+//Filter=9;
+//Filter=C<10;
+//Filter=EMA(C, 200) > C;
+//Filter=H*104 > O;
+//Filter= 1; // Filter=DateTime();
+
+
+
+                SetOption("NoDefaultColumns", True);
+                AddTextColumn(Name(), "Symbol", 77, colorDefault, colorDefault, 120);
+                AddColumn(DateTime(), "Trigger Date", formatDateTime);
+
+
+AddTextColumn(Now(2), "Time", -1);
+
+                AddColumn(IIf(Buy, 66, 83), "Signal", formatChar, colorYellow, IIf(Buy, colorGreen, colorRed));
+               AddColumn(IIf(Buy, BuyPrice, SellPrice),  "Entry", 6.2);
+ AddColumn(C, "C. M. P.", 6.2);
+
+            
+AddColumn(IIf(Buy, p1, p2),  "PP", 6.2);
+
+TimeFrameRestore();

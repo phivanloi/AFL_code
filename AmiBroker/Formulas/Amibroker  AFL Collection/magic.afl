@@ -1,0 +1,42 @@
+_SECTION_BEGIN("Floor Top");
+ 
+hcl=(O+H+L+C)/4;
+Ho=AMA(Ref(hcl,-1),0.5);   
+HH=Max(H,Max(hcl,Ho));
+HL=Min(L,Min(hcl,Ho));
+
+trader = (hcl-Ho);
+VarRedLine = WMA(trader,5); 
+VarBlueLine = MA(trader,8);
+Per = Param("MA Periods",15,3,50,1);
+HDCPeriods = per;
+bbbot = BBandBot( trader, HDCPeriods, 2 );
+bbtop = BBandTop( trader, HDCPeriods, 2 );
+VarAMA = Param("varAMA",0.1,0,2,0.01);
+hcl2=(H+L+C)/3;
+Ho2=AMA(Ref(hcl2,-1),VarAMA);
+HH2=Max(H,Max(hcl2,Ho2));
+HL2=Min(L,Min(hcl2,Ho2));
+trader2 = hcl2-Ho2;
+Color_rib = IIf(trader2 > bbtop, colorDarkGrey, IIf(trader2 < bbbot, colorDarkGrey,IIf(trader2 > Ref(trader2,-1), colorBrightGreen,colorDarkRed)));
+Plot(0,"",colorWhite,styleThick);
+diff_p = trader2 - bbbot;
+diff_m = trader2-bbtop;
+m = (diff_p+diff_m)/2;
+Plot(m,"midpoint",IIf(m > Ref(m,-1),colorBrightGreen,colorRed),styleThick);
+Plot (diff_p,"+ve",colorBlue,styleThick);
+Plot (diff_m,"-ve",colorRed,styleThick);
+PlotOHLC(0,IIf(diff_m > 0,diff_m,0),0,(diff_p+diff_m)/2,"",colorBrightGreen,styleCloud+styleNoLabel);
+PlotOHLC(0,0,IIf(diff_p < 0,diff_p,0),(diff_p+diff_m)/2,"",colorRed,styleCloud+styleNoLabel);
+PlotOHLC(0,IIf(diff_p > 0, diff_p,0),0,(diff_p+diff_m)/2,"",colorDarkOliveGreen,styleCloud+styleNoLabel);
+PlotOHLC(0,0,IIf(diff_m < 0,diff_m,0),(diff_p+diff_m)/2,"",colorViolet,styleCloud+styleNoLabel);
+
+Title =
+WriteIf(m > 0,EncodeColor(colorBrightGreen),EncodeColor(colorRed))+"Centre of gravity  : "+WriteIf(m > 0,EncodeColor(colorBrightGreen),EncodeColor(colorRed))+m
++"\n"
++WriteIf(diff_p > 0,EncodeColor(colorBrightGreen),EncodeColor(colorRed))+"Positive force  : "+WriteIf(diff_p > Ref(diff_p,-1),EncodeColor(colorBrightGreen),EncodeColor(colorRed))+diff_p 
++"\n"
++WriteIf(diff_m > 0,EncodeColor(colorBrightGreen),EncodeColor(colorRed))+"Negative force  : "+WriteIf(diff_m > Ref(diff_m,-1),EncodeColor(colorBrightGreen),EncodeColor(colorRed))+diff_p; 
+
+
+_SECTION_END();

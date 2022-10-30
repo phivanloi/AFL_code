@@ -1,0 +1,51 @@
+/*
+   Scan New High and New Low
+
+   Scan OR exploration which can find any futures OR stock that has reached Break New High AND New Low :
+
+   User choose on "Scan by Day/Week/Month" option.
+   1. User input if scan by Day
+   2. User input if scan by Week   (Default)
+   3. User input if scan by Month
+
+   Created by TohMZ on June 15th, 2008 based on Ernest request
+
+*/
+
+//--User Input 
+
+YMWD   = ParamList("Choose scan by", "Day|Week|Month", 1);
+Wk   = Param("Week High", 52, 1, 52);
+Mth  = Param("Month High", 12, 1, 12);
+Days = Param("Day High", 260, 1, 260);
+
+if (YMWD == "Week")
+{
+  x = Wk;
+  Days = 5*wk;
+} 
+else
+if (YMWD == "Month")
+{
+  x = Mth;
+  Days = 20*Mth;
+}
+else
+{
+  x = Days;
+}
+
+
+Buy = High > Ref(HHV(High,Days),-1);
+Sell = Low  < Ref(LLV(Low,Days),-1);
+
+Filter  = (Buy OR Sell);
+
+AddTextColumn(FullName(), "Security", 1.0, colorDefault, colorDefault,200);
+AddTextColumn( WriteIf(Buy, "HIGH", WriteIf(Sell, "LOW", "")), 
+                "Break "+x+" "+YMWD+" ", 
+
+              1.0, colorDefault, colorDefault,100);
+
+
+

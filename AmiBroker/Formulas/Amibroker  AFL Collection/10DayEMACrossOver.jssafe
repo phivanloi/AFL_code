@@ -1,0 +1,16 @@
+AASettingsFile = "C:\\EagleEye\\Scans+Alerts\\EOD.ABS";
+optimizationRoutine = "C:\\EagleEye\\Scans+Alerts\\10DayEMACrossOver.afl";
+
+AB = new ActiveXObject("Broker.Application");
+AA = AB.Analysis;
+AA.LoadFormula(optimizationRoutine);
+AA.LoadSettings(AASettingsFile);
+
+
+//AA.ClearFilters(); 
+//AA.Filter( 0, "watchlist" ) = tempListNum;
+//AA.ApplyTo = 2; // use filters
+//AA.RangeMode = 2; // use RangeN last days.
+//RangeN = 180;  // 180 days.
+
+AA.Scan();

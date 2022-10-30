@@ -1,0 +1,93 @@
+_SECTION_BEGIN("guppy");
+e3 = EMA(Close,3); 
+e5 = EMA(Close,5);
+e8 = EMA(Close,8);
+e10 = EMA(Close,10);
+e12 = EMA(Close,12); 
+e15 = EMA(Close,15);
+
+e30 = EMA(Close,30);
+e35 = EMA(Close,35);
+e40 = EMA(Close,40); 
+e45 = EMA(Close,45);
+e50 = EMA(Close,50);
+e55 = EMA(Close,55);
+e60 = EMA(Close,60);
+Buy_guppy = e3>e45;
+Sell_guppy = e45 > e3;
+//Buy_guppy = ExRem (Buy_guppy,Sell_guppy);
+//Sell_guppy = ExRem(Sell_guppy,Buy_guppy);
+//PlotShapes(Buy_guppy*shapeUpTriangle, colorYellow);
+//PlotShapes(Sell_guppy*shapeDownTriangle,colorYellow);
+Col_e3 = IIf (e3 > Ref(e3,-1),colorAqua,colorBlue);
+Col_e5 = IIf (e5 > Ref(e5,-1),colorAqua,colorBlue);
+Col_e8 = IIf (e8 > Ref(e8,-1),colorAqua,colorBlue);
+Col_e10=IIf (e10 >Ref(e10,-1),colorAqua,colorBlue);
+Plot (C,"",colorWhite,styleLine);
+Plot (e3,"",col_e3,styleThick);
+Plot (e5,"",col_e5,styleThick);
+Plot (e8,"",col_e8,styleThick);
+Plot (e10,"",col_e10,styleThick);
+Plot (e12,"",colorBlue,styleNoLabel);
+Plot (e15,"",colorBlue,styleNoLabel);
+
+Plot (e30,"",colorYellow,styleNoLabel+styleThick);
+Plot (e35,"",colorRed,styleNoLabel+styleThick);
+Plot (e40,"",colorRed,styleNoLabel+styleThick);
+Plot (e45,"",colorRed,styleNoLabel+styleThick);
+Plot (e50,"",colorRed,styleNoLabel+styleThick);
+Plot (e55,"",colorRed,styleNoLabel+styleThick);
+Plot (e60,"",colorRed,styleNoLabel+styleThick);
+
+_SECTION_END();
+
+"plotted pivots \n
+Plotted the avarage as a bars \n
+";
+_SECTION_END();
+
+_SECTION_BEGIN("Fibo for all bars");
+
+TimeFrameSet( in15Minute*2 ); 
+DH=Ref(H,-1); 
+DL=Ref(L,-1);
+DC=Ref(C,-1);
+
+
+pd = (O +( DH+ DL + DC ))/4;
+sd1 = (2*pd)-DH;
+sd2 = pd -(DH - DL);
+sd3 = Sd1 - (DH-DL); 
+rd1 = (2*pd)-DL;
+rd2 = pd +(DH -DL);
+rd3 = rd1 +(DH-DL);
+
+
+
+//Plot (pd,"Pivot",colorBlue,styleDots);
+//Plot (rd1," R1 ",35,styleDots);
+//Plot (rd2," R2 ",35,styleDots);
+//Plot (rd3," R3 ",35,styleDots);
+
+//Plot (sd1," S1 ",4,styleDots);
+//Plot (Sd2," S2 ",4,styleDots);
+//Plot (Sd3," S3 ",4,8+16);
+/*
+style = IIf(ParamList("Chart style", "styleCandle|styleBar")=="styleCandle",64,128+4);
+Plot (C,Date ()+" close",1,style); //ENABLE THIS TO HAVE CANDLES AS WELL
+*/
+TimeFrameRestore();
+
+
+Title = EncodeColor(colorWhite)+ "LINKON'S PIVOT TRADING SYSTEM" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+ "Cl-"+C+"  "
++ WriteIf(C > pd, EncodeColor(colorGreen)+"stay long",EncodeColor(colorRed)+"stay SHORT") + "\n"
++ "Vol= "+ WriteVal(V) +WriteIf ( V > MA(V,26) ,EncodeColor(colorGreen)+"  UP "+ (V/MA(V,26))*100 + " %", EncodeColor(colorRed)+"  DOWN "+ (V/MA(V,26))*100 + " %")
++ EncodeColor(colorGreen)+   "\n R3 : "+ EncodeColor(colorWhite)+RD3
++ EncodeColor(colorGreen)+   "\n R2 : "+ EncodeColor(colorWhite)+RD2
++ EncodeColor(colorGreen)+   "\n R1 : "+ EncodeColor(colorWhite)+RD1
++ EncodeColor(colorBlue)+   "\n Pivot : "+ EncodeColor(colorWhite)+pd
++ EncodeColor(colorRed)+   "\n S1 : "+ EncodeColor(colorWhite)+SD1
++ EncodeColor(colorRed)+   "\n S2 : "+ EncodeColor(colorWhite)+SD2
++ EncodeColor(colorRed)+   "\n S3 : "+ EncodeColor(colorWhite)+SD3
+;

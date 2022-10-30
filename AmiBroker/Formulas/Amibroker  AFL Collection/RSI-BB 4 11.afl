@@ -1,0 +1,18 @@
+/*
+RAVI stands for Range Action Verification Index.
+This is a technical indicator that also helps to recognize trending markets, for the same purpose of helping trend following systems
+to avoid entering whipsaw trades in sideways markets. The RAVI index is a moving average crossover system itself?it uses a 7-Day fast
+average AND a 65-Day slow average. The RAVI index value is defined as the absolute value of the percentage difference between the 7
+AND 65 Day averages. When a market is moving sideways, the two averages tend to have the same values, so the difference is small.
+Conversely, when the market is trending, the fast average rapidly pulls away from the slow average, producing a larger difference
+AND larger index value. Generally speaking, a RAVI value below 3 percent indicates sideways prices, AND above 3 percent, trending prices.
+*/
+
+x= MA(C,7)/C;
+y= MA(C,65)/C;
+
+z = x- y ;
+z1 = z*100;
+Plot(z1,"ravi",colorWhite,1);
+Plot(-1,"",colorRed,1);
+Plot(1,"",colorGreen,1); 

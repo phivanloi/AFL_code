@@ -1,0 +1,32 @@
+_SECTION_BEGIN(" 5DMA-SAR ");
+// IF SAR LINE is constant for more than 2 days, this indicates either Accumulation/Distribution //
+// IF SAR levels are rising on daily basis this signifies consistency of the current trend //
+
+FS=Param("Font Size",30,11,100,1);
+GfxSelectFont("Times New Roman", FS, 700, True ); 
+GfxSetBkMode( colorWhite );  
+GfxSetTextColor( ParamColor("Color",colorBlue) ); 
+
+Hor=Param("Horizontal Position",700,1,1200,1);
+Ver=Param("Vertical Position",1,1,830,1); 
+
+TC=TimeFrameGetPrice("C",inDaily,0);
+YYC=TimeFrameGetPrice("C",inDaily,-1);
+DFYC=TimeFrameGetPrice("C",inDaily,-2);
+DFYC1=TimeFrameGetPrice("C",inDaily,-3);
+DFYC2=TimeFrameGetPrice("C",inDaily,-4);
+SAR1=Prec((TC+YYC+DFYC+DFYC1+DFYC2)/5,0);
+GfxTextOut("SAR="+SAR1, Hor , Ver );
+
+SaaR = ParamToggle("SAR","Show|Hide",1);
+if(SaaR==1)  
+{
+Plot (SAR1,"",colorBlue,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+}
+_SECTION_END();
+
+_SECTION_BEGIN("Price1");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

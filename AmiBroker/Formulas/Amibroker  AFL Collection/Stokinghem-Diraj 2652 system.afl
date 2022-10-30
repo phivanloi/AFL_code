@@ -1,0 +1,227 @@
+_SECTION_BEGIN( "Stokinghem-Diraj 2652 system" );
+/*Stokinghem-Diraj 2652 Intra-Day system*/
+"========";
+
+
+
+SetChartOptions( 0, chartShowArrows | chartShowDates );
+_N( Title = StrFormat( "Stokinghem-Dhiraj-2652 Intra-Day SYSTEM****{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + "{{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+//PositionScore = 100 / C;
+Plot( C, "Close", ParamColor( "Color", colorBlack ), styleNoTitle | ParamStyle( "Style" ) | GetPriceStyle() );
+
+H1 = SelectedValue( TimeFrameGetPrice( "H", inDaily, -1 ) );
+L1 = SelectedValue( TimeFrameGetPrice( "L", inDaily, -1 ) );
+C1 = SelectedValue( TimeFrameGetPrice( "C", inDaily, -1 ) );
+H2 = SelectedValue( TimeFrameGetPrice( "H", inDaily, 0 ) );
+L2 = SelectedValue( TimeFrameGetPrice( "L", inDaily, 0 ) );
+O1 = SelectedValue( TimeFrameGetPrice( "open", inDaily, 0 ) );
+/*PIVOT Calculation*/
+D1 = ( H1 - L1 );
+D2 = ( H2 - L2 );
+F1 = D1 * 0.433;
+F2 = D1 * 0.766;
+F3 = D1 * 1.35;
+
+
+F4 = 0;
+
+if ( D2 <= F1 )
+    F4 = F1;
+else
+    if ( D2 <= F2  )
+        F4 = F2;
+    else
+        F4 = F3;
+
+
+
+S_P = ( O1 - F4 );
+
+B_P = ( O1 + F4 );
+
+BP = ( L2 + F4 );
+
+BPTGT = ( BP + ( BP * .0065 ) );//.0015 brokerage
+
+BPSTPLS = ( BP - ( BP * .0085 ) );
+
+SP = ( H2 - F4 );
+
+SPTGT = ( SP - ( SP * .0065 ) );
+
+SPSTPLS = ( SP + ( SP * .0085 ) );
+
+
+p = ( H1 + L1 + C1 ) / 3;
+
+s1 = ( H1 );
+
+r1 = ( L1 );
+
+r2 = SelectedValue( L2 );
+
+s2 = SelectedValue( H2 );
+
+//CONDITION
+
+S = ( C > p );
+
+SS = ( C < P );
+
+//Plot 
+
+Plot ( p  , "PIVOT", 25, 4 );PlotText( "PIVOT" , BarCount-25, p+0, 25 );
+
+
+Plot ( r1, "PRE_LOW", 29, 4 );PlotText( "PreDay LOW" , BarCount-25, r1+0, 29 );
+
+Plot ( s1, "PRE_HIGH", 29, 4 );PlotText( "PreDay HIGH" , BarCount-25, s1+0, 29 );
+
+Plot ( s2, "DAY_HIGH", 42, 4 );PlotText( "Day HIGH" , BarCount-25, s2+0, 42 );
+
+Plot ( r2, "DAY_LOW", 42, 4 );PlotText( "Day LOW" , BarCount-25, r2+0, 42 );
+
+
+Plot ( BP, "BUY @", 35, 4 );PlotText( "Buy-Long" , BarCount-25, BP+0, 35 );
+
+
+Plot ( BPTGT, "BUY & SELL @", 40, 4 );PlotText( "Sell-LongSell" , BarCount-25, BPTGT+0, 40 );
+
+
+Plot ( BPSTPLS, "BUY STPLS @", 32, 4 );PlotText( "STP-LS LongSell" , BarCount-25, BPSTPLS+0, 32 );
+
+
+Plot ( SP, "SELL @", 35, 4 );PlotText( "Sell-Short" , BarCount-25, SP+0, 35 );
+
+
+Plot ( SPTGT, "SEL & BUY @", 40, 4 );PlotText( "Buy-ShortCover" , BarCount-25, SPTGT+0, 40 );
+
+
+Plot ( SPSTPLS, "SELL STPLS @", 32, 4 );PlotText( "STP-LS ShortCover" , BarCount-25, SPSTPLS+0, 32 );
+
+
+
+
+
+GfxSetBkColor( colorRed );
+
+GfxSetTextColor( 41 );
+
+GfxSelectFont( "TOHMA", 9, 700, False );
+
+GfxTextOut( ( "[StokingHem-Diraj 2652 Intra-Day System]" ), 32, 70 );
+GfxTextOut( ( " Analyse-Explore @ 10:15 HR for List " ), 32, 85 );
+
+
+GfxSetBkColor( colorLightGrey );
+
+GfxSetTextColor( 16 );
+
+
+
+GfxTextOut("* "+ ( WriteVal( H1 ) + "--" + WriteVal( L1 ) + "=PreDay=" + WriteVal( D1 ) ), 32, 100 );
+
+GfxTextOut("* "+ ( WriteVal( H2 ) + "--" + WriteVal( L2 ) + "=ToDay=" + WriteVal( D2 ) ), 32, 115 );
+
+GfxTextOut( "F1=" + ( WriteVal( F1 ) ), 32, 130 );
+
+GfxTextOut( "F2=" + ( WriteVal( F2 ) ), 32, 145 );
+
+GfxTextOut( "F3=" + ( WriteVal( F3 ) ), 32, 160 );
+
+
+GfxTextOut( "Selected FC==" + ( WriteVal( F4 ) ), 32, 175 );
+
+GfxTextOut( ( "-P-TGT 0.65 and STP-LS 1.0(Inc-Bkrg)-" ), 32, 190 );
+
+
+
+
+GfxSetBkColor( colorWhite );
+
+GfxSetTextColor( 27 );
+
+GfxTextOut("**Buy Strategy**", 32, 205 );
+
+GfxTextOut( "Buy @-- " + ( WriteVal( BP ) ), 43, 220 );
+
+GfxTextOut( "Sell @ Profit-- " + ( WriteVal( BPTGT ) ), 40, 235 );
+
+GfxTextOut( "Sell @ STP-LS-- " + ( WriteVal( BPSTPLS ) ), 32, 250 );
+
+
+
+GfxSetBkColor( colorWhite );
+
+GfxSetTextColor( 25 );
+
+GfxTextOut( "**Sell Strategy**", 32, 265 );
+
+GfxTextOut( "Sell @-- " + ( WriteVal( SP ) ), 32, 280 );
+
+GfxTextOut( "Buy @ Profit-- " + ( WriteVal( SPTGT ) ), 32, 295 );
+
+GfxTextOut( "Buy @ STP-LS-- " + ( WriteVal( SPSTPLS ) ), 32, 310 );
+
+
+
+
+
+
+Filter =  S OR SS;
+
+AddColumn( IIf( S, 66, 1 ), "Buy", formatChar, 1, bkcolor = IIf( S, 43, 33 ) );
+
+AddColumn( IIf( SS, 83, 1 ), "Sell", formatChar, 1, bkcolor = IIf( SS, 25, 32 ) );
+
+
+
+AddColumn( C, "CMP", 1.2, colorDefault, colorLightBlue );
+
+AddColumn( BP, "BUY PRICE", 1.2, colorDefault, colorGreen );
+
+AddColumn( BPTGT, "TGT PRICE", 1.2, colorDefault, colorPink );
+
+AddColumn( BPSTPLS, "STPLS BUY", 1.2, colorDefault, colorRed );
+
+AddColumn( p, "PIVOT", 1.2, colorDefault, colorYellow );
+
+AddColumn( SPSTPLS, "STPLS SELL", 1.2, colorDefault, colorRed );
+
+AddColumn( SP, "SELL PRICE", 1.2, colorDefault, colorGreen );
+
+AddColumn( SPTGT, "TGT PRICE", 1.2, colorDefault, colorPink );
+
+
+AddColumn( H1, "PRE-HIGH" );
+
+AddColumn( L1, "PRE-LOW" );
+
+AddColumn( D1, "PRE-DIFF" );
+
+AddColumn( F1, "0.433" );
+
+AddColumn( F2, "0.766" );
+
+AddColumn( F3, "1.35" );
+
+AddColumn( H2, "D-HIGH" );
+
+AddColumn( L2, "D-LOW" );
+
+AddColumn( D2, "D-DIFF" );
+
+AddColumn( F4, "SELECT FACT" );
+
+
+Buy = Cross ( ( C ), ( BP ) );
+
+Sell = Cross ( ( C ), ( SP ) );
+
+AlertIf( Buy, "SOUND C:\\Windows\\Media\\Ding.wav", "2652 System", 1, 2 );
+
+AlertIf( Sell, "SOUND C:\\Windows\\Media\\Chime.wav", "2652 System", 2, 2 );
+
+
+
+_SECTION_END();

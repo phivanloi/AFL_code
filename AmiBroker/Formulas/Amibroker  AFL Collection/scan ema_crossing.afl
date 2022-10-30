@@ -1,0 +1,31 @@
+_SECTION_BEGIN("EMA Crossing");
+// EMA Cross
+// follows are the original ranges
+tgl = ParamToggle("Plot type", "Signals|Chart", 0);
+Range1 = Param("Slow wave", 15, 3, 100, 1);
+Range2 = Param("Fast wave", 5, 2, 50, 1);
+//Range1 = Optimize("range1",15,1,20,1);
+//Range2 = Optimize("range2",5,1,20,1);
+
+// updated ranges
+slowEma = EMA(C, Range1);
+fastEma = EMA(C, Range2);
+
+
+Cover = Buy = Cross(fastEma , slowEma );
+Short = Sell = Cross(slowEma , fastEma ); 
+if(tgl)
+{
+// plot signals
+Plot(Buy, "EMA Crossing - Buy", colorGreen);
+Plot(-Short, "Short", colorRed);
+}
+else
+{
+Plot(fastEma , "EMA Crossing - EMA" + NumToStr(Range2, 1.0), colorGreen);
+Plot(slowEma , "EMA" + NumToStr(Range1, 1.0), colorRed);
+
+}
+Filter = Buy OR Sell OR Short OR Cover;
+AddColumn(Filter, "Trades", 1.0);
+_SECTION_END();

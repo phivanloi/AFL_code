@@ -1,0 +1,5 @@
+Buy = (EMA( Close, 5)> (EMA(Close, 13)))  AND Cross( (EMA( Close, 
+5)), EMA( Close, 13 ) );
+
+//Sell = Cross( EMA( Close, 200 ), Close );
+Sell = (Cross( EMA( Close, 13), EMA( Close, 5 ) ));

@@ -1,0 +1,1212 @@
+ _SECTION_BEGIN("Trend Identifire");
+Show_color = ParamToggle("Display CandleColor", "No|Yes", 1);
+r1 = Param( "ColorFast avg", 5, 2, 200, 1 );
+r2 = Param( "ColorSlow avg", 10, 2, 200, 1 );
+r3 = Param( "ColorSignal avg", 5, 2, 200, 1 );
+
+Prd1=Param("ATR Period",4,1,20,1);
+Prd2=Param("Look Back",7,1,20,1);
+green = HHV(LLV(L,Prd1)+ATR(Prd1),Prd2);
+red = LLV(HHV(H,Prd1)-ATR(Prd1),Prd2);
+flowerClose = EMA((Open+High+Low+Close)/4,3) ;
+flowerOpen = EMA((Ref(Open,-1) + Ref(flowerClose,-1))/2,3);
+Temp = Max(High, flowerOpen);
+flowerHigh = EMA(Max(Temp, flowerClose),3);
+Temp = Min(Low,flowerOpen);
+flowerLow = EMA(Min(Temp, flowerClose),3);
+
+m1=MACD(r1,r2);
+s1=Signal(r1,r2,r3);
+mycolor=IIf(m1<0 AND m1>s1, colorBlue,IIf(m1>0 AND
+
+m1>s1,colorGreen,IIf(m1>0 AND m1<s1,colorPink,colorRed)));
+if(Show_color)
+{
+ColorHighliter = myColor;
+SetBarFillColor( ColorHighliter );
+}
+
+barColor=IIf(C>Green ,colorWhite,IIf(C < RED,colorRed,colorWhite));
+
+PlotOHLC( IIf(flowerOpen<flowerClose, flowerOpen,
+
+flowerClose),flowerHigh,flowerLow,IIf(flowerOpen<flowerClose, flowerClose,
+
+flowerOpen), "Close", barColor, styleNoTitle | styleCandle);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Breakout");
+Buuyperiods=Param("Breakout periods best is usually 18",5,1,100,1,1);
+Seellperiods=Param("Exit Breakout",5,1,100,1,1);
+
+HaClose =EMA((O+H+L+C)/4,3); // Woodie
+//HaClose =(O+H+L+C)/4;
+HaOpen = AMA( Ref( HaClose, -1 ), 0.5 );
+HaHigh = Max( H, Max( HaClose, HaOpen ) );
+HaLow = Min( L, Min( HaClose, HaOpen ) );
+Buuy= C>Ref(HHV(High,Buuyperiods),-1) ;
+Seell= C<Ref(LLV(Low,Seellperiods),-1);
+
+/* exrem is one method to remove surplus strade signals. It removes excessive signals of arrow */
+Buuy = ExRem(Buuy, Seell);
+Seell = ExRem(Seell, Buuy);
+
+PlotShapes( IIf( Buuy, shapeUpTriangle, shapeNone ), colorGreen, layer = 0,yposition = HaLow, offset = -30);
+//PlotShapes( IIf( Buy, shapeSmallCircle, shapeNone ), colorWhite, layer = 0,yposition = HaLow, offset = -8);
+
+PlotShapes( IIf( Seell, shapeDownTriangle, shapeNone ), colorRed, layer = 0, yposition = HaHigh, offset = -30);
+//PlotShapes( IIf( Sell, shapeSmallCircle, shapeNone ), colorRed, layer = 0, yposition = HaHigh, offset = -8);
+
+_SECTION_END();
+
+_SECTION_BEGIN("PFE");
+
+pds=10;
+x=sqrt((ROC(C,9)*ROC(C,9))+100);
+y=Sum(sqrt((ROC(C,1)* ROC(C,1))+1),pds);
+z=(x/y);
+pfe=EMA(IIf(C>Ref(C,-9),z,-z)*100,5);
+
+rsidn=pfe <-10 AND pfe<Ref(pfe,-1);
+rsiup=pfe >10 AND pfe>Ref(pfe,-1);
+
+rsiresult1 = WriteIf( rsiup,"cu", "");
+rsiresult2 = WriteIf( rsidn,"cd", "");
+
+RequestTimedRefresh( 0 );
+GfxSelectFont( "Tahoma", 12, 120 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorWhite );
+
+if ( rsiresult1 =="cu")
+{
+GfxSelectSolidBrush( ColorRGB(0,90,0) );
+
+}
+else
+
+if ( rsiresult2 =="cd")
+
+{
+GfxSelectSolidBrush( ColorRGB(90,0,0));
+
+}
+
+else
+
+if ( rsiresult2 =="")
+
+{
+GfxSelectSolidBrush( colorDarkTeal );
+
+}
+
+GfxSelectFont( "Arial", 10, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorBlue );
+
+_SECTION_END();
+
+GfxRoundRect( 400,570,210,415, 50, 50 );
+
+_SECTION_END();
+
+_SECTION_BEGIN("Schaff Trend Cycle");
+/*
+Ported directly from original STC Tradestation code
+results differ from other Amibroker versions that are not based directly on original EasyLanguage code
+http://mediaserver.fxstreet.com/…/ebfbf387-4b27-4a0f-848c-0…
+*/
+MA1=23;
+MA2=50;
+TCLen=10;
+MA1=Param("ShortMACDLen",23,5,36);
+MA2=Param("LOngMACDLen",50,10,100);
+TCLen=Param("TCLen(StochPeriod)",10,5,20);
+Factor=.5;
+//Calculate a MACD Line
+XMac = MACD(MA1,MA2) ; // MACD in Amibroker always uses Close for MACD calculation
+
+//1st Stochastic: Calculate Stochastic of a MACD
+Value1 = LLV(XMac, TCLen);
+Value2 = HHV(XMac, TCLen) - Value1;
+
+//Frac1=1; // prime Frac1 to a default of 1
+//Frac1 = IIf(Value2 > 0, ((XMac - Value1) / Value2) * 100, Ref(FRAC1,-1));
+// have to "prime" first value so that reference to "i-1" does not result in subscript out of range
+// since MACD for both periods is not defined until MA2 period, 0 seems to be mathematically correct priming value
+frac1=0;
+for (i = 1; i < BarCount; i++) {
+if (Value2[i] > 0) {
+frac1[i] = ((XMac[i] - Value1[i])/Value2[i])*100;
+}
+else {
+frac1[i]= frac1[i-1];
+}
+}
+
+//Smoothed calculation for %FastD of MACD
+
+PF[0]=frac1[0];
+PF[1]=frac1[1];
+for (i = 2; i < BarCount; i++) {
+PF[i]=PF[i-1]+(Factor*(frac1[i]-PF[i-1]));
+}
+
+//2nd Stochastic: Calculate Stochastic of Smoothed Percent FastD, above.
+Value3 = LLV(PF, TCLen);
+Value4 = HHV(PF, TCLen) - Value3;
+
+//%FastK of PF
+/*
+Frac2=1;
+Frac2 = IIf(Value4 > 0, ((PF - Value3) / Value4) * 100, Ref(FRAC2,-1));
+*/
+
+frac2[0]=0;
+for (i = 1; i < BarCount; i++) {
+if (Value4[i] > 0 ) {
+frac2[i]=((PF[i] - Value3[i])/Value4[i])*100;
+}
+else {
+frac2[i]=frac2[i-1];
+}
+}
+
+//Smoothed calculation for %FastD of PF
+PFF[0]=frac2[0];
+PFF[1]=frac2[1];
+for (i = 2; i < BarCount; i++) {
+PFF[i]=PFF[i-1]+(Factor*(frac2[i]-PFF[i-1]));
+}
+
+//HT=ParamColor("HT", colorRed );
+
+rsidn=pff <2;
+rsiup=pff >98;
+
+rsiresult1 = WriteIf( rsiup,"cu", "");
+rsiresult2 = WriteIf( rsidn,"cd", "");
+
+RequestTimedRefresh( 0 );
+GfxSelectFont( "Tahoma", 12, 120 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorWhite );
+
+if ( rsiresult1 =="cu")
+{
+GfxSelectSolidBrush( ColorRGB(0,120,0) );
+
+}
+else
+
+if ( rsiresult2 =="cd")
+
+{
+GfxSelectSolidBrush( ColorRGB(120,0,0));
+
+}
+
+else
+
+if ( rsiresult2 =="")
+
+{
+GfxSelectSolidBrush( colorDarkTeal );
+
+}
+
+GfxSelectFont( "Arial", 10, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorBlue );
+GfxRoundRect( 390,560,220,425, 50, 50 );
+
+_SECTION_END();
+
+_SECTION_BEGIN("rsi");
+
+//HT=ParamColor("HT", colorRed );
+
+rsidn=RSI(7) <30;
+rsiup=RSI(7) >70;
+
+rsiresult1 = WriteIf( rsiup,"cu", "");
+rsiresult2 = WriteIf( rsidn,"cd", "");
+
+RequestTimedRefresh( 0 );
+GfxSelectFont( "Tahoma", 12, 120 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorWhite );
+
+if ( rsiresult1 =="cu")
+{
+GfxSelectSolidBrush( ColorRGB(0,150,0) );
+
+}
+else
+
+if ( rsiresult2 =="cd")
+
+{
+GfxSelectSolidBrush( ColorRGB(150,0,0));
+
+}
+
+else
+
+if ( rsiresult2 =="")
+
+{
+GfxSelectSolidBrush( colorDarkTeal );
+
+}
+
+GfxSelectFont( "Arial", 10, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorBlue );
+
+GfxRoundRect( 380,550,230,435, 50, 50 );
+
+_SECTION_END();
+
+_SECTION_BEGIN("Rays");
+
+//FT=ParamColor("FT", colorRed );
+
+Pp1=3;
+Pp2=2;
+
+CS33=HHV(LLV(flowerHigh,Pp1)-ATR(Pp2),4);
+CR33=HHV(LLV(flowerHigh,Pp1)-ATR(Pp2),5);
+
+AtrupTrendCond1 = flowerClose> CS33 ;
+AtrdnTrendCond1 =CS33>flowerClose ;
+
+ATRup = WriteIf(AtrupTrendCond1,"atrup", "");
+ATRdown= WriteIf( AtrdnTrendCond1,"atrdn", "");
+
+if ( ATRup =="atrup")
+{
+GfxSelectSolidBrush( ColorRGB(0,180,0) );
+
+}
+else
+
+if (ATRdown =="atrdn")
+
+{
+GfxSelectSolidBrush( ColorRGB(180,0,0));
+
+}
+
+else
+
+if ( ATRdown =="")
+
+{
+GfxSelectSolidBrush( colorDarkTeal );
+
+}
+
+GfxSelectFont( "Arial", 10, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorBlue );
+
+GfxSelectPen( colorBlue, 1 ); // broader color
+GfxRoundRect( 370,540,240,445, 50, 50 );
+
+_SECTION_END();
+
+_SECTION_BEGIN("Exit_Beast-3");
+
+//GT=ParamColor("GT", colorRed );
+
+EntrylookbackPeriod=10;
+EntryATRperiod=1.9;
+EntrySig = C > ( LLV( flowerLow, EntrylookbackPeriod ) + EntryATRperiod * ATR( 10 ) );
+ExitSig = C < ( HHV( flowerHigh, EntrylookbackPeriod ) -EntryATRperiod * ATR( 10 ) );
+
+RequestTimedRefresh( 0 );
+GfxSelectFont( "Tahoma", 12, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorWhite );
+
+EntryB = WriteIf( EntrySig,"eu", "");
+ExitB = WriteIf( ExitSig,"ed", "");
+
+if ( EntryB =="eu")
+{
+GfxSelectSolidBrush( ColorRGB(0,210,0) ); //
+
+}
+else
+
+if ( ExitB =="ed")
+
+{
+GfxSelectSolidBrush( ColorRGB(210,0,0)); //
+
+}
+
+else
+
+if ( ExitB =="")
+
+{
+GfxSelectSolidBrush( colorDarkTeal );
+
+}
+
+GfxSelectFont( "Arial", 10, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorBlue );
+
+GfxSelectPen( colorBlue, 1 ); // broader color
+GfxRoundRect( 360,530,250,455, 50, 50 );
+
+// changing the value of x,y,rad x-70, y-90, rad-24
+
+_SECTION_END();
+
+_SECTION_BEGIN("CCI9-2");
+
+//HT=ParamColor("HT", colorRed );
+
+ccidn=CCI(8) < 0;
+cciup=CCI(9) > 0;
+
+ccresult1 = WriteIf( cciup,"cu", "");
+ccresult2 = WriteIf( ccidn,"cd", "");
+
+RequestTimedRefresh( 0 );
+GfxSelectFont( "Tahoma", 12, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorWhite );
+
+if ( ccresult1 =="cu")
+{
+GfxSelectSolidBrush( ColorRGB(0,240,0) );
+
+}
+else
+
+if ( ccresult2 =="cd")
+
+{
+GfxSelectSolidBrush( ColorRGB(240,0,0));
+
+}
+
+else
+
+if ( ccresult2 =="")
+
+{
+GfxSelectSolidBrush( colorDarkTeal );
+
+}
+
+GfxSelectFont( "Arial", 10, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorBlue );
+
+GfxSelectPen( colorBlue, 1 ); // broader color
+GfxRoundRect( 350,520,260,465, 50, 50 );
+
+_SECTION_END();
+
+_SECTION_BEGIN("%BB7-1");
+
+//IT=ParamColor("IT", colorRed );
+p=7;
+x=((C+2*StDev(C,p)-MA(C,p))/(4*StDev(C,p)))*100;
+bbdown= x < 40;
+bbup= x > 40;
+
+bbresult1 = WriteIf( bbup,"bu", "");
+bbresult2 = WriteIf( bbdown,"bd", "");
+bbresult3 = WriteIf( C,"bearishrevers", "");
+
+RequestTimedRefresh( 0 );
+GfxSelectFont( "Tahoma", 12, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorWhite );
+
+if ( bbresult1 =="bu")
+{
+GfxSelectSolidBrush( ColorRGB(62,255,62) );
+
+}
+else
+
+if ( bbresult2 =="bd")
+
+{
+GfxSelectSolidBrush( ColorRGB(255,62,62) );
+
+}
+
+else
+
+if ( bbresult2 =="")
+
+{
+GfxSelectSolidBrush( colorDarkTeal );
+
+}
+
+GfxSelectFont( "Arial", 10, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorBlue );
+
+GfxSelectPen( colorBlue, 1 ); // broader color
+
+GfxRoundRect( 340,510,270,475, 50, 50 );
+
+_SECTION_END();
+
+
+x = 300;
+x2 = 200;
+
+y = Status( "pxchartheight" );
+GfxSelectSolidBrush( colorBlue );
+GfxSelectPen( colorWhite, 1); // broader color
+GfxRoundRect( 540, y - 255, 425,y-160 ,7 , 7 ) ;
+
+_SECTION_BEGIN("MACDHIGHBULLISH");
+r1 = Param( "Fast avg", 12, 2, 200, 1 );
+r2 = Param( "Slow avg", 26, 2, 200, 1 );
+r3 = Param( "Signal avg", 9, 2, 200, 1 );
+r4 = Param( "Wk slow", 17, 2, 200, 1 );
+r5 = Param( "Wk fast", 8, 2, 200, 1 );
+m1=MACD(r1,r2);
+s1=Signal(r1,r2,r3);
+
+rsidn=m1>0 AND m1>s1;
+rsiresult2 = WriteIf( rsidn,"cd", "");
+if ( rsiresult2 =="cd")
+
+{
+GfxSelectSolidBrush( ColorRGB(0,147,0));
+
+}
+
+else
+
+if ( rsiresult2 =="")
+
+{
+GfxSelectSolidBrush( colorDarkTeal );
+
+}
+RequestTimedRefresh( 0 );
+GfxSelectFont( "Arial", 10, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorBlue );
+
+GfxSelectPen( colorBlue, 1 );
+// broader color
+GfxCircle( 445,550,10 );
+
+_SECTION_END();
+
+rsidn=m1<0 AND m1>s1;
+rsiresult2 = WriteIf( rsidn,"cd", "");
+if ( rsiresult2 =="cd")
+
+{
+GfxSelectSolidBrush( ColorRGB(0,147,0));
+
+}
+
+else
+
+if ( rsiresult2 =="")
+
+{
+GfxSelectSolidBrush( colorDarkTeal );
+
+}
+RequestTimedRefresh( 0 );
+GfxSelectFont( "Arial", 10, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorBlue );
+
+GfxSelectPen( colorBlue, 1 );
+// broader color
+
+GfxCircle( 470,550, 10);
+
+_SECTION_END();
+
+_SECTION_BEGIN("MACDLOWHBEARISH");
+r1 = Param( "Fast avg", 12, 2, 200, 1 );
+r2 = Param( "Slow avg", 26, 2, 200, 1 );
+r3 = Param( "Signal avg", 9, 2, 200, 1 );
+r4 = Param( "Wk slow", 17, 2, 200, 1 );
+r5 = Param( "Wk fast", 8, 2, 200, 1 );
+m1=MACD(r1,r2);
+s1=Signal(r1,r2,r3);
+
+rsidn=m1>0 AND m1<s1;
+rsiresult2 = WriteIf( rsidn,"cd", "");
+if ( rsiresult2 =="cd")
+
+{
+GfxSelectSolidBrush( ColorRGB(225,0,0));
+
+}
+
+else
+
+if ( rsiresult2 =="")
+
+{
+GfxSelectSolidBrush( colorDarkTeal );
+
+}
+RequestTimedRefresh( 0 );
+GfxSelectFont( "Arial", 10, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorBlue );
+
+GfxSelectPen( colorBlue, 1 );
+// broader color
+
+GfxCircle(495,550,10);
+
+_SECTION_END();
+
+_SECTION_BEGIN("MACDHIGHHBEARISH");
+r1 = Param( "Fast avg", 12, 2, 200, 1 );
+r2 = Param( "Slow avg", 26, 2, 200, 1 );
+r3 = Param( "Signal avg", 9, 2, 200, 1 );
+r4 = Param( "Wk slow", 17, 2, 200, 1 );
+r5 = Param( "Wk fast", 8, 2, 200, 1 );
+m1=MACD(r1,r2);
+s1=Signal(r1,r2,r3);
+rsidn=m1<0 AND m1<s1;
+rsiresult2 = WriteIf( rsidn,"cd", "");
+if ( rsiresult2 =="cd")
+{
+GfxSelectSolidBrush( ColorRGB(225,0,0));
+}
+
+else
+
+if ( rsiresult2 =="")
+
+{
+GfxSelectSolidBrush( colorDarkTeal );
+
+}
+RequestTimedRefresh( 0 );
+GfxSelectFont( "Arial", 10, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorBlue );
+
+GfxSelectPen( colorBlue, 1 );
+// broader color
+
+GfxCircle( 520,550,10 );
+
+_SECTION_END();
+
+_SECTION_BEGIN("traing sl");
+
+function vstop_func(trBull,trBear)
+{
+trailArray[ 0 ] = C[ 0 ]; // initialize
+for( i = 1; i < BarCount; i++ )
+{
+prev = trailArray[ i - 1 ];
+
+if (C[ i ] > prev AND C[ i - 1 ] > prev)
+{
+trailArray[ i ] = Max(prev,C[ i ] - trBull[ i ]);
+}
+else if (C[ i ] < prev AND C[ i - 1 ] < prev)
+{
+trailArray[ i ] = Min(prev,C[ i ] + trBear[ i ]);
+}
+else if (C[ i ] > prev)
+{
+trailArray[ i ] = C[ i ] - trBull[ i ];
+}
+else
+{
+trailArray[ i ] = C[ i ] + trBear[ i ];
+}
+}
+return trailArray;
+}
+
+per = Param("per",20, 1, 150, 1);
+multBull = Param("multBull",2, 1, 4, 0.05);
+multBear = Param("multBear",2, 1, 4, 0.05);
+
+trBull = multBull * ATR(per);
+trBear = multBear * ATR(per);
+
+trailArray = vstop_func(trBull,trBear);
+s0=trailArray;
+
+s1= s0 > C ;
+s2= s0 <C ;
+ccresult1 = WriteIf( s1,"cu", "");
+ccresult2 = WriteIf( s2,"cd", "");
+
+GfxSelectFont("arial", 13, 700 ); GfxSetBkMode( colorRed);
+GfxSetTextColor( ParamColor("Color",colorRed) );
+Hor=Param("Horizontal Position",30,10,1200,1);
+Ver=Param("Vertical Position",185,100,50,50);
+
+_SECTION_END();
+
+_SECTION_BEGIN("traing s2");
+
+s0=trailArray;
+
+s1= s0 > C ;
+s2= s0 <C ;
+ccresult1 = WriteIf( s1,"cu", "");
+ccresult2 = WriteIf( s2,"cd", "");
+
+_SECTION_END();
+
+_SECTION_BEGIN("buycircle");
+GfxSelectFont( "Arial", 10, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorBlue );
+GfxSelectPen( colorBlue, 1 );
+if ( ccresult2 =="cd")
+{
+GfxSelectSolidBrush( ColorRGB(0,255,0) );
+}
+else
+{
+GfxSelectSolidBrush( ColorRGB(0,0,94) );
+}
+
+GfxCircle( 455,510,20 );
+
+_SECTION_END();
+_SECTION_BEGIN("sellcircle");
+GfxSelectFont( "Arial", 10, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorBlue );
+GfxSelectPen( colorBlue, 1 );
+if ( ccresult1 =="cu")
+{
+GfxSelectSolidBrush( ColorRGB(255,0,0) );
+}
+else
+{
+GfxSelectSolidBrush( ColorRGB(0,0,94) );
+}
+
+GfxCircle( 510,510,20 );
+_SECTION_END();
+_SECTION_BEGIN("ema_crossover");
+//Plot(EMA(Close,5),"",colorOrange,styleLine );
+//Plot(EMA(Close,13),"",colorBlueGrey,styleLine);
+//Plot(EMA(Close,21),"",colorTeal,styleLine);
+_SECTION_END();
+
+_SECTION_BEGIN("RIGHT GUIDE_PriceChart");
+
+DDayO = TimeFrameGetPrice("O", inDaily);// current day open
+DHiDay = TimeFrameGetPrice("H", inDaily);
+DLoDay = TimeFrameGetPrice("L", inDaily);
+
+Title = "" + Name() + ", " + Interval(2) + ", " + Date() +
+EncodeColor(colorPink) + "\nO " + EncodeColor(colorYellow) + O +
+EncodeColor(colorPink) + ", H : " + EncodeColor(colorBrightGreen) + H +
+EncodeColor(colorPink) + ", L : " + EncodeColor(colorRed) + L +
+EncodeColor(colorPink) + ", C : " + EncodeColor(colorWhite) + C +
+"\n DLY-OPEN : " +DDayO + " Day-High : " +DHiDay + " Day-LOW : " + DLoDay;
+//PlotOHLC( Open, High, Low, Close, "", barcolor1, styleLine+styleNoLabel|styleThick+styleCandle );
+_SECTION_END();
+
+_SECTION_BEGIN("Right Functions");
+
+function HAI_F1(no)
+{
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+return (IIf(avn==1,sup,res));
+}
+
+function HAI_F2(no)
+{
+return (Cross(C,HAI_F1(no)));
+}
+
+function HAI_F3(no)
+{
+return (Cross(HAI_F1(no),C));
+}
+
+function HAI_F4(no)
+{
+prev=AMA2(C,1,0);
+d=IIf(C>Ref(Max(Max(H,Ref(H,-20)),Max(Ref(H,-10),Ref(H,-15))),-1),Min(Min(L,Ref(L,-20)),Min(Ref(L,-10),Ref(L,-15))),
+IIf(C<Ref(Min(Min(L,Ref(L,-20)),Min(Ref(L,-10),Ref(L,-15))),-1),Max(Max(H,Ref(H,-20)),Max(Ref(H,-10),Ref(H,-15))),PREV));
+a=Cross(Close,d);
+b=Cross(d,Close);
+return (IIf(BarsSince(a)<BarsSince(b),1,0));
+}
+
+function HAI_F5(no)
+{
+state = HAI_F4(no);
+s=state>Ref(state,-1);
+ss=state<Ref(state,-1);
+
+return (state==Ref(state,-1));
+}
+
+function HAI_F6(p,n,s,m)
+{
+return (PDI(p)>MDI(n)AND Signal(s)<MACD(m));
+}
+
+function HAI_F7(p,n,s,m)
+{
+return (MDI(n)>PDI(p)AND Signal(s)>MACD(m));
+}
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("trending ribbon");
+uptrend=PDI()>MDI()AND Signal()<MACD();
+downtrend=MDI()>PDI()AND Signal()>MACD();
+
+_SECTION_END();
+
+_SECTION_BEGIN("Swing");
+no = 22;
+sloss = HAI_F1(no);
+a = HAI_F2(no);
+b = HAI_F3(no);
+state = HAI_F4(no);
+sss = HAI_F5(no);
+uptrend = HAI_F6(20,10,29,22);
+downtrend = HAI_F7(20,10,29,13);
+style = a * styleStaircase + b * styleStaircase;
+PlotShapes(a,style, IIf(a,colorGreen,colorRed), 0, IIf(a,Low,High));
+
+_SECTION_END();
+
+_SECTION_BEGIN("");
+Buy = a;
+Sell = b;
+
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-10);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-20);
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-15);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=20);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=30);
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-25);
+
+dist =0.5* ATR(10);
+dist1 = 2*ATR(10);
+for (i=0; i<BarCount; i++) {
+if ( Buy[i] )
+PlotText("Buy:" + C[ i ], i, L[ i ]-3*dist[i], colorGreen);
+
+if ( Sell[i] )
+
+PlotText("Sell:" + C[ i ], i, H[ i ]+3*dist[i], colorRed);
+}
+
+AlertIf( Buy, "", "BUY @ " + C, 1 );
+AlertIf( Sell, "", "SELL @ " + C, 2 );
+//AlertIf( Buy, "EMAIL", "A sample alert on "+FullName(), 1 );
+//AlertIf( Sell, "EMAIL", "A sample alert on "+FullName(), 2 );
+SetPositionSize(100,spsShares);
+_SECTION_END();
+
+//d = Close > Ref( ChandelierHL(ATR(3),20), -1);
+//e =Close < Ref( ChandelierHL(ATR(3),20), -1);
+//f = Close < Ref( ChandelierHL(ATR(3),20), -1);
+//g = Close > Ref( ChandelierHL(ATR(3),20), -1);
+
+Buuy = a AND uptrend ;
+Shorrt = b AND downtrend ;
+Seell = b AND downtrend ;
+Coveer = a AND uptrend;
+
+Buuy=ExRem(Buy,Sell);
+Seell=ExRem(Sell,Buy);
+Coveer=ExRem(Coveer,Shorrt);
+Shorrt=ExRem(Shorrt,Coveer);
+
+Filter=Buy OR Sell;
+Filter= Coveer OR Shorrt;
+
+AddColumn( Buy, "Buy", 1);
+AddColumn(Sell, "Sell", 1);
+AddColumn(Close,"Close",1.2);
+AddColumn(Volume,"Volume",1.0);
+
+//Plot(sloss,"Swing",colorYellow,styleStaircase);
+
+//SetChartBkGradientFill( ParamColor("BgTop", ColorRGB( 172,172,172 )),
+
+//ParamColor("BgBottom", ColorRGB( 172,172,172 )),ParamColor("titleblock",ColorRGB( 172,172,172 )));
+//Alerts
+
+GraphXSpace = 5;
+
+/* -------------------------------------------------------------------------------------- */
+
+SetChartBkColor(colorWhite);
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+/* -------------------------------------------------------------------------------------- */
+////////////////////////////////////////////////////////////////////////////////////////////////
+messageboard = ParamToggle("Message Board","Show|Hide",0);
+showsl = ParamToggle("Stop Loss Line", "Show|Hide", 0);
+
+style = a * styleStaircase + b * styleStaircase;
+
+PlotShapes(a,style, IIf(a,colorGreen,colorRed), 0, IIf(a,Low,High));
+if (showsl == 0)
+Plot(sloss,"",colorYellow,styleLine |styleDashed|styleThick);
+exitlong = Cross(sloss, H);
+PlotShapes(exitlong * shapeNone, colorBlack,0,H,-10);
+exitshort = Cross(L, sloss);
+PlotShapes(exitshort * shapeNone, colorBlack,0,L,-15);
+
+Buy = exitshort;
+Sell = exitlong;
+//Short = Sell;
+//Cover = Buy;
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+//Short = ExRem(Short, Cover);
+//Cover = ExRem(Cover, Short);
+AlertIf( Buy, "", "BUY @ " + C, 1 );
+AlertIf( Sell, "", "SELL @ " + C, 2 );
+
+for (i=BarCount-1; i>1; i--) {
+if (Buy[i] == 1) {
+entry =C[i];
+sig = "BUY";
+sl = sloss[i];
+tar1 = entry + (entry * .0085);
+tar2 = entry + (entry * .0170);
+tar3 = entry + (entry * .0250);
+bars = i;
+i = 0;
+}
+if (Sell[i] == 1) {
+sig = "SELL";
+entry = C[i];
+sl = sloss[i];
+tar1 = entry - (entry * .0085);
+tar2 = entry - (entry * .0170);
+tar3 = entry - (entry * .0250);
+bars = i;
+i = 0;
+}
+}
+
+Offset = 20;
+Clr = IIf(sig == "BUY", colorLime, colorRed);
+ssl = IIf(bars == BarCount-1, sloss[BarCount-1], Ref(sloss, -1));
+sl = ssl[BarCount-1];
+
+printf("Last " + sig + " Signal came " + (BarCount-bars) + " bars ago");
+printf("\n" + sig + " @ : " + entry + "\nStop Loss : " + sl + " (" + WriteVal(IIf(sig == "SELL",entry-sl,sl-entry), 2.2) + ")"+ "\nTarget_1 : " + tar1 + "\nTarget_2 : " + tar2 + "\nTarget_3 : " + tar3);
+printf("\nCurrent P/L : " + WriteVal(IIf(sig == "BUY",(C-entry),(entry-C)),2.2));
+
+if (messageboard == 0) {
+GfxSelectFont( "Tahoma", 13, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorWhite );
+
+if (sig =="BUY")
+GfxSelectSolidBrush( colorGreen ); // this is the box background color
+else
+GfxSelectSolidBrush( colorRed ); // this is the box background color
+
+pxHeight = Status( "pxchartheight" ) ;
+xx = Status( "pxchartwidth");
+Left = 600;
+width = 200;
+x = 5;
+x2 = 200;
+
+y = Status( "pxchartheight" );
+
+GfxSelectPen( colorGreen, 2); // broader color
+GfxRoundRect( x, y - 180, x2, y , 37, 37 ) ;
+GfxTextOut( ( "SecureTrade Premier"), 16, y-170) ;
+//GfxTextOut( ( "SecureTrade Trading System"), 16, y-170) ;
+GfxTextOut( ("" + WriteIf(sig =="BUY",sig + " @ ",sig + " @") + " : " + entry), 13, y-120);
+GfxTextOut( ("Trailing SL : " + sloss + " "), 13, y-40);
+GfxTextOut( ("Target:1 : " + tar1), 13, y -100);
+GfxTextOut( ("Target:2 : " + tar2), 13,y-80);
+GfxTextOut( ("Target:3 : " + tar3), 13,y-60);
+GfxTextOut( (Name()), 13, y -145);
+GfxTextOut( ("Current P/L : " + WriteVal(IIf(sig == "BUY",(C-entry),(entry-C)),2.2)), 13, y-20);;
+GfxTextOut( (" "),20, y -400);
+GfxSetBkMode(0); // transparent
+GfxSelectFont("Arial", 12, 400, italic = False, underline = False, True );
+GfxTextOut( Name(), Status("pxwidth")/2.4, Status("pxheight")/20);
+GfxTextOut( (""), 20, y -200);
+}
+_SECTION_END();
+
+////////////////////////////////////////////////////////////////////////
+
+//1m
+ec=WriteIf(EMA(C,5)>EMA(C,13) OR EMA(C,5)<EMA(C,13),"One","x");
+ec2=WriteIf(EMA(C,5)>EMA(C,13) AND EMA(C,5)>EMA(C,20),"On","x");
+ec3=WriteIf(EMA(C,5)<EMA(C,13) AND EMA(C,5)<EMA(C,20),"Oe","x");
+//5m
+TimeFrameSet(in5Minute);
+e5=EMA(C,5);
+e13=EMA(C,13);
+e20=EMA(C,20);
+TimeFrameRestore();
+e5x5=TimeFrameExpand( e5, in5Minute,expandLast );
+e5x13=TimeFrameExpand( e13, in5Minute,expandLast );
+e5x20=TimeFrameExpand( e20, in5Minute,expandLast );
+
+e5c=WriteIf(e5x5>e5x13 OR e5x5<e5x13,"One","x");
+e5c2=WriteIf(e5x5>e5x13 AND e5x5>e5x20,"On","x");
+e5c3=WriteIf(e5x5<e5x13 AND e5x5<e5x20,"Oe","x");
+//15m
+TimeFrameSet(in15Minute);
+e15=EMA(C,5);
+e113=EMA(C,13);
+e120=EMA(C,20);
+TimeFrameRestore();
+e15x5=TimeFrameExpand( e15, in15Minute,expandLast );
+e15x13=TimeFrameExpand( e113, in15Minute,expandLast );
+e15x20=TimeFrameExpand( e120, in15Minute,expandLast );
+e15c=WriteIf(e15x5>e15x13 OR e15x5<e15x13,"One","x");
+e15c2=WriteIf(e15x5>e15x13 AND e15x5>e15x20,"On","x");
+e15c3=WriteIf(e15x5<e15x13 AND e15x5<e15x20,"Oe","x");
+//1h
+TimeFrameSet(inHourly);
+e51=EMA(C,5);
+e131=EMA(C,13);
+e201=EMA(C,20);
+TimeFrameRestore();
+ehx5=TimeFrameExpand( e51, inHourly,expandLast );
+ehx13=TimeFrameExpand( e131, inHourly,expandLast );
+ehx20=TimeFrameExpand( e201, inHourly,expandLast );
+ehc=WriteIf(ehx5>ehx13 OR ehx5<ehx13,"One","x");
+ehc2=WriteIf(ehx5>ehx13 AND ehx5>ehx20,"On","x");
+ehc3=WriteIf(ehx5<ehx13 AND ehx5<ehx20,"Oe","x");
+//4h
+TimeFrameSet(inHourly*4);
+eh51=EMA(C,5);
+eh131=EMA(C,13);
+eh201=EMA(C,20);
+TimeFrameRestore();
+eh4x5=TimeFrameExpand( eh51, inHourly*4,expandLast );
+eh4x13=TimeFrameExpand( eh131, inHourly*4,expandLast );
+eh4x20=TimeFrameExpand( eh201, inHourly*4,expandLast );
+e4hc=WriteIf(eh4x5>eh4x13 OR eh4x5<eh4x13,"One","x");
+e4hc2=WriteIf(eh4x5>eh4x13 AND eh4x5>eh4x20,"On","x");
+e4hc3=WriteIf(eh4x5<eh4x13 AND eh4x5<eh4x20,"Oe","x");
+//d
+TimeFrameSet(inDaily);
+ed5=EMA(C,5);
+ed13=EMA(C,13);
+ed20=EMA(C,20);
+TimeFrameRestore();
+edx5=TimeFrameExpand( ed5, inDaily,expandLast );
+edx13=TimeFrameExpand( ed13, inDaily,expandLast );
+edx20=TimeFrameExpand( ed20, inDaily,expandLast );
+edc=WriteIf(edx5>edx13 OR edx5<edx13,"One","x");
+edc2=WriteIf(edx5>edx13 AND edx5>edx20,"On","x");
+edc3=WriteIf(edx5<edx13 AND edx5<edx20,"Oe","x");
+TimeFrameSet(inWeekly);
+ew5=EMA(C,5);
+ew13=EMA(C,13);
+ew20=EMA(C,20);
+TimeFrameRestore();
+ewx5=TimeFrameExpand( ew5, inWeekly,expandLast );
+ewx13=TimeFrameExpand( ew13, inWeekly,expandLast );
+ewx20=TimeFrameExpand( ew20, inWeekly,expandLast );
+ewc=WriteIf(ewx5>ewx13 OR ewx5<ewx13,"One","x");
+ewc2=WriteIf(ewx5>ewx13 AND ewx5>ewx20,"On","x");
+ewc3=WriteIf(ewx5<ewx13 AND ewx5<ewx20,"Oe","x");
+
+Hor=Param("Horizontal Position",1,1,1200,1);
+Ver=Param("Vertical Position",60,30,1000,1);
+///1
+GfxSelectFont("Callibri", 10 , 700, True );
+GfxSetBkMode( colorBlack );
+GfxSetTextColor( colorWhite );
+GfxTextOut("EMA Sig ",Hor, Ver);
+GfxSetTextColor( colorWhite );
+GfxTextOut("1 M ",Hor+72, Ver-15);
+if(ec=="One")
+GfxSelectSolidBrush(colorGold);
+if(ec2=="On")
+GfxSelectSolidBrush(colorBrightGreen);
+if(ec3=="Oe")
+GfxSelectSolidBrush(colorRed);
+GfxSelectPen( colorBlack, 1 ); // broader color
+GfxRectangle( Hor+70,Ver+5,Hor+100,Ver+15 );
+///2
+GfxSetTextColor( colorWhite );
+GfxTextOut("5 M ",Hor+112, Ver-15);
+
+if(e5c=="One")
+GfxSelectSolidBrush(colorGold);
+if(e5c2=="On")
+GfxSelectSolidBrush(colorBrightGreen);
+if(e5c3=="Oe")
+GfxSelectSolidBrush(colorRed);
+GfxRectangle( Hor+110,Ver+5,Hor+140,Ver+15 );
+///3
+GfxSetTextColor( colorWhite );
+GfxTextOut("15 M ",Hor+150, Ver-15);
+
+if(e15c=="One")
+GfxSelectSolidBrush(colorGold);
+if(e15c2=="On")
+GfxSelectSolidBrush(colorBrightGreen);
+if(e15c3=="Oe")
+GfxSelectSolidBrush(colorRed);
+GfxRectangle( Hor+150,Ver+5,Hor+180,Ver+15 );
+///4
+GfxSetTextColor( colorWhite );
+GfxTextOut("1 H ",Hor+193, Ver-15);
+
+if(ehc=="One")
+GfxSelectSolidBrush(colorGold);
+if(ehc2=="On")
+GfxSelectSolidBrush(colorBrightGreen);
+if(ehc3=="Oe")
+GfxSelectSolidBrush(colorRed);
+GfxRectangle( Hor+190,Ver+5,Hor+220,Ver+15 );
+//4
+if(e4hc=="One")
+GfxSelectSolidBrush(colorGold);
+if(e4hc2=="On")
+GfxSelectSolidBrush(colorBrightGreen);
+if(e4hc3=="Oe")
+GfxSelectSolidBrush(colorRed);
+GfxRectangle( Hor+230,Ver+5,Hor+260,Ver+15 );
+GfxSetTextColor( colorWhite );
+GfxTextOut("4 H ",Hor+233, Ver-15);
+if(edc=="One")
+GfxSelectSolidBrush(colorGold);
+if(edc2=="On")
+GfxSelectSolidBrush(colorBrightGreen);
+if(edc3=="Oe")
+GfxSelectSolidBrush(colorRed);
+GfxRectangle( Hor+270,Ver+5,Hor+300,Ver+15 );
+GfxTextOut("D ",Hor+280, Ver-15);
+if(ewc=="One")
+GfxSelectSolidBrush(colorGold);
+if(ewc2=="On")
+GfxSelectSolidBrush(colorBrightGreen);
+if(ewc3=="Oe")
+GfxSelectSolidBrush(colorRed);
+GfxRectangle( Hor+310,Ver+5,Hor+340,Ver+15 );
+GfxTextOut("Weekly ",Hor+310, Ver-15);
+
+_SECTION_BEGIN("Price");
+
+//_SECTION_BEGIN("Price");
+
+//P1 = ParamField("Price field",-1);
+//SetChartOptions(0,chartShowArrows|chartShowDates);
+//_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C,
+
+//SelectedValue( ROC( C, 1 ) ) ));
+//Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+
+//crossup= C>VC1;
+//if(StrToNum(NumToStr(crossup)))bgColor = colorLime;
+//else bgColor = colorOrange;
+//SetChartBkGradientFill( colorBlack, bgColor);
+
+//Color = IIf( VP1 > VP2 AND C > VP1 , colorBrightGreen, IIf( VP2 > VP1 AND C < VP1 ,
+
+//colorDarkRed, colorDarkGrey )) ;
+
+//Plot( 2, "", Color, styleArea | styleOwnScale | styleNoLabel, -0.1, 35 );
+
+//_SECTION_END();
+
+_SECTION_BEGIN("SkyBlue's Animated BkGround");
+
+for( i = 1; i < BarCount; i++ )
+z = (GetPerformanceCounter()/100)%256;
+anim=ColorHSB( ( i + z ) % 256, 255, 100 );
+//SetChartBkColor(anim);
+RequestTimedRefresh(1);
+
+_SECTION_END();
+////////////////////////////////////////////////////////////////////////////////////
+//Chart Panel Settings:
+SetChartOptions(0,chartShowArrows|chartShowDates);
+SetChartBkColor(ParamColor("Panel Color ",colorBlack));
+//Chart Title
+Title =
+EncodeColor(colorWhite)+ Title = Name () + " | "
++EncodeColor(colorYellow) + Date() + " | "
++EncodeColor(colorTurquoise)+ "O : "+ EncodeColor(colorLightGrey)+ O + " | "
++EncodeColor(colorTurquoise)+ "H : "+ EncodeColor(colorLightGrey)+ H + " | "
++EncodeColor(colorTurquoise)+ "L : "+ EncodeColor(colorLightGrey)+ L + " | "
++EncodeColor(colorTurquoise)+ "C : "+ WriteIf(C> Ref(C, -1),EncodeColor(colorBrightGreen),EncodeColor(colorRed))+ C + " | "
++EncodeColor(colorTurquoise)+ "Change : ("+ WriteIf(C> Ref(C, -1),EncodeColor(colorBrightGreen),EncodeColor(colorRed)) + WriteVal(C-Ref(C,-1))+" Rs."
++EncodeColor(colorTurquoise)+ " /"+ WriteIf(C> Ref(C, -1),EncodeColor(colorBrightGreen),EncodeColor(colorRed))+ WriteVal( ROC( C, 1 ))+""+ " % "
++EncodeColor(colorTurquoise)+ ") | Volume : " + WriteIf(V> Ref(V, -1),EncodeColor(colorBrightGreen),EncodeColor(colorRed))+ WriteVal(V,1);
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+crossup= C>EMA(C,50);
+if(StrToNum(NumToStr(crossup)))bgColor = colorGreen;
+else bgColor = colorRed;
+SetChartBkGradientFill( colorBlack, bgColor);
+
+////////////////////////////////////////////////////
+
+_SECTION_BEGIN("Magnified Close Price");
+FS=Param("Font Size",30,30,100,1);
+GfxSelectFont("Arial", FS, 700, italic = False, underline = False, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor( ParamColor("Color",colorCustom12) );
+Hor=Param("Horizontal Position",150,50,800,50);
+Ver=Param("Vertical Position",10,10,500,20);
+GfxTextOut(" "+C,Hor , Ver );
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+GfxSelectFont("Arial", 12, 700, italic = False, underline = False, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor(ParamColor("Color",colorCustom12) );
+GfxTextOut(""+DD+" ("+xx+"%)", Hor+5, Ver+45 );
+_SECTION_END();
+
+////////////////////////////////////////////////////////////////////
+
+_SECTION_BEGIN("New formula");
+RCP = C > EMA(C,50) AND EMA(C,50) < MA(C,200); // Recovery Blue
+ACP = C > EMA(C,50) AND C > MA(C,200) AND EMA(C,50) < MA(C,200); // Accumulation Seagreen
+BLP = C > EMA(C,50) AND C > MA(C,200) AND EMA(C,50) > MA(C,200); // Bullish Limegreen
+WRP = C < EMA(C,50) AND EMA(C,50) > MA(C,200); // Warning Pink
+DSP = C < EMA(C,50) AND C < MA(C,200) AND EMA(C,50) > MA(C,200); // Distribution Orange
+BRP = C < EMA(C,50) AND C < MA(C,200) AND EMA(C,50) < MA(C,200); // Bearish Red
+
+Plot( 2, "", IIf(RCP, colorBlue, IIf(ACP, colorSeaGreen, IIf(BLP, colorDarkGreen, IIf(WRP, colorOrange, IIf(DSP, colorRed, IIf(BRP, colorDarkRed, 0)))))), styleOwnScale|styleArea|styleNoLabel, -0.1, 50 );
+Plot( 2, "", IIf(RCP, colorBlue, IIf(ACP, colorAqua, IIf(BLP, colorLime, IIf(WRP, colorPink, IIf(DSP, colorOrange, IIf(BRP, colorRed, 0)))))), styleOwnScale|styleArea|styleNoLabel, -0.1, 50 );
+
+_SECTION_END();

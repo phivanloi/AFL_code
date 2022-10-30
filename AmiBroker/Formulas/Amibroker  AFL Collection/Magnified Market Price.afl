@@ -1,0 +1,18 @@
+_SECTION_BEGIN("Magnified Market Price");
+//by Vidyasagar, vkunisetty@yahoo.com// 
+FS=Param("Font Size",28,11,100,1);
+GfxSelectFont("Arial", FS, 700, italic = False, underline = False, True ); 
+GfxSetBkMode( colorWhite ); 
+GfxSetTextColor( ParamColor("Color",colorViolet) ); 
+Hor=Param("Horizontal Position",766,1,1200,1);
+Ver=Param("Vertical Position",1,1,1,1);
+GfxTextOut(""+C,Hor , Ver );
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+GfxSelectFont("Arial", 12, 700, italic = False, underline = False, True ); 
+GfxSetBkMode( colorWhite ); 
+GfxSetTextColor(ParamColor("Color",colorViolet) ); 
+GfxTextOut(""+DD+" ("+xx+"%)", Hor+5, Ver+45 );
+_SECTION_END();
+

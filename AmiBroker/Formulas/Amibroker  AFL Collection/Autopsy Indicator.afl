@@ -1,0 +1,110 @@
+// Output //
+Buy = Enter your Buy Code;
+Sell = Enter Your Sell Code;
+
+// Look Back Bars //
+LookBack = Param("Backtest Period",2000,50,5000,50);
+BacktestPds = Cum(1) - LookBack;
+
+// Delay //
+BDelay = Param("Buy Delay",1,0,5,1);
+SDelay = Param("Sell Delay",1,0,5,1);
+
+// 1) Open, 2) High, 3) Low, 4) Close, 5) Median //
+BArrayNo = Param("Buy Price Array",4,1,5,1);
+SArrayNo = Param("Sell Price Array",4,1,5,1);
+BArrayField = IIf(BArrayNo == 1, O,
+              IIf(BArrayNo == 2, H,
+              IIf(BArrayNo == 3, L,
+              IIf(BArrayNo == 4, C,
+             (H+L)/2))));
+
+SArrayField = IIf(SArrayNo == 1, O,
+              IIf(SArrayNo == 2, H,
+              IIf(SArrayNo == 3, L,
+              IIf(SArrayNo == 4, C,
+              (H+L)/2))));
+
+// Buy Date //
+DayofBuy  =  BarsSince(Buy)  == BDelay;
+DayofSell =  BarsSince(Sell) == SDelay;
+
+BuyMode = (BarsSince(DayofBuy) + 1) < BarsSince(DayofSell);
+
+// Commission //
+CommissionPercent = Param("Comission%",.5,0,2,.10);
+
+// Buy Price //
+BPrice = ValueWhen(DayofBuy,BArrayField,1)*(1 + CommissionPercent/100);
+SPrice = ValueWhen(DayofSell,SArrayField,1)*(1 - CommissionPercent/100);
+
+InMarketChange = IIf(BuyMode,C - Ref(C,-1),0);
+
+// Equity Statistics //
+InitialEquity = 100000;
+PosSize = InitialEquity/BPrice;
+Profit = IIf(Backtestpds > 0 AND Cum(1) > 200,PosSize*InMarketChange,0);
+BAdjustment = IIf(DayofBuy, PosSize*(BArrayField - C),0);
+SAdjustment = IIf(DayofSell, PosSize*(SArrayField - C),0);
+FinalEquity = InitialEquity + Cum(Profit) + Cum(BAdjustment) + Cum(SAdjustment);
+
+// Drawdown Statistics //
+ValueDrawdown = Highest(Highest(FinalEquity) - FinalEquity);
+PercentDrawdown = Highest((1 - FinalEquity/Highest(FinalEquity)))*100;
+
+// Win-Loss Statistics //
+NoofWins     = Cum(IIf(DayofSell == 1 AND SPrice > BPrice,1,0));
+NoofLosses   = Cum(IIf(DayofSell == 1 AND SPrice < BPrice,1,0));
+TotalTrades  = Noofwins + NoofLosses;
+PercentWins  = NoofWins/(NoofWins + IIf(Nooflosses > 0,NoofLosses,1));
+
+// Profit or Loss in Trade Statistics //
+TradeResult = IIf(DayofSell == 1, (ValueWhen(DayofSell,SARrayField,1) - BPrice)*PosSize,0); 
+TradeProfit = IIf(TradeResult > 0, TradeResult,0);
+TradeLoss   = IIf(TradeResult < 0, -TradeResult,0);
+
+GrossProfit = Cum(TradeProfit);
+GrossLoss   = Cum(TradeLoss);
+
+AverageProfit = GrossProfit/IIf(NoofWins > 0,NoofWins,1);
+AverageLoss   = GrossLoss/IIf(NoofLosses > 0,NoofLosses,1);
+
+ProfitFactor    = GrossProfit/GrossLoss;
+AvgProfitByLoss = IIf(AverageLoss > 0, AverageProfit/AverageLoss,1); 
+
+// Excursions //
+
+MFE = IIf(DayofSell == 1, (1 - SPrice/HighestSince(DayofBuy,C,1))*100,0);
+MAE = IIf(DayofSell == 1, (SPrice/LowestSince(DayofBuy,C,1) -1 )*100,0);
+
+// Bars Statistics //
+BarsinWin = IIf(TradeResult > 0, BarsSince(DayofBuy),0);
+BarsinLoss = IIf(TradeResult < 0, BarsSince(DayofBuy),0);
+
+AvgWinBars  = IIf(TotalTrades > 0, Cum(BarsinWin)/TotalTrades,0);
+AvgLossBars = IIf(TotalTrades > 0, Cum(BarsinLoss)/TotalTrades,0);
+
+// Buy and Hold Comparision //
+StartingPrice = ValueWhen(Cross(BackTestPds,0),C,1);
+BuyHoldEquity = InitialEquity * C/StartingPrice; 
+SystemEfficiency = 100*(FinalEquity/BuyHoldEquity - 1);
+
+
+// Final Statistics //
+StatNo = Param("Final Statistics No",1,1,14,1);
+FinalStatistics = IIf(StatNo == 1, FinalEquity,
+                  IIf(StatNo == 2, BuyHoldEquity,
+                  IIf(StatNo == 3, ValueDrawdown,
+                  IIf(StatNo == 4, PercentDrawdown,
+                  IIf(StatNo == 5, NoofWins,
+                  IIf(StatNo == 6, NoofLosses ,
+                  IIf(StatNo == 7, TotalTrades,
+                  IIf(StatNo == 8, PercentWins,
+                  IIf(StatNo == 9, AverageProfit,
+                  IIf(StatNo == 10, AverageLoss ,
+                  IIf(StatNo == 11, AvgProfitByLoss,
+                  IIf(StatNo == 12, MFE,
+                  IIf(StatNo == 13, MAE,
+                  IIf(StatNo == 14, SystemEfficiency,0))))))))))))));
+
+Plot(FinalStatistics,"FinalStatistic",colorRed,styleThick);

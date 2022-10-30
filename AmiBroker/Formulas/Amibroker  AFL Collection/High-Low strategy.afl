@@ -1,0 +1,25 @@
+////////////////////////////////
+// High-Low strategy
+///// //////////////////////////
+// exploration for EOD analysis
+AddTextColumn(FullName(),"Name");
+AddColumn( C, "Close" );
+AddColumn( C - Ref( C, -1 ), "Move" );
+AddColumn( V, "Volume", 1 );
+AddColumn( ROC( C, 10 ), "Performance");
+AddColumn( 2500/C, "# of shares", 1);
+AddColumn( GapUp(), "Gap up", 1 );
+AddColumn( High, "High");
+AddColumn( Null, "Tommorrow's Open");
+AddColumn( (H-L)/2, "Add" );
+Filter=1;
+SetTradeDelays(0,0,0,0);
+// rules for backtesting
+YesterdayRange = Ref( H-L, -1 );
+Buy = GapUp() AND Close >= Open + YesterdayRange/2;
+BuyPrice = Open + YesterdayRange/2;
+Short = GapDown() AND Close <= Open - YesterdayRange/2;
+ShortPrice = Open - YesterdayRange/2;
+Sell=Cover=0; // exit only by stops
+ApplyStop(stopTypeLoss, stopModePercent, 4 ); // 4% max loss stop
+ApplyStop(stopTypeProfit, stopModePoint, YesterdayRange );

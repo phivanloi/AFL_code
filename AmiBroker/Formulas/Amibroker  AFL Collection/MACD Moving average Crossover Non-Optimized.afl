@@ -1,0 +1,16 @@
+//MACD Moving average Crossover ***Non-Optimized***
+
+//Enters long/short when MACD crosses its signal line.
+
+Buy=MACD() > EMA(MACD(),9);
+Sell=MACD() < EMA(MACD(),9);
+Short=MACD() < EMA(MACD(),9);
+Cover=MACD() > EMA(MACD(),9);
+
+Filter=Buy OR Sell OR Short OR Cover;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); Short=ExRem(Short,Cover); Cover=ExRem(Cover,Short);
+
+AddColumn(Buy,"Buy");
+AddColumn(Sell,"sell");
+AddColumn(Short,"short");
+AddColumn(Cover,"cover");

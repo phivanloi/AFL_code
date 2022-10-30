@@ -1,0 +1,27 @@
+_SECTION_BEGIN("rsi guppy");
+r = RSIa(High,5); 
+s = RSIa(Low,5);
+t = RSI(5);
+u = (r+s+t)/3;
+Plot (EMA(t,3),"",colorWhite,styleLine);
+Plot (EMA(r,3),"",colorGreen,styleLine);
+Plot (EMA(s,3),"",colorRed,styleLine);
+//Plot (EMA(u,3),"",colorYellow,styleLine);
+
+
+/*
+Plot (EMA(r,5),"",colorBlue,styleLine);
+Plot (EMA(r,8),"",colorBlue,styleLine+styleNoLabel);
+Plot (EMA(r,10),"",colorBlue,styleLine+styleNoLabel);
+Plot (EMA(r,12),"",colorBlue,styleLine+styleNoLabel);
+Plot (EMA(r,15),"",colorBlue,styleLine+styleNoLabel);
+
+Plot (EMA(r,25),"",colorYellow,styleLine);
+Plot (EMA(r,30),"",colorRed,styleLine+styleNoLabel);
+Plot (EMA(r,35),"",colorRed,styleLine+styleNoLabel);
+Plot (EMA(r,40),"",colorRed,styleLine+styleNoLabel);
+Plot (EMA(r,45),"",colorRed,styleLine+styleNoLabel);
+Plot (EMA(r,50),"",colorRed,styleLine+styleNoLabel);
+Plot (EMA(r,50),"",colorRed,styleLine);
+*/
+_SECTION_END();

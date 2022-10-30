@@ -1,0 +1,53 @@
+Graph0=EMA(EMA(EMA(V,26),26),26);
+Spread=((100+((((Graph0-V)/Graph0)*-100)-100))+100);
+
+EMAC=EMA(C,13);
+LLOW=L;
+DIFF=(LLOW-EMAC)/LLOW*100;
+superbar=Spread>1000;
+upbar = Spread>185 AND Spread<999.9;
+downbar = Spread<74.9;
+middlebar=Spread>75 AND Spread< 184.9;
+Vix=Foreign("^Vix","C");
+/* Colourized price bars drawn here */
+barcolor = IIf( downbar, 4, IIf(Middlebar,8,IIf(superbar,9,IIf( upbar, 5, 0))));
+Vol=(((V+Ref(V,-1)+Ref(V,-2)+Ref(V,-3)+Ref(V,-4)))/5);
+Graph1 = Volume;
+Graph1Style =2;
+Graph1BarColor = ValueWhen( barcolor != 0, barcolor );
+
+
+Graph0=EMA(EMA(EMA(V,26),26),26);
+
+Graph0Color=7;
+GraphXSpace=10;
+
+Title=Name()+" - Volume_Bars RT - Avg Volume "+WriteVal(Graph0)+" Todays Volume "+WriteVal(V)+" Vol to Avg %"+WriteVal((((Graph0-V)/(Graph0)*100)*-1)+100);
+
+// OR this one:
+MaxGraph=6;
+GraphXSpace=10;
+GraphC=(Sum((((C-Ref(C,-1))/C)*100),15)/15);
+
+Gra=C;
+Vol=(((V+Ref(V,-1)+Ref(V,-2)+Ref(V,-3)+Ref(V,-4)))/5);
+Graph3 =EMA(EMA(EMA(V,26),26), 26);
+Graph2=EMA(Vol,5);
+Graphx=EMA(C,8.5);
+GraphEMA13=EMA(Gra,13);
+GraphEMA26=EMA(Gra,26);
+Spread=((100+((((Graph3-Graph2)/Graph3)*-100)-100))+100);
+DJI=Foreign("^GSPTSE","C");
+Summ=Correlation(DJI,GRA,13);
+Graphh=EMA(Summ,5);
+Graph3Color=7;
+Graph2Style = 2;
+Graph2Color=3;
+Diff=(100+((((Graph3-Graph2)/Graph3)*-100)-100));
+Upbar1=Spread>51 ;
+Downbar1=Spread<50.9;
+barcolor = IIf( downbar1, 3, IIf( upbar1, 5, 0));
+Graph2BarColor = ValueWhen( barcolor != 0, barcolor );
+HR=Hour();
+
+Title="Volume Above 51% Grn"+" Volume "+WriteVal (Graph2)+" Vol Day to Day (+/-) "+WriteVal ((Graph2)-(Ref(Graph2,-1)))+" Triple EMA(26) Volume "+WriteVal(Graph3)+ " %"+WriteVal ((100+((((Graph3-Graph2)/Graph3)*-100)-100))+100);

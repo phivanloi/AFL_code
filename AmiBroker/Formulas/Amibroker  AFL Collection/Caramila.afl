@@ -1,0 +1,49 @@
+Plot(C,"C",colorBlack,styleOwnScale | styleCandle);
+
+po = TimeFrameGetPrice("O", inDaily, -1 );
+ph = TimeFrameGetPrice("H", inDaily, -1 );
+pL = TimeFrameGetPrice("L", inDaily, -1 );
+pc = TimeFrameGetPrice("C", inDaily, -1 );
+
+// Caramila Equation
+// H4 -> Long Breakout
+H4 = ((PH-PL)*(1.5)) + PC;
+// H3 -> Short
+H3 = ((PH-PL)*1.25) + PC;
+H2 = ((PH-PL)*1.1667) + PC;
+H1 = ((PH-PL)*0.0833) + PC;
+L1 = PC - (PH - PL) * 0.0833;
+L2 = PC - (PH - PL) * 1.1667;
+// L3 = Long
+L3 = PC - (PH - PL) * 1.25;
+// L4 = Short Breakout
+L4 = PC - (PH - PL) * 1.50;
+
+// Buy = Cross(C,Ref(L3,-1));
+// Sell = Cross(Ref(H3,-1),C);
+
+Buy = Cross(C,Ref(H4,-1));
+Sell = Cross(Ref(L3,-1),C);
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+
+Filter=1;
+AddColumn(H1, "H1");
+AddColumn(H2,"H2");
+AddColumn(H3, "H3");
+AddColumn(H4,"H4");
+
+AddColumn(l1, "L1");
+AddColumn(l2,"L2");
+AddColumn(l3, "L3");
+AddColumn(l4,"L4");
+
+Plot(H1, "H1",colorAqua,styleOwnScale |styleLeftAxisScale);
+Plot(H2,"H2",colorLightBlue,styleOwnScale | styleLine);
+Plot(H3, "H3", colorLightOrange,styleOwnScale | styleLine);
+Plot(H4,"H4", colorLime,styleOwnScale | styleLine);
+
+Plot(l1, "L1", colorBrightGreen,styleOwnScale | styleLine);
+Plot(l2,"L2", colorDarkBlue,styleOwnScale | styleLine);
+Plot(l3, "L3",colorDarkRed,styleOwnScale | styleLine );
+Plot(l4,"L4", colorDarkGrey, styleOwnScale |styleLine);

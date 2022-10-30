@@ -1,0 +1,64 @@
+_SECTION_BEGIN("ABU 3TTA ((com-out))");
+//------------------------------------------------------------------------------
+//
+//  Formula Name:    Application of Ehler filter
+//  Author/Uploader: goldfreaz 
+//  E-mail: ahmad_h1402@hotmail.com         
+//  Date/Time Added: 2004-01-05 12:58:20
+//  Origin:          ABU 3TTA
+//  Keywords:        Ehler, FIR
+//  Level:           semi-advanced
+//  Flags:           indicator
+//  
+//------------------------------------------------------------------------------
+//
+//  Ehler filter using volume, momentum, rate of momentum for weighting.
+//
+//------------------------------------------------------------------------------
+
+// ehler filter based on acclerartion and speed
+// x - input
+// n - length of FIR
+// w - exponential weight of passed acceleration and speed 
+// f - weighting factor between acceleration and speed
+function Ehler1( x, V, n, w,f)
+{y=x;
+// acceleration + speed
+a = x-2*Ref(x,-1) + Ref(x,-2);
+s = f*(x-Ref(x,-1));
+q=AMA(V*(abs(a)+abs(s))/x,w);
+
+for( i = n-1; i < BarCount; i++ )
+ {
+   sy=0;sw=0;  
+ for (j=i-n+1; j<i+1; j++)
+  {sy = sy + q[j]*x[j]; 
+   sw = sw + q[j];
+  }
+ y[i]=sy/sw;
+ }
+return y;
+}
+w=Param("w",0.62,0.05,0.99,0.01);
+n=Param("n",8,1,42,1);
+f=Param("f",-0.3,-10,10,0.1);
+f=10^f;
+eh=Ehler1(C,V,n,w,f);
+Plot( Close, "close", colorBlack, styleCandle );
+Plot( eh, "Ehler", colorBlack ); 
+Plot( MA(C,n), "MA", colorBlue ); 
+event1=Cross(MA(C,n),eh);
+PlotShapes( IIf(event1 ,shapeDigit1,0) ,4, 0, L,-30);
+event2=Cross(eh,MA(C,n));
+PlotShapes( IIf(event2 ,shapeDigit2,0) ,5, 0, L,-30);
+
+
+PlotOHLC(Open, High, Low, Close, 
+	"BIdx = " + BarIndex() + 
+	"\n" + "O = " + O + "\n"+"H = "+ H + "\n"+"L  = " + L 
+	+ "\n"+"C ",
+	colorBlack, styleCandle); 
+
+
+
+_SECTION_END();

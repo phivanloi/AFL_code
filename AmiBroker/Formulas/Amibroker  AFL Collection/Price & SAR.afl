@@ -1,0 +1,23 @@
+_SECTION_BEGIN("Price");
+COLOR = IIf(C > O, colorGreen, colorRed);
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );
+_N( Title = StrFormat( "{{NAME}} - " + SectorID( 1 ) + " - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", Color, styleBar | styleThick | styleNoTitle );
+_SECTION_END();
+
+_SECTION_BEGIN("Phase");
+RCP = C > MA(C,50) AND MA(C,50) < MA(C,200); // Recovery
+ACP = C > MA(C,50) AND C > MA(C,200) AND MA(C,50) < MA(C,200); // Accumulation
+BLP = C > MA(C,50) AND C > MA(C,200) AND MA(C,50) > MA(C,200); // Bullish
+WRP = C < MA(C,50) AND MA(C,50) > MA(C,200); // Warning
+DSP = C < MA(C,50) AND C < MA(C,200) AND MA(C,50) > MA(C,200); // Distribution
+BRP = C < MA(C,50) AND C < MA(C,200) AND MA(C,50) < MA(C,200); // Bearish
+
+Plot( 1, "", IIf(RCP, colorBlue, IIf(ACP, colorSeaGreen, IIf(BLP, colorDarkGreen, IIf(WRP, colorOrange, IIf(DSP, colorRed, IIf(BRP, colorDarkRed, 0)))))), styleOwnScale|styleArea|styleNoLabel, -0.1, 50 );
+_SECTION_END();
+
+_SECTION_BEGIN("SAR");
+acc = Param("Acceleration", 0.02, 0, 1, 0.001 );
+accm = Param("Max. acceleration", 0.2, 0, 1, 0.001 );
+Plot( SAR( acc, accm ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style", styleDots | styleNoLine, maskDefault | styleDots | styleNoLine ) );
+_SECTION_END();

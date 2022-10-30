@@ -1,0 +1,33 @@
+_SECTION_BEGIN("Guppy MMA Convergence Divergence Histogram");
+//Source = Leon Wilson, www.wilsontechstats.com/software/MMAConstruction.htm
+//AFL Translation = Mubashar Virk, mavirk@gmail.com
+Trigger = Param("Trigger",21,1,55,1);
+
+Short1 = EMA (C,3)+ EMA((C-EMA(Close,3)),3)+
+EMA (C,5)+ EMA((C-EMA(Close,5)),5)+
+EMA (C,8)+ EMA((C-EMA(Close,8)),8)+
+EMA (C,10)+ EMA((C-EMA(Close,10)),10)+
+EMA (C,12)+ EMA((C-EMA(Close,12)),12)+
+EMA (C,15)+ EMA((C-EMA(Close,15)),15);
+
+LONG2 = EMA (C,30)+ EMA((C-EMA(Close,30)),30)+
+EMA (C,35)+ EMA((C-EMA(Close,35)),35)+
+EMA (C,40)+ EMA((C-EMA(Close,40)),40)+
+EMA (C,45)+ EMA((C-EMA(Close,45)),45)+
+EMA (C,50)+ EMA((C-EMA(Close,50)),50)+
+EMA (C,55)+ EMA((C-EMA(Close,55)),55)+
+EMA (C,60)+ EMA((C-EMA(Close,60)),60);
+
+GuppyMMAOscillator = ((Short1-Long2)/Long2)*100;
+Plot (GuppyMMAOscillator, "Guppy MMA Oscillator", colorRed, styleThick);
+Plot (EMA(GuppyMMAOscillator, Trigger), "Trigger", colorLightBlue);
+GMMACD=(((short1-Long2)/long2)*100)-
+EMA(((short1-long2)/long2)*100,9);
+Plot (GMMACD, "GMMA Convergence Divergence Histogram",  ParamColor("Histogram color", colorLightGrey ), styleNoTitle | ParamStyle("Histogram style", styleHistogram | styleNoLabel | styleOwnScale, maskHistogram ) );
+Buy = Cross(GuppyMMAOscillator,EMA(GuppyMMAOscillator, Trigger));
+Sell = Cross(EMA(GuppyMMAOscillator, Trigger),GuppyMMAOscillator); 
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+PlotShapes(Buy*shapeUpArrow,colorGreen,0,GuppyMMAOscillator);
+PlotShapes(Sell*shapeDownArrow,colorRed,0,GuppyMMAOscillator);
+_SECTION_END();

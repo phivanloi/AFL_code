@@ -1,0 +1,26 @@
+_SECTION_BEGIN("Suri-FibBands");
+ //******************************************Suri-FibBands***********************//
+ MALength = Param("MALength",100,0,100,1);
+ //MALength=100;
+ mov = MA(Close,MALength);
+ tr = MA(ATR(14)*1.3, MALength);
+
+ upperBand1 = mov+4.62*tr;
+ upperBand2 = mov+2.62*tr;
+ upperBand3 = mov+1.62*tr;
+
+ lowerBand1 = mov-1.62*tr;
+ lowerBand2 = mov-2.62*tr;
+ lowerBand3 = mov-4.62*tr;
+
+ Plot(upperBand1 ,"ProfitStop",colorGreen,styleLine);
+ Plot(upperBand2 ,"ProfitStop",colorRed,styleLine);
+ Plot(upperBand3 ,"ProfitStop",colorOrange,styleLine);
+ Plot(mov ,"ProfitStop",colorBrown,styleLine);
+ Plot(lowerBand1 ,"ProfitStop",colorOrange,styleLine);
+
+ Plot(lowerBand2 ,"ProfitStop",colorRed,styleLine);
+
+ Plot(lowerBand3 ,"ProfitStop",colorGreen,styleLine);
+ Plot(C ,"Price",colorBlue,styleBar);
+ _SECTION_END();

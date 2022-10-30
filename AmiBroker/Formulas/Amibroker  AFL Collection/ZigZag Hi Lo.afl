@@ -1,0 +1,183 @@
+_SECTION_BEGIN( "ZigZag" );
+
+//added
+
+Title = EncodeColor( 4 ) + _DEFAULT_NAME() + ";  " + EncodeColor( 1 ) + 
+StrFormat( "{{NAME}} - {{INTERVAL}}; {{DATE}}; \nO=%g, \nH=%g, \nL=%g, 
+\nC=%g (%.1f%%){{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) );
+
+SetChartOptions( 0, chartShowArrows | chartShowDates );
+
+Plot( C, "", 1, 64 );
+
+//from Reinsley
+
+ZigPerc = Param( "ZigZag-HL %", 0.02, 0.01, 10, 0.01 );
+
+HHLLSel = ParamToggle( "Each Pk/Tr|HH/LL", "Each Pk/Tr|HH/LL Only", 1 );
+
+Both_Versions = ParamToggle( "Modified Only|Both", "Modified Only|Both", 
+1 );
+
+ATRmult = Param( "Text Shift (in ATR)", 0.6, 0.1, 3, 0.1 );
+
+Show_Arrows = ParamToggle( "Show Arrows", "No|Yes", 1 );
+
+Arrowadj = Param( "Arrowadj; ", 12, 2, 25, 1 );
+
+pk = PeakBars( H, ZigPerc ) == 0;
+
+tr = TroughBars( L, ZigPerc ) == 0;
+
+pkbars = PeakBars( H, ZigPerc );
+
+trbars = TroughBars( L, ZigPerc );
+
+zHi = Zig( H, ZigPerc );
+zLo = Zig( L, ZigPerc );
+HLAvg = ( zHi + zLo ) / 2;
+
+zp1 = IIf( pk, zHi, IIf( tr, zLo, IIf( HLAvg > Ref( HLAvg, -1 ), H, L ) 
+) ); //Reinsley original
+
+zp2 = IIf( pk, zHi, IIf( tr, zLo, IIf( pkbars <= trbars, L, H ) ) 
+);//Modified zp to reduce occasional erroneous Pk/Tr connections at very small ZigPerc values
+
+//=========Modified version================
+
+za2 = Zig( zp2, ZigPerc );
+
+Slopeza2 = za2 - Ref( za2, -1 );
+
+Plot( za2, "\nZig Modified", 11, 5 | styleNoLabel );//Zig H-L Modified
+
+if ( Show_Arrows )
+
+{
+
+     pR = Ref( za2, -1 )<za2 AND za2>Ref( za2, 1 );
+
+     pS = Ref( za2, -1 ) > za2 AND za2 < Ref( za2, 1 );
+
+     PlotShapes( shapeDownArrow*pR, colorGreen, 0, H, -Arrowadj );
+
+     PlotShapes( shapeUpArrow*pS, colorRed, 0, L, -Arrowadj );
+
+}
+
+if ( Both_Versions )
+
+{
+
+// Original Reinsley Version=================
+
+     za1 = Zig( zp1, ZigPerc );
+
+     Slopeza1 = za1 - Ref( za1, -1 );
+
+     Plot( za1, "ZiG Original", 1, 5 | styleNoLabel );//Zig H-L Reinsley original
+
+     if ( Show_Arrows )
+
+     {
+
+         pR = Ref( za1, -1 )<za1 AND za1>Ref( za1, 1 );
+
+         pS = Ref( za1, -1 ) > za1 AND za1 < Ref( za1, 1 );
+
+         PlotShapes( shapeDownArrow*pR, colorGreen, 0, H, -Arrowadj );
+
+         PlotShapes( shapeUpArrow*pS, colorRed, 0, L, -Arrowadj );
+
+     }
+
+}
+
+//za2 = IIf(Slopeza1 >0 AND Slopeza2>0,Max(za1,za2),IIf(Slopeza1 <0 AND Slopeza2<0,Min(za1,za2),za2));
+
+//Plot(za2,"",11,5|styleNoLabel);//Zig H-L
+
+
+
+//modified from Tomasco
+
+// ORIGINAL uses H AND L values for next bar after Zig pk/tr instead at Zig pk/tr AND is based on Zig(C);
+
+// occasionally, that value is lower/higher than the correct ZigLo/ZigHi values, since the Zig is based on C, NOT on H AND L
+
+//added additional bells and whistles
+
+if ( HHLLSel )
+
+{
+
+     HH = ( ( za2 > Ref( za2, - 1 ) AND za2 > Ref( za2, 1 ) ) AND ( 
+Peak( za2, ZigPerc, 1 ) > Peak( za2, ZigPerc, 2 ) ) ); //HH
+
+     LL = ( ( za2 < Ref( za2, - 1 ) AND za2 < Ref( za2, 1 ) ) AND ( 
+Trough( za2, ZigPerc, 1 ) < Trough( za2, ZigPerc, 2 ) ) ); //LL
+
+     dist = ATRmult * ATR ( 20 );//might not want that
+
+     for ( i = 0; i < BarCount; i++ )
+
+     {
+
+         if ( HH [i] )
+             PlotText( "HH" + "\n" + H[ i ], i, H[ i ] + dist[i], 
+colorGreen );
+
+         if ( LL [i] )
+             PlotText( "" + L[ i ] + "\nLL", i, L[ i ] - dist[i], 
+colorRed );
+
+     }
+
+}
+
+
+
+if ( !HHLLSel )
+
+{
+
+     HH = ( ( za2 > Ref( za2, - 1 ) AND za2 > Ref( za2, 1 ) ) );
+
+     LL = ( ( za2 < Ref( za2, - 1 ) AND za2 < Ref( za2, 1 ) ) );
+
+}
+
+
+
+
+
+dist = ATRmult * ATR ( 20 );//might not want that
+
+for ( i = 0; i < BarCount; i++ )
+
+{
+
+     if ( HH [i] )
+         PlotText( "H" + "\n" + H[ i ], i, H[ i ] + dist[i], colorGreen );
+
+     if ( LL [i] )
+         PlotText( "" + L[ i ] + "\nL", i, L[ i ] - dist[i], colorRed );
+
+}
+
+
+
+
+
+/* Original
+
+HH=((za2<Ref(za2,- 1) AND Ref(za2,-1) > Ref(za2,-2)) AND 
+(Peak(za2,ZigPerc,1 )>Peak(za2,ZigPerc,2 )));
+
+LL=((za2>Ref(za2,- 1) AND Ref(za2,-1) < Ref(za2,-2)) AND 
+(Trough(za2,ZigPerc,1 ) <Trough(za2,ZigPerc,2 )));
+
+*/
+
+_SECTION_END();
+

@@ -1,0 +1,160 @@
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 20, 2, 100, 1 );
+Width = Param("Width", 2.25, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), colorWhite, style); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), colorWhite, style ); 
+
+Buy = Cross (Ref (L,-1), Ref (BBandBot(C,Periods,WIDTH), -1)) AND (Close > BBandBot(C,Periods,WIDTH)); 
+PlotShapes(shapeUpArrow*Buy,colorLime,0,L,-10);
+Sell = Cross ( Ref (BBandTop(H,Periods,WIDTH), -1),Ref (C,-1)) AND (BBandTop(C,Periods,WIDTH) > Close);
+PlotShapes(shapeDownArrow*Sell,colorRed,0,H,-10);
+//Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy);
+
+Filter = Buy OR Sell;
+AddTextColumn(FullName(),"Name");
+AddColumn( Buy, "BUY");
+AddColumn( Sell, "SELL");
+_SECTION_END();
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+Plot( C, "Close", ParamColor("Color", colorWhite ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+if( ParamToggle("Tooltip shows", "All Values|Only Prices" ) )
+{
+ ToolTip=StrFormat("Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 )));
+}
+_SECTION_END();
+
+_SECTION_BEGIN("Bottom Fisher");
+/*
+Aviator33
+7th Feb 2008
+
+Adapted from ideas presented at ozscanner.com. Average Dollar Price Volatility (ADPV) added for possible use as an 
+intraday swing technique but seems to work best as a 5-10 Day strategy
+
+Links:
+http://www.ozscanner.com/bottom.htm
+http://www.ozscanner.com/bottom2.htm
+
+The Bottom Fisher Scan filters the entire market searching for stocks that have 
+traded down for at least three consecutive trading sessions and are currently trading higher 
+and signaling that a potential short-term bottom might have been formed. Based on swing trading 
+methodology.
+
+It can be used for a stock that is in an uptrend or downtrend. 
+The trigger event for an entry is for the stock to be up from yesterday’s close. 
+As long as a stop loss below today’s low is an acceptable risk while trying to capture 
+the price target reward, you can enter the trade. Otherwise, you would have to use intraday support levels.
+*/
+
+//=========PARAMETERS====================
+
+myVol=Param("Min Volume (Million)", 0,0,10,0.5);           // Filter out stocks below certain Volume (average over sampled periods). Default 0 (not filtered)
+myVol = myVol * 1000000;                                   // Volume * million multiplier
+myMaxPrice = Param("Price Max",200,0.0001,200,1);          // Filter for stocks below certain price. Default 0 (not filtered)
+myMinPrice = Param("Price Min",0,0.0001,199,1);            // Filter for stocks above certain price. Default 0 (not filtered)
+myPercentMin = Param("Min ADPV %",0,0,30,0.5);             // Filter  for minimum Average Dollar Price Volatility %. Default 0 (not filtered)
+myMinPriceSteps = Param("Min Price Steps",0,0,500,1);      // Filter for minimum ticks in ADPV (eg H=0.005, L=0.002, price steps=3)
+                                                           // Default 0 (not filtered)
+myPeriods = Param("No. Of Days To Sample",20,2,90,1);
+myPeriods = IIf(myPeriods>BarCount,BarCount,myPeriods);    // Just in case there are less data bars than the number of periods wanted
+
+                                                           // ****** Uncomment next 2 lines for use in Australian ASX market *********
+//myTickerMax = ParamList("Stocks only?","Yes|No");        // Filter to exclude options/warrants. Default "Yes" (stocks only)
+//myTickerMax = IIf(myTickerMax == "Yes", 3,10);           // Ticker max length. 3 for stocks only.
+
+//==========================================
+
+
+
+trig1 = IIf(C<=O,True,False);
+trig2 = IIf(Ref(C,-1)<=Ref(O,-1),True,False);
+trig3 = IIf(Ref(C,-2)<=Ref(O,-2),True,False);
+trig4 = IIf(C<Ref(C,-1) AND Ref(C,-1)<Ref(C,-2), True, False);
+
+ADPV  = H - L;                                  // Average Dollar Price Volatility of current quotation (ie today's H to L range)
+MedianPrice = ADPV/2 + L;                       // Median price of current quotation
+ADPVpercent = (ADPV  / MedianPrice ) * 100;     // ADPV as percent of median price
+
+// Calculate the same for the last x days, keep a running total for averaging
+for( i = 1; i < myPeriods; i++ ) 
+{
+	x = i * -1; // negate counter to enable count back
+	MedianPrice =MedianPrice + Ref(H-L,x)/2 + Ref(L,x);
+	ADPV  = ADPV  + Ref(H-L,x);
+	ADPVpercent = ADPVpercent + ((ADPV  / MedianPrice ) * 100);
+}
+
+
+
+MedianPrice = MedianPrice / myPeriods;       // Average median price over x days
+ADPV  = ADPV  / myPeriods;                   // Average ADPV over x days
+ADPVpercent = ADPVpercent / myPeriods;       // ADPV percentage over x days
+
+
+Buy = trig1 AND trig2 AND trig3 AND trig4 AND MA(V,20)>500000;
+Filter=Buy;
+// ==============OUTPUT==================
+
+// Tidy up output
+txtADPVpercent=NumToStr(ADPVpercent,10.2 );
+txtADPVpercent=txtADPVpercent + " %";
+txtADPV = NumToStr(ADPV,3.3);
+txtADPV = "$" + txtADPV ;
+txtClose=NumToStr(Close,4.3 );
+txtClose = "$" + txtClose;
+
+AddTextColumn( txtClose , "Close");
+AddColumn( MA(V,myPeriods), "Avg Daily Vol",20.0 );
+AddTextColumn( txtADPV  , "$Avg Range",10.3 );
+AddTextColumn( txtADPVpercent, "Av % Range",10.2 );
+// AddColumn( PriceSteps , "Price Steps",8.0 );     // Remove comment tags to display price steps
+
+// ====================================  END CODE ====================================================
+_SECTION_END();
+
+_SECTION_BEGIN("CASINO TRADING");
+///// Trading system to be evaluated
+Buy = Cross( Close, EMA(Close, 15) );
+Sell = Cross( EMA(Close, 15), Close );
+///////////////////////////////////
+e = Equity(1);
+tradeend = Sell;
+profit = e - ValueWhen( Buy, e );
+endprofit = IIf( tradeend , profit, 0 );
+LosingTrades = LastValue( Cum( endprofit < 0 ) );
+WiningTrades = LastValue( Cum( endprofit > 0 ) );
+TotalTrades = LastValue( Cum( tradeend ) );
+AddColumn( LosingTrades, "Losing trades", 1 );
+AddColumn( WiningTrades, "Wining trades", 1 );
+AddColumn( TotalTrades, "Total trades", 1 );
+Filter = Status("lastbarinrange");
+// now we will count the number of
+// count trades winning in given $ ranges
+NumRanges = 25; // number of ranges to generate
+RangeSize = 100; // controls $ size of the range
+for( i = 0; i < NumRanges; i++ )
+{
+  rangestart = i * RangeSize;
+  rangeend = (i+1)*RangeSize;
+  if( i == NumRanges - 1 ) rangeend = 999999;
+  AddColumn(
+  LastValue( 100* Cum( endprofit > rangestart AND endprofit < rangeend ) /TotalTrades ),
+  "% with profit " + rangestart + ".." + rangeend );
+}
+for( i = 0; i < NumRanges; i++ )
+{
+  rangestart = (-i - 1 ) * RangeSize;
+  rangeend = -i*RangeSize;
+  if( i == NumRanges - 1 ) rangestart = -999999;
+  AddColumn(
+  LastValue( 100* Cum( endprofit > rangestart AND endprofit < rangeend ) /TotalTrades ),
+  " % with loss " + rangeend + ".." + rangestart );
+}
+
+_SECTION_END();

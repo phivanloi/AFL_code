@@ -1,0 +1,26 @@
+function fVidya(prd,mp) 
+{
+  sfac=2/(mp+1);
+
+  V1=StDev(C,prd);
+  V2=HHV(V1,prd);
+  V3=LLV(V1,prd);
+
+  V4=(V1-V3)/(V2-V3);
+
+  for(i=0;i<=prd;i++) {
+    Vidya[i]=C[i];
+  }
+
+  for(i=prd+1;i<BarCount;i++) {
+    Vidya[i]=sfac*V4[i]*C[i]+(1-sfac*V4[i])*Vidya[i-1];
+  }
+  return Vidya;
+}
+
+prd=Param("Periods", 20, 1, 100 );
+mp=Param("ToEMA",9,1,100);
+
+Plot( fVidya(prd,mp),
+	  _DEFAULT_NAME(), 
+	  ParamColor("Color", ColorCycle ) );

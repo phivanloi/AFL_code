@@ -1,0 +1,12 @@
+TimeFrameSet(inMonthly);
+ MACDm = ROC(MACD(12,26),1)>0;
+ TimeFrameRestore();
+ 
+ TimeFrameSet(inWeekly);
+ MACDw = ROC(MACD(12,26),1)>0;
+ TimeFrameRestore();
+
+ Filter = TimeFrameExpand(MACDm,inMonthly) AND
+ TimeFrameExpand(MACDw,inWeekly) AND Cross(MACD(12,26),0);
+
+ AddColumn(C,"close",1.3);

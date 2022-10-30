@@ -1,0 +1,9 @@
+/* Create date: 04 Jan 2009
+The MACD crosses above the Signal on the current bar */
+
+Buy = Cross( MACD( 12, 26 ), Signal( 12, 26, 9 ) );
+
+/* Create date: 04 Jan 2009
+The Signal crosses below the MACD on the current bar */
+
+Sell = Cross( MACD( 12, 26 ), Signal( 12, 26, 9 ) );

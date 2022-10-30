@@ -1,0 +1,26 @@
+/*SIMPLE RSIt SYSTEM PER STOCK*/
+Var=MA(MA(MACD(),5),5);
+Up=IIf(Var>Ref(Var,-1),abs(Var-Ref(Var,-1)),0);
+Dn=IIf(Var<Ref(Var,-1),abs(Var-Ref(Var,-1)),0);
+Ut=Wilders(Up,30);
+Dt=Wilders(Dn,30);
+RSIt=100*(Ut/(Ut+Dt));
+RSIt10=MA(RSIt,10);
+RSIt20=MA(RSIt,20);
+RSIt30=MA(RSIt,30);
+RSIt40=MA(RSIt,40);
+T10=RSIt10;
+T20=RSIt20;
+T30=RSIt30;
+T40=RSIt40;
+
+B1=Cross(T10,T20);B2=Cross(T10,T30);B3=Cross(T10,T40);
+B4=Cross(T20,T30);B5=Cross(T20,T40);B6=Cross(T30,T40);
+S1=Cross(T20,T10);S2=Cross(T30,T10);S3=Cross(T40,T10);
+S4=Cross(T30,T20);S5=Cross(T40,T20);S6=Cross(T40,T30);
+B=Optimize("B",1,1,6,1);S=Optimize("S",1,1,6,1);
+Buy=IIf(B==1,B1,IIf(B==2,B2,IIf(B==3,B3,IIf(B==4,B4,IIf(B==5,B5,B6)))));
+Sell=IIf(S==1,S1,IIf(S==2,S2,IIf(S==3,S3,IIf(S==4,S4,IIf(S==5,S5,S6)))));
+Buy=ExRem(Buy,Sell);Sell=ExRem(Sell,Buy);
+Short=Sell;Cover=Buy;
+Short=ExRem(Short,Cover);Cover=ExRem(Cover,Short);

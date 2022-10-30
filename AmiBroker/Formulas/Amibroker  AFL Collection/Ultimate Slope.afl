@@ -1,0 +1,14 @@
+// Ultimate Slope done by ztop 
+// date 5/10/2006 ... for evaluation only
+
+r1 = Param("Fast avg", 7, 2, 200, 1 );
+r2 = Param("Med avg", 14, 2, 200, 1 );
+r3 = Param("Slow avg", 28, 2, 200, 1 );
+
+Slope = Ultimate( r1, r2, r3 )- Ref(Ultimate( r1, r2, r3 ),-1) ;
+
+periods = Param( "Periods", 28, 1, 200, 1 );
+UltimateSlope= EMA(Slope , periods );
+
+Plot( UltimateSlope,"Ultimate Slope", colorRed, ParamStyle("Slope Style") ); 
+Plot(0 , "",colorBlue, ParamStyle("0 Style") ); 

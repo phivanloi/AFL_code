@@ -1,0 +1,10 @@
+uptrend= IIf( StochK(39,3) > StochD(39,3,3), 1, 0 );
+downtrend=IIf( StochK(39,3)<StochD(39,3,3), 1, 0 );
+BuyV = uptrend AND Ref(uptrend, -1) AND (H > ( Ref(H, -1) + 5));
+SellV = downtrend AND Ref(downtrend,-1) AND (L > ( Ref(L, -1) - 5));
+
+BuySB = BarsSince(Ref(BuyV,-1));
+SellSB= BarsSince(Ref(SellV,-1));
+
+Buy = BuyV AND BuySB > SellSB;
+Sell = SellV AND BuySB < SellSB ;

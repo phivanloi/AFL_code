@@ -1,0 +1,43 @@
+_SECTION_BEGIN("ichimuku");
+//=======================================================================
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+if( ParamToggle("Tooltip shows", "All Values|Only Prices" ) )
+{
+ToolTip=StrFormat("Open: %g\nHigh: %g\nLow: %g\nClose: %g (%.1f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 )));
+}
+per26 = Optimize("long period",26,10,56,1);
+per9 =  Optimize("short period",9,3,30,1);
+SL = ( HHV( H, per26 ) + LLV( L, per26) )/2;
+TL = ( HHV( H, per9 ) + LLV( L, per9 ) )/2;
+DL = Ref( C, per26 );
+Span1 = (( SL + TL )/2);
+Span2 = (HHV( H, 52) + LLV(L, 52))/2;
+Higher = IIf(Ref(Span1,-per26) > Ref(span2,-per26), Ref(Span1,-per26), Ref(Span2,-per26));
+Lower = IIf(Ref(Span1,-per26) < Ref(span2,-per26), Ref(Span1,-per26), Ref(Span2,-per26));
+
+
+
+Color_buy = IIf (Close > sl AND Close > TL, colorBlue, IIf (Close < sl AND Close < TL,colorRed,colorYellow));
+
+Plot( C, "Close", Color_buy, styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+
+Plot(SL,"SL",colorWhite,styleThick); // standard, base, or kijun-sen line
+Plot(TL,"TL",colorYellow,styleThick); // turning, conversion, or tenkan-sen line
+Plot(DL,"",colorLightBlue,styleLine+styleNoLabel); // delayed, lagging, or chikou span
+Plot(Span1,"",colorGreen,1,0,0,per26); // senkou span A, kumo, or white clouds
+Plot(Span2,"",colorOrange,1,0,0,per26); // senkou span B, kumo, or white clouds
+PlotOHLC(Span1,Span2,Span1,Span2,"",IIf(Span1>Span2,8,per9),styleCloud|4096,0,0,per26);
+
+Buy = Cross(Close,Higher);
+Short = Cross(Lower,Close);
+Sell = Cross(TL, Close);
+Cover = Cross(Close,TL);
+/*
+Buy = Color_buy == colorBlue;
+Short = Color_buy==colorRed;
+Sell = Short;
+Cover = Buy;
+shape=Buy*shapeUpArrow + Short*shapeDownArrow;
+PlotShapes(shape,IIf(Buy,colorDarkGreen,colorRed), 0,IIf(Buy,Low,High));
+*/

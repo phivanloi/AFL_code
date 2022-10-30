@@ -1,0 +1,58 @@
+_SECTION_BEGIN("KTrend");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+MP = Param(" Period",13,3,100,1);
+RP = Param("RSI",14,3,20,1);
+UL= Param("Upper Limit",70,0,100,1);
+LL= Param("Lower Limit",30,0,100,1);
+PlotGrid(UL,colorBlue);    
+PlotGrid(LL,colorBlue); 
+R= RSIa( MA(C,MP), RP);
+
+
+
+Buy=Cross(R,UL);
+Sell=Cross(UL,R);
+MyColor=IIf(R >LL , IIf(R>UL,colorGreen , colorBlue),colorRed);
+PlotOHLC( Open,  High,  Low,  Close, "", Mycolor, styleBar   ); 
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+
+
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ),0, IIf( Buy, Low, High ) );
+
+GraphXSpace = 5;
+dist = 1.5*ATR(20); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "Buy\n@" + C[ i ], i, L[ i ]-dist[i], colorGreen ); 
+if( Sell[i] ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorRed); 
+} 
+
+_SECTION_END();
+
+
+
+
+
+
+
+_SECTION_BEGIN("BBands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 100, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorLightGrey );
+Style = ParamStyle("Style");
+BT= BBandTop( P, Periods, Width ); 
+BL= BBandBot( P, Periods, Width ); 
+Plot(BT,"BBTop", colorLightGrey,styleLine);
+Plot(BL,"BBbot", colorLightGrey,styleLine);
+PlotOHLC( 0, BT, BL, 0, "Cloud", colorLightYellow, styleCloud );
+
+PlotOHLC( 0, BT, BL, 0, "Cloud", colorLightYellow, styleCloud );
+
+_SECTION_END();
+
+_SECTION_BEGIN("Volume");
+Plot( Volume, _DEFAULT_NAME(), ParamColor("Color", colorLavender ), styleNoTitle | ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick | styleNoLabel, maskHistogram  ), 2 );
+_SECTION_END();

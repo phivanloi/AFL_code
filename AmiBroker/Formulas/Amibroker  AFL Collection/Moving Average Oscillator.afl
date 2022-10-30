@@ -1,0 +1,9 @@
+mao = MA((EMA(C,3) - EMA(C,13)),3);
+
+Plot( mao , "MA Oscillator", ParamColor("color", colorCycle ), ParamStyle("Style") );
+
+tig = (MAo * 0.9)+0;
+tig1 = MAo * -0.9;
+
+Plot(tig, "",colorLightGrey);
+Plot(tig1, "",colorLightGrey);

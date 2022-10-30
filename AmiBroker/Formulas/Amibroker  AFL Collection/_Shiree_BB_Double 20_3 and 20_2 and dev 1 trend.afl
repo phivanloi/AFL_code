@@ -1,0 +1,33 @@
+_SECTION_BEGIN("BB_Double 20_3 and 20_2");
+
+
+////BOL BAND 18////////////////////////////////////////////////////////
+
+P = ParamField("Price field",-1);
+//Periods = Param("Periods", 20, 2, 100, 1 );
+//Width = Param("Width", 2, 0, 10, 0.05 );
+
+BT3 = BBandTop( C, 20, 3 ); 
+BB3 = BBandBot( C, 20, 3 );
+
+ColorBand=ColorRGB(5,80,5);
+Plot( BT3, "" + _PARAM_VALUES(), ColorBand, styleLine|styleNoLabel); 
+Plot( BB3, "" + _PARAM_VALUES(), ColorBand, styleLine|styleNoLabel); 
+BT2 = BBandTop( C, 20, 2 ); 
+BB2 = BBandBot( C, 20, 2 );
+Plot( BT2, "" + _PARAM_VALUES(), ColorBand, styleLine|styleNoLabel); 
+Plot( BB2, "" + _PARAM_VALUES(), ColorBand, styleLine|styleNoLabel); 
+ 
+PlotOHLC( 0, BT3 , BT2 , BT2 , "Cloud", ColorRGB(5,100,5), styleCloud | styleNoLabel); 
+
+PlotOHLC( 0, BB2 , BB3 , BB3 , "Cloud", ColorRGB(5,100,5), styleCloud | styleNoLabel);
+
+
+BT1 = BBandTop( C, 20, 1 ); 
+BB1 = BBandBot( C, 20, 1 );
+Plot( BT1, "" + _PARAM_VALUES(), ColorBand, styleLine|styleNoLabel); 
+Plot( BB1, "" + _PARAM_VALUES(), ColorBand, styleLine|styleNoLabel);
+PlotOHLC(0, BT1 , BB1 , BB1 , "Cloud", ColorRGB(5,80,5),styleCloud,styleNoLabel);
+
+  
+_SECTION_END();

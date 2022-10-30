@@ -1,0 +1,38 @@
+//Peak-to-Trough Ratio Statistics, by D. Tsokakis
+function PTratio(n,Var,m,step)
+{
+z=Zig(Var,n);
+PeakCondition=PeakBars(Var,n)==0;
+p1=ValueWhen(PeakCondition,Var,1);
+p2=ValueWhen(PeakCondition,Var,2);
+TroughCondition=TroughBars(Var,n)==0;
+t1=ValueWhen(TroughCondition,Var,1);
+t2=ValueWhen(TroughCondition,Var,2);
+R=IIf(BarsSince(PeakCondition)<BarsSince(TroughCondition),(p1-t1)/(p2-t1),(p1-t1)/(p1-t2));
+fs=Cum(R!=Ref(R,-1) AND R>=m*step AND R<(m+1)*step)*100/Cum(R!=Ref(R,-1)) ;
+return fs;
+}
+Var=C;
+nmax=11;
+STEP=0.50;
+j0=4/step;dd=0;ddd=0;m=0;jj=0;nn=0;
+
+for(n=2;n<nmax;n++)
+{
+for(j=0;j<j0;j++)
+{
+dd=LastValue(PTratio(n,Var,j,step));
+ddd=Max(ddd,dd);
+if(dd==ddd)
+{
+jj=j;
+nn=n;
+}
+}
+}
+Title="n = "+WriteVal(nn,1.0)+" %\n"+WriteVal(jj*STEP,1.2)+" <= d < "+WriteVal((1+jj)*STEP,1.2)+" : "+WriteVal(ddd,1.0)+" % ";
+Filter=1;//n=1 last quotations
+AddColumn(NN,"Change",1.0);
+AddColumn(JJ*STEP,"<= R ",1.2);
+AddColumn((1+JJ)*STEP," R < ",1.2);
+AddColumn(DDD," % ",1.0);

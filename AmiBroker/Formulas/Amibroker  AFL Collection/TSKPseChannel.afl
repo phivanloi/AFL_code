@@ -1,0 +1,46 @@
+
+
+
+
+BarsBack = Param("Period for Liner Regression Line",40,1,240,1);
+SE = Param("Standard Error", 1.0, 0, 6, 0.1);
+LRColor = ParamColor("LR Color", colorWhite ); 
+LRStyle = ParamStyle("LR Style");
+SEColor = ParamColor("SE Color", colorWhite ); 
+SEStyle = ParamStyle("SE Style");
+
+//shift = Param("Look back period",0,0,240,1); 
+shift = 0;
+
+
+//  =============================== Math Formula =============================================================
+MP = (High+Low) *0.5;
+x = Cum(1);
+lastx = LastValue( x ) - shift; 
+aa = LastValue( Ref(LinRegIntercept( MP, BarsBack), -shift) ); 
+bb = LastValue( Ref(LinRegSlope( MP, BarsBack ), -shift) ); 
+y = Aa + bb * ( x - (Lastx - BarsBack +1 ) ); 
+
+
+// ==================Plot the Linear Regression Line ==========================================================
+
+
+
+LRLine =  IIf( x > (lastx - BarsBack) AND BarIndex() < Lastx, y, Null );
+Plot( LRLine , "LinReg", LRCOLOR, LRSTYLE ); //  styleDots ); 
+
+// ==========================  Plot 1st Standard Error Channel ===============================================================
+
+
+
+width = LastValue( Ref(SE*StdErr(MP, BarsBack),-shift) );   // THIS IS WHERE THE WIDTH OF THE CHANELS IS SET  
+SEU = IIf( x > (lastx - BarsBack) AND BarIndex() < Lastx, y+width , Null ) ;
+SEL = IIf( x > (lastx - BarsBack) AND BarIndex() < Lastx, y-width , Null ) ;
+
+SDColor = ParamColor("SE Color", colorCycle ); 
+SDStyle = ParamStyle("SE Style");
+
+Plot( SEU , "Upper Lin Reg", SEColor,SEStyle ); 
+Plot( SEL , "Lower Lin Reg", SEColor,SEStyle ); 
+
+// ============================ End Indicator Code ==============================================================

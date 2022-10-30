@@ -1,0 +1,24 @@
+// Scan formula that builds ~AIM composite
+// run over DJ 30
+UpMomentum = Close > Ref( Close, -20 );
+AddToComposite( UpMomentum, "~AIM", "X" ); // build ~AIM composite
+// Back test code - run over single symbol - ES (e-mini SP500) for example
+AIM = Foreign("~AIM", "X" );
+SetTradeDelays( 1, 1, 1, 1 );
+Buy =   Ref( AIM, -3 ) > Ref( AIM, -2 )
+      AND Ref( AIM, -2 ) > Ref( AIM, -1 )
+      AND AIM - Ref( AIM, -1 ) < 5
+      AND AIM < 20;
+Sell = Ref( AIM, -3 ) < Ref( AIM, -2 )
+      AND Ref( AIM, -2 ) < Ref( AIM, -1 )
+      AND Ref( AIM, -1 ) - AIM < 5
+      AND AIM > 10;
+Short = Sell;
+Cover = Buy;
+// for trading single contract only
+// values for ES
+PositionSize=MarginDeposit=4000; // initial margin
+PointValue=50; // dollar value of 100 points
+// Plot code
+Plot( AIM, "AIM", colorRed );
+

@@ -1,0 +1,12 @@
+Buy1 = H >= HHV(C,18) AND Volume >= 1.5*MA(Volume,5) AND Volume >40000 ;
+Buy2 = C >= HHV(C,18) AND Volume >40000 ;
+Buy3 = Volume >= 4*MA(Volume,10) AND Volume>40000 AND C>=O;
+
+ret = Study("RE", 1038);
+sup = Study("SU", 1038);
+Buy4   = Cross(C, ret);
+Sell  = Cross(sup, C);
+
+Buy  = (Buy1 OR Buy2 OR Buy3 OR Buy4) AND Day()>=1 AND Month()>=10;
+
+//Sell = L <= LLV(C,18)AND Volume >= 1.45*MA(Volume,10);

@@ -1,0 +1,49 @@
+_SECTION_BEGIN("CHANDELIER EXIT Geoff Mulhall");
+/* Chandelier Exit */
+/* Geoff Mulhall Oct 2004 */
+/* Requires chandelier plugin installed */
+
+GraphXSpace = 5;
+
+Plot(Close,"",colorBlack,styleCandle);
+Plot(ChandelierCl(ATR(15),2.5),"",colorRed,styleLi ne);
+Plot(ChandelierHL(ATR(15),2.5),"",colorBlue,styleL ine);
+
+Buy = Close > Ref( ChandelierCl(ATR(15),3), -1);
+Sell = Close < Ref( ChandelierCl(ATR(15),3), -1);
+
+Buy = ExRem( Buy, Sell );
+Sell = ExRem( Sell, Buy ); 
+
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, colorBlue, colorRed ),0, IIf( Buy, Low, High ) );
+
+
+rising = ChandelierHL(ATR(15),2.5) > ChandelierCl(ATR(15),2.5);
+
+GraphXSpace = 0.5;
+
+
+if(StrToNum(NumToStr(rising)))
+bgColor = colorLavender;
+else
+bgColor = colorCustom14;
+SetChartBkGradientFill( colorAqua, bgColor);
+
+
+
+///////////// Title //////////////////
+Change=C-Ref(C,-1);
+ROCVal = ROC(C,1);
+Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}}" + " O: " + O + ", H:" + H + ", L:" +L
++"\n"+ ", C:"+ C +" ("+NumToStr(Change,1.2)+" )" +" ("+NumToStr(ROCVal,1.2)+" %%)") +EncodeColor(colorWhite) ;
+/*
++ " Risk: " +NumToStr(Risk,1.2) + " Risk Long: " + NumToStr(Risk_P_L,1.2)+" %" + " Risk Short: " + NumToStr(Risk_P_S,1.2)+" %" 
++EncodeColor(colorRed) 
++"\n"+ "Up Fr : "+NumToStr(Ref(UpFractal,2),1.2) +EncodeColor(colorBlue) 
++ " Dn Fr: " +NumToStr(Ref(DownFractal,2),1.2) +EncodeColor(colorCustom10) 
++ " Up Fr: " +NumToStr(Max(HHV(H,3),Ref(UpFractal,2)) ) + " Dn Fr: " +NumToStr(Min(LLV(L,3),Ref(DownFractal,2))) + " Lot: "+NumToStr(LotSize,1.2);
+
+*/
+
+_SECTION_END();

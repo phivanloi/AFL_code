@@ -1,0 +1,67 @@
+//Chaloke.com Peak-Trough System + Auto ATR + Position sizing+Varible Sensitivity// 
+// Last Update 16 Oct 05 By Kook// 
+
+PctVlt=(ATR(14)/C)*100;//PercentVolatility 
+
+PK=IIf(PctVlt<0.5,Peak(Close,0.5,1), 
+IIf( PctVlt>=0.5 AND PctVlt< 1.0 ,Peak(Close,0.70,1), 
+IIf( PctVlt>=1.0 AND PctVlt< 1.5 ,Peak(Close,0.90,1), 
+IIf( PctVlt>=1.5 AND PctVlt< 2.0 ,Peak(Close,1.10,1), 
+IIf( PctVlt>=2.0 AND PctVlt< 2.5 ,Peak(Close,1.30,1), 
+IIf( PctVlt>=2.5 AND PctVlt< 3.0 ,Peak(Close,1.50,1), 
+IIf( PctVlt>=3.0 AND PctVlt< 3.5 ,Peak(Close,1.70,1), 
+IIf( PctVlt>=3.5 AND PctVlt< 4.0 ,Peak(Close,2.00,1), 
+Peak(Close,2.20,1) )))))))); 
+
+TGH=IIf(PctVlt<0.5,Trough(Close,0.5,1), 
+IIf( PctVlt>=0.5 AND PctVlt< 1.0 ,Trough(Close,0.75,1), 
+IIf( PctVlt>=1.0 AND PctVlt< 1.5 ,Trough(Close,1.00,1), 
+IIf( PctVlt>=1.5 AND PctVlt< 2.0 ,Trough(Close,1.25,1), 
+IIf( PctVlt>=2.0 AND PctVlt< 2.5 ,Trough(Close,1.50,1), 
+IIf( PctVlt>=2.5 AND PctVlt< 3.0 ,Trough(Close,1.75,1), 
+IIf( PctVlt>=3.0 AND PctVlt< 3.5 ,Trough(Close,2.00,1), 
+IIf( PctVlt>=3.5 AND PctVlt< 4.0 ,Trough(Close,2.25,1), 
+Trough(Close,2.50,1) )))))))); 
+
+Sens=IIf(PctVlt<0.5,0.5, 
+IIf( PctVlt>=0.5 AND PctVlt< 1.0 ,0.75, 
+IIf( PctVlt>=1.0 AND PctVlt< 1.5 ,1.00, 
+IIf( PctVlt>=1.5 AND PctVlt< 2.0 ,1.25, 
+IIf( PctVlt>=2.0 AND PctVlt< 2.5 ,1.50, 
+IIf( PctVlt>=2.5 AND PctVlt< 3.0 ,1.75, 
+IIf( PctVlt>=3.0 AND PctVlt< 3.5 ,2.00, 
+IIf( PctVlt>=3.5 AND PctVlt< 4.0 ,2.25, 
+2.50 )))))))); 
+
+
+Color=IIf(BarsSince(Cross(C,Ref(PK,-1)))<BarsSince(Cross(Ref(TGH,-1),C)),colorBrightGreen,colorRed); 
+
+Plot(C,"Chaloke.com Peak-Trough",Color,styleCandle); 
+PlotShapes( Cross(C,Ref(PK,-1))*shapeUpArrow,colorYellow,0,L); 
+PlotShapes( Cross(Ref(TGH,-1),C)*shapeDownArrow,colorPink,0,H); 
+PlotShapes( Cross(70,RSI(14))*shapeDownArrow,colorWhite,0,H,Offset=-28 ); 
+
+///// Trailing Stop Module ///// 
+
+P6=Param("Trailing Stop Risk",2.5,2,3.5,0.1); 
+P7=Param("Trailing Stop LookBack",14,5,25,1); 
+P8=Param("Trailing Stop PrevLow Switch",0,0,1,1); 
+PrevLow=IIf(P8==1, Ref(C,-TroughBars(C,5,1)) ,Null); 
+Plot(PrevLow,"",colorRed); 
+
+//Position sizing// 
+MyTotalPort = Param("MyTotalPort",1000000,10000,10000000,100000); 
+AcceptableRisk = Param("AcceptableRisk",0.5,0.1,3,0.1); 
+BarsFromStart = BarsSince(Cross(C,Ref(PK,-1))AND Ref(Color,-1)==colorRed) ; 
+InitialStopLoss =Ref( H - P6*ATR(P7),-BarsFromStart); 
+PositionSizing = 0.01*AcceptableRisk*MyTotalPort/( C - InitialStopLoss ); 
+
+Plot(IIf( HHV(H - P6*ATR(P7),BarsFromStart+1) <C ,HHV(H - P6*ATR(P7),BarsFromStart+1),Null) ,"",colorBlue,1); 
+PlotShapes(shapeDownArrow*Cross(Ref(HHV(H - P6*ATR(P7),BarsFromStart+1),-1),C),colorBlue,0,H,Offset=-43); 
+Title=Name()+" "+Date()+" "+EncodeColor(colorYellow)+"Chaloke.com Peak-Trough System"+" ( Sens ="+Sens+")"+EncodeColor(colorBrown)+" Vol="+NumToStr(Volume ,1.2)+" "+EncodeColor(10)+"Position Sizing ( " +AcceptableRisk+ "% Risk ) = " + WriteIf(color==colorBrightGreen,NumToStr(PositionSizing ,1.0),"0")+ 
+EncodeColor(colorBlue)+"\nO="+O+EncodeColor(colorPink)+" Pk-Tgh Exit"+EncodeColor(colorBlue)+" ATR Trailing Exit"+EncodeColor(colorWhite)+" RSI Exit"+EncodeColor(colorBlack)+" ADX = "+ADX()+EncodeColor(colorBlue)+"\nH="+H+"\nL="+L+"\nClose="+ C+""+"\nchange= "+NumToStr((Ref(C,-1)-Close) ,1.2) + 
+" "; 
+GraphXSpace=3; 
+
+Buy=Cross(C,Ref(PK,-1)); 
+Sell=Cross(Ref(TGH,-1),C);

@@ -1,0 +1,62 @@
+_SECTION_BEGIN("Scan Harga"); 
+
+  
+
+Rule1 = Param("Close", 0, 0, 10000, 1); 
+
+Rule2 = Close >= Rule1 ; 
+
+  
+
+//Filter= Sell= Rule1 AND Rule2 AND V>2000 ; 
+
+Filter= Sell= Rule2 AND V>2000 ; 
+
+  
+
+V0 = Ref(Volume,0) ; 
+
+V1 = Ref(Volume,- 1); 
+
+V2 = Ref(Volume,- 2); 
+
+V3 = Ref(Volume,- 3); 
+
+VR=(V1+V2+V3) /3; 
+
+VTREND = (V0 > VR); 
+
+VoK = V0>V1 AND V0>VR; 
+
+Vup= (V0>V1 AND V1>V2) AND (V0>Vr) AND ((V0/Vr)>1.1); 
+
+  
+
+AddColumn(Ref( C,-1), "PrevClose",1.0, IIf( Ref(C,-1), colorOrange,colorBlack )); 
+
+AddColumn(O, "Open",1.0, IIf( O==L , colorBrightGreen, 
+
+IIf(O==Ref(C, -1),colorOrange, IIf(O<Ref(C,-1),colorRed, colorBlue) ))); 
+
+AddColumn(Close, "Last",1.0, IIf(C>Ref(C,-1), colorLime, colorRed )); 
+
+AddColumn(Rule1, "Sell Order", 1.0,colorDefault, IIf(C>=Rule1 AND V>2000,colorGreen, colorWhite) ); 
+
+AddColumn(VOk,"V.Ok",1.0,colorDefault, IIf( VOk, colorGreen, colorRed ) ); 
+
+AddColumn( Vup, "V.Up", 1,IIf( Vup, colorBrightGreen, colorRed ) ); 
+
+AddColumn(Volume,"V-Today",1.0, IIf( Volume >2000, colorLime, colorRed )); 
+
+AddColumn(V1,"V-Yest",1.0, IIf( Vr >2000, colorLime, colorRed )); 
+
+//AddColumn( Vr, "V-Avg",1.0, IIf( Vr >2000, colorLime, colorRed )); 
+
+//AddColumn( V0/ Vr,"Vol Ratio",1.1, IIf( V0/Vr >1.1, colorLime,colorRed )); 
+
+  
+
+PlotShapes(IIf( Filter,shapeSmallCircle , shapeNone), colorBlack, 0,Low, Offset=-15); 
+
+AlertIf( Sell, "SOUND C:\\Windows\ \Media\\XPhone11 .wav", "Audioalert", 2 ); 
+

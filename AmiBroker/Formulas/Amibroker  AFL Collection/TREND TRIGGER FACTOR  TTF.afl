@@ -1,0 +1,16 @@
+function TTF( periods )
+{
+  BuyPower = HHV( High, periods ) - Ref( LLV( Low, periods ), - periods );
+  SellPower = Ref( HHV( High, periods ), - periods ) - LLV( Low, periods );
+  return 100 * (BuyPower - SellPower) / ( 0.5*( BuyPower + SellPower) );
+}
+ttf15 = TTF( 15 );
+Plot( ttf15, "TTF(15)", colorRed );
+bt = Optimize( "Buy Trigger", 100, 0, 120, 5 );
+st = Optimize( "Sell Trigger", -100, -120, 0, 5 );
+/* system rules */
+Buy = Cross( ttf15, bt );
+Sell = Cross( -st, ttf15 );
+/* reverse positions */
+Short = Sell;
+Cover = Buy;

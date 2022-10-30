@@ -1,0 +1,36 @@
+_SECTION_BEGIN("demark from ami library");
+
+SetChartOptions( 0, chartShowArrows | chartShowDates | chartWrapTitle );
+
+MaxGraph=3;
+
+highm = IIf( H > Ref( H, -1 ), H - Ref( H, - 1), 0 );
+lowm = IIf( L < Ref( L, -1 ), Ref( L, - 1 ) - L, 0 );
+
+DeMarker = 100 *  Sum( highm, 13 )/( Sum( lowm, 13 ) + Sum( highm, 13 ) );
+
+Graph0 = DeMarker;
+
+Plot(70,"",colorRed,styleLine+styleDots,maskAll); 
+Plot(30,"",colorGreen,styleLine+styleDots,maskAll); 
+
+
+Buy = Cross(DeMarker,30); Sell = Cross(70,DeMarker); 
+
+buyshape = Buy * shapeUpArrow; SellShape = Sell * shapeDownArrow;
+PlotShapes(BuyShape, colorGreen, 0); PlotShapes(SellShape, colorRed, 0);
+
+
+Filter=Buy OR Sell;
+AddColumn( Buy, "Buy", 1);
+AddColumn(Sell, "Sell", 1);
+AddColumn(Close,"Close",1.2);
+AddColumn(Volume,"Volume",1.0); 
+
+Title=EncodeColor( colorDarkTeal ) + " - {{INTERVAL}} {{DATE}}: "+">>>>"+Name()  +">>>>"+ EncodeColor( colorGreen )+WriteVal(( Graph0 )); 
+
+ToolTip=StrFormat("Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 )));
+SetChartBkColor(ParamColor("Outer panel color ",colorWhite)); // color of outer border 
+SetChartBkGradientFill( ParamColor("Inner panel color upper half",colorPink),ParamColor("Inner panel color lower half",colorCustom1)); // color of inner panel
+
+_SECTION_END();

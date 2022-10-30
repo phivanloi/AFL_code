@@ -1,0 +1,138 @@
+//|------------------------------------------------------------------
+//|Tradingbasis.com - include file 1
+//|Version:1.8   18-May-2006
+//|Copyright © 2003, Tradingbasis.com
+//|http://www.tradingbasis.com
+//|e-mail: support@tradingbasis.com
+//|------------------------------------------------------------------
+
+InIndicator = Status("Action") == 1;
+EnableTextOutput( False );
+upbar = C>=O; dnbar = C<O;
+_SECTION_BEGIN("Price"); 
+Pstyle = ParamToggle("Heikin Ashi","On|Off",1);
+TB_AB_Style = ParamToggle("Price Style Source","Tradingbasis Preferences|Amibroker Preferences",1);
+pricestyle = IIf(TB_AB_Style,GetPriceStyle(),ParamStyle("Price Style",styleBar,maskAll));
+GraphXSpace = Param("Vertical Zoom Out",5,0,200,0.5);
+upbar_col = ParamColor("Up Bar",colorLightBlue);
+dnbar_col = ParamColor("Dn Bar",colorLightOrange);
+_SECTION_END(); 
+
+_SECTION_BEGIN("Taio Bars and Ribbons"); 
+TAIO_switchvalue = ParamList("Bar Color Mode", List = "Off,1 - Rising/Falling/Range,2 - Range/Trend,3 - Rising/Falling,4 - Zero based"); 
+for( i=0; i<10; i++){if( StrExtract(List, i) == Taio_switchvalue ) TaioColorMode = i;} 
+Ribbons_switchvalue = ParamList("Ribbon Color Mode", List = "Off,1 - Rising/Falling/Range,2 - Range/Trend,3 - Rising/Falling,4 - Zero based",1); 
+for( i=0; i<10; i++){if( StrExtract(List, i) == Ribbons_switchvalue ) RibbonsColorMode = i;} 
+upLevel = Param("Trend Level",50,0,90);
+dnLevel = Param("Trend Level",-50,-90,0);
+TAIO_up_color = ParamColor("Taio > Trend Level",colorGreen);
+TaioRangeP_color = ParamColor("Range (>0)",colorPaleGreen);
+TaioRangeN_color = ParamColor("Range (<0)",colorPink);
+TAIO_dn_color = ParamColor("Taio < Trend Level",colorRed);
+_SECTION_END(); 
+
+Taio = 100*tbTysc()/tbTysf(tbTyse(abs(tbTysd())));
+TaioUp = Taio>upLevel & Taio>Ref(Taio,-1);
+TaioDn = Taio<dnLevel & Taio<Ref(Taio,-1);
+
+pricecolor = TaioColor(TaioColorMode,upLevel,dnLevel,TAIO_up_color,TaioRangeP_color,TaioRangeN_color,TAIO_dn_color,colorWhite);
+Ribbonscolor = TaioColor(RibbonsColorMode,upLevel,dnLevel,TAIO_up_color,TaioRangeP_color,TaioRangeN_color,TAIO_dn_color,colorWhite);
+
+//---- heikin ashi
+HaClose = (O+H+L+C)/4; 
+HaOpen = AMA( Ref( HaClose, -1 ), 0.5 ); 
+HaHigh = Max( H, Max( HaClose, HaOpen ) ); 
+HaLow = Min( L, Min( HaClose, HaOpen ) ); 
+xDiff = (HaHigh - Halow) * IIf(StrFind(Name(),"JPY"),100,10000);
+barcolor = IIf(HaClose >= HaOpen,upbar_col,dnbar_col);
+
+if(TaioColorMode==0 AND Pstyle==0){
+pricecolor = barcolor;
+}
+
+GraphZOrder = 1;
+if(Pstyle==0){
+PlotOHLC(HaOpen,HaHigh,HaLow,HaClose,"Heikin Ashi",pricecolor,styleCandle+styleNoTitle); 
+}
+else {
+Plot(C,"Price",pricecolor,pricestyle+styleNoTitle); 
+}
+
+Plot(IIf(RibbonsColorMode > 0,1.5,-1e10),"",Ribbonscolor,styleOwnScale|styleArea|styleNoLabel,-0.1,100);
+
+
+_SECTION_BEGIN("Bands and Channels");
+Band_switch = ParamToggle("On/off", "Off|On");
+BandTyp = ParamList("Type", List1 = "Bollinger Bands,Headley Acceleration Bands,Keltner Channel",2); 
+P = ParamField("Price Field");
+Period = Param("Period", 20, 2, 100, 1 );
+Width = Param("Width", 2, 0, 10, 0.1 );
+BandStyle = ParamStyle("Top/Bot",styleLine,maskAll);
+MidStyle = ParamStyle("Middle",styleDashed,maskAll);
+Color = ParamColor("Color", colorYellow );
+
+function HABTop(period,width){
+BWRatio = (H-L)/(H+L) ;
+BandTop = MA(H*(1+Width*BWRatio),Period);
+return BandTop;
+}
+
+function HABBot(period,width){
+BWRatio = (H-L)/(H+L) ;
+BandBot = MA(L*(1- Width*BWRatio),Period);
+return BandBot;
+}
+
+procedure AddKeltnerChannel(array,periods,width)
+{
+global KeltnerChannelTop;
+global KeltnerChannelMid;
+global KeltnerChannelBot;
+KeltnerChannelMid = MA( array, Periods );
+KeltnerChannelTop = KeltnerChannelMid + Width * ATR( Periods );
+KeltnerChannelBot = KeltnerChannelMid - Width * ATR( Periods );
+}
+
+if(Band_switch AND BandTyp == "Bollinger Bands"){
+Plot( BBandTop( P, Period, Width ), "BB Top" + _PARAM_VALUES(), Color, BandStyle ); 
+Plot( MA( P, Period), "BB Mid" + _PARAM_VALUES(), Color, MidStyle ); 
+Plot( BBandBot( P, Period, Width ), "BB Bot" + _PARAM_VALUES(), Color, BandStyle ); 
+}
+
+if(Band_switch AND BandTyp == "Headley Acceleration Bands"){
+Plot( HABTop(Period,Width), "HAB Top"+ _PARAM_VALUES(), Color, BandStyle ); 
+Plot( MA(C,Period), "HAB Mid"+ _PARAM_VALUES(), Color, MidStyle ); 
+Plot( HABBot(Period,Width), "HAB Bot"+ _PARAM_VALUES(), Color, BandStyle ); 
+}
+
+if(Band_switch AND BandTyp == "Keltner Channel"){
+AddKeltnerChannel(P,period,width);
+Plot( KeltnerChannelTop, "KC Top"+ _PARAM_VALUES(), Color, BandStyle ); 
+Plot( KeltnerChannelMid, "KC Mid"+ _PARAM_VALUES(), Color, MidStyle ); 
+Plot( KeltnerChannelBot, "KC Bot"+ _PARAM_VALUES(), Color, BandStyle ); 
+}
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("Parabolic Sar"); 
+Psar_switch = ParamToggle("On/off", "Off|On");
+SARmax = Param("SAR max",0.2,0.01,1,0.01);
+SARacc = Param("SAR acc",0.02,0.005,0.1,0.005);
+Psar_up_color = ParamColor("Rising Points",colorBrightGreen);
+Psar_dn_color = ParamColor("Falling Points",colorRed);
+Plot(IIf(Psar_switch,SAR(SARacc,SARmax),-1e10),"Parabolic_Sar",IIf(SAR(SARacc,SARmax)>H,Psar_dn_color, Psar_up_color),styleDots + styleNoLine + styleNoRescale+styleNoTitle);
+_SECTION_END(); 
+
+ADDAverage ("Average 1",5,1,0,colorLime,styleLine);TBavg1 = TBAverage; TBavg1switch = TBAverage_switch;
+ADDAverage ("Average 2",10,1,0,colorRed,styleLine);TBavg2 = TBAverage;TBavg2switch = TBAverage_switch;
+ADDAverage ("Average 3",20,1,0,colorBlue,styleLine);TBavg3 = TBAverage;TBavg3switch = TBAverage_switch;
+ADDAverage ("Average 4",50,2,0,colorYellow,styleLine);TBavg4 = TBAverage;TBavg4switch = TBAverage_switch;
+
+default_title = StrFormat(" - {{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) )
++EncodeColor(colorLightBlue)+WriteIf(Pstyle,"",", Heikin Ashi On")+EncodeColor(colorWhite);
+
+if( Status("action") == actionCommentary ) 
+{printf("\n"+"Taio = " + WriteVal(Taio));}
+
+ToolTip = StrFormat("Open %g \nHigh %g \nLow %g \nClose %g", O, H, L, C); 

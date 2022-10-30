@@ -1,0 +1,56 @@
+_SECTION_BEGIN("RSI");
+
+SetChartBkColor( colorBlack ) ;
+A1=EMA(RSI(21),5); 
+BBtop=BBandTop(A1,5,.5); 
+BBbot=BBandBot(A1,5,.5);
+Color=IIf(a1>Ref(a1,-1), colorBlue,colorRed);
+bbtop_col = IIf (BBtop > Ref(BBtop,-1),colorBlue,colorRed);
+bbbot_col = IIf (BBbot > Ref(BBbot,-1),colorBlue,colorRed);
+Plot(a1,"RSI",color,styleLine);
+Plot(BBtop,"BBtop",BBtop_col,styleDashed);
+Plot(BBbot,"BBbot",BBbot_col,styleDashed);
+Plot(50,"",31,1);
+Plot(6, "ribbon", Color, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+Buy = a1 > bbtop;
+Sell = a1 < bbbot;
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+PlotShapes(Buy*shapeHollowSmallUpTriangle,colorYellow);
+PlotShapes(Sell*shapeHollowSmallDownTriangle,colorYellow);
+_SECTION_END();
+
+
+_SECTION_BEGIN("Fibo for all bars");
+
+TimeFrameSet( in15Minute*2 ); 
+DH=Ref(H,-1); 
+DL=Ref(L,-1);
+DC=Ref(C,-1);
+
+
+pd = ( DH+ DL + DC )/3;
+sd1 = (2*pd)-DH;
+sd2 = pd -(DH - DL);
+sd3 = Sd1 - (DH-DL); 
+rd1 = (2*pd)-DL;
+rd2 = pd +(DH -DL);
+rd3 = rd1 +(DH-DL);
+
+
+
+TimeFrameRestore();
+
+
+Title = EncodeColor(colorWhite)+ "LINKON'S PIVOT TRADING SYSTEM" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+ "Cl-"+C+"  "
++ WriteIf(C > pd, EncodeColor(colorGreen)+"stay long",EncodeColor(colorRed)+"stay SHORT") + "\n"
++ "Vol= "+ WriteVal(V) +WriteIf ( V > MA(V,26) ,EncodeColor(colorGreen)+"  UP "+ (V/MA(V,26))*100 + " %", EncodeColor(colorRed)+"  DOWN "+ (V/MA(V,26))*100 + " %")
++ EncodeColor(colorGreen)+   "\n R3 : "+ EncodeColor(colorWhite)+RD3
++ EncodeColor(colorGreen)+   "\n R2 : "+ EncodeColor(colorWhite)+RD2
++ EncodeColor(colorGreen)+   "\n R1 : "+ EncodeColor(colorWhite)+RD1
++ EncodeColor(colorBlue)+   "\n Pivot : "+ EncodeColor(colorWhite)+pd
++ EncodeColor(colorRed)+   "\n S1 : "+ EncodeColor(colorWhite)+SD1
++ EncodeColor(colorRed)+   "\n S2 : "+ EncodeColor(colorWhite)+SD2
++ EncodeColor(colorRed)+   "\n S3 : "+ EncodeColor(colorWhite)+SD3
+;

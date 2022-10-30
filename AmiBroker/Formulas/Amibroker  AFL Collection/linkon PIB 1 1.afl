@@ -1,0 +1,90 @@
+_SECTION_BEGIN("band calculations");
+
+Plot(C,"", IIf(MACD(9,34) > Signal(9,34,9),colorGreen,colorRed) , styleCandle);
+
+em= Param("ema of band",20,5,100,1); 
+Lb_band = MA(L,em);
+Hb_band = MA(H,em);
+Color_lb = IIf(Lb_band > Ref(Lb_band,-1),colorBrightGreen,colorOrange);
+Color_hb = IIf(Hb_band > Ref(Hb_band,-1),colorBrightGreen,colorOrange);
+trg = MA((H+L+C)/3,3);
+
+Plot (Lb_band,"lower", Color_lb,styleThick+styleDashed);
+Plot (Hb_band,"upper",Color_hb,styleThick+styleDashed);
+Plot(trg,"tgr", IIf(trg > Ref(trg,-1),colorAqua,colorPink),styleThick);
+
+Buy_band = Color_hb == colorBrightGreen AND trg > Hb_band;
+Sell_band = Color_lb == colorOrange AND trg < Lb_band;
+
+
+// macd calcultions
+bb_top = BBandTop(MACD(9,34),5,0.5);
+bb_bot = BBandBot(MACD(9,34),5,0.5);
+MACD_buy = MACD(9,34) > bb_top;
+MACD_sell = MACD(9,34) < bb_bot;
+
+ADX_rise = ADX(7) > Ref(ADX(7),-1) AND ADX(7) > 20;
+
+Buy = MACD_buy AND ADX_rise; 
+Sell =MACD_sell AND ADX_rise; 
+//Sell = NOT Buy;
+//Cover = NOT Short;
+ 
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy); 
+//Sell = ExRem(Sell,Cover);
+//Cover = ExRem(Cover,Sell);
+
+//ShortPrice=ValueWhen(Short,C,1);
+SellPrice=ValueWhen(Sell,C,1);
+BuyPrice=ValueWhen(Buy,C,1);
+//CoverPrice=ValueWhen(Cover,C,1);
+Long=Flip(Buy,Sell);
+Shrt=Flip(Sell,Buy);
+
+
+
+dist = 1.5*ATR(10); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+
+if( Buy[i] ) PlotText( "Buy @ \n"+C[i] , i, L[ i ]-dist[i], colorBlack,colorGreen ); 
+if( Sell[i] ) PlotText( "Sell@ \n"+C[i], i, H[ i ]+dist[i], colorBlack, colorRed ); 
+//if( Cover[i] ) PlotText( "EXIT" , i, L[ i ]-dist[i], colorBlack,colorGreen ); 
+//if( Sell[i] ) PlotText( "EXIT" , i, H[ i ]+dist[i], colorBlack, colorRed ); 
+
+}  
+//PlotShapes( Buy * shapeUpArrow + Sell * shapeDownArrow, IIf( Buy, colorYellow, colorYellow ) );
+//PlotShapes( Buy * shapeSmallUpTriangle + Sell * shapeSmallDownTriangle, IIf( Buy, colorGreen, colorRed ) );
+
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+
+Col_ribon = IIf(MACD_buy AND ADX_rise,colorGreen,IIf(MACD_sell AND ADX_rise,colorRed,colorYellow));
+Plot(6, "", Col_ribon, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+
+Title = 
+EncodeColor(colorWhite)+ "Linkon's Silver" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) 
++ EncodeColor(colorWhite) +  "  - " + Date() +" - "
++"\n" 
+
++EncodeColor(colorYellow) +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+ "Cl-"+C+"  "+ "Vol= "+ WriteVal(V)
+//+ WriteIf ((trg>Hb_band) ,EncodeColor(colorLime)+ "      Direction : LONG",EncodeColor(colorRed)+"      Direction : SHORT")
++"\n" 
++ WriteIf (Sell , " EXIT LONG / Reverse Signal at "+C,"")
++ WriteIf (Buy , " EXIT SHORT / Reverse Signal at "+C,"")
+
++WriteIf(Sell , "Total Profit/Loss for the Last Trade Rs."+(C-BuyPrice)+"","")+
+WriteIf(Buy  , "Total Profit/Loss for the Last trade Rs."+(SellPrice-C)+"","")+
+WriteIf(Long AND NOT Buy, "Trade : Long - Entry price Rs."+(BuyPrice),"")+
+WriteIf(shrt AND NOT Sell, "Trade : Short - Entry price Rs."+(SellPrice),"")+"\n"+ 
+WriteIf(Long AND NOT Buy, "Current Profit / Loss Rs."+(C-BuyPrice)+"","")+
+WriteIf(shrt AND NOT Sell, "Current Profit / Loss Rs."+(SellPrice-C)+"","");
+
+
+;

@@ -1,0 +1,268 @@
+/*
+
+Bill William's Alligator System II
+
+Reference Website:
+
+==================
+
+http://www.alpari-idc.com/en/market-analysis-guide/chaos-theory/alligator-and-gator.html
+
+Modified from http://www.amibroker.com/library/detail.php?id=100, by Steve
+
+Wiser - slwiserr@erols.com
+
+Modified by TohMz on June 9th, 2008
+
+*/
+
+SetChartOptions
+( 0, chartShowArrows|chartShowDates );
+
+_SECTION_BEGIN
+("Price Chart");
+
+_N
+(Title = StrFormat("{{NAME}}- {{INTERVAL}} {{DATE}} O= %g, H= %g, L= %g, C=
+
+%g (%.1f%%) V=
+" +WriteVal( V, 1.0 ) +"\n{{VALUES}}", O, H, L, C, SelectedValue(
+
+ROC
+( C, 1 )) ));
+
+PriceStyle =
+GetPriceStyle();
+
+PriceStyleOpt =
+ParamStyle("Price Style")|PriceStyle;
+
+if
+(PriceStyle==styleCandle)
+
+Plot( C, "", colorBlack, PriceStyleOpt);
+
+else
+
+Plot( C, "", IIf( Close >= Ref(C, -1), colorBlue, colorRed ),
+
+PriceStyleOpt);
+
+_SECTION_END
+();
+
+_SECTION_BEGIN
+("BW Alligator");
+
+/*** The trend indicators ***/
+
+P=
+ParamList("Price", "Close|(H+L)/2|(H+C+L)/3",1);
+
+if
+(P=="Close")
+
+A = C;
+
+else
+
+if
+(P=="(H+C+L)/3")
+
+A = (H+C+L)/
+3;
+
+else
+
+A = (H+L)/
+2;
+
+AlligatorJaw =
+Ref(Wilders(A,13),-8);
+
+AlligatorTeeth =
+Ref(Wilders(A,8), -5);
+
+AlligatorLips =
+Ref(Wilders(A,5), -3);
+
+Plot
+(AlligatorJaw, "Jaw", ParamColor("Jaw's Color",colorBlue),
+
+ParamStyle
+("Jaw's Style", styleThick));
+
+Plot
+(AlligatorTeeth,"Teeth", ParamColor("Teeth's Color",colorRed),
+
+ParamStyle
+("Teeth's Style", styleThick));
+
+Plot
+(AlligatorLips, "Lips", ParamColor("Lips's Color",colorGreen),
+
+ParamStyle
+("Lips's Style", styleThick));
+
+_SECTION_END
+();
+
+ 
+
+_SECTION_BEGIN
+("BW Fractal");
+
+ 
+
+CondUpFractal =
+
+(
+Ref(H,-2)<H AND Ref(H,-1)<H AND Ref(H,1)<H AND Ref(H,2)<H) OR
+
+(
+Ref(H,-3)<H AND Ref(H,-2)<H AND Ref(H,-1)==H AND Ref(H,1)<H AND Ref(H,2)<H) OR
+
+(
+Ref(H,-4)<H AND Ref(H,-3)<H AND Ref(H,-2)==H AND Ref(H,-1)==H AND Ref(H,1)<H AND Ref(H,2)<H) OR
+
+(
+Ref(H,-4)<H AND Ref(H,-3)<H AND Ref(H,-2)==H AND Ref(H,-1)==H AND Ref(H,1)<H AND Ref(H,2)<H) OR
+
+(
+Ref(H,-6)<H AND Ref(H,-5)<H AND Ref(H,-4)==H AND Ref(H,-3)<H AND Ref(H,-2)==H AND Ref(H,-1)<H AND Ref(H,1)<H AND Ref(H,2)<H);
+
+UpFractal =
+ValueWhen(CondUpFractal,H,1);
+
+PlotShapes
+(CondUpFractal*shapeSmallCircle,colorGreen,Layer=0,UpFractal,Offset=0);
+
+CondDownFractal =
+
+(
+Ref(L,-2)>L AND Ref(L,-1)>L AND Ref(L,1)>L AND Ref(L,2)>L) OR
+
+(
+Ref(L,-3)>L AND Ref(L,-2)>L AND Ref(L,-1)==L AND Ref(L,1)>L AND Ref(L,2)>L) OR
+
+(
+Ref(L,-4)>L AND Ref(L,-3)>L AND Ref(L,-2)==L AND Ref(L,-1)==L AND Ref(L,1)>L AND Ref(L,2)>L) OR
+
+(
+Ref(L,-4)>L AND Ref(L,-3)>L AND Ref(L,-2)==L AND Ref(L,-1)==L AND Ref(L,1)>L AND Ref(L,2)>L) OR
+
+(
+Ref(L,-6)>L AND Ref(L,-5)>L AND Ref(L,-4)==L AND Ref(L,-3)>L AND Ref(L,-2)==L AND Ref(L,-1)>L AND Ref(L,1)>L AND Ref(L,2)>L);
+
+DownFractal =
+ValueWhen(CondDownFractal,L,1);
+
+PlotShapes
+(CondDownFractal*shapeSmallCircle,colorRed,Layer=0,DownFractal,Offset=0);
+
+PlotShapes
+(Cross(C,UpFractal)*shapeUpArrow,colorGreen,Layer=0,L);
+
+PlotShapes
+(Cross(DownFractal,C)*shapeDownArrow,colorRed,Layer=0,H);
+
+//== Added Crash crashandburn59 [at] hotmail.com solution
+
+Plot
+(Ref(UpFractal,2), "Up Fractal", ParamColor("Up Fractal Color",colorRed),
+
+ParamStyle
+("Up Fractal Style", styleDashed));
+
+Plot
+(Ref(DownFractal,2), "Down Fractal",ParamColor("Down Fractal
+
+Color
+",colorBlue), ParamStyle("Down Fractal Style", styleDashed));
+
+//Plot(Max(HHV(H,3),Ref(UpFractal,2)), "Up Fractal", ParamColor("Up Fractal Color",colorRed), ParamStyle("Up Fractal Style", styleDashed));
+
+//Plot(Max(HHV(H,3),Ref(UpFractal,2)), "Down Fractal",ParamColor("Down Fractal Color",colorBlue), ParamStyle("Down Fractal Style", styleDashed));
+
+_SECTION_END
+();
+
+ 
+
+ 
+
+_SECTION_BEGIN
+("Exploration");
+
+/*
+
+Buy: Scan stocks only breakout..maxbreakout (1~30%, default) and Trend is
+
+bullish
+
+Sell: Scan stocks only breakout..maxbreakout (1~30%, default) and Trend is
+
+bearish
+
+*/
+
+//== Price Increment Value - depend on different country
+
+Inc =
+0.1;
+
+ 
+
+//== Set the Price Range for stock to scan
+
+PriceFrom =
+Param("Price From:", 5, 0.1, 200, Inc);
+
+PriceTo =
+Param("Price To:", 100, 0.1, 200, Inc);
+
+MaxBreakOut =
+Param("Max Breakout (%)", 5, 1, 30);
+
+MaxBreakOut = MaxBreakOut/
+100;
+
+Buy
+= C>UpFractal AND C<=(1+MaxBreakOut)*UpFractal AND
+
+AlligatorTeeth>AlligatorJaw AND V>0;
+
+Sell
+= C<DownFractal AND C>=(1-MaxBreakOut)*DownFractal AND
+
+AlligatorTeeth<AlligatorJaw;
+
+ 
+
+ 
+
+Filter
+= (Buy OR Sell) AND (C>=PriceFrom AND C<=PriceTo) AND V>0; 
+//= (Buy OR Sell) AND (C>=PriceFrom AND C<=PriceTo) AND V>0;
+
+AddTextColumn
+(FullName(), "Security", 1.0, colorDefault, colorDefault, 200);
+
+AddTextColumn
+( WriteIf(Buy,"Buy", WriteIf(Sell, "Sell", "")), "Trade", 1.0);
+
+AddColumn
+( UpFractal, "Up Fratal");
+
+AddColumn
+( DownFractal, "Down Fratal");
+
+//AddColumn( MA(V,3)/EMA(V,17), "MAV(3/17)");
+
+AddColumn
+( C, "Today's Close");
+
+ 
+
+_SECTION_END
+(); 

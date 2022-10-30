@@ -1,0 +1,244 @@
+//--------------------------------------------------------------------
+//----------------- HURST / Millard "Like" DE's ----------------------
+//--------------------------------------------------------------------
+//
+// Hurst / Millard "Like" DE bands using Centered SMA's with 
+// Extrapolations based on intelligently directed nth Order 
+// Polynomial Fit ...
+//
+// NOTE:   This indicator requires PolyFit (nth Order Polynomial Fit)
+//              which is also available from the library
+//
+// pN    - The half cycle length of Hurst recognized important 
+//             cycles i.e. 25d, 10w, 20w, 40w, 80w, ~4-4.5y.
+//             NOTES: When set to Zero (0) nothing will be drawn.
+//                    Line construction is an MA of an MA where
+//                    the length of both is odd and the first is
+//                    roughly twice the second a la Millard.  
+//                    Effective minimum is therefore 8 i.e. 5 & 3.
+//
+// BType - Percent - Regular price data
+//         Amount  - Normalized ( log or log10 ) Price Data
+//
+// PctN  - The percent or amount to draw the Upper / Lower bands
+//
+// NOTE:   The Options below all deal with Extrapolation ...
+//
+//         These were added in order to increase the "intelligence" 
+//             level of the extrapolations produced i.e. more human
+//             like drawn by hand curvelinear bands. Compare with v2 
+//             or with eAuto = 0 and you'll see the diff. I left the
+//             default values of the associated parameters at what
+//             I consider to be fairly good although there are no
+//             absolutes in here ... 
+//            
+// ePFac - The percentage of the CMA period to use for extrapolation
+//             calculations ... The lower this number is the faster 
+//             the extrapolation will change direction.
+//
+// ePOrd - The order of PolyFit to be used 
+//             (2, 3 or MAYBE 4 could be tried)
+//
+// eAuto - The maximum number of potential additional "intelligently" 
+//             adjusted PolyFit passes to perform when the original 
+//             extrapolation is determined by the AFL to be "wild"
+//
+// eLFac - The percentage of the right most end of the extrapolation 
+//             to examine for "wildness"
+//
+// eFFac - The percentage of the H - L to UB ~ LB range to adjust the
+//             extrapolated CMA by.
+//
+// eFLen - This should be set to 0 except possibly when the selected
+//             bar is the last bar on the chart as prior to that it 
+//             will affect extrapolation by using data that should be 
+//             unknown
+//--------------------------------------------------------------------
+
+p1    = Param("CMA Period 1",  13, 0, 999, 1);
+p2    = Param("CMA Period 2",  25, 0, 999, 1);
+p3    = Param("CMA Period 3",  50, 0, 999, 1);
+p4    = Param("CMA Period 4", 100, 0, 999, 1);
+p5    = Param("CMA Period 5", 200, 0, 999, 1);
+p6    = Param("CMA Period 6", 600, 0, 999, 1);
+
+BType = ParamList("Band Type", "Percent|Amount");
+
+Pct1  = Param("Pct or Amt 1", 1.6, 0, 33, 0.05);
+Pct2  = Param("Pct or Amt 2", 2.4, 0, 33, 0.05);
+Pct3  = Param("Pct or Amt 3", 3.6, 0, 33, 0.05);
+Pct4  = Param("Pct or Amt 4", 5.4, 0, 33, 0.05);
+Pct5  = Param("Pct or Amt 5", 8.1, 0, 33, 0.05);
+Pct6  = Param("Pct or Amt 6",12.0, 0, 33, 0.05);
+
+ePFac = Param("Extrapolation Period Factor",      0.35, 0.10, 5.00, 0.05);
+ePOrd = Param("Extrapolation PolyFit Order",      2,    1,    8,    1);
+eAuto = Param("Extrapolation Auto Fixup Passes",  5,    0,    9,    1); 
+eLFac = Param("Extrapolation AF Lag Factor",      0.33, 0,    1,    0.01);
+eFFac = Param("Extrapolation AF Factor",          0.25, 0,    1,    0.01);
+eFLen = Param("Extrapolation Future Length",      0,    0,   10,    1);
+
+BI    = BarIndex();
+SVBI  = SelectedValue(BI);
+LVBI  = LastValue(BI);
+Data  = (H + L) / 2;
+
+Title = EncodeColor(colorWhite) + " Hurst / Millard DE " + EncodeColor(colorDefault) + " - BI = " + NumToStr(BI, 1.0) + " - CMA Periods = ";
+
+PlotOHLC(O, H, L, C, "Data", colorWhite, styleBar | styleThick); 
+
+GraphXSpace = 5;
+
+#include <PolyFit.afl>
+
+//--------------------------------------------------------------------
+// AFL Function for CMA's & DE's (CMA oriented bands w/Extrapolation)
+//--------------------------------------------------------------------
+
+function CMA_DE(Period, Percent, Red, Green, Blue)
+{
+    Pm = int(Period * 2 / 3);
+    if (Pm % 2 == 0)
+        Pm = Pm + 1;
+    Pn = Period - Pm;
+    if (Pn < 3) 
+        Pn = 3;
+    if (Pm <= Pn)
+        Pm = Pn + 2;
+    if (Pn % 2 == 0)
+        Pn = Pn + 1;
+
+    if (SVBI - (Pm + Pn) * (1 + eLFac + 0.02) > 0)
+    {
+        Lag    = (Pm - 1) / 2 + (Pn - 1) / 2;
+        ExtraF = Lag + eFLen;
+        CMA    = Ref(MA(MA(Data, Pm), Pn), Lag);
+        EndBar = SVBI - Lag;
+        BegBar = EndBar - round(Period * ePFac) + 1;
+        if (EndBar - BegBar < 2)
+            BegBar = EndBar - 2;
+
+        CMA = IIf(BI <= SVBI - Lag, CMA, -1e10);
+
+        if (BType == "Amount")
+        {
+            UBIS = CMA + Percent;
+            LBIS = CMA - Percent;
+        }
+        else
+        if (BType == "Percent")
+        {
+            UBIS = CMA * (1 + Percent / 100);
+            LBIS = CMA * (1 - Percent / 100);
+        }
+
+        Plot(UBIS, "", ColorRGB(Red, Green, Blue), styleThick);
+        Plot(LBIS, "", ColorRGB(Red, Green, Blue), styleThick);
+
+        if (Red   > 0) Red   = 254;
+        if (Green > 0) Green = 254;
+        if (Blue  > 0) Blue  = 254;
+
+        CMAx = PolyFit(CMA, BegBar, EndBar, ePOrd, 0, ExtraF);
+        CMAx = IIf(BI >= SVBI - Lag - ExtraF, CMAx, -1e10);
+
+        if (BType == "Amount")
+        {
+            CMAx = CMAx + CMA[SVBI - Lag] - CMAx[SVBI - Lag - ExtraF];
+            UBOS = CMAx + Percent; 
+            LBOS = CMAx - Percent;
+        }
+        else
+        {
+            CMAx = CMAx * CMA[SVBI - Lag] / CMAx[SVBI - Lag - ExtraF];
+            UBOS = CMAx * (1 + Percent / 100); 
+            LBOS = CMAx * (1 - Percent / 100); 
+        }
+
+        k = 0;
+
+        for (j = 1; j <= eAuto; j++)
+        {   
+            k = j;
+            AdjBar = 0;
+
+            for (i = SVBI - ExtraF; i >= SVBI - ExtraF - Lag * eLFac; i--)
+            { 
+                if (i + ExtraF <= LVBI) 
+                { 
+                    if (UBOS[i] < (H[i + ExtraF] + L[i + ExtraF]) / 2)
+                    { 
+                        AdjBar = i + ExtraF;
+                        Target = CMAx[i] + (C[i + ExtraF] - CMAx[i]) * eFFac;
+                    } 
+                    if (LBOS[i] > (H[i + ExtraF] + L[i + ExtraF]) / 2)
+                    { 
+                        AdjBar = i + ExtraF;
+                        Target = CMAx[i] - (CMAx[i] - C[i + ExtraF]) * eFFac;
+                    } 
+                    if (AdjBar > 0)
+                        i = 0;
+                } 
+            }
+
+            if (AdjBar > 0)
+            {
+                ExtraB = AdjBar - EndBar;
+                ExtraF = ExtraF - ExtraB;
+                EndBar = EndBar + ExtraB;
+
+                StepSize = (Target - CMA[SVBI - Lag]) / (EndBar - (SVBI - Lag));
+
+                CMA = IIf(BI <= SVBI - Lag, CMA, 0);
+
+                for (i = SVBI - Lag + 1; i <= EndBar; i++)
+                {
+                    CMA[i] = CMA[i - 1] + StepSize;
+                }
+
+                CMAx = PolyFit(CMA, BegBar, EndBar, ePOrd, 0, ExtraF);
+                CMAx = IIf(BI >= SVBI - Lag - ExtraF, CMAx, -1e10);
+
+                if (BType == "Amount")
+                {
+                    CMAx = CMAx + CMA[SVBI - Lag] - CMAx[SVBI - Lag - ExtraF];
+                    UBOS = CMAx + Percent; 
+                    LBOS = CMAx - Percent;
+                }
+                else
+                {
+                    CMAx = CMAx * CMA[SVBI - Lag] / CMAx[SVBI - Lag - ExtraF];
+                    UBOS = CMAx * (1 + Percent / 100); 
+                    LBOS = CMAx * (1 - Percent / 100); 
+                }
+            }
+            else 
+                j = 999;
+        }
+
+        k = k - 1;
+
+        Plot(UBOS, "", ColorRGB(Red, Green, Blue), styleThick, Null, Null, ExtraF);
+        Plot(LBOS, "", ColorRGB(Red, Green, Blue), styleThick, Null, Null, ExtraF);
+
+        Title = Title + EncodeColor(ColorRGB(Red, Green, Blue)) + NumToStr(Period, 1.0) + " (" + NumToStr(Pm, 1.0) + "/" + NumToStr(Pn, 1.0) + ") " + NumToStr(k, 1.0) + "     ";
+
+        PlotShapes((BI == SVBI - Lag) * shapeSmallUpTriangle,   ColorRGB(Red, Green, Blue), 0, CMA * (1 - Percent / 100), -15); 
+        PlotShapes((BI == SVBI - Lag) * shapeSmallDownTriangle, ColorRGB(Red, Green, Blue), 0, CMA * (1 + Percent / 100), -15); 
+
+    } 
+    return;
+}
+
+if (p1 > 0)
+    CMA_DE(p1, Pct1, 000, 160, 000);
+if (p2 > 0)
+    CMA_DE(p2, Pct2, 160, 112, 000);
+if (p3 > 0)
+    CMA_DE(p3, Pct3, 160, 000, 000);
+if (p4 > 0)
+    CMA_DE(p4, Pct4, 160, 000, 160);
+if (p5 > 0)
+    CMA_DE(p5, Pct5, 000, 000, 160);
+if (p6 > 0)
+    CMA_DE(p6, Pct6,   0, 160, 160);

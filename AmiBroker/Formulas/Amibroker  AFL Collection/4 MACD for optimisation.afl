@@ -1,0 +1,348 @@
+//------------------------------------------------------------------+
+// Block 1                                                          |
+//------------------------------------------------------------------+
+  MethodInputs=Param("Method Inputs",1,1,5,1);                        
+  if(ParamToggle("System parametres","Default|Optimisation",1))      
+    {                                                                 
+     MaxEval=Param("Optimize MaxEval",5000,100,300000,100);          
+     OptimizerSetEngine("trib");                                     
+     OptimizerSetOption("MaxEval",MaxEval);                          
+//-------------------------------------------------------------------                                                      
+     iPositionSize=Optimize("Position Size %",Param("Position Size %",100,10,200,10),10,200,10);    
+//-------------------------------------------------------------------
+     LongOpenFast=LongOpenSlow=LongOpenSignal=LongCloseFast=LongCloseSlow=
+     LongCloseSignal=ShortOpenFast=ShortOpenSlow=ShortOpenSignal=
+     ShortCloseFast=ShortCloseSlow=ShortCloseSignal=Buy=Short=Sell=Cover=Null;
+//-------------------------------------------------------------------
+     if(MethodInputs!=5)                                             
+       {    
+        LongOpenFast=Optimize("Long Open Fast",Param("Long Open Fast",12,5,30,1),5,30,1);                                                                                         
+        LongOpenSlow=Optimize("Long Open Slow",Param("Long Open Slow",26,5,50,1),5,50,1);                                       
+        LongOpenSignal=Optimize("Long Open Signal",Param("Long Open Signal",9,5,15,1),5,15,1);      
+//-------------------------------------------------------------------
+        LongCloseFast=Optimize("Long Close Fast",Param("Long Close Fast",12,5,30,1),5,30,1);                                                                                      
+        LongCloseSlow=Optimize("Long Close Slow",Param("Long Close Slow",26,5,50,1),5,50,1);                                    
+        LongCloseSignal=Optimize("Long Close Signal",Param("Long Close Signal",9,5,15,1),5,15,1);   
+       }                   
+//-------------------------------------------------------------------
+     if(MethodInputs!=4)                                             
+       {
+        ShortOpenFast=Optimize("Short Open Fast",Param("Short Open Fast",12,5,30,1),5,30,1);                                                                                      
+        ShortOpenSlow=Optimize("Short Open Slow",Param("Short Open Slow",26,5,50,1),5,50,1);                                    
+        ShortOpenSignal=Optimize("Short Open Signal",Param("Short Open Signal",9,5,15,1),5,15,1);   
+//-------------------------------------------------------------------
+        ShortCloseFast=Optimize("Short Close Fast",Param("Short Close Fast",12,5,30,1),5,30,1);                                                                                   
+        ShortCloseSlow=Optimize("Short Close Slow",Param("Short Close Slow",26,5,50,1),5,50,1);                                 
+        ShortCloseSignal=Optimize("Short Close Signal",Param("Short Close Signal",9,5,15,1),5,15,1);   
+       }
+    }
+    else
+//------------------------------------------------------------------+
+// Block 2                                                          |
+//------------------------------------------------------------------+
+    {                                                                
+     switch(Name())                                                   
+       {
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////Here it is possible to specify options for the symbols////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        case "GAZP": iPositionSize=100;
+                     MethodInputs=1;
+
+                     LongOpenFast=12;
+                     LongOpenSlow=26;
+                     LongOpenSignal=5;
+
+                     LongCloseFast=12;
+                     LongCloseSlow=26;
+                     LongCloseSignal=10;
+
+                     ShortOpenFast=12;
+                     ShortOpenSlow=26;
+                     ShortOpenSignal=9;
+
+                     ShortCloseFast=34;
+                     ShortCloseSlow=26;
+                     ShortCloseSignal=9;
+                     break;
+//-------------------------------------------------------------------                                   
+        case "GMKN": iPositionSize=100;
+                     MethodInputs=1;
+
+                     LongOpenFast=12;
+                     LongOpenSlow=26;
+                     LongOpenSignal=9;
+
+                     LongCloseFast=12;
+                     LongCloseSlow=26;
+                     LongCloseSignal=9;
+
+                     ShortOpenFast=12;
+                     ShortOpenSlow=26;
+                     ShortOpenSignal=9;
+
+                     ShortCloseFast=12;
+                     ShortCloseSlow=26;
+                     ShortCloseSignal=9;
+                     break;
+//-------------------------------------------------------------------            
+        case "LKOH": iPositionSize=100;
+                     MethodInputs=1;
+
+                     LongOpenFast=12;
+                     LongOpenSlow=26;
+                     LongOpenSignal=9;
+
+                     LongCloseFast=12;
+                     LongCloseSlow=26;
+                     LongCloseSignal=9;
+
+                     ShortOpenFast=12;
+                     ShortOpenSlow=26;
+                     ShortOpenSignal=9;
+
+                     ShortCloseFast=12;
+                     ShortCloseSlow=26;
+                     ShortCloseSignal=9;
+                     break;
+//-------------------------------------------------------------------
+        case "PIKK": iPositionSize=100;
+                     MethodInputs=1;
+
+                     LongOpenFast=12;
+                     LongOpenSlow=26;
+                     LongOpenSignal=9;
+
+                     LongCloseFast=12;
+                     LongCloseSlow=26;
+                     LongCloseSignal=9;
+
+                     ShortOpenFast=12;
+                     ShortOpenSlow=26;
+                     ShortOpenSignal=9;
+
+                     ShortCloseFast=12;
+                     ShortCloseSlow=26;
+                     ShortCloseSignal=9;
+                     break;
+//-------------------------------------------------------------------
+        case "ROSN": iPositionSize=100;
+                     MethodInputs=1;
+
+                     LongOpenFast=12;
+                     LongOpenSlow=26;
+                     LongOpenSignal=9;
+
+                     LongCloseFast=12;
+                     LongCloseSlow=26;
+                     LongCloseSignal=9;
+
+                     ShortOpenFast=12;
+                     ShortOpenSlow=26;
+                     ShortOpenSignal=9;
+
+                     ShortCloseFast=12;
+                     ShortCloseSlow=26;
+                     ShortCloseSignal=9;
+                     break;
+//-------------------------------------------------------------------
+        case "SBER3": iPositionSize=100;
+                      MethodInputs=1;
+
+                      LongOpenFast=12;
+                      LongOpenSlow=26;
+                      LongOpenSignal=9;
+
+                      LongCloseFast=12;
+                      LongCloseSlow=26;
+                      LongCloseSignal=9;
+
+                      ShortOpenFast=12;
+                      ShortOpenSlow=26;
+                      ShortOpenSignal=9;
+
+                      ShortCloseFast=12;
+                      ShortCloseSlow=26;
+                      ShortCloseSignal=9;
+                      break;
+//-------------------------------------------------------------------
+        case "SNGS": iPositionSize=100;
+                     MethodInputs=1;
+
+                     LongOpenFast=12;
+                     LongOpenSlow=26;
+                     LongOpenSignal=9;
+
+                     LongCloseFast=12;
+                     LongCloseSlow=50;
+                     LongCloseSignal=9;
+
+                     ShortOpenFast=12;
+                     ShortOpenSlow=26;
+                     ShortOpenSignal=9;
+
+                     ShortCloseFast=12;
+                     ShortCloseSlow=26;
+                     ShortCloseSignal=9;
+                     break;
+//-------------------------------------------------------------------
+        case "VTBR": iPositionSize=100;
+                     MethodInputs=1;
+
+                     LongOpenFast=12;
+                     LongOpenSlow=26;
+                     LongOpenSignal=9;
+
+                     LongCloseFast=12;
+                     LongCloseSlow=26;
+                     LongCloseSignal=9;
+
+                     ShortOpenFast=12;
+                     ShortOpenSlow=26;
+                     ShortOpenSignal=9;
+
+                     ShortCloseFast=12;
+                     ShortCloseSlow=26;
+                     ShortCloseSignal=9;
+                     break;
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//-------------------------------------------------------------------
+        default: iPositionSize=100;
+                 MethodInputs=1;
+
+                 LongOpenFast=12;
+                 LongOpenSlow=26;
+                 LongOpenSignal=9;
+
+                 LongCloseFast=12;
+                 LongCloseSlow=26;
+                 LongCloseSignal=9;
+
+                 ShortOpenFast=12;
+                 ShortOpenSlow=26;
+                 ShortOpenSignal=9;
+
+                 ShortCloseFast=12;
+                 ShortCloseSlow=26;
+                 ShortCloseSignal=9;
+                 break; 
+       }          
+    }
+//------------------------------------------------------------------+
+// Block 3                                                          |
+//------------------------------------------------------------------+
+  ShowMACD=Param("Show MACD",0,0,7,1);                               
+  ColorLongOpenMACD=ParamColor("Color Long Open MACD",colorGreen);   
+  ColorLongCloseMACD=ParamColor("?olor Long Close MACD",colorGreen); 
+  ColorShortOpenMACD=ParamColor("Color Short Open MACD",colorRed);              
+  ColorShortCloseMACD=ParamColor("Color Short Close MACD",colorRed); 
+//------------------------------------------------------------------+
+// Block 4                                                          |
+//------------------------------------------------------------------+
+  LongOpenMACD=MACD(LongOpenFast,LongOpenSlow);                            
+  LongOpenSignal=Signal(LongOpenFast,LongOpenSlow,LongOpenSignal);         
+  LongCloseMACD=MACD(LongCloseFast,LongCloseSlow);                         
+  LongCloseSignal=Signal(LongCloseFast,LongCloseSlow,LongCloseSignal);     
+//-------------------------------------------------------------------
+  ShortOpenMACD=MACD(ShortOpenFast,ShortOpenSlow);                         
+  ShortOpenSignal=Signal(ShortOpenFast,ShortOpenSlow,ShortOpenSignal);     
+  ShortCloseMACD=MACD(ShortCloseFast,ShortCloseSlow);                      
+  ShortCloseSignal=Signal(ShortCloseFast,ShortCloseSlow,ShortCloseSignal); 
+//------------------------------------------------------------------+
+// Block 5                                                          |
+//------------------------------------------------------------------+
+  switch(MethodInputs)                                                   
+       {
+        case 1: Buy=Cross(LongOpenMACD,LongOpenSignal);              
+                Sell=Cross(LongCloseSignal,LongCloseMACD);             
+                Short=Cross(ShortOpenSignal,ShortOpenMACD);          
+                Cover=Cross(ShortCloseMACD,ShortCloseSignal) OR      
+                      Cross(LongOpenMACD,LongOpenSignal);
+                SetPositionSize(iPositionSize,spsPercentOfEquity);   
+                break;
+//------------------------------------------------------------------- 
+        case 2: Buy=Cross(LongOpenMACD,LongOpenSignal);              
+                Sell=Cross(LongCloseSignal,LongCloseMACD) OR         
+                      Cross(ShortOpenSignal,ShortOpenMACD);  
+                Short=Cross(ShortOpenSignal,ShortOpenMACD);          
+                Cover=Cross(ShortCloseMACD,ShortCloseSignal);        
+                SetPositionSize(iPositionSize,spsPercentOfEquity);   
+                break;
+//------------------------------------------------------------------- 
+        case 3: Buy=Cross(LongOpenMACD,LongOpenSignal);              
+                Sell=Cross(LongCloseSignal,LongCloseMACD);             
+                Short=Cross(ShortOpenSignal,ShortOpenMACD);          
+                Cover=Cross(ShortCloseMACD,ShortCloseSignal);        
+                SetPositionSize(iPositionSize,spsPercentOfEquity);   
+                break;
+//-------------------------------------------------------------------
+        case 4: Buy=Cross(LongOpenMACD,LongOpenSignal);              
+                Sell=Cross(LongCloseSignal,LongCloseMACD);           
+                SetPositionSize(iPositionSize,spsPercentOfEquity);     
+                break;
+//-------------------------------------------------------------------
+        case 5: Short=Cross(ShortOpenSignal,ShortOpenMACD);          
+                Cover=Cross(ShortCloseMACD,ShortCloseSignal);        
+                SetPositionSize(iPositionSize,spsPercentOfEquity);   
+                break; 
+       }
+//------------------------------------------------------------------+
+// Block 6                                                          |
+//------------------------------------------------------------------+
+  if(ParamToggle("Alert","No|Yes",1))                                
+    {
+     AlertIf(Buy,"SOUND","Buy "+Name(),1);
+     AlertIf(Short,"SOUND","Short "+Name(),3);
+     AlertIf(Sell,"SOUND","Sell "+Name(),2);
+     AlertIf(Cover,"SOUND","Cover "+Name(),4);
+    }
+//------------------------------------------------------------------+
+// Block 7                                                          |
+//------------------------------------------------------------------+
+  if(ShowMACD>0)                                                     
+    {
+     if(MethodInputs==4&ShowMACD>3) ShowMACD=0; 
+     if(MethodInputs==5&(ShowMACD<4|ShowMACD==7)) ShowMACD=0; 
+     switch(ShowMACD)                                                   
+       {
+        case 1: Plot(LongOpenMACD,"LongOpenMACD",ColorLongOpenMACD,styleLine|styleThick); 
+                Plot(LongOpenSignal,"LongOpenSignal",ColorLongOpenMACD,styleDashed|styleThick);
+                break;                                   
+        case 2: Plot(LongCloseMACD,"LongCloseMACD",ColorLongCloseMACD,styleLine);
+                Plot(LongCloseSignal,"LongCloseSignal",ColorLongCloseMACD,styleDashed);
+                break;            
+        case 3: Plot(LongOpenMACD,"LongOpenMACD",ColorLongOpenMACD,styleLine|styleThick); 
+                Plot(LongOpenSignal,"LongOpenSignal",ColorLongOpenMACD,styleDashed|styleThick);
+                Plot(LongCloseMACD,"LongCloseMACD",ColorLongCloseMACD,styleLine);
+                Plot(LongCloseSignal,"LongCloseSignal",ColorLongCloseMACD,styleDashed);
+                break;
+//-------------------------------------------------------------------
+        case 4: Plot(ShortOpenMACD,"ShortOpenMACD",ColorShortOpenMACD,styleLine|styleThick); 
+                Plot(ShortOpenSignal,"ShortOpenSignal",ColorShortOpenMACD,styleDashed|styleThick);
+                break;                                   
+        case 5: Plot(ShortCloseMACD,"ShortCloseMACD",ColorShortCloseMACD,styleLine);
+                Plot(ShortCloseSignal,"ShortCloseSignal",ColorShortCloseMACD,styleDashed);
+                break;            
+        case 6: Plot(ShortOpenMACD,"ShortOpenMACD",ColorShortOpenMACD,styleLine|styleThick); 
+                Plot(ShortOpenSignal,"ShortOpenSignal",ColorShortOpenMACD,styleDashed|styleThick);
+                Plot(ShortCloseMACD,"ShortCloseMACD",ColorShortCloseMACD,styleLine);
+                Plot(ShortCloseSignal,"ShortCloseSignal",ColorShortCloseMACD,styleDashed);
+                break;
+//-------------------------------------------------------------------
+        case 7: Plot(LongOpenMACD,"LongOpenMACD",ColorLongOpenMACD,styleLine|styleThick); 
+                Plot(LongOpenSignal,"LongOpenSignal",ColorLongOpenMACD,styleDashed|styleThick);
+                Plot(LongCloseMACD,"LongCloseMACD",ColorLongCloseMACD,styleLine);
+                Plot(LongCloseSignal,"LongCloseSignal",ColorLongCloseMACD,styleDashed);
+                Plot(ShortOpenMACD,"ShortOpenMACD",ColorShortOpenMACD,styleLine|styleThick); 
+                Plot(ShortOpenSignal,"ShortOpenSignal",ColorShortOpenMACD,styleDashed|styleThick);
+                Plot(ShortCloseMACD,"ShortCloseMACD",ColorShortCloseMACD,styleLine);
+                Plot(ShortCloseSignal,"ShortCloseSignal",ColorShortCloseMACD,styleDashed);
+                break;
+//-------------------------------------------------------------------
+        default: break;
+       }          
+    }
+  

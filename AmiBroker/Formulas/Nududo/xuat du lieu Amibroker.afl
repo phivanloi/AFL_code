@@ -1,0 +1,134 @@
+Filter=1; 
+
+//condition = C > O;
+Filter = TimeFrameSet(in5Minute);
+Filter = (Name() == "VN30F1M") OR (Name() == "VN30INDEX") OR (Name() == "VNINDEX");
+AddColumn(O,"Open"); 
+AddColumn(H,"High"); 
+AddColumn(L,"Low"); 
+AddColumn(C,"Close"); 
+AddColumn(V,"Volume",1.0); 
+AddColumn(OI,"Open Interest",1.0); 
+AddColumn(H-L,"Spread", 1.2);
+
+pds = 20;
+MAFAST = EMA( Close, 20 );
+MASLOW = EMA( Close, 40 );
+ 
+DonchianUpper = HHV( Ref( H, -1 ), pds ); // Highest high value of highs in last 20 periods
+DonchianLower = LLV( Ref( L, -1 ), pds ); // Lowest low value of low in last 20 periods
+DonchianMiddle = ( DonchianUpper + DonchianLower ) / 2;
+ 
+UpTrend = C > ( LLV( L, 20 ) + 2 * ATR( 10 ) ) AND EMA( Close, 20 ) > EMA( Close, 40 );
+DnTrend = C < ( HHV( H, 20 ) - 2 * ATR( 10 ) ) AND EMA( Close, 20 ) < EMA( Close, 40 );
+Color = IIf( UpTrend, colorGreen, IIf( DnTrend, colorRed, colorCustom10 ) ); 
+
+k1=-1;
+TimeFrameSet(inDaily);
+day_h= LastValue(Ref(H,K1));
+day_l= LastValue(Ref(L,K1));
+day_c= LastValue(Ref(C,K1));
+TimeFrameRestore();
+
+TimeFrameSet(inWeekly);
+Week_h= LastValue(Ref(H,K1));
+Week_l= LastValue(Ref(L,K1));;
+Week_c= LastValue(Ref(C,K1));;
+TimeFrameRestore();
+
+TimeFrameSet(inMonthly);
+month_h= LastValue(Ref(H,K1));
+month_l= LastValue(Ref(L,K1));
+month_c= LastValue(Ref(C,K1));
+TimeFrameRestore();
+
+/*--------------------------------------*/
+// day
+DH=Day_h;
+DL=Day_L;
+DC=Day_C;
+
+// DAY PIVOT Calculation
+pd = ( DH+ DL + DC )/3;
+sd1 = (2*pd)-DH;
+sd2 = pd -(DH - DL);
+sd3 = Sd1 - (DH-DL); 
+rd1 = (2*pd)-DL;
+rd2 = pd +(DH -DL);
+rd3 = rd1 +(DH-DL);
+
+// week
+WH=Week_h;
+WL=Week_l;
+WC=Week_c;
+
+// WEEK PIVOT Calculation
+pw = ( WH+ WL + WC )/3;
+sw1 = (2*pw)-WH;
+sw2 = pw -(WH - WL);
+sw3 = Sw1 - (WH-WL); 
+rw1 = (2*pw)-WL;
+rw2 = pw +(WH -WL);
+rw3 = rw1 +(WH-WL);
+
+// month
+MH=month_h;
+ML=month_l;
+MC=month_c;
+
+// MONTH PIVOT Calculation
+pm = ( MH+ ML + MC )/3;
+sm1 = (2*pm)-MH;
+sm2 = pm -(MH - ML);
+sm3 = Sm1 - (MH-ML); 
+rm1 = (2*pm)-ML;
+rm2 = pm +(MH -ML);
+rm3 = rm1 +(MH-ML);
+
+//Adx Condition
+CB1 =    (PDI(10) > MDI(10)) OR (PDI(10) > ADX(10)) OR (ADX(10) > MDI(10));
+CS1 =    (MDI(10) > PDI(10)) OR (MDI(10) > ADX(10)) OR (ADX(10) > PDI (10)) OR (PDI(10)>=(40) );
+//EMA 
+CB2 = (EMA(C,5) > EMA(C,10)) OR (EMA(C,10) > EMA(C,20));
+CS2 = (EMA(C,5) < EMA(C,10)) OR (EMA(C,10) < EMA(C,20));
+//Donchian
+//EMA vs LinearReg
+CB3 =  (LinearReg(C, 20) > EMA(C, 5)) OR (LinearReg(C, 80) > EMA(C, 20));
+CS3 =  (LinearReg(C, 20) < EMA(C, 5)) OR (LinearReg(C, 80) < EMA(C, 20));
+//Pivot Condition
+
+//UpdownBar
+CB4 = (C > Ref(C,-1)) OR (C > Ref(C,-2)) OR (C > Ref(C,-3)); 
+CS4 = (C < Ref(C,-1)) OR (C < Ref(C,-2)) OR (C < Ref(C,-3)); 
+
+//Barcount
+
+
+AddColumn(IIf(CB1, 1, IIf(CS1, 0, 0.5)), "ADX", 1.0);
+AddColumn(IIf(Uptrend, 1, IIf(DnTrend, 0, 0.5)), "Donchian", 1.0);
+AddColumn(IIf(CB2&CB3, 1, IIf(CS2&CS3, 0, 0.5)), "EMA vs LinearReg", 1.0);
+AddColumn(IIf(CB4, 1, IIf(CS4, 0, 0.5)), "UpDownBar", 1.0);
+
+
+
+
+fname = "C:\\Desktop\\" +  Name() + ".csv";
+fh = fopen(fname, "w" );
+if( fh ) 
+{ 
+  dt = DateTime();
+  for( i = 0; i < BarCount; i++ )
+  {
+    line = DateTimeToStr( dt[ i ] ) + "," +
+           Open[ i ] + "," +
+           High[ i ] + "," +
+           Low[ i ] + "," +
+           Close[ i ] + "," +
+           Volume[ i ] + "," +
+           OI[ i ] + "\n";
+           
+    fputs( line, fh );
+  }
+ 
+  fclose( fh );
+} 

@@ -1,0 +1,34 @@
+TM = Param("TML",1,1,2,1); //Determine optimum direction of crossing
+P = Param("Period",14,2,50,1); //PeriodsLB = Param("LB",14,1,20,1);
+Ps = Param("Ps",5,1,6,1);
+LB = Param("LB",14,1,20,1);
+D = 1; //DateNum()>1000301; //Disable datenum()
+Blevel = Param("BL",15,00,30,1); //Use neutral thresholds
+Slevel = Param("SL",70,50,100,1);
+
+/*uncomment following for optimization
+TM = Optimize("TML",1,1,2,1); //Determine optimum direction of crossing
+P = Optimize("Pd",6,2,10,1); //Periods as provided by Dimitris
+LB = /Optimize("LB",14,1,20,1);
+Ps = Optimize("Ps",5,1,6,1);
+D = DateNum()>1000301; //Disable datenum()
+Blevel = Optimize("BL",12,0,20,1); //Use neutral thresholds
+Slevel = Optimize("SL",70,70,100,1);
+*/
+
+Stocci=100*(CCI(P)-LLV(CCI(P),LB))/(HHV(CCI(P),LB)-LLV(CCI(P),LB));
+
+StoCCIma=EMA(stocci,Ps);
+Plot(StoCCI,"StoCCI",colorViolet,styleLine);
+Plot(StoCCIma,"StoCCIma",colorOrange,styleLine);
+Buy = IIf(TM==1,Cross(STOCCI,BLEVEL),Cross(BLEVEL,STOCCI));
+Sell = IIf(TM==1,Cross(Slevel,STOCCI),Cross(STOCCI,SLevel));
+Buy = D*Buy;
+Sell = D*Sell;
+Short = Sell;
+Cover = Buy;
+
+shape = Buy * shapeCircle + Sell * shapeCircle;
+
+
+PlotShapes( shape, IIf( Buy, colorLime, colorRed ), 0,IIf( Buy, Ref(StoCCI,-1)*0.9, Ref(StoCCI,-1)*1.01)  );

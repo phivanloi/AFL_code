@@ -1,0 +1,18 @@
+
+MaxGraph = 8;
+D1=10;
+
+r1 = Param("Fast avg", 7, 2, 200, 1 );
+r2 = Param("Med avg", 14, 2, 200, 1 );
+r3 = Param("Slow avg", 28, 2, 200, 1 );
+
+U= Ultimate( r1, r2, r3 );
+K=EMA(U,D1);
+S1=2*(K-Ref(K,-1))/(K+Ref(K,-1));
+US=10+100*EMA(S1,3);
+
+Title="Ultimate Slope = "+WriteVal(us-10,format=1.2)+
+" ("+WriteVal(Ref(us-10,-1),format=1.2)+")";
+
+Plot(uS, "Ultimate Slope", colorRed, ParamStyle("US"));
+Plot( 10, "", colorIndigo, ParamStyle("10"));

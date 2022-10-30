@@ -1,0 +1,12 @@
+_SECTION_BEGIN("ma10_d_w");
+MA10 = MA(C, 10);
+wc = TimeFrameCompress( Close, inWeekly );
+WeekMA10 = MA( wc, 10 );
+WeekMA10 = TimeFrameExpand( WeekMA10, inWeekly );
+Filter = C > MA10 AND Ref(C < MA10, -1) AND wc > WeekMA10 AND Ref(C < WeekMA10, -1);
+
+AddColumn(C, "Close");
+AddColumn(MA10, "MA10");
+AddColumn(WeekMA10, "WeekMA10");
+
+_SECTION_END();

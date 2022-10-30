@@ -1,0 +1,376 @@
+_SECTION_BEGIN("TSKPScoreCardColors");
+Ctmpl = E_TSKPCOLORTMPL(Open,High,Low,Close,Volume);
+total = 0;
+total = total  + IIf(tskp_colortmplcnd0 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd1 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd2 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd3 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd4 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd5 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd6 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd7 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd8 > 0, 1, -1); 
+
+
+for( i = 0; i < BarCount; i++ ) 
+{
+
+	if( total[i] >= 5 )
+		Color[i] = colorBlue;
+	else if(  total[i] <= -5 )
+		Color[i] = colorRed;
+	else
+		Color[i] = colorYellow;
+} 
+
+CO = Open;
+CH = High;
+CL = Low;
+CC = Close;
+PlotOHLC( CO,CH,CL,CC, "Price", color, styleCandle );//Plot Selected Ticker
+_SECTION_END();
+
+_SECTION_BEGIN("TSKPPIVOT");
+CHiPr = 0;
+CLoPr = 9999999;
+blsLong = 0;
+PrevCOBar = 0;
+NumBars = 0;
+PrePP = 0;
+PrevLowVal = 9999999;
+BuySig = 0;
+blsShort = 0;
+PrevHiVal = 0;
+blsNewCO = 0;
+BarDif   = 0;
+
+KPA900Val = E_TSKPA900(Close);
+KPAutoStopVal = E_TSKPAUTOSTOP(High,Low,Close);
+
+// -- Create 0-initialized arrays the size of barcount
+aHPivs = H - H;
+aLPivs = L - L;
+aHiVal = H - H;
+aLoVal = L - L;
+
+
+Ctmpl = E_TSKPCOLORTMPL(Open,High,Low,Close,Volume);
+sctotal = 0;
+sctotal = sctotal  + IIf(tskp_colortmplcnd0 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd1 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd2 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd3 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd4 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd5 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd6 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd7 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd8 > 0, 1, -1); 
+
+
+for (curBar=0; curBar < BarCount-1; curBar++)
+{
+
+	if ( curBar == 0 )
+	{
+		CHiPr = High[curBar];
+		CHiBar = curBar;
+		CLoPr = Low[curBar];
+		CLoBar = curBar;
+		blsLong = 0;
+		blsShort = 0;
+		blsNewCO = 0;
+		PrePP = 0;
+		PrevCOBar = 0;
+		PrevHiVal = High[curBar];
+		PrevLowVal = Low[curBar];
+		BuySig = 0;
+		SellSig = 0;
+		blsLL  = 0;
+	}
+
+	if (High[CurBar] >= CHiPr) {
+		CHiPr = High[CurBar];
+		ChiBar = CurBar;
+	}
+
+	if (Low[CurBar] <= CLoPr) {
+		CLoPr = Low[CurBar];
+		CLoBar = CurBar;
+	}
+
+	if ( (KPA900Val[curBar] >= KPAutoStopVal[curbar]) AND (PrePP != -1) AND (blsLong != 1) ){
+		BarDif = CurBar - PrevCOBar;
+		if (BarDif >= NumBars) {
+			blsLong = 1;
+			blsShort = 0;
+			blsNewCO = 1;
+			PrevCOBar = CurBar;
+		}
+	}
+
+	if ( (KPA900Val[curBar] <= KPAutoStopVal[curbar]) AND (PrePP != 1) AND (blsShort != 1) ){
+		BarDif = CurBar - PrevCOBar;
+		if (BarDif >= NumBars) {
+			blsLong = 0;
+			blsShort = 1;
+			blsNewCO = 1;
+			PrevCOBar = CurBar;
+		}
+	}
+
+	if ( (blsNewCO == 1) AND (sctotal[CurBar] >= 5) AND (blsLong == 1) ) {
+		LVal = CurBar - CLoBar;
+		for (j= CLoBar-1; j <= CLoBar+1; j++)
+		{
+			if (j >=0) {
+				aLPivs[j] = 1;
+				aLoVal[j] = CLoPr;
+			}
+		}
+		PrePP = -1;
+		blsNewCO = 0;
+		CHiPr = High[CurBar];
+		CHiBar = CurBar;
+		CLoPr = Low[Curbar];
+		CLoBar = CurBar;
+		} 
+		else if ((blsNewCO == 1) AND (sctotal[CurBar] <= -5) AND (blsShort == 1) ) {
+		HVal = CurBar - CHiBar;
+		for (j= CHiBar-1; j <= CHiBar+1; j++)
+		{		
+			if (j >=0) {
+				aHPivs[j] = 1;
+				aHiVal[j] = CHiPr;
+			}
+		}
+		PrePP = 1;
+		blsNewCO = 0;
+		CHiPr = High[CurBar];
+		CHiBar = CurBar;
+		CLoPr = Low[Curbar];
+		CLoBar = CurBar;
+		} 
+}
+
+PlotShapes(
+IIf(aHPivs == 1, shapeSmallCircle,shapeNone), colorDarkGreen,0, aHiVal+0.05, Offset = 10);
+
+PlotShapes(
+IIf(aLPivs == 1, shapeSmallCircle,shapeNone), colorDarkGreen,0, aLoVal-0.05, Offset = -10);
+_SECTION_END();
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+//Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+_SECTION_END();
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+//Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+_SECTION_END();
+
+_SECTION_BEGIN("Trend Line");
+
+function GetXSupport(lLow, Percentage, Back)
+{
+return ((BarCount - 1) - LastValue(TroughBars(lLow, Percentage,Back)));
+}
+function GetYSupport(lLow, Percentage, Back)
+{
+return (LastValue(Trough(lLow, Percentage, back)));
+}
+
+function GetXResistance(hHigh, Percentage, Back)
+{
+return ((BarCount - 1) -LastValue(PeakBars(hHigh, Percentage, Back)));
+}
+function GetYResistance(hHigh, Percentage, Back)
+{
+return (LastValue(Peak(hHigh, Percentage, Back)));
+}
+////////////////////////////////////////////////////////////////////////
+//Parameters
+Percentage = Param("Percentage", 0.01, 0.01, 100. ,0.01);
+Back = Param("How many lines?", 1, 1, BarCount-2);
+DrawR = ParamToggle("Draw Resistance", "No|Yes", 1);
+DrawS = ParamToggle("Draw Support", "No|Yes", 1);
+Extend = ParamToggle("Extend Lines?", "No|Yes", 1);
+DrawAllLines = ParamToggle("Draw All Lines?", "No|Yes", 1);
+Main = C;
+lLow = L;
+hHigh = H;
+////////////////////////////////////////////////////////////////////////
+//Plotting Area
+//Plot(Main, "", colorGreen, styleCandle);
+if(DrawAllLines)
+for(i = 2; i<=Back+1; i++)
+{
+if(DrawS){
+x0 = GetXSupport(lLow, Percentage, i);
+x1 = GetXSupport(lLow, Percentage, i-1);
+y0 = GetYSupport(lLow, Percentage, i);
+y1 = GetYSupport(lLow, Percentage, i-1);
+x = LineArray(x0, y0, x1, y1, Extend);
+Plot(x, "Support", colorYellow, styleLine|styleDots|styleThick);
+}
+if(DrawR){
+x0 = GetXResistance(hHigh , Percentage, i);
+x1 = GetXResistance(hHigh , Percentage, i-1);
+y0 = GetYResistance(hHigh , Percentage, i);
+y1 = GetYResistance(hHigh , Percentage, i-1);
+x = LineArray(x0, y0, x1, y1, Extend);
+Plot(x, "Resistance", colorBlue , styleLine|styleDots|styleThick);
+}
+}
+else
+{
+if(DrawS){
+x0 = GetXSupport(lLow, Percentage, Back+1);
+x1 = GetXSupport(lLow, Percentage, Back);
+y0 = GetYSupport(lLow, Percentage, Back+1);
+y1 = GetYSupport(lLow, Percentage, Back);
+x = LineArray(x0, y0, x1, y1, Extend);
+Plot(x, "Support", colorYellow, styleLine|styleDots|styleThick);
+}
+if(DrawR){
+x0 = GetXResistance(hHigh , Percentage, Back+1);
+x1 = GetXResistance(hHigh , Percentage, Back);
+y0 = GetYResistance(hHigh , Percentage, Back+1);
+y1 = GetYResistance(hHigh , Percentage, Back);
+x = LineArray(x0, y0, x1, y1, Extend);
+Plot(x, "Resistance", colorBlue , styleLine|styleDots|styleThick);
+}
+}
+
+_SECTION_BEGIN("ABKPSEB");
+/* Standard Error Bands */
+// user parameters
+Periods = Param("Standard Error", 120, 3, 200, 1); 
+Smooth  = Param("Smooth",30,2,100,1);
+parmMBColor = ParamColor("Color MB",colorBlack);  
+parmMBStyle = ParamStyle("Style MB", style=styleDashed | styleNoLabel, Mask=maskAll );
+parmUBColor = ParamColor("Color UB",colorBlack);
+parmUBStyle = ParamStyle("Style UB", style=styleLine | styleNoLabel, Mask=maskAll ); 
+parmLBColor = ParamColor("Color LB",colorBlack);
+parmLBStyle = ParamStyle("Style LB", style=styleLine | styleNoLabel, Mask=maskAll ); 
+ParmCloud = ParamToggle("Cloud", "No|Yes", 0);
+parmCloudColor = ParamColor("Cloud Color", ColorRGB( 245,245,255) );
+ParmField = ParamField("Field", -1);
+parmTT = ParamToggle("Plot Tone/Trend", "No|Yes");
+parmToneColorUp = ParamColor("Tone Color Up", ColorRGB(167, 224, 243) );
+parmToneColorDn = ParamColor("Tone Color Dn", ColorRGB(255, 192, 203) );
+parmTrendColorUp = ParamColor("Trend Color Up", ColorRGB(167, 224, 243) );
+parmTrendColorDn = ParamColor("Trend Color Dn", ColorRGB(255, 192, 203) );
+RibbonSize = Param("Ribbon Size", 1 , 0.5, 10, 0.5);
+
+// calculations
+LRCurve = LinearReg( ParmField, periods ); 
+MALRCurve  = MA(LRCurve, Smooth);
+SEValue = StdErr( ParmField, periods ); 
+SErrorAvg =  MA(SEValue, Smooth);
+
+LowerBand = MALRCurve - SErrorAvg ;
+UpperBand = MALRCurve + SErrorAvg ;
+
+Plot( MALRCurve , "MidBand", parmMBColor , parmMBStyle); 
+Plot( UpperBand , "UpperBand",parmUBColor ,parmUBStyle );
+Plot( LowerBand , "LowerBand", parmLBColor , parmLBStyle);
+//paint inside the bands
+if(parmCloud == 1)
+{
+	PlotOHLC( UpperBand, UpperBand, LowerBand, LowerBand, "Band", parmCloudColor, styleCloud | styleNoLabel); 
+}
+//paint tone and trend
+if(parmTT == 1)
+{
+	PlotOHLC( UpperBand, UpperBand, LowerBand, LowerBand, "Band", IIf(Low > UpperBand, parmTrendColorUp, IIf(High < LowerBand, parmTrendColorDn, parmCloudColor)) , styleCloud | styleNoLabel); 
+	Plot( RibbonSize, "Tone", IIf(Close > MALRCurve, parmToneColorUp, parmToneColorDn) , styleArea |  styleNoLabel | styleOwnScale , 0, 10);
+}
+_SECTION_END();
+
+_SECTION_END();
+
+
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+//Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+_SECTION_END();
+
+//--------------------------------------------------
+
+//--------------------------------------------------
+
+_SECTION_BEGIN("TSKPDynSupRes");
+sw = E_TSKPSWINGLINE(High,Low,Close);
+// tskp_sw, tskp_swmean,tskp_swupper,tskp_swlower
+Plot( tskp_swmean, "Mean", ParamColor( "MeanColor", colorDarkGreen ), ParamStyle("MeanStyle",styleNoLabel) ); 
+Plot( tskp_swupper, "Resistance", ParamColor( "ResistanceColor", colorDarkGreen ), ParamStyle("ResistanceStyle",styleNoLabel) ); 
+Plot( tskp_swlower, "Support", ParamColor( "SupportColor", colorDarkGreen ), ParamStyle("SupportStyle",styleNoLabel) ); 
+_SECTION_END();
+
+
+_SECTION_BEGIN("Fibo for all bars");
+
+TimeFrameSet( inDaily ); 
+DH=Ref(H,-1); 
+DL=Ref(L,-1);
+DC=Ref(C,-1);
+
+
+pd = (O+ DH+ DL + DC )/4;
+sd1 = (2*pd)-DH;
+sd2 = pd -(DH - DL);
+sd3 = Sd1 - (DH-DL); 
+rd1 = (2*pd)-DL;
+rd2 = pd +(DH -DL);
+rd3 = rd1 +(DH-DL);
+
+H4 =  (dH - dL) * 1.1 / 2 + dC;
+H3 = (dH - dL) * 1.1 / 4 + dC;
+h2 = (dH - dL) * 1.1 / 6 + dC;
+H1 = (dH - dL) * 1.1 / 12 + dC;
+L1 = dC - (dH - dL) * 1.1 / 12;
+L2 = dC - (dH - dL) * 1.1 / 6;
+L3 = dC - (dH - dL) * 1.1 / 4;
+L4 = dC - (dH - dL) * 1.1 / 2 ;
+
+
+
+//Plot (pd,"Pivot",colorBlue,styleDots);
+//Plot (rd1," R1 ",35,styleDots);
+//Plot (rd2," R2 ",35,styleDots);
+//Plot (rd3," R3 ",35,styleDots);
+
+//Plot (sd1," S1 ",4,styleDots);
+//Plot (Sd2," S2 ",4,styleDots);
+//Plot (Sd3," S3 ",4,8+16);
+/*
+style = IIf(ParamList("Chart style", "styleCandle|styleBar")=="styleCandle",64,128+4);
+Plot (C,Date ()+" close",1,style); //ENABLE THIS TO HAVE CANDLES AS WELL
+*/
+TimeFrameRestore();
+
+tgt_up = H4*5/1000 + H4;
+tgt_up2 = H4*10/1000 + H4;
+tgt_dn = L4-L4*5/1000;
+tgt_dn2 = L4-L4*10/1000;
+
+Title = EncodeColor(colorWhite)+ "LINKON'S PIVOT TRADING SYSTEM" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "
+//+ WriteIf(Col_action==colorGreen, EncodeColor(colorGreen)+"stay LONG","")+ WriteIf(Col_action==colorRed, EncodeColor(colorRed)+"stay SHORT","")+  WriteIf(Col_action==colorBlack, EncodeColor(colorYellow)+"No Trend","")+"\n"
++ "Vol= "+ WriteVal(V) +WriteIf ( V > MA(V,26) ,EncodeColor(colorGreen)+"  UP "+ (V/MA(V,26))*100 + " %", EncodeColor(colorRed)+"  DOWN "+ (V/MA(V,26))*100 + " %")
++ EncodeColor(colorGreen)+   "\n H4 : "+ EncodeColor(colorWhite)+H4+ EncodeColor(colorGreen)+   "    tgt : "+ EncodeColor(colorWhite)+tgt_up +EncodeColor(colorGreen)+   "    tgt2 : "+ EncodeColor(colorWhite)+tgt_up2 
++ EncodeColor(colorGreen)+   "\n H3 : "+ EncodeColor(colorWhite)+H3 
++ EncodeColor(colorGreen)+   "\n H2 : "+ EncodeColor(colorWhite)+H2 
++ EncodeColor(colorGreen)+   "\n H1 : "+ EncodeColor(colorWhite)+H1+ EncodeColor(colorGreen)+   "`            Hi: "+ EncodeColor(colorWhite)+H
++ EncodeColor(colorBlue)+   "\n Pivot : "+ EncodeColor(colorWhite)+pd + EncodeColor(colorYellow)+   "`   Op: "+ EncodeColor(colorWhite)+O+ EncodeColor(colorAqua)+   "Cl: "+ EncodeColor(colorBrightGreen)+C
++ EncodeColor(colorRed)+   "\n L1 : "+ EncodeColor(colorWhite)+L1+ EncodeColor(colorRed)+   "`            Lo: "+ EncodeColor(colorWhite)+L
++ EncodeColor(colorRed)+   "\n L2 : "+ EncodeColor(colorWhite)+L2
++ EncodeColor(colorRed)+   "\n L3 : "+ EncodeColor(colorWhite)+L3
++ EncodeColor(colorRed)+   "\n L4 : "+ EncodeColor(colorWhite)+L4+ EncodeColor(colorRed)+      "     tgt : "+ EncodeColor(colorWhite)+tgt_dn + EncodeColor(colorRed)+      "     tgt2 : "+ EncodeColor(colorWhite)+tgt_dn2
+;
+
+_SECTION_END();
+
+Plot(6, "", IIf(PDI(7) > MDI(7) AND PDI(7) > 30,colorGreen,IIf (MDI(7) > PDI(7) AND MDI(7) > 30,colorRed,colorYellow)), styleOwnScale| styleArea|styleNoLabel,-0.5,100);

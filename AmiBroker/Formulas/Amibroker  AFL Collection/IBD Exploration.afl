@@ -1,0 +1,49 @@
+// This Exploration is designed to find stock using fundamental criteria similar to the Investors Business Daily's  Ranking System.  
+// This only works with QuotesPlus data plugin, as the Ranking information I am pulling is not available in other Data Providers
+// This is a work in progress. I will improve it as I get smarter! :>)
+// Play around with changing some of the values in the Filter to get stronger or weaker results.
+// I hope you find this useful both as a prospecting tool and a sample of what a tru amature can do with AFL code.
+// I even introduced color to highlight the strongest stocks.
+
+// One other note. If you compare this list with IBD's list you will notice there are differences. I believe this to be due to the differences
+// in the Quotes Plus interpertation of the Rankings from the IBD interpertation. 
+//However the bottom line is this Exploration still finds very strong stocks.
+// Any additions or improvement will be greatly appreciated.
+
+//For EPS Ranking
+EPSR=GetExtraData("EPSRank" );
+//For Actual EPS
+EPS=GetExtraData("EPS");
+//For EPS Growth over 1 Year
+EPSG1=GetExtraData("Yr1EPSGrowth");
+//For EPS Growth over 5 Years
+EPSG5=GetExtraData("Yr5EPSGrowth");
+//For Relative Strength Ranking
+RS=GetExtraData("QRS" );
+//For Institutional Holdings
+Inst=GetExtraData("InstHolds" );
+//For Return on Equity
+ROE=GetExtraData("ROE");
+//For Sales Growth
+Sales=GetExtraData("Sales");
+
+
+// Now we get filter out the weak stocks
+Filter=EPSR >=80 AND EPS >=0.05 AND RS >= 70 AND Inst >=30 AND ROE >=17 AND EPSG1 >=15 AND EPSG5 >= 7 AND Sales >0;
+
+Buy=1;
+
+AddColumn(Close,"Close",1.2);
+AddColumn (EPSR, "EPS Rank",1.0 , IIf( EPSR >= 95, (colorGreen ), (colorOrange )));
+AddColumn(EPS,"   EPS",1.2);
+AddColumn(EPSG5,"% EPS 5 Yr Growth",1.2 , IIf( EPSG5 >= 25, (colorGreen ), (colorOrange )));
+
+AddColumn(EPSG1,"% EPS 1 Yr Growth",1.2,  IIf( EPSG1 >= 25, (colorGreen ), (colorOrange )));
+
+AddColumn(RS, "RS Rank",1.0, IIf( RS>= 95, (colorGreen), (colorOrange))) ;
+AddColumn(Inst,"% Inst Holdings",1.2, IIf( Inst>= 75, (colorGreen), (colorOrange))) ;
+
+AddColumn(ROE,"   %  ROE",1.2);
+AddColumn(Sales,"     Sales",1.2);
+AddTextColumn( IndustryID( 1 ), "Industry Group Name");
+AddTextColumn(SectorID( 1 ) , " Sector Name");

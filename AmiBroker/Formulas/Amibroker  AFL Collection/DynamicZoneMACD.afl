@@ -1,0 +1,160 @@
+////////////////////////////////////////////////////////////////
+//afl by Ashutosh Srivastava (ashutosh.krsrivastava@gmail.com)//
+////////////////////////////////////////////////////////////////
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+if( ParamToggle("Tooltip shows", "All Values|Only Prices" ) )
+{
+ ToolTip=StrFormat("Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 )));
+}
+_SECTION_END();
+
+function DZBuy(indMACD, startPrB, N){
+	Left = Param("Left", -100);
+	Right = Param("Right", 100);
+	Count = Param("Count", 0);
+	Prob = Param("probability", 0);
+	eps = Param("EPS", 0.001);
+	yVal = Param("yValue", 0);
+	k = Param("k", 0);
+	delt = Param("Delta", 0);
+	Value1 = Param("Value", 0);
+	r=0;
+	//return array is r
+	indVal = indMACD;
+	initVal = startPrB;
+/*	if (BarCount > N) {
+		for (k = 0; k <=N-2; k++){
+			r[k] = r[k+1];
+		}
+	r[N-1] = indVal[N-1];
+	}else{
+		j = BarCount - 1;
+		r[j] = indVal;
+	}*/
+	if (BarCount >= N){
+		yVal = (Left+Right)/2;
+		delt = yVal - Left;
+		while(delt > 0.005 AND Value1 < 50) {
+			Value1 = Value1 + 1;
+			for(j1 = 0; j1 <= N-1; j1++){
+				if(r[j1] < yVal){
+					Count = Count + 1;
+				}
+			}
+			prob = Count/N;
+			if(prob > (initVal + eps)) {
+				Right = yVal;
+				yVal = (yVal + Left)/2;
+			}
+			if(prob < (initVal - eps)) {
+				Left = yVal;
+				yVal = (yVal + Right)/2;
+			}			
+			if(prob < (initVal + eps) AND prob > (initVal - eps)){
+				Right = yVal;
+				yVal = (yVal + Left)/2;
+			}
+			delt = yVal - Left;
+			Count = 0;
+		}
+		if (Value1 != 500){
+			Value1 = 0;
+			//DZBuy = yVal;
+			Right = 10000;
+			Left = -10000;
+			prob = 0;		
+		}
+/*		if (BarIndex() == LastValue(BarIndex())){
+			printf("You have chosen too high accuracy for this system. Please try again.");
+		}*/
+	}
+return yVal;
+}
+
+
+
+/////////////////////////////////////////////////////
+function DZSell(indMACD, startPrS, N){
+	Left = -100;
+	Right = 100;
+	Count = 0;
+	Prob = 0;
+	eps = 0.001;
+	yVal = 0;
+	k = 0;
+	delt = 0;
+	bNumb = 35775;
+	bNumb1 = 30208;
+	Value1 = 0;
+	r=0;
+	//return array is r
+	indVal = indMACD;
+	initVal = startPrS;
+	/*if (BarCount > N) {
+		for (k = 0; k <=N-2; k++){
+			r[k] = r[k+1];
+		}
+	r[N-1] = indVal[N-1];
+	}else{
+		j = BarCount - 1;
+		r[j] = indVal;
+	}*/
+	if (BarCount >= N){
+		yVal = (Right + Left)/2;
+		delt = Right - yVal;
+		while(delt > 0.005 AND Value1 < 50) {
+			Value1 = Value1 + 1;
+			for(j1 = 0; j1 <= N-1; j1++){
+				if(r[j1] < yVal){
+					Count = Count + 1;
+				}
+			}
+			prob = Count/N;
+			if(prob > (initVal + eps)) {
+				Left = yVal;
+				yVal = (yVal + Right)/2;
+			}
+			if(prob < (initVal - eps)) {
+				Right = yVal;
+				yVal = (yVal + Left)/2;
+			}			
+			if(prob < (initVal + eps) AND prob > (initVal - eps)){
+				Left = yVal;
+				yVal = (yVal + Right)/2;
+			}
+			delt = Right - yVal;
+			Count = 0;
+		}
+		if (Value1 != 500){
+			Value1 = 0;
+			//DZSell = yVal;
+			Right = 10000;
+			Left = -10000;
+			prob = 0;		
+		}
+	/*	if (BarIndex() == LastValue(BarIndex())){
+			printf("You have chosen too high accuracy for this system. Please try again.");
+		}*/
+	}
+return yVal;
+}
+
+ind = MACD(12,26) * 10;
+N = Param("N", 70);
+startPrB = 0.12;
+startPrS = 0.12;
+BuyZone = 0;
+SellZone = 0;
+Indicator = 0;
+
+BuyZone = DZBuy(ind, startPrB, N);
+SellZone = DZSell(ind, startPrS, N);
+indicator = MA(MACD(12,26), 9) *10;
+
+Plot(ind,"Indicator", colorBlue);
+Plot(indicator,"slow", colorBlack);
+Plot(BuyZone, "BuyZone", colorGreen);
+Plot(SellZone, "SellZone", colorRed);

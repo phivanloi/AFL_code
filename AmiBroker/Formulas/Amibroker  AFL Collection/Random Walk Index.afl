@@ -1,0 +1,30 @@
+function JMA( array, per )
+{ 
+TN1=MA(array,per); 
+s1=0;
+for( i = 0; i < per; i=i+1 ) 
+{
+s1=s1+((per-(2*i)-1)/2)*Ref(array,-i); 
+} 
+return TN1+(((per/2)+1)*S1)/((per+1)*per);
+} 
+
+JMAperiods = Param( "JMA Periods", 10, 1, 200, 1 );
+
+Plot(0.85,"",colorBlack,styleLine);
+
+_SECTION_BEGIN("RWILO");
+minperiods = Param( "Min Periods", 2, 1, 200, 1 );
+maxperiods = Param( "Max Periods", 8, 1, 200, 1 );
+varLo = RWILo( minperiods, maxperiods);
+Plot(JMA(varLo ,JMAperiods), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+_SECTION_END();
+
+_SECTION_BEGIN("RWIHI");
+minperiods = Param( "Min Periods", 2, 1, 200, 1 );
+maxperiods = Param( "Max Periods", 8, 1, 200, 1 );
+varHi = RWIHi( minperiods, maxperiods) ;
+Plot( JMA(varHi ,JMAperiods) , _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+_SECTION_END();
+
+Title = "Daily - RWI Custom";

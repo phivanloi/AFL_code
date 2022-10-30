@@ -1,0 +1,1019 @@
+_SECTION_BEGIN("candlestick"); 
+Plot (EMA(C,13),"",IIf(EMA(C,13) > Ref(EMA(C,13),-1),colorAqua,colorBrown),styleThick);
+Plot (MA(C,5),"",IIf(MA(C,5) > Ref(MA(C,5),-1),colorAqua,colorBrown),styleThick+styleDashed);
+Buy_ema = EMA(C,5) > EMA(C,34) AND EMA(C,5) > EMA(C,13);
+Sell_ema = EMA(C,5) < EMA(C,34) AND EMA(C,5) < EMA(C,13); 
+Plot(EMA(C,34),"",IIf(Buy_ema,colorAqua,IIf(sell_ema,colorBrown,colorYellow)),styleDots);
+Plot(EMA(C,34)+0.1,"",IIf(Buy_ema,colorAqua,IIf(sell_ema,colorBrown,colorYellow)),styleDots+styleNoLabel);
+Plot(EMA(C,34)-0.1,"",IIf(Buy_ema,colorAqua,IIf(sell_ema,colorBrown,colorYellow)),styleDots+styleNoLabel);
+Plot(EMA(C,34)+0.2,"",IIf(Buy_ema,colorAqua,IIf(sell_ema,colorBrown,colorYellow)),styleDots+styleNoLabel);
+Plot(EMA(C,34)-0.2,"",IIf(Buy_ema,colorAqua,IIf(sell_ema,colorBrown,colorYellow)),styleDots+styleNoLabel);
+
+//Plot (C, "", IIf(PDI() > MDI(),colorGreen,colorRed),styleCandle);
+
+A1=EMA(C,13)-EMA(C,34); 
+A2=MA(C,5)-EMA(C,34); 
+A3=MA(C,5)-EMA(C,13); 
+Buy = Buy_ema AND a2 > Ref(a2, -1)AND a3 > Ref(a3,-1) ;
+Sell = Sell_ema AND a2 < Ref(a2, -1)AND a3 < Ref(a3,-1) ;
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+PlotShapes(Buy*shapeUpArrow,colorGreen);
+PlotShapes(Sell*shapeDownArrow,colorRed);
+_SECTION_BEGIN("ABKPPivotAndPops");
+SetBarsRequired(350, -0);
+
+//user parameters
+parmPlotScoreCard = 1;
+parmPlotA900AutoStop = 0;
+parmA900Color = colorBlack;
+parmA900Style = styleNoLabel;
+parmAutoStopColor = colorCustom12; //ParamColor("AutoStop Color", colorCustom12);
+parmAutoStopStyle = styleLine;//ParamStyle("AutoStop Style", styleLine, maskAll);
+parmPPTextColor = colorBlack;//ParamColor("PP Text color", colorBlack);
+parmPPTrndColorUp = colorGreen;//ParamColor("PP Trend Up color", colorGreen );
+parmPPTrndColorDn = colorRed;//ParamColor("PP Trend Dwn color", colorRed );
+parmPPTextOffSet = 0.9;//Param("PP OffSet", 0.90, 0.40, 1.5, 0.1);
+parmTickMultipler = 0;//Param("M/W tick allowance", 0, 0, 10, 1);
+parmA900AutoStopX = ParamToggle("Plot A900/AutoStop Cross", "No|Yes");
+parmA900AutoStopColorX = colorBlack;//ParamColor("A900/AutoStop Cross Color", colorBlack);
+ParmSCThreshold = 5;//Param("ScoreCard Threshold", 5, 1, 9, 1);
+parmVoice = 0;//ParamToggle("Pivot Voice", "No|Yes", 0);
+parmPivotPop = 1;//ParamToggle("PivotPop", "No|Yes", 1);
+parmBarCancel = 4;//Param("Bar Cancel", 4, 1, 20, 1);
+parmFilter = ParamList("Filter", "None|KPMSL|KPWaterLevel|KPMedium", 0);
+parmPlotFilter = 0;//ParamToggle("Plot Filter", "No|Yes", 0);
+parmFilterColor = colorBlack;//ParamColor("Filter Color", ColorRGB(127,255,212));
+parmFilterStyle = styleLine;//ParamStyle("Filter Style", styleLine, maskAll);
+parmBBPeriod = 20;//Param("Bollinger Band Period", 20, 2, 30, 1);
+parmBBSD = 1;//Param("Bollinger Band width", 1.0, 0.5, 3.0, 0.5);
+ParmPlotPPIndicators = 0;//ParamToggle("Plot Pivot Pop indicators", "No|Yes", 0);
+parmBBColor = colorBlack;//ParamColor("BBands Color", colorBlack);
+parmBBStyle = styleLine;//ParamStyle("BBands Style", styleLine, maskAll);
+
+ParmDebug = 0;//ParamToggle("Debug", "No|Yes", 0);
+
+// constants
+_N(PaneName = Name() + Interval(2)+ _SECTION_NAME());
+_N(NewBarName = "NewBar" + PaneName);
+
+//functions
+function NewBarP()
+{
+	PrevDT = StaticVarGet( NewBarName);
+	DT = LastValue(DateTime());
+	StaticVarSet( NewBarName,DT);
+	return DT != PrevDT;
+}
+function MRoundP(Number, Multiple )
+{
+	if(Multiple == 0 )
+	{
+
+		xMultiple = 0.01;	}
+	else
+	{
+	xMultiple = Multiple; 
+	}
+	Divided = Number / xMultiple;
+	intDivided = int(Divided);
+	intDivided = intDivided + round(Divided - intDivided);
+	return intDivided * xMultiple;
+}
+
+//miscellaneous setups
+ObjAB = CreateObject("Broker.Application");
+ticker = objAB.Stocks(Name() );
+if(ticker.TickSize == 0)
+	{
+		TickValue = 0.01;	//set TickValue to a penney
+	}
+else
+	{
+		TickValue = ticker.TickSize;	// use Tick Size for this symbol
+	}
+NewBarSignal = NewBarP();
+//  KP Indicators
+KPA900 = E_TSKPA900(Close);
+KPAutoStop = E_TSKPAUTOSTOP(High,Low,Close);
+Ctmpl = E_TSKPCOLORTMPL(Open,High,Low,Close,Volume);	//ScoreCard
+KPScoreCard = 0;
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd0 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd1 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd2 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd3 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd4 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd5 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd6 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd7 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd8 > 0, 1, -1); 
+
+if(parmDebug == 1)
+	{
+		printf("a900: %0.6f% \nAutoStop: %0.6f%\nScoreCard: %0.0f%\n", KPA900, KPAutoStop, KPScoreCard);
+	}
+if(parmPlotScoreCard == 1)
+	{
+		_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g% (%0.4f%) {{VALUES}}", O, H, L, C, SelectedValue( C - Ref(C, -1)) ));
+		if( ParamToggle("Tooltip shows", "All Values|Only Prices" ) )
+		{
+ 			ToolTip=StrFormat("Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.2f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 )));
+		}
+		Color = IIf(KPScoreCard >= parmSCThreshold, colorBlue, IIf(KPScoreCard <= -parmSCThreshold, colorRed, colorYellow) );
+		Plot( C, "Close", Color , styleNoTitle | styleBar+styleThick ); 
+	}
+//user want A900/AutoStop plotted
+if(parmPlotA900AutoStop == 1)
+	{
+		Plot(KPA900, "A900", parmA900Color, parmA900Style);
+		Plot(KPAutoStop, "AutoStop", parmAutoStopColor, parmAutoStopStyle);
+	}
+// find A900/AutoStop cross over/under with ScoreCard confirmation.
+XOUp = (KPA900 > KPAutoStop) AND (KPScoreCard >= parmSCThreshold);	// New Pivot Low
+XODn = (KPA900 < KPAutoStop) AND (KPScoreCard <= -parmSCThreshold); // New Pivot High
+if(parmDebug == 1)
+	{
+		printf(WriteIf(XOUp, "before= XOUp: True", "before= XOUp: False") + WriteIf(XODn, " XODn: True\n", " XODn: False\n") );
+	}
+//remove duplicate signals
+XOUp = ExRem(XOUp, XODn);
+XODn = ExRem(XODn, XOUp);
+
+if(parmDebug == 1)
+	{
+		printf(WriteIf(XOUp, "after= XOUp: True", "after= XOUp: False") + WriteIf(XODn, " XODn: True\n", " XODn: False\n") );
+	}
+//find the current Pivot Points - PL and PH
+//remember XOUp = 1 means a PL and XODn =1 means a PH
+PLBars = IIf(XOUp, LowestSinceBars(XODn, L ,1), 0);	//find the bar that produced the Lowest Low
+PHBars = IIf(XODn, HighestSinceBars(XOUp, H, 1),0);	//find the bar that produced the Highest High
+//PLPrice = IIf(XOUp, Ref(L, -PLBars), 0);
+//PHPrice = IIf(XODn, Ref(H, -PHBars),0);
+PLPrice =  Ref(L, -PLBars);
+PHPrice =  Ref(H, -PHBars);
+
+//keep track of the previous Pivot Points
+PrevPLBars = Ref(BarsSince(XOUp), -1) +1;
+PrevPHBars =  Ref(BarsSince(XODn), -1) +1;
+PrevPLPrice =  Ref(PLPrice, -prevPLBars);
+PrevPHPrice =  Ref(PHPrice, -PrevPHBars );
+PivotsCloseEnough = TickValue * parmTickMultipler;
+PLDifference = MroundP(PLPrice - PRevPLPrice, ticker.TickSize);
+PHDifference = MroundP(PHPrice - PrevPHPrice, ticker.TickSize);
+PPTrend = IIf(XOUp AND (PLDifference > PivotsCloseEnough) AND PrevPHPrice > PrevPLPrice AND PRevPHPrice > PLPrice, 1, 
+				IIf(XOUp AND (PLDifference <  - PivotsCloseEnough) AND PRevPHPrice > PrevPLPrice AND PrevPHPrice > PLPrice, -1,
+ 				IIf(XODn AND (PHDifference > PivotsCloseEnough) AND PrevPLPrice < PrevPHprice AND PrevPLPrice < PHPrice, 1,
+				IIf(XODn AND (PHDifference < -PivotsCloseEnough) AND PrevPLPrice < PrevPHPrice AND PrevPLPrice < PHPrice, -1, 0)) ));
+/*
+PPTrend = IIf(XOUp AND PLPrice > PRevPLPrice AND PrevPHPrice > PrevPLPrice AND PRevPHPrice > PLPrice, 1, 
+				IIf(XOUp AND PLPrice < PRevPLPrice AND PRevPHPrice > PrevPLPrice AND PrevPHPrice > PLPrice, -1,
+ 				IIf(XODn AND PHPrice > PrevPHPrice AND PrevPLPrice < PrevPHprice AND PrevPLPrice < PHPrice, 1,
+				IIf(XODn AND PHPrice < PrevPHPrice AND PrevPLPrice < PrevPHPrice AND PrevPLPrice < PHPrice, -1, 0)) ));
+*/
+if(ParmDebug)
+	{
+		printf("Current PH Bar: %g% /Price: %g%\n", PHBars, PHPrice);
+		printf("Current PL Bar: %g% /Price: %g%\n", PLBars, PLPrice);
+		printf("Previous PH Bar: %g% /Price: %g%\n", PrevPHBars, PrevPHPrice);
+		printf("Previous PL Bar: %g% /Price: %g%\n", PrevPLBars, PrevPLPrice) ;
+		printf("PP Trend: %g%\n", PPTrend);
+		printf("PHPrice - PrevPHPrice: %g%\nPLPrice - PrevPLPrice: %g%\nPivotsCloseEnough: %g%\n", PHDifference, PLDifference, PivotsCloseEnough);
+	}
+//PLot pivots as  text
+dist = parmPPTextOffSet * ATR(10);
+//for( i = 0; i < BarCount -1; i++)
+for( i = 0; i < BarCount ; i++)
+	{
+		if(XOUp[i ] == 1 )	//cross up -plot the Pivot Low
+			{
+				PlotText("PL \n"+PLPrice[i], i - PLBars[i], PLPrice[i] - dist[i] , parmPPTextColor, IIf(PPTrend[i] == 1, parmPPTrndColorUp, IIf(PPTrend[i] == -1, parmPPTrndColorDn, colorYellow) ));
+			}
+		if(XODn[i ] == 1 )	//cross down - plot the pivot high
+			{
+				PlotText("PH \n"+PHPrice[i], i - PHBars[i], PHPrice[i] + dist[i], parmPPTextColor, IIf(PPTrend[i] == 1, parmPPTrndColorUp, IIf(PPTrend[i] == -1, parmPPTrndColorDn, colorYellow) ));
+			}
+	}	//end For
+// Plot A900/AutoStop cross over/under
+if(parmA900AutoStopX == 1)
+	{
+		PlotShapes(IIf(Cross(KPA900, KPAutoStop), shapeUpTriangle, shapeNone), parmA900AutoStopColorX, 0, L, -20);
+		PlotShapes(IIf(Cross(KPAutoStop, KPA900), shapeDownTriangle, shapeNone), parmA900AutoStopColorX, 0, H , -20);
+	}
+//PHLine = LineArray(BarCount - LastValue(PHBars) -3, LastValue(PHPrice), BarCount - LastValue(PHBars) +2, LastValue(PHPrice), 0);
+//Plot(PHLine, "PH", colorBlack, styleLine);
+//PLLine = LineArray(BarCount - LastValue(PLBars) -3, LastValue(PLPrice), BarCount - LastValue(PLBars) +2, LastValue(PLPrice), 0);
+//Plot(PLLine, "PL", colorBlack, styleLine);
+// identify M, lazy M, W and Lazy W formations
+//voice
+if(parmVoice ==1)
+	{
+		if(NewBarSignal)
+		{
+			if( LastValue(Ref(XODn, -1)) == 1 AND LastValue(Ref(PPTrend, -1)) == 1)  Say(Interval(2) + " New pivot. Higher high.");
+			if( LastValue(Ref(XODn, -1)) == 1 AND LastValue(Ref(PPTrend, -1)) == -1) Say(Interval(2) + " New pivot. Lower high.");
+			if( LastValue(Ref(XODn, -1)) == 1 AND LastValue(Ref(PPTrend, -1)) == 0)  Say(Interval(2) + " New pivot. M Top.");
+
+			if( LastValue(Ref(XOUp,-1))  ==1 AND LastValue(Ref(PPTrend, -1)) == 1)   Say(Interval(2) + " New pivot. Higher low.");
+			if( LastValue(Ref(XOUp,-1))  ==1 AND LastValue(Ref(PPTrend, -1)) == -1)  Say(Interval(2) + " New pivot. Lower low.");
+			if( LastValue(Ref(XOUp,-1))  ==1 AND LastValue(Ref(PPTrend, -1)) == 0)   Say(Interval(2) + " New pivot. W bottom.");
+		}
+	}
+//Pivot Pop code
+if(parmPivotPop == 1)
+	{
+		//Kp indicators for Pivot Pop
+		dummy = E_TSKPFAST2(Open, High, Low, Close, Volume);
+		KPFast2 = IIf(tskp_fast2val1 > 0, 1, -1);
+		BarsSinceXOUp =BarsSince(XOUp);
+		BarsSinceXODn = BarsSince(XODn);
+		switch(parmFilter)
+			{
+				case "None":	
+					PopFilter = True;
+					break;
+				case "KPMSL":
+					swVal = E_TSKPSWINGLINE(High, Low, Close);
+					KPMSL = tskp_swmean;
+					PopFilter = IIf(BarsSinceXOUp < BarsSinceXODn AND (C > KPMSL), True, IIf(BarsSinceXODn < BarsSinceXOUp AND (C < KPMSL), True, False));
+					break;
+				case "KPWaterLevel":
+					KPWaterlevel = E_TSKPWATERLEVEL(Open,High,Low,Close,Volume);
+					PopFilter = IIf(BarsSinceXOUp < BarsSinceXODn  AND (C > KPWaterLevel), True, IIf(BarsSinceXODn < BarsSinceXOUp AND (C < KPWaterLevel), True, False));
+					break;
+				case "KPMedium":
+					dummy = E_TSKPMEDIUM(Close);		
+					KPMediumUp = tskp_mediumup;
+					KPMediumDn = tskp_mediumdown;
+					KPMediumMA = tskp_mediumma;
+					KPMedium = KPMediumUp + KPMediumDn;
+					PopFilter = IIf(BarsSinceXOUp < BarsSinceXODn AND (KPMedium > KPMediumMA), True, IIf(BarsSinceXODn < BarsSinceXOUp AND (KPMedium < KPMediumMA), True, False));
+					break;
+			}
+		//calculations
+		UBB = BBandTop(C, parmBBPeriod, parmBBSD);
+		LBB = BBandBot(C, parmBBPeriod, parmBBSD);
+
+		if(parmDebug == 1)
+			{
+				printf("Fast2: %1.0f% \nUBB: %0.6f%\nLBB: %0.6f%\nC: %g%\n", KPFast2, UBB, LBB, C);
+				printf("Bars since Last XOUp: %1.0f%\nBars since last XODn: %1.0f%\n", BarsSinceXOUp, BarsSinceXODn );
+				printf("Bars since PPTrnd =1: %1.0f%\nBars since PPTrnd = -1: %1.0f%\n", BarsSince(PPTrend ==1), BarsSince(PPTrend == -1) );	
+				printf("ParmFilter: " + parmFilter + "\nPopFilter: %g%\n", PopFilter);
+				switch(parmFilter)
+				{
+					case "None":
+						break;
+					case "KPMSL":
+						printf("KPMSL: %g%\n", KPMSL);
+						break;
+					case "KPWaterLevel":
+						printf("KPWaterlevel: %g%\n",  KPWaterLevel);
+						break;
+					case "KPMedium":
+						printf("KPMedium: %g%\nKPMediumMA: %g%\n", KPMedium, KPMediumMA);
+						break;
+			}
+		}
+		PPopUp = (BarsSince(PPTrend == 1) <= parmBarCancel) AND (BarsSince(XOUp) <= parmBarCancel) AND (KPA900 >= KPAutoStop) AND(KPFast2 == 1) AND (KPScoreCard >= 5)
+				 AND PopFilter
+				 AND (C > UBB) AND (C > O) ;
+		PPopUp = IIf( PPopUp AND Sum(PPopUP, BarsSince(XOUp)+1) == 1, True, False );	//keep only the 1st signal
+		PPopDn = (BarsSince(PPTrend == -1) <= parmBarCancel) AND (BarsSince(XODn) <= parmBarCancel) AND (KPA900 <= KPAutoStop) AND(KPFast2 == -1) AND (KPScoreCard <= -5)
+				 AND PopFilter
+				 AND (C < LBB) AND (C < O) ;
+		PPopDn = IIf( PPopDn AND Sum(PPopDn, BarsSince(XODn) + 1) == 1, True, False);	//keep only the first signal
+		if(parmDebug == 1)
+			{
+				printf(WriteIf(PPopUp,"PPopUp: True", "PPopUp: False") + WriteIf(PPopDn, " PPopDn: True\n", " PPopDn: False\n") );
+				printf("PPopUp sum: %1.0f% \nPPopDn sum: %1.0f%", Sum(PPopUP, BarsSince(XOUp)) , Sum(PPopDn, BarsSince(XODn)) );
+			}
+		// Plots
+		PlotShapes(IIf(PPopUp, shapeHollowUpArrow, shapeNone), colorDarkBlue, 0, L, -30);
+		PlotShapes(IIf(PPopDn, shapeHollowDownArrow, shapeNone), colorDarkRed, 0, H, -30);
+		
+		if(ParmPlotPPIndicators == 1)	//plot the Pivot Pop Indicators
+			{
+				Plot(UBB, "Upper BB", parmBBColor, parmBBStyle);
+				Plot(LBB, "Lower BB", parmBBColor, parmBBStyle);
+				if(parmPlotA900AutoStop == 1)
+					{
+						Plot(KPA900, "A900", parmA900Color, parmA900Style);
+						Plot(KPAutoStop, "AutoStop", parmAutoStopColor, parmAutoStopStyle);
+					}
+				Plot( 0.5, "Fast2", IIf(tskp_fast2val1 > 0, parmPPTrndColorUp, parmPPTrndColorDn) , styleArea |  styleNoLabel | styleOwnScale , 0, 10);
+			}	//endif parmPlotPPIndicators
+			if(parmPlotFilter == 1)
+				{
+					switch(parmFilter)
+					{
+						case "None":
+						break;
+						case "KPMSL":
+							Plot(KPMSL, "KPMSL", parmFilterColor, parmFilterStyle);
+							break;
+						case "KPWaterLevel":
+							Plot(KPWaterLevel, "KPWaterLevel", parmFilterColor, parmFilterStyle);
+							break;
+						case "KPMedium":
+						// HMM how to print Medium on a price chart
+						break;
+						}
+				}	//endif parmPlotFilter
+	}	// end if parmPivotPop
+_SECTION_END();
+
+
+
+/*Body Colors*/
+whiteBody=C>=O;
+blackBody=O>C;
+
+/*Body Size*/
+smallBodyMaximum=0.0025;//less than 0.25%
+LargeBodyMinimum=0.01;//greater than 1.0%
+smallBody=(O>=C*(1-smallBodyMaximum) AND whiteBody) 
+         OR (C>=O*(1-smallBodyMaximum) AND blackBody);
+largeBody=(C>=O*(1+largeBodyMinimum) AND whiteBody) 
+         OR C<=O*(1-largeBodyMinimum) AND blackBody;
+mediumBody=NOT LargeBody AND NOT smallBody;
+identicalBodies=abs(abs(Ref(O,-1)-Ref(C,-1))-abs(O-C)) < 
+          abs(O-C)*smallBodyMaximum;
+realBodySize=abs(O-C);
+
+
+/*Shadows*/
+smallUpperShadow=(whiteBody AND H<=C*(1+smallBodyMaximum))
+               OR (blackBody AND H<=O*(1+smallBodyMaximum));
+smallLowerShadow=(whiteBody AND L>=O*(1-smallBodyMaximum)) 
+               OR (blackBody AND L>=C*(1-smallBodyMaximum));
+largeUpperShadow=(whiteBody AND H>=C*(1+largeBodyMinimum)) 
+               OR (blackBody AND H>=O*(1+largeBodyMinimum));
+largeLowerShadow=(whiteBody AND L<=O*(1-largeBodyMinimum)) 
+              OR (blackBody AND L<=C*(1-largeBodyMinimum));
+
+/*Gaps*/
+upGap=  IIf(Ref(blackBody,-1)AND whiteBody AND O>Ref(O,-1),1,
+        IIf(Ref(blackbody,-1) AND blackBody AND C>Ref(O,-1),1,
+        IIf(Ref(whiteBody,-1) AND whiteBody AND O>Ref(C,-1),1,
+        IIf(Ref(whiteBody,-1) AND blackBody AND C>Ref(C,-1),1,0))));
+
+downGap=IIf(Ref(blackBody,-1)AND whiteBody AND C<Ref(C,-1),1,
+        IIf(Ref(blackbody,-1) AND blackBody AND O<Ref(C,-1),1,
+        IIf(Ref(whiteBody,-1) AND whiteBody AND C<Ref(O,-1),1,
+        IIf(Ref(whiteBody,-1) AND blackBody AND O<Ref(O,-1),1,0))));
+
+
+/*Candle Definitions*/
+spinningTop=mediumBody;
+doji=CdDoji(threshold=0.05);/*abs(C-O) <= (C*smallBodyMaximum) OR
+(abs(O-C)<=((H-L)*0.1));*/
+dojiStar=doji AND (upgap OR downgap)AND Ref(LargeBody,-1);
+marabuzu=LargeBody AND smallUpperShadow AND smallLowerShadow;
+
+shootingStar=/*(NOT largeBody AND smallLowerShadow AND LargeUpperShadow) OR*/
+    smallLowerShadow AND NOT doji AND
+   ((blackBody AND abs(O-H)>2*realBodySize) OR
+   (whiteBody AND abs(H-C)>2*realBodySize));
+
+Hammer=smallUpperShadow AND NOT doji AND
+   ((blackBody AND abs(C-L)>2*realBodySize) OR
+   (whiteBody AND abs(L-O)>2*realBodySize));
+
+tweezerTop=abs(H-Ref(H,-1))<=H*0.0025;
+tweezerBottom=abs(L-Ref(L,-1))<=L*0.0025;
+engulfing=
+   IIf(blackBody AND Ref(blackbody,-1) AND C<Ref(C,-1) AND O>Ref(O,-1),1,
+   IIf(blackBody AND Ref(whiteBody,-1) AND O>Ref(C,-1) AND C<Ref(O,-1),1,
+   IIf(whitebody AND Ref(whitebody,-1) AND C>Ref(C,-1) AND O<Ref(O,-1),1,
+   IIf(whiteBody AND Ref(blackBody,-1) AND C>Ref(O,-1)AND O<Ref(C,-1),1,0))));
+Harami=
+   IIf(blackbody AND Ref(blackBody,-1) AND O<Ref(O,-1) AND C>Ref(C,-1),1,
+   IIf(blackBody AND Ref(whiteBody,-1) AND C>Ref(O,-1) AND O<Ref(C,-1),1,
+   IIf(whiteBody AND Ref(whiteBody,-1) AND C<Ref(C,-1) AND O>Ref(O,-1),1,
+   IIf(whiteBody AND Ref(blackBody,-1) AND O>Ref(C,-1) AND
+C<Ref(O,-1),1,0))));
+
+
+/*Maximum High Today - (MHT)
+Today is the maximum High in the last 5 days*/
+MHT=  HHV(H,5)==H;
+
+/*Maximum High Yesterday - (MHY)
+Yesterday is the maximum High in the last 5 days*/
+MHY=   HHV(H,5)==Ref ( H, -1);
+
+/*Minimum Low Today - (MLT)
+Today is the minimum Low in the last 5 days*/
+MLT=   LLV(L,5)==L;
+
+/*Minimum Low Yesterday - (MLY)
+Yesterday is the minimum Low in the last 5 days*/
+MLY=   LLV(L,5)==Ref(L,-1);
+
+/*DOJI definitions*/
+
+/*Doji Today - (DT)*/
+DT = abs(C-O) <= (C*smallBodyMaximum) OR
+(abs(O-C)<=((H-L)*0.1));
+
+/* Doji Yesterday - (DY)*/
+DY = abs(Ref ( C, -1)-Ref(O,-1)) <= Ref ( C, -1) *smallBodyMaximum OR
+abs (Ref ( O, -1)-Ref(C,-1)) <= (Ref ( H, -1 ) - Ref ( L, -1 ) )*0.1;
+
+/**************************************************
+             BULLISH CANDLESTICKS
+*************************************************** */
+
+/* Abandoned Baby Bullish*/
+abandonedBabybullish =Ref(largeBody,-2) AND Ref(blackBody,-2)//Large black candle
+             AND Ref(GapDown(),-1)  
+             AND whiteBody AND LargeBody AND GapUp();//Large white candle
+
+/* Belt Hold*///Bad formula
+beltHoldBullish = largeBody AND smallLowerShadow AND whiteBody AND MLT;
+
+
+/*BreakAway Bullish*/
+breakAwayBullish=Ref(Largebody,-4) AND Ref(blackBody,-4)
+              AND Ref(blackBody,-3) AND Ref(O,-3)<Ref(C,-4)
+              AND Ref(smallbody,-2) AND Ref(C,-2)<Ref(C,-3)
+              AND Ref(C,-1)<Ref(C,-2)
+              AND LargeBody AND whiteBody AND C>Ref(O, -3) 
+              AND C<Ref(C,-4);
+
+/*Concealing Baby Swallow only one trade */
+ConcealingBabySwallow=Ref(marabuzu,-3) AND Ref(blackbody,-3) AND
+                      Ref(MArabuzu,-2) AND Ref(blackBody,-2) AND
+                      Ref(blackBody,-1) AND Ref(downGap,-1) AND 
+                      Ref(H,-1)>Ref(C,-2)AND Ref(blackbody,-1)AND 
+                      blackBody AND engulfing;
+
+/*Doji Star Bullish*/
+dojiStarBullish=(dojiStar AND (MLT OR MLY))OR 
+   (doji AND (C<Ref(C,-1) OR O<Ref(C,-1))AND Ref(blackBody,-1)
+    AND Ref(LargeBody,-1));
+
+/*Engulfing Bullish*/   
+engulfingBullish =
+    engulfing AND largeBody AND whiteBody AND 
+    (Ref(blackbody,-1) OR Ref(Doji,-1)) AND MLT;
+
+/*Hammer Bullish*/
+hammerBullish=Hammer AND (MLT OR MLY);
+
+/*Dragonfly Doji Bullish*/
+dragonflyDoji=smallBody AND LargeLowerShadow AND smallUpperShadow AND MLT;
+
+/* Harami Bullish*/
+haramiBullish = harami AND Ref (LargeBody,-1) AND Ref(blackBody,-1) AND
+                NOT LargeBody AND whiteBody;
+
+/*Harami Cross*/
+HaramiCross=harami AND Ref(LargeBody,-1) AND Ref(blackBody,-1) AND doji; 
+       
+/* Homing Pigeon*/
+homingPigeon =  Ref(largeBody,-1) AND Ref(blackBody,-1) AND
+                H<= Ref ( O, -1 ) AND L>=Ref( C, -1) AND C<O AND MLY;
+
+/*Inverted Hammer*/
+invertedHammer=shootingStar AND (MLT OR MLY);
+
+/* Meeting LinesBullish*/
+meetingLinesbullish= Ref(LargeBody,-1) AND Ref(blackBody,-1) AND
+                     LargeBody AND whiteBody AND
+                     C>Ref(C,-1)*0.9975 AND C< Ref(C,-1)*1.0025;
+
+/*Morning Doji Star*/
+morningDojiStar= Ref(LargeBody,-2) AND Ref(blackBody,-2) AND
+                 Ref(doji,-1) AND Ref(O,-1)<Ref(C,-2) AND
+                 whiteBody AND C>Ref(C,-2) AND MLY;
+
+/* Morning Star*/
+morningStar =Ref(largeBody,-2) AND Ref(blackBody,-2)//Large black candle 
+             AND Ref(downGap,-1)//Gap down yesterday
+             AND whiteBody AND LargeBody AND C>Ref(C,-2)//Large white candle today
+             AND MLY; //Yesterday was the low
+
+/* Piercing Line*/
+piercingLine= Ref(largeBody,-1) AND Ref(blackBody,-1)AND
+               O<Ref(L,-1) AND C>=(Ref(O,-1)+Ref(C,-1))/2 AND C<Ref(O,-1) AND
+MLT;
+
+/* Stick Sandwich*/
+stickSandwich=Ref(largeBody,-2) AND Ref(blackbody,-2) AND 
+              Ref(largeBody,-1) AND Ref(whiteBody,-1) AND
+              Ref(O,-1)>=Ref(C,-2) AND O>=Ref(C,-1) AND
+              abs(C-Ref(C,-2))<=C*0.0025;
+
+/*Three Inside Up harami confirming*/
+threeInsideUp =Ref(Haramibullish,-1) AND whiteBody AND 
+    largeBody AND C>Ref(C,-1);
+
+
+/* Three Outside Up Engulfing confirmation*/
+threeOutsideUp =Ref(engulfingBullish,-1) AND whiteBody AND C>Ref(C,-1);
+
+/* Three Stars in the South*///Rewrite???
+threeStarsInTheSouth=
+   Ref(LargeBody,-2) AND Ref(blackBody,-2) AND Ref(largelowerShadow,-2)
+   AND Ref(blackBody,-1) AND Ref(largeLowerShadow,-1) AND 
+   Ref(L,-1)>Ref(L,-2) AND blackBody AND smallUpperShadow AND
+   smallLowerShadow AND L>Ref(L,-1) AND H<Ref(H,-1);
+
+/* Tri-Star Bullish*/
+triStarBullish=Ref(doji,-2) AND Ref(doji,-1) AND doji AND MLY AND
+   Ref(downgap,-1) AND upGap;
+
+/* Three River Bottom Bad formula*/
+threeriverBottom=Ref(largeBody,-2) AND Ref(blackBody,-2) AND
+                 Ref(blackbody,-1) AND Ref(Largelowershadow,-1) AND
+                 Ref(O,-1)<Ref(O,-2) AND Ref(C,-1)>Ref(C,-2) AND
+                 whiteBody AND C<Ref(C,-1) AND MLY;   
+                  
+/* Mat Hold Bullish*/
+MAtHoldBullish=Ref(LargeBody,-4) AND Ref(whiteBody,-4)//1st day
+   AND Ref(blackBody,-3) AND Ref(upGap,-3) AND NOT Ref(LargeBody,-3)
+   AND NOT Ref(LargeBody,-2) AND Ref(C,-2)<Ref(C,-3) AND Ref (O,-2)<Ref(O,-3)
+AND 
+   Ref(C,-2)>Ref(O,-4) AND NOT Ref(LargeBody,-1) AND Ref(C,-1)<Ref(C,-2)
+   AND LargeBody AND whiteBody AND C>Ref(C,-4); 
+
+/*RisingThreeMethods*/
+risingThreeMethods=Ref(LargeBody,-4) AND Ref(whiteBody,-4) AND NOT
+  Ref(LargeBody,-3) AND NOT Ref(LargeBody,-2)AND NOT Ref(LargeBody,-1) AND
+  Ref(C,-3)<Ref(C,-4) AND Ref(C,-2)<Ref(C,-3) AND Ref(C,-1)<Ref(C,-2) AND
+  LargeBody AND whitebody AND C>Ref(C,-4);
+
+/* Seperating Lines Bullish*/
+separatingLinesBullish=Ref(blackBody,-1) AND whiteBody AND LargeBody AND
+smallLowerShadow AND MHT AND abs(O-Ref(O,-1))<=O*0.0025;
+
+/*Side by Side White Lines*/
+sideBySideWhiteLines=NOT Ref(smallBody,-2) AND Ref(whiteBody,-2) 
+   AND Ref(upGap,-1) AND Ref(whitebody,-1)AND whiteBody AND
+   identicalBodies AND abs(O-Ref(O,-1))<O*0.0025;
+
+
+/*Three White Soldiers*/
+threeWhiteSoldiers=NOT Ref(smallbody,-2) AND Ref(whiteBody,-2) AND NOT
+   Ref(smallBody,-1) AND Ref(whiteBody,-1) AND NOT
+   smallBody AND whiteBody AND C>Ref(C,-1) AND Ref(C,-1)>Ref(C,-2) AND
+   Ref(O,-1)>Ref(O,-2) AND Ref(O,-1)<Ref(C,-2) AND O<Ref(C,-1) AND
+   O>Ref(O,-1) AND Ref(smallUpperShadow,-2) AND
+   Ref(smallUpperShadow,-1) AND smallUppershadow AND LLV(L,12)==Ref(L,-2);
+
+/*Upside Gap Three Methods not very good*/
+upsideGapThreeMethods=Ref(Largebody,-2) AND Ref(whiteBody,-2) AND
+   Ref(LargeBody,-1) AND Ref(whiteBody,-1) AND Ref(upGap,-1) AND
+   blackBody AND O>Ref(O,-1) AND C<Ref(C,-2)AND C>Ref(O,-2) AND 
+  MHY;
+
+/*Three Line Strike not good signals*/
+threeLineStrike=NOT Ref(smallBody,-3) AND NOT Ref(smallBody,-2) AND 
+   NOT Ref(smallBody,-1) AND Ref(whiteBody,-3) AND Ref(whiteBody,-2) AND
+   Ref(whiteBody,-1) AND Ref(C,-1)>Ref(C,-2) AND Ref(C,-2)>Ref(C,-3) AND
+   blackBody AND O>Ref(C,-1) AND C<Ref(O,-3);
+
+/*Tweezer Bottom*/
+tweezerBottom= (abs(L-Ref(L,-1))/L<0.0025 OR
+               abs(L-Ref(L,-2))/L<0.0025)
+               AND (MLT OR MLY); 
+
+/*Upside Tasuki Gap*/
+upsideTasukiGap=Ref(largeBody,-2) AND Ref(largeBody,1) AND
+   Ref(whiteBody,-2) AND Ref(whiteBody,-1) AND Ref(upGap,-1) AND
+   blackBody AND O>Ref(O,-1) AND C<Ref(O,-1) AND C>Ref(C,-2) AND
+   identicalBodies AND O<Ref(C,-1);
+   //AND HHV(H,5)==Ref(H,-1); Do not use this line
+
+
+/*****************************************
+            BEARISH CANDLESTICKS
+******************************************/
+
+/*Abandoned Baby Bearish*/
+AbandonedBabyBearish=Ref(LargeBody,-2) AND Ref(whiteBody,-2) AND
+   Ref(smallBody,-1) AND Ref(GapUp(),-1) AND GapDown() AND 
+   NOT smallBody AND blackBody AND MHY;
+
+/*Advance Block Bearish*/
+AdvanceBlockBearish=Ref(LargeBody,-2) AND Ref(whiteBody,-2) 
+    AND Ref(whiteBody,-1) AND
+   whiteBody AND Ref(O,-1)>Ref(O,-2) AND Ref(O,-1)<Ref(C,-2) AND
+   Ref(C,-1)>Ref(C,-2) AND C>Ref(C,-1) AND
+   O<Ref(C,-1) AND O>Ref(O,-1) AND Ref(LargeUpperShadow,-1) AND
+LargeUpperShadow
+   AND C-O<Ref(C,-1)-Ref(O,-1) AND Ref(C,-1)-Ref(O,-1) < Ref(C,-2)-Ref(O,-2);
+
+/*Belt Hold Bearish*/
+beltHoldBearish=LargeBody AND BlackBody AND smalluppershadow AND MHT;
+
+/*Breakaway Bearish*/
+breakAwayBearish=Ref(LargeBody,-4) AND Ref(whiteBody,-4) AND
+   Ref(GapUp(),-3) AND Ref(whiteBody,-3) AND 
+   Ref(smallbody,-2) AND Ref(smallBody,-1) AND
+   blackBody AND O>Ref(O,-3) AND C<Ref(C,-4);
+
+/*Dark Cloud Cover*/
+darkCloudCover=Ref(LargeBody,-1) AND Ref(whiteBody,-1) AND
+   blackBody AND O>Ref(H,-1) AND C>Ref(O,-1) AND C<(Ref(O,-1)+Ref(C,-1))/2
+   AND MHT;
+
+/*Deliberation Bearish: needs confirmation*/
+deliberationBearish=Ref(LargeBody,-2) AND Ref(whiteBody,-2) AND
+   Ref(LargeBody,-1) AND Ref(whiteBody,-1) AND Ref(C,-1)>Ref(C,-2) AND
+   smallbody AND upGap;
+
+/*CounterAttackBearish*/
+CounterAttackBearish=MHT AND LargeBody AND blackbody AND
+   Ref(largeBody,-1) AND Ref(whiteBody,-1) AND
+   C<Ref(C,-1)*1.0025 AND C>Ref(C,-1)*0.9975;;
+
+/*Doji Star Bearish*/
+dojiStarBearish=(dojiStar AND (MHT OR MHY))OR 
+   (doji AND (C>Ref(C,-1) OR O>Ref(C,-1))AND Ref(whiteBody,-1)
+    AND Ref(LargeBody,-1));
+
+/*Engulfing Bearish*/
+engulfingBearish=engulfing AND largeBody AND blackBody AND 
+    (Ref(whitebody,-1) OR Ref(Doji,-1))AND (MHT OR MHY);
+
+/*Evening Doji Star check formula???*/
+eveningDojiStar=Ref(LargeBody,-2) AND Ref(whiteBody,-2) AND
+   Ref(dojiStar,-1) AND Ref(GapUp(),-1) AND (MHY OR MHT);
+
+/*Evening Star*/
+eveningStar=Ref(LargeBody,-2) AND Ref(whiteBody,-2) AND
+   Ref(upGap,-1) AND NOT Ref(largeBody,-1) AND blackBody AND NOT smallBody AND
+   (MHT OR MHY);
+
+/*Hammer Bearish*/
+HammerBearish=Hammer AND HHV(H,8)==H;
+
+/*hangingMan*/
+HangingMan=NOT largeBody AND smallUpperShadow AND LargeLowerShadow AND MHT;
+
+/*dragonfly Doji Bearish*/
+dragonflyDojiBearish=doji AND smallUpperShadow AND LargeLowerShadow AND MHT;
+   
+/*Harami Bearish-*/
+HaramiBearish=harami AND Ref(Largebody,-1) AND Ref(whiteBody,-1)AND blackBody 
+AND (MHY OR MHT);
+
+/*HaramiCross Bearish*/
+HaramiCrossBearish=harami AND doji AND Ref(whiteBody,-1) AND
+Ref(Largebody,-1);
+
+/*Identical three black crows*/
+idendicalThreeBlackCrows=Ref(blackBody,-2) AND Ref(blackBody,-1) AND blackBody
+AND
+   abs(Ref(C,-2)-Ref(O,-1))<Ref(C,-1)*0.0025 AND abs(Ref(C,-1)-O)<O*0.0025 AND
+   HHV(H,20)==Ref(H,-2) AND NOT Ref(doji,-2) AND NOT Ref(doji,-1) AND NOT doji
+AND
+   Ref(smallLowerShadow,-2) AND Ref(smallLowerShadow,-1) AND smallLowerShadow;
+
+/*Kicking Bearish No trades*/
+kickingBearish=Ref(whiteBody,-1) AND Ref(MArabuzu,-1) AND blackBody AND
+MArabuzu    AND GapDown();
+
+/*Meeting Lines Bearish*/
+MeetingLinesBearish=Ref(LargeBody,-1) AND Ref(whiteBody,-1) AND
+  HHV(C,8)==Ref(C,-1) AND LargeBody AND blackBody AND 
+  abs(C-Ref(C,-1))<C*0.0025;
+
+/*ShootingStar*/
+shootingStarGap=shootingStar AND GapUp() AND MHT;
+
+/*Gravestone Doji*/
+gravestoneDoji=doji AND largeUpperShadow AND smallLowerShadow AND GapUp()AND
+MHT;
+
+/*Three Inside Down Bearish*/
+threeInsideDownBearish=Ref(HaramiBearish,-1) AND blackBody AND C<Ref(C,-1)AND  
+ smallUpperShadow;
+
+/*Three Outside Down Bearish*/
+threeoutsideDownBearish=Ref(engulfingBearish,-1) AND blackBody AND
+C<Ref(C,-1)AND
+   NOT LargeUpperShadow;
+
+/*Tri Star Bearish*/
+triStarBearish=Ref(doji,-2) AND Ref(doji,-1) AND doji AND MHY AND
+Ref(upGap,-1)AND    downGap;
+
+/*Two Crows Bearish*/
+twoCrows=Ref(whiteBody,-2) AND Ref(LargeBody,-2) //first day
+   AND Ref(blackBody,-1) AND Ref(upGap,-1)//Second Day
+   AND blackBody AND O<Ref(O,-1) AND O>Ref(C,-1)AND C<Ref(C,-2) AND 
+   C>Ref(O,-2) AND MHY;//Third day
+
+/*Upside Gap Two Crows*/
+upsideGapTwoCrows= Ref(whiteBody,-2) AND Ref(LargeBody,-2)// first day
+   AND Ref(upGap,-1) AND Ref(blackBody,-1) // 2nd day
+   AND blackbody AND O>Ref(O,-1) AND C<Ref(C,-1) AND C>Ref(C,-2);
+
+/*Doji Star Bearish needs confirmation
+dojiStarBearish=Ref(LargeBody,-1) AND Ref(whiteBody,-1) // first day
+   AND doji AND upGap AND MHT;*/
+
+/* Downside Gap Three Methods*/
+downsideGapThreeMethods=
+     Ref(LargeBody,-2) AND Ref(blackBody,-2) AND Ref(downGap,-2) //first day
+     AND Ref(LargeBody,-1) AND Ref(blackBody,-1)//2nd day
+     AND whitebody AND O<Ref(O,-1) AND C>Ref(C,-2)
+     AND LLV(L,8)==Ref(L,-1);
+
+/*Downside Tasuki Gap*/
+downsideTasukiGap=
+   Ref(blackBody,-2)//first day
+   AND Ref(blackbody,-1) AND Ref(downgap,-1) //2nd day
+   AND whiteBody AND O<Ref(O,-1) AND O>Ref(C,-1) AND C>Ref(O,-1) AND
+C<Ref(C,-2)
+   AND Ref(identicalBodies,-1)                                                 
+                                                                 
+   AND LLV(L,15)==Ref(L,-1);
+
+
+/*Falling Three Meothods*/
+fallingThreeMethods=Ref(LargeBody,-4) AND Ref(blackBody,-4) AND
+  /*Ref(doji,-3) AND Ref(doji,-2) AND Ref(doji,-1) AND*/ Ref(C,-1)>Ref(C,-2) 
+  AND Ref(C,-2)>Ref(C,-3) AND LargeBody AND blackBody AND O>Ref(C,-4) AND
+  O<Ref(O,-4) AND C<Ref(O,-4)AND C<Ref(C,-4);
+
+/*In Neck Bearish not good*/
+inNeckBearish=Ref(LargeBody,-1) AND Ref(blackBody,-1) AND
+   whiteBody AND O<Ref(L,-1) AND C<Ref(C,-1)*1.0005 AND C>=Ref(C,-1);
+
+/*On Neck Bearish not good*/
+OnNeckBearish=Ref(LargeBody,-1) AND Ref(blackBody,-1) AND
+   whiteBody AND O<Ref(L,-1) AND C<Ref(L,-1)*1.0025 AND C>=Ref(L,-1)*0.9975;
+
+/*separating Lines Bearish*/
+separatingLinesBearish=Ref(LargeBody,-1) AND Ref(whiteBody,-1) AND
+   blackBody AND O>Ref(O,-1)*0.9975 AND O<=Ref(O,-1)*1.0025;
+
+/*Side By Side White Lines Bearish*/
+sideBySideWhiteLinesBearish=NOT Ref(smallBody,-2) AND Ref(blackBody,-2) AND  
+   Ref(whiteBody,-1) AND whiteBody AND Ref(downGap,-1) AND identicalBodies
+  AND abs(C-Ref(C,-1)<C*0.0025);
+
+/*Three Black Crows*/
+threeBlackCrows=Ref(blackBody,-2) AND Ref(blackBody,-1) AND blackBody  AND
+Ref(C,-1)<Ref(C,-2) AND C<Ref(C,-1) AND HHV(H,8)==Ref(H,-2) AND NOT Ref(doji,-2)
+AND NOT Ref(doji,-1) AND NOT doji;;
+   
+/*Three Line Strike no trades*/
+threeLineStrike=threeBlackCrows AND whiteBody AND O<Ref(C,-1) AND C>Ref(O,-3);
+
+/*Thrusting Bearish*/
+thrustingBearish=Ref(blackBody,-1) AND Ref(LargeBody,-1) AND LargeBody AND
+   whitebody AND O<Ref(L,-1) AND C<(Ref(O,-1)+Ref(C,-1))/2 AND C>Ref(C,-1);
+
+/*Tweezer Top*/
+tweezerTop= (abs(H-Ref(H,-1))/H<0.0025 OR
+               abs(H-Ref(H,-2))/H<0.0025)
+               AND (MHT OR MHY); 
+
+
+
+/* ***********************************************
+                  Buy Rules
+**************************************************/
+Buy=
+abandonedBabybullish OR
+beltHoldBullish OR
+breakAwayBullish OR
+ConcealingBabySwallow OR 
+engulfingBullish OR
+hammerBullish OR
+dragonflyDoji OR
+dojiStarBullish OR
+haramiBullish OR
+HaramiCross OR
+homingPigeon OR
+invertedHammer OR
+meetingLinesbullish OR
+morningDojiStar OR
+morningStar OR
+piercingLine OR
+stickSandwich OR
+threeInsideUp OR
+threeOutsideUp OR
+threeStarsInTheSouth OR   
+triStarBullish OR
+threeriverBottom OR
+MAtHoldBullish OR
+risingThreeMethods OR
+separatingLinesBullish OR
+sideBySideWhiteLines OR
+threeWhiteSoldiers OR
+upsideGapThreeMethods OR
+threeLineStrike OR
+tweezerBottom OR
+upsideTasukiGap;
+
+/************************************
+                    Sell Rules
+*************************************/
+Sell=
+AbandonedBabyBearish OR
+advanceBlockBearish OR
+beltHoldBearish OR
+breakAwayBearish OR
+darkCloudCover OR
+deliberationBearish OR
+CounterAttackBearish OR
+engulfingBearish OR
+eveningDojiStar OR
+eveningStar OR
+HangingMan OR
+dragonflyDojiBearish OR
+HammerBearish OR
+HaramiBearish OR
+HaramiCrossBearish OR
+idendicalThreeBlackCrows OR
+kickingBearish OR
+MeetingLinesBearish OR
+shootingStarGap OR
+gravestoneDoji OR
+threeInsideDownBearish OR
+threeoutsideDownBearish OR
+triStarBearish OR
+twoCrows OR
+upsideGapTwoCrows OR
+dojiStarBearish OR
+downsideGapThreeMethods OR
+downsideTasukiGap OR
+fallingThreeMethods OR
+inNeckBearish OR
+OnNeckBearish OR
+separatingLinesBearish OR
+sideBySideWhiteLinesBearish OR
+threeBlackCrows OR
+threeLineStrike OR
+thrustingBearish OR
+tweezerTop;
+
+_SECTION_BEGIN("NICK MA Swing"); 
+ 
+DayH = TimeFrameGetPrice("H", in15Minute*2, -1);// yesterdays high 
+DayL = TimeFrameGetPrice("L", in15Minute*2, -1);//low 
+DayC = TimeFrameGetPrice("C", in15Minute*2, -1);//close
+DayO = TimeFrameGetPrice("O", in15Minute*2 );//open today
+ 
+R6 = (DayH / DayL) * DayC * 1.002;
+R5 = (DayH / DayL) * DayC;
+R4 = (((DayH / DayL) + 0.83) / 1.83) * DayC;
+R3 = ( ( (DayH / DayL) + 2.66) / 3.66) * DayC;
+R2 = ( ( (DayH / DayL) + 4.5) / 5.5) * DayC;
+R1 = ( ( (DayH / DayL) + 10) / 11) * DayC;
+ 
+S1 = (2- ( ( (DayH / DayL) + 10) / 11)) * DayC;
+S2 = (2-( (DayH / DayL) + 4.5) / 5.5) * DayC;
+S3 = (2-(( DayH / DayL) + 2.66) / 3.66) * DayC;
+S4 = (2-( (DayH / DayL) + 0.83) / 1.83) * DayC;
+S5 = (2-( DayH / DayL)) * DayC;
+S6 = (2-( DayH / DayL)) * DayC * 0.998;
+
+//Plot(s3, "", colorGreen,styleThick+styleDashed);
+//Plot(s4, "", colorGreen,styleThick+styleDashed);
+//Plot(r3, "", colorRed,styleThick+styleDashed);
+//Plot(r4, "", colorRed,styleThick+styleDashed); 
+
+pivot = (DayH+DayL+DayC)/3;
+NW = pivot;
+J = MA(Close,3);
+piv = (H+L+C)/3;
+_SECTION_END();
+//=================TITLE================================================================================================
+_SECTION_BEGIN("Title");
+Title = EncodeColor(colorWhite)+ "LINKON's 30M trading" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +
+
+"\n"+
+WriteIf(H > Ref(H,-1),EncodeColor(colorBrightGreen),EncodeColor(colorRed))+"              Hi "+H+"\n"+ 
+EncodeColor(colorWhite)+"Op "+O+EncodeColor(colorAqua)+" Cl : " +C+"\n"+
+WriteIf(L < Ref(L,-1),EncodeColor(colorRed),EncodeColor(colorBrightGreen))+"              Lo "+L+
+"\n"+
+
+//WriteIf (Buy ,EncodeColor(colorGreen)+ " GO LONG / Reverse Signal at "+C+"  ","")+
+//WriteIf (Sell ,EncodeColor(colorRed)+ " EXIT LONG / Reverse Signal at "+C+"  ","")+"\n"+EncodeColor(colorWhite)+
+//WriteIf(Sell , EncodeColor(colorRed)+"Total Profit/Loss for the Last Trade Rs."+round(C-BuyPrice)+"","")+
+//WriteIf(Buy  ,EncodeColor(colorGreen)+ "Total Profit/Loss for the Last trade Rs."+round(SellPrice-C)+"","")+
+//WriteIf(Long AND NOT Buy,EncodeColor(colorGreen)+ "Trade : Long - Entry price Rs."+(BuyPrice),"")+
+//WriteIf(shrt AND NOT Sell,EncodeColor(colorRed)+ "Trade : Short - Entry price Rs."+(SellPrice),"")+"\n"+ 
+//WriteIf(Long AND NOT Buy, EncodeColor(colorYellow)+"Current Profit/Loss Rs."+round(C-BuyPrice)+"\n Place SL at "+s4,"")+
+//WriteIf(shrt AND NOT Sell,EncodeColor(colorYellow)+ "Current Profit/Loss Rs."+round(SellPrice-C)+"\n Place SL at "+R4,"")+
+//"\n"+
+WriteIf(C > R6,EncodeColor(colorYellow)+"\n Price "+C,"")+
+EncodeColor(colorDarkRed)+"\n H6  : "+R6+
+WriteIf(C > R5 AND C < r6,EncodeColor(colorYellow)+" \n Price "+C,"")+
+EncodeColor(colorDarkRed)+"\n H5  : "+R5+
+WriteIf(C > R4 AND C < r5,EncodeColor(colorYellow)+" \n Price "+C,"")+
+EncodeColor(colorRed)+"\n H4  : "+R4+
+WriteIf(C > R3 AND C < r4,EncodeColor(colorYellow)+" \n Price "+C,"")+
+EncodeColor(colorRed)+"\n H3  : "+R3+
+
+WriteIf(C > s3 AND C < r3,EncodeColor(colorYellow)+" \n Price "+C,"")+
+EncodeColor(colorBrightGreen)+"\n L3  : "+S3+
+WriteIf(C > s4 AND C < s3,EncodeColor(colorYellow)+" \n Price "+C,"")+
+EncodeColor(colorBrightGreen)+"\n L4  : "+S4+
+WriteIf(C > s5 AND C < s4,EncodeColor(colorYellow)+" \n Price "+C,"")+
+EncodeColor(colorDarkGreen)+"\n L5  : "+S5+
+WriteIf(C > s6 AND C < s5,EncodeColor(colorYellow)+" \n Price "+C,"")+
+EncodeColor(colorDarkGreen)+"\n L6  : "+S6+
+WriteIf(C < s6,EncodeColor(colorYellow)+" \n Price "+C,"")+
+
+
+
+//PlotShapes(IIf(Buy_again AND s4 = Ref(s4,-1), shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+//PlotShapes(IIf(Sell_again AND s4 = Ref(s4,-1), shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+//PlotShapes(IIf(exit_long AND s4 = Ref(s4,-1), shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+//PlotShapes(IIf(exit_short AND s4 = Ref(s4,-1), shapeUpArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+
+//PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+//PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+//PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+//PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+//PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+//PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+
+EncodeColor(colorBrightGreen)+
+WriteIf(abandonedBabybullish,"\n Abandoned Baby Bullish. \n A reversal pattern.\n reliability : High.","")+
+//WriteIf(beltHoldBullish,"Belt Hold Bullish. A reversal pattern.\nNison:The larger the candlestick, the more significant it is.\nLitWick Reliability: Low.","")+
+//WriteIf(breakAwayBullish,"Break Away Bullish.\n A reversal pattern.\n reliability: moderate.","")+
+WriteIf(ConcealingBabySwallow,"\n Concealing Baby Swallow. \n A reversal pattern.\n reliability: High.","")+
+WriteIf(dojiStarBullish,"\n Bullish doji Star. \n A reversal pattern.\n reliability: moderate.","")+
+WriteIf(engulfingBullish,"\n Bullish Engulfing. \n a reversal pattern.\n reliability: moderate","")+
+WriteIf(hammerBullish,"\n Bullish Hammer. \n reversal pattern.  \n reliability: Low.","")+
+WriteIf(dragonflyDoji,"\n Dragonfly Doji.  reliability: moderate.","")+
+WriteIf(haramiBullish, "\n Harami Bullish. \n reversal pattern.\n Pattern needs confirmation.\n Reliability: Low.","")+
+WriteIf(HaramiCross,"\n Harami Cross. \n reversal pattern.\n Reliability: Low.","")+
+//WriteIf(homingPigeon,"Homing Pigeon. A reversal pattern.\n reliability:moderate.","")+
+WriteIf(invertedHammer,"\n Inverted Hammer. \n reversal pattern. \n Needs bullish verification. \n reliability: Low.","")+
+//WriteIf(meetingLinesbullish,"Meeting Lines bullish. A reversal pattern.\n reliability: moderate.","")+
+WriteIf(morningDojiStar,"\n Morning Doji Star. A reversal pattern.\n Important reversal Signal.\n reliability: High.","")+
+WriteIf(morningStar,"\n Morning Star. A reversal pattern.\n The stronger the white third body the better.\n reliability: High.","")+
+//WriteIf(piercingLine,"Piercing Line. A reversal pattern.\nNison: A strong reversal pattern.\n reliability: moderate.","")+
+//WriteIf(stickSandwich,"Stick Sandwich. A reversal pattern.\n reliability: moderate.","")+
+WriteIf(threeInsideUp,"\n 3 Inside Up.\n  A reversal pattern.\n reliability: High.","")+
+WriteIf(threeOutsideUp,"\n 3 Outside Up.\n  A reversal pattern.\n reliability: High.","")+
+//WriteIf(threeStarsInTheSouth,"3 Stars in the South. A reversal pattern.\n reliability: moderate.","")+
+//WriteIf(triStarBullish,"Tri-Star Bullish. A reversal pattern.\nNison: Significant reversal pattern.\n reliability: moderate.","")+
+//WriteIf(threeriverBottom,"3 River Bottom. A reversal pattern.\nNison: Selling pressure drying up.\nLit Wick reliability: moderate.","")+
+WriteIf(MAtHoldBullish,"\n Mat Hold Bullish. \n  continuation pattern.\n May have 2-4 black candles.\n reliability: High. ","")+
+WriteIf(risingThreeMethods,"\n Rising Three Methods. \n  continuation pattern \n  Better if Volume of white candle is greater than on black \n reliability: High.","")+
+//WriteIf(separatingLinesBullish,"Separating Lines Bullish. A continuation pattern.\nNison:    \n reliability: Low.","")+
+WriteIf(sideBySideWhiteLines,"\n Side by Side White Lines. \n  continuation pattern.\n if occurring during a downtrend may only be Short covering.\n reliability: High.","")+
+WriteIf(threeWhiteSoldiers,"\n 3 White Soldiers. \n continuation pattern.\n reliability: High.","")+
+//WriteIf(upsideGapThreeMethods,"Upside Gap 3 Methods. A continuation pattern.\n reliability: moderate.","")+
+//WriteIf(threeLineStrike,"3 Line Strike. A continuation pattern.\n reliability: Low.","")+
+//WriteIf(tweezerBottom,"Tweezer Bottom.a reversal pattern. With other reversal candles it could indicate a support level.\nNison: Needs confirmation.","")+
+//WriteIf(upsideTasukiGap,"Upside Tasuki Gap. A continuation pattern.\nNison: the real bodies of the two candlesticks in the gap should be about the same size.\n reliability: moderate.","")+
+
+/***************************************
+                 Bearish Candles
+********************************************/
+EncodeColor(colorRed)+
+WriteIf(AbandonedBabyBearish,"\n Abandoned Baby Bearish.\n Reversal pattern.\n Extremely rare.\n reliability: High.","")+
+//WriteIf(advanceBlockBearish,"Advancing Block Bearish. A reversal pattern.\nNison: Rally is in trouble. Signs of weakening could be progressively smaller white read bodies OR relatibvely long upper shadows on the last two white candlesticks.Not necessarily a reversal pattern.\n Reliability: moderate.","")+
+//WriteIf(beltHoldBearish,"Belt Hold Bearish. A reversal pattern.\nNison: The longer the height of the belt-Hold candle the more significant the pattern.\n reliability: Low.","")+
+//WriteIf(breakAwayBearish,"Break Away Bearish. A reversal pattern.\n reliability: moderate.","")+
+WriteIf(darkCloudCover,"\n Dark Cloud Cover. \n reversal pattern.\n Factors indicating the importance of this Signal are/n1)The greater the penetration of the first candle by the Second.\n2)Both candles are marabozus.\n3)The Second body opens above a major resistance level.\n4)High Volume on the Second Day.\n Reliability: High.","")+ 
+//WriteIf(deliberationBearish,"Deliberation Bearish. A reversal pattern.\nNison: NOT a reversal pattern, but a sign the rally is weakening.\n reliability: moderate.","")+
+//WriteIf(CounterAttackBearish,"Counter Attack Bearish.\nNison: A potential stalling of the rally.","")+
+WriteIf(engulfingBearish,"\n Engulfing Bearish. \n  reversal pattern.\n Major reversal Signal. \n Factors increasing patterns importance are\n1) The first Day has a very small real body AND the Second Day a very large real body.\n2) The pattern apears after a protracted OR very fast move.\n3) Heavy Volume on the Second Day.\n4) The Second Day engulfs more than one real body.\n reliability: moderate.","")+
+WriteIf(eveningDojiStar,"\n Evening Doji Star \n  reversal pattern.\n Must be confirmed by long black candle.\n Reliability: High","")+
+WriteIf(eveningStar,"\n Evening Star. \n Reversal pattern.\n Gap between Second AND third bodies does NOT always occur.\n reliability: High.","")+
+WriteIf(HammerBearish,"\n Bearish Hammer. \n Reversal pattern.\n More bearish if hammer is black. \n  Needs bearish confirmation. \n  A large gap down on the following Day would be a good confirmation.","")+
+WriteIf(HangingMan,"\n Hanging Man. \n  reversal pattern.\n a large gap down the following Day. \n reliability: Low.","")+
+WriteIf(dragonflyDojiBearish,"\n Dragonfly Bearish. \n  reversal pattern.\n reliability: moderate.","")+
+//WriteIf(HaramiBearish,"Harami Bearish. A reversal pattern.\nNison: Not as significant a reversal pattern as hanging man OR engulfing.\n reliability: Low.","")+
+WriteIf(HaramiCrossBearish,"\n Harami Cross Bearish. \n  reversal pattern.\n More significant reversal pattern than Harami.\n  Second Day can be white OR black.\n reliability: moderate.","")+
+WriteIf(idendicalThreeBlackCrows,"\n Identical 3 Black Crows. A reversal pattern in an uptrend.\n Very bearish.\n reliability: High. ","")+
+WriteIf(kickingBearish,"\n Kicking Bearish. \n  reversal pattern.\n reliability: High.","")+
+//WriteIf(MeetingLinesBearish,"Meeting Lines Bearish. A reversal pattern.\nNison:  \n reliability: moderate, but NOT as strong as Dark cloud Cover.","")+
+//WriteIf(shootingStarGap,"Shooting Star. a reversal pattern.\nNison:Not major reversal Signal as evening star. Ideally real body would gap away from previous body. Needs to appear after an uptrend.\n reliability: Low.","")+
+WriteIf(gravestoneDoji,"\n Gravestone Doji \n  reversal pattern.\n more significant if it hits new High.\n reliability: moderate.","")+
+WriteIf(threeInsideDownBearish,"\n 3 Inside Down. \n  reversal pattern.\n Reliability: High.","")+
+WriteIf(threeoutsideDownBearish,"\n 3 Outside Down. \n  reversal pattern.\n reliability: High.","")+
+//WriteIf(triStarBearish,"Tri-Star Bearish. A reversal pattern.\nNison: Very significant reversal pattern.\n reliability: moderate.","")+
+//WriteIf(twoCrows,"2 Crows A reversal pattern.\n reliability: moderate.","")+
+WriteIf(upsideGapTwoCrows,"\n Upside Gap 2 Crows. \n  reversal pattern.\n Needs confirmation of a continued reversal on third Day.\n reliability: High.","")+
+WriteIf(dojiStarBearish,"\n Doji Star Bearish. \n  reversal pattern.\n needs confirmation.\n reliability: moderate.","")+
+//WriteIf(downsideGapThreeMethods,"Downside Gap 3 Methods. A continuation pattern.\nNison: \n reliability: moderate.","")+
+//WriteIf(downsideTasukiGap,"Downside Tasuki Gap. A continuation method.\NNison: if last Day closes window, continuation pattern is negated.\n reliability: moderate.","")+
+WriteIf(fallingThreeMethods,"\n Falling 3 Methods. \n  continuation pattern.\n reliability: High.","")+
+//WriteIf(inNeckBearish,"In Neck Bearish. A continuatin pattern.\nNison: Similar to piercing pattern but bearish because there is no penetration of Second Day.\n reliability: moderate.","")+
+//WriteIf(OnNeckBearish,"On Neck Bearish. A continuation pattern. Similar to piercing pattern but bearish beccause there is no penetration of the Second Day.\n reliability: moderate.","")+
+//WriteIf(separatingLinesBearish,"Separating Lines Bearish","")+
+//WriteIf(sideBySideWhiteLinesBearish,"Side by Side White Lines Bearish. A continuation pattern.\nNison: very rare.\n reliability: moderate.","")+
+WriteIf(threeBlackCrows,"\n 3 Black Crows. \n  reversal pattern.\n Need to appear after a mature advance.\n reliability: High.","")
+//WriteIf(threeLineStrike,"3 Line Strike. A continuation pattern.\n reliability: Low.","")+
+//WriteIf(thrustingBearish,"Thrusting. A continuation pattern.\nNison: Not a reversal Day because Second Day does NOT pierce midpoint of first Day.\n reliability: Low.","")+
+//WriteIf(tweezerTop,"Tweezer Top. A reversal pattern.\nNison: Needs confirmation.","");
+
+;
+/***********************************************
+               End Commentary
+_SECTION_END();

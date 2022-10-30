@@ -1,0 +1,79 @@
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, 
+Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") 
+| GetPriceStyle() ); 
+_SECTION_END();
+
+SetChartBkGradientFill( ParamColor("BgTop", colorWhite),ParamColor("BgBottom", 
+colorLightGrey)); 
+/*
+GfxSelectFont("Times New Roman", 16, 700, True ); 
+GfxSetTextColor( ColorRGB( 128, 128, 255 ) ); 
+GfxTextOut("www.LiveTradeSystem.com", 10 , 50 );
+*/
+
+TimeFrameSet(inDaily);
+DayHigh = LastValue(H);
+DayLow = LastValue(L);
+TimeFrameRestore();
+
+if(Name() == "COPPER-1" OR Name() == "^NSEI")
+{
+
+Title = Name() + " " + Date() + ", Op=" + Open + ", Hi=" + High + ", Lo=" + Low 
++ ", Close=" + Close + ", Change= " + SelectedValue( ROC( C, 1 ) ) + "%" + "\n 
+Today`s High=" + DayHigh + ", Today`s Low=" + DayLow + ", © PRIME SYSTEM" ;
+
+a = Param("Chandelier",15,1,100,1);
+//Plot(ChandelierCl(ATR(a),3),"ChandelierCl",colorBl ue,styleLine|styleNoLabel);
+//Plot(ChandelierHL(ATR(a),3),"ChandelierHL",colorRed,styleLine);//|styleNoLabel);
+
+//Buy = Close > Ref( ChandelierHL(ATR(a),3), -1);
+//Sell = Close < Ref( ChandelierHL(ATR(a),3), -1);
+//Buy = ExRem(Buy,Sell);
+//Sell = ExRem(Sell,Buy);
+
+PlotShapes(shapeUpTriangle*Buy,colorGreen,Layer = 0,L,-12);
+PlotShapes(shapeDownTriangle*Sell,colorRed,Layer = 0,H,-12);
+
+BarColors = 
+IIf(BarsSince(Buy) < BarsSince(Sell) 
+AND BarsSince(Buy)!=0, colorGreen,
+IIf(BarsSince(Sell) < BarsSince(Buy)
+AND BarsSince(Sell)!=0, colorRed, colorBlue));
+
+//Plot the Candlestick charts
+Plot(C, "Close", BarColors, styleNoTitle | ParamStyle("Style") | GetPriceStyle() 
+) ;
+
+/*
+Buy1 = Close > Ref( ChandeliercL(ATR(a),3), -1);
+Sell1 = Close < Ref( ChandeliercL(ATR(a),3), -1);
+Buy1 = ExRem(Buy1,Sell1);
+Sell1 = ExRem(Sell1,Buy1);
+
+PlotShapes(shapeUpArrow*Buy1,colorGreen,Layer = 0,L,-12);
+PlotShapes(shapeDownArrow*Sell1,colorRed,Layer = 0,H,-12);
+*/
+
+dist = 0.8*ATR(10);
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "\n@" + L[ i ], i, L[ i ]-dist[i], colorGreen, 
+colorYellow ); 
+if( Sell[i] ) PlotText( "@" + H[ i ], i, H[ i ]+dist[i], colorRed, colorYellow 
+); 
+}
+}
+_SECTION_BEGIN("Volume");
+Plot( Volume, _DEFAULT_NAME(), ParamColor("Color", colorLavender ), styleNoTitle 
+| ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick | 
+styleNoLabel, maskHistogram ), 2 );
+_SECTION_END();
+
+
+
+

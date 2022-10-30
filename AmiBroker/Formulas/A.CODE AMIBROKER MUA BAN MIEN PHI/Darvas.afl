@@ -1,0 +1,100 @@
+// Downloaded From https://www.WiseStockTrader.com
+/*
+  MS Darvas Box with Exploration
+  ==============================
+
+  
+  Translate from http://trader.online.pl/MSZ/e-w-Darvis_Box.html
+  
+  - Improve scripting
+      * Allow Darvas Box Color/Style Changing
+  - Exploration
+      * Scan Price From .. To
+*/
+SetChartOptions( 0, chartShowArrows|chartShowDates ); 
+
+_SECTION_BEGIN("Price Chart");
+
+_N(Title = StrFormat("{{NAME}}- {{INTERVAL}} {{DATE}} O= %g, H= %g, L= %g, C= %g (%.2f%%) V= " +WriteVal( V, 1.0 ) +"\n{{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+PriceStyle = GetPriceStyle();
+PriceStyleOpt = ParamStyle("Price Style")|PriceStyle;
+
+if (PriceStyle==styleCandle)
+   Plot( C, "", colorBlack,  PriceStyleOpt); 
+else
+   Plot( C, "", IIf( Close >= Ref(C, -1), colorBlue, colorRed ), PriceStyleOpt);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Darvas Box");
+
+Periods= Param("Darvas Periods",5,5,260); 
+
+boxHigh = Ref(H,-3)>=Ref(HHV(H,Periods),-4) AND 
+                  Ref(H,-3)>Ref(H,-2) AND Ref(H,-3)>Ref(H,-1) AND Ref(H,-3)>H;
+
+Topbox=ValueWhen(boxHigh, Ref(H,-3)); 
+Botbox=ValueWhen(boxHigh,LLV(L,4)); 
+ 
+
+/*=========================
+  - Allow color change
+  - Style change 
+ ==========================*/
+Plot(TopBox, "Top", ParamColor("Box Top Color",  colorRed),    ParamStyle("Box Top Style"));
+Plot(Botbox, "Bot", ParamColor("Box Bottom Color",colorBlue),  ParamStyle("Box Bottom Style"));
+
+_SECTION_END();
+
+_SECTION_BEGIN("Exploration");
+
+//== Price Increment Value - depend on different country
+Inc = 0.1;  
+
+
+//== Set the Price Range for stock to scan
+PriceFrom = Param("Price From:", 5,   0.1, 200, Inc); 
+PriceTo   = Param("Price To:",   100, 0.1, 200, Inc); 
+
+/*
+   MAV - Moving Average of Volume
+    Buy  - Default 20 days  
+    Sell - default 10 days
+
+  Filter:
+   Buy:  Today Buy Volume must be > N time of Buy MAV. 
+         (Buy Up required Huge push force)
+         The previous Day High must be below the Darvas Top and Today must close above Darvas Top 
+
+   Sell: Today Sell Volume must be > N time of Sell MAV
+         (Sell Down required small pull force)
+         The previous Day Low must be above the Darvas bottom and Today must close below Darvas Low 
+
+*/
+Buy_MAPds  = Param("Buy: MAV. Periods",  20, 1, 260); 
+Buy_VxMAV  = Param("Buy: V > NxMAV",  2, 0, 20, 0.1); 
+Sell_MAPds = Param("Sell: MAV. Periods",  10, 1, 260); 
+Sell_VxMAV = Param("Sell: V > NxMAV",  1, 0, 20, 0.1); 
+
+BuyMAV = MA(V, Buy_MAPds);
+SellMAV = MA(V, Sell_MAPds);
+
+/* Rule to Filter
+   - 
+   - The previous Day High must be inside the Darvas Top and Today must close above Darvas Top 
+
+*/
+Buy = Ref(H, -1) <=TopBox AND C>TopBox  AND (V>Buy_VxMAV*BuyMAV); 
+Sell = Ref(L, -1) >=Botbox AND C<Botbox AND (V>Sell_VxMAV*SellMAV); 
+
+
+Filter  = (Buy OR Sell) AND (C>=PriceFrom AND C<=PriceTo);
+
+AddTextColumn(FullName(), "Security", 1.0, colorDefault, colorDefault, 200); 
+AddTextColumn(WriteIf(Buy, "Buy", WriteIf(Sell, "Sell", "-")), "Trade", 1.0, 
+                      colorYellow,
+                      IIf(Buy, colorGreen, IIf(Sell, colorRed, colorDefault)),  50);
+AddColumn(C, "Price", 0.3, colorDefault, colorDefault, 60); 
+AddColumn(V, "Volume", 1.0, colorDefault, colorDefault,80); 
+
+_SECTION_END();

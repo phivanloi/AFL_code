@@ -1,0 +1,13 @@
+sc = E_TSKPSCORECARD(High,Low,Close,Volume);
+// tskp_scorecard1, tskp_scorecard2, tskp_scorecard3, tskp_scorecard4
+kp906 = tskp_scorecard1;
+kp907 = tskp_scorecard2;
+
+
+
+Plot( IIf(kp906<0,kp906,0), "906Dn", ParamColor( "906DnColor", colorRed ), ParamStyle("906DnStyle",styleHistogram+styleNoLabel) );
+Plot( IIf(kp906>0,kp906,0), "906Up", ParamColor( "906UpColor", colorBlue ), ParamStyle("906UpStyle",styleHistogram+styleNoLabel) );
+
+Plot( kp907, "907", ParamColor( "907Color", colorWhite ), ParamStyle("907Style",styleHistogram+styleNoLabel) );
+
+Plot( kp906, "906", ParamColor( "906Color", colorLightGrey ), ParamStyle("906Style",styleLine+styleNoLabel) );

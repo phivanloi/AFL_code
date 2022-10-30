@@ -1,0 +1,26 @@
+//================================
+_SECTION_BEGIN("Mean Band");
+function SteBand( array, periods,number, upper ) 
+{ 
+Lr = LinearReg( array, periods ); 
+se = StdErr( array, periods ); 
+return LR + IIf( upper, 1, -1 ) * number * se; 
+} 
+Periods = Param("Standard Error", 80, 1, 200, 1); 
+Smooth = Param("Mean Smoothness",14,2,100,1);
+number = Param("StdErrNo", 1, 0.2, 3.0,0.2);
+
+parmCloudColor = ParamColor("Cloud Color", ColorRGB( 40,40,40) );
+
+UStdErrBand = SteBand( C, Periods, number, True ); 
+LStdErrBand = SteBand( C, Periods, number, False ); 
+MStdErrBand = (UStdErrBand + LStdErrBand )/2; 
+
+Plot( MA(UStdErrBand,smooth), "UpperBand ", colorDarkRed,styleLine );
+Plot( MA(LStdErrBand,smooth), "LowerBand ", colorDarkRed,styleLine ); 
+Plot( MA(MStdErrBand,smooth) , "MidBand", colorPlum , styleDashed ); 
+
+Plot( Close, "Close", colorBlack, styleCandle );
+PlotOHLC( MA(UStdErrBand,smooth), MA(UStdErrBand,smooth), MA(LStdErrBand,smooth) , MA(LStdErrBand,smooth) , "", parmCloudColor, styleCloud | styleNoLabel); 
+
+_SECTION_END();

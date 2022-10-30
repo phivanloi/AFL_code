@@ -1,0 +1,65 @@
+_SECTION_BEGIN("ADX SYSTEM");
+GraphZOrder = 1;
+GraphXSpace = 5;
+
+p_range = Param("ADX period", 8, 3, 50, 1);
+p_range_dm = Param("DM period", 13, 3, 50, 1);
+p_trend_extreme = Param("trend extreme level", 50, 10, 70, 0.1);
+p_trend_strong = Param("trend strong level", 25, 10, 70, 0.1);
+
+ad = ADX(p_range);
+pd = PDI(p_range_dm);
+md = MDI(p_range_dm);
+strong_area = ad>p_trend_strong;
+
+Plot(IIf(strong_area, 1, Null), "", ParamColor("trend strong color", colorLightBlue), styleArea|styleNoLabel|styleOwnScale,0,1);
+Plot(ad, "ADX(" + p_range + ")", ParamColor("ADX color", colorBlack), ParamStyle("ADX style", styleThick) );
+Plot(pd, "+DI(" + p_range_dm + ")", ParamColor("+DI color", colorBrightGreen), ParamStyle("+DI style", styleThick) );
+Plot(md, "-DI(" + p_range_dm + ")", ParamColor("-DI color", colorRed), ParamStyle("-DI style", styleThick) );
+
+
+barvisible=Status("barvisible");
+r_max = LastValue(Highest(IIf(barvisible,Max(ad, Max(pd, md)),-10000000)) );
+leftbarplot = Status("firstvisiblebar")+1;
+if (r_max >= 0.9*p_trend_extreme) {
+Plot(p_trend_extreme, "", colorBlack, styleDashed|styleNoLabel);
+PlotText( NumToStr(p_trend_extreme,1.1), Leftbarplot, p_trend_extreme, colorWhite, colorBlack);
+}
+
+if (r_max >= 0.9*p_trend_strong) {
+Plot(p_trend_strong, "", colorBlack, styleDashed|styleNoLabel);
+PlotText( NumToStr(p_trend_strong,1.1), Leftbarplot, p_trend_strong, colorWhite, colorBlack);
+}
+
+_N(Title = StrFormat("{{VALUES}}" ));
+
+// Other functions that you may want to use
+// DMI/ADX Commentary
+// Copyright (C)2002 amibroker.com
+
+nep = IIf( ad > md,
+ValueWhen( Cross( ad, md ), Low ),
+ValueWhen( Cross( md, ad ), High ) );
+
+ngood = IIf( ad > md,
+High > nep,
+Low < nep );
+
+nbs = IIf( ad > md,
+BarsSince( Cross( ad, md ) ),
+BarsSince( Cross( md, ad ) ) );
+
+
+ep = IIf( pd > md,
+ValueWhen( Cross( pd, md ), Low ),
+ValueWhen( Cross( md, pd ), High ) );
+
+good = IIf( pd > md,
+High > ep,
+Low < ep );
+
+bs = IIf( pd > md,
+BarsSince( Cross( pd, md ) ),
+BarsSince( Cross( md, pd ) ) );
+_SECTION_END();
+

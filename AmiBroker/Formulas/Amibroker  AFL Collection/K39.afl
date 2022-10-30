@@ -1,0 +1,3 @@
+K39=StochK(39,1);
+Plot(K39,"K39",colorBlue,styleLine);
+PlotGrid(50,colorRed);

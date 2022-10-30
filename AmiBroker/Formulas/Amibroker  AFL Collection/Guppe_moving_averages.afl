@@ -1,0 +1,16 @@
+_SECTION_BEGIN("Guppe moving averages");
+MaxGraph = 14;
+/* blue lines */
+Graph1= MA( Close, 3 );
+Graph4= MA( Close, 5 );
+Graph7= MA( Close, 8 );
+Graph10 = MA( Close, 12 );
+Graph13 = MA( Close, 15 );
+
+/* red lines */
+Graph0= MA( Close, 30 );
+Graph3= MA( Close, 35 );
+Graph6= MA( Close, 40 );
+Graph9 = MA( Close, 45 );
+Graph12 = MA( Close, 50 );
+_SECTION_END();

@@ -1,0 +1,24 @@
+/* Williams %R and 9 day Mov.avg.*/
+/* by Anthony Faragasso */
+MaxGraph =10;
+
+R = ((HHV(H,14) - C) /(HHV (H,14) -LLV (L,14))) *-100;
+Graph0 = R;
+Graph1 =-30;
+Graph2 =-70;
+Graph3 =-90;
+Graph4 =-10;
+Graph5=MA(R , 9);
+Graph5Style = 1+4;
+Graph5Color =1;
+Graph0Style=1+4;
+Graph1Style =Graph2Style= 1;
+Graph3Style  =Graph4Style =2;
+Graph3Color = Graph4Color =5;
+Graph2Color = Graph1Color =12;
+
+/*x = BarsSince( Cross( r, MA( r, 9)));*/
+/*y = BarsSince( Cross( MA(r, 9), r));*/
+/*Graph8 = ( x == 0 OR y == 0 ) * 30;*/
+
+Title =Name() + " -Williams %R: " +" % R Line " +"("+ WriteVal ( Graph0,format=1.2)+")"+ "  Signal Line " + ""+"("+WriteVal(Graph5,format=1.2)+")" +" , "   + Date(  );

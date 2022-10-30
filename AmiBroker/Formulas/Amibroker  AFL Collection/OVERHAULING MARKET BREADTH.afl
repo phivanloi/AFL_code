@@ -1,0 +1,19 @@
+_SECTION_BEGIN("OVERHAULING MARKET BREADTH");
+function BrinTransform( x )
+{
+  return ( 1 - x )/Max( 1, x );
+}
+// data-source dependent symbols
+dnvol= Foreign(" ", "C");
+upvol= Foreign(" ", "C");
+advn = Foreign(" ", "C" );
+decl = Foreign(" ", "C");
+Trinx = (dnvol/ upvol ) * ( advn / decl );
+BRINx = BrinTransform( Trinx );
+ILine = BrinTransform( (advn/decl)^2 );
+VLine = BrinTransform( (dnvol/upvol)^2 );
+//Plot( Trinx, "Trinx", colorRed );
+Plot( BRINX, "BRIN", colorBlack );
+Plot( ILine , "ILine", colorBlue );
+Plot( VLine , "VLine", colorViolet );
+_SECTION_END();

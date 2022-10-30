@@ -1,0 +1,156 @@
+_SECTION_BEGIN("Top-Bodem-123's");
+SetChartBkGradientFill( ParamColor("Inner panel upper",colorBlack),ParamColor("Inner panel lower",colorBlack));
+
+xx=BarIndex();x=xx;Lx=LastValue(x);
+nbar=3; 
+CleanPivots=0;
+fc=2;
+
+pk=H>Ref(HHV(H,nbar*fc),-1) AND Ref(HHV(H,nbar),nbar)<=H;
+tr=L<Ref(LLV(L,nbar*fc),-1) AND Ref(LLV(L,nbar),nbar)>=L;
+
+px0=ValueWhen(pk,x,0); tx0=ValueWhen(tr,x,0);
+px1=ValueWhen(pk,x,1); tx1=ValueWhen(tr,x,1);
+px2=ValueWhen(pk,x,2); tx2=ValueWhen(tr,x,2);
+px3=ValueWhen(pk,x,3); tx3=ValueWhen(tr,x,3);
+ph0=ValueWhen(pk,H,0); tl0=ValueWhen(tr,L,0);
+ph1=ValueWhen(pk,H,1); tl1=ValueWhen(tr,L,1);
+ph2=ValueWhen(pk,H,2); tl2=ValueWhen(tr,L,2);
+ph3=ValueWhen(pk,H,3); tl3=ValueWhen(tr,L,3);
+
+if (CleanPivots)
+{
+tr=IIf(pk AND tr AND ph1>ph2 AND tl1>tl2,False,tr);
+pk=IIf(pk AND tr AND ph1<ph2 AND tl1<tl2,False,pk);
+
+px0=ValueWhen(pk,x,0); tx0=ValueWhen(tr,x,0);
+px1=ValueWhen(pk,x,1); tx1=ValueWhen(tr,x,1);
+px2=ValueWhen(pk,x,2); tx2=ValueWhen(tr,x,2);
+ph0=ValueWhen(pk,H,0); tl0=ValueWhen(tr,L,0);
+ph1=ValueWhen(pk,H,1); tl1=ValueWhen(tr,L,1);
+ph2=ValueWhen(pk,H,2); tl2=ValueWhen(tr,L,2);
+
+pk=IIf(pk AND px1>tx1 AND ph1<tl1,False,pk);
+tr=IIf(tr AND tx1>px1 AND tl1>ph1,False,tr);
+pk=IIf(pk AND px0<tx0 AND ph0>ph1,False,pk);
+tr=IIf(tr AND px0>tx0 AND tl0<tl1,False,tr);
+pk=IIf(pk AND px2>tx1 AND ph1<=ph2,False,pk);
+tr=IIf(tr AND tx2>px1 AND tl1>=tl2,False,tr);
+pk=IIf(pk AND px0>px1 AND px1>tx1 AND px1>tx0 AND ph0>ph1,False,pk);
+tr=IIf(tr AND tx0>tx1 AND tx1>px1 AND tx1>px0 AND tl0<tl1,False,tr);
+
+px0=ValueWhen(pk,x,0); tx0=ValueWhen(tr,x,0);
+px1=ValueWhen(pk,x,1); tx1=ValueWhen(tr,x,1);
+px2=ValueWhen(pk,x,2); tx2=ValueWhen(tr,x,2);
+ph0=ValueWhen(pk,H,0); tl0=ValueWhen(tr,L,0);
+ph1=ValueWhen(pk,H,1); tl1=ValueWhen(tr,L,1);
+ph2=ValueWhen(pk,H,2); tl2=ValueWhen(tr,L,2);
+
+pk=IIf(pk AND px1>tx1 AND ph1<tl1,False,pk);
+tr=IIf(tr AND tx1>px1 AND tl1>ph1,False,tr);
+pk=IIf(pk AND px0<tx0 AND ph0>ph1,False,pk);
+tr=IIf(tr AND px0>tx0 AND tl0<tl1,False,tr);
+pk=IIf(pk AND px2>tx1 AND ph1<=ph2,False,pk);
+tr=IIf(tr AND tx2>px1 AND tl1>=tl2,False,tr);
+pk=IIf(pk AND px0>px1 AND px1>tx1 AND px1>tx0 AND ph0>ph1,False,pk);
+tr=IIf(tr AND tx0>tx1 AND tx1>px1 AND tx1>px0 AND tl0<tl1,False,tr);
+
+px0=ValueWhen(pk,x,0); tx0=ValueWhen(tr,x,0);
+px1=ValueWhen(pk,x,1); tx1=ValueWhen(tr,x,1);
+px2=ValueWhen(pk,x,2); tx2=ValueWhen(tr,x,2);
+ph0=ValueWhen(pk,H,0); tl0=ValueWhen(tr,L,0);
+ph1=ValueWhen(pk,H,1); tl1=ValueWhen(tr,L,1);
+ph2=ValueWhen(pk,H,2); tl2=ValueWhen(tr,L,2);
+
+pk=IIf(pk AND px1>tx1 AND px2>tx1 AND ph1<ph2,False,pk);
+tr=IIf(tr AND tx1>px1 AND tx2>px1 AND tl1>tl2,False,tr);	
+}
+disp1=ParamToggle("Display 1-2-3 Labels","Show|Hide",1);
+disp2=ParamToggle("Display Cycle Lines","Show|Hide",1);
+
+dxhm=14;
+dxlm=10;
+dxh=2;//
+dxl=2;//
+dyhm=5;//
+dylm=3;//
+dyh=5;//
+dyl=15;//
+hm=30;
+lm=30;
+
+function GetVisibleBarCount() 
+{
+lvb=Status("lastvisiblebar");
+fvb=Status("firstvisiblebar");
+return Min(lvb-fvb,BarCount-fvb);
+} 
+function GfxConvertPixelsToBarX(Pixels)
+{
+lvb=Status("lastvisiblebar");
+fvb=Status("firstvisiblebar");
+pxchartleft=Status("pxchartleft");
+pxchartwidth=Status("pxchartwidth");
+fac=pxchartwidth/Pixels;
+bar=(lvb-fvb)/fac;
+return bar;
+} 
+function GfxConvertPixelToValueY(Pixels) 
+{
+local Miny,Maxy,pxchartbottom,pxchartheight;
+Miny=Status("axisminy");
+Maxy=Status("axismaxy");
+pxchartbottom=Status("pxchartbottom");
+pxchartheight=Status("pxchartheight");
+fac=pxchartheight/Pixels;
+Value=(Maxy-Miny)/fac;
+return Value;
+} 
+if(disp1)
+{
+ll=tr AND tl1<tl2;
+hl=tr AND tl1>tl2;
+hh=pk AND ph1>ph2;
+lh=pk AND ph1<ph2;
+dt=pk AND ph1==ph2;
+db=tr AND tl1==tl2;
+
+miny=Status("axisminy");
+maxy=Status("axismaxy");
+AllVisibleBars=GetVisibleBarCount();
+fvb=Status("firstvisiblebar");
+LowMargin=Miny+GfxConvertPixelToValueY(lm);
+HighMargin=Maxy-GfxConvertPixelToValueY(hm);
+dyllm=GfxConvertPixelToValueY(dylm);
+dyhhm=GfxConvertPixelToValueY(dyhm);
+dyll=GfxConvertPixelToValueY(dyl);
+dyhh=GfxConvertPixelToValueY(dyh);
+dxllm=GfxConvertPixelsToBarX(dxlm);
+dxhhm=GfxConvertPixelsToBarX(dxhm);
+dxll=GfxConvertPixelsToBarX(dxl);
+dxhh=GfxConvertPixelsToBarX(dxh);
+
+for(i=0;i<AllVisibleBars;i++) 
+{
+	if(ll[i+fvb] AND L[i+fvb]>LowMargin) PlotText("2",i+fvb+dxll,L[i+fvb]-dyll,colorWhite);
+	if(ll[i+fvb] AND L[i+fvb]<=LowMargin) PlotText("2",i+fvb+dxll+dxllm,L[i+fvb]-dyllm,colorWhite);
+	if(hl[i+fvb] AND L[i+fvb]>LowMargin) PlotText("2",i+fvb+dxll,L[i+fvb]-dyll,colorWhite);
+	if(hl[i+fvb] AND L[i+fvb]<=LowMargin) PlotText("2",i+fvb+dxll+dxllm,L[i+fvb]-dyllm,colorWhite);
+	if(db[i+fvb] AND L[i+fvb]>LowMargin) PlotText("2",i+fvb+dxll,L[i+fvb]-dyll,colorWhite);
+	if(db[i+fvb] AND L[i+fvb]<=LowMargin) PlotText("2",i+fvb+dxll+dxllm,L[i+fvb]-dyllm,colorWhite);	
+	if(hh[i+fvb] AND H[i+fvb]<HighMargin) PlotText("3",i+fvb+dxhh,H[i+fvb]+dyhh,colorWhite);
+	if(hh[i+fvb] AND H[i+fvb]>=HighMargin) PlotText("3",i+fvb+dxhh+dxhhm,H[i+fvb]+dyhhm,colorWhite);	
+	if(lh[i+fvb] AND H[i+fvb]<HighMargin) PlotText("3",i+fvb+dxhh,H[i+fvb]+dyhh,colorWhite);
+	if(lh[i+fvb] AND H[i+fvb]>=HighMargin) PlotText("3",i+fvb+dxhh+dxhhm,H[i+fvb]+dyhhm,colorWhite);		
+	if(dt[i+fvb] AND H[i+fvb]<HighMargin) PlotText("3",i+fvb+dxhh,H[i+fvb]+dyhh,colorWhite);
+	if(dt[i+fvb] AND H[i+fvb]>=HighMargin) PlotText("3",i+fvb+dxhh+dxhhm,H[i+fvb]+dyhhm,colorWhite);		
+}
+}
+Plot(C,"",colorGreen,styleCandle);
+if(disp2)
+{
+Plot(tr,"",ParamColor("Cycle Line Color", colorPaleBlue),styleHistogram|styleDashed|styleOwnScale|styleNoLabel,0,1,0,0);
+}
+Top=pk;
+Bottom=tr;
+_SECTION_END();

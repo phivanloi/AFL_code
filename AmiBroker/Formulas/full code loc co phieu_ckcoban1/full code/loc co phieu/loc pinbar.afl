@@ -1,0 +1,20 @@
+_SECTION_BEGIN("Open == High AND Open == Low Exploration");
+
+DOpen = TimeFrameGetPrice( "O", inDaily, 0 ); // gives you Todays Open price. 
+DHigh = TimeFrameGetPrice( "H", inDaily, 0 ); // gives you Todays High price.
+DLow = TimeFrameGetPrice( "L", inDaily, 0 ); // gives you Todays High price.
+DClose = TimeFrameGetPrice( "C", inDaily, 0 ); // gives you Todays High price.
+
+NoseBody = DClose - DOpen;
+NoseLength = DHigh - Dlow;
+DK1 = NoseBody / NoseLength <= 0.3;
+DK2 = 1-(Min(DOpen,DClose)-Dlow)/NoseLength < 0.4;
+DK3=Ref(C,-1) < Ref(O,-1);
+DK4=V>100000;
+DK5=C>5;
+
+DK6=V>0.8*MA(V,10);
+Buy =  DK1 AND DK2  AND DK4 AND DK5 AND DK6; //newday AND
+
+Filter = Buy;
+_SECTION_END();

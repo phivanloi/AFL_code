@@ -1,0 +1,46 @@
+upsw = 0; 
+Hh = Lh = H[ 0 ]; 
+Hl = Ll = L[ 0 ]; 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+  Ch = H[ i ]; 
+  Cl = L[ i ]; 
+
+  if( upsw == 1 ) 
+  { 
+    Hh = Max( Ch, Hh ); 
+    hL = Max( Cl, Hl ); 
+     
+    if( Ch < Hl ) 
+    { 
+      upsw = 0; 
+      Ll = Cl; 
+      Lh = Ch; 
+    } 
+  } 
+   
+  if( upsw == 0 ) 
+  { 
+    Ll = Min( Cl, Ll ); 
+    Lh = Min( Ch, Lh ); 
+
+    if( Cl > Lh ) 
+    { 
+      upsw = 1; 
+      Hh = Ch; 
+      Hl = Cl; 
+    } 
+  } 
+
+  Hla[ i ] = Hl; 
+  Lha[ i ] = Lh; 
+  upswa[ i ] = upsw; 
+} 
+   
+Plot( IIf( upswa == 1, Hla, Null ), "SwLine", ColorRGB( 64, 128, 128), styleThick ); 
+Plot( IIf( upswa == 0, Lha, Null ), "SwLine", ColorRGB( 128, 64, 128), styleThick  ); 
+
+Plot( C, "Price", IIf( upswa == 1, 
+      ColorBlend( colorGreen, colorWhite ), 
+      ColorBlend( colorRed, colorWhite )), styleBar); 

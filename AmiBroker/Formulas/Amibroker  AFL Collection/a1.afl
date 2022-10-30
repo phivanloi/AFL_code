@@ -1,0 +1,7 @@
+Buy = 	EMA(  Close , 15 ) > 10;
+
+Sell = 	DEMA(  Close , 15 ) > 10;
+
+Short = 0;
+
+Cover = 0;

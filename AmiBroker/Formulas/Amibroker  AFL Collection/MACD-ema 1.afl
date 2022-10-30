@@ -1,0 +1,35 @@
+_SECTION_BEGIN("MACD HIst"); 
+
+SetChartBkColor( colorBlack ) ;
+f = Param("fast ema",12,1,50,1);
+s = Param("Slow ema",26,2,100,1); 
+t = Param ("signal",9,1,50,1);
+A1=EMA(C,f)-EMA(C,s); 
+a2 = EMA(a1,t);
+Hist = a1-a2;
+em = EMA(Hist,9);
+col_hist= IIf(Hist > BBandTop( Hist, 5, 0.5 ),colorDarkGreen,IIf(Hist < BBandBot( Hist, 5, 0.5 ),colorDarkRed,colorYellow));
+Plot (Hist,"Histogram",IIf(Hist > Ref(Hist,-1),colorBrightGreen,colorRed), styleLine+styleThick);
+Plot (Hist,"",col_hist, styleHistogram+styleNoLabel);
+Plot(6,"",colorDarkGreen,styleNoLabel);
+
+Plot(5,"",colorDarkGreen,styleNoLabel);
+Plot(4,"",colorDarkGreen,styleNoLabel);
+Plot(3,"",colorDarkGreen,styleNoLabel);
+Plot(2,"",colorDarkGreen,styleNoLabel);
+Plot(1,"",colorDarkGreen,styleNoLabel);
+Plot(0,"",colorWhite,styleNoLabel);
+Plot(-1,"",colorDarkRed,styleNoLabel);
+
+Plot(-2,"",colorDarkRed,styleNoLabel);
+Plot(-3,"",colorDarkRed,styleNoLabel);
+Plot(-4,"",colorDarkRed,styleNoLabel);
+Plot(-5,"",colorDarkRed,styleNoLabel);
+Plot(-6,"",colorDarkRed,styleNoLabel);
+
+diff = round((Hist - Ref(Hist,-1))*10)/10;
+
+Title = "Hist : "+ Hist+
+" \n Diff : "+diff;
+
+_SECTION_END();

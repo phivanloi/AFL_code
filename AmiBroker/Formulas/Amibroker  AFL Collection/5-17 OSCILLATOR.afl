@@ -1,0 +1,19 @@
+_SECTION_BEGIN("5-17 OSCILLATOR");
+A1 = MA(C,5);
+B1 = MA(C,17);
+D1 = A1-B1;
+
+Colorm=IIf(D1>Ref(D1,-1),colorBrightGreen,colorDarkGreen);
+Plot( D1, "517", Colorm, styleHistogram|styleNoLabel );
+
+
+
+PlotOHLC( 0, D1, 0 , 0 , "517",Colorm, styleCloud | styleNoLabel);
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+
+
+_SECTION_END();

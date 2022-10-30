@@ -1,0 +1,37 @@
+_SECTION_BEGIN("GUPPY COUNT BACK LNKN BULLISH");
+
+MASK= ParamStyle("MASK",styleCandle, maskPrice);
+barcolor = IIf(C > Ref(C,-1), ParamColor("Up Color",colorBrightGreen), IIf(C ==Ref(C,-1),colorOrange, ParamColor("Dn Color",colorOrange))); 
+Plot( C, "Close", barcolor,MASK);
+
+H1=0; 
+L1=0;
+H2=0;
+L2=0; 
+H3=0;
+L3=0;
+
+
+for( i = BarCount-20; i < BarCount; i++ ) 
+{ 
+if(L[i]<L[i-1])
+{ L1=L[i];H1=H[i] ;L1bar=i;
+for( j = L1bar-20; j < L1bar; j++ ) 
+{
+if(L[j]>L1 AND H[j]>H1)
+{ L2=L[j];H2=H[j] ;L2bar=j;
+for( k = L2bar-20; k < L1bar; k++ ) 
+{
+if(L[k]>L2 AND H[k]<H2){L3=L[k];H3=H[k] ;L3bar=k;
+}
+}
+} 
+}
+}
+}
+
+Plot( H3, "", colorBrightGreen,styleDashed);
+Plot(L1, "", colorBrightGreen,styleDashed);
+Plot( (H3+(H3-L1)), "", colorBrightGreen,styleDots);
+
+_SECTION_END();

@@ -1,0 +1,66 @@
+// Downloaded From https://www.WiseStockTrader.com
+_SECTION_BEGIN("Buy Sell Volume");
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+SetChartBkGradientFill(ParamColor("Upper Chart",23),ParamColor("Lower Chart",23));
+//GraphXSpace=Param("GraphXSpace",10,0,100,1);
+
+SetBarsRequired(sbrAll,sbrAll);
+ 
+// BUYING VOLUME AND SELLING VOLUME //
+BV = IIf( (H==L), 0, V*(C-L)/(H-L) ); // Ti so rau nen duoi / spread
+SV = IIf( (H==L), 0, V*(H-C)/(H-L) ); // Ti so rau nen tren / spread
+DV = BV - SV; // Effort Volume
+
+SelectedPlot = ParamList( "Select", "Volume,Effort", 0 );
+switch ( SelectedPlot )
+{
+case "Volume":
+SetBarFillColor( colorGreen ); 
+PlotOHLC(0,BV,0,BV,"Buy Volume",colorLime, styleCandle |styleThick) ;
+Plot(MA(BV,20),"",colorYellow,1|styleDashed);
+
+SetBarFillColor( colorOrange ); 
+PlotOHLC(0,-SV,0,-SV,"Sell Volume",colorRed, styleCandle|styleThick ) ;
+Plot(MA(-SV,20),"",colorYellow,1|styleDashed);
+
+Plot(V, "Volume", colorWhite, styleLine);
+break;
+
+case "Effort":
+Color = IIf(DV>0, colorGreen, colorRed );
+SetBarFillColor( Color ); 
+PlotOHLC(0,DV,0,DV,"Volume Difference",colorWhite, styleCandle |styleThick) ;  // 3rd histogram color not visible due to Amibroker limitation
+break;
+}
+PlusDM= IIf(High>Ref(High,-1) AND Low>=Ref(Low,-1), High-Ref(High,-1),IIf(High>Ref(High,-1) AND Low<Ref(Low,-1) AND High-Ref(High,-1)>Ref(Low,-1)-Low,High-Ref(High,-1),0));
+ 
+Vm=log(EMA(V,3));
+  
+Buy= (C-L)*Vm+ (H-O)*Vm + IIf(C>O,(C-O)*Vm,0) + PlusDM*Vm + IIf(Ref(C,-1)<O,(O-Ref(C,-1))*Vm,0);
+ 
+MinDM = IIf(Low<Ref(Low,-1)   AND  High<=Ref(High,-1), Ref(Low,-1)-Low, IIf(High>Ref(High,-1) AND Low<Ref(Low,-1) AND High-Ref(High,-1)<Ref(Low,-1)-Low, Ref(Low,-1)-Low, 0));
+ 
+Sell= (H-C)*Vm + (O-L)*Vm + IIf(C<O,(O-C)*Vm,0) + MinDM*Vm + IIf(Ref(C,-1)>O,(Ref(C,-1)-O)*Vm,0);
+ 
+Wm=Wilders(Wilders(Buy,3)-Wilders(Sell,3),3);
+ 
+Buy=Cross(Wm,0);
+Sell=Cross(0,Wm);
+ 
+PlotShapes( IIf( Sell, shapeHollowSmallCircle, shapeNone ), colorYellow, layer = 0, yposition = 0, offset = 0);
+PlotShapes( IIf( Buy, shapeHollowSmallCircle, shapeNone ), colorWhite, layer = 0, yposition = 0, offset = 0);
+
+PlotShapes(shapeUpArrow * Buy, colorCustom12, 0, Low);
+PlotShapes(shapeDownArrow * Sell, colorCustom11, 0, High);
+
+//AlertIf( Buy, "SOUND C:\\Program Files (x86)\\AmiBroker\\Sound\\long.wav", "Audio Alert", 1);
+//AlertIf( Sell, "SOUND C:\\Program Files (x86)\\AmiBroker\\Sound\\short.wav", "Audio Alert", 2 );
+
+Filter=Buy OR Sell;  //  You can sort the results of the exploration by any column by simply clicking on its header
+AddColumn(C,"CURRENT PRICE");
+AddColumn(V,"CURRENT VOLUME");
+
+Title = EncodeColor(colorWhite) + "Volume Explosion" + EncodeColor(colorGreen) + " Buy Volume: "+ WriteVal(BV,5.0) + EncodeColor(colorRed) +  " Sell Volume: " + WriteVal(SV,5.0) + EncodeColor(colorLime) + " Bull Volume: " + WriteVal(100*BV/(BV+SV),2.0)+"%"  + EncodeColor(colorOrange) + " Bear Volume: "+ WriteVal(100*SV/(BV+SV),2.0)+"%" + EncodeColor(colorYellow) + " Effort Volume: "+ DV;
+
+_SECTION_END();

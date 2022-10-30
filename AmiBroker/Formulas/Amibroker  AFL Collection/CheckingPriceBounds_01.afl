@@ -1,0 +1,31 @@
+/*
+	CheckingPriceBounds_01.afl
+
+	Plots a big Red vertical bar whenever you have a pricing error.
+
+	_01	 Provided by Herman
+	http://finance.groups.yahoo.com/group/amibroker/message/145492
+
+*/
+
+_SECTION_BEGIN( "CHECKING PRICE BOUNDS" );
+// Buy, Sell, Short and Cover must be defined for this code to work.
+// In use this code would be appended to the very end of your code.
+// When working on complex system's code where BuyPrice, SellPrice, etc.
+// are modified in different sections it is easy to introduce a pricing
+// error so that you are trading outside the bar. Especially so since
+// SetOption("PriceBoundChecking",TRUE) is the default and Amibroker
+// will fit your trades within the bar limits and hide the problem.
+// This code check the limits of your tradeprices, display the number
+// of errors in the chart title and plot a red marker at the bottom of
+// chart where the error occurs.
+
+SetOption( "PriceBoundChecking", False );
+BuyError = ( BuyPrice > H OR BuyPrice < L ) AND Buy;
+SellError = ( SellPrice > H OR SellPrice < L ) AND Sell;
+ShortError = ( ShortPrice > H OR ShortPrice < L ) AND Short;
+CoverError = ( CoverPrice > H OR CoverPrice < L ) AND Cover;
+PricingErrors = BuyError OR SellError OR ShortError OR CoverError;
+Plot( PricingErrors , "", 4, styleArea | styleOwnScale, 0, 10 );
+Title = "# Price Bound Errors: " + NumToStr( Cum( PricingErrors ), 1.0, False ) + "\n";
+_SECTION_END();

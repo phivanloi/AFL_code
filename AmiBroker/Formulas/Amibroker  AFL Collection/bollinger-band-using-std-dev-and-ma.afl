@@ -1,0 +1,73 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+
+Plot( C, "Current Price: ", IIf( O < C, colorBrightGreen, colorRed ), styleCandle );
+_SECTION_END();
+
+
+_SECTION_BEGIN("Middle Band");
+
+P = ParamField("Price Field", -1);
+Period = Param("Period", 20, 2, 300, 1);
+
+MiddleBand = MA(P, Period);
+
+Plot(MiddleBand,"", ParamColor("Color", colorYellow), ParamStyle("Style")|styleNoRescale);
+_SECTION_END();
+
+_SECTION_BEGIN("Uppar Band");
+
+P = ParamField("Price Field", -1);
+Period = Param("Period", 20, 2, 300, 1);
+
+UpparBand = MA(P, Period) + StDev(P, Period)*2;
+
+Plot(UpparBand, "", ParamColor("Color", colorGreen), ParamStyle("Style")|styleNoRescale);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Lower Band");
+
+P = ParamField("Price Field", -1);
+Period = Param("Period", 20, 2, 300, 1);
+
+LowerBand = MA(P, Period) - StDev(P, Period)*2;
+
+Plot(LowerBand, "", ParamColor("Color", colorRed), ParamStyle("Style")|styleNoRescale);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Buy Sell calculation");
+
+PositionSize = 5000;
+Buy =  Ref(L < LowerBand, -2) AND Ref(C > LowerBand, -1);
+Short = Ref(H > UpparBand, -2)  AND Ref(C < UpparBand, -1);
+
+Buyst=ValueWhen(Buy,O,1);
+Shortst=ValueWhen(Short,O,1);
+ 
+Sell=  Cross(Buyst*0.995,C) ;
+Cover=  Cross(C,Shortst*1.005);
+ 
+Buy=ExRem(Buy,Short) OR ExRem(Buy,Sell) ;
+Short=ExRem(Short,Buy) OR ExRem(Short,Cover);
+Sell=ExRem(Sell,Buy);
+Cover=ExRem(Cover,Short);
+SellPrice = ValueWhen( Sell, C, 1 );
+
+BuyPrice = ValueWhen( Buy, C, 1 );
+
+FirstVisibleBar = Status( "FirstVisibleBar" );
+Lastvisiblebar = Status("LastVisibleBar");
+for( b = Firstvisiblebar; b <= Lastvisiblebar AND b < BarCount; b++)
+{
+if( Buy[b] ) PlotText("\n Buy "+NumToStr(BuyPrice[b],1.2),b,BuyPrice[b],colorBrightGreen);
+else if( Sell[b] ) PlotText(" \nSell "+NumToStr(SellPrice[b],1.2),b,SellPrice[b],colorRed);
+}
+
+PlotShapes(shapeUpArrow*Buy, colorGreen, 0, L, Offset=-45);
+PlotShapes(shapeDownArrow*Sell, colorRed, 0, H, Offset=-45);
+
+
+_SECTION_END();

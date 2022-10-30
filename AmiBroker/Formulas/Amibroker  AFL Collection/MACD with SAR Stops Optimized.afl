@@ -1,0 +1,24 @@
+//MACD with SAR Stops ***Optimized***
+
+//Enters Long/short when the MACD line reverses direction over a 4 day period.
+
+//Note: Run Optimization first, insert optimized figure in ( pds= ) statement and  ( SARstep= ) then ( // ) out optimization liness, click on backtest.
+
+pds=3;//Trigger line-enter results of optimization
+SARstep=.02;//SAR-enter results of optimization
+
+pds=Optimize("pds",9,3,15,3);
+SARstep=Optimize("SAR",.02,.01,.03,.01);
+
+Buy=EMA(MACD(),pds) < MACD() AND SAR(SARstep,.2) < C;
+Sell=SAR(SARstep,.2) > C OR EMA(MACD(),pds) > MACD() AND SAR(SARstep,.2) > C;
+Short=EMA(MACD(),pds) > MACD() AND SAR(SARstep,.2) > C;
+Cover=SAR(SARstep,.2) < C OR EMA(MACD(),pds) < MACD() AND SAR(SARstep,.2) < C;
+
+Filter=Buy OR Sell OR Short OR Cover;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); Short=ExRem(Short,Cover); Cover=ExRem(Cover,Short);
+
+AddColumn(Buy,"Buy");
+AddColumn(Sell,"sell");
+AddColumn(Short,"Short");
+AddColumn(Cover,"cover");

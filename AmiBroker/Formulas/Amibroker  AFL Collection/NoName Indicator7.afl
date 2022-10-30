@@ -1,0 +1,49 @@
+buycond= Close > Ref( HHV(H,10) , -1 ) ;
+sellcond = Close < Ref( LLV(L, 4), -1) ;
+shortcond= Close < Ref( LLV(L,10) , -1 ) ;
+covercond = Close >Ref( HHV(H, 4 ), -1) ;
+
+Buy=buycond;
+Sell=sellcond ;
+Short=shortcond;
+Cover=covercond ;
+
+titolo=Param("Grafico Titolo ?",1,0,1,1);
+
+tipografico=Param("Candele 64 o Barre 128 ?",64,64,128,64);
+
+Buyc=Flip(Buy,Sell);
+
+Sellc=Flip(Sell,Buy);
+
+Coverc=Flip(Cover,Short);
+
+Shortc=Flip(Short,Cover);
+
+color=IIf(Buyc ,colorGreen,IIf(Shortc,colorRed,colorWhite));
+
+Plot( IIf(titolo,C,Null) ,"Doppia equity - C",Color,64);
+
+Plot( IIf(titolo AND (Buyc OR Shortc),C,Null) ,"",Color,64);
+
+eq=Param("equity",1,0,1,1);
+
+equi=IIf(eq==0,Null,Equity( ));
+
+Buy1=Flip(Buy,Sell);
+
+Sell1=Flip(Sell,Buy);
+
+Short1=Flip(Short,Cover);
+
+Cover1=Flip(Cover,Short);
+
+Plot( Equi,"equity",IIf(Buy1 ,colorSkyblue ,IIf(Short1,colorPink ,Null )), styleArea+styleLeftAxisScale);
+
+dr = Equi- Highest(Equi);
+
+Plot(dr, "Drawdown", colorDarkRed, styleArea+styleLeftAxisScale );
+
+Maxdr=LLV(dr,500);
+
+Plot( Maxdr , "Max Drawdown", colorDarkRed, styleLine+styleLeftAxisScale );

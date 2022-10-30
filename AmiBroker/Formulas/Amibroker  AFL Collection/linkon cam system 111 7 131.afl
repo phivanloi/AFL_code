@@ -1,0 +1,76 @@
+HCL = (H+L+C)/3;
+Plot(MA(HCL,3),"",IIf(MA(HCL,3) > Ref(MA(HCL,3),-1),colorBrightGreen,colorRed),styleThick);
+Plot(MA(HCL,5),"",IIf(MA(HCL,5) > Ref(MA(HCL,5),-1),colorBrightGreen,colorRed),styleThick);
+
+Plot(EMA(H,34),"",colorGreen,styleThick);
+Plot(EMA(L,34),"",colorRed,styleThick);
+
+Plot(C,"CLOSE",colorWhite, styleBar);
+
+Buy = MA(HCL,3)>EMA(H,34);
+Sell = MA(HCL,3)<EMA(L,34);
+
+
+
+_SECTION_BEGIN("Fibo for all bars");
+
+TimeFrameSet( in15Minute*2 ); 
+DH=Ref(H,-1); 
+DL=Ref(L,-1);
+DC=Ref(C,-1);
+
+
+pd = (O+ DH+ DL + DC )/4;
+sd1 = (2*pd)-DH;
+sd2 = pd -(DH - DL);
+sd3 = Sd1 - (DH-DL); 
+rd1 = (2*pd)-DL;
+rd2 = pd +(DH -DL);
+rd3 = rd1 +(DH-DL);
+
+
+
+//Plot (pd,"Pivot",colorBlue,styleDots);
+//Plot (rd1," R1 ",35,styleDots);
+//Plot (rd2," R2 ",35,styleDots);
+//Plot (rd3," R3 ",35,styleDots);
+
+//Plot (sd1," S1 ",4,styleDots);
+//Plot (Sd2," S2 ",4,styleDots);
+//Plot (Sd3," S3 ",4,8+16);
+/*
+style = IIf(ParamList("Chart style", "styleCandle|styleBar")=="styleCandle",64,128+4);
+Plot (C,Date ()+" close",1,style); //ENABLE THIS TO HAVE CANDLES AS WELL
+*/
+TimeFrameRestore();
+
+
+Title = EncodeColor(colorWhite)+ "LINKON'S PIVOT TRADING SYSTEM" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "
+//+ WriteIf(Col_action==colorGreen, EncodeColor(colorGreen)+"stay LONG","")+ WriteIf(Col_action==colorRed, EncodeColor(colorRed)+"stay SHORT","")+  WriteIf(Col_action==colorBlack, EncodeColor(colorYellow)+"No Trend","")+"\n"
++ "Vol= "+ WriteVal(V) +WriteIf ( V > MA(V,26) ,EncodeColor(colorGreen)+"  UP "+ (V/MA(V,26))*100 + " %", EncodeColor(colorRed)+"  DOWN "+ (V/MA(V,26))*100 + " %")
++ EncodeColor(colorGreen)+   "\n R3 : "+ EncodeColor(colorWhite)+RD3
++ EncodeColor(colorGreen)+   "\n R2 : "+ EncodeColor(colorWhite)+RD2
++ EncodeColor(colorGreen)+   "\n R1 : "+ EncodeColor(colorWhite)+RD1+ EncodeColor(colorGreen)+   "`            Hi: "+ EncodeColor(colorWhite)+H
++ EncodeColor(colorBlue)+   "\n Pivot : "+ EncodeColor(colorWhite)+pd + EncodeColor(colorYellow)+   "`   Op: "+ EncodeColor(colorWhite)+O+ EncodeColor(colorAqua)+   "Cl: "+ EncodeColor(colorBrightGreen)+C
++ EncodeColor(colorRed)+   "\n S1 : "+ EncodeColor(colorWhite)+SD1+ EncodeColor(colorRed)+   "`            Lo: "+ EncodeColor(colorWhite)+L
++ EncodeColor(colorRed)+   "\n S2 : "+ EncodeColor(colorWhite)+SD2
++ EncodeColor(colorRed)+   "\n S3 : "+ EncodeColor(colorWhite)+SD3
+;
+
+_SECTION_END();
+
+_SECTION_BEGIN("Price");
+Buy=ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+dist = 1.5*ATR(10); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "Buy\n@" + C[ i ] , i, L[ i ]-dist[i], colorBlack,colorGreen ); 
+if( Sell[i] ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorBlack, colorRed ); 
+
+} 
+
+PlotShapes( Buy * shapeUpTriangle + Sell * shapeDownTriangle, IIf( Buy, colorYellow, colorYellow ) );
+_SECTION_END();

@@ -1,0 +1,22 @@
+_SECTION_BEGIN("plot ema of rsi");
+
+r = Param("rsi",21,1,39,1);
+slow_per = Param("slow period",3,1,39,1);
+fast_per = Param("fast period",34,1,50,1);
+
+//Buy = Cross (EMA(RSI(r),slow_per),EMA(RSI(r),fast_per));
+//Sell= Cross (EMA(RSI(r),fast_per),EMA(RSI(r),slow_per)); 
+
+Plot (EMA(RSI(r),slow_per),"slow rsi",colorRed,styleDots);
+Plot (EMA(EMA(RSI(r),slow_per),fast_per),"smoothened",colorYellow,styleThick);
+RS = EMA(EMA(RSI(r),slow_per),fast_per);
+Plot (EMA(RSI(r),fast_per),"fast rsi",colorBlue,styleThick);
+Buy = rs > Ref(rs,-1);
+Sell = rs < Ref(rs,-1);
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+Short = Sell;
+Cover = Buy;
+PlotShapes(Buy*shapeHollowSmallUpTriangle,colorYellow);
+PlotShapes(Sell*shapeHollowSmallDownTriangle,colorYellow);
+_SECTION_END(); 

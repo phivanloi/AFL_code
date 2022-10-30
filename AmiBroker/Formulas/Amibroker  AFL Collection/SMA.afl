@@ -1,0 +1,6 @@
+Value1 = C + Ref(C,-1);
+Value2 = Value1 + Ref(Value1,-2);
+Value3 = Value2 + Ref(Value2,-4);
+SMA = Value3/8;
+
+Plot(SMA, "", colorRed);

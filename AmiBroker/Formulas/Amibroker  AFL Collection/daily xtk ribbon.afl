@@ -1,0 +1,14 @@
+_SECTION_BEGIN("Daily XTL Trend Ribbon");
+Title = "";
+TimeFrameSet( inDaily);
+dCCI20 = CCI(20);
+MAL64 = Ref(MA(L,6),-4);
+MAH64 = Ref(MA(H,6),-4);
+Daily_CCI_Color = IIf(dCCI20>35,colorBrightGreen,IIf(dCCI20<-35,colorRed, colorLightGrey));
+Daily_MABand_Color = IIf(Close>MAH64,colorBrightGreen,IIf(Close<MAL64,colorRed, colorLightGrey));
+TimeFrameRestore(); // restore time frame to original 
+
+Plot(10, "", TimeFrameExpand(Daily_CCI_Color,inDaily),  styleNoLabel | styleOwnScale | styleArea, -1,321);
+Plot(12, "", colorWhite,  styleNoLabel | styleOwnScale | styleArea, -1,321);
+Plot(22, "", TimeFrameExpand(Daily_MABand_Color,inDaily),  styleNoLabel | styleOwnScale | styleArea, -1,321);
+_SECTION_END();

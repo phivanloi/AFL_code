@@ -1,0 +1,25 @@
+
+
+
+
+
+Buy   = Cross(C, Study("RE"));
+Sell  = Cross(Study("SU"),C);
+
+Short = Cross(Study("RE"), C);
+Cover = Cross(C,Study("SU"));
+Filter=Buy OR Sell; 
+  Sell=ExRem(Sell,Buy); Buy=ExRem(Buy,Sell);
+
+
+
+AddColumn(Buy,"Buy");
+AddColumn(Sell,"sell");
+AddColumn(BuyPrice,"BuyPrice");
+AddColumn(SellPrice,"SellPrice");
+
+
+AlertIf(Buy,   "", "",1,1 );
+AlertIf(Sell,  "", "",2,1 );
+AlertIf(Short, "", "",3,1 );
+AlertIf(Cover, "", "",4,1 );

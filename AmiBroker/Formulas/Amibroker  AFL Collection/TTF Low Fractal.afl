@@ -1,0 +1,12 @@
+ttf6 = IIf(Ref(L,-2)==LLV(L,5),-1,0);
+ttf8 = IIf(LLVBars(L,5)<2 AND Ref(L,-2)==LLV(L,5),1,0);
+ttf10 = Ttf6 + TtF8;
+
+ttf5 = IIf(Ref(H,-2)==HHV(H,5),1,0);
+ttf7 = IIf(HHVBars(H,5)<2 AND Ref(H,-2)==HHV(H,5),-1,0);
+ttf9 = ttf5 + ttf7;
+
+arrow = ttf9+ttf10;
+
+lf = LowestSinceBars(arrow==-1,Low,1);
+Plot(Lf, "",4); 

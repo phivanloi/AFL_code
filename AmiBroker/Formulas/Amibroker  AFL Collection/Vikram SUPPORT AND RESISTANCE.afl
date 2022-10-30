@@ -1,0 +1,54 @@
+_SECTION_BEGIN("Unnamed 3");
+/* SUPPORT AND RESISTANCE */
+/* AFL Code - Prakash Shenoi */
+
+LB= Param("Look Back Periods",10,1,30,1);
+R=ValueWhen(Cross(MA(C,LB),C),HHV(H,LB),1);
+S=ValueWhen(Cross(C,MA(C,LB)),LLV(L,LB),1);
+Color=IIf(O>C,colorBlack,colorYellow);
+Plot (R,"Resz",colorRed,8+16);
+Plot (s,"Supp",colorBlue,8+16);
+Plot (C,"Close",color,64,32);
+GraphXSpace=4;
+_SECTION_END();
+_SECTION_END();
+
+_SECTION_BEGIN("FRACTALS");
+//Fractal up
+//----------
+fUp = (Ref(H,-2) > Ref(H, -4)) AND
+(Ref(H,-2) > Ref(H, -3)) AND
+(Ref(H,-2) > Ref(H, -1)) AND
+(Ref(H,-2) > H);
+var1=ValueWhen(fUp ,Ref(H,-2) ,1);
+FractalUp=HighestSince(var1 > 0, var1, 1);
+Plot(FractalUp, "F+",colorLime , styleLine | styleDots);
+
+FUpBuyPrice = FractalUp + 0.01;
+FUpHit = FUpBuyPrice <= H AND FUpBuyPrice >= L;
+FUpSignalOn = Flip(Ref(FractalUp,-1) != FractalUp, FUpHit);
+
+//Looks into the future. This is done only to display Fractal arrow at the right bar.
+//The calculation of the fractal up is done without looking into the future.
+PlotShapes(IIf(Ref(FractalUp,2) != Ref(FractalUp,1), shapeSmallUpTriangle, shapeNone), colorGreen,0,Ref(FractalUp,2), 10);
+
+//Fractal Down
+//------------
+var2=
+(Ref(L,-2) <= Ref(L, -1)) AND
+(Ref(L,-2) <= Ref(L, 0)) AND
+(Ref(L,-2) <= Ref(L, -3)) AND
+(Ref(L,-2) <= Ref(L, -4));
+FractalDown=ValueWhen(var2, Ref(L,-2), 1);
+
+FDownSellPrice= FractalDown+ 0.01;
+FDownHit = FDownSellPrice <= H AND FDownSellPrice >= L;
+FDownSignalOn = Flip(Ref(FractalDown,-1) != FractalDown, FDownHit );
+
+Plot(FractalDown, "F-", colorGrey40, styleLine | styleDots);
+//Looks into the future. This is done only to display Fractal arrow at the right bar.
+//The calculation of the fractal up is done without looking into the future.
+PlotShapes(IIf(Ref(FractalDown,2) != Ref(FractalDown,1), shapeSmallDownTriangle, shapeNone), colorRed,0,Ref(FractalDown,2), 10);
+
+
+_SECTION_END();

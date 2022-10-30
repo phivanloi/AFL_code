@@ -1,0 +1,14 @@
+_SECTION_BEGIN("Chande's Trend Score[1].afl");
+SmoothingPeriod = 5;
+
+CTS=IIf(C>=Ref(C,-11),1,-1)+IIf(C>=Ref(C,-12),1,-1)+IIf(C>=Ref(C,-13),1,-1)+IIf(C>=Ref(C,-14),1,-1)+IIf(C>=Ref(C,-15),1,-1)+IIf(C>=Ref(C,-16),1,-1)+IIf(C>=Ref(C,-17),1,-1)+IIf(C>=Ref(C,-18),1,-1)+IIf(C>=Ref(C,-19),1,-1)+IIf(C>=Ref(C,-20),1,-1);
+
+CTSM = WMA(CTS,SmoothingPeriod);
+Histo = IIf(CTSM==10,5,IIf(CTS==-10,-5,Null)); 
+
+Plot(CTSM, "CTSM", colorBlack, styleLine );
+Plot(Histo, "", colorGreen, styleHistogram );
+
+Plot(12,"",colorRed,styleLine);
+Plot(-12,"",colorRed,styleLine);  
+_SECTION_END();

@@ -1,0 +1,148 @@
+_SECTION_BEGIN("guppy EXPERIEMENT");
+/*The Guppy Multiple Moving Average (GMMA) indicator tool is based on the relationships between groups of moving averages. 
+Each group of averages in the GMMA provides insight into the behavior of the two dominant groups in the market - traders and investors. 
+The indicator allows the trader to understand the market relationships shown in the chart and so select the most appropriate trading methodology and the best tools. 
+The GMMA is designed to understand the nature of trend activity on an end of day, or intraday basis.
+
+The inferred activity of traders is tracked by using a group of short term moving averages. 
+The traders always lead the change in trend. 
+Their buying pushes up prices in anticipation of a trend change. 
+Their activity is shown by a 3, 5, 8, 10, 12 and 15 day group of exponentially calculated moving averages. 
+
+The trend survives only if other buyers also come into the market. 
+Strong trends are supported by long term investors. 
+The investor takes more time to recognize the change in a trend but he always follows the lead set by traders. 
+We track the investors' inferred activity by using a group of long term moving averages. 
+This group is 30, 35, 40, 45, 50 and 60 day exponentially calculated moving averages. 
+
+
+The relationship within each of these groups tells us when there is agreement on value - when they are close together 
+and when there is disagreement on value - when they are well spaced apart.
+
+When we combine multiple moving averages, a short term group and a long term group, 
+we can see when the market has reached an agreement about the value of the stock. 
+This can be used to understand the strength of the trend. Sustained activity of the short term averages above the long term group confirms a strong trend. 
+The short term group will fluctuate, but while the long term group is in a steady band it suggests long term support.
+
+Signs of a weakening of the trend are when both groups of averages begin to narrow down 
+and fluctuate more than is normal given their past recent activity. If both groups converge towards a crossover, then a trend reversal is signalled.
+
+The relationship between the two groups tells the trader about the strength of the market action. 
+A change in price direction that is well supported by both short and long term investors signals a strong trading opportunity. 
+The crossover of the two groups of moving averages is not as important as the relationship between them.
+
+*/
+
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+
+SetChartBkColor( colorBlack ) ;
+MaxGraph = 13;
+/* blue lines */
+Graph0= EMA( Close, 3 );
+Graph1= EMA( Close, 5 );
+Graph2= EMA( Close, 7 );
+Graph3= EMA( Close, 10 );
+Graph4= EMA( Close, 12 );
+Graph5= EMA( Close, 15 );
+Graph0Style = Graph1Style = Graph2Style = Graph3Style =Graph4Style =Graph5Style = 1;
+Graph1Color = Graph2Color = Graph3Color = Graph4Color = Graph5Color = 6;
+Graph0Color = colorYellow;
+ 
+
+/* red lines */
+Graph6= EMA( Close, 30 );
+Graph7= EMA( Close, 35 );
+Graph8= EMA( Close, 40 );
+Graph9= EMA( Close, 45 );
+Graph10= EMA( Close, 50 );
+Graph11 = EMA( Close, 60 );
+Graph6Style = Graph7Style = Graph8Style =Graph9Style =Graph10Style = Graph11Style = 1;
+Graph6Color  = Graph8Color =Graph9Color =Graph10Color = Graph11Color = 4;
+Graph7Color = colorGreen;
+Plot( MA( Close,1),"price",colorWhite  ); 
+
+ 
+_SECTION_END();
+
+A1=EMA(C,12)-EMA(C,26); 
+BBtop=BBandTop(A1,10,1); 
+BBbot=BBandBot(A1,10,1);
+mkol=IIf(a1<0 AND a1>Ref(a1,-1), colorGreen,IIf(a1>0 AND a1>Ref(a1,-1),colorBrightGreen,IIf(a1>0 AND a1<Ref(a1,-1),colorBlack,colorRed)));
+
+
+//mkol = IIf( CCI( 10 ) > 80 , colorGreen, IIf (CCI(10) < -80, colorRed, colorBlack));
+
+Plot(5, "ribbon", mkol, styleOwnScale|styleArea|styleNoLabel, 0, -5);
+
+
+
+_SECTION_BEGIN("SAR");
+acc = Param("Acceleration", 0.02, 0, 1, 0.001 );
+accm = Param("Max. acceleration", 0.2, 0, 1, 0.001 );
+Plot( SAR( acc, accm ), _DEFAULT_NAME(), colorWhite, ParamStyle("Style", styleDots | styleNoLine, maskDefault | styleDots | styleNoLine ) );
+_SECTION_END();
+
+_SECTION_BEGIN("Fibo for all bars");
+
+TimeFrameSet( inDaily ); 
+DH=Ref(H,-1); 
+DL=Ref(L,-1);
+DC=Ref(C,-1);
+
+
+pd = (O+ DH+ DL + DC )/4;
+sd1 = (2*pd)-DH;
+sd2 = pd -(DH - DL);
+sd3 = Sd1 - (DH-DL); 
+rd1 = (2*pd)-DL;
+rd2 = pd +(DH -DL);
+rd3 = rd1 +(DH-DL);
+
+H4 =  (dH - dL) * 1.1 / 2 + dC;
+H3 = (dH - dL) * 1.1 / 4 + dC;
+h2 = (dH - dL) * 1.1 / 6 + dC;
+H1 = (dH - dL) * 1.1 / 12 + dC;
+L1 = dC - (dH - dL) * 1.1 / 12;
+L2 = dC - (dH - dL) * 1.1 / 6;
+L3 = dC - (dH - dL) * 1.1 / 4;
+L4 = dC - (dH - dL) * 1.1 / 2 ;
+
+
+
+//Plot (pd,"Pivot",colorBlue,styleDots);
+//Plot (rd1," R1 ",35,styleDots);
+//Plot (rd2," R2 ",35,styleDots);
+//Plot (rd3," R3 ",35,styleDots);
+
+//Plot (sd1," S1 ",4,styleDots);
+//Plot (Sd2," S2 ",4,styleDots);
+//Plot (Sd3," S3 ",4,8+16);
+/*
+style = IIf(ParamList("Chart style", "styleCandle|styleBar")=="styleCandle",64,128+4);
+Plot (C,Date ()+" close",1,style); //ENABLE THIS TO HAVE CANDLES AS WELL
+*/
+TimeFrameRestore();
+
+tgt_up = H4*5/1000 + H4;
+tgt_up2 = H4*10/1000 + H4;
+tgt_dn = L4-L4*5/1000;
+tgt_dn2 = L4-L4*10/1000;
+
+Title = EncodeColor(colorWhite)+ "LINKON'S PIVOT TRADING SYSTEM" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "
+//+ WriteIf(Col_action==colorGreen, EncodeColor(colorGreen)+"stay LONG","")+ WriteIf(Col_action==colorRed, EncodeColor(colorRed)+"stay SHORT","")+  WriteIf(Col_action==colorBlack, EncodeColor(colorYellow)+"No Trend","")+"\n"
++ "Vol= "+ WriteVal(V) +WriteIf ( V > MA(V,26) ,EncodeColor(colorGreen)+"  UP "+ (V/MA(V,26))*100 + " %", EncodeColor(colorRed)+"  DOWN "+ (V/MA(V,26))*100 + " %")
++ EncodeColor(colorGreen)+   "\n H4 : "+ EncodeColor(colorWhite)+H4+ EncodeColor(colorGreen)+   "    tgt : "+ EncodeColor(colorWhite)+tgt_up +EncodeColor(colorGreen)+   "    tgt2 : "+ EncodeColor(colorWhite)+tgt_up2 
++ EncodeColor(colorGreen)+   "\n H3 : "+ EncodeColor(colorWhite)+H3 
++ EncodeColor(colorGreen)+   "\n H2 : "+ EncodeColor(colorWhite)+H2 
++ EncodeColor(colorGreen)+   "\n H1 : "+ EncodeColor(colorWhite)+H1+ EncodeColor(colorGreen)+   "`            Hi: "+ EncodeColor(colorWhite)+H
++ EncodeColor(colorBlue)+   "\n Pivot : "+ EncodeColor(colorWhite)+pd + EncodeColor(colorYellow)+   "`   Op: "+ EncodeColor(colorWhite)+O+ EncodeColor(colorAqua)+   "Cl: "+ EncodeColor(colorBrightGreen)+C
++ EncodeColor(colorRed)+   "\n L1 : "+ EncodeColor(colorWhite)+L1+ EncodeColor(colorRed)+   "`            Lo: "+ EncodeColor(colorWhite)+L
++ EncodeColor(colorRed)+   "\n L2 : "+ EncodeColor(colorWhite)+L2
++ EncodeColor(colorRed)+   "\n L3 : "+ EncodeColor(colorWhite)+L3
++ EncodeColor(colorRed)+   "\n L4 : "+ EncodeColor(colorWhite)+L4+ EncodeColor(colorRed)+      "     tgt : "+ EncodeColor(colorWhite)+tgt_dn + EncodeColor(colorRed)+      "     tgt2 : "+ EncodeColor(colorWhite)+tgt_dn2
+;
+
+_SECTION_END();
+
+Plot(6, "", IIf(PDI(7) > MDI(7) AND PDI(7) > 30,colorGreen,IIf (MDI(7) > PDI(7) AND MDI(7) > 30,colorRed,colorYellow)), styleOwnScale| styleArea|styleNoLabel,-0.5,100);

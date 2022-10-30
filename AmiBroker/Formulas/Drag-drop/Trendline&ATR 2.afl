@@ -1,0 +1,215 @@
+// Supertrend - Translated from Kolier MQ4
+// see: http://kolier.li/indicator/kolier-supertrend-indi
+// translation in Amibroker AFL code by E.M.Pottasch, 2011
+  
+procedure calcTrend_proc(ATR_Period,tr,ATR_Multiplier,TrendMode,CalcPrice)
+{
+global buffer_line_down;
+global buffer_line_up;
+buffer_line_down = Null;
+buffer_line_up = Null;
+  
+PHASE_NONE = 0;
+PHASE_BUY = 1;
+PHASE_SELL = -1;
+  
+phase=PHASE_NONE;
+band_upper = 0;band_lower = 0;
+    
+for(i = ATR_Period + 1; i < BarCount; i++)
+{
+    band_upper = CalcPrice[i] + ATR_Multiplier * tr[i];
+    band_lower = CalcPrice[i] - ATR_Multiplier * tr[i];
+      
+    if(phase==PHASE_NONE)
+    {
+        buffer_line_up[i] = CalcPrice[i];
+        buffer_line_down[i] = CalcPrice[i];
+    }
+    if(phase!=PHASE_BUY && Close[i]>buffer_line_down[i-1] && !IsEmpty(buffer_line_down[i-1])) 
+    {
+        phase = PHASE_BUY;
+        buffer_line_up[i] = band_lower;
+        buffer_line_up[i-1] = buffer_line_down[i-1];
+    }
+    if(phase!=PHASE_SELL && Close[i]<buffer_line_up[i-1] && !IsEmpty(buffer_line_up[i-1]))
+    {
+        phase = PHASE_SELL;
+        buffer_line_down[i] = band_upper;
+        buffer_line_down[i-1] = buffer_line_up[i-1];
+    }   
+    if(phase==PHASE_BUY && ((TrendMode==0 && !IsEmpty(buffer_line_up[i-2])) || TrendMode==1) )
+    {
+        if(band_lower>buffer_line_up[i-1]) 
+        {
+            buffer_line_up[i] = band_lower;
+        }
+        else
+        {
+            buffer_line_up[i] = buffer_line_up[i-1];
+        }
+    }
+    if(phase==PHASE_SELL && ((TrendMode==0 && !IsEmpty(buffer_line_down[i-2])) || TrendMode==1) )
+    {
+        if(band_upper<buffer_line_down[i-1])
+        {
+            buffer_line_down[i] = band_upper;
+        }
+        else
+        {
+            buffer_line_down[i] = buffer_line_down[i-1];
+        }
+    }
+}
+}
+  
+SetBarsRequired(sbrAll,sbrAll);
+  
+TrendMode = ParamToggle("TrendMode","Off|On",1);
+ATR_Multiplier = Param("ATR_Multiplier",2,0.1,10,0.1);
+ATR_Period = Param( "ATR_Period",5,1,20,1);
+tr = ATR(ATR_Period);
+  
+CalcPrice = (H+L)/2;
+calcTrend_proc(ATR_Period,tr,ATR_Multiplier,TrendMode,CalcPrice);
+  
+SetChartOptions(0,chartShowDates);
+Plot(C,"C",colorWhite,64);
+Plot(buffer_line_up,"\ntu",ColorRGB(28,134,238),styleThick);
+Plot(buffer_line_down,"\ntd",ColorRGB(205,51,51),styleThick);
+  
+Plot( 2,"",IIf(buffer_line_up,colorGreen,colorBlack),styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+Plot( 4,"",IIf(buffer_line_down,colorRed,colorBlack),styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+_SECTION_BEGIN("Advanced Elliot Wave ");
+//Elliot Wave Metastock to AFL
+//-- Script Start -------
+_N(Title = "{{NAME}} - {{INTERVAL}} {{DATE}}: "+_DEFAULT_NAME()+" : {{VALUES}} "
+);
+  
+Option = ParamToggle("Insert To", "Price Chart|Indicator");
+pr=Param("Elliot Wave minimum % move",0.5, 0.25,3,0.25);
+//{ Beginner Elliot Wave stuff }
+EWpk=PeakBars(H,pr)==0;
+EWtr=TroughBars(L,pr)==0;
+//{ Intermediate Elliot Wave stuff }
+zz=Zig(C,pr);
+zzHi=Zig(H,pr);
+zzLo=Zig(L,pr);
+Avg=(zzHi+zzLo)/2;
+//{ Advanced Elliot Wave stuff }
+RetroSuccessSecret=IIf(EWpk,zzHi,
+IIf(EWtr,zzLo,IIf(Avg>Ref(Avg,-1),H,L)));
+EW=Zig(RetroSuccessSecret,pr);
+//{ Plot on price chart }
+if (Option==0)
+Plot(EW, "EW", ParamColor("Color", colorBrown), ParamStyle("Style", styleNoLabel|styleThick));
+else
+{
+//{ Plot on own window }
+Plot(EWbuy-EWsell, "EW2", ParamColor("Color", colorRed), ParamStyle("Style", styleNoLabel|styleThick));
+}
+//{ Buy/Sell Elliot Wave stuff }
+EWbuy=TroughBars(EW,pr)==1;
+EWsell=PeakBars(EW,pr)==1;
+Plot(C,"",47,128+4);
+PlotShapes(EWbuy*shapeUpArrow,5,0,L,-5);
+PlotShapes(EWsell*shapeDownArrow,4,0,H,-5);
+//-- Script End -------
+_SECTION_END();
+
+// Supertrend Indicator
+// AmiBroker implementation by Matt Radtke, www.quantforhire.com
+_SECTION_BEGIN("ATR | Filter ATR");
+//ATR
+function SuperTrend(lenATR, width)
+{
+    nATR = ATR(lenATR);
+    pAvg = (H+L) / 2;
+
+    upperBand = pAvg + width * nATR;
+    lowerBand = pAvg - width * nATR;
+    isUpTrend = True;
+    dn = DateNum();
+
+    for (i=lenATR; i<BarCount; ++i)
+    {
+        if (C[i] > upperBand[i-1])
+            isUpTrend[i] = True;
+        else if (C[i] < lowerBand[i-1])
+            isUpTrend[i] = False;
+        else
+            isUpTrend[i] = isUpTrend[i-1];
+
+        if (isUpTrend[i])
+            lowerBand[i] = Max(lowerBand[i], lowerBand[i-1]);
+        else
+            upperBand[i] = Min(upperBand[i], upperBand[i-1]);
+    }
+
+    super = IIf(isUpTrend, lowerBand, upperBand); 
+    return super;
+}
+lengthATR = Param("ATR Length", 10, 1, 100, 1);
+widthBands = Param("Band Width", 3, 1, 20, 0.1);
+st = Supertrend(lengthATR,widthBands);
+Plot(st, "Supertrend("+lengthATR+","+widthBands+")", ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+// Filter ATR
+Filter = True;
+AddColumn(O,"Open");
+AddColumn(H,"High");
+AddColumn(L,"Low");
+AddColumn(C,"Close");
+AddColumn((H+L)/2,"Avg");
+AddColumn(ATR(lengthATR), "ATR("+lengthATR+")");
+AddColumn(st, "Supertrend("+lengthATR+","+widthBands+")");
+_SECTION_END();
+
+_SECTION_BEGIN("Chandilier band");
+// Downloaded From https://www.WiseStockTrader.com
+/* Plot the Chart */
+//Title = "Chandelier"; 
+GraphXSpace = 2;
+/* Candle chart */ 
+Plot(Close,"Close",1,1);
+//Plot(WMA(Close,30),"Close WMA30",4,1);
+/* Chandelier Exit */
+/* Param( "ATRMultiplier", default, Min, Max, step ); */
+ShortLongSwitch = Param( "Sht(0) Lng(1)",1,0,1,1); // Set to 0 for a Short Trade, 1 for a Long Trade
+HighCloseSwitch = Param( "C(0) H/L(1)",1,0,1,1); // Set to 0 to hang from the close, 1 for High (Long) or Low (Short)
+ATRMultiplier =3.0;// Param( "ATR Mult", 3.0, 1, 4, 0.1);
+ATRRange =10; // Param( "ATR Rng", 10, 2, 30, 1);
+HHVLLVRange =10;// Param( "HHVLLV Rng", 10, 2, 30, 1);
+LongExitHungExHigh = HHV(High - AtrMultiplier * ATR(AtrRange),HHVLLVRange);
+LongExitHungExClose = HHV(Close - AtrMultiplier * ATR(AtrRange),HHVLLVRange);
+ShortExitHungExLow = LLV(Low + AtrMultiplier * ATR(AtrRange),HHVLLVRange);
+ShortExitHungExClose = LLV(Close + AtrMultiplier * ATR(AtrRange),HHVLLVRange);
+LongExit = IIf(HighCloseSwitch == 1, LongExitHungExHigh,LongExitHungExClose);
+ShortExit = IIf(HighCloseSwitch == 1, ShortExitHungExLow,ShortExitHungExClose);
+Exit1 = IIf(ShortLongSwitch == 1, LongExit, ShortExit);
+Exit0 = shortExit;
+Plot(Exit1,"Chandelier Green",colorBrightGreen,styleLine); 
+Plot(Exit0,"Chandelier Red",colorRed,styleLine); 
+G0 = Close;
+G1 = Exit1;
+G2 = Exit0;
+Buy = Cross(G0,G1); // OR Cross(G0,G2);
+//Cover = Cross(G0,G1); // OR Cross(G0,G2);
+Sell = Cross(G2,G0); // OR Cross(G1,G0);
+//Short = Sell ; //Cross(G2,G0); // OR Cross(G1,G0);
+Short=Sell;
+Cover=Buy;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); Short=ExRem(Short,Cover); Cover=ExRem(Cover,Short);
+Equity(1);
+B1 = (Buy * Close);
+S1 = (Sell * Close);
+B2= B1>S1;
+S2= S1>B1;
+Equity(1);
+Buy1 = Buy;
+Sell1 = Sell;
+//////////////////////////////////////
+//Plot(B1, "B1",5,6);
+PlotShapes( IIf( Sell , shapeSmallDownTriangle/*+ "shapePositonAbove"*/, shapeNone ), colorRed );
+PlotShapes( IIf( Buy , shapeSmallUpTriangle/*+ "shapePositonAbove"*/, shapeNone ), colorBrightGreen ); 
+Plot(10, /* defines the height of the ribbon in percent of pane width */"",IIf( B2, colorBrightGreen, IIf( S2, colorRed, 0 )), /* choose color*/styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+_SECTION_END();

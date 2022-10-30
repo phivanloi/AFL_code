@@ -1,0 +1,9 @@
+_SECTION_BEGIN("CCI");
+diff = DEMA(C,3)-DEMA(C,34);
+diff1 = EMA(C,3)-EMA(C,34);
+Plot(diff,"",colorBlue);
+Plot(diff1,"",colorRed);
+
+_SECTION_END(); 
+
+ 

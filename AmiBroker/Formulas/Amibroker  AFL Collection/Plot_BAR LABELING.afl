@@ -1,0 +1,21 @@
+Plot(C,"",1,128); 
+_SECTION_BEGIN("BAR LABELING"); 
+ShowBars = ParamToggle("Label Bars","NO|YES",0);
+LabelCo = ParamColor("Label",colorYellow);
+Label = ParamList("Bar Label","NUMBER|TIMENUM|DATENUM",0); 
+GraphXSpace = 10; 
+if( Showbars ) 
+{ 
+DN=DateNum(); 
+TN=TimeNum(); 
+FirstVisibleBar = Status( "FirstVisibleBar" ); 
+Lastvisiblebar = Status("LastVisibleBar");  
+for( b = Firstvisiblebar, BN=0; b <= Lastvisiblebar AND b < BarCount; b++) 
+{ 
+if( Label == "NUMBER" ) BarLabel = NumToStr(BN++,1.0); 
+else if ( Label == "TIMENUM" ) BarLabel = NumToStr(TN[b],1.0); 
+else BarLabel= NumToStr(DN[b],1.0); 
+PlotText("\n^\n"+BarLabel,b,L[b],LabelCo); 
+} 
+} 
+_SECTION_END();

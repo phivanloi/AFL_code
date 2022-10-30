@@ -1,0 +1,15 @@
+
+LenMa = Param("MA period", 30, 10, 100 ); 
+LenDMI = Param("DMI period", 14, 5, 100 ); 
+
+DmiLong = PDI( LenDMI ) > MDI( LenDMI ); 
+DmiShort = PDI( LenDMI ) < MDI( LenDMI ); 
+
+MALong = C > MA( C, LenMA ); 
+MAShort = C < MA( C, LenMA ); 
+
+Buy = DMILong AND MALong; 
+Short = DMIShort AND MAShort; 
+Sell = Short; 
+Cover = Buy;
+

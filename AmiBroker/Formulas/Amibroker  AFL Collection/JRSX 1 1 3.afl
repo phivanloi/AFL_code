@@ -1,0 +1,19 @@
+_SECTION_BEGIN("JRSX"); 
+//SetBarsRequired(10000, 0); 
+ 
+
+Length=Param( "Length ", 14, 0, 100);
+
+Plot( JurikRSX( C,5), "rsi", colorWhite, styleThick );
+Plot( JurikRSX( C,10), "", colorRed, styleThick );
+//Plot( JurikRSX( C,6), "", colorBlue, styleThick+styleNoLabel );
+//Plot( JurikRSX( C,7), "", colorBlue, styleThick+styleNoLabel );
+//Plot( JurikRSX( C,8), "", colorBlue, styleThick+styleNoLabel );
+//Plot( JurikRSX( C,9), "", colorBlue, styleThick+styleNoLabel );
+
+//Plot( JurikRSX( C,11), "", colorBlue, styleThick+styleNoLabel );
+//Plot( JurikRSX( C,12), "", colorBlue, styleThick+styleNoLabel );
+//Plot( JurikRSX( C,13), "", colorBlue, styleThick+styleNoLabel );
+Plot( JurikRSX( C,14), "", colorYellow, styleThick );
+PlotOHLC(10,15,10,15,"",IIf(JurikRSX( C,10) > JurikRSX( C,14),colorGreen,colorRed),styleCloud);
+_SECTION_END();

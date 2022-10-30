@@ -1,0 +1,4 @@
+Buy = 	Ref( EMA(  Close , 9 ) , -1 ) < Ref( EMA(  Close , 20 ) , -1 )
+	AND EMA(  Close , 9 ) > EMA(  Close , 20 );
+Sell = 	Ref( EMA(  Close , 9 ) , -1 ) > Ref( EMA(  Close , 20 ) , -1 )
+	AND EMA(  Close , 9 ) < EMA(  Close , 20 );

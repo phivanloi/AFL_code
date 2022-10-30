@@ -1,0 +1,121 @@
+_SECTION_BEGIN("Price");
+
+TimeFrameSet( in1Minute );
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+SetChartBkColor(ParamColor("Outer panel",colorGrey40)); // color of outer border 
+SetChartBkGradientFill( ParamColor("Inner panel upper",colorGrey40),ParamColor("Inner panel lower",colorBlack));
+SetBarFillColor(IIf(O>C,24,19));
+Plot(C,"Price",IIf(O>C,32,34),64);
+
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+if( ParamToggle("Tooltip shows", "All Values|Only Prices" ) )
+{
+ ToolTip=StrFormat("Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 )));
+}
+
+
+
+_SECTION_END();
+
+_SECTION_BEGIN("Intraday ");    
+k =  Optimize("K",Param("K",1.75,1,5,0.25),1,5,0.25); 
+Per= Optimize("atr",Param("atr",10,3,30,1),3,30,1); 
+j=(O+H+L+C)/4; 
+nm= (H-L);
+rfsctor = WMA(nm, PER); 
+revers = K * rfsctor; 
+Trend = 1;   
+NW[0] = 0;   
+for(i = 1; i < BarCount; i++) 
+{ 
+ if(Trend[i-1] == 1)                 
+ { 
+  if(j[i] < NW[i-1])                  
+  { 
+   Trend[i] = -1;                    
+   NW[i] = j[i] + Revers[i];         
+  } 
+  else                               
+  { 
+   Trend[i] = 1; 
+   if((j[i] - Revers[i]) > NW[i-1]) 
+   { 
+    NW[i] = j[i] - Revers[i];  
+   } 
+   else 
+   { 
+    NW[i] = NW[i-1]; 
+   } 
+  }  
+ } 
+ if(Trend[i-1] == -1)                
+ { 
+  if(j[i] > NW[i-1])                 
+  { 
+   Trend[i] = 1;                     
+   NW[i] = j[i] - Revers[i];         
+  } 
+  else                               
+  { 
+   Trend[i] = -1; 
+   if((j[i] + Revers[i]) < NW[i-1])  
+   { 
+    NW[i] = j[i] + Revers[i];  
+   } 
+   else 
+   { 
+    NW[i] = NW[i-1]; 
+   } 
+  } 
+ } 
+} 
+
+Plot(NW, "", IIf(Trend == 1, 6, 4), 4); 
+
+//---------------trading  -------------
+//tt=C> EMA(C, 20);
+//uu=C<EMA(C, 20);
+
+
+Buy=Cross(j,nw)  ;
+Sell=Cross(nw,j);
+
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorSkyblue, 0,Low,-15);  
+PlotShapes(IIf(Sell, shapeHollowDownArrow, shapeNone),colorLightYellow, 0,High,-15);  
+
+dist = 2*ATR(9); //0.8
+dist1 = 2*ATR(9); //1.2
+ 
+SetTradeDelays( 1, 1, 1, 1 );
+
+BuyPrice=ValueWhen(Buy, C);
+SellPrice=ValueWhen(Sell, C);
+p1=LastValue(C)-BuyPrice;
+p2=SellPrice-LastValue(C);
+
+ //BuyPrice = SellPrice = Open;
+
+NewDay = Day()!= Ref(Day(), -1);
+Filter=NewDay;
+Filter=Status("lastbarinrange");
+Filter=Buy OR Sell ;//AND Interval(in5Minute)  ;
+
+//Filter=TimeNum() >= 090000 AND TimeNum() <= 233000 ;
+//Filter= 1; // Filter=DateTime();
+
+
+                SetOption("NoDefaultColumns", True);
+                AddTextColumn(Name(), "Symbol", 77, colorDefault, colorDefault, 120);
+                AddColumn(DateTime(), "Trigger Date", formatDateTime, 1);
+
+
+AddColumn(TimeNum() ,"Time",1, 75);
+                AddColumn(IIf(Buy, 66, 83), "Signal", formatChar, colorYellow, IIf(Buy, colorGreen, colorRed));
+               AddColumn(IIf(Buy, BuyPrice, SellPrice),  "Entry", 6.4, colorDefault, colorTan);
+ AddColumn(LastValue(C),"CMP",6.4,colorDefault,colorTan);
+AddColumn(IIf(Buy, p1, p2),  "PP", 6.4, colorDefault,colorTan);
+TimeFrameRestore();

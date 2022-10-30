@@ -1,0 +1,7 @@
+Buy = 	RSI( 5 ) < 10;
+
+Sell = 0;
+
+Short = 	RSI( 5 ) > 90;
+
+Cover = 0;

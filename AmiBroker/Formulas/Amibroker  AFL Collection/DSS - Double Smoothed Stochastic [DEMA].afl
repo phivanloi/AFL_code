@@ -1,0 +1,14 @@
+q = Param( "Periods", 10, 1, 100, 1 );
+r = Param( "First Smoothing Periods", 3, 1, 100, 1 );
+s = Param( "Second Smoothing Periods", 3, 1, 100, 1 );
+
+
+a = DEMA(DEMA(C - LLV(L,q),r),s);
+b = DEMA(DEMA(HHV(H,q) - LLV(L,q),r),s);
+
+DSS = (a/b)*100;
+
+Plot( DSS, "DSS [DEMA] ("+q+","+r+","+s+")", ParamColor( "Color", colorRed ), ParamStyle("Style") );
+
+PlotGrid(10, colorLightGrey);
+PlotGrid(90, colorLightGrey);

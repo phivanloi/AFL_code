@@ -1,0 +1,7 @@
+
+// tskp_univvar6, tskp_univplot1, tskp_univplot2
+dummy = E_TSKPUNIVERSAL(Open,High,Low,Close,Volume);
+
+Plot( tskp_univplot1, "Univ1", ParamColor( "Univ1Color", colorBlue ), ParamStyle("Univ1Style",styleHistogram+styleNoLabel,mask=maskHistogram) );
+Plot( tskp_univplot2, "Univ2", ParamColor( "Univ2Color", colorRed ), ParamStyle("Univ2Style",styleHistogram+styleNoLabel,mask=maskHistogram) );
+Plot( 0, "Univ0", ParamColor( "Univ0Color", colorBlue ), ParamStyle("Univ0Style",styleLine+styleNoLabel,mask=maskDefault) );

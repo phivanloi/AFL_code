@@ -1,0 +1,48 @@
+_SECTION_BEGIN("Bollinger Bands Pair");
+  P = ParamField("Price field", -1);
+
+  PeriodsF = Param("Periods fast", 20, 2, 100, 1);
+  PeriodsS = Param("Periods slow", 150, 20, 500, 1);
+  WidthF = Param("Width fast", 2, 0, 10, 0.05);
+  WidthS = Param("Width slow", 2, 0, 10, 0.05);
+
+  colBoxF = ParamColor("Border color fast", colorGrey40);
+  colBoxS = ParamColor("Border color slow", colorDarkOliveGreen);
+
+  styleBoxF = ParamStyle("Border style fast", styleDashed, maskDefault);
+  styleBoxS = ParamStyle("Border style slow", styleDashed, maskDefault);
+  
+  colMAF = ParamColor("MA color fast", colorDarkGrey);
+  colMAS = ParamColor("MA color slow", colorDarkGreen);
+
+  styleMAF = ParamStyle("MA style fast", 0, maskDefault);
+  styleMAS = ParamStyle("MA style slow", styleThick, maskDefault);
+
+  colAreaF = ParamColor("Area color fast", colorBrightGreen);
+  colAreaS = ParamColor("Area color slow", colorPaleGreen);
+
+  showArea = ParamToggle("Show area", "No|Yes", 1);
+  
+  bbTopF = BBandTop(P, PeriodsF, WidthF);
+  bbBottomF = BBandBot(P, PeriodsF, WidthF);
+  bbMiddleF = MA(P, PeriodsF);
+
+  bbTopS = BBandTop(P, PeriodsS, WidthS);
+  bbBottomS = BBandBot(P, PeriodsS, WidthS);
+  bbMiddleS = MA(P, PeriodsS);
+
+  Plot(bbTopF, "BBTopFast" + _PARAM_VALUES(), colBoxF, styleBoxF | styleNoLabel); 
+  Plot(bbBottomF, "BBBotFast" + _PARAM_VALUES(), colBoxF, styleBoxF | styleNoLabel); 
+  Plot(bbMiddleF, "BBMiddleFast" + _PARAM_VALUES() , colMAF, styleMAF | styleNoLabel);
+
+  Plot(bbTopS, "BBTopSlow" + _PARAM_VALUES(), colBoxS, styleBoxS | styleNoLabel); 
+  Plot(bbBottomS, "BBBotSlow" + _PARAM_VALUES(), colBoxS, styleBoxS | styleNoLabel); 
+  Plot(bbMiddleS, "BBMiddleSlow" + _PARAM_VALUES() , colMAS, styleMAS | styleNoLabel);
+
+
+  if (showArea)
+  {
+    PlotOHLC(bbTopF, bbTopF, bbBottomF, bbBottomF, "", colAreaF, styleCloud);
+    PlotOHLC(bbTopS, bbTopS, bbBottomS, bbBottomS, "", colAreaS, styleCloud);
+  }
+_SECTION_END();

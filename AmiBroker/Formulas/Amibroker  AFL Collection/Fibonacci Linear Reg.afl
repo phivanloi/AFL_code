@@ -1,0 +1,494 @@
+_SECTION_BEGIN("Background");
+	SetChartOptions(0,chartShowArrows|chartShowDates);
+	SetChartBkColor(ParamColor("Outer panel",colorGrey40)); // color of outer border 
+	SetChartBkGradientFill( ParamColor("Inner panel upper",colorGrey40),ParamColor("Inner panel lower",colorBlack));
+	tchoice=Param("Title Selection ",2,1,2,1);
+
+Plot(C, "", IIf(O>=C, colorOrange, colorGreen), ParamStyle("Price Style",styleCandle, maskPrice));
+
+//////////////////////////////////////////////////////////////////
+_SECTION_BEGIN("Fib Retracements");
+	fibs = ParamToggle("Plot Fibs","Off|On",1);
+	pctH = Param ("Pivot Hi %", 0.325,0.001,2.0,0.002);
+	HiLB = Param ("Hi LookBack",1,1,BarCount-1,1);
+	pctL = Param ("Pivot Lo %", 0.325,0.001,2.0,0.002);
+	LoLB = Param ("Lo LookBack",1,1,BarCount-1,1);
+	Back = Param ("Extend Left = 2",1,1,500,1);
+	Fwd  = Param("Plot Forward", 0, 0, 500, 1);
+	text = ParamToggle("Plot Text","Off|On",1);
+	hts  = Param ("Text Shift", -33.5,-50,50,0.10);
+	style =ParamStyle("Line Style",styleLine,styleNoLabel);
+x = BarIndex();
+pRp  = PeakBars( H, pctH, 1) == 0;
+yRp0 = SelectedValue(ValueWhen( pRp, H, HiLB));
+xRp0 = SelectedValue(ValueWhen( pRp, x, HiLB));
+pSp  = TroughBars( L, pctL, 1) == 0;
+ySp0 = SelectedValue(ValueWhen( pSp, L, LoLB));
+xSp0 = SelectedValue(ValueWhen( pSp, x, LoLB));
+Delta = yRp0 - ySp0;
+
+function fib(ret)
+{
+retval = (Delta * ret);
+Fibval = IIf(ret < 1.0 
+AND xSp0 < xRp0, yRp0 - retval, IIf(ret < 1.0 
+AND xSp0 > xRp0, ySp0 + retval,IIf(ret > 1.0 
+AND xSp0 < xRp0, yRp0 - retval, IIf(ret > 1.0 
+AND xSp0 > xRp0, ySp0 + retval, Null)))); 
+return FibVal;
+}
+
+x0 = Min(xSp0,xRp0)-Back;
+x1 = (BarCount -1);
+//////////////////////////////////////////////////////////////////
+r236 = fib(0.236);	r236I = LastValue (r236,1);
+r382 = fib(0.382);	r382I = LastValue (r382,1);
+r050 = fib(0.50);		r050I = LastValue (r050,1);
+r618 = fib(0.618);	r618I = LastValue (r618,1);
+r786 = fib(0.786);	r786I = LastValue (r786,1);
+e127 = fib(1.27);		e127I = LastValue (e127,1);
+e162 = fib(1.62);		e162I = LastValue (e162,1);
+e200 = fib(2.00);		e200I = LastValue (e200,1);
+e262 = fib(2.62);		e262I = LastValue (e262,1);
+e424 = fib(4.24);		e424I = LastValue (e424,1);
+//////////////////////////////////////////////////////////////////
+p00 = IIf(xSp0 > xRp0,ySp0,yRp0); 	p00I = LastValue (p00,1);
+p100 = IIf(xSp0 < xRp0,ySp0,yRp0); 	p100I = LastValue (p100,1);
+color00 =IIf(xSp0 > xRp0,colorLime,colorRed);
+color100 =IIf(xSp0 < xRp0,colorLime,colorRed);
+//////////////////////////////////////////////////////////////////
+numbars = LastValue(Cum(Status("barvisible")));
+fraction= IIf(StrRight(Name(),3) == "", 3.2, 3.2);
+//////////////////////////////////////////////////////////////////
+if(fibs==1)
+{
+Plot(LineArray(xRp0-Fwd,yRp0,x1,yRp0,Back),"PR",32,8|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(xSp0-Fwd,ySp0,x1,ySp0,Back),"PS",27,8|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,r236,x1,r236,Back),"",45,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,r382,x1,r382,Back),"",44,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,r050,x1,r050,Back),"",41,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,r618,x1,r618,Back),"",43,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,r786,x1,r786,Back),"",42,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,e127,x1,e127,Back),"e127",47,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,e162,x1,e162,Back),"e162",47,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,e200,x1,e200,Back),"p200",47,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,e262,x1,e262,Back),"p262",47,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,e424,x1,e424,Back),"p424",25,style|styleNoRescale,Null, Null,Fwd);
+}
+//////////////////////////////////////////////////////////////////
+if(text==1)
+{ 
+PlotText(" 0% = " + WriteVal(p00,fraction), 	LastValue(BarIndex())-(numbars/hts), p00I  + 0.05, color00);
+PlotText("23% = " + WriteVal(r236,fraction), LastValue(BarIndex())-(numbars/hts), r236I + 0.05, 45);
+PlotText("38% = " + WriteVal(r382,fraction), LastValue(BarIndex())-(numbars/hts), r382I + 0.05, 44);
+PlotText("50% = " + WriteVal(r050,fraction), LastValue(BarIndex())-(numbars/hts), r050I + 0.05, 41);
+PlotText("62% = " + WriteVal(r618,fraction), LastValue(BarIndex())-(numbars/hts), r618I + 0.05, 43);
+PlotText("78% = " + WriteVal(r786,fraction), LastValue(BarIndex())-(numbars/hts), r786I + 0.05, 42);
+PlotText("100% = " + WriteVal(p100,fraction), LastValue(BarIndex())-(numbars/hts),p100I + 0.05, color100);
+PlotText("127% = " + WriteVal(e127,fraction), LastValue(BarIndex())-(numbars/hts),e127I + 0.05, 47);
+PlotText("162% = " + WriteVal(e162,fraction), LastValue(BarIndex())-(numbars/hts),e162I + 0.05, 47);
+PlotText("200% = " + WriteVal(e200,fraction), LastValue(BarIndex())-(numbars/hts),e200I + 0.05, 47);
+PlotText("262% = " + WriteVal(e262,fraction), LastValue(BarIndex())-(numbars/hts),e262I + 0.05, 47);
+PlotText("424% = " + WriteVal(e424,fraction), LastValue(BarIndex())-(numbars/hts),e424I + 0.05, 25);
+}
+_SECTION_END();
+//////////////////////////////////////////////////////////////////
+if (tchoice==1 ) 
+{
+_N(Title = EncodeColor(colorWhite)+StrFormat(" {{NAME}} -   {{INTERVAL}}      {{DATE}}    Open:  %g,    High:  %g,     Low:  %g,     Close:  %g     {{VALUES}}",O, H, L, C, SelectedValue( ROC( C, 1   ) ) ));
+}
+//////////////////////////////////////////////////////////////////
+if (tchoice==2 ) 
+{
+Title = EncodeColor(colorWhite)+  Date() + "   Tick = " + EncodeColor(5) + Interval()+
+EncodeColor(colorWhite) + "     Open = " + EncodeColor(colorWhite) + O + 
+EncodeColor(colorWhite) + "     High = " + EncodeColor(5) + H +
+EncodeColor(colorWhite) + "      Low = " + EncodeColor(colorRed) + L + 
+EncodeColor(colorWhite) + "     Close = " + EncodeColor(colorWhite) + C + "\n" +
+EncodeColor( colorWhite) +"_______________"+"\n"+
+EncodeColor( colorWhite)  + "424%   =  "	+ 	EncodeColor(25)+ e424 + " " +"\n"+
+EncodeColor( colorWhite)  + "262%   =  "	+ 	EncodeColor(47)+ e262 + " " +"\n"+
+EncodeColor( colorWhite)  + "200%   =  "	+ 	EncodeColor(47)+ e200 + " " +"\n"+
+EncodeColor( colorWhite)  + "162%   =  "	+ 	EncodeColor(47)+ e162 + " " +"\n"+
+EncodeColor( colorWhite)  + "127%   =  "	+ 	EncodeColor(47)+ e127 + " " +"\n"+
+EncodeColor( colorYellow) + "  Res    =  "	+ 	EncodeColor(32)+ p100 + " " +"\n"+
+EncodeColor( colorWhite)  + "  78%   =  "	+	EncodeColor(42)+ r786 + " " +"\n"+
+EncodeColor( colorWhite)  + "  62%   =  "	+ 	EncodeColor(43)+ r618 + " " +"\n"+
+EncodeColor( colorWhite)  + "  50%   =  "	+ 	EncodeColor(41)+ r050 + " " +"\n"+
+EncodeColor( colorWhite)  + "  38%   =  "	+ 	EncodeColor(44)+ r382 + " " +"\n"+
+EncodeColor( colorWhite)  + "  23%   =  "	+ 	EncodeColor(45)+ r236+ " " +"\n"+
+EncodeColor( colorYellow) + "  Sup   =   "	+ 	EncodeColor(34)+ p00 + " " ;
+}
+GraphXSpace=5;
+
+SetChartOptions(1, chartShowDates);   // put dates at bottom of chart
+
+pr = Param("Elliot Wave minimum % move", 2, 1, 100);
+// Beginner Elliot Wave stuff 
+EWpk = PeakBars(H, pr, 1) == 0;
+EWtr = TroughBars(L, pr, 1) == 0;
+
+// Intermediate Elliot Wave stuff 
+zz = Zig(C, pr);
+zzHi = Zig(H, pr);
+zzLo = Zig(L, pr);
+Avg = (zzHi+zzLo)/2;
+
+// Advanced Elliot Wave stuff 
+RetroSuccessSecret = IIf(EWpk, zzHi, IIf(EWtr, zzLo, IIf(Avg > Ref(Avg,-1), H, L)));
+EW = Zig(RetroSuccessSecret, pr);
+
+// Plot on price chart 
+/*Plot(C, "Close", colorBlack, styleCandle);*/
+Plot(EW, "EW", colorWhite, styleLine);
+
+// Plot buy and sell arrows 
+Buy = TroughBars(EW, pr, 1) == 0;
+Sell = PeakBars(EW, pr, 1) ==0;
+Buy = ExRem(Buy, Sell);
+Sell = ExRem(Sell, Buy);
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorBlue,0,L,-15);
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorBlue,0,L,-15);
+PlotShapes(IIf(Buy,shapeSmallCircle,shapeNone),colorWhite,0,BuyPrice,0);
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed,0,H,-15);
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed,0,H,-15);
+PlotShapes(IIf(Sell,shapeSmallCircle,shapeNone),colorWhite,0,SellPrice,0);
+
+AlertIf( Buy , "SOUND C:\\Windows\\Media\\Notify.wav", "Audio alert", 2 );
+AlertIf( Sell, "SOUND C:\\Windows\\Media\\Tada.wav", "Audio alert", 2 );
+
+_SECTION_BEGIN("Elliot Fractals");
+
+/*
+The basic definition of an 'up' fractal is a bar high that is both higher than the two bars immediately preceding it
+and higher than the two bars immediately following it.
+The lows of the bars are NOT considered in determining the up fractal progression.
+
+If two bars in the progression have equal highs followed by two consecutive bars with lower highs,
+then a total of six bars rather than the usual five bars will make up the progression.
+The first High becomes the counting fractal. Reverse for 'down' fractals.
+
+The 5 bar formation works best on Daily or longer time frame charts.For intraday data charts we often use 9 bar, 13 bar and 21 bar formations for fractal counting
+*/
+Up5BarFractal = Ref(H,-2) < H AND Ref(H,-1) < H AND Ref(H,1) < H AND Ref(H,2) < H;
+Up6BarFractal = Ref(H,-2) < H AND Ref(H,-1) < H AND (H == Ref(H,1)) AND Ref(H,2) < H AND Ref(H,3) < H;
+Down5BarFractal = Ref(L,-2) > L AND Ref(L,-1) > L AND Ref(L,1) > L AND Ref(L,2) > L;
+Down6BarFractal = Ref(L,-2) > L AND Ref(L,-1) > L AND (L == Ref(L,1)) AND Ref(L,2) > L AND Ref(L,3) > L;
+
+//TODO: More filtering: Show only troughs that are around atrough in trix(9).
+
+PlotShapes( IIf(Down5BarFractal ,shapeSmallUpTriangle,0) ,colorBlack, 0, L,-12);
+PlotShapes( IIf(Down6BarFractal ,shapeSmallUpTriangle,0) ,colorBlack, 0, L,-12);
+
+PlotShapes( IIf(Up5BarFractal ,shapeSmallDownTriangle,0) ,colorBlack, 0, H,-12);
+PlotShapes( IIf(Up6BarFractal ,shapeSmallDownTriangle,0) ,colorBlack, 0, H,-12);
+
+Up = (Up5BarFractal OR Up6BarFractal);
+Down = (Down5BarFractal OR Down6BarFractal);
+//Removing false fractals:
+DownSignal = Flip(Ref(Up,-1), Ref(Down,-1));
+UpSignal = Flip(Ref(Down,-1), Ref(Up,-1));
+
+LastHigh[0] = H[0];
+LastLow[0] = L[0];
+
+LastLowIndex = 0;
+LastHighIndex = 0;
+Valid = 0;
+for (i=1; i < BarCount; i++)
+{
+
+	LastHigh[i] = LastHigh[i-1];
+	LastLow[i] = LastLow[i-1];
+	if (Up[i])
+	{								
+ 		Valid[i] = True;
+ 		if (DownSignal[i])
+		{
+			//Sequence of 2 Up Fractals. Validate only the higher one.
+			Valid[i] = H[i] >= H[LastHighIndex];
+			Valid[LastHighIndex] = H[LastHighIndex] >  H[i];
+		}
+		LastHigh[i] = Max(H[i], H[LastHighIndex ]);	
+		LastHighIndex = i;	
+	}
+
+	if (Down[i])
+	{	
+ 		Valid[i] = True;
+		if (UpSignal[i])
+		{
+			//Sequence of 2 Down Fractals. Validate only the lower one.
+			Valid[i] = L[i] <= L[LastLowIndex];
+			Valid[LastLowIndex] = L[LastLowIndex] <  L[i];
+		}
+	
+		LastLow[i] = Min(L[i], L[LastLowIndex]);
+		LastLowIndex = i;		
+	}	
+}
+
+TrixN = Trix(9);
+TroughLow = Ref(TrixN, -3) > TrixN AND Ref(TrixN, -2) > TrixN AND Ref(TrixN, -1) > TrixN AND Ref(TrixN, 1) > TrixN AND Ref(TrixN, 2) > TrixN AND Ref(TrixN, 3) > TrixN;
+TroughHigh = Ref(TrixN, -3) < TrixN AND Ref(TrixN, -2) < TrixN AND Ref(TrixN, -1) < TrixN AND Ref(TrixN, 1) < TrixN AND Ref(TrixN, 2) < TrixN AND Ref(TrixN, 3) < TrixN;
+//TroughLow = Ref(TrixN, -2) > TrixN AND Ref(TrixN, -1) > TrixN AND Ref(TrixN, 1) > TrixN AND Ref(TrixN, 2) > TrixN;
+//TroughHigh = Ref(TrixN, -2) < TrixN AND Ref(TrixN, -1) < TrixN AND Ref(TrixN, 1) < TrixN AND Ref(TrixN, 2) < TrixN;
+ZeroValid = Cross(TrixN, 0) OR Cross(0, TrixN) OR Ref(Cross(TrixN, 0),1) OR Ref(Cross(0, TrixN),1);
+ValidLow = TroughLow OR Ref(TroughLow, 1) OR Ref(TroughLow, 2) OR Ref(TroughLow, 3) OR Ref(TroughLow, 4);// OR Ref(TroughLow, 5));
+ValidHigh = TroughHigh OR Ref(TroughHigh, 1) OR Ref(TroughHigh, 2) OR Ref(TroughHigh, 3) OR Ref(TroughHigh, 4);// OR Ref(TroughHigh, 5));
+
+//Plot(LastHigh-10 ,"LastHigh", colorBlue, styleLine);
+//Plot(LastLow-10 ,"LastLow ", colorRed, styleLine);
+//Plot(Valid*5 + 10 ,"LastLow ", colorGreen, styleLine | styleThick);
+
+//PlotShapes( IIf(Down AND Valid,shapeSmallUpTriangle,0) ,colorGreen, 0, L,-12);
+//PlotShapes( IIf(Up AND Valid,shapeSmallDownTriangle,0) ,colorRed, 0, H,-12);
+Maxi = Up AND (ValidHigh OR ZeroValid);
+Mini = Down AND (ValidLow OR ZeroValid);
+PlotShapes( IIf(Down AND (ValidLow OR ZeroValid),shapeSmallUpTriangle,0) ,colorBlue, 0, L,-12);
+PlotShapes( IIf(Up AND (ValidHigh OR ZeroValid),shapeSmallDownTriangle,0) ,colorOrange, 0, H,-12);
+//Plot(UpSignal*3+5,"UpSignal", colorBlue, styleLine| styleThick);
+//Plot(DownSignal*3 ,"DownSignal", colorRed, styleLine| styleThick);
+
+/*
+LastMaxi = 0;
+LastMini = 0;
+ElliotLines = 0;
+State = 0;
+for (i=1; i < BarCount; i++)
+{
+	State[i] = State[i-1]; 
+	if (Maxi[i])
+	{		
+		State[i] = 1;//down
+	}
+
+	if (Mini[i])
+	{		
+		State[i] = 2;
+	}
+
+} 
+
+PlotShapes(IIf(State > 0, shapeSmallCircle, 0), IIf(State == 1, colorRed, colorBlue), 0, IIf(State == 1, H, L), -5); 
+*/
+//Line = LineArray( x0, y0, x1, y1, 1 ); 
+//Plot( Line, "Trend line", colorBlue ); 
+
+/*
+Wave B
+Usually 50% of Wave A
+Should not exceed 75% of Wave A
+Wave C
+either 1 x Wave A
+or 1.62 x Wave A
+or 2.62 x Wave A 
+*/
+function CorrectiveRatios(StartPrice, A, B, C, RatioDelta, Delta)
+{
+	
+	ALength = abs(startPrice - A);	BLength = abs(A-B);
+	CLength = abs(B-C);
+
+	Ratio1 = BLength  / CLength ;
+	Cond1 = Ration1 >= 0.5 - RatioDelta AND ratio1 <= 0.75 + RatioDelta;
+	Cond2 = abs(Clength - ALength) < Delta  OR abs(Clength - 1.62 * ALength) < Delta OR abs(CLength - 2.62 * ALength) < Delta;
+	
+	return Cond1 AND Cond2;
+}
+
+function ImpulseRules(StartPrice, One, TwO, Three, Four, Five)
+{
+	//Wave 2 should be beneath wave 1 start:
+	Cond1 = TwO > StartPrice AND TwO < One;
+	//Wave 4 - the same:
+	Cond2 = Four > TwO AND Four < Three;
+	//Wave 5 should be <= wave 3
+	Cond3 = abs(Three-TwO) >= abs(Five - Four);
+	//Wave 1 should be smaller than wave five, making wave 3 the biggest:
+	Cond4 = abs(StartPrice - One) < abs(Five - Four);
+	return Cond1 AND Cond2 AND Cond3 AND Cond4;
+}
+_SECTION_END();
+
+
+_SECTION_BEGIN("Ribbon");
+uptrend=PDI()>MDI()AND Signal()<MACD();
+downtrend=MDI()>PDI()AND Signal()>MACD();
+
+
+Plot( 1, /*efines the height of the ribbon in percent of pane width */"ribbon",
+ IIf( uptrend, colorGreen, IIf( downtrend, colorRed,IIf(Signal()<MACD(), colorYellow, 0 ))), /* choose color */
+styleOwnScale|styleArea|styleNoLabel, -1, 100 );
+_SECTION_END();
+
+
+_SECTION_BEGIN("Price With Regression Channel");
+
+
+//  Linear Regression Line with 2 Standard Deviation Channels Plotted Above and Below 
+
+P = ParamField("Price field",-1);
+Daysback = Param("Period for Liner Regression Line",21,1,240,1);
+shift = Param("Look back period",0,0,240,1);
+
+
+//  =============================== Math Formula =============================================================
+
+x = Cum(1);
+lastx = LastValue( x ) - shift; 
+aa = LastValue( Ref(LinRegIntercept( p, Daysback), -shift) ); 
+bb = LastValue( Ref(LinRegSlope( p, Daysback ), -shift) ); 
+y = Aa + bb * ( x - (Lastx - DaysBack +1 ) ); 
+
+
+// ==================Plot the Linear Regression Line ==========================================================
+
+
+LRColor = ParamColor("LR Color", colorCycle ); 
+LRStyle = ParamStyle("LR Style");
+
+LRLine =  IIf( x > (lastx - Daysback) AND BarIndex() < Lastx, y, Null );
+Plot( LRLine , "LinReg", LRCOLOR, LRSTYLE ); //  styleDots ); 
+
+// ==========================  Plot 1st SD Channel ===============================================================
+
+SDP = Param("Standard Deviation", 1.5, 0, 6, 0.1);
+SD = SDP/2;
+
+width = LastValue( Ref(SD*StDev(p, Daysback),-shift) );   // THIS IS WHERE THE WIDTH OF THE CHANELS IS SET  
+SDU = IIf( x > (lastx - Daysback) AND BarIndex() < Lastx, y+width , Null ) ;
+SDL = IIf( x > (lastx - Daysback) AND BarIndex() < Lastx, y-width , Null ) ;
+
+SDColor = ParamColor("SD Color", colorCycle ); 
+SDStyle = ParamStyle("SD Style");
+
+Plot( SDU , "Upper Lin Reg", SDColor,SDStyle ); 
+Plot( SDL , "Lower Lin Reg", SDColor,SDStyle ); 
+
+//  ==========================  Plot 2d SD Channel ===============================================================
+
+SDP2 = Param("2d Standard Deviation", 2.0, 0, 6, 0.1);
+SD2 = SDP2/2;
+
+width2 = LastValue( Ref(SD2*StDev(p, Daysback),-shift) );   // THIS IS WHERE THE WIDTH OF THE CHANELS IS SET  
+SDU2 = IIf( x > (lastx - Daysback) AND BarIndex() < Lastx, y+width2 , Null ) ;
+SDL2 = IIf( x > (lastx - Daysback) AND BarIndex() < Lastx, y-width2 , Null ) ;
+
+SDColor2 = ParamColor("2 SD Color", colorCycle ); 
+SDStyle2 = ParamStyle("2 SD Style");
+
+Plot( SDU2 , "Upper Lin Reg", SDColor2,SDStyle2 ); 
+Plot( SDL2 , "Lower Lin Reg", SDColor2,SDStyle2 ); 
+
+// ============================ End Indicator Code ==============================================================
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("trailing stop atr");
+function vstop_func(tr)
+{
+trailArray[ 0 ] = C[ 0 ]; // initialize
+for( i = 1; i < BarCount; i++ )
+{
+prev = trailArray[ i - 1 ];
+
+if (C[ i ] > prev AND C[ i - 1 ] > prev)
+{
+trailArray[ i ] = Max(prev,C[ i ] - tr[ i ]);
+}
+else if (C[ i ] < prev AND C[ i - 1 ] < prev)
+{
+trailArray[ i ] = Min(prev,C[ i ] + tr[ i ]);
+}
+else if (C[ i ] > prev)
+{
+trailArray[ i ] = C[ i ] - tr[ i ];
+}
+else
+{
+trailArray[ i ] = C[ i ] + tr[ i ]; 
+}
+}
+return trailArray;
+}
+
+per = Param("per",20, 5, 150, 1);
+mult = Param("mult",0.5, 0.5, 4, 0.05);
+tr = mult * ATR(per);
+trailArray = vstop_func(tr);
+//trailArray = Ref(trailArray,-1);
+
+//LISTING 1: Zero-lag moving average
+
+function ZeroLagMA( data, periods )
+{
+EMA1 = EMA( data, periods );
+EMA2 = EMA( EMA1, periods );
+Diff = EMA1 - EMA2;
+return EMA1 + Diff;
+}
+
+Periods = Param("Periods", 20, 2, 100 );
+
+//Plot( ZeroLagMA( Close, Periods ), "ZeroLagMA-"+Periods, colorYellow, styleDashed  );
+
+TrailStop = HHV( C - 2 * ATR(10), 15 ); 
+ProfitTaker = EMA( H, 13 ) + 2 * ATR(10); 
+
+_SECTION_BEGIN("ProjHL");
+//Function pembulatan
+function bulat(Lo)
+{
+ return (
+IIf(Lo<= 200,round(Lo/1)*1,
+IIf(Lo<= 500,round(Lo/5)*5,
+IIf(Lo<=2000,round(Lo/10)*10,
+IIf(Lo<=5000,round(Lo/25)*25,
+IIf(Lo> 5000,round(Lo/50)*50,0)))))
+);
+}
+
+GfxSetOverlayMode(0);
+GfxSelectFont("Arial",9, 700);
+GfxSetTextColor( colorRose );
+GfxSetBkMode(0); // transparent
+GfxTextOut("PivHL   = " + (H+L)/2, 250, 45);
+GfxTextOut("Diff    = " + (C-((H+L)/2)), 350, 45);
+GfxSetTextColor( colorYellow );
+GfxTextOut("TStop   = " + bulat(TrailStop), 450, 45);
+GfxTextOut("TPrc   = " + bulat(ProfitTaker), 550, 45);
+
+
+
+// PIVOT Calculation
+p = bulat( H+ L + C )/3;
+GfxSetTextColor( colorLightOrange );
+GfxTextOut("Pivot    = " +bulat(p), 350, 60);
+
+
+rph1=(H+C+2*L)/2-L;
+rph2=(2*H+L+C)/2-L;
+rph3=(H+L+2*C)/2-L;
+rpl1=(H+C+2*L)/2-H;
+rpl2=(2*H+L+C)/2-H;
+rpl3=(H+L+2*C)/2-H;
+rph=IIf((C<O),rph1,IIf((C>O),rph2,IIf((C=O),rph3,0)));
+rpl=IIf((C<O),rpl1,IIf((C>O),rpl2,IIf((C=O),rpl3,0)));
+GfxSetTextColor( colorBrightGreen );
+GfxTextOut("Proj-H   = " + bulat(rph), 250, 60);
+GfxSetTextColor( colorCustom12 );
+GfxTextOut("Proj-L   = " + bulat(rpl), 450, 60);
+GfxSetTextColor( colorOrange );
+GfxTextOut("Trail   = " + bulat(trailArray), 550, 60);
+
+//2 Week New High-New Low
+HI = High > Ref(HHV(High,10),-1);
+LI = Low < Ref(LLV(Low,10),-1);
+HIV1= Ref(HHV(High,10),-1);
+LIV1=Ref(LLV(Low,10),-1);
+Variable = WriteIf(H>HIV1,"High",WriteIf(L<LIV1,"Low","Neutral"));
+GfxSetTextColor( colorSkyblue );
+GfxTextOut("2 WHL: " + HIV1+" : "+LIV1+  "    " +  Variable,290,75);
+_SECTION_END();

@@ -1,0 +1,8 @@
+// Fallen Angels
+a = EMA(Close,130) < 0.5 * Ref(EMA(Close,130),-260);
+b = EMA(Close,130)  > Ref(EMA(Close,130),-5);                              
+
+Filter = a AND b;
+
+AddColumn(C, "Close", 12.2, IIf(ROC(C,1) > 0, colorGreen, colorRed));
+AddColumn(V, "Volume", 14.0 );

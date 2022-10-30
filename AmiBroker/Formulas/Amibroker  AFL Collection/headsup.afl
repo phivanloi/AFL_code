@@ -1,0 +1,88 @@
+/*  This is an AB script based on portions of the headsup.ini Script
+created by Chas Richards.  This script modified for AB by Ken Close 3/9/02*/
+/*1A: Calculate RSI/Stochastics (using 13/21 Stochastics AND RSI-14)*/
+/* Modified 5/11/02 to include Buys/Sells on crossing Score extreme levels */
+
+/* RISK MANAGEMENT*/
+
+RiskPer = 0.01; //Optimize("Risk %", 0.01, 0.01, 0.04, 0.01 );
+//ApplyStop( 0, 1, Optimize( "max. loss stop level", 18, 2, 30, 1 ),1);
+StopLoss = .18 ; //Optimize("StopLoss", 0.20, 0.02, 0.30, 0.01 );
+
+Capital = 100000;
+Risk = RiskPer * Capital;
+PositionSize = (Risk / (StopLoss * Open)) * BuyPrice ; 
+Shares = PositionSize / Open;
+
+
+
+Filter=1;
+Filter = Ref(C,-1) != C;
+NumColumns = 14;
+Column0 = C;
+Column0Name = "Close";
+Low1=LLV(C,21);
+High1=HHV(C,21);
+FastStoc=(EMA(100*(Close - Low1)/(High1 - Low1),13)/2) + (RSI(14)/2);
+Column1 = FastStoc;
+Column1Name = "FastStoc";
+
+/*2a: Calculate RSI/Stochastics momentum over last six market days*/;
+mocon = FastStoc - Ref(FastStoc, -6);
+Column2 = mocon;
+Column2Name = "Mocon";
+
+/*Compare Stock to its 30-day exponential moving average*/;
+fam30ma=EMA(Close,30);
+fam30pct = 100 * (Close - fam30ma) /fam30ma;
+Column3 = fam30pct;
+Column3Name = "30dAvg";
+
+/*4a: Create price oscillators for the family*/;
+PriceOsc = ((EMA(Close,19) - EMA(Close,39)) / EMA(Close,39)) * 10000;
+Column4 = PriceOsc;
+Column4Name = "PriceOsc";
+
+/*5a: Calculate trend of Stock's price oscillator*/;
+OscGain  = PriceOsc - Ref(PriceOsc, -6);
+Column5 = OscGain;
+Column5Name = "OscGain";
+
+/*6a: Calculate return over last 21 days*/;
+Roc1   = ((ROC(Close, 1)));
+Roc21  = ((ROC(Close, 21)));
+Column6 = ROC1;
+Column6Name = "Roc1";
+Column7 = ROC21;
+Column7Name = "Roc21";
+
+drawdown = - (1 - ((Close) / HHV(Close,10))) * 100;
+Column8 = drawdown;
+Column8Name = "10d DD";
+
+BuyCond = IIf(Close >= HHV(Close, 22),1,0);// AND MA(C,65)>Ref(MA(C,65),-1);//
+SellCond = IIf(LLV(Close, 11) >= Close,1,0);
+Column9 = BuyCond;
+Column9Name = "BuyCond";
+Column10 = SellCond;
+Column10Name = "SellCond";
+
+
+
+/*Calculate Headsup `Score*/;
+Score = IIf((FastStoc - 50)>0,1,0)  //Signal for RSI/Stochastics 50//
+      + IIf((FastStoc - 65)>0,1,0)  //Signal for RSI/Stochastics 65//
+      + IIf(mocon>0,1,0)          //RSI/Stochastics momentum for last 6 days//
+      + IIf(OscGain>0,1,0)         //Signal for trend of stock's price oscillator//
+      + IIf(fam30pct>0,1,0)       //Signal for stock vs. its 30-Day average//
+      + IIf(BuyCond>0,1,0);     //stocks that are on A Turtle Buy Signal//
+Column11 = Score;
+Column11Name = "Score";
+
+//Buy = Score > 5;
+//Sell = Score < 5;
+Buy=Cross(Score,1);
+Sell=Cross(5,Score);
+
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);

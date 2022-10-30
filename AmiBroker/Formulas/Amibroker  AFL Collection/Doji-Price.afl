@@ -1,0 +1,28 @@
+//****************************************//
+// Author: doji@chartreader.co.in
+// Web: http://www.chartreader.co.in/
+//****************************************//
+
+_N(Title = StrFormat(EncodeColor( colorGold) + "{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+// Background to suit my blog
+SetChartBkColor(ColorRGB(23,23,23));
+
+// Display line chart for tick data automatically
+priceStyle = IIf( (Interval(0) == -900), styleLine, styleBar);
+
+// Quick counting of bars by range selector
+if (BeginValue(BarIndex()) != 0 AND EndValue(BarIndex()) != BarCount-1) {
+    range = EndValue(BarIndex())-BeginValue(BarIndex());
+    Title += StrFormat("\nRange Bars: %g", range);
+}
+
+CandleBorder = ParamColor("Candle Border Color", colorBlack );
+UpCandleColor = ParamColor("Up Candle Color", colorGreen );
+DownCandleColor = ParamColor("Down Candle Color", colorRed );
+
+// set amibroker to display colored bars
+Graph0BarColor = IIf( C > O,UpCandleColor ,DownCandleColor);
+
+Plot( C, "Close", CandleBorder, styleNoTitle | ParamStyle("Style") | priceStyle );

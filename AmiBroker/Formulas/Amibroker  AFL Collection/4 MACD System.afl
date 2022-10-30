@@ -1,0 +1,34 @@
+    /*  Ken's Challenge = 4MACD*/
+
+//=Red===================
+Gr1 = MACD(17,7);
+Gr2 = Signal(17,7,5);
+Diffr = Gr1-Gr2;
+Plot((LastValue(Highest(diffr))/LastValue(Highest(diffr)))
+*Diffr,"Diff",colorRed,2+4);
+
+//=Green===================
+Gr1 = MACD(5,13);
+Gr2 = Signal(5,13,5);
+Diffg = Gr1-Gr2;
+Plot((LastValue(Highest(diffr))/LastValue(Highest(diffg)))
+*Diffg,"Diff",colorBrightGreen,2+4);
+
+//=Blue===================
+Gr1 = MACD(17,14);
+Gr2 = Signal(17,14,5);
+Diffb = Gr1-Gr2;
+Plot((LastValue(Highest(diffr))/LastValue(Highest(diffb)))
+*Diffb,"Diff",colorBlue,2+4);
+
+//=Yellow===================
+Gr1 = MACD(12,18);
+Gr2 = Signal(12,18,4);
+Diffy = Gr1-Gr2;
+Plot((LastValue(Highest(diffr))/LastValue(Highest(diffy)))
+*Diffy,"Diff",colorYellow,2+4);
+
+Plot(0,"",7,4);
+GraphXSpace=5;
+
+// END CODE From: "wwbarnard_1999" <wbarnard@cox.net>

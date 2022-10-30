@@ -1,0 +1,248 @@
+/*
+You are not allowed to change or share this AFL
+It belongs to me...BILL ROUSE
+*/
+
+_SECTION_BEGIN("Pulse");
+si=Param("Zoom/In Out",5,-50,100,1);
+GraphXSpace=si;  
+
+r1 = Param( "ColorFast avg", 2, 2, 200, 1 );
+r2 = Param( "ColorSlow avg", 13, 2, 200, 1 );
+r3 = Param( "ColorSignal avg", 5, 2, 200, 1 );
+
+m1=MACD(r1,r2);
+s1=Signal(r1,r2,r3);
+mycolor=IIf(m1<0 AND m1>s1, colorPink,IIf(m1>0 AND m1>s1,colorAqua,IIf(m1>0 AND m1<s1,colorBlue,colorRed)));
+
+flowerClose = EMA((Open+High+Low+Close)/4,3) ;
+flowerOpen = EMA((Ref(Open,-1) + Ref(flowerClose,-1))/2,3);
+Temp = Max(High, flowerOpen);
+flowerHigh = EMA(Max(Temp, flowerClose),3);
+Temp = Min(Low,flowerOpen);
+flowerLow = EMA(Min(Temp, flowerClose),3);
+barColor=IIf(Close>Open,ColorRGB(0,245,0),ColorRGB(255,0,0));
+
+Ctmpl = E_TSKPCOLORTMPL(Open,High,Low,Close,Volume);
+total = 0;
+total = total  + IIf(tskp_colortmplcnd0 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd1 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd2 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd3 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd4 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd5 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd6 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd7 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd8 > 0, 1, -1); 
+
+
+for( i = 0; i < BarCount; i++ ) 
+
+{   if( total[i] >= 5 )
+		Color[i] = colorBlue;
+	else if(  total[i] <= -5 )
+		Color[i] = colorRed;
+	else
+		Color[i] = colorLightGrey; } 
+
+////////////////////////
+////////////////////////
+///Replace this below with code further below
+Candle=ParamList("Candle","Modified Heikin Ashi,Modified Candlestick,Normal Candlestick",1);
+if(Candle=="Modified Candlestick")
+{ColorHighliter = myColor;
+SetBarFillColor( ColorHighliter );
+Plot (Close," Modified Candlestick", Color,ParamStyle( "Style", styleCandle|styleLine | styleThick , maskAll)); }
+////////////////////////////
+///all this below removes
+if(Candle=="Modified Heikin Ashi"){ 
+ColorHighliter = myColor;
+SetBarFillColor( ColorHighliter );
+PlotOHLC( IIf(flowerOpen<flowerClose, flowerOpen, flowerClose),flowerHigh,flowerLow,IIf(flowerOpen<flowerClose, flowerClose, flowerOpen), "Modified Heikin Ashi", Color, styleCandle|styleLine);}
+if(Candle=="Normal Candlestick")
+{PlotOHLC(O,H,L,C,"Normal Candlestick",barcolor,styleCandle|styleLine);}
+///////////////////////
+///////////////////////
+/* Insert code below and /// hash out the rest for just modified candles
+
+Candle="Modified Candlestick";
+if(Candle=="Modified Candlestick")
+{ColorHighliter = myColor;
+SetBarFillColor( ColorHighliter );
+Plot (Close,"- Modified Candlestick", Color,ParamStyle( "Style", styleCandle|styleLine | styleThick , maskAll)); }
+*/
+
+_SECTION_END();
+
+_SECTION_BEGIN("SMA");
+
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 20, 2, 300, 1, 10 );
+Plot( MA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorGrey50 ), ParamStyle("Style"),styleDashed  | styleNoLabel); 
+
+_SECTION_END();
+
+_SECTION_BEGIN( "Lookback trigger" );
+Lb = Param("Look-Back Periods?",8,2,10,1);
+HLd = IIf(Close>Ref(MA(H,Lb),-1),1,IIf(Close<Ref(MA(L,Lb),-1),-1,0));
+HLv = ValueWhen(HLd!=0,HLd,1);
+HiLo = IIf(HLv==-1,MA(H,Lb),MA(L,Lb));
+Plot(HiLo, "Lookback trigger", colorYellow, styleThick+styleDashed |styleNoLabel);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Fib_Levels");
+
+
+StartBar=SelectedValue(BarIndex());
+FinishBar = EndValue( BarIndex() );
+i = startbar;
+period = FinishBar - StartBar;
+
+Lo =LLV(L,period);
+Hi = HHV(H,period);
+Line0 = 0;
+Line1 = 0;
+Line2 = 0;
+Line3 = 0;
+Line4= 0;
+Line5= 0;
+Line6= 0;
+Line100 = 0;
+
+for( i = startbar; i < finishbar; i++ )
+{
+if(EndValue(C)<SelectedValue(C))
+{
+Line0  = EndValue(Lo);
+Line100 = EndValue(Hi);
+Line1 = Line0 + abs(Line100-Line0)*0.236;
+Line2 = Line0 + abs(Line100-Line0)*0.382;
+Line3 = Line0 + abs(Line100-Line0)*0.5;
+Line4 = Line0 + abs(Line100-Line0)*0.618;
+Line5 = Line0 + abs(Line100-Line0)*0.764;
+Line6 = Line0 - abs(Line100-Line0)*0.382;
+
+}
+else
+{
+Line100  = EndValue(Lo);
+Line0 = EndValue(Hi);
+Line1 =Line0 - abs(Line100-Line0)*0.236;
+Line2 = Line0 - abs(Line100-Line0)*0.382;
+Line3 = Line0 - abs(Line100-Line0)*0.5;
+Line4 = Line0 - abs(Line100-Line0)*0.618;
+Line5 = Line0 - abs(Line100-Line0)*0.764;
+Line6 = Line0 + abs(Line100-Line0)*0.382;
+}
+}
+
+
+fib0= LineArray(startbar, Line0, finishbar, Line0, 0, 1);
+fib100 = LineArray(startbar, Line100, finishbar, Line100, 0, 1);
+
+
+n= round((finishbar-startbar)/2);
+
+
+fib1= LineArray((finishbar-n), Line1, finishbar, Line1, 0, 1);
+fib2= LineArray((finishbar-n), Line2, finishbar, Line2, 0, 1);
+fib3= LineArray((finishbar-n), Line3, finishbar, Line3, 0, 1);
+fib4= LineArray((finishbar-n), Line4, finishbar, Line4, 0, 1);
+fib5= LineArray((finishbar-n), Line5, finishbar, Line5, 0, 1);
+fib6= LineArray((finishbar-n), Line6, finishbar, Line6, 0, 1);
+
+Plot(fib0,"", colorBrightGreen,styleLine+styleDashed | styleNoLabel);
+Plot(fib100,"", colorWhite,styleLine+styleDashed  | styleNoLabel);
+Plot(fib1,"", colorYellow,styleLine+styleDashed | styleNoLabel);
+Plot(fib2,"", colorTurquoise,styleLine+styleDashed | styleNoLabel);
+Plot(fib3,"", colorRed,styleLine+styleDashed | styleNoLabel);
+Plot(fib4,"", colorCustom1,styleLine+styleDashed | styleNoLabel);
+Plot(fib5,"", colorPink,styleLine+styleDashed | styleNoLabel);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Bollinger Band cloud");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 20, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorDarkGreen | styleNoLabel);
+Style = ParamStyle("Style", styleDashed | styleNoLabel);
+Plot( bbt = BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), colorGrey50, styleDashed | styleNoLabel ); 
+Plot( bbb = BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), colorGrey50, styleDashed | styleNoLabel ); 
+PlotOHLC( bbt, bbt, bbb, bbb, "", ColorBlend( Color, colorGrey40, 0.9 ), styleCloud | styleNoLabel  | styleNoRescale, Null, Null, Null, -1 );
+_SECTION_END();
+
+_SECTION_BEGIN("BB Signals");
+Sell=Cross(P,BBandTop( P, Periods, Width ));
+Buy=Cross(P,BBandBot( P, Periods, Width ));
+PlotShapes(IIf(Sell, shapeHollowStar , shapeNone), colorRed, 0, High, Offset=20);
+PlotShapes(IIf(Buy, shapeHollowStar , shapeNone), colorBrightGreen, 0, Low, Offset=-20);
+_SECTION_END();
+
+_SECTION_BEGIN("EMA cloud");
+period1=Param("fast",5,1,50,1);
+period2=Param("slow",8,2,60,1);
+
+MA1=EMA(C,period1);
+MA2=EMA(C,period2);
+maincolor = IIf(MA1 < MA2, colorRed, IIf(MA1 > MA2, colorBrightGreen, 0 | styleNoLabel ));
+submaincolor = IIf(MA1 < MA2, colorWhite, IIf(MA1 > MA2, colorGold, 0 | styleNoLabel )); 
+shadowcolor = IIf(MA1 < MA2, ColorRGB (166, 0, 0), IIf(MA1 > MA2, ColorRGB (50, 128, 128), 0 | styleNoLabel )); 
+
+Buy=Cover=Cross(MA1,MA2);
+Sell=Short=Cross(MA2,MA1);
+
+//Plot(MA1,"exponential moving average1",maincolor+styleNoLabel);
+//Plot(MA2,"exponential moving average2",submaincolor | styleNoLabel);
+PlotOHLC( O, MA1, MA2, C , _DEFAULT_NAME(), shadowcolor, styleCloud+styleNoLabel);
+
+//PlotShapes(shapeUpArrow*Buy,colorGreen,0,MA1,12); //selalu dibuat untuk membentuk tanda
+//PlotShapes(shapeDownArrow*Sell,colorRed,0,MA2,12);
+//PlotShapes(IIf(Buy, shapeHollowUpTriangle, shapeNone), colorBrightGreen, 0,Low, Offset=-50);
+//AlertIf( Buy, "SOUND C:\\Windows\\Media\\Ding.wav", "Audio alert", 2 );
+_SECTION_END();
+
+_SECTION_BEGIN("SMA Cloud");
+period1=Param("slow",8,1,50,1);
+period2=Param("fast",13,2,60,1);
+
+MA1=MA(C,period1);
+MA2=MA(C,period2);
+maincolor = IIf(MA1 < MA2, colorRed, IIf(MA1 > MA2, colorBrightGreen, 0 | styleNoLabel ));
+submaincolor = IIf(MA1 < MA2, colorWhite, IIf(MA1 > MA2, colorGold, 0 | styleNoLabel )); 
+shadowcolor = IIf(MA1 < MA2, ColorRGB (90, 1, 66), IIf(MA1 > MA2, ColorRGB (31, 80, 80), 0 | styleNoLabel )); 
+
+Buy=Cover=Cross(MA1,MA2);
+Sell=Short=Cross(MA2,MA1);
+
+//Plot(MA1,"exponential moving average1",maincolor+styleNoLabel);
+//Plot(MA2,"exponential moving average2",submaincolor | styleNoLabel);
+PlotOHLC( O, MA1, MA2, C , _DEFAULT_NAME(), shadowcolor, styleCloud+styleNoLabel);
+
+//PlotShapes(shapeUpArrow*Buy,colorGreen,0,MA1,12); //selalu dibuat untuk membentuk tanda
+//PlotShapes(shapeDownArrow*Sell,colorRed,0,MA2,12);
+//PlotShapes(IIf(Buy, shapeHollowUpTriangle, shapeNone), colorBrightGreen, 0,Low, Offset=-50);
+//AlertIf( Buy, "SOUND C:\\Windows\\Media\\Ding.wav", "Audio alert", 2 );
+_SECTION_END();
+
+_SECTION_BEGIN("Chart Settings");
+
+	SetChartOptions(0,chartShowArrows|chartShowDates);
+	SetChartBkColor(ParamColor("Outer Panel",colorDarkGrey));
+	SetChartBkGradientFill(ParamColor("Upper Chart",ColorRGB (56, 64, 65)),ParamColor("Lower Chart",ColorRGB (81, 95, 96)));
+	GraphXSpace=Param("GraphXSpace",10,0,100,1);
+	dec = (Param("Decimals",2,0,7,1)/10)+1;
+	bi = BarIndex();
+	Lbi = LastValue(BarIndex());
+	sbi = SelectedValue(bi);
+	x1= BarCount-1;
+Title = EncodeColor(55)+  Title = Name () + "     " + EncodeColor(32) + Date() +
+"      " + EncodeColor(5) + "{{INTERVAL}}  " +
+	EncodeColor(55)+ "     Open = "+ EncodeColor(52)+ WriteVal(O,dec) + 
+	EncodeColor(55)+ "     High = "+ EncodeColor(5) + WriteVal(H,dec) +
+	EncodeColor(55)+ "      Low = "+ EncodeColor(32)+ WriteVal(L,dec) + 
+	EncodeColor(55)+ "    Close = "+ EncodeColor(52)+ WriteVal(C,dec)+
+	EncodeColor(55)+ "    Volume = "+ EncodeColor(52)+ WriteVal(V,1);
+
+_SECTION_END(); 

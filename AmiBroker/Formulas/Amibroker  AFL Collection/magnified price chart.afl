@@ -1,0 +1,23 @@
+ s1=V/TimeNum();
+ S2=MA(V,30);
+ S10=H;
+ S13=L;
+ S14=H-L;
+ S15=C;
+ S16=C-O;
+ S17=(S16*100)/O;
+ radius = 0.45 * Status("pxheight");
+ textoffset = 2.4 * radius;
+ GfxSelectFont("Tahoma", 15 );//default 12
+ GfxSetTextColor( colorBlue );
+ //GfxTextOut( "Time= " +s4, textoffset + 25, 10 );//default 520
+ GfxTextOut(Date() ,textoffset +50,0 );
+ GfxSetTextColor( colorBlue );
+ GfxTextOut( "YELLOW ARROW = " + (S2), textoffset + 25, 30 ); 
+
+ GfxTextOut( "High =" + (S10), textoffset + -650, 280 );
+ GfxTextOut( "*Low =" + (S13), textoffset + -650, 340 );
+ GfxTextOut( "*RANGE =" + (S14), textoffset + -650, 390 );
+ GfxTextOut( "*Close =" + (S15), textoffset + -650, 240 );
+ GfxTextOut( "*Change =" + (S16), textoffset + -650, 420 );
+ GfxTextOut( "*%Change =" + (S17), textoffset + -650, 440 );

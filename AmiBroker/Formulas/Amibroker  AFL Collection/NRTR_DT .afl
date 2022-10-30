@@ -1,0 +1,62 @@
+// NRTR_DT 
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}}    ** 
+"+"{{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+
+EnableScript("vbscript"); 
+M = Param("m",10,1,20,1); //10
+M1=Optimize("m1",1,0.10,30,0.10);
+<% 
+
+Low = AFL("Low") 
+dim revers() 
+redim revers(UBound(Low)) 
+
+
+function NRTR(Low, High, M) 
+
+
+for i = 0 to UBound( Low ) 
+if Trend >= 0 then ' Up Trend 
+if High(i) > HPrice then 
+HPrice = High(i) 
+end if 
+Revers(i) = HPrice*(1 - M*.01) 
+if Low(i) < revers(i) then 
+Trend = -1 
+LPrice = Low(i) 
+Revers(i) = LPrice*(1 + M*.01) 
+end if 
+end if 
+if Trend <= 0 then ' DownTrend 
+if Low(i) < LPrice then 
+LPrice = Low(i) 
+end if 
+Revers(i) = LPrice*(1 + M*.01) 
+if High(i) >= Revers(i) Then 
+Trend = 1 
+HPrice = High(i) 
+Revers(i) = HPrice*(1 - M*.01) 
+end if 
+end if 
+next 
+
+NRTR = Revers 
+end function 
+
+%> 
+
+script = GetScriptObject(); 
+
+Plot(script.NRTR(Low, High, M), "NRTR_DT", 4, 1); 
+COL=IIf(C>script.NRTR(Low, High, M),colorBlue,colorRed);
+Plot( C, "Price ",col ,styleBar | styleThick ); 
+Buy=Cover=Cross(C,script.NRTR(Low, High, M));
+Sell=Short=Cross(script.NRTR(Low, High, M),C);
+//Buy=ExRem(Buy,Sell);Sell=ExRem(Sell,Buy);
+PlotShapes((Buy*1)+(Sell*2),IIf(Buy,colorGreen,colorRed) ); 
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+
+Filter=Buy OR Sell;
+AddColumn(C,"close");
+AddColumn(Buy,"buy");
+AddColumn(Sell,"sell");

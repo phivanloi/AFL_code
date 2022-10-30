@@ -1,0 +1,18 @@
+_SECTION_BEGIN("macd rsi");
+EMA3 = EMA(RSI(14),3);
+ema27 = EMA(RSI(14),27);
+
+diff = ema3-EMA27;
+Col_rsi = IIf (EMA(diff,Param("short ema",5,1,20,1)) > Ref(EMA(diff,Param("short ema",5,1,20,1)),-1),colorBlue,colorRed);
+Plot (EMA(diff,Param("short ema",1,1,20,1)),"diff in rsi3",colorYellow,styleThick);
+Plot (EMA(diff,Param("fast ema",5,1,50,1)),"diff in rsi5",Col_rsi,styleThick);
+Plot (0,"",colorWhite,styleThick);
+
+Buy = Cross (EMA(diff,Param("short ema",3,1,20,1)),EMA(diff,Param("fast ema",5,1,50,1)));
+Sell = Cross (EMA(diff,Param("fast ema",5,1,50,1)), EMA(diff,Param("short ema",3,1,20,1)));
+Short = Sell;
+Cover = Buy;
+
+PlotShapes (shapeUpTriangle*Buy,colorYellow);
+PlotShapes (shapeDownTriangle*Sell,colorYellow);
+_SECTION_END();

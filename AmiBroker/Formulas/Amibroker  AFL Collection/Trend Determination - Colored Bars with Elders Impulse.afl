@@ -1,0 +1,83 @@
+GraphXSpace = 5;
+
+_SECTION_BEGIN("Current Trend");
+smap = Param("SMA Length", 9,5,20,1);
+WMAp = Param("WMA Length", 45,9,75,1);
+rpds = Param("RSI Length", 14,3,50,1);
+
+/*
+smap = Optimize("SMA Length", 9,5,20,1);
+WMAp = Optimize("WMA Length", 45,9,75,1);
+rpds = Optimize("RSI Length", 14,3,50,1);
+*/
+
+p1 = MA( C, smap); //9-period on price (MA)
+p2 = WMA( C, WMAp); //45-period on price (WMA)
+
+r1 = MA( RSI(rpds), smap); //9-period on RSI (MA)
+r2 = WMA( RSI(rpds), WMAp); //45-Period on RSI (WMA)
+
+up = p1 > p2 AND r1 > r2; //trend is up
+dn = p1 < p2 AND r1 < r2; //trend is down
+sup = p1 > p2 AND r1 < r2; //trend is sideways to up
+sdn = p1 < p2 AND r1 > r2; //trend is sideways to down
+
+"Currend TREND is:";
+t = 
+WriteIf(up, "UP",
+WriteIf(dn, "DOWN",
+WriteIf(sup, "SIDEWAYS TO UP",
+WriteIf(sdn, "SIDEWAYS TO DOWN",
+""))));
+
+Color = IIf(up, colorLime, IIf(dn, colorRed, IIf(sup, colorLightBlue, IIf(sdn, colorOrange, 0))));
+
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );
+_N( Title = StrFormat( "{{NAME}} - " + SectorID( 1 ) + " - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", color, styleBar | styleNoTitle | ParamStyle( "Style" ) | GetPriceStyle() );
+
+if ( ParamToggle( "Tooltip shows", "All Values|Only Prices" ) )
+{
+    ToolTip = StrFormat( "Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: " + NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 ) ) );
+}
+
+Plot(MA(C,9), "MA(9)", colorLime, styleDashed);
+Plot(WMA(C,45), "WMA(45)", colorRed, styleDashed);
+Plot(MA(C,50), "MA(50)", colorGreen, styleThick);
+Plot(MA(C,200), "MA(200)", colorRed, styleThick);
+_SECTION_END();
+
+_SECTION_BEGIN("Elders Impulse");
+macShort = Param("MACD Short MA",12,1,100,1);
+macLong = Param("MACD Long MA",26,1,100,1);
+macSmooth = Param("MACD Smoothing Period",9,1,100,1);
+EMAp = Param("Short EMA",13,1,40,1);
+macTime = Param("Time Ratio",1,22,1);
+macShort = macShort*macTime;
+macLong = macLong*macTime;
+macSmooth = macSmooth*macTime;
+EMAvg = EMAp*MacTime;
+//{ do long impulse next }
+mac = EMA(C,macShort)-EMA(C,macLong);
+MacSig = EMA(mac,macSmooth);
+macplot = (mac-MacSig);
+impulse = IIf(macplot >= Ref(macplot,-macTime), 1,0)+IIf(Close > EMA(Close,EMAp),1,0)-1;
+
+//Plot(impulse, "", colorRed);
+//PlotGrid(0, colorLightGrey);
+
+a = IIf(impulse>0,1,0);  //{ Buy OK}
+b = IIf(impulse<0,1,0);  //{ Sell OK}
+state=IIf(BarsSince(a)<BarsSince(b),1,0);
+
+Longs=state==1;
+shorts=state==0;
+
+
+Buy = state>Ref(state,-1);
+Sell = state<Ref(state,-1);
+
+PlotShapes( IIf(Buy, shapeSmallCircle,0) , colorLime,0,L,-10);
+PlotShapes( IIf(Sell, shapeSmallCircle,0) , colorOrange,0,H,10);
+_SECTION_END();
+

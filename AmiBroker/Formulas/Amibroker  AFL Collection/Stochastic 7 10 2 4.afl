@@ -1,0 +1,13 @@
+
+periods = Param( "Periods", 15, 1, 200, 1 );
+K1smooth = Param( "%K1 avg", 3, 1, 200, 1 );
+D1smooth = Param( "%D1 avg", 4, 1, 200, 0.1 );
+
+ 
+A = StochK( periods , K1smooth);
+B = StochD( periods , K1smooth, D1Smooth );
+
+
+PlotOHLC( O, H , L , C , "close", IIf(a > 80, colorDarkRed, IIf(a < 20, colorDarkGreen,IIf(A>B,colorBrightGreen,colorRed))), styleCandle | styleNoLabel);
+
+_SECTION_END();

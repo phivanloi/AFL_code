@@ -1,0 +1,75 @@
+GraphXSpace = 5;
+GraphZOrder = 1;
+_SECTION_BEGIN( "Price" );
+color = IIf( C > O, colorAqua, colorOrange);
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartWrapTitle );
+_N( Title = StrFormat( "{{NAME}} - " + SectorID( 1 ) + " - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", color, styleCandle | styleNoTitle | ParamStyle( "Style" ) | GetPriceStyle() );
+
+if ( ParamToggle( "Tooltip shows", "All Values|Only Prices" ) )
+{
+    ToolTip = StrFormat( "Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: " + NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 ) ) );
+}
+
+_SECTION_END();
+
+_SECTION_BEGIN("Principal Moving Average");
+x = MA(C, 20);
+Plot(x, "", /*IIf(x > Ref(x,-1), colorGreen, colorRed)*/ colorRed, styleThick | styleDashed);
+_SECTION_END();
+
+_SECTION_BEGIN("Phase");
+RCP = C > MA(C,50) AND MA(C,50) < MA(C,200); // Recovery
+ACP = C > MA(C,50) AND C > MA(C,200) AND MA(C,50) < MA(C,200); // Accumulation
+BLP = C > MA(C,50) AND C > MA(C,200) AND MA(C,50) > MA(C,200); // Bullish
+WRP = C < MA(C,50) AND MA(C,50) > MA(C,200); // Warning
+DSP = C < MA(C,50) AND C < MA(C,200) AND MA(C,50) > MA(C,200); // Distribution
+BRP = C < MA(C,50) AND C < MA(C,200) AND MA(C,50) < MA(C,200); // Bearish
+
+Plot( 1, "", IIf(RCP, colorBlue, IIf(ACP, colorSeaGreen, IIf(BLP, colorDarkGreen, IIf(WRP, colorOrange, IIf(DSP, colorRed, IIf(BRP, colorDarkRed, 0)))))), styleOwnScale|styleArea|styleNoLabel, -0.1, 50 );
+"";
+"PHASE:";
+Phase = WriteIf(RCP, "Recovery",
+WriteIf(ACP, "Accumulation",
+WriteIf(BLP, "Bullish",
+WriteIf(WRP, "Warning",
+WriteIf(DSP, "Distribution",
+WriteIf(BRP, "Bearish",
+""))))));
+_SECTION_END();
+
+_SECTION_BEGIN("T3");
+#include <T3_include.afl>;
+Plot(T3(C,3),"T3",colorRed);
+Plot(T3(C,5),"T5",colorLightBlue);
+Plot(T3(C,8),"T8",colorLime);
+_SECTION_END();
+
+_SECTION_BEGIN("Sup / Res Lines");
+SRswitch = ParamToggle("Sup / Res Lines","On,Off");
+CHLswitch = ParamToggle("Hi Low / Close","Hi Low,Close");
+NoLines = Param("No of Lines",3,1,10,1);
+Sen = Param("Sensitivity",5,1,100,1);
+
+Rcolor=ParamColor( "Res Color", colorGreen );
+Rstyle=ParamStyle( "Res Style", styleLine );
+
+Scolor=ParamColor( "Sup Color", colorBrown );
+Sstyle=ParamStyle( "Sup Style", styleLine );
+
+y=0;
+x=0;
+
+for( i = 1; i < NoLines+1 ; i++ )
+{
+Y[i]=LastValue(Peak(IIf(CHLswitch,C,H),Sen,i));
+x[i]=BarCount - 1 - LastValue(PeakBars(IIf(CHLswitch,C,H),Sen,i));
+Line = LineArray( x[i], y[i], Null, y[i], 1 );
+Plot( IIf(SRswitch,Null,Line), "", Rcolor, Rstyle );
+
+Y[i]=LastValue(Trough(IIf(CHLswitch,C,L),Sen,i));
+x[i]=BarCount - 1 - LastValue(TroughBars(IIf(CHLswitch,C,L),Sen,i));
+Line = LineArray( x[i], y[i], Null, y[i], 1 );
+Plot( IIf(SRswitch,Null,Line), "", Scolor, Sstyle );
+}
+_SECTION_END();

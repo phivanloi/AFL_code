@@ -1,0 +1,173 @@
+
+/////////////////Optimize////////////////////
+x = Optimize("B", 20, 1, 30, 1 );
+y = Optimize("S", 20, 1, 30, 1 );
+z = Optimize("L", 30, 2, 100, 2 );
+
+
+/////////////////PercentR////////////////////
+function PercentR( periods )
+{
+ return -100 * ( HHV( H, periods ) - C )/( HHV( H, periods ) - LLV( L, periods ) ); 
+}
+
+/////////////////TrendScore ////////////////////
+TrendScore =
+IIf(C>=Ref(C,-11),1,-1)+
+IIf(C>=Ref(C,-12),1,-1)+
+IIf(C>=Ref(C,-13),1,-1)+
+IIf(C>=Ref(C,-14),1,-1)+
+IIf(C>=Ref(C,-15),1,-1)+
+IIf(C>=Ref(C,-16),1,-1)+
+IIf(C>=Ref(C,-17),1,-1)+
+IIf(C>=Ref(C,-18),1,-1)+
+IIf(C>=Ref(C,-19),1,-1)+
+IIf(C>=Ref(C,-20),1,-1);
+
+/////////////////AROON////////////////////
+
+Period = 14;
+LLVBarsSince = LLVBars(L, Period) + 1;
+HHVBarsSince = HHVBars(H, Period) + 1;
+
+AroonDn = 100 * (Period - LLVBarsSince) / (Period - 1);
+AroonUp   = 100 * (Period - HHVBarsSince) / (Period - 1);
+
+
+
+/////////////////Basic////////////////////
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleLine); 
+_SECTION_END();
+
+_SECTION_BEGIN("EMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 7, 2, 200, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+_SECTION_BEGIN("EMA2");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 200, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+
+_SECTION_BEGIN("EMA1");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 200, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Percent Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 100, 1 );
+Width = Param("Width%", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+CenterLine = EMA( P, Periods );
+Plot( (1 + Width * 0.01) * CenterLine, "%EnvTop" + _PARAM_VALUES(), Color, Style ); 
+Plot( (1 - Width * 0.01) * CenterLine, "%EnvBot" + _PARAM_VALUES(), Color, Style ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Percent Bands1");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 100, 1 );
+Width = Param("Width%", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+CenterLine = EMA( P, Periods );
+Plot( (1 + Width * 0.01) * CenterLine, "%EnvTop" + _PARAM_VALUES(), Color, Style ); 
+Plot( (1 - Width * 0.01) * CenterLine, "%EnvBot" + _PARAM_VALUES(), Color, Style ); 
+_SECTION_END();
+
+_SECTION_BEGIN("EMA3");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 200, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+_SECTION_BEGIN("EMA4");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 200, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+
+
+/////////////////Twiggs Money Flow////////////////////
+
+periods = Param( "Periods", 21, 5, 200, 1 );
+TRH=Max(Ref(C,-1),H);
+TRL=Min(Ref(C,-1),L);
+TR=TRH-TRL; 
+ADV=V*((C-TRL)-(TRH-C))/ IIf(TR==0,9999999,TR);
+WV=V+(Ref(V,-1)*0);
+SmV= Wilders(WV,periods);
+SmA= Wilders(ADV,periods);
+
+TMF= IIf(SmV==0,0,SmA/SmV);
+
+
+
+
+///////////////////////////Buy/////////////////////////////////
+
+//PositionSize=1500;
+
+Buy=IIf((ADX(14)>20 AND ADX(14)>Ref(ADX(14),-1)) OR V>EMA(V,20)
+,EMA(C,5)>EMA(C,63) AND EMA(C,63)>Ref(EMA(C,63),-1) 
+AND Close>Open 
+//AND C>1 AND EMA(V,20)*EMA(C,20)>50000
+AND AroonUp>70
+//AND TMF>0
+AND TSF(percentR(14),30)>-50
+AND trendscore>5,0);
+ 
+
+
+///////////////////////////Sell/////////////////////////////////
+
+Sell=IIf ((ADX(14)>20 AND ADX(14)>Ref(ADX(14),-1)) OR V>EMA(V,20),
+C<EMA(C,30) 
+//AND Close<Open
+//AND EMA(percentR(14),30)<-50
+//AND trendscore<-5
+AND TMF<0 //OR (TMF>0 AND C<0.97*EMA(C,30))
+AND AroonDn>70
+,(EMA(C,5)<0.97*EMA(C,63)) 
+//AND Close<Open
+//AND EMA(percentR(14),30)<-50
+//AND AroonDn>70
+//AND TMF<0
+
+//AND trendscore<-5
+)
+;
+
+
+Buy = ExRem( Buy, Sell );
+Sell = ExRem( Sell, Buy );
+	
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ), 0, IIf( Buy, Low, High ) );
+//GraphXSpace = 105;
+
+
+
+
+///////////////////////////Filter/////////////////////////////////
+
+Filter=C>5;
+//EMA(V,20)*EMA(C,20)>50000;
+
+AddColumn( ADX(14), "ADX", 1.2 );
+AddColumn( C, "C", 1.2 );
+AddColumn( V, "V", 1.2 );
+AddColumn( EMA(V,20), "EMAV20", 1.2 );
+AddColumn( EMA(V,20)*EMA(C,20), "V*C", 1.2 );
+

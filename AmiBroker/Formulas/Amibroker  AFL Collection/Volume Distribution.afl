@@ -1,0 +1,39 @@
+Volume is NOT equally distributed for various oscillator levels.
+The traders may prefer the O/B AND/OR O/S regions to Buy/Sell more shares.
+The following AFL code will give the details. 
+
+// Volume distribution for oscillators , by D. Tsokakis, March2005
+SetBarsRequired ( 10000 , 0 ) ;
+per = Param ( "per" , 10 , 10 , 100 , 10 ) ; // Set the oscillator period
+x = Param ( "x" , 1 , 1 , 2 , 1 ) ; // Set x = 1 for StochD ( )  and  x = 2 for RSI ( ) 
+Color = IIf ( x == 1 , colorPink , colorLightBlue ) ;
+C1 = IIf ( x == 1 , StochD ( per ) , RSI ( per ) ) ;
+nC1 = WriteIf ( x == 1 , "StochD(" , "RSI(" ) ;
+Plot( 0 , "" , 1 , 1 ) ;
+Plot ( 100 , "" , 1 , 1 ) ;
+Plot ( C1 , "" , 1 , 8 ) ;
+S = Status ( "BARVISIBLE" ) ;
+S1 = Cum ( S ) ;
+SL1 = LastValue ( S1 ) ;
+Title = Name ( ) ;
+STEP = 5 ; // step calibration
+m = 0 ;
+D = 0 ;
+TV = LastValue ( Cum ( S * V / 10^6 ) ) * 0.05 ;
+for ( G = 0 ; G < 100 ; G = G + STEP )
+{
+VAP = LastValue ( Cum ( S * ( C1 >= G AND C1 < G + STEP ) * V / 10^6 ) ) ;
+LINE = IIf ( S1 >= 1 AND S1 < SL1 * VAP / ( 10 * TV ) , G , Null ) ;
+Plot ( LINE , "" , Color , 8 ) ;
+if ( Vap > m )
+{
+m = VAP ;
+D = G ;
+}
+}
+Plot( 50 , "" , 1 , styleDashed ) ;
+Title = Title + ", The Volume for the last " + WriteVal ( SL1 / 5 , 1.0 ) + " weeks was Max when the " + nC1 + WriteVal (per , 1.0 ) + ") was between " + WriteVal ( D , 1.0 ) + " and " + WriteVal ( D + step , 1.0 ) ; 
+
+StochD ( )  AND RSI ( )  were used as oscillator examples.
+Any other [0 - 100 ] indicator may be used .
+The distribution is for the visible bars AND will change according to the zoom factor.

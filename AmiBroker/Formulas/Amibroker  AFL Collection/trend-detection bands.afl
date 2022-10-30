@@ -1,0 +1,66 @@
+_SECTION_BEGIN("_trend detection bands");
+
+BDay= Optimize("upper-lines",Param("upper-lines",7,1,28,1),1,21,1);//2
+SDay= Optimize("lower-lines",Param("lower-lines",7,1,28,1),1,21,1);//7
+
+Hc=(O+H+L+C)/4;
+
+Ho = AMA( Ref( Hc, -1 ), 0.5 );
+Hh = Max( H, Max( Hc, Ho ) );
+Hl = Min( L, Min( Hc, Ho ) );
+
+HHb = HHV(hH,Bday);
+HCb = HHV(hC,Bday);
+LLb = LLV(hL,Bday);
+LCb = LLV(hC,Bday);
+
+HHs = HHV(hH,Sday);
+HCs = HHV(hC,Sday);
+LLs = LLV(hL,Sday);
+LCs = LLV(hC,Sday);
+
+for( i = 1+Max(Bday,Sday); i < BarCount; i++ )
+{
+if ((HHb[i-1] - LCb[i-1]) >= (HCb[i-1] - LLb[i-1])) Buyrange[i] = HHb[i-1] - LCb[i-1];
+else
+Buyrange[i] = HCb[i-1] - LLb[i-1];
+
+if ((HHs[i-1] - LCs[i-1]) >= (HCs[i-1] - LLs[i-1])) Sellrange[i] = HHs[i-1] - 
+LCs[i-1];
+else
+Sellrange[i] = HCs[i-1] - LLs[i-1];
+};
+
+
+Band_TopSMOOTH=AMA( Ho+Buyrange, 0.5 );
+Band_BotSMOOTH=AMA( Ho-Sellrange, 0.5 );
+Band_MidSMOOTH=(Band_TopSMOOTH+Band_BotSMOOTH)/2;
+
+Band_Top=Ho+Buyrange;
+Band_Bot=Ho-Sellrange;
+Band_Mid=(Band_Top+Band_Bot)/2;
+
+BS = ParamToggle("bands smooth","No|Yes",0);
+BN = ParamToggle("bands normal","No|Yes",0);
+
+if (BS) Plot( Band_TopSMOOTH, " Band_TopSMOOTH ", IIf( Band_TopSMOOTH>Ref(Band_TopSMOOTH,-1),colorOrange, colorRed ));
+if (BS) Plot( Band_MidSMOOTH, " Band_MidSMOOTH ", IIf( Band_MidSMOOTH>Ref(Band_MidSMOOTH,-1),colorGreen, colorRed ));
+if (BS) Plot( Band_BotSMOOTH, " Band_BotSMOOTH ", IIf( Band_BotSMOOTH>Ref(Band_BotSMOOTH,-1),colorDarkGreen, colorGreen ));
+if (BS) Plot( 2, "ribbon", IIf( Band_MidSMOOTH>=Ref(Band_MidSMOOTH,-1), colorGreen, IIf( Band_MidSMOOTH<Ref(Band_MidSMOOTH,-1), colorRed, colorLavender 
+)), styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+
+
+
+if (BN)Plot( Band_Top, " Band_Top ", IIf( Band_Top>Ref(Band_Top,-1), colorOrange, colorRed ));
+if (BN) Plot( Band_Mid, " Band_Mid ", IIf( Band_Mid>Ref(Band_Mid,-1), colorGreen, colorRed ));
+if (BN) Plot( Band_Bot, " Band_Bot ", IIf( Band_Bot>Ref(Band_Bot,-1), colorDarkGreen, colorGreen ));
+if (BN) Plot( 3, "ribbon", IIf( Band_Mid>=Ref(Band_Mid,-1), colorGreen, IIf( Band_Mid<Ref(Band_Mid,-1), colorRed, colorLavender )), styleOwnScale|styleArea|styleNoLabel, 
+-0.5, 100 );
+
+_SECTION_END();
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

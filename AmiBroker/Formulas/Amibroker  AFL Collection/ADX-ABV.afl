@@ -1,0 +1,34 @@
+_SECTION_BEGIN("ABV");
+P1 = Param("Short Period",7,0,100,1);
+P2 = Param("Long Period",65,0,100,1);
+L1=Param("Threshold",4,2,10,1);
+U= MA(C,P1)-MA(C,P2);
+R=100*U/MA(C,P2);
+MyColor=IIf(R>L1, colorGreen,colorRed);
+//Plot( R,"ABV",Mycolor, styleLine);
+_SECTION_END();
+
+_SECTION_BEGIN("ADX");
+ap=Param("ADX Period",20,5,30,1);
+MyADX=ADX(ap);
+_SECTION_END();
+
+_SECTION_BEGIN("Trend Check");
+Len=Param("Length",10,1,30,1);
+dp=Param("Diff Period",20,5,50,1);
+Vs=ParamToggle("Select Indicator","ABV,ADX",0);
+if(Vs)
+	{
+	ta = MyADX;
+		}
+else
+	{
+	ta=R;
+	}
+EmaIndex=IIf(Len>0,2/(1+Len),0.20);
+Diff=HHV(ta,dp)-LLV(ta,dp);
+Myconst=IIf(Diff>0,(ta-LLV(ta,dp))/Diff,EMAIndex);
+Newconst=IIf( MyConst > EmaIndex , EmaIndex, MyConst); 
+y=AMA(C,Newconst);
+Plot(y,"Trend Check",colorGold);
+_SECTION_END();

@@ -1,0 +1,12 @@
+/* Create date: 07 Jan 2009
+The ADX of the current bar is greater than the ADX of 2 bars ago */
+
+Buy = ADX( 14 ) > Ref( ADX( 14 ), -2 )
+AND Ref( ADX( 14 ), -1 ) > Ref( ADX( 14 ), -3 )
+AND PDI() > Ref( PDI(), -1 )
+AND MACD( 12, 26 ) > Ref( MACD( 12, 26 ), -2 );
+
+Sell = ADX( 14 ) > Ref( ADX( 14 ), -2 )
+AND Ref( ADX( 14 ), -1 ) > Ref( ADX( 14 ), -3 )
+AND PDI() < Ref( PDI(), -1 )
+AND MACD( 12, 26 ) < Ref( MACD( 12, 26 ), -2 );

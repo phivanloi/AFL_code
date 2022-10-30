@@ -1,0 +1,42 @@
+z=Param("zig",0.4,0.01,3,0.01);
+Plot(C,"",colorLightGrey,styleBar);
+Plot( Zig(C, z), _DEFAULT_NAME(), colorYellow, styleLine );
+
+p=Peak(C,z,1);
+t=Trough(C,z,1);
+
+Buy=Cross(C,p)AND TimeNum()>100000 ;
+stop=ValueWhen(Buy,t,1);
+Entry=ValueWhen(Buy,p,1);
+Target=(Entry+(Entry-stop));
+Sell=Cross(stop,C) OR Cross(t,C) OR Cross(C,Target) OR TimeNum()>152500 ;
+
+Buy = ExRem( Buy, Sell );
+Sell = ExRem( Sell, Buy ); 
+
+PlotShapes(shapeUpArrow*Buy,colorGreen,0, L,-5 );
+PlotShapes(shapeDownArrow*Sell,colorRed,0, H,-5 );
+
+Short=Cross(t,C)AND TimeNum()>100000;
+stop1=ValueWhen(Short,p,1);
+Entry1=ValueWhen(Short,t,1);
+Target1=(Entry1-(stop1-Entry1));
+Cover=Cross(C,stop1) OR Cross(C,p) OR Cross(Target1,C) OR TimeNum()>152500;
+
+Short = ExRem( Short, Cover );
+Cover = ExRem( Cover, Short ); 
+
+PlotShapes(shapeSmallUpTriangle*Cover,colorRed,0,L,-30 );
+PlotShapes(shapeSmallDownTriangle*Short,colorGreen,0,H,-30 );
+
+finalb = Flip( Buy, Sell );
+finals = Flip( Short, Cover );
+
+Plot(IIf(finalb==1,Ref(Entry,1),IIf(finals==1,Entry1,Null)),"",colorGreen,styleDashed);
+Plot(IIf(finalb==1,stop,IIf(finals==1,stop1,Null)),"",colorRed,styleDashed);
+Plot(IIf(finalb==1,Target,IIf(finals==1,Target1,Null)),"",colorBlue,styleDashed);
+
+
+
+
+

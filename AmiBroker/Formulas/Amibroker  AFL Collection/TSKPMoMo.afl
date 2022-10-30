@@ -1,0 +1,115 @@
+/**********************************************************************************************************
+This is a  Price Study that displays a DOT based on the folowing:
+For a long signal:
+    ScoreCardColor is Blue
+    KPMedium > Moving Average of KPMedium
+    KPFast2 > 0
+    KPFast3 > 0
+    KPTriggerLine > KPStopLine
+    
+For a short signal:
+       ScoreCardColor is Red
+    KPMedium < Moving Average of KPMedium
+    KPFast2 < 0
+    KPFast3 < 0
+    KPTriggerLine < KPStopLine
+
+This signal will reassert itself i.e., display again if one of more of the conditions that trigger go away
+and then return to the trigger state.
+
+
+Note:  This indicator is calculated at the completion of a price bar.  This is different than 
+some indicators where the values are calculated/updated upon the arrival
+of every tick.  
+
+
+************************************************************************************************************/
+
+
+
+blsLong = 0;
+
+
+
+KPStopLine = E_TSKPSTOPLINE(High,Low,Close);
+// tskp_upsell, tskp_triggerline, tskp_triggerlinevma
+sw = E_TSKPUPSELL(Open,High,Low,Close,Volume);
+KPTriggerLine = tskp_triggerline;
+KPFast3Val = IIf((E_TSKPFAST3(Open,High,Low,Close,Volume)> 0),1, -1);
+//tskp_fast2val1, tskp_fast2val2
+dummy = E_TSKPFAST2(Open,High,Low,Close,Volume);
+KPFast2Val = IIf ((tskp_fast2val1 > 0),1,-1); 
+
+
+
+Ctmpl = E_TSKPCOLORTMPL(Open,High,Low,Close,Volume);
+sctotal = 0;
+sctotal = sctotal  + IIf(tskp_colortmplcnd0 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd1 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd2 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd3 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd4 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd5 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd6 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd7 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd8 > 0, 1, -1); 
+
+// tskp_mediumma,tskp_mediumup,tskp_mediumdown
+dummy = E_TSKPMEDIUM(Close);
+KPMediumUP = tskp_mediumup;
+KPMediumDwn = tskp_mediumdown;
+KPMediumMA = tskp_mediumma;
+
+// -- Create 0-initialized arrays the size of barcount
+aHPivs = H - H;
+aLPivs = L - L;
+aHiVal = H - H;
+aLoVal = L - L;
+
+
+for (curBar=5; curBar < BarCount-1; curBar++)
+{
+
+
+	if( (blsLong == -1) OR (blsLong == 0))
+	  {
+       if ((sctotal[CurBar]  >= 5) AND (KPMediumUP[CurBar]  > KPMediumMA[CurBar] ) AND (KPFast3Val[CurBar]  == 1) AND 
+        (KPFast2Val[CurBar]  == 1) AND (KPTriggerLine[CurBar]  >= KPStopLine[CurBar] ))
+       {
+         blsLong = 1;
+		  aLPivs[CurBar] = 1;
+		  aLoVal[CurBar] = Low[CurBar];
+       }
+    }
+
+	if( (blsLong == 1) OR (blsLong == 0))
+	  {
+       if ((sctotal[CurBar]  <= -5) AND (KPMediumDwn[CurBar]  < KPMediumMA[CurBar] ) AND (KPFast3Val[CurBar]  == -1) AND 
+       (KPFast2Val[CurBar]  == -1) AND (KPTriggerLine[CurBar]  <= KPStopLine[CurBar] ))
+       {
+         blsLong = -1;
+         aHPivs[Curbar] = 1;
+		  aHiVal[Curbar] = High[Curbar];
+       }
+    }
+
+    if ((blsLong == 1) AND ((sctotal[CurBar]  < 5) OR (KPMediumUP[CurBar]  < KPMediumMA[CurBar] )  OR  
+       (KPFast2Val[CurBar]  < 1)  OR  (KPFast3Val[CurBar]  < 1) OR (KPTriggerLine[CurBar]  < KPStopLine[CurBar] )) )
+       {
+           blsLong= 0;
+        }
+          
+      if ((blsLong == -1) AND ((sctotal[CurBar]  > -5)  OR  (KPMediumDwn[CurBar] > KPMediumMA[CurBar] )  OR  
+         (KPFast2Val[CurBar]  > -1)  OR (KPFast3Val[CurBar]  > -1)  OR 
+         (KPTriggerLine[CurBar]  > KPStopLine[CurBar] )) )
+         {
+            blsLong = 0;
+         }
+}
+
+PlotShapes(
+IIf(aHPivs == 1,  shapeCircle,shapeNone), colorRed ,0, aHiVal+0.00, Offset = 30);
+
+PlotShapes(
+IIf(aLPivs == 1,  shapeCircle,shapeNone), colorAqua  ,0, aLoVal-0.00, Offset = -30);
+ 

@@ -1,0 +1,2 @@
+P = ParamField("Price field",-1);
+Plot(sbOEF(P),"OEF",4,1);

@@ -1,0 +1,16 @@
+// Z distance from vwap
+function zvwap(pds)
+{
+mean = Sum(V*C,pds)/Sum(V,pds);
+vwapsd = sqrt(MA((C-mean)^2, pds) );
+zevwap=(C-mean)/Vwapsd;
+return zevwap;
+}
+Plot(mean,"",colorBlue,styleLine,styleThick);
+Plot(C,"",colorGreen,styleCandle,styleThick);
+Plot(zvwap(22),"z-dist vwap",colorBlue,styleLine);
+PlotGrid(0,1);
+PlotGrid(1,1);
+PlotGrid(2,1);
+PlotGrid(-1,1);
+PlotGrid(-2,1);

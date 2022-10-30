@@ -1,0 +1,78 @@
+_SECTION_BEGIN("Debu 007 Trading system");
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +
+WriteVal( V, 1.0 ) +" {{VALUES}}", 
+O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+
+// This part will plot the EMA value Type and value of user choice
+
+EMAstyle=ParamStyle("MAType",styleLine,maskAll );
+ChartStyl=ParamStyle("Chart Type", styleCandle,maskAll );
+Chartcolor=ParamColor("Chart Colour",colorBlack); 
+EMAshow=ParamList("Show EMA?","Yes|No");
+
+// courtsey www.9trading.com
+n=0;
+Var1=HHV(High,9)-LLV(Low,9);
+Var2=HHV(High,9)-Close;
+Var3=Close-LLV(Low,9);
+Var4=Var2/Var1*100-70;
+Var5=(Close-LLV(Low,60))/(HHV(High,60)-LLV(Low,60))*100;
+Var6=(2*Close+High+Low)/4;
+Var7=WMA(Var3/Var1*100,3);
+Var8=LLV(Low,34);
+Var9=WMA(Var7,3)-WMA(Var4,9);
+VarA=IIf(Var9>100,Var9-100,0);
+VarB=HHV(High,34);
+AA= VarA*2;
+BB= EMA((Var6-Var8)/(VarB-Var8)*100,13);
+VarC=EMA(0.667*Ref(BB,-1)+0.333*BB,2);
+VAR1a=(HHV(High,9)-Close)/(HHV(High,9)-LLV(Low,9))*100-70;
+VAR2a=WMA(VAR1a,9)+100;
+VAR3a=(Close-LLV(Low,9))/(HHV(High,9)-LLV(Low,9))*100;
+VAR4a=WMA(VAR3a,3);
+VAR5a=WMA(VAR4a,3)+100;
+VAR6a=VAR5a-VAR2a;
+S= IIf(VAR6a>n,VAR6a-n,Var6a);
+barcolor2=IIf(Ref(S,-1)<S, colorGreen, colorRed);
+Oo=IIf(Ref(S,-1)<s,Ref(s,-1),s);
+Hh=Oo;
+Ll=IIf(Ref(S,-1)>s,Ref(s,-1),s);
+Cc=Ll;
+
+//Ploting Weekly EMA on daily chart
+C_weekly=TimeFrameGetPrice("C",inWeekly,0);
+splema=EMA(C_weekly,30);
+
+if(EMAshow=="Yes")
+{
+Plot(splema,"30 Week EMA ",colorBlue);
+Buy=(s>Ref(s,-1) AND Ref(s,-1)<Ref(s,-2)) AND Hh<=50 AND C>=splema;
+Sell=(Ref(s,-1)>s AND Ref(s,-1)>Ref(s,-2)) AND Ll>=50 AND C<=splema;
+
+}
+
+if(EMAshow=="No")
+{
+
+Buy=(s>Ref(s,-1) AND Ref(s,-1)<Ref(s,-2)) AND Hh<=50;
+Sell=(Ref(s,-1)>s AND Ref(s,-1)>Ref(s,-2)) AND Ll>=50;
+}
+//Buy=ExRem(Buy,Sell);
+//Sell=ExRem(Sell,Buy);
+
+Signalshape=Buy*shapeUpArrow + Sell*shapeDownArrow;
+pos = 1*ATR(50);
+pos1 = 2.5*ATR(50);
+PlotShapes( Signalshape, IIf( Buy, colorGreen, colorRed ),0, IIf( Buy, Low-pos, High+pos ),0 );
+//PlotShapes((shapeSmallCircle *Buy ,colorBrightGreen,0,L,5)
+
+for( i = 0; i < BarCount; i++ ) {
+       if( Buy[i] ) PlotText( "@ Buy  : " +"\n"+ H[i], i, Low[i] - pos1[i], colorGreen );
+       if( Sell[i] ) PlotText( "@ sell : " +"\n"+ L[i], i, H[i] + pos1[i], colorRed );
+	};
+
+Plot(Close,_DEFAULT_NAME(),Chartcolor,ChartStyl);
+
+_SECTION_END();

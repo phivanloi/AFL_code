@@ -1,0 +1,227 @@
+//================================================== ===================
+//background stock name (works only on Amibroker version 5.30 onwards.
+//================================================== ===================
+_SECTION_BEGIN("Name");
+GfxSetOverlayMode(1);
+GfxSelectFont("Tahoma", Status("pxheight")/6 );
+GfxSetTextAlign( 6 );// center alignment
+//GfxSetTextColor( ColorRGB( 200, 200, 200 ) );
+GfxSetTextColor( ColorHSB( 42, 42, 42 ) );
+GfxSetBkMode(0); // transparent
+GfxTextOut( Name(), Status("pxwidth")/2, Status("pxheight")/12 );
+GfxSelectFont("Tahoma", Status("pxheight")/12 );
+GfxTextOut( "Kuwait", Status("pxwidth")/2, Status("pxheight")/3 );
+GfxSelectFont("Tahoma", Status("pxheight")/36 );
+_SECTION_END();
+//================================================== ====================================//Sector Analysing.....copy right @ Rafi......E-Mail rafi80@yahoo.com
+N=Param("Smoother",6, 1, 100, 1 ); 
+
+
+_SECTION_BEGIN("Financial Institutions");
+f1 = Foreign( "BDFINANCE", "CLOSE" ) ;
+f2 = Foreign( "BIFC", "CLOSE" ) ;
+f3 = Foreign( "FIDELASSET", "CLOSE" ) ;
+f4 = Foreign( "FLEASEINT", "CLOSE" ) ;
+f5 = Foreign( "IDLC", "CLOSE" ) ;
+f6 = Foreign( "ILFSL", "CLOSE" ) ;
+f7 = Foreign( "IPDC", "CLOSE" ) ;
+f8 = Foreign( "ISLAMICFIN", "CLOSE" ) ;
+f9 = Foreign( "LANKABAFIN", "CLOSE" ) ;
+f10 = Foreign( "MIDASFIN", "CLOSE" ) ;
+f11 = Foreign( "PHOENIXFIN", "CLOSE" ) ;
+f12 = Foreign( "PLFSL", "CLOSE" ) ;
+f13 = Foreign( "PREMIERLEA", "CLOSE" ) ;
+f14 = Foreign( "PRIMEFIN", "CLOSE" ) ;
+f15 = Foreign( "ULC", "CLOSE" ) ;
+f16 = Foreign( "UNIONCAP", "CLOSE" ) ;
+f17 = Foreign( "UTTARAFIN", "CLOSE" ) ;
+f18 = Foreign( "NBK", "CLOSE" ) ;
+AvgFinanceClose=(f1+f2+f3+f4+f5+f6+f7+f8+f9+f10+f11+f12+f13+f14+f15+f16+f17)/17;
+Financesmoother=EMA(AvgFinanceClose,N);
+Plot(Financesmoother,"", ParamColor( "Finance Color", colorBrightGreen ), ParamStyle("Finance Style", styleLine|styleNoLabel|styleThick|styleOwnScale, mask = maskAll) );
+_SECTION_END();
+
+_SECTION_BEGIN("BANK");
+S1 = Foreign( "NBK", "Close" ) ;
+S2 = Foreign( "ALARABANK", "Close" ) ;
+S3 = Foreign( "BANKASIA", "Close" ) ;
+S4 = Foreign( "BRACBANK", "Close" ) ;
+S5 = Foreign( "CITYBANK", "Close" ) ;
+S6 = Foreign( "DHAKABANK", "Close" ) ;
+S7 = Foreign( "DUTCHBANGL", "Close" ) ;
+S8 = Foreign( "EBL", "Close" ) ;
+S9 = Foreign( "EXIMBANK", "Close" ) ;
+S10 = Foreign( "IFIC", "Close" ) ;
+S11=Foreign("ISLAMIBANK","Close");
+S12=Foreign("JAMUNABANK","Close");
+S13=Foreign("MERCANBANK","Close");
+S14=Foreign("MTBL","Close");
+S15=Foreign("NBL","Close");
+S16=Foreign("NCCBANK","Close");
+S17=Foreign("ONEBANKLTD","Close");
+S18=Foreign("PREMIERBAN","Close");
+S19=Foreign("PRIMEBANK","Close");
+S20=Foreign("PUBALIBANK","Close");
+S21=Foreign("RUPALIBANK","Close");
+S22=Foreign("SHAHJABANK","Close");
+S23=Foreign("SOCIALINV","Close");
+S24=Foreign("SOUTHEASTB","Close");
+S25=Foreign("STANDBANKL","Close");
+S26=Foreign("TRUSTBANK","Close");
+S27=Foreign("UCBL","Close");
+S28=Foreign("UTTARABANK","Close");
+
+AvgBankClose = (S1+S2+S3+S4+S5+S6+S7+S8+S9+S10+S11+S12+S13+S14+S15+S16+S17+S18+S19+S20+ S21+S22+S23+S24+S25+S26+S27+S28)/28;Banksmoother=EMA(AvgBankClose,N);
+Plot(Banksmoother,"", ParamColor( "Bank Color", colorYellow ), ParamStyle("Bank Style", styleLine|styleNoLabel|styleThick|styleOwnScale, mask = maskAll) );
+_SECTION_END();
+
+
+_SECTION_BEGIN("Insurance");
+in1 = Foreign( "AGRANINS", "Close" ) ;
+in2 = Foreign( "ASIAPACINS", "Close" ) ;
+in3 = Foreign( "BGIC", "Close" ) ;
+in4 = Foreign( "CENTRALINS", "Close" ) ;
+in5 = Foreign( "CITYGENINS", "Close" ) ;
+in6 = Foreign( "CONTININS", "Close" ) ;
+in7 = Foreign( "EASTERNINS", "Close" ) ;
+in8 = Foreign( "EASTLAND", "Close" ) ;
+in9= Foreign( "FEDERALINS", "Close" ) ;
+in10= Foreign( "GLOBALINS", "Close" ) ;
+in11 = Foreign( "GREENDELT", "Close" ) ;
+in12 = Foreign( "JANATAINS", "Close" ) ;
+in13 = Foreign( "KARNAPHULI", "Close" ) ;
+in14 = Foreign( "MERCINS", "Close" ) ;
+in15 = Foreign( "NITOLINS", "Close" ) ;
+in16 = Foreign( "PARAMOUNT", "Close" ) ;
+in17 = Foreign( "PEOPLESINS", "Close" ) ;
+in18 = Foreign( "PHENIXINS", "Close" ) ;
+in19 = Foreign( "PIONEERINS", "Close" ) ;
+in20 = Foreign( "PRAGATIINS", "Close" ) ;
+in21 = Foreign( "PRIMEINSUR", "Close" ) ;
+in22 = Foreign( "PURABIGEN", "Close" ) ;
+in23 = Foreign( "RELIANCINS", "Close" ) ;
+in24 = Foreign( "RUPALIINS", "Close" ) ;
+in25 = Foreign( "SONARBAINS", "Close" ) ;
+in26 = Foreign( "UNITEDINS", "Close" ) ;
+
+AvgGeneralInsuranceClose = (IN1+IN2+IN3+IN4+IN5+IN6+IN7+IN8+IN9+IN10+IN11+IN12+IN13+IN14+IN15+IN16+IN17+IN18+IN19+IN20+ IN21+IN22+IN23+IN24+IN25+IN26)/26;
+GeneralInsurancesmoother=EMA(AvgGeneralInsuranceClose,N);
+Plot(GeneralInsurancesmoother,"", ParamColor( "Gen.Ins Color", colorRed ), ParamStyle("Gen.Ins Style", styleLine|styleNoLabel|styleThick|styleOwnScale, mask = maskAll) );
+_SECTION_END();
+
+
+_SECTION_BEGIN("Insurance");
+L1 = Foreign( "DELTALIFE", "Close" ) ;
+L2 = Foreign( "FAREASTLIF", "Close" ) ;
+L3 = Foreign( "MEGHNALIFE", "Close" ) ;
+L4 = Foreign( "NATLIFEINS", "Close" ) ;
+L5 = Foreign( "POPULARLIF", "Close" ) ;
+L6 = Foreign( "PRAGATILIF", "Close" ) ;
+L7 = Foreign( "PRIMELIFE", "Close" ) ;
+L8 = Foreign( "PROGRESLIF", "Close" ) ;
+L9 = Foreign( "SANDHANINS", "Close" ) ;
+
+AvgLifeInsuranceClose= (L1+L2+L3+L4+L5+L6+L7+L8+L9)/9;
+LifeInsurancesmoother=EMA(AvgLifeInsuranceClose,N) ;
+Plot(LifeInsurancesmoother,"", ParamColor( "Life.Ins Color", colorCustom12 ), ParamStyle("Life.Ins Style", styleLine|styleNoLabel|styleThick|styleOwnScale, mask = maskAll) );
+_SECTION_END();
+
+
+_SECTION_BEGIN("Miscellaneous");
+e1 = Foreign( "ACI", "Close" ) ;
+e2 = Foreign( "BATASHOE", "Close" ) ;
+e3 = Foreign( "BATBC", "Close" ) ;
+e4 = Foreign( "BERGERPBL", "Close" ) ;
+e5 = Foreign( "GLAXOSMITH", "Close" ) ;
+e6 = Foreign( "RECKITTBEN", "Close" ) ;
+
+AvgMNCClose= (e1+e2+e3+e4+e5+e6)/6;
+MNCsmoother=EMA(AvgMNCClose,N);
+Plot(MNCsmoother,"", ParamColor( "MNC Color", colorBlue ), ParamStyle("MNC Style", styleLine|styleNoLabel|styleThick|styleOwnScale, mask = maskAll) );
+_SECTION_END();
+
+
+_SECTION_BEGIN("Cement");
+tt1 = Foreign( "ARAMITCEM", "Close" ) ;
+tt2 = Foreign( "CONFIDCEM", "Close" ) ;
+tt3 = Foreign( "HEIDELBCEM", "Close" ) ;
+tt4 = Foreign( "LAFSURCEML", "Close" ) ;
+tt5 = Foreign( "MEGHNACEM", "Close" ) ;
+tt6 = Foreign( "NILOYCEM", "Close" ) ;
+
+AvgCementClose= (tt1+tt2+tt3+tt4+tt5+tt6)/6;
+Cementsmoother=EMA(AvgCementClose,N);
+Plot(Cementsmoother,"", ParamColor( "Cement Color", colorGrey50 ), ParamStyle("Cement Style", styleLine|styleNoLabel|styleThick|styleOwnScale, mask = maskAll) );
+_SECTION_END();
+
+
+_SECTION_BEGIN("Fuel & Power");
+Ta1 = Foreign( "BOC", "Close" ) ;
+Ta2 = Foreign( "DESCO", "Close" ) ;
+Ta3 = Foreign( "POWERGRID", "Close" ) ;
+Ta4 = Foreign( "SUMITPOWER", "Close" ) ;
+
+AvgPowerClose= (ta1+ta2+ta3+ta4)/4;
+Powersmoother=EMA(AvgPowerClose,N);
+Plot(Powersmoother,"", ParamColor( "Power Color", colorOrange ), ParamStyle("Power Style", styleLine|styleNoLabel|styleThick|styleOwnScale, mask = maskAll) );
+_SECTION_END();
+
+
+_SECTION_BEGIN("Mutual Funds");
+f1 = Foreign( "1STBSRS", "Close" ) ;
+f2 = Foreign( "1STICB", "Close" ) ;
+f3 = Foreign( "2NDICB", "Close" ) ;
+f4 = Foreign( "3RDICB", "Close" ) ;
+f5 = Foreign( "4THICB", "Close" ) ;
+f6 = Foreign( "5THICB", "Close" ) ;
+f7 = Foreign( "6THICB", "Close" ) ;
+f8 = Foreign( "7THICB", "Close" ) ;
+f9 = Foreign( "8THICB", "Close" ) ;
+f10 = Foreign( "ICB", "Close" ) ;
+f11 = Foreign( "ICB1STNRB", "Close" ) ;
+f12 = Foreign( "ICBAMCL1ST", "Close" ) ;
+f13 = Foreign( "ICBISLAMIC", "Close" ) ;
+f14 = Foreign( "AIMS1STMF", "Close" ) ;
+f15 = Foreign( "GRAMEEN1", "Close" ) ;
+
+AvgMFClose=(f1+f2+f3+f4+f5+f6+f7+f8+f9+f10+f11+f12 +f13+f14+f15)/15;
+MFsmoother=EMA(AvgMFClose,N);
+Plot(MFsmoother,"", ParamColor( "MF Color", colorIndigo ), ParamStyle("MF Style", styleLine|styleNoLabel|styleThick|styleOwnScale, mask = maskAll) );
+_SECTION_END();
+
+
+_SECTION_BEGIN("IT Sector");
+IT1 = Foreign( "AGNISYSL", "Close" ) ;
+IT2 = Foreign( "BDCOM", "Close" ) ;
+IT3 = Foreign( "BDONLINE", "Close" ) ;
+IT4 = Foreign( "DAFODILCOM", "Close" ) ;
+IT5 = Foreign( "INTECH", "Close" ) ;
+IT6 = Foreign( "ISNLTD", "Close" ) ;
+
+AvgITClose= (IT1+IT2+IT3+IT4+IT5+IT6)/6; 
+ITsmoother=EMA(AvgITClose,N);
+Plot(ITsmoother,"", ParamColor( "IT Color", colorWhite ), ParamStyle("IT Style", styleLine|styleNoLabel|styleThick|styleOwnScale, mask = maskAll) );
+_SECTION_END();
+
+_SECTION_BEGIN(""); 
+Price=C;
+priceplot=EMA(Price,n);
+Plot (priceplot,"", ParamColor( "Symble Color", colorRed ), ParamStyle("Symble Style", styleLine|styleNoLabel|styleDashed|styleOwnScale, mask = maskAll) );
+_SECTION_BEGIN(""); 
+
+_SECTION_BEGIN(""); 
+Title = StrFormat("\\c02 {{NAME}}.....{{DATE}}.....Open @ %g.....High @ %g.....Low @ %g.....Close @ %g.....Change = %.1f%% 
+Volume = " +WriteVal( V, 1.0 ) +", {{VALUES}}", 
+O, H, L, C, SelectedValue( ROC( C, 1 )) )+
+"\n"+
+"\n"+ "\\c02 ..........Sector Price Analysis.......... "+
+"\n"+EncodeColor(colorBrightGreen)+" Finance @ " + Financesmoother +
+"\n"+EncodeColor(colorYellow)+" Bank @ " + Banksmoother +
+"\n"+EncodeColor(colorRed)+" General Insurance @ " + GeneralInsurancesmoother +
+"\n"+EncodeColor(colorCustom12)+" Life Insurance @ " + LifeInsurancesmoother +
+"\n"+EncodeColor(colorBlue)+" Multinationals @ " + MNCsmoother +
+"\n"+EncodeColor(colorGrey50)+" Cement @ " + Cementsmoother+
+"\n"+EncodeColor(colorOrange)+" Power @ " + Powersmoother+
+"\n"+EncodeColor(colorIndigo)+" Mutual Fund @ " + MFsmoother+
+"\n"+EncodeColor(colorWhite)+" Information Technology @ " + ITsmoother;
+_SECTION_END(); 

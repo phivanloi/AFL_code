@@ -1,0 +1,41 @@
+<HTML><HEAD>
+<TITLE>ichimokuP 1 2 31 - Backtest Report</TITLE><STYLE>
+<!--
+BODY { font-family:"Tahoma,Arial,Helvetica,Sans Serif"; font-size:8pt; }
+TD {  font-size:8pt; text-align: right; white-space: nowrap; }
+TH {  font-size:8pt; text-align: left; font-weight: normal; }
+.CH { text-align: right; font-weight:bold; }
+.CHL { text-align: left; font-weight:bold; }
+.BIG { font-size:10pt; font-weight:bold; text-align: center; }
+.TAB { font-size:10pt;  text-align: center; text-color:#CCCCCC; }
+.SELTAB { font-size:10pt; font-weight:bold; text-align: center; text-color:#000000; }
+.good { color:#006600; }
+.bad { color:#880000; }
+.neut { color:#000088; }
+a:active { background-color:#DDDDFF; }
+-->
+</STYLE>
+<SCRIPT>
+var curPart = 0;
+function showPart( i )
+{
+	 document.getElementById("part" + curPart ).style.display = "none";
+	 document.getElementById("part" + i ).style.display = "";
+	 curPart = i;
+}
+</SCRIPT>
+</HEAD>
+<BODY>
+<DIV ALIGN=CENTER><FONT class='TAB'><a href='stats.html'>Statistics</a> | <a href='charts.html'>Charts</a> | <a href='trades.html'>Trades</a> | <a href='formula.html'>Formula</a> | <a href='settings.html'>Settings</a> | <a href='symbols.html'>Symbols</a> | <a href='montecarlo.html'><FONT class='SELTAB'>Monte Carlo</FONT></a></FONT></DIV><br>
+<TABLE CELLSPACING=0 CELLPADDING=2 WIDTH=100%>
+<TR bgcolor="#DDDDDD"><TH COLSPAN=5 CLASS="BIG" >Monte Carlo</TH></TR>
+</TABLE><TABLE CELLSPACING=3 WIDTH=100%>
+<TR><TH><b>Percentile</b></TH><TH class='CH'>Final Equity</TH><TH class='CH'>Annual Return</TH><TH class='CH'>Max. Drawdown $</TH><TH class='CH'>Max. Drawdown %</TH><TH class='CH'>Lowest Eq.</TH></TR>
+<TR><TH>1%</TH><TD>2588</TD><TD>-98.07%</TD><TD>-7687</TD><TD>-76.03%</TD><TD>2397</TD></TR><TR><TH>5%</TH><TD>4679</TD><TD>-89.11%</TD><TD>-6003</TD><TD>-58.39%</TD><TD>4177</TD></TR><TR><TH>10%</TH><TD>5675</TD><TD>-80.88%</TD><TD>-5310</TD><TD>-51.03%</TD><TD>5017</TD></TR><TR><TH>25%</TH><TD>7186</TD><TD>-61.89%</TD><TD>-4180</TD><TD>-38.72%</TD><TD>6457</TD></TR><TR><TH>50%</TH><TD>9061</TD><TD>-25.02%</TD><TD>-3045</TD><TD>-27.49%</TD><TD>7834</TD></TR><TR><TH>75%</TH><TD>10692</TD><TD>21.59%</TD><TD>-2075</TD><TD>-18.78%</TD><TD>9003</TD></TR><TR><TH>90%</TH><TD>12461</TD><TD>90.10%</TD><TD>-1556</TD><TD>-13.15%</TD><TD>9785</TD></TR><TR><TH>95%</TH><TD>13606</TD><TD>145.76%</TD><TD>-1294</TD><TD>-11.18%</TD><TD>9950</TD></TR><TR><TH>99%</TH><TD>15035</TD><TD>228.94%</TD><TD>-800</TD><TD>-6.83%</TD><TD>10000</TD></TR></TABLE><P></P>
+<P><FONT class='BIG'>MC Min/Max Equity</FONT></P><P ALIGN=CENTER><IMG SRC='mc1.png'></P>
+<P><FONT class='BIG'>MC Final Equity</FONT></P><P ALIGN=CENTER><IMG SRC='mc2.png'></P>
+<P><FONT class='BIG'>MC CAR</FONT></P><P ALIGN=CENTER><IMG SRC='mc3.png'></P>
+<P><FONT class='BIG'>MC Drawdown %</FONT></P><P ALIGN=CENTER><IMG SRC='mc4.png'></P>
+<P><FONT class='BIG'>MC Drawdown $</FONT></P><P ALIGN=CENTER><IMG SRC='mc5.png'></P>
+<P><FONT class='BIG'>MC Lowest Equity</FONT></P><P ALIGN=CENTER><IMG SRC='mc6.png'></P>
+</BODY></HTML>

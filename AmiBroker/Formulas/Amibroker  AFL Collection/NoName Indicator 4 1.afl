@@ -1,0 +1,16 @@
+_SECTION_BEGIN("NoName Indicator 4");
+EMA1 = Param("ema",55,1,89,1);
+setupb = IIf(Ref(C,-1)<Ref(EMA(C,EMA1),-1) AND C>EMA(C,EMA1),1,0);
+setups = IIf(Ref(C,-1)>Ref(EMA(C,EMA1),-1) AND C<EMA(C,EMA1),1,0);
+
+Buy = Ref(setupb,-1) > 0 AND C > EMA(C,EMA1);
+Sell = Ref(setups,-1) > 0 AND C < EMA(C,EMA1);
+
+Plot(C,"Close",colorBlack,styleCandle);
+Plot(EMA(C,EMA1),"ema",colorGreen);
+
+PlotShapes(Buy*shapeUpArrow,colorGreen);
+PlotShapes(Sell*shapeDownArrow,colorRed);
+
+
+_SECTION_END();

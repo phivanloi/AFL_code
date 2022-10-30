@@ -1,0 +1,44 @@
+//i'm very new to amibroker AND would like to get some advice on time code. 
+ 
+//this is the afl i have for a countdown timer. I'm in Hong Kong AND trading the e-minis. There is a time difference of 12 hours as New York is 12 hours behind Hong Kong time. 
+//How do I modify the code so that my timer displays properly? Currently, it kept showing something like this: 72184s AND only the last 3 digits change. 
+ 
+tempnum = Now( 4)-TimeNum() ;
+
+ 
+
+TimeRem = Interval() - ((int(tempnum[BarCount - 1] / 100) * 60) + (tempnum[BarCount - 1] - int(tempnum[BarCount - 1] / 100) * 100));
+
+if (TimeRem[BarCount - 1] < 0) TimeRem = 0;
+
+TitleTimeRem = EncodeColor(colorBlueGrey) + "Time Remaining: ";
+
+MinuteVar = int(TimeRem / 60);
+
+SecondsVar = int(frac(TimeRem / 60) * 60);
+
+if (TimeRem[BarCount - 1] > 60)
+
+{
+
+TitleTimeRem = TitleTimeRem + EncodeColor(colorWhite) + MinuteVar + ":" + WriteIf(SecondsVar > 9, "", "0") + SecondsVar;
+
+}
+
+else if (TimeRem[BarCount - 1] > 20)
+
+{
+
+TitleTimeRem = TitleTimeRem + EncodeColor(colorYellow) + MinuteVar + ":" + WriteIf(SecondsVar > 9, "", "0") + SecondsVar;
+
+}
+
+else
+
+{
+
+TitleTimeRem = TitleTimeRem + EncodeColor(colorLime) + MinuteVar + ":" + WriteIf(SecondsVar > 9, "", "0") + SecondsVar;
+
+}
+
+Title = TitleTimeRem + EncodeColor(colorDarkGreen) ;

@@ -1,0 +1,6 @@
+_SECTION_BEGIN("DEMA");
+Plot( DEMA( Close, 3 ),"3", colorWhite, styleThick ); 
+Plot( DEMA( Close, 13 ),"13", colorRed, styleThick ); 
+Plot( DEMA( Close, 34 ),"34", colorBlue, styleThick ); 
+
+_SECTION_END();

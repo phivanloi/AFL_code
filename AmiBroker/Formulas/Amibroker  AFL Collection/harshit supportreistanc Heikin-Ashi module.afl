@@ -1,0 +1,110 @@
+///////////////////////////////////////////////////////////////////////////////////////////
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} ,{{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot(C, "", IIf(O>=C, colorRed, colorBlue),styleCandle);
+
+SetChartBkGradientFill( ParamColor("Inner panel upper",colorBlack),ParamColor("Inner panel lower",colorBlack));
+_N(Title = EncodeColor(colorWhite)+StrFormat(" {{NAME}} - {{INTERVAL}} {{DATE}} Open:%g, Close:%g ,{{VALUES}}",O,C ));
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+Plot(EMA(C,5),"",colorYellow);
+/////////////////////////////////////////////////////////////
+
+per1=Param ("per1", 0.1,0.1,50,0.10);
+
+per=per1;
+x = Cum(1);
+s1=L;
+s11=H;
+pS = TroughBars( s1, per, 1 ) == 0;
+endt= SelectedValue(ValueWhen( pS, x, 1 ));
+startt=SelectedValue(ValueWhen( pS, x, 2 ));
+dtS =endt-startt;
+endS = SelectedValue(ValueWhen( pS, s1, 1 ) );
+startS = SelectedValue( ValueWhen( pS, s1, 1 ));
+aS = (endS-startS)/dtS;
+bS = endS;
+trendlineS = aS * ( x -endt ) + bS;
+g3= IIf(x>startt-10,trendlineS,-1e10);
+Plot(g3,"",colorRed,styleDots,styleThick);
+
+pR = PeakBars( s11, per, 1 ) == 0;
+endt1= SelectedValue(ValueWhen( pR, x, 1 ));
+startt1=SelectedValue(ValueWhen( pR, x, 2 ));
+dtR =endt1-startt1;
+endR = SelectedValue(ValueWhen( pR, s11, 1 ) );
+startR = SelectedValue( ValueWhen( pR, s11, 1 ));
+aR = (endR-startR)/dtR;
+bR = endR;
+trendlineR = aR * ( x -endt1 ) + bR;
+g4= IIf(x>startT1-10,trendlineR,-1e10);
+Plot(g4,"",colorGreen,styleDots,styleThick);
+//////////////////////////////////////////////////////////////////////////////////////////////////
+perc=per1;
+x=BarIndex();xx=SelectedValue(x);
+t1=SelectedValue(ValueWhen(PeakBars(C,perc)==0,x)) ;
+H1=SelectedValue(ValueWhen(PeakBars(C,perc)==0,C)) ;
+t11=SelectedValue(ValueWhen(TroughBars(C,perc)==0, x));
+H11=SelectedValue(ValueWhen(TroughBars(C,perc)==0, C));
+g=t1>t11;
+shape=IIf(g,shapeDownArrow*(x==t1),shapeUpArrow*(x ==t11));
+Color=IIf(g,colorRed,colorGreen);
+PlotShapes(shape,color);
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+per=per1;
+
+x = Cum(1);
+s1=C;
+s11=C;
+pS = TroughBars( s1, per, 1 ) == 0;
+endt= SelectedValue(ValueWhen( pS, x, 1 ));
+startt=SelectedValue(ValueWhen( pS, x, 2 ));
+dtS =endt-startt;
+endS = SelectedValue(ValueWhen( pS, s1, 1 ) );
+startS = SelectedValue( ValueWhen( pS, s1, 2 ));
+aS = (endS-startS)/dtS;
+bS = endS;
+trendlineS = aS * ( x -endt ) + bS;
+g3= IIf(x>startt-10,trendlineS,-1e10);
+Plot(g3,"",colorRed,styleThick);
+
+pR = PeakBars( s11, per, 1 ) == 0;
+endt1= SelectedValue(ValueWhen( pR, x, 1 ));
+startt1=SelectedValue(ValueWhen( pR, x, 2 ));
+dtR =endt1-startt1;
+endR = SelectedValue(ValueWhen( pR, s11, 1 ) );
+startR = SelectedValue( ValueWhen( pR, s11, 2 ));
+aR = (endR-startR)/dtR;
+bR = endR;
+trendlineR = aR * ( x -endt1 ) + bR;
+g4= IIf(x>startT1-10,trendlineR,-1e10);
+Plot(g4,"",colorGreen,styleThick);
+//////////////////////////////////////////////////////////////////////////////
+_SECTION_BEGIN("PAC - ZTEMA");
+SetChartOptions(0,chartShowDates|chartShowArrows|chartLogarithmic|chartWrapTitle);
+HaClose = (O+H+L+C)/4;
+HaOpen = AMA( Ref( HaClose, -1 ), 0.5 );
+HaHigh = Max( H, Max( HaClose, HaOpen ) );
+HaLow = Min( L, Min( HaClose, HaOpen ) );
+PlotOHLC( HaOpen, HaHigh, HaLow, HaClose, "Modified " + Name(), colorRose, styleCandle );
+
+TC = MA( High, 5 );
+BC = MA( Low, 5 );
+
+Plot(tc, "", colorYellow);
+Plot(bc, "", colorYellow);
+
+a = haClose > TC;
+b = haClose < BC;
+
+state=IIf(BarsSince(a)<BarsSince(b),1,0);
+
+Buy = Cross(a,b);
+Sell = Cross(b,a);
+
+PlotShapes( IIf(Buy, shapeUpArrow,0) , colorLime,0,HaLow,-20);
+PlotShapes( IIf(Sell, shapeDownArrow,0) , colorOrange,0,HaHigh,-20);
+GraphZOrder = 1;
+_SECTION_END();

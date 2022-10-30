@@ -1,0 +1,75 @@
+_SECTION_BEGIN("My MM "); 
+
+//Sinyal 
+
+k = StochK(15,3); 
+d= StochD(15,3,3); 
+
+//Rumus PIVOT 
+
+P = (H+L+C) / 3; 
+
+R1= (P * 2) - L; 
+S1= (P * 2) - H; 
+R2 = P + (R1 - S1); 
+S2 = P - (R1 - S1); 
+R3 = H + 2*(P - L); 
+S3 = L - 2*(H - P); 
+
+//Money Management 
+//ganti sesuai kebiasaan Anda 
+modal = 20000000; //berapa modal Anda 
+plan = modal *6/100; 
+riskpertrade = (2/100); 
+feebuysell= 25000; 
+Maxriskpertrade = (modal*riskpertrade) +feebuysell; 
+plannedbuypointmin = s1; 
+plannedbuypoint = r1; 
+plannedStopLoss = plannedbuypoint -(plannedbuypoint * (5/100)); 
+targetprice = r2; 
+slippage = 2.5/100; 
+sisarisk = plannedbuypoint - plannedstoploss + (plannedbuypoint * slippage); 
+Maxpostsize = (Maxriskpertrade / sisarisk) / 500; 
+esttotalbuy = (plannedbuypoint * Maxpostsize) *500; 
+Maxbuy = (Maxpostsize * plannedbuypoint) * 500; 
+stoploss = (Maxpostsize * plannedstoploss) * 500; 
+selisih = (stoploss-Maxbuy) ; 
+resiko = Maxbuy/modal; 
+persenresiko = resiko / Maxbuy; 
+trailstop = IIf(C>Ref(C,-1),50/100*(C-Ref(C,-1)),0); 
+
+
+Buy1 = Cross(k,d); 
+b1= (V>=100000); 
+Buy = buy1 AND b1; 
+Sell = Cross(d,k) AND b1; 
+Cover = Buy; 
+Short = Sell; 
+Filter = Buy OR Sell; 
+
+AddTextColumn( FullName(), "Emiten",77 , colorDefault,IIf(Buy,colorBrightGreen,colorRed)); 
+AddColumn(Ref(C,-1), "PrevClose",1.0, IIf( Ref(C,-1), colorGold, colorBlack )); 
+AddColumn(O, "Open",1.0, IIf( O==L , colorGreen, IIf(O==Ref(C,-1),colorGold, IIf(OAddColumn(L, "Low",1.0, IIf( (L==Ref(C,-1)), colorGold, IIf(O==L, colorGreen, IIf(LAddColumn(H, "High",1.0, IIf( (O==H), colorRed, IIf(H==Ref(C,-1),colorGold,IIf(HAddColumn(C, "Last",1.0, IIf(C>Ref(C,-1), colorGreen, colorRed )); 
+AddColumn(C-Ref(C,-1),"Naik/Trn",1.0, IIf(C>Ref(C,-1),colorGreen,IIf(C==Ref(C,-1),colorGold,IIf(CAddColumn(Buy OR Sell,"B/S",1, colorDefault,IIf( Buy, colorLime, colorRed )); 
+
+AddColumn(plannedbuypointmin,"BuyPointMin",1); 
+AddColumn(plannedbuypoint,"BuyPointMax",1); 
+AddColumn(plannedStopLoss,"StopLoss",1); 
+AddColumn(Maxpostsize,"PoSize",1); 
+AddColumn(esttotalbuy, "EtsTtlBuy",1); 
+AddColumn(resiko, "Risk",1.2); 
+AddColumn(C-trailstop,"TrailStop",1); 
+AddColumn(targetprice,"TargetPrice",1); 
+
+AddColumn(Cross(k,d), "StoKDBuy", 1,colorDefault,IIf( Cross(k,d), colorBlue, colorWhite) ); 
+AddColumn(Cross(d,k), "StoKDSell", 1,colorDefault,IIf( Cross(d,k), colorRed, colorWhite ) ); 
+
+AddColumn( r3,"R 3",1.0); 
+AddColumn( r2,"R 2",1.0); 
+AddColumn( r1,"R 1",1.0); 
+AddColumn( P,"Pivot",1.0); 
+AddColumn( S1,"S 1",1.0); 
+AddColumn( S2,"S 2",1.0); 
+AddColumn( S3,"S 3",1.0); 
+
+_SECTION_END(); 

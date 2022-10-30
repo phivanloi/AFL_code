@@ -1,0 +1,9 @@
+("MABIUTS");
+Buy=EMA(C,13)>EMA(EMA(C,13),9) AND  Cross (C,Peak(C,5,1));
+Sell=Cross (EMA(EMA(C,13),9),EMA(C,13));
+
+Filter=Buy OR Sell;
+SetOption("NoDefaultColumns", True );
+AddColumn( DateTime(), "Date", formatDateTime );
+AddTextColumn( FullName(), "Full name", 77 , colorDefault, IIf( Buy, colorGreen, colorRed ) );
+AddColumn( IIf( Buy, 66, 83 ), "Signal", formatChar, colorDefault, bkcolor =IIf (Buy,colorGreen, colorRed ));

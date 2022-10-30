@@ -1,0 +1,4 @@
+ttfosc = MA(C, 5) - MA(C, 34);
+Plot(ttfosc, "TTF Oscillator",4);
+fivebar = MA(ttfosc, 5);
+Plot(fivebar, "5-Bar",3); 

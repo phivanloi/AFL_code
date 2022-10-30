@@ -1,0 +1,22 @@
+/* 
+** Tom DeMark's Range Expansion Index 
+** AFL Implementation by Tomasz Janeczko 
+*/
+
+
+HighMom = H - Ref( H, -2 );
+LowMom = L - Ref( L, -2 );
+
+Cond1 = ( H >= Ref( L,-5) OR H >= Ref( L, -6 ) ); 
+Cond2 = ( Ref( H, -2 ) >= Ref( C, -7 ) OR Ref( H, -2 ) >= Ref( C, -8 ) ); 
+Cond3 = ( L <= Ref( H, -5 ) OR L <= Ref( H, -6) ); 	
+Cond4 = ( Ref( L, -2 ) <= Ref( C, -7 ) OR Ref( L, -2 ) <= Ref( C, -8 ) );
+
+Cond = ( Cond1 OR Cond2 ) AND ( Cond3 OR Cond4 );
+
+Num = IIf( Cond, HighMom + LowMom, 0 );
+Den = abs(  HighMom ) + abs( LowMom );
+
+TDREI = 100 * Sum( Num, 5 )/Sum( Den, 5 ) ;
+
+Plot(TDREI, "TD_REI", colorRed);

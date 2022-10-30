@@ -1,0 +1,613 @@
+TimeFrameSet(inDaily);
+DayHigh = LastValue(H);
+DayLow = LastValue(L);
+TimeFrameRestore();
+
+
+BatEntrade = ParamToggle("Entrade", "No|Yes", 0);
+HUYLENH = ParamTrigger("Huy lenh cho","OKE");
+
+if (HUYLENH)
+{
+ih1 = InternetOpenURL("http://localhost:6868/api/cancelOrders?clientId=-1" ); 
+InternetClose(ih1);
+}
+HUYLENHACTIVE = ParamTrigger("Huy lenh Active","OKE");
+if (HUYLENHACTIVE)
+{
+ih2 = InternetOpenURL("http://localhost:6868/api/closeActiveDeals?clientId=-1" ); 
+InternetClose(ih2);
+}
+
+
+prev=AMA2(C,1,0);
+d=IIf(C>Ref(Max(Max(H,Ref(H,-20)),Max(Ref(H,-10),Ref(H,-15))),-1),Min(Min(L,Ref(L,-20)),Min(Ref(L,-10),Ref(L,-15))),
+IIf(C<Ref(Min(Min(L,Ref(L,-20)),Min(Ref(L,-10),Ref(L,-15))),-1),Max(Max(H,Ref(H,-20)),Max(Ref(H,-10),Ref(H,-15))),PREV));
+a=Cross(Close,d);
+b=Cross(d,Close);
+state=IIf(BarsSince(a)<BarsSince(b),1,0);
+s=state>Ref(state,-1);
+ss=state<Ref(state,-1);
+sss=state==Ref(state,-1);
+col=IIf(state == 1 ,51,IIf(state ==0,4,1));
+Plot(C,"",Col,64);
+Buy = s;
+Sell = ss;
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes(shape, IIf(Buy,colorGreen,colorRed), 0, IIf(Buy,Low,High));
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-10);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-20);
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-15);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=20);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=30);
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-25);
+
+
+dist = 2.9*ATR(10);
+dist1= 2.9*ATR(10);
+for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] )
+{
+PlotText( "\nBuy:" + L[ i ] + "\nSL= " + (L[i]*0.9975), i, L[ i ]-dist[i], colorGreen, colorWhite );
+}
+if( Sell[i] )
+{
+PlotText( "Sell:" + H[ i ] + "\nSL= " + (H[i]*1.0025), i, H[ i ]+dist1[i], colorRed, colorWhite );
+}
+}
+
+
+
+_SECTION_BEGIN("swing1");
+no=20;
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+supres=IIf(avn==1,sup,res);
+a=Cross(C,supres);
+b=Cross(supres,C);
+style = a * styleStaircase + b * styleStaircase;
+PlotShapes(a,style, IIf(a,colorGreen,colorRed), 0, IIf(a,Low,High));
+Plot(supres,"Swing",colorYellow,styleStaircase);
+_SECTION_END();
+
+
+
+_SECTION_BEGIN("trend");
+uptrend=PDI(20)>MDI(10)AND Signal(29)<MACD(13);
+downtrend=MDI(10)>PDI(20)AND Signal(29)>MACD(13);
+Plot( 2, /* defines the height of the ribbon in percent of pane width */"ribbon",
+IIf( uptrend, colorGreen, IIf( downtrend, colorRed, 0 )), /* choose color */
+styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+_SECTION_END();
+
+Buy = s AND a AND uptrend ;
+Short = ss AND b AND downtrend ;
+Sell = ss AND b AND downtrend ;
+Cover = s AND a AND uptrend ;
+
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+Cover=ExRem(Cover,Short);
+Short=ExRem(Short,Cover);
+
+Filter=Buy OR Sell;
+Filter= Cover OR Short;
+
+AddColumn( Buy, "Buy", 1);
+AddColumn(Sell, "Sell", 1);
+AddColumn(Close,"Close",1.2);
+AddColumn(Volume,"Volume",1.0);
+
+
+// Plot the Buy and Sell arrows.
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-10);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-20);
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-15);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=20);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=30);
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-25);
+
+
+//plot volume graph
+
+// set background gradient colours
+SetChartBkGradientFill( ParamColor("BgTop", ColorRGB( 172,172,172 )),ParamColor("BgBottom", ColorRGB( 102,136,187 )),ParamColor("titleblock",ColorRGB( 255,255,255 )));
+
+GraphXSpace = 5;
+
+Hp = HHV( H, 40 );
+Lp = LLV( L, 40 );
+BarsSincebuy = BarsSince( Buy );
+BarsSinceshort = BarsSince( Short );
+LastSignal = IIf( BarsSincebuy < BarsSinceshort, 1, -1 );
+Sig = WriteIf( BarsSincebuy < BarsSinceshort, "BUY", "Short" );
+
+slPrice = IIf( LastSignal == 1, HighestSince( Buy, Lp ), LowestSince( Short, Hp ) );
+initialrisk = IIf( LastSignal == 1, BuyPrice - SLPrice, SLPrice - ShortPrice );
+CurrentPL = IIf( LastSignal == 1, C - BuyPrice, SellPrice - C );
+
+BuyPrice=ValueWhen(Buy,C);
+ShortPrice=ValueWhen(Short,C);
+
+entry = IIf( LastSignal == 1, BuyPrice, ShortPrice );
+
+
+
+
+bars = LastValue( IIf(BarsSincebuy < BarsSinceshort, BarsSincebuy, BarsSinceshort));
+Offset = 15;
+Clr = IIf(LastValue(LastSignal) == 1, colorGreen, colorRed);
+
+
+_SECTION_END(); 
+
+
+Open_Long = Flip( Buy, Sell ); 
+Open_Short = Flip( Sell, Buy ); 
+Buy_Price = ValueWhen( Buy, BuyPrice, 1 ); 
+Short_Price = ValueWhen( Short, ShortPrice, 1 ); 
+Sell_Price = IIf( Sell, ValueWhen( Sell, SellPrice, 1 ), Short_Price ); 
+Cover_Price = IIf( Cover, ValueWhen( Cover, CoverPrice, 1 ), Buy_Price ); 
+Profit = IIf( Open_Long, ( Close - Buy_Price ), IIf( Open_Short, ( Short_Price - Close ), 0 ) ); 
+Last_Profit = IIf( Ref( Open_Long, -1 ) == 1 AND Open_Long != 1, ( Sell_Price - Buy_Price ), IIf( Ref( Open_Short, -1 ) == 1 AND Open_Short != 1, ( Short_Price - Cover_Price ), 0 ) ); 
+Cum_Profit[0] = Last_Profit[0]; 
+PreviousProfit = ValueWhen(Last_Profit!=0,Last_Profit,1); 
+for ( i = 1;i < BarCount;i++ ) 
+{ 
+ Cum_Profit[i] = Cum_Profit[i-1] + Last_Profit[i]; 
+} 
+Trade[0] = 0; 
+for ( i = 1;i < BarCount;i++ ) 
+{ 
+ if ( Buy[i] == 1 OR Short[i] == 1 ) 
+ { 
+ Trade[i] = Trade[i-1] + 1; 
+ } 
+ else 
+ { 
+ Trade[i] = Trade[i-1]; 
+ } 
+} 
+
+
+
+tradesback = 5; 
+Signum = Cum( Buy ) + Cum( Short ); 
+Signumstart1 = LastValue( SigNum ) - ( tradesback - 1 ); 
+Signumstart2 = LastValue( SigNum ) - ( tradesback - 2 ); 
+Signumstart3 = LastValue( SigNum ) - ( tradesback - 3 ); 
+Signumstart4 = LastValue( SigNum ) - ( tradesback - 4 ); 
+Signumstart5 = LastValue( SigNum ) - ( tradesback - 5 ); 
+
+bi = BarIndex(); 
+bistart = ValueWhen( signum == signumstart1, bi ); 
+bicond = bi >= bistart AND bi <= LastValue( bi ); 
+
+
+SellPL = IIf( Sell AND bicond, C-BuyPrice, 0 ); 
+CovPL = IIf( Cover AND bicond, ShortPrice - C,0 ); 
+
+cumPL = SellPL + CovPL;
+
+//Plot (SellPL,"Sell",colorGreen,styleHistogram,maskhistogram);
+///Plot (CovPL,"Cover", colorRed,styleHistogram,maskhistogram);
+
+lsince = LowestSince(Sell OR Cover, cumPL, 0);	
+hsince = HighestSince(Sell OR Cover, CumPL, 0);
+
+
+vs= IIf(lsince==0,hsince,lsince);
+
+
+PL1 = ValueWhen( signum == signumstart1 , vs,1 );
+PL2 = ValueWhen( signum == signumstart2 , vs,1 ); 
+PL3 = ValueWhen( signum == signumstart3 , vs,1 );  
+PL4 = ValueWhen( signum == signumstart4 , vs,1 ); 
+PL5 = ValueWhen( signum == signumstart5,  vs ,1 ); 
+
+//////////////////////////////////////////////////
+//   Plot the Last Five Trades Profit/Losses    //
+//////////////////////////////////////////////////
+TR2 = ParamToggle( "Trade Report", "Show|Hide", 1 ); 
+ 
+if ( TR2 == 1 ) 
+{ 
+if ( SelectedValue( LastSignal ) == 1 )
+{
+GfxSelectSolidBrush( colorBrightGreen );
+Datetim = "" + ValueWhen( Buy, Day(), 1 ) + "/" + ValueWhen( Buy, Month(), 1 ) + "/" + ValueWhen( Buy, Year(), 1 ) + " " + ValueWhen( Buy, Hour(), 1 ) + ":" + ValueWhen( Buy, Minute(), 1 );
+}
+else
+{
+GfxSelectSolidBrush( colorOrange );
+Datetim = "" + ValueWhen( Short, Day(), 1 ) + "/" + ValueWhen( Short, Month(), 1 ) + "/" + ValueWhen( Short, Year(), 1 ) + " " + ValueWhen( Short, Hour(), 1 ) + ":" + ValueWhen( Short, Minute(), 1 );
+}
+
+pxHeight = Status( "pxchartheight" ) ;
+
+xx = Status( "pxchartwidth" );
+Left = 1100;
+width = 310;
+x = 1.5;
+x2 = 235;
+
+y = pxHeight / 1;
+
+GfxSelectPen( colorLightBlue, 1 );
+GfxRoundRect( x, y , x2, y , 7, 7 ) ;
+ GfxSelectFont( "Verdana", 10, 100 ); 
+ GfxSetBkMode( 1 ); 
+ GfxSetTextColor( colorWhite ); 
+ y = Status( "pxchartheight" );
+  GfxTextOut(  "KQ 5 lenh gan day"  , 13, y - 275 );
+ GfxTextOut( ( "Lenh 1: " + WriteVal( PL1, 0.1 ) +" diem" ), 13, y - 250 );
+ GfxTextOut( ( "Lenh 2: " + WriteVal( PL2, 0.1 ) +" diem"), 13, y - 225 ); 
+ GfxTextOut( ( "Lenh 3: " + WriteVal( PL3, 0.1 ) +" diem"), 13, y - 200 ); 
+ GfxTextOut( ( "Lenh 4: " + WriteVal( PL4, 0.1 ) +" diem"), 13, y - 175 ); 
+ GfxTextOut( ( "Lenh 5: " + WriteVal( PL5, 0.1 ) +" diem"), 13, y - 150 ); 
+ GfxTextOut( ( "Tong lenh: " + WriteVal( Trade, 3.0 ) +" lenh"), 13, y - 125 ); 
+ GfxTextOut( ( "Tong loi nhuan " + WriteVal( Cum_Profit, 4.2 )+" diem" ), 13, y - 100 ); 
+
+} 
+
+_SECTION_END();
+
+
+
+Offset = -12;
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=45);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+
+    if ( Buy[BarCount-2]==1 )
+    {	
+  if (BatEntrade)
+{
+       ih3 = InternetOpenURL( "http://localhost:6868/api/trade?symbol=VN30F1M&side=NB&clientId=-1" );
+		 if ( ih3 )
+		 {
+		InternetClose(ih3);
+		}
+		}
+		}
+		
+		for (i = BarCount-2; i <BarCount; i++)
+{
+    if ( Sell[BarCount-2]==1 )
+    {	
+  if (BatEntrade)
+{
+        ih4 = InternetOpenURL("http://localhost:6868/api/trade?symbol=VN30F1M&side=NS&clientId=-1");
+		if ( ih4 )
+		 {
+		InternetClose(ih4);
+		}
+		}
+		}
+		}
+
+dist = 1.1 * ATR( 15 );
+LastClose= Ref(C,-1);
+for (i = 1; i <BarCount; i++)
+{
+    if ( Buy[i-1]==1 )
+    {	 
+       PlotText( "Mua@" + O[ i ], i, L[ i ] - dist[i], colorWhite, colorGreen,Offset=-50);
+    
+     }
+   if ( Sell[i-1]==1 )
+	{
+        PlotText( "Ban@" + O[ i ], i, H[ i ] + dist[i], colorWhite, colorRed,Offset=55);	
+        }      
+}
+SetChartOptions(0,chartShowArrows|chartShowDates);
+Chg=Ref(C,-1);
+
+
+Open_Long = Flip( Buy, Sell ); 
+Open_Short = Flip( Sell, Buy ); 
+Buy_Price = ValueWhen( Buy, BuyPrice, 1 ); 
+Short_Price = ValueWhen( Short, ShortPrice, 1 ); 
+Sell_Price = IIf( Sell, ValueWhen( Sell, SellPrice, 1 ), Short_Price ); 
+Cover_Price = IIf( Cover, ValueWhen( Cover, CoverPrice, 1 ), Buy_Price ); 
+Profit = IIf( Open_Long, ( Close - Buy_Price ), IIf( Open_Short, ( Short_Price - Close ), 0 ) ); 
+Last_Profit = IIf( Ref( Open_Long, -1 ) == 1 AND Open_Long != 1, ( Sell_Price - Buy_Price ), IIf( Ref( Open_Short, -1 ) == 1 AND Open_Short != 1, ( Short_Price - Cover_Price ), 0 ) ); 
+Cum_Profit[0] = Last_Profit[0]; 
+PreviousProfit = ValueWhen(Last_Profit!=0,Last_Profit,1); 
+for ( i = 1;i < BarCount;i++ ) 
+{ 
+ Cum_Profit[i] = Cum_Profit[i-1] + Last_Profit[i]; 
+} 
+Trade[0] = 0; 
+for ( i = 1;i < BarCount;i++ ) 
+{ 
+ if ( Buy[i] == 1 OR Short[i] == 1 ) 
+ { 
+ Trade[i] = Trade[i-1] + 1; 
+ } 
+ else 
+ { 
+ Trade[i] = Trade[i-1]; 
+ } 
+} 
+
+
+_SECTION_END();
+_SECTION_BEGIN("Control Panel");
+Bangmuaban = ParamToggle( "Bang mua ban", "Bat|Tat", 1 );  
+// Base point - Left Up Corner
+X0 = Param ("X - Left Up Corner",   20,   0,  800, 5);
+Y0 = Param ("Y - Right Up Corner",   -100,  -500, 800, 5);
+
+// --- Button pressed
+LBClick = GetCursorMouseButtons() == 9;	// Click
+MouseX  = Nz(GetCursorXPosition(1));		// 
+MouseY  = Nz(GetCursorYPosition(1));		// 
+
+// --- Button Draw
+procedure DrawBut (Text, x1, y1, x2, y2, colorFrom, colorTo)
+{
+	GfxSetOverlayMode(0);
+	GfxSelectFont("Verdana", 9, 700);
+	GfxSetBkMode(1);
+	GfxGradientRect(x1, y1, x2, y2, colorFrom, colorTo);
+	GfxDrawText(Text, x1, y1, x2, y2, 32|1|4|16);
+}
+GfxSetTextColor(colorWhite);
+
+// Button Sell Market
+DrawBut ("Bán", X0, Y0+130, X0+170, Y0+180, colorRed, colorRed);
+CursorInSMKTBut = MouseX >= X0 AND MouseX <= X0+170 AND MouseY >= Y0+130 AND MouseY <= Y0+180;
+SMKTPressed = CursorInSMKTBut AND LBClick;
+if ( SMKTPressed  ==1 )
+{ 
+   ih7 = InternetOpenURL("http://localhost:6868/api/trade?symbol=VN30F1M&side=NS&clientId=-1" );
+		if ( ih7 )
+		 {
+		InternetClose(ih7);
+		}
+StaticVarSet ("RS", 0);
+StaticVarSet ("SMKT",  1);
+StaticVarSet ("BMKT",  0);
+StaticVarSet ("CLPOS", 0);
+StaticVarSet ("CANC",  0);
+}
+
+// Button Buy Market
+DrawBut ("Mua", X0, Y0+190, X0+170, Y0+240, colorLime, colorLime);
+CursorInBMKTBut = MouseX >= X0 AND MouseX <= X0+170 AND MouseY >= Y0+190 AND MouseY <= Y0+240;
+BMKTPressed = CursorInBMKTBut AND LBClick;
+if ( BMKTPressed ==1 )
+{ 
+ ih8 = InternetOpenURL( "http://localhost:6868/api/trade?symbol=VN30F1M&side=NB&clientId=-1"  );
+		 if ( ih8 )
+		 {
+		InternetClose(ih8);
+		}
+StaticVarSet ("RS", 0);
+StaticVarSet ("SMKT",  0); 
+StaticVarSet ("BMKT",  1);
+StaticVarSet ("CLPOS", 0);
+StaticVarSet ("CANC",  0);
+}
+
+// Button Close Position
+DrawBut ("Dong vi the", X0, Y0+250, X0+170, Y0+300, colorGrey40, colorGrey40);
+CursorInCloseBut = MouseX >= X0 AND MouseX <= X0+170 AND MouseY >= Y0+250 AND MouseY <= Y0+300;
+ClosePressed = CursorInCloseBut AND LBClick;
+if ( ClosePressed ==1 )
+{ 
+ih9 = InternetOpenURL("http://localhost:6868/api/closeActiveDeals?clientId=-1"  ); 
+ if ( ih9 )
+		 {
+		InternetClose(ih9);
+		}
+StaticVarSet ("RS", 0);
+StaticVarSet ("SMKT",  0); 
+StaticVarSet ("BMKT",  0);
+StaticVarSet ("CLPOS", 1);
+StaticVarSet ("CANC",  0);
+}
+
+// Button Cancel All Orders
+DrawBut ("Cancel All Orders", X0, Y0+310, X0+170, Y0+360, colorGrey40, colorGrey40);
+CursorInCancelBut = MouseX >= X0 AND MouseX <= X0+170 AND MouseY >= Y0+310 AND MouseY <= Y0+360;
+CancelPressed = CursorInCancelBut AND LBClick;
+if ( CancelPressed ==1 )
+{ 
+
+ih10 = InternetOpenURL("http://localhost:6868/api/cancelOrders?clientId=-1" ); 
+ if ( ih10 )
+		 {
+		InternetClose(ih10);
+		}
+StaticVarSet ("RS", 0);
+StaticVarSet ("SMKT",  0); 
+StaticVarSet ("BMKT",  0);
+StaticVarSet ("CLPOS", 0);
+StaticVarSet ("CANC",  1);
+}
+
+if(StaticVarGet("SMKT")==1)		{DrawBut("", X0+180, Y0+130, X0+210, Y0+180, colorRed, colorRed);				}// SMKT			
+if(StaticVarGet("BMKT")==1)		{DrawBut("", X0+180, Y0+190, X0+210, Y0+240, colorLime, colorLime);			}// BMKT			
+if(StaticVarGet("CLPOS")==1)		{DrawBut("", X0+180, Y0+250, X0+210, Y0+300, colorGrey40, colorGrey40);		}// CLPOS		
+if(StaticVarGet("CANC")==1)		{DrawBut("", X0+180, Y0+310, X0+210, Y0+360, colorGrey40, colorGrey40);		}// CANC			
+
+_SECTION_END();
+_SECTION_BEGIN("Price");
+Title = EncodeColor(colorYellow)+ FullName()+"("+Name()+") - " +  Date()  +EncodeColor(colorWhite) +"Mo cua-"+O+"  "+"Cao-"+H+"  "+"Thap-"+L+"  "+
+"Dong cua-"+C+"  "+ "Khoi Luong= "+ WriteVal(V);
+_SECTION_BEGIN("Magnified Market Price");
+FS=Param("Font Size",35,11,100,1);
+GfxSelectFont("Times New Roman", 34, 700, italic = True, underline = False, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor( ParamColor("Color",colorCustom9) );
+Hor=Param("Horizontal Position",648,1,1200,1);
+Ver=Param("Vertical Position",1,1,1,1);
+GfxTextOut(""+C,Hor-150 , Ver+30 );
+
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+GfxSelectFont("Times New Roman", 14, 700, italic =True, underline = False, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor(ParamColor("Color",colorCustom9) );
+GfxTextOut(""+DD+" ("+xx+"%)",  Hor-145 , Ver+80  );
+GfxSelectFont("arial", 18 );
+GfxSetTextColor(ParamColor("dong",colorCustom8) );
+GfxSetTextAlign( 6 );// center alignment
+GfxSetTextColor( ColorRGB( 255, 255, 0 ) );
+GfxSetBkMode(0); // transparent
+GfxSelectFont("UVN But Long 1", Status("pxheight")/26 );
+
+GfxSelectFont("UVN But Long 1", Status("pxheight")/36 );
+
+GfxSelectFont("UVN But Long 1", Status("pxheight")/46 );
+GfxTextOut( FullName() , Status("pxwidth")/1.2, Status("pxheight")/9 );
+GfxTextOut( "("+Name()+") " , Status("pxwidth")/1.2, Status("pxheight")/7 );
+_SECTION_END();
+
+_SECTION_BEGIN("Chandilier band");
+// Downloaded From https://www.WiseStockTrader.com
+/* Plot the Chart */
+//Title = "Chandelier"; 
+GraphXSpace = 2;
+/* Candle chart */ 
+Plot(Close,"Close",1,1);
+//Plot(WMA(Close,30),"Close WMA30",4,1);
+/* Chandelier Exit */
+/* Param( "ATRMultiplier", default, Min, Max, step ); */
+ShortLongSwitch = Param( "Sht(0) Lng(1)",1,0,1,1); // Set to 0 for a Short Trade, 1 for a Long Trade
+HighCloseSwitch = Param( "C(0) H/L(1)",1,0,1,1); // Set to 0 to hang from the close, 1 for High (Long) or Low (Short)
+ATRMultiplier =3.0;// Param( "ATR Mult", 3.0, 1, 4, 0.1);
+ATRRange =10; // Param( "ATR Rng", 10, 2, 30, 1);
+HHVLLVRange =10;// Param( "HHVLLV Rng", 10, 2, 30, 1);
+LongExitHungExHigh = HHV(High - AtrMultiplier * ATR(AtrRange),HHVLLVRange);
+LongExitHungExClose = HHV(Close - AtrMultiplier * ATR(AtrRange),HHVLLVRange);
+ShortExitHungExLow = LLV(Low + AtrMultiplier * ATR(AtrRange),HHVLLVRange);
+ShortExitHungExClose = LLV(Close + AtrMultiplier * ATR(AtrRange),HHVLLVRange);
+LongExit = IIf(HighCloseSwitch == 1, LongExitHungExHigh,LongExitHungExClose);
+ShortExit = IIf(HighCloseSwitch == 1, ShortExitHungExLow,ShortExitHungExClose);
+Exit1 = IIf(ShortLongSwitch == 1, LongExit, ShortExit);
+Exit0 = shortExit;
+Plot(Exit1,"Chandelier Green",colorBrightGreen,styleLine); 
+Plot(Exit0,"Chandelier Red",colorRed,styleLine); 
+G0 = Close;
+G1 = Exit1;
+G2 = Exit0;
+Buy = Cross(G0,G1); // OR Cross(G0,G2);
+//Cover = Cross(G0,G1); // OR Cross(G0,G2);
+Sell = Cross(G2,G0); // OR Cross(G1,G0);
+//Short = Sell ; //Cross(G2,G0); // OR Cross(G1,G0);
+Short=Sell;
+Cover=Buy;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); Short=ExRem(Short,Cover); Cover=ExRem(Cover,Short);
+Equity(1);
+B1 = (Buy * Close);
+S1 = (Sell * Close);
+B2= B1>S1;
+S2= S1>B1;
+Equity(1);
+Buy1 = Buy;
+Sell1 = Sell;
+//////////////////////////////////////
+//Plot(B1, "B1",5,6);
+PlotShapes( IIf( Sell , shapeSmallDownTriangle/*+ "shapePositonAbove"*/, shapeNone ), colorRed );
+PlotShapes( IIf( Buy , shapeSmallUpTriangle/*+ "shapePositonAbove"*/, shapeNone ), colorBrightGreen ); 
+Plot(10, /* defines the height of the ribbon in percent of pane width */"",IIf( B2, colorBrightGreen, IIf( S2, colorRed, 0 )), /* choose color*/styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+_SECTION_END();
+
+// Supertrend - Translated from Kolier MQ4
+// see: http://kolier.li/indicator/kolier-supertrend-indi
+// translation in Amibroker AFL code by E.M.Pottasch, 2011
+  
+procedure calcTrend_proc(ATR_Period,tr,ATR_Multiplier,TrendMode,CalcPrice)
+{
+global buffer_line_down;
+global buffer_line_up;
+buffer_line_down = Null;
+buffer_line_up = Null;
+  
+PHASE_NONE = 0;
+PHASE_BUY = 1;
+PHASE_SELL = -1;
+  
+phase=PHASE_NONE;
+band_upper = 0;band_lower = 0;
+    
+for(i = ATR_Period + 1; i < BarCount; i++)
+{
+    band_upper = CalcPrice[i] + ATR_Multiplier * tr[i];
+    band_lower = CalcPrice[i] - ATR_Multiplier * tr[i];
+      
+    if(phase==PHASE_NONE)
+    {
+        buffer_line_up[i] = CalcPrice[i];
+        buffer_line_down[i] = CalcPrice[i];
+    }
+    if(phase!=PHASE_BUY && Close[i]>buffer_line_down[i-1] && !IsEmpty(buffer_line_down[i-1])) 
+    {
+        phase = PHASE_BUY;
+        buffer_line_up[i] = band_lower;
+        buffer_line_up[i-1] = buffer_line_down[i-1];
+    }
+    if(phase!=PHASE_SELL && Close[i]<buffer_line_up[i-1] && !IsEmpty(buffer_line_up[i-1]))
+    {
+        phase = PHASE_SELL;
+        buffer_line_down[i] = band_upper;
+        buffer_line_down[i-1] = buffer_line_up[i-1];
+    }   
+    if(phase==PHASE_BUY && ((TrendMode==0 && !IsEmpty(buffer_line_up[i-2])) || TrendMode==1) )
+    {
+        if(band_lower>buffer_line_up[i-1]) 
+        {
+            buffer_line_up[i] = band_lower;
+        }
+        else
+        {
+            buffer_line_up[i] = buffer_line_up[i-1];
+        }
+    }
+    if(phase==PHASE_SELL && ((TrendMode==0 && !IsEmpty(buffer_line_down[i-2])) || TrendMode==1) )
+    {
+        if(band_upper<buffer_line_down[i-1])
+        {
+            buffer_line_down[i] = band_upper;
+        }
+        else
+        {
+            buffer_line_down[i] = buffer_line_down[i-1];
+        }
+    }
+}
+}
+  
+SetBarsRequired(sbrAll,sbrAll);
+  
+TrendMode = ParamToggle("TrendMode","Off|On",1);
+ATR_Multiplier = Param("ATR_Multiplier",2,0.1,10,0.1);
+ATR_Period = Param( "ATR_Period",5,1,20,1);
+tr = ATR(ATR_Period);
+  
+CalcPrice = (H+L)/2;
+calcTrend_proc(ATR_Period,tr,ATR_Multiplier,TrendMode,CalcPrice);
+  
+SetChartOptions(0,chartShowDates);
+Plot(C,"C",colorWhite,64);
+Plot(buffer_line_up,"\ntu",ColorRGB(28,134,238),styleThick);
+Plot(buffer_line_down,"\ntd",ColorRGB(205,51,51),styleThick);
+  
+Plot( 2,"",IIf(buffer_line_up,colorGreen,colorBlack),styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+Plot( 4,"",IIf(buffer_line_down,colorRed,colorBlack),styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+
+// Supertrend Indicator
+// AmiBroker implementation by Matt Radtke, www.quantforhire.com
+
+// Downloaded From https://www.WiseStockTrader.com

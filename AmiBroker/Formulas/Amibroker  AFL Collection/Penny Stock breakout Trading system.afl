@@ -1,0 +1,50 @@
+//////////////////////////////// 
+//Penny Stock breakout Trading system 
+//////////////////////////////// 
+MACDH = MACD()-Signal(); 
+SDC = StDev( C, 30 ) / MA( C, 30 ); 
+Period = 14; 
+Coeff = 0.1; 
+intra = log( H ) - log( L ); 
+Vintra = StDev( intra, Period ); 
+inter = log( Avg ) - log( Ref( Avg, -1 ) ); 
+Vinter = StDev( inter, Period ); 
+Cutoff = Coeff * (Vinter+Vintra) * C; 
+MF = C - (H+L)/2 + Avg - Ref( Avg, -1 ); 
+MFV = IIf( MF > Cutoff, V, IIf( MF < -Cutoff, -V, 0 ) ); 
+FVE = Sum( MFV, Period ) / MA(V,Period) / Period * 100; 
+
+LC35 = 100* LinRegSlope( C, 35 ) / Ref( C, -35 ); 
+LC70 = 100*LinRegSlope( C, 70 ) / Ref( C, -70 ); 
+LC170 = 100*LinRegSlope( C, 170 ) / Ref( C, -170 ); 
+
+StochSDC = 100 * Sum( SDC - LLV(SDC,150), 3 ) / 
+           Sum( HHV( SDC, 150 ) - LLV( SDC, 150 ), 3 ); 
+
+Buy =  FVE > -1 AND 
+       LC35 > -0.35 AND 
+       LC35 < 0.40 AND 
+       LC70 > -0.40 AND 
+       LC70 < 0.40 AND 
+       LC170 > -0.20 AND 
+       MACDH > -0.003 AND 
+       StochSDC < 20 AND 
+       C > EMA( C, 10 ) AND 
+       SDC * ADX( 25 ) < 1.3 AND 
+       StochK( 10, 3 ) > 30; 
+
+Sell = C < (1 - 18/100) * HHV( C, 2 ); 
+ApplyStop( stopTypeNBar, stopModeBars, 70, True ); 
+
+Filter = Buy; 
+AddColumn( FVE, "FVE" ); 
+AddColumn( LC35, "LC35" ); 
+AddColumn( LC70, "LC70" ); 
+AddColumn( LC170, "LC170" ); 
+AddColumn( MACDH, "MACDH", 1.5 ); 
+AddColumn( StochSDC , "StochSDC" ); 
+AddColumn( C , "C" ); 
+AddColumn( EMA( C, 10 ), "EMA(C,10)" ); 
+AddColumn( SDC * ADX( 25 ), "SDC * ADX( 25 )" ); 
+AddColumn( StochK( 10, 3 )  , "StochK( 10, 3 )" ); 
+

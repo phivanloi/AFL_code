@@ -1,0 +1,6 @@
+// Time segment value
+
+TSV=(Sum( IIf( C > Ref(C,-1), V * ( C-Ref(C,-1) ),
+IIf( C < Ref(C,-1),-V * ( C-Ref(C,-1) ), 0 ) ) ,18));
+
+Plot(TSV,"TSV",1,1);

@@ -1,0 +1,66 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+
+_SECTION_BEGIN("Ichimoku Hayo Kinko");
+GraphXSpace =1;
+prds = Param("Standard Line Periods?", 12,5,26,1);
+prds1 = Param("Turning Line Periods?", 3,3,10,1);
+prds2 = Param("Delayed Line Periods?", 11,4,25,1);
+prds3 = Param("Spans Periods?", 18,10,52,1);
+
+
+TL = ( HHV( H, prds1) + LLV( L, prds1) )/2;
+SL = ( HHV( H, prds) + LLV( L, prds) )/2;
+DL = Ref( C, prds2);
+Sp1 = Ref( ( SL + TL )/2, -prds2)-(C*0.003);
+Sp2 = Ref( (HHV( H, prds3) + LLV(L, prds3))/2, -prds2)+(C*0.003);
+
+STPL=(C+sp1+sp2)/3;
+Plot (STPL,"STPL",ParamColor("STPL", colorBlack), styleThick);
+
+
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );
+_N( Title = StrFormat( "{{NAME}} - " + SectorID( 1 ) + " - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", colorBlack, styleCandle | styleNoTitle | ParamStyle( "Style" ) | GetPriceStyle() );
+
+if ( ParamToggle( "Tooltip shows", "All Values|Only Prices" ) )
+{
+ToolTip = StrFormat( "Open: %g\nHigh: %g\nLow: %g\nClose: %g (%.1f%%)\nVolume: " + NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 ) ) );
+}
+Buy = Cross(Close,IIf(sp1>sp2,sp1,sp2));
+Sell = Cross(IIf(sp1<sp2,sp1,sp2),Close);
+/* exrem is one method to remove surplus trade signals*/
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+Filter = Buy OR Sell;
+
+AddTextColumn( FullName(), "Company Name" );
+AddColumn( Buy, "Buy", 1 );
+AddColumn( Sell, "Sell", 1 );
+AddColumn( C, "Close", 1.3 );
+AddColumn( H, "High", 1.3 );
+PlotOHLC (Sp1,Sp1,Sp2,Sp2,"Cloud",IIf(Sp1>Sp2,ParamColor("Span1 Color", ColorRGB(0,255,0)),ParamColor("Span2 Color",ColorRGB(255,104,32))),styleCloud);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+
+if( Status("action") == actionIndicator ) 
+(
+Title = EncodeColor(colorAqua)+ "NICK MA Swing System" + " - " +  Name() + " - " + EncodeColor(colorBlue)+ Interval(2) + EncodeColor(colorBlue) +
+ "  - " + Date() +" - "+"\n" +EncodeColor(colorGreen) +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+
+"Cl-"+C+"  "+ "Vol= "+ WriteVal(V,1.0)+"\n"+ 
+EncodeColor(colorBlue)+
+WriteIf (Buy , " GO LONG / Reverse Signal at "+C+"  ","")+
+WriteIf (Sell , " EXIT LONG / Reverse Signal at "+C+"  ","")+"\n");
+
+
+
+_SECTION_END(); 

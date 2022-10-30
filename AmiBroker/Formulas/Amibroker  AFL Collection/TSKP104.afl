@@ -1,0 +1,1 @@
+Plot( E_TSKP104(High,Low,Close) , _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style",style=styleNoLabel, mask=maskDefault) ); 

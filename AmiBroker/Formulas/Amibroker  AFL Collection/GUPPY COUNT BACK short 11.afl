@@ -1,0 +1,388 @@
+_SECTION_BEGIN("Fib_Levels");
+/*---------------------------------------------------
+   Automatic Fib Levels
+   Aron Pipa, December, 11, 2005
+modified By Vinod K. Iyer as per Linkon's Strategy
+Theory is, price never moves in a straight line. it retraces and the expands the range. We use this afl to find the possible retracement point. Normally, price retracement of 23.6 % 
+(yellow dotted line) is seen as a strong trend. retracement of 38.2% (pink line) is normal and signifies continuation of the trend. 
+retracement of 50% (white) is relatively a trend changer. 61.8% retracement ( light blue) is normally a reversal if price doesnt go back to 38.2%.
+
+We use this to pre-determine levels where we go short / long. Or place SL. Sl at 61.2 % is treated as very safe. 
+Sl at 50% is safe. sl at 38.2% is aggressive and 23.6% is very aggressive.
+
+range expansion of 132.8%, 161.8%, 261% is the possible target.
+
+
+I use 30 min pivots (R1/S1) and / or fabo 38.2% as my entry point for buying the dips or selling the rally....! 
+--------------------------------------------------------*/
+pShowFib = ParamToggle("Show Fib Lines", "No|Yes", 0);
+pShowLevel = ParamToggle("Show Camrilla sup-res Lines", "No|Yes", 1);
+pShowLevel1 = ParamToggle("Show sup-res Lines", "No|Yes", 1);
+pShowMarkers = ParamToggle("Show Markers", "No|Yes", 1);
+per1=Param ("% for Sup-Res Calc", 0.325,0.1,50,0.10);
+SetChartOptions(0,chartShowArrows|chartShowDates);
+//Plot(MA(Close,3),"",IIf(MA(C,3) > Ref(MA(C,3),-1),colorGreen,colorRed),styleThick);
+Plot(C,"", IIf(CCI(14) > ((Ref(CCI(14),-1)+Ref(CCI(14),-2))/2),colorBrightGreen,colorRed) , styleCandle|styleThick);
+
+
+//_SECTION_BEGIN("FIB");
+// Get values for fib levels
+
+StartBar=SelectedValue(BarIndex());
+FinishBar = EndValue( BarIndex() );
+i = startbar;
+period = FinishBar - StartBar;
+
+Lo =LLV(L,period);
+Hi = HHV(H,period);
+Line0 = 0;
+Line1 = 0;
+Line2 = 0;
+Line3 = 0;
+Line4= 0;
+Line5= 0;
+Line6= 0;
+Line100 = 0;
+
+for( i = startbar; i < finishbar; i++ )
+{
+if(EndValue(C)<SelectedValue(C))
+{
+Line0  = EndValue(Lo);
+Line100 = EndValue(Hi);
+Line1 = Line0 + abs(Line100-Line0)*0.236;
+Line2 = Line0 + abs(Line100-Line0)*0.382;
+Line3 = Line0 + abs(Line100-Line0)*0.5;
+Line4 = Line0 + abs(Line100-Line0)*0.618;
+Line5 = Line0 - abs(Line100-Line0)*0.236;
+Line6 = Line0 - abs(Line100-Line0)*0.382;
+
+}
+else
+{
+Line100  = EndValue(Lo);
+Line0 = EndValue(Hi);
+Line1 =Line0 - abs(Line100-Line0)*0.236;
+Line2 = Line0 - abs(Line100-Line0)*0.382;
+Line3 = Line0 - abs(Line100-Line0)*0.5;
+Line4 = Line0 - abs(Line100-Line0)*0.618;
+Line5 = Line0 + abs(Line100-Line0)*0.236;
+Line6 = Line0 + abs(Line100-Line0)*0.382;
+}
+}
+
+// external fib lines begining fom selecetdbarindex()
+fib0= LineArray(startbar, Line0, finishbar, Line0, 0, 1);
+fib100 = LineArray(startbar, Line100, finishbar, Line100, 0, 1);
+
+// depth of middle lines
+n= round((finishbar-startbar)/2);
+
+// middle lines
+fib1= LineArray((finishbar-n), Line1, finishbar, Line1, 0, 1);
+fib2= LineArray((finishbar-n), Line2, finishbar, Line2, 0, 1);
+fib3= LineArray((finishbar-n), Line3, finishbar, Line3, 0, 1);
+fib4= LineArray((finishbar-n), Line4, finishbar, Line4, 0, 1);
+fib5= LineArray((finishbar-n), Line5, finishbar, Line5, 0, 1);
+fib6= LineArray((finishbar-n), Line6, finishbar, Line6, 0, 1);
+/*
+
+_SECTION_END();
+*/
+
+
+_SECTION_BEGIN("Camarilla");
+
+//Find number of bars in 60 minutes 
+Num_Bars   = 3600 / Interval(1);  
+
+TimeFrameSet(inDaily);
+TOP_        = Open;
+PDH_        = Ref(High,-1);
+PDL_        = Ref(Low,-1);
+PDO_        = Ref(Open,-1);
+PDC_        = Ref(Close,-1);
+PDM_        = (PDH_+PDL_)/2;
+TimeFrameRestore();
+
+isAll = True;
+isRth =  TimeNum() >= 090000 AND TimeNum() <= 090500;
+isdRth =  TimeNum() >= 090000 AND TimeNum() <= 160000;
+
+aRthL = IIf(isRth, L, 1000000);
+aRthH = IIf(isdRth, H, Null);
+aRthLd = IIf(isdRth, L, 1000000);
+
+TOP         = TimeFrameExpand(TOP_,inDaily,expandFirst); 
+PDH         = TimeFrameExpand(PDH_,inDaily,expandFirst); 
+PDL         = TimeFrameExpand(PDL_,inDaily,expandFirst); 
+PDO         = TimeFrameExpand(PDO_,inDaily,expandFirst); 
+PDC         = TimeFrameExpand(PDC_,inDaily,expandFirst); 
+PDM         = TimeFrameExpand(PDM_,inDaily,expandFirst); 
+DayH = TimeFrameCompress( aRthH, inDaily, compressHigh );
+DayH = TimeFrameExpand( DayH, inDaily, expandFirst );
+DayL = TimeFrameCompress( aRthLd, inDaily, compressLow );
+DayL = TimeFrameExpand( DayL, inDaily, expandFirst );
+
+//calculations
+
+H4=(((PDH-PDL)*1.1)/2)+PDC;
+H3=(((PDH-PDL)*1.1)/4)+PDC;
+H2=(((PDH-PDL)*1.1)/6)+PDC;
+H1=(((PDH-PDL)*1.1)/12)+PDC;
+L1=PDC-(((PDH-PDL)*1.1)/12);
+L2=PDC-(((PDH-PDL)*1.1)/6);
+L3=PDC-(((PDH-PDL)*1.1)/4);
+L4=PDC-(((PDH-PDL)*1.1)/2);
+PV=(H1+L1)/2;
+
+//calc sup-res
+per=per1;
+x = Cum(1);
+s1=L;
+s11=H;
+pS = TroughBars( s1, per, 1 ) == 0;
+endt= SelectedValue(ValueWhen( pS, x, 1 ));
+startt=SelectedValue(ValueWhen( pS, x, 2 ));
+dtS =endt-startt;
+endS = SelectedValue(ValueWhen( pS, s1, 1 ) );
+startS = SelectedValue( ValueWhen( pS, s1, 1 ));
+aS = (endS-startS)/dtS;
+bS = endS;
+trendlineS = aS * ( x -endt ) + bS;
+g3= IIf(x>startt-10,trendlineS,-1e10);
+Plot(IIf(pShowLevel1,g3,Null),"",colorWhite,styleDashed);
+
+pR = PeakBars( s11, per, 1 ) == 0;
+endt1= SelectedValue(ValueWhen( pR, x, 1 ));
+startt1=SelectedValue(ValueWhen( pR, x, 2 ));
+dtR =endt1-startt1;
+endR = SelectedValue(ValueWhen( pR, s11, 1 ) );
+startR = SelectedValue( ValueWhen( pR, s11, 1 ));
+aR = (endR-startR)/dtR;
+bR = endR;
+trendlineR = aR * ( x -endt1 ) + bR;
+g4= IIf(x>startT1-10,trendlineR,-1e10);
+Plot(IIf(pShowLevel1,g4,Null),"",colorOrange,styleDashed);
+
+perc=per1;
+x=BarIndex();xx=SelectedValue(x);
+t1=SelectedValue(ValueWhen(PeakBars(C,perc)==0,x)) ;
+H1=SelectedValue(ValueWhen(PeakBars(C,perc)==0,C)) ;
+t11=SelectedValue(ValueWhen(TroughBars(C,perc)==0, x));
+H11=SelectedValue(ValueWhen(TroughBars(C,perc)==0, C));
+g=t1>t11;
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+per=per1;
+
+x = Cum(1);
+s1=C;
+s11=C;
+pS = TroughBars( s1, per, 1 ) == 0;
+endt= SelectedValue(ValueWhen( pS, x, 1 ));
+startt=SelectedValue(ValueWhen( pS, x, 2 ));
+dtS =endt-startt;
+endS = SelectedValue(ValueWhen( pS, s1, 1 ) );
+startS = SelectedValue( ValueWhen( pS, s1, 2 ));
+aS = (endS-startS)/dtS;
+bS = endS;
+trendlineS = aS * ( x -endt ) + bS;
+g3= IIf(x>startt-10,trendlineS,-1e10);
+Plot(IIf(pShowLevel1,g3,Null),"",colorWhite,styleThick);
+
+pR = PeakBars( s11, per, 1 ) == 0;
+endt1= SelectedValue(ValueWhen( pR, x, 1 ));
+startt1=SelectedValue(ValueWhen( pR, x, 2 ));
+dtR =endt1-startt1;
+endR = SelectedValue(ValueWhen( pR, s11, 1 ) );
+startR = SelectedValue( ValueWhen( pR, s11, 2 ));
+aR = (endR-startR)/dtR;
+bR = endR;
+trendlineR = aR * ( x -endt1 ) + bR;
+g4= IIf(x>startT1-10,trendlineR,-1e10);
+Plot(IIf(pShowLevel1,g4,Null),"",colorOrange,styleThick);
+// end
+
+tgt_up = H4*5/1000 + H4;
+tgt_dn = L4-L4*5/1000;
+Red=O>C;
+Green=O<C;
+
+//line plot basics
+Bars       = BarsSince(TimeNum() >= 090000 AND TimeNum() < 090500) ;// AND DateNum()==LastValue(DateNum());
+x0         = BarCount-LastValue(Bars);
+x1         = BarCount-1;
+TOP_Line   = LineArray(x0,LastValue(TOP),x1,LastValue(TOP),0);
+PDH_Line   = LineArray(x0,LastValue(PDH),x1,LastValue(PDH),0);
+PDL_Line   = LineArray(x0,LastValue(PDL),x1,LastValue(PDL),0);
+PDC_Line   = LineArray(x0,LastValue(PDC),x1,LastValue(PDC),0);
+PDM_Line   = LineArray(x0,LastValue(PDM),x1,LastValue(PDM),0);
+DayHline=LineArray(x0,LastValue(DayH),x1,LastValue(DayH),0);
+DayLline=LineArray(x0,LastValue(DayL),x1,LastValue(DayL),0);
+R4line=LineArray(x0,LastValue(H4),x1,LastValue(H4),0);
+R3line=LineArray(x0,LastValue(H3),x1,LastValue(H3),0);
+R2line=LineArray(x0,LastValue(H2),x1,LastValue(H2),0);
+R1line=LineArray(x0,LastValue(H1),x1,LastValue(H1),0);
+S1line=LineArray(x0,LastValue(L1),x1,LastValue(L1),0);
+S2line=LineArray(x0,LastValue(L2),x1,LastValue(L2),0);
+S3line=LineArray(x0,LastValue(L3),x1,LastValue(L3),0);
+S4line=LineArray(x0,LastValue(L4),x1,LastValue(L4),0);
+PVline=LineArray(x0,LastValue(PV),x1,LastValue(PV),0);
+
+//PLOT LINES
+Plot(IIf(pShowLevel,S4line,Null),"",colorRed,styleDashed|styleNoRescale);
+Plot(IIf(pShowLevel,S3line,Null),"",colorRed,styleDashed|styleNoRescale);
+Plot(IIf(pShowLevel,S2line,Null),"",colorRed,styleDashed|styleNoRescale);
+Plot(IIf(pShowLevel,S1line,Null),"",colorRed,styleDashed|styleNoRescale);
+Plot(IIf(pShowLevel,R4line,Null),"",colorBrightGreen,styleDashed|styleNoRescale);
+Plot(IIf(pShowLevel,R3line,Null),"",colorBrightGreen,styleDashed|styleNoRescale);
+Plot(IIf(pShowLevel,R2line,Null),"",colorBrightGreen,styleDashed|styleNoRescale);
+Plot(IIf(pShowLevel,R1line,Null),"",colorBrightGreen,styleDashed|styleNoRescale);
+Plot(IIf(pShowlevel,PVline,PVline),"",colorYellow,styleDots|styleNoRescale|styleThick);
+Plot(IIf(pShowlevel,DayHline,DayHline),"",colorYellow,styleLine|styleNoRescale);
+Plot(IIf(pShowlevel,DayLline,DayLline),"",colorYellow,styleLine|styleNoRescale);
+Plot(IIf(pShowFib, fib0,Null),"", colorGreen,styleLine|styleNoRescale);
+Plot(IIf(pShowFib, fib100,Null),"", colorRed,styleLine|styleNoRescale);
+Plot(IIf(pShowFib, fib1,Null),"", colorYellow,styleDashed|styleNoRescale);
+Plot(IIf(pShowFib, fib2,Null),"", colorPink,styleLine|styleNoRescale);
+Plot(IIf(pShowFib, fib3,Null),"", colorWhite,styleLine|styleNoRescale);
+Plot(IIf(pShowFib, fib4,Null),"", colorLightBlue,styleLine|styleNoRescale);
+Plot(IIf(pShowFib, fib5,Null),"", colorLightGrey,styleLine|styleNoRescale);
+Plot(IIf(pShowFib, fib6,Null),"", colorLightGrey,styleLine|styleNoRescale);
+
+// Angle variables BB
+
+PI = atan(1.00) * 4; 
+periods = 20; 
+HighHigh = HHV(H, periods); 
+LowLow = LLV(L, periods); 
+range = 20 / (HighHigh - LowLow) * LowLow;
+
+// bbtop 1 Angle
+
+bb201 = BBandTop(C, 20, 1 );
+bb201b = BBandBot(C, 20, 1 );
+x1_bb201 = 0; 
+x2_bb201 = 1; 
+y1_bb201 = 0; 
+y2_bb201 = (Ref(bb201, -1) - bb201) / Avg * range; 
+c_bb201 = sqrt((x2_bb201 - x1_bb201)*(x2_bb201 - x1_bb201) + (y2_bb201 - y1_bb201)*(y2_bb201 - y1_bb201)); 
+angle_bb201 = round(180 * acos((x2_bb201 - x1_bb201)/c_bb201) / PI); 
+angle_bb201 = IIf(y2_bb201 > 0, - angle_bb201, angle_bb201); 
+
+// bbtop 2.25 Angle
+
+bb20225 = BBandTop(C, 20, 2.25 );
+bb20225b = BBandBot(C, 20, 2.25 );
+x1_bb20225 = 0; 
+x2_bb20225 = 1; 
+y1_bb20225 = 0; 
+y2_bb20225 = (Ref(bb20225, -1) - bb20225) / Avg * range; 
+c_bb20225 = sqrt((x2_bb20225 - x1_bb20225)*(x2_bb20225 - x1_bb20225) + (y2_bb20225 - y1_bb20225)*(y2_bb20225 - y1_bb20225)); 
+angle_bb20225 = round(180 * acos((x2_bb20225 - x1_bb20225)/c_bb20225) / PI); 
+angle_bb20225 = IIf(y2_bb20225 > 0, - angle_bb20225, angle_bb20225); 
+
+//bb variables
+Flatbb=((angle_bb201<30 && angle_bb201>-30) && (angle_bb20225<30 && angle_bb20225>-30));
+upbb=(angle_bb201>30 && angle_bb20225>30);
+dnbb=(angle_bb201<-30 && angle_bb20225<-30);
+
+// Angle variables BB
+
+PIC = atan(1.00) * 4;  
+periods1 = 14; 
+HighHigh1 = HHV(H, periods1); 
+LowLow1 = LLV(L, periods1); 
+range1 = 14 / (HighHigh1 - LowLow1) * LowLow1;
+
+// bbtop 1 Angle
+
+CCC = CCI(14);
+x1_CCC = 0; 
+x2_CCC = 1; 
+y1_CCC = 0; 
+y2_CCC = (Ref(CCC, -1) - CCC) / Avg * range1; 
+c_CCC = sqrt((x2_CCC - x1_CCC)*(x2_CCC - x1_CCC) + (y2_CCC - y1_CCC)*(y2_CCC - y1_CCC)); 
+angle_CCC = round(180 * acos((x2_CCC - x1_CCC)/c_CCC) / PIC); 
+angle_CCC = IIf(y2_CCC > 0, - angle_CCC, angle_CCC); 
+
+//Buy variables
+
+//bCond1=Flatbb && Green && C>bb20225b && Ref(Cross(bb20225b,C),-1) && Ref(Red,-1) && CCI(14)>Ref(CCI(14),-1);
+bCond1=Flatbb && Green && Ref(Cross(L,bb20225b),-1) && Ref(Red,-1) && CCI(14)>Ref(CCI(14),-1) && CCI(14) < -150;
+bstop1=IIf(bcond1,ValueWhen(bcond1,Ref(L,-1)),0);
+//bcond2=upbb && Green && CCI(14)>Ref(CCI(14),-1) && C>bb201;
+bcond2=upbb && Green && CCI(14)>Ref(CCI(14),-1) && Cross(L,bb201);
+bstop2=IIf(bcond2,ValueWhen(bcond2,bb201b),0);
+bcond3=Ref(dnbb,-1) && Flatbb && angle_CCC>30 AND green;
+Bstop3=IIf(bcond3,ValueWhen(bcond3,ValueWhen(LLV(CCI(14),5),L)),0);
+Buy=bcond1 || bcond2 ||bcond3;
+bstop4=(round((bstop1+bstop2+Bstop3)*10))/10;
+BuyPrice=(round(ValueWhen(Buy,C)*10))/10;
+Buystop=IIf(bstop4>BuyPrice, bstop4/2,bstop4);
+
+
+//short variables
+sCond1=Flatbb && Red && C<bb20225 && Ref(Cross(C,bb20225),-1) && Ref(green,-1) && CCI(14)<Ref(CCI(14),-1);
+sstop1=IIf(scond1,ValueWhen(scond1,Ref(H,-1)),0);
+scond2=dnbb && Red && CCI(14)<Ref(CCI(14),-1) && C<bb201b;
+sstop2=IIf(scond2,ValueWhen(scond2,bb201),0);
+scond3=Ref(upbb,-1) && Flatbb && angle_CCC<-30 AND Red;
+sstop3=IIf(scond3,ValueWhen(scond3,ValueWhen(HHV(CCI(14),5),H)),0);
+Short = scond1 || scond2 ||scond3;
+sstop4= (round((sstop1+sstop2+sstop3)*10))/10;
+Buy =ExRem(Buy,Short);
+Short = ExRem(Short,Buy);
+ShortPrice=(round(ValueWhen(Short,C)*10))/10;
+Shortstop=IIf(sstop4<ShortPrice, sstop4/2,sstop4);
+
+
+
+//shapes
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-20);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-30); 
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-25); 
+PlotShapes(IIf(Short, shapeSquare, shapeNone),colorRed, 0, H, Offset=20);
+PlotShapes(IIf(Short, shapeSquare, shapeNone),colorOrange, 0,H, Offset=30); 
+PlotShapes(IIf(Short, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-25);
+
+Title = EncodeColor(colorWhite)+ "LINKON'S PIVOT TRADING SYSTEM" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "
+//+ WriteIf(Col_action==colorGreen, EncodeColor(colorGreen)+"stay LONG","")+ WriteIf(Col_action==colorRed, EncodeColor(colorRed)+"stay SHORT","")+  WriteIf(Col_action==colorBlack, EncodeColor(colorYellow)+"No Trend","")+"\n"
++ "Vol= "+ WriteVal(V) +WriteIf ( V > MA(V,26) ,EncodeColor(colorGreen)+"  UP "+ (V/MA(V,26))*100 + " %", EncodeColor(colorRed)+"  DOWN "+ (V/MA(V,26))*100 + " %")
++ EncodeColor(colorGreen)+   "\n H4 : "+ EncodeColor(colorWhite)+H4+ EncodeColor(colorGreen)+   "    tgt : "+ EncodeColor(colorWhite)+tgt_up 
++ EncodeColor(colorGreen)+   "\n H3 : "+ EncodeColor(colorWhite)+H3 
++ EncodeColor(colorGreen)+   "\n H2 : "+ EncodeColor(colorWhite)+H2 
++ EncodeColor(colorGreen)+   "\n H1 : "+ EncodeColor(colorWhite)+H1+ EncodeColor(colorGreen)+   "`            Hi: "+ EncodeColor(colorWhite)+H
++ EncodeColor(colorBlue)+   "\n Pivot : "+ EncodeColor(colorWhite)+pv + EncodeColor(colorYellow)+   "`   Op: "+ EncodeColor(colorWhite)+O+ EncodeColor(colorAqua)+   "Cl: "+ EncodeColor(colorBrightGreen)+C
++ EncodeColor(colorRed)+   "\n L1 : "+ EncodeColor(colorWhite)+L1+ EncodeColor(colorRed)+   "`            Lo: "+ EncodeColor(colorWhite)+L
++ EncodeColor(colorRed)+   "\n L2 : "+ EncodeColor(colorWhite)+L2
++ EncodeColor(colorRed)+   "\n L3 : "+ EncodeColor(colorWhite)+L3
++ EncodeColor(colorRed)+   "\n L4 : "+ EncodeColor(colorWhite)+L4+ EncodeColor(colorRed)+      "     tgt : "+ EncodeColor(colorWhite)+tgt_dn
+;
+//Explorer
+AddColumn( IIf(Buy, 66, IIf(Short, 83,01 )), "GO", formatChar, colorWhite, bkcolor= IIf(Short,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy , BuyPrice, IIf(Short, ShortPrice,01 )), "ENTRY@", 1.2, colorWhite, bkcolor= IIf(Short ,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy , buystop, IIf(Short , ShortStop,01 )), "STPLS@", 1.2, colorWhite, bkcolor= IIf(Short,colorDarkRed,colorDarkGreen) );
+
+//Alerts
+AlertIf( Buy, "SOUND C:\\Windows\\Media\\Windows XP Startup.wav", "Buy",2);
+AlertIf( Short, "SOUND C:\\Windows\\Media\\Windows XP Startup.wav", "Short", 2 );
+
+//Filters
+Filter=Buy || Short ;
+
+_SECTION_END();
+_SECTION_BEGIN("Bollinger Bands");
+Plot( BBandTop(C, 20, 1 ), "BBTop" + _PARAM_VALUES(), colorYellow, styleDashed ); 
+Plot( BBandBot( C, 20, 1 ), "BBBot" + _PARAM_VALUES(), colorYellow, styleDashed ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Bollinger Bands1");
+Plot( BBandTop( C, 20, 2.25), "BBTop" + _PARAM_VALUES(), colorOrange, styleDashed ); 
+Plot( BBandBot( C, 20, 2.25 ), "BBBot" + _PARAM_VALUES(), colorOrange, styleDashed ); 
+_SECTION_END();
+
+
+//Plot(6, "", IIf(PDI(7) > MDI(7) AND PDI(7) > 30,colorGreen,IIf (MDI(7) > PDI(7) AND MDI(7) > 30,colorRed,colorYellow)), styleOwnScale| styleArea|styleNoLabel,-0.5,100);

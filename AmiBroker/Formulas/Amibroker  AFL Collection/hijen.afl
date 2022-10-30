@@ -1,0 +1,38 @@
+/*dear mahesh bhai,
+
+
+me chah ta hu ki last 100 bar serach ho OR uper di gayi condition ke hisab se percentage Plot ho..(in fig)
+
+example:
+
+RSI>30 AND <50 in last 100 bar= 30%
+
+RSI>50 AND <70 in last 100 bar= 40%
+
+RSI >70 = 30%*/
+
+Lbp=Param("lbp",100,1,500,5);
+rp=Param("rp",14,5,100,1);
+
+
+b30=(Sum(RSI(rp)<30,Lbp))*100/Lbp;
+b30n50=(Sum(RSI(rp)>30 && RSI(rp)<50,Lbp))*100/Lbp;
+b50n70=(Sum((RSI(rp)>50 && RSI(rp)<70),Lbp))*100/Lbp;
+a70=(Sum(RSI(rp)>70,Lbp))*100/Lbp;
+
+GfxSetBkColor(colorBlack);
+GfxSetTextColor(colorGreen);
+GfxTextOut(" bellow 30= "+b30+"%",400,100);
+GfxTextOut(" above 30 n bellow 50= "+b30n50+"%",400,120);
+GfxTextOut(" above 50 n bellow 70= "+b50n70+"%",400,140);
+GfxTextOut(" above 70 = "+a70+"%",400,160);
+
+GfxTextOut(" total="+(b30+b30n50+b50n70+a70)+"%",400,180);
+
+
+
+
+
+
+
+

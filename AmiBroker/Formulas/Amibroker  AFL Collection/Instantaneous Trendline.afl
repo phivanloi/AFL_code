@@ -1,0 +1,23 @@
+// Instantaneous Trendline
+Price = (H+L)/2;
+Length = Param("Length", 20, 2, 100, 1 );
+SMA = MA( Price, Length );
+Slope = Price - Ref( Price, - ( Length - 1 ) );
+SmoothSlope = ( Slope + 2 * Ref( Slope, -1 )
+ + 2 * Ref( Slope, -2 ) + Ref( Slope, -3 ) )/6;
+ITrend = SMA + 0.5 * SmoothSlope;
+// Cyclic Component
+alpha = 0;
+HP = 0;
+SmoothHP = 0;
+PI = 3.1415926;
+alpha = ( 1 - sin( 2 * PI / Length ) )/cos( 2 * PI / Length );
+HP = AMA2( Price - Ref( Price, -1 ), 0.5 * ( 1 + alpha ), alpha );
+SmoothHP = ( HP + 2 * Ref( HP, -1 )
+ + 2 * Ref( HP, -2 ) + Ref( HP, -3 ) ) / 6;
+Plot( Price, "Price", colorBlack, styleCandle );
+// components of model
+// Plot( ITrend, "ITrend", colorRed );
+// Plot( SmoothHP, "SmoothHP", colorRed );
+Model = ITrend + SmoothHP;
+Plot( Model, "Model", colorRed );

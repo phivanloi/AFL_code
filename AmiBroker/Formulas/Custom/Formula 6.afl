@@ -1,0 +1,3 @@
+AB = CreateObject("Broker.Application");
+AW = AB.ActiveWindow;
+AW.ExportImage( "C:\\Program Files\\AmiBroker\\ExportedImages\\", 640, 480 ); // 640, 480 are pixel dimension

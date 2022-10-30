@@ -1,0 +1,22 @@
+/* Hull Moving Average (HMA) 
+Author: Alan Hall 
+web site: www.alanhall.com 
+*/ 
+//user paramters 
+prmPeriod = Param("Period", 25, 2, 100, 1); 
+prmColor = ParamColor("Color", colorCustom12); 
+prmStyle = ParamStyle("Style", styleLine, maskAll); 
+prmField = ParamField("Fields", 3); 
+//calculations 
+HMA = WMA(2 * WMA(prmField,int(prmPeriod/2)) - WMA(prmField,prmPeriod), int(sqrt(prmPeriod)));
+Temp = Ref(HMA,-1);
+
+// paint the chart 
+Plot(HMA,"HMA",prmColor, prmStyle);
+Plot(Ref(HMA,-1), "Previous", colorPink, styleDashed);
+
+Buy=Cross(HMA,Temp);
+Sell=Cross(Temp,HMA);
+
+PlotShapes(IIf(Buy,shapeDigit3,shapeNone) ,colorWhite,0,Graph0,-5);
+PlotShapes(IIf(Sell,shapeDigit3,shapeNone),colorRed,0,Graph1,5);

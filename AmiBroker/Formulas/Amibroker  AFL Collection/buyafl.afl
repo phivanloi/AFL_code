@@ -1,0 +1,7 @@
+/* Create date: 16 Aug 2010
+The Simple MA (Short) of the current bar is greater than the Simple MA (Medium) of 1 bar ago AND The Simple MA (Medium) of the current bar is greater than the Simple MA (Long) of 1 bar ago AND The DI+ of the current bar is greater than the DI- of the current bar AND The RSI of the current bar is greater than 90 */
+
+Buy = MA( Close, 20 ) > Ref( MA( Close, 50 ), -1 )
+AND MA( Close, 50 ) > Ref( MA( Close, 200 ), -1 )
+AND PDI() > MDI()
+AND RSIa( Close, 2 ) > 90;

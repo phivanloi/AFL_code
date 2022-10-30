@@ -1,0 +1,56 @@
+/* KPScoreCard Map
+	Plot the individual Compenements of ScoreCard as individual ribbons.
+	This indicator is mainly for educational purposes
+*/
+parmBullColor = ParamColor("Bull color", ColorRGB(167, 224, 243) );
+parmBearColor = ParamColor("Bear color", ColorRGB(255, 192, 203) );
+parmNeutColor = ParamColor("Neutral color", ColorRGB(255,255,72) );
+parmTextColor = ParamColor("Text color", colorBlack);
+parmXTextOffset = Param("Text OffSet (X)", 20, 10, 400, 2);  //postion Of text On X axis
+parmYTextOffset = Param("Text Offset (Y)", 0.60, 0.25, 0.90, 0.05);
+SetBarsRequired(350, -1);
+
+Count = 0;
+GraphXSpace = 0;
+//firstbar = Status( "firstvisiblebarindex" ); //does NOT work in RT
+//lastbar = Status( "lastvisiblebarindex" );
+//xOffset = ( lastbar - firstbar ) / 100;
+//printf("first Bar: %1.0f% \nlast bar: %1.0f%\nXOffset: %1.2f%\n", firstbar, Lastbar, xoffset);
+
+procedure ribbon( Caption, Color ) {
+Count++;
+
+Plot( 0, "", colorBlack, styleNoDraw );
+Plot( Count, "", colorBlack, styleLine | styleNoLabel );
+Plot( Count, "", Color, styleArea | styleNoLabel );
+PlotText( Caption, BarCount - parmXTextOffset, Count - parmYTextOffset, parmTextColor );
+
+}
+
+//calculations
+Ctmpl = E_TSKPCOLORTMPL(Open,High,Low,Close,Volume);
+total = 0;
+total = total  + IIf(tskp_colortmplcnd0 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd1 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd2 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd3 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd4 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd5 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd6 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd7 > 0, 1, -1); 
+KPScoreCard = total  + IIf(tskp_colortmplcnd8 > 0, 1, -1); 
+//Plot
+ribbon( "A900" , IIf(tskp_colortmplcnd0 > 0, parmBullColor, parmBearColor) );
+ribbon( "AutoStop" , IIf(tskp_colortmplcnd1 > 0, parmBullColor, parmBearColor) );
+ribbon( "HighLight" , IIf(tskp_colortmplcnd2 > 0, parmBullColor, parmBearColor) );
+ribbon( "Combo" , IIf(tskp_colortmplcnd3 > 0, parmBullColor, parmBearColor) );
+ribbon( "Fast3" , IIf(tskp_colortmplcnd4 > 0, parmBullColor, parmBearColor) );
+ribbon( "STTB" , IIf(tskp_colortmplcnd5 > 0, parmBullColor, parmBearColor) );
+ribbon( "Trigger/Stop" , IIf(tskp_colortmplcnd6 > 0, parmBullColor, parmBearColor) );
+ribbon( "115Split" , IIf(tskp_colortmplcnd7 > 0, parmBullColor, parmBearColor) );
+ribbon( "Medium" , IIf(tskp_colortmplcnd8 > 0, parmBullColor, parmBearColor) );
+
+KPSCColor = IIf(KPScoreCard >= 5, parmBullColor , IIf(KPScoreCard <= -5, parmBearColor, parmNeutColor) );
+//Plot(KPScoreCard,"ScoreCard",KPSCColor,ParamStyle("ScoreCardStyle",default=styleStaircase | styleOwnScale | styleArea ,maskAll), -10, 100);
+ribbon("ScoreCard" , KPSCColor);
+Title = "ScoreCard Map ScoreCard = " + NumToStr(SelectedValue(KPScoreCard), 1.0);

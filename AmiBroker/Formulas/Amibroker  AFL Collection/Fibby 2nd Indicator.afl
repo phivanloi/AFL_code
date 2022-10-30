@@ -1,0 +1,26 @@
+//2nd Indicator
+//By Fred Tonetti posted 7/28/06 Ft-talk
+
+
+GraphXSpace = 5;
+
+st1 = AMA(C,(2/(3+1)));
+st2 = AMA(C,(2/(5+1)));
+st3 = AMA(C,(2/(8+1)));
+st4 = AMA(C,(2/(13+1)));
+
+xxx = AMA(C,(2/(21+1)));
+
+lt1 = AMA(C,(2/(34+1)));
+lt2 = AMA(C,(2/(55+1)));
+lt3 = AMA(C,(2/(89+1)));
+lt4 = AMA(C,(2/(144+1)));
+
+Z14 = IIf(st1 > lt4, 4, -4);
+Z23 = IIf(st2 > lt3, 3, -3);
+Z32 = IIf(st3 > lt2, 2, -2);
+Z41 = IIf(st4 > lt1, 1, -1);
+
+ZZZ = Z14 + Z23 + Z32 + Z41;
+
+Plot(ZZZ, "ZZZ", IIf(ZZZ > 0, colorBrightGreen, colorRed), styleHistogram | styleThick);

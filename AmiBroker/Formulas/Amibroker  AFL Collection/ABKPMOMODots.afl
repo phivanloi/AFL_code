@@ -1,0 +1,53 @@
+/*  ABKPMoMo
+	If TRIGGOSC is greater than 0 and SHORTERMTRADEBIAS is greater than 0 and 
+	MEDIUM is greater than Medium MA, give me a dot underneath the current price 
+	bar. If TRIGGOSC is less than 0 and SHORTERMTRADEBIAS is less than 0 and 
+	MEDIUM is less than Medium MA, give me a dot above the current price bar. 
+
+
+*/
+parmMoMoUpColor = ParamColor("MoMo up color", colorWhite);
+parmMoMoDnColor = ParamColor("MoMo dn color", colorDarkRed);
+parmDetrendPeriod = Param("Detrend period", 8, 1, 20, 1);
+parmPlotRibbon = ParamToggle("Plot as ribbon", "No|Yes", 0);
+parmRibbonSize = Param("Ribbon Size", 1, 0.5, 10, 0.5);
+parmDebug = ParamToggle("Debug", "No|Yes", 0);
+SetBarsRequired(350, -1);
+
+//KP indicators  
+sw = E_TSKPUPSELL(Open,High,Low,Close,Volume);
+KPTriggerLine = tskp_triggerline;
+dummy = E_TSKPSHORTTERMTRADEBIAS(High,Low,Close);
+KPSTTB = tskp_sttb1;
+dummya = E_TSKPMEDIUM(Close);
+KPMediumUp = tskp_mediumup;
+KPMediumDn = tskp_mediumdown;
+KPMediumMA = tskp_mediumma;
+if(parmDebug == 1)
+	{
+	printf("KBTriggerLine: %g%\nKPSTTB: %g%\nKPMediumUp: %g%\nKPMediumDn: %g%\nKPMediumMa: %g%\n", KPTriggerLine, KPSTTB, KPMediumUp, KPMediumDn, KPMediumMa); 
+	}
+// calculations
+//Detrend = KPTriggerLine - MA(KPTriggerLine, parmDetrendPeriod);	//Detrend KPTriggerLine
+Detrend = KPTriggerLine - Ref( MA( KPTriggerLine, parmDetrendPeriod ), -( 1 + parmDetrendPeriod/2 ) );
+MedianPrice = (H + L) /2;
+AvgValue = Ref(MA(C, 2), -1);
+UpSignal = Detrend >= 0 AND KPSTTB >= 0 AND (KPMediumUp > KPMediumMa OR KPMediumDn > KPMediumMa) AND MedianPrice > AvgValue;
+DnSignal = Detrend < 0 AND KPSTTB < 0 AND (KPMediumUp < KPMediumMA OR KPMediumDn < KPMediumMA) AND MedianPrice < AvgValue;
+if(parmDebug == 1)
+	{
+		printf("Detrend: %g%\nMedian Price: %g%\nAvgValue: %g%\n", Detrend, MedianPrice, AvgValue);
+		printf(WriteIf(UpSignal, "UpSignal: True", "UpSignal: False") + WriteIf(DnSignal, " DnSignal: True\n", " DnSignal: False\n") );
+	
+	}
+//plots
+if(parmPlotRibbon == 0)
+	{
+		PlotShapes(IIf(UpSignal, shapeSmallCircle, shapeNone), parmMoMoUpColor, 0, L, -10);
+		PlotShapes(IIf(DnSignal, shapeSmallCircle, shapeNone), parmMoMoDnColor, 0, H, 10);
+	}
+else
+	{
+		Plot(parmRibbonSize, "", IIf(UpSignal, parmMoMoUpColor, IIf(DnSignal, parmMoMoDnColor, Null )), styleArea |  styleNoLabel | styleOwnScale , 0, 10);
+
+	}

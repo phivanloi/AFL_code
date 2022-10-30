@@ -1,0 +1,11 @@
+// General - purpose Inverse Fisher Transform function
+function InvFisherTfm( array )
+{
+  e2y = exp( 2 * array );
+  return ( e2y - 1 )/( e2y + 1 );
+}
+Value1 = 0.1 * ( RSI( 5 ) - 50 );
+Value2 = WMA( Value1, 9 );
+Plot( InvFisherTfm( Value2 ), "IFT-RSI", colorRed, styleThick );
+PlotGrid( 0.5 );
+PlotGrid(-0.5 );

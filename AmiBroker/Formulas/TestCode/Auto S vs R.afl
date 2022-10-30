@@ -1,0 +1,63 @@
+//------------------------------------------------------------------------------
+//  Formula Name	:      SUPPORT RESISTANCE AMIBROKER AFL by pipschart
+//  Author	        :      KrT group
+//  Uploader	        :      www.pipschart.com
+//  E-mail		:      info@pipschart.com
+//  Amibroker Blog	:      www.pipschart.com/amibroker
+//  Origin		:      Modified & Collected from different sources.
+//------------------------------------------------------------------------------
+
+_SECTION_BEGIN("KrT group");
+GfxSetBkMode(1);
+X=750;
+Y=1;
+Font=10;
+GfxSelectFont("Impact",Font*2.2, 550);GfxSetTextColor(colorRed);GfxTextOut
+
+("KrT group",x,y);
+GfxSelectFont("Impact",Font*2.2, 550);GfxSetTextColor(colorGreen);GfxTextOut
+
+("RESEARCH",x+120,Y);
+
+_SECTION_END();
+
+//------------------------------------------------------------------------------
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, 
+
+Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle
+
+("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Sup / Res Lines");
+SRswitch = ParamToggle("Sup / Res Lines","On,Off");
+CHLswitch = ParamToggle("Hi Low / Close","Hi Low,Close");
+NoLines = Param("No of Lines",3,1,10,1);
+Sen = Param("Sensitivity",5,1,100,1);
+
+Rcolor=ParamColor( "Res Color", colorGreen );
+Rstyle=ParamStyle( "Res Style", styleLine );
+
+Scolor=ParamColor( "Sup Color", colorBrown );
+Sstyle=ParamStyle( "Sup Style", styleLine );
+
+y=0;
+x=0;
+
+for( i = 1; i < NoLines+1 ; i++ )
+{
+Y[i]=LastValue(Peak(IIf(CHLswitch,C,H),Sen,i));
+x[i]=BarCount - 1 - LastValue(PeakBars(IIf(CHLswitch,C,H),Sen,i));
+Line = LineArray( x[i], y[i], Null, y[i], 1 );
+Plot( IIf(SRswitch,Null,Line), "", Rcolor, Rstyle );
+
+Y[i]=LastValue(Trough(IIf(CHLswitch,C,L),Sen,i));
+x[i]=BarCount - 1 - LastValue(TroughBars(IIf(CHLswitch,C,L),Sen,i));
+Line = LineArray( x[i], y[i], Null, y[i], 1 );
+Plot( IIf(SRswitch,Null,Line), "", Scolor, Sstyle );
+}
+_SECTION_END();

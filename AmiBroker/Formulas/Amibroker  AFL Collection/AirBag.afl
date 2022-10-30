@@ -1,0 +1,26 @@
+_SECTION_BEGIN("AirBag");
+
+AB1=IIf(Ref(H,-1)>H,((Ref(H,-1)-H)/5)+H,(H-Ref(H,-1))/5+H);
+AB2=IIf(Ref(L,-1)>L,((Ref(L,-1)-L)/5)+L,(L-Ref(L,-1))/5+L);
+
+Plot (AB1,"AB1", colorGreen);
+Plot (AB2,"AB2", colorAqua);
+
+PlotOHLC(O,H,L,C,"Airbag",colorRed, styleCandle );
+Title = Name() +" ("+ FullName()+ ")  - "+" O="+O+", H="+H+", L="+L+",
+C="+C+"\nDate:"+Date() +"\n AB1="+Ab1+"\n AB2="+Ab2+"\n
+Volume="+Volume/10+"\n";
+"Each time frame breaks down to approximately one-fifth of the next higher time
+frame AND approximately\n
+five times the next lower time frame.We place the air bag one tick above/below
+the High/Low of the Second\n 
+bar back on one significantly higher time frame (OR the next bar further back
+that has both a higher High \n
+AND a higher Low OR a lower High AND a lower Low).This is our air bag
+protection. Its purpose is to protect us against\n
+ a drunken market that is moving against us. Remember, it is NOT necessarily an
+entry Signal; it is protection against\n
+major losses. if your air bag is a High, it is telling you that you do NOT want
+to be Short if the market reaches that number.\n
+if your air bag is a Low, it is telling you that you do NOT want to be long if
+the market goes down to that number\n";

@@ -1,0 +1,7 @@
+Sday = ParamTime( "S-Time ", "9:15:00" );
+C1=C;
+Bars = 1 + BarsSince( Day() != Ref(Day(), -1));
+SB = ValueWhen(TimeNum() == Sday, BarIndex());
+TV = Sum(V,Bars);
+AP =IIf (BarIndex() >= SB,  Sum (C1 * V, Bars  ) / TV,0);
+Plot (AP,"AP",colorOrange, styleThick,styleCandle);

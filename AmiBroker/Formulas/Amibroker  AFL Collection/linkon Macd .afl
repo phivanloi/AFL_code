@@ -1,0 +1,42 @@
+/***********************************************************************************************************
+  Dinapoli MACD (DEMA)
+  Based on "Joe DiNapoli - The Practical Application of Fibonacci Analysis to
+Investment Markets"
+  APPENDIX E
+
+  Script Created by TohMz
+
+ 
+   
+***********************************************************************************************************/
+
+//---- Smoothing Factors
+FastSF=8.3896;
+SlowSF=17.5185;
+SignalSF=9.0503;
+
+M_A_C_D=0;
+S_i_g_n_a_l=0;
+
+FastEMA[0]=SlowEMA[0]=Close[0];
+
+for( i=1; i<BarCount; i++)
+{
+      FastEMA[i]=FastEMA[i-1]+2.0/(1.0+FastSF)*(Close[i]-FastEMA[i-1]);
+      SlowEMA[i]=SlowEMA[i-1]+2.0/(1.0+SlowSF)*(Close[i]-SlowEMA[i-1]);
+      M_A_C_D[i]=FastEMA[i]-SlowEMA[i];
+}
+
+for( i=1; i<BarCount; i++)
+     
+S_i_g_n_a_l[i]=S_i_g_n_a_l[i-1]+2.0/(1.0+SignalSF)*(M_A_C_D[i]-S_i_g_n_a_l[i-1]);
+
+for (i=0; i<17; i++) M_A_C_D[i]=Null;
+for (i=0; i<26; i++) S_i_g_n_a_l[i]=Null;
+
+
+Plot( M_A_C_D, "MACD", ParamColor("MACD color", colorBlue ), ParamStyle("MACD
+style") );
+Plot( S_i_g_n_a_l, "Signal", ParamColor("Signal color", colorRed ),
+ParamStyle("Signal style") );
+Plot(0, "", colorBlack);

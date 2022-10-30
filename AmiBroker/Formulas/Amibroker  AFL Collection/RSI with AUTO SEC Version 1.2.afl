@@ -1,0 +1,93 @@
+ ///RSI with AUTO SEC Version 1.2// 
+// v.1.0 Created By Kook 16 Nov 2005 // 
+// v.1.1 1st Update By Kook 17 Nov 2005 // 
+// v.1.2 2nd Update By Kook 20 Nov 2005 //Bug report by Mink(Last SEC,Title) 
+
+H=L=C=RSI(14); 
+//Plot( Close, "Close", colorYellow, 4 ); 
+Heading="RSI with AUTO SEC Version 1.2"; 
+
+SECUpColor=ParamColor("SEC-UpColor",colorBrightGreen); 
+SECDnColor=ParamColor("SEC-DownColor",colorRed); 
+SECLastColor=ParamColor("SEC-LastColor",colorWhite); 
+BckGndColor=ParamColor("BackGroundColor",colorBlack); 
+ZZSwitch=Param("ZZSwitch",0,0,1,1); 
+Sens=Param("Sens",35,0.5,100,0.5); 
+
+BarPK=BarsSince(Zig(C,Sens)==Peak(C,Sens)); 
+BarTGH= BarsSince(Zig(C,Sens)==Trough(C,Sens)); 
+Turnpoint=Min(BarPK,BarTGH); 
+x = Cum(1); 
+lastx = ValueWhen(Turnpoint==0,( x )); 
+Daysback = ValueWhen(Turnpoint==0,(Max(PeakBars(C,Sens,1),TroughBars(C,Sens,1))))+1; 
+
+aa =ValueWhen(Turnpoint==0,LinRegIntercept( Close, Daysback) ); 
+bb =ValueWhen(Turnpoint==0,LinRegSlope( Close, Daysback)); 
+y = Aa + bb * ( x - (Lastx - DaysBack+1) ); 
+
+e= ValueWhen(Turnpoint==0,StdErr(C,Daysback)); 
+eU= y + 2*e; 
+eL= y - 2*e; 
+
+Color=IIf(Cross(bb,0) OR Cross(0,bb),BckGndColor,IIf(bb<0,SECDnColor,SECUpColor)); 
+Plot( IIf( x >= (lastx - Daysback), IIf( Ref(C,-1) <eU AND Ref(C,-1) >eL,y,Null) , -1e10 ) , "LinReg", color,4 ); 
+Plot(IIf( x >= (lastx - Daysback), IIf( Ref(C,-1) <eU AND Ref(C,-1) >eL,eU,Null) , -1e10 ) ,"",color,4); 
+Plot(IIf( x >= (lastx - Daysback), IIf( Ref(C,-1) <eU AND Ref(C,-1) >eL,eL,Null) , -1e10 ) ,"",color,4); 
+
+
+
+PlotShapes(shapeUpArrow*Cross(C,eU),colorWhite,0,25,Offset=0); 
+PlotShapes(shapeDownArrow*Cross(eL,C),colorYellow,0,75,Offset=0); 
+
+
+DaysbackL = LastValue(Min(PeakBars(C,Sens,1),TroughBars(C,Sens,1))); 
+
+//MIDDLE SEC// 
+Slope= ValueWhen(Turnpoint==0,bb,0); 
+Level= ValueWhen(Turnpoint==0,aa,0); 
+Err= ValueWhen(Turnpoint==0,e,0); 
+
+Mback= Level + slope*( Turnpoint) ; 
+Uback= MBack + 2*Err; 
+Lback= MBack - 2*Err; 
+color2=IIf(Cross(bb,0) OR Cross(0,bb),BckGndColor,IIf(bb<0,SECUpColor,SECDnColor)); 
+Plot( IIf( (X>(LastValue(x)-DaysbackL) ),Null ,Mback) ,"",color2,4); 
+Plot( IIf( (X>(LastValue(x)-DaysbackL) ),Null ,Uback) ,"",color2,4); 
+Plot( IIf( (X>(LastValue(x)-DaysbackL) ),Null ,Lback) ,"",color2,4); 
+
+
+
+///////Last SEC/////////////////// 
+x = Cum(1); 
+lastxL = LastValue( x ); 
+DaysbackL = LastValue(Min(PeakBars(C,Sens,1),TroughBars(C,Sens,1)))+1; 
+Endbars = IIf(PeakBars(C,Sens,1)<TroughBars(C,Sens,1),LastValue(ValueWhen(C==LLV(C,DaysbackL),X)),LastValue(ValueWhen( C==HHV(C,DaysbackL),X))); 
+BarsL=Min(PeakBars(C,Sens,1),TroughBars(C,Sens,1)) ; 
+
+aaL = ValueWhen( Ref(Endbars,-1)!=Ref(x,-1) AND Endbars==x , LinRegIntercept( Close, DaysbackL-(LastValue(x)-Endbars)) ); 
+bbL = ValueWhen( Ref(Endbars,-1)!=Ref(x,-1) AND Endbars==x , LinRegSlope( Close, DaysbackL-(LastValue(x)-Endbars)) ); 
+eL= ValueWhen( Ref(Endbars,-1)!=Ref(x,-1) AND Endbars==x , StdErr(C,DaysbackL-(LastValue(x)-Endbars)) ); 
+SlopeL= LastValue(bbL); 
+LevelL= LastValue(aaL); 
+ErrL= LastValue(eL); 
+
+MbackL= LevelL + slopeL*( BarsL) ; 
+UbackL= MBackL + 2*ErrL; 
+LbackL= MBackL - 2*ErrL; 
+WL=(UbackL-LbackL)/sqrt((SlopeL*SlopeL)+1); 
+
+Plot( IIf(X>(LastValue(x)-DaysbackL) ,MbackL,Null) ,"",SECLastColor,4+styleNoLabel); 
+Plot( IIf(X>(LastValue(x)-DaysbackL),UbackL,Null) ,"",SECLastColor,4+styleNoLabel); 
+Plot( IIf(X>(LastValue(x)-DaysbackL),LbackL,Null) ,"",SECLastColor,4+styleNoLabel); 
+
+PlotShapes( IIf(X>(LastValue(x)-DaysbackL),shapeHollowUpArrow*Cross(C,UbackL) ,Null),SECLastColor,0,25,Offset=-0); 
+PlotShapes( IIf(X>(LastValue(x)-DaysbackL),shapeHollowDownArrow*Cross(LbackL,C) ,Null),colorOrange,75,Offset=-0); 
+
+Plot( Close, "Close", colorYellow, 4 ); 
+Plot(30,"",10 ,4+styleNoLabel); 
+// Plot(50,"",IIf(TEMA(RSI(14),14)>50,colorBrightGreen,colorRed) ,4+styleNoLabel); 
+Plot(70,"",10 ,4+styleNoLabel); 
+Plot(Zig(C,Sens),"",IIf(ZZSwitch==1,colorSkyblue,BckGndColor),8+styleNoLabel); 
+
+Change=C-Ref(C,-1); 
+Title=Name()+" "+Date()+" "+Heading+EncodeColor(colorYellow)+" RSI(14) = "+C ;

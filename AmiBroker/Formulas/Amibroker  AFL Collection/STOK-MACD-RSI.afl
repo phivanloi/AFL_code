@@ -1,0 +1,58 @@
+// Define label bar (x) position location
+blankRightBars = 5; //insert actual blank right bars specified in Preferences 
+barsInView = Status("lastvisiblebarindex") - Status("firstvisiblebarindex") - blankRightBars;
+Offset = Param("Offset Bar", .90, 0, 1, .01);
+textOffset = BarCount - (Offset * barsInView);
+
+
+
+_SECTION_BEGIN("RSI Heat Map");
+Rp=Param("RSI period",14,5,60,1);
+Rs=RSI(14);
+Rr=HHV(rs,400)-LLV(rs,400);
+Rc=Rs-LLV(rs,400);
+Ru=255-((Rc/Rr)*255);
+Rd=255*Rc/Rr;
+Plot( 20, "", ColorRGB(Ru,Rd,0), styleArea|styleOwnScale|styleNoLabel, 0, 100);
+Plot( 21,"",colorBlack,styleOwnScale|styleArea|styleNoLabel,0, 100 );
+PlotText("RSI-14", textoffset, 81.05, colorBlack);
+printf("\nRSI(14) =" + WriteVal(Rs ));
+_SECTION_END();
+
+_SECTION_BEGIN("MACD Heat Map");
+P1=Param("Fast Moving Avg",12,5,30,1);
+P2=Param("Slow Mov Avg",26,12,9,1);
+P3=Param("MACD Signal Avg",9,1,20,1);
+M = MACD(P1,P2);     
+S = Signal(P1,P2,P3);
+Ms=M-S;
+Mr= HHV(MS,400)-LLV(Ms,400);
+Mc=Ms-LLV(Ms,400);
+Mu=255-((Mc/Mr)*255);
+Md=(Mc/Mr)*255;
+Plot( 40, "", ColorRGB(Mu,Md,0), styleArea|styleOwnScale|styleNoLabel, 0, 100);
+Plot( 41,"",colorBlack,styleOwnScale|styleArea|styleNoLabel,0, 100 );
+PlotText("MACD", textoffset, 81.20, colorBlack);
+printf("\n ");
+printf("\nMACD() =" + WriteVal(M) );
+printf("\nMACD sig =" + WriteVal(S) );
+_SECTION_END();
+
+
+
+_SECTION_BEGIN("Stochastic Heat Map");
+Ps=Param("Stochastic Period",15,3,25,1);
+Ss = StochK(5,3)	;																				
+Sr = HHV(Ss,200)-LLV(Ss,200);
+Sc=(Ss-(LLV(Ss,200)));
+Sn=255-((Sc/Sr)*255);
+Sd=255*(Sc/Sr);																					
+Plot( 60, "", ColorRGB(sn,sd,0), styleArea|styleOwnScale|styleNoLabel, 0, 100);
+Plot( 61,"",colorBlack,styleOwnScale|styleArea|styleNoLabel,0, 100 );
+PlotText("Stochastic K", textoffset, 81.40, colorBlack);
+printf("\n ");
+printf("\nStochastic =" + WriteVal(Ss) );
+_SECTION_END();
+
+
+Title = "Multi Indicator Heat Map- " + "RSI("+WriteVal(Rp)+") =" + WriteVal(RSI(Rp)) + ",   MACD("+WriteVal(p1)+","+WriteVal(p2)+","+WriteVal(p3)+")=" + WriteVal(m) + ", Stochastic K ("+WriteVal(Ps)+")=" + WriteVal(Ss) ;

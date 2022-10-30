@@ -1,0 +1,34 @@
+    //AmiBroker code:
+    // calculate PP (predicted price) using
+    // linear regression (time series) forecast
+    PP = TSF( Close, 3 );
+    // Predicted price change is:
+    PPC = PP - Close;
+    // calculate alpha
+    alpha = PPC / StDev( Close, 7 );
+    // alpha cut-off (AC) is the parameter
+    AC = Param("AlphaCutoff", 1, 1, 4, 0.01 );
+    // that we will optimize as well...
+    AC = Optimize( "AlphaCutoff", AC, 1, 4, 0.01 );
+    // buy & short rules
+    Buy = alpha > AC;
+    Short = alpha < -AC;
+    Cover = Sell = False;
+    // exit one day after
+    ApplyStop( stopTypeNBar, stopModeBars, 1, False ); // exit after one bar
+    // set backtest settings according to article
+    SetOption("CommissionAmount", 0 );
+    SetOption("MinShares", 0 );
+    SetOption("MinPosValue", 0 );
+    SetTradeDelays( 0, 0, 0, 0 );
+    RoundLotSize = 0;
+    PositionSize = 1;
+    // calculate equity line
+    // this will be our Fortune Line indicator
+    e = Equity() - GetOption("InitialEquity");
+    Plot( e, "FortuneLine", colorRed );
+    // Plot(alpha,"Alpha", colorBlue, styleHistogram | styleOwnScale, -2, 2 );
+    Filter=Status("lastbarintest");
+    AddColumn( Highest( e ), "MaxF" );
+    AddColumn( e, "LDF" );
+

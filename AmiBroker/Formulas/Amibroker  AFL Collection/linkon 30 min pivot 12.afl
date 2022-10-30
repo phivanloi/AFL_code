@@ -1,0 +1,34 @@
+_SECTION_BEGIN("TSKPScoreCardColors");
+Ctmpl = E_TSKPCOLORTMPL(Open,High,Low,Close,Volume);
+total = 0;
+total = total  + IIf(tskp_colortmplcnd0 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd1 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd2 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd3 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd4 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd5 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd6 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd7 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd8 > 0, 1, -1); 
+
+
+for( i = 0; i < BarCount; i++ ) 
+{
+
+	if( total[i] >= 3 )
+		Color[i] = colorBlue;
+	else if(  total[i] <= -3 )
+		Color[i] = colorRed;
+	else
+		Color[i] = colorYellow;
+} 
+
+Plot(Close,"close",color,styleBar+styleThick);
+bbtop = BBandTop(C,13,2.2);
+bbbot = BBandBot(C,13,2.2);
+//Plot(bbtop,"bbtop",IIf(bbtop > Ref(bbtop,-1),colorBlue,colorGrey40));
+//Plot(bbbot,"bbbot",IIf(bbbot < Ref(bbbot,-1),colorBlue,colorGrey40));
+//Plot(Ref(EMA(C,13),-3),"ema",colorWhite);
+
+//Plot( MA(C,3),"",colorWhite, styleThick, 0, 0, -3 );
+_SECTION_END();

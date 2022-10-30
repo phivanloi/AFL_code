@@ -1,0 +1,19 @@
+_SECTION_BEGIN("Moving Trend Bands ");
+/*
+   Moving Trend Bands (MTB)  [experimental]
+   Written 030408We by uenal.mutlu@t-online.de 
+   Similar to Bollinger Bands, maybe better?
+*/
+mid = LinearReg(C, Prefs(4));
+ //  mid = TSF(C, Prefs(4));
+
+   sd  = StDev(mid, Prefs(4));
+   top = mid + 1 * sd;  // check 1
+   bot = mid - 1 * sd;
+
+   Plot(C, "Moving Trend Bands (MTB)   C",
+     colorBlack, 1 + 8);
+// Plot(mid,  "mid", colorRed, 1);
+   Plot(top,  "top", colorWhite, 1);
+   Plot(bot,  "bot", colorWhite, 1);
+_SECTION_END();

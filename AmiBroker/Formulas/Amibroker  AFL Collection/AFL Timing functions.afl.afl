@@ -1,0 +1,46 @@
+Reset = ParamTrigger("Static Variables","Click to Reset");
+
+function GetSecondNum()
+	{
+	Time 		= Now(4);
+	Seconds 	= int(Time%100);
+	Minutes 	= int(Time/100%100);
+	Hours 	= int(Time/10000%100);
+	SecondNum= int(Hours*60*60+Minutes*60+Seconds);
+	return SecondNum;
+	}
+
+function GetElapsedSeconds( reset ) 
+	{
+	NowSecs 	= GetSecondNum();
+	if( Reset ) StaticVarSet("SecondTimer", NowSecs );
+	PrevSecs = StaticVarGet("SecondTimer");
+	ESecs = NowSecs - PrevSecs;
+	return eSecs;
+	}
+
+function GetBarSecsLeft() 
+	{
+	BarInterval	= Interval();
+	NowSecs 		= GetSecondNum();
+	PrevSecs 	= StaticVarGet("SecondTimer");
+	ESecs 		= BarInterval - (NowSecs - PrevSecs);
+	if( eSecs < 0 ) eSecs = 0;
+	else if ( eSecs > 60 ) eSecs = 60;
+	return eSecs;
+	}
+
+if( IsEmpty(StaticVarGet("IsInitialized")) OR Reset)
+	{
+	StaticVarSet("PrevBarNum",	BarCount-1);
+	StaticVarSet("IsInitialized",1);
+	}
+
+Plot(C,"C",1,128);
+
+Title =
+"\nUse Param() to reset elapsed seconds..."+
+"\nSecond Count:     "+NumToStr(GetSecondNum(),1.0,False)+
+"\n20-Second Count:  "+NumToStr(int(GetSecondNum()/20),1.0,False)+
+"\nElapsed Seconds:  "+NumToStr(GetElapsedSeconds(Reset),1.0,False)+
+"\nBar Seconds left: "+NumToStr(GetBarSecsLeft(),1.0,False);

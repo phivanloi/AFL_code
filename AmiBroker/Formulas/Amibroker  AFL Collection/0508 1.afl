@@ -1,0 +1,33 @@
+_SECTION_BEGIN("0508"); 
+    function ZeroLagTEMA( array, period )
+    {
+     TMA1 = TEMA( array, period );
+     TMA2 = TEMA( TMA1, period );
+     Diff = TMA1 - TMA2;
+     return TMA1 + Diff ;
+    }
+    /////////////////////
+    // Heikin-Ashi code
+    HaClose = (O+H+L+C)/4;
+    HaOpen = AMA( Ref( HaClose, -1 ), 0.5 );
+    HaHigh = Max( H, Max( HaClose, HaOpen ) );
+    HaLow = Min( L, Min( HaClose, HaOpen ) );
+    // Velvoort is using not original, but modified Heikin-Ashi close
+    HaClose = ( HaClose + HaOpen + HaHigh + HaLow )/4;
+    // you can switch between Heikin-Ashi chart and regular candlestick chart
+    if( ParamToggle("Plot Heikin-Ashi", "No,Yes", 1 ) )
+       PlotOHLC( HaOpen, HaHigh, HaLow, HaClose, "Heikin Ashi " + Name(), colorBlack, styleCandle );
+    else
+       Plot( C, "Regular candles " + Name(), colorBlack, styleCandle ); 
+    period = Param("Avg. TEMA period", 55, 1, 100 );
+    ZLHa = ZeroLagTEMA( HaClose, period );
+    ZLTyp = ZeroLagTEMA( Avg, period );
+    Plot( ZLHa, "ZLTema(Ha,"+period+")", colorRed );
+    Plot( ZLTyp, "ZLTema(Typ,"+period+")", colorGreen );
+    Buy = Cross( ZLTyp, ZLHa );
+    Sell = Cross( ZLHa, ZLTyp );
+    PlotShapes( shapeUpArrow * Buy, colorGreen, 0, HaLow );
+    PlotShapes( shapeDownArrow * Sell, colorRed, 0, HaHigh );
+
+
+_SECTION_END();

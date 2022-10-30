@@ -1,0 +1,56 @@
+EnableScript("jscript");
+
+<%
+/* change this line according to your data file name */
+var filename = "d://stockindustry.txt";
+
+var fso, f, r;
+var ForReading = 1;
+var AmiBroker;
+var fields;
+var stock;
+
+/* Create AmiBroker app object */
+AmiBroker = new ActiveXObject( "Broker.Application" );
+
+/* ... and file system object */
+fso = new ActiveXObject( "Scripting.FileSystemObject" );
+
+/* open ASCII file */
+f = fso.OpenTextFile( filename, ForReading);
+
+	var i = 1;
+	/* read the file line by line */
+	while ( !f.AtEndOfStream )
+	{
+		r =  f.ReadLine();
+		
+		/* split the lines using comma as a separator */
+		fields = r.split(","); 
+		
+		try
+		{
+			
+			/* add a ticker - this is safe operation, in case that	 */
+			/* ticker already exists, AmiBroker returns existing one */
+			stock = AmiBroker.Stocks.add( fields[ 1 ] ); 
+				
+			// stock.FullName = fields[ 1 ];
+
+			stock.IndustryID = parseInt( fields[ 0 ] );
+			
+		}
+		catch( e )
+		{
+				WScript.echo( "There is a problem in line no." + i + ".\nThe line looks as follows:\n'" + r + "'\nIt will be skipped and next lines will be processed as normal" );
+		}
+					
+		i++;	
+	}
+
+
+
+/* refresh ticker list and windows */
+AmiBroker.RefreshAll();
+%>
+Buy=0;

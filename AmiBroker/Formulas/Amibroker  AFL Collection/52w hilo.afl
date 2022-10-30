@@ -1,0 +1,21 @@
+pds=260;
+ 
+Value1=HHVBars(H,pds);
+Value2=LLVBars(L,pds);
+
+Filter = 1;
+A = HHV(C,pds);
+B = LLV(C,pds);
+D = C- (HHV(C,pds));
+E = C - (LLV(C,pds));
+F = (D * 100)/C;
+G = (E  * 100)/C;
+AddColumn(C,"Close",1.2);
+AddColumn(A, "Highest",1.2);
+AddColumn(F,"Diff from High",1.2,IIf( F >= 0, colorGreen,
+colorRed ));
+AddColumn(Value1,"BarsSinceHigh");
+AddColumn(B,"Lowest",1.2);
+AddColumn(G,"Diff from Low",1.2,IIf( G > 0, colorGreen,
+colorRed ));
+AddColumn(Value2,"BarsSinceLow");

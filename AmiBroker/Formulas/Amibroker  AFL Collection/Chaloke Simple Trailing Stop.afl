@@ -1,0 +1,23 @@
+///// Chaloke Simple Trailing Stop ///// 
+
+Prd1=Param("ATR Period 1-20",4,1,20,1);//{Default = 4 Because most traders use 5} 
+Prd2=Param("LookBack Period 1-20",11,1,20,1);//{Default = 11 Because most traders use 10} 
+
+//{Green} {Start Long position when Close>Green} 
+Green=HHV(LLV(L,Prd1)+ATR(Prd1),Prd2); 
+
+//{Red} {Stop loss when Close<Red} 
+RED=LLV(HHV(H,Prd1)-ATR(Prd1),Prd2); 
+
+Color=IIf(C>Green ,colorBrightGreen,IIf(C < RED,colorRed,colorBlue)); 
+
+
+Plot(Green,"Green",colorBrightGreen,styleLine); 
+Plot(RED,"Red",colorRed,styleLine); 
+Plot(C,"Chaloke Simple Trailing Stop System",Color,64); 
+
+
+Plot(LLV(HHV(H,5)-ATR(5),6),"",colorBlack); 
+Plot(LLV(HHV(H,5)-ATR(5),5),"",colorBlack); 
+Plot(LLV(HHV(H,5)-ATR(5),4),"",colorBlack); 
+Plot(LLV(HHV(H,5)-ATR(5),3),"",colorBlack);

@@ -1,0 +1,12 @@
+// parameters: close, volume
+// returns multiple values using SetVariable():tskp_volspikediff,tskp_volspikeval1,tskp_volspikeval2
+//AmiVar VE_TSKPVOLSPIKES(int NumArgs, AmiVar *ArgsTable )
+
+
+// tskp_mediumma,tskp_mediumup,tskp_mediumdown
+dummy = E_TSKPVOLSPIKES(Close,Volume);
+
+Plot( tskp_volspikeval1, "VolSpike1", ParamColor("VolSpike1Color",colorBlue), ParamStyle("VolSpike1Style",styleHistogram+styleNoLabel,mask=maskHistogram));
+Plot( tskp_volspikeval2, "VolSpike2", ParamColor("VolSpike2Color",colorRed), ParamStyle("VolSpike2Style",styleHistogram+styleNoLabel,mask=maskHistogram));
+
+

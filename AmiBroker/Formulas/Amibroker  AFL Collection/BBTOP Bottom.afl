@@ -1,0 +1,9 @@
+_SECTION_BEGIN("Unnamed 12");
+bbh=((C+2*StDev(C,15) - MA(C,15)) / (3*StDev(C,20)))*3 - 2;
+Plot(bbh,"",colorYellow,6);
+Plot(1.75,"",4,4); //2 is the 2sds away from the the center
+Plot(0.5,"",2,styleDashed);
+Plot(-1.75,"",43,4);
+Plot(-0.5,"",2,styleDashed);
+Plot(0,"",colorYellow,styleThick);
+_SECTION_END();

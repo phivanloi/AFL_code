@@ -1,0 +1,11 @@
+_SECTION_BEGIN("MACD_Dema");
+sp=Param(" shorter DEMA periods:  ",12,3,20);
+Lp=Param("longer DEMA periods:  ",26,21,50,1);
+slp=Param("signal line periods:  ",9,3,50,1);
+x1=DEMA(C,sp)-DEMA(C,lp);
+x2=EMA(DEMA(C,sp)-DEMA(C,lp),slp);
+Plot(x1,"x1",colorYellow,styleThick,1);
+Plot(x2,"x2",colorRed,styleThick,1);
+Plot(0,"",2,styleDashed);
+
+_SECTION_END();

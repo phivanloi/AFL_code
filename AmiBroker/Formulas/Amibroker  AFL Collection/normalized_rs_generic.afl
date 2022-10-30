@@ -1,0 +1,96 @@
+// DC_NORMALIZED RS3.AFL   KSC   06/01/2006
+// This plots five curves showing Rel Strength to the RUT-I
+
+//  Set up Rel Str function
+function RelS(fund, index)
+	{
+		Red=fund;
+		Green = index;//Foreign(string,"C");
+		barvisible = Status("barvisible");
+		FVB = barvisible AND NOT Ref( barvisible, -1 );
+		RVB = ValueWhen(  FVB,Red) ;
+		GVB = ValueWhen(  FVB,Green) ;
+		RS = 10*(Red/RVB)/(Green/GVB);
+		return RS;
+	}
+
+//  Set up CddRMS function
+function  CRS(fund, index, period)
+	{
+		rs = fund/index;
+		Peakval = HHV(RS, period);
+		CddRS = 100 * (Peakval - RS) / Peakval ; 
+		MddRS = HHV(CddRS, period);
+		CddRMS = sqrt(MA(CddRS*CddRS, period));
+		return CddRMS;
+	}
+
+
+barvisible = Status("barvisible");
+FVB = barvisible AND NOT Ref( barvisible, -1 );
+Days        = EndValue(BarIndex()) - SelectedValue(BarIndex()); 
+Length      = EndValue(BarIndex()) - BeginValue(BarIndex());
+StartD = BeginValue(DateTime());
+
+//Select Tickers
+N0=ParamStr( "Fund0", "RUT-I");
+N1=ParamStr( "Fund1", "SP-CP");
+N2=ParamStr( "Fund2", "OTC-C");
+N3=ParamStr( "Fund3", "DJ-30");
+N4=ParamStr( "Fund4", "");
+N5=ParamStr( "Fund5", "");
+
+//  Set colors
+C10=6;//ColorBlue;
+C11=1;//colorBlack;
+C12=11;//colorOrange;
+C13=colorGreen ;
+C14=colorRed;
+C15=7;
+C16=colorYellow;
+C17=colorBlueGrey;
+C18=colorBrightGreen;
+C19=colorRed;
+
+
+//  Get ticker close values
+Va0 = Foreign(N0,"C");
+Va1 = Foreign(N1,"C");
+Va2 = Foreign(N2,"C");
+Va3 = Foreign(N3,"C");
+Va4 = Foreign(N4,"C");
+Va5 = Foreign(N5,"C");
+
+//  Calculate the Rel Str values
+RS1 = RelS(Va1,Va0);
+RS2 = RelS(Va2,Va0);
+RS3 = RelS(Va3,Va0);
+RS4 = RelS(Va4,Va0);
+RS5 = RelS(Va5,Va0);
+
+//  Normalize to the screen
+Norm1 = Prec(10*RS1/ValueWhen(FVB,RS1,1),2.2);
+Norm2 = Prec(10*RS2/ValueWhen(FVB,RS2,1),2.2);
+Norm3 = Prec(10*RS3/ValueWhen(FVB,RS3,1),2.2);
+Norm4 = Prec(10*RS4/ValueWhen(FVB,RS4,1),2.2);
+Norm5 = Prec(10*RS5/ValueWhen(FVB,RS5,1),2.2);
+
+SetChartOptions( 0, chartShowDates);
+//Plot Normalized Graphs
+Plot(Norm1,N1,C11,4);
+Plot(Norm2,N2,C12,4);
+Plot(Norm3,N3,C13,4);
+Plot(Norm4,N4,C14,4);
+Plot(Norm5,N5,C15,4);
+
+
+
+Title="Normalized Rel Str Charts to RUT-I \n"
++"  "  +EncodeColor(C11)+N1 + WriteIf(IsTrue(Norm1)," ["+WriteVal(Norm1,1.2)+"]","")
++"  "  +EncodeColor(C12)+N2 + WriteIf(IsTrue(Norm2)," ["+WriteVal(Norm2,1.2)+"]","")
++"  "  +EncodeColor(C13)+N3 + WriteIf(IsTrue(Norm3)," ["+WriteVal(Norm3,1.2)+"]","")
++"  "  +EncodeColor(C14)+N4 + WriteIf(IsTrue(Norm4)," ["+WriteVal(Norm4,1.2)+"]","")
++"  "  +EncodeColor(C15)+N5 + WriteIf(IsTrue(Norm5)," ["+WriteVal(Norm5,1.2)+"]","");
+
+
+

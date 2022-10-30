@@ -1,0 +1,226 @@
+/*        Ord Volume by Peter Bjarheim
+            Rev - 11-12-07
+			
+	Adjust "zig percent change" so that each swing last from 5 to 30 days 
+	(the the percentage, the more sigificant the swing is).
+	
+	Peak Volume Extreme Detection:
+		->Sometimes several days around the true swing price extreme, a higher volume extreme has been encountered. 
+		Back testing suggests that these swing volumes while rare, do occur and are significant.
+	
+	
+---->	Rules For Trading from http://www.ord-oracle.com/
+	
+	
+	This software is designed to pick out the swings in a stock and then measure the force between the swings. The
+force is the amount of volume between the swings that pushes the stock in an up-mode or down-mode. Stocks trend
+in the direction of the highest volume. Stocks correct or consolidate on lighter volume. By measuring the volume
+between the swings and comparing to previous swings, one can "See" the force of a particular move developing in the
+stock. In an uptrend the stock should have higher volume on the rally phase than the correction phase. In a
+downtrend the stock should have higher volume on the declining phase than the up correction phase. With that in
+mind, we have developed this software to do just that. Keep in mind that this software measures volume force in a
+stock and is not implied to be a stand-alone tool to pick every turn in a stock. The Ord-volume software is designed
+to help identify the probable direction by the volume flow the stock has. Other factors of the stock may push it in a
+different direction.
+
+1. To pick the strongest stock (in up-trend), average daily volume should shrink near 50% on correction phase
+compared to the rally phase.
+
+2. To pick the weakest stocks (in down-trend) average daily volume should shrink near 50% on up phase compared to
+the declining phase.
+
+Definition of a "Swing". A "Swing" is a price high or low where the stock changes direction.
+Definition of "Ord-Volume". "Ord-volume" measures the average volume between "Swings".
+Definition of "Ord-Volume Low". "Ord-Volume Low" is a down-leg in a stock.
+Definition of "Ord-Volume High". "Ord-Volume High" is an up-leg in a stock.
+
+3. A buy signal is triggered when a stock closes above a previous important "Ord-Volume low" where the current
+"Ord-volume low" shrinks near 50% or greater against the "Important "Ord-volume low"". An "Important
+"Ord-volume Low" is when that low marks a bottom where the equity starts a sideways consolidation.
+
+4. A sell signal is triggered when a stock closes below a previous important "Ord-Volume High" where the current
+"Ord-Volume High" shrinks near 50% or greater against the "Important "Ord-Volume High"". An "Important
+"Ord-Volume High"" is when that high marks a top where the equity starts a sideways consolidation.
+
+5. Target price Projections:
+	5.1 An upside target for a buy signal will be the previous "Swing High". If volume is equal or greater on the test of the
+	previous high then the next higher swing high will be the target and so on.
+
+	5.2 A downside target after a sell signal will be the previous "Swing Low". If volume is equal or greater than the
+	previous "Swing Low" then the next lower swing will be the target and so on.
+	
+*/
+swingDays = 0;
+swingVol = 0;
+ordVol = 0;
+upswingSignal = 0;
+downswingSignal = 0;
+accumulatedVolume = 0;
+accumulatedDays = 0; 
+arrayHasSignal = 0;
+zigPercentage = Param("ZigZag Percent", 10, 2, 50);
+trendZig = Zig(C, zigPercentage); 
+action = Status("action");
+midPointY = 0;
+midPointValue = 0;
+peakVolumeExtremeDetectionDays = Param("Peak Vol. Days", 6, 1, 20); //3 days before and 3 days after a peak
+daysBeforeAndAfterForPeakVolume = round(peakVolumeExtremeDetectionDays/2);
+peakVolume = 0;
+colorOrdVolume = ParamColor("Ord Vol. Info.", colorGrey50);
+colorZig = ParamColor("ZigZag", colorGold);
+colorPeakUp = ParamColor("Support Info.", colorGreen);
+colorPeakDown = ParamColor("Resistance Info.", colorRed);
+scalingFactor = 0.1;
+
+
+function volumeInMillions(inVolume)
+{
+	volInM = inVolume/1000000;
+	return NumToStr(volInM, 1.2, False) + " m";
+}
+
+function getPeakVolume(daysToCheck, nowDay)
+{
+	returnPeakVolume = V[nowDay];
+	dayNumberBefore = (nowDay) - daysToCheck;
+	dayNumberAfter = (nowDay) + daysToCheck;
+	//find Max swing Volume
+	if( dayNumberBefore > 0 AND dayNumberAfter < BarCount )
+	{
+		returnPeakVolume = V[dayNumberBefore];
+		//_TRACE("Start returnPeakVolume = " + returnPeakVolume);
+		for( j = dayNumberBefore; j < dayNumberAfter; j++ )
+		{
+			if(returnPeakVolume < V[j])
+			{
+				returnPeakVolume = V[j];
+			} 
+			//_TRACE("returnPeakVolume = " + returnPeakVolume);
+		}
+	}
+	else if( dayNumberBefore > 0 AND dayNumberAfter >= BarCount )
+	{
+		returnPeakVolume = V[dayNumberBefore];
+		//_TRACE("Start returnPeakVolume = " + returnPeakVolume);	
+		for( j = dayNumberBefore; j < BarCount; j++ )
+		{
+			if(returnPeakVolume < V[j])
+			{
+				returnPeakVolume = V[j];
+			}
+			//_TRACE("returnPeakVolume = " + returnPeakVolume);			
+		}
+	}
+	else 
+	{
+		peakVolume = V[i-1];
+	}
+	
+	return returnPeakVolume;
+}
+
+for( i = 3; i < BarCount; i++)
+{
+//initialize parameters
+	arrayHasSignal[i] = 0;
+
+//Then we check which way the price goes
+
+	swingVol = swingVol + V[i-1];//Don't add today since price may have changed direction
+	swingDays = swingDays + 1;
+
+	if( (trendZig[i] < trendZig[i-1]) AND (trendZig[i-1] > trendZig[i-2]) AND i > 10 )//Changes from up swing to down swing
+	{
+		/*_TRACE("Changes from up swing to down swing, i = " + i);
+		_TRACE("trendZig[i-2] = " + trendZig[i-2]);
+		_TRACE("trendZig[i-1] = " + trendZig[i-1]);
+		_TRACE("trendZig[i] = " + trendZig[i]);*/
+		downswingSignal[i-1] = 0;
+		upswingSignal[i-1] = 1;
+		ordVol[i-1] = swingVol/swingDays;	
+		accumulatedVolume[i-1] = swingVol;
+		accumulatedDays[i-1] = swingDays; 
+		arrayHasSignal[i-1] = 1;
+		if(action == actionIndicator)
+		{
+			midPointValue = i - round(swingDays/2) - 1;
+			midPointY = trendZig[midPointValue];
+			peakVolume = getPeakVolume(daysBeforeAndAfterForPeakVolume, i - 1);
+			PlotText("(" + volumeInMillions(ordVol[i-1]) + ")", midPointValue, midPointY, colorOrdVolume);
+			PlotText(NumToStr(H[i-1], 1.1, False) + " (" + volumeInMillions(peakVolume) + ")", i-4, trendZig[i-1] * 1.02, colorPeakUp);
+		}
+		swingVol = 0;
+		swingDays = 0;
+	}
+
+	if( (trendZig[i] > trendZig[i-1]) AND (trendZig[i-1] < trendZig[i-2]) AND i > 10 )//Changes from down swing to up swing
+	{
+		downswingSignal[i-1] = 1;
+		upswingSignal[i-1] = 0;
+		ordVol[i-1] = swingVol/swingDays;
+		accumulatedVolume[i-1] = swingVol;
+		accumulatedDays[i-1] = swingDays; 
+		arrayHasSignal[i-1] = 1;
+		if(action == actionIndicator)
+		{
+			midPointValue = i - round(swingDays/2) - 1;
+			midPointY = trendZig[midPointValue];
+			peakVolume = getPeakVolume(daysBeforeAndAfterForPeakVolume, i - 1);
+			PlotText("(" + volumeInMillions(ordVol[i-1]) + ")", midPointValue, midPointY, colorOrdVolume);
+			PlotText(NumToStr(L[i-1], 1.1, False) + " (" + volumeInMillions(peakVolume) + ")", i-4, trendZig[i-1] * 0.95, colorPeakDown);
+		}	
+		swingVol = 0;
+		swingDays = 0;
+	}
+	if( i == BarCount - 1)//add last signal too
+	{
+		swingVol = swingVol + V[i];//Remember to add today also
+		swingDays = swingDays + 1;
+
+		if(trendZig[i] < trendZig[i-1])//is down swing
+		{
+			downswingSignal[i] = 1;
+			upswingSignal[i] = 0;
+			ordVol[i] = swingVol/swingDays;	
+			accumulatedVolume[i] = swingVol;
+			accumulatedDays[i] = swingDays; 
+			arrayHasSignal[i] = 1;
+		}
+
+		if(trendZig[i] > trendZig[i-1])//is up swing
+		{
+			downswingSignal[i] = 0;
+			upswingSignal[i] = 1;
+			ordVol[i] = swingVol/swingDays;
+			accumulatedVolume[i] = swingVol;
+			accumulatedDays[i] = swingDays; 
+			arrayHasSignal[i] = 1;
+		}
+		
+		if(action == actionIndicator)
+		{
+			midPointValue = i - round(swingDays/2) - 1;
+			midPointY = trendZig[midPointValue]; 
+			PlotText("(" + volumeInMillions(ordVol[i]) + ")", midPointValue, midPointY, colorOrdVolume);
+		}
+
+	}
+}
+if(action == actionExplore)
+{
+	//Filter = 1;
+	Filter = arrayHasSignal;
+	//AddColumn(trendZig , "trendZig ", 1.2);
+	AddColumn(C, "Swing Up", 1.2, colorDefault, IIf(upswingSignal, colorPeakUp, colorDefault));
+	AddColumn(C, "Swing Down", 1.2, colorDefault, IIf(downswingSignal, colorPeakDown, colorDefault));
+	AddColumn(ordVol, "Ord Vol.", 1.0);
+	AddColumn(accumulatedDays, "Swing Days", 1.0);
+	AddColumn(accumulatedVolume, "Tot. Swing Vol.", 1.0);
+}
+else if(action == actionIndicator)
+{
+	Plot(trendZig, "Ord Vol ZigZag", colorZig);
+	//Scale the axis so we can read the numbers
+	Plot(trendZig + (trendZig * scalingFactor), "", colorRed, styleNoDraw);
+	Plot(trendZig - (trendZig * scalingFactor), "", colorBlue, styleNoDraw);
+}

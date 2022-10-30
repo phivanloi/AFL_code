@@ -1,0 +1,20 @@
+///////////////////////////////
+// Red-Green strategy
+////////////////////////////////
+// exploration for EOD analysis
+AddTextColumn(FullName(),"Name");
+AddColumn( C, "Close" );
+AddColumn( C - Ref( C, -1 ), "Move" );
+AddColumn( V, "Volume", 1 );
+AddColumn( ROC( C, 10 ), "Performance");
+AddColumn( 2500/C, "# of shares", 1);
+AddColumn( GapUp(), "Gap up", 1 );
+AddColumn( High, "High");
+AddColumn( Null, "Tomorrow's Open");
+AddColumn( (H-L)/2, "Add" );
+Filter=1;
+// rules for backtesting
+Buy = Cross( Close , Ref( MA( H, 2 ), -10 ) );
+Short = Cross( Ref( MA( L, 2 ), -6 ), Close );
+Sell = Cross( MA( Close, 5 ), Close );
+Cover = Cross( Close, MA( Close, 5 ) );

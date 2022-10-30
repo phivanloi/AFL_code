@@ -1,0 +1,27 @@
+//
+//
+WMA1 = WMA(C,1);
+WMA2 = WMA(C,120);
+
+//  the buy and sell logic
+//  buy when wma1 crosses from below wma2 to above wma2.
+Buy = Cross(WMA1,WMA2);
+Sell = Cross(WMA2,WMA1);
+
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+
+Short = Sell;
+Cover = Buy;
+
+Plot(Close, "price",colorRed,styleCandle);
+
+//  plot the wma lines.
+Plot(WMA1,"wma1",colorBlack,styleLine,styleThick);
+Plot(WMA2,"wma2",colorBlue,styleLine,styleThick);
+
+//  plot the buy and sell arrows.
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes(shape, IIf(Buy,colorGreen,colorRed), 0,IIf(Buy,Low,High));
+
+GraphXSpace = 5;

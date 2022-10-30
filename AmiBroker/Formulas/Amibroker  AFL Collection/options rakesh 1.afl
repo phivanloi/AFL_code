@@ -1,0 +1,81 @@
+_SECTION_BEGIN("Unnamed 22");
+/* Settings setup should have buy and sell at open with one day delay. I also
+use a 3%
+maximum stop loss. This code also plots the DMI Index in its own chart
+pane. Note that I
+have also provided a zero line for better viewing of the zero cross.*/ 
+/* Exploration, System and Indicator 
+Author rakesh kaushik
+Email address: rakesh.kaushik25@ymail.com
+sept 25, 2009 */
+
+Percent=3;
+pds=PeakBars(C,Percent,2)-PeakBars(C,Percent,1);
+pds=LastValue(pds);
+
+/* the following code is for the consolidation periods or better know
+as the sleeping Alligator */
+
+var3= 5;
+var4= 3;
+var10=10; 
+var0= Ref(Wilders(C,13),-8);
+var1= Ref(Wilders(C,8),-5);
+var2= Ref(Wilders(C,5),-3);
+var5= MA((var0+var1+var2),var4) ;
+angle=atan(var5-Ref(var5,-var3)/var3);
+angle=IIf( angle >90,angle-360,angle);
+hope=IIf( angle <20 AND angle>-20,1,0);
+cry=((StDev(C,var3*2) - Ref(Wilders(StDev(C,var3*2),8),-5))/
+(Ref(Wilders(StDev(C,var3*2),8),-5)))<0;
+
+/* End of Sleeping Alligator which is an area of little or no volitlity or
+price movement.*/
+
+SI=MA(PDI(pds)-MDI(pds),5);
+Graph0=SI; /* Spread Index */
+Graph1=0; /* Provides a zero based line of blue color */ 
+Graph1Style=5;
+
+Buy=Cross(SI,0) ;
+/* or PDI(14)>MDI(14) and ADX(14)>MDI(14) and (Hope and Cry)==0;*/
+/* Having PDI and ADX and (Hope and Cry) does not test as well */
+Sell=Cross(0,SI) OR ADX(14)<MDI(14) AND PDI(14)<MDI(14);
+
+Buy=ExRem(Buy,Sell); /* this removes redundant buy/sell signals */
+Sell=ExRem(Sell,Buy);
+
+Short=Sell;
+Cover=Buy;
+
+/* The following code is the exploraiton code */
+
+Filter=( /*ref(Buy,-1)==0 and*/ (Buy==1) );
+NumColumns = 7;
+Column0 =Ref(C+0.065,-1);
+Column0Format = 1.2;
+Column0Name = "Trigger Price";
+Column1 = C;
+Column1Name = "Close ";
+Column1Format = 1.2;
+Column2 = MA(V,17);
+Column2Name = "17 Ma Vol ";
+Column2Format = 1.0;
+Column3 = MA(C,17)/MA(C,50);
+Column3Name = "% 17/50 ";
+Column3Format = 1.2;
+Column3Format = 1.2;
+Column4= MA(C,17);
+Column4Name="17 C ma";
+Column4Format = 1.2;
+Column4= MA(C,50);
+Column4Name="50 C ma";
+Column4Format = 1.2;
+Column5=SI;
+Column5Name="DMI Index";
+Column5Format=1.2;
+Column6=ROC(SI,3);
+Column6Name="ROC of SI";
+Column6Format=1.2;
+/* End of Exploration Code. */
+_SECTION_END();

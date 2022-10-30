@@ -1,0 +1,24 @@
+_SECTION_BEGIN("JRSX"); 
+//SetBarsRequired(10000, 0);  
+
+
+Length=Param( "Length ", 14, 0, 100);
+
+Plot( JurikRSX( C,8), "", IIf(JurikRSX( C,8) > Ref(JurikRSX( C,8),-1),colorBrightGreen,colorRed), styleThick);
+Plot( JurikRSX( C,9), "", IIf(JurikRSX( C,9) > Ref(JurikRSX( C,9),-1),colorBrightGreen,colorRed), styleThick);
+
+Plot( JurikRSX( C,Length), "", colorBlue, styleDashed);
+
+_SECTION_BEGIN("JDMXall");
+//SetBarsRequired(10000, 0); 
+
+
+Col_adx = IIf(JurikDMX( 20) < Ref(JurikDMX( 20),-1),colorOrange,colorBlue);
+Col_jrsi = IIf(JurikRSX( C,9) > Ref(JurikRSX( C,9),-1),colorBrightGreen,colorRed);
+Buy = Col_adx == colorBlue AND Col_jrsi == colorBrightGreen;
+Sell = Col_adx == colorOrange AND Col_jrsi == colorRed;
+
+//PlotShapes(shapeSmallUpTriangle*Buy,colorBlue);
+//PlotShapes(shapeSmallDownTriangle*Sell,colorYellow);
+
+_SECTION_END();

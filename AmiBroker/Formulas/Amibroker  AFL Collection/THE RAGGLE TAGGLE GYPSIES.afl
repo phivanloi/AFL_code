@@ -1,0 +1,26 @@
+// THE RAGGLE TAGGLE GYPSIES
+// Gerard Carey 9th May 2007 
+// From an idea gained after hearing the RTG song and reading post 55151
+Plot( Avg-Ref(Avg,-1)," RAGGLE TAGGLE GYPSIES    /
+         RTG",1,1);
+Plot( Avg-Ref(Avg,-1) ,"           RTG",1,1);
+
+pds = Param( "Periods", 7, 1, 255, 1 ); 
+/* Suggestion; 7-10pds for Index trading, 15+ for stocks */
+
+// Raggle Taggle Lows - Long setups
+Plot(CB= LLV(Avg-Ref(Avg,-1) ,pds) ,"/
+RTG Long",27); 
+// Raggle Taggle Highs - Short setups
+Plot(CA= HHV(Avg-Ref(Avg,-1) ,pds) ," RTG Short",4); 
+
+C1= CCI(50); // Trend filter
+
+Buy= C1>0 AND Avg-Ref(Avg,-1) ==CB ;
+Short= C1<0 AND Avg-Ref(Avg,-1)==CA ;
+
+Plot(0,"",4);
+
+PlotShapes( shapeSmallUpTriangle*Buy,27,0,Avg-Ref(Avg,-1),-10);
+PlotShapes( shapeHollowSmallDownTriangle*Short,4,0,Avg-Ref(Avg,-1),-10);
+GraphXSpace=5;

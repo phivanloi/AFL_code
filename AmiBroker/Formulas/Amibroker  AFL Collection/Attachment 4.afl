@@ -1,0 +1,59 @@
+_SECTION_BEGIN("Stochastic_15_MINS");
+periods = Param( "Periods", 8, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 4, 1, 200, 1 );
+Dsmooth = Param( "%D avg", 3, 1, 200, 1 );
+
+TimeFrameSet(in1Minute * 15);
+k15 = StochK( periods , Ksmooth);
+d15 = StochD( periods , Ksmooth, DSmooth );
+TimeFrameRestore();
+
+K = TimeFrameExpand(k15, in1Minute * 15);
+D = TimeFrameExpand(d15, in1Minute * 15);
+
+Plot(D, "Stoch Orange-Light Blue D15", colorOrange, styleThick );
+Plot(K, "Stoch K15", colorYellow, styleThick );
+
+Hi = IIf(k > d, k, d);
+Lo = IIf(k < d, k, d);
+
+COLOR = IIf(Ref(d,1) > Ref(k,1), colorRed, colorBlue);
+//COLOR = IIf(K > D AND (K > 80 OR D > 80) OR D > K AND (K < 20 OR D <20), colorLightGrey, COLOR);
+
+PlotOHLC(Lo,Hi,Lo,Hi,"",COLOR, styleNoLabel | styleCloud);
+
+_SECTION_BEGIN("Stochastic %D");
+periods = Param( "Periods", 8, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 3, 1, 200, 1 );
+Dsmooth = Param( "%D avg", 4, 1, 200, 1 );
+Plot( StochD( periods , Ksmooth, DSmooth ),"Stoch Line D5",colorRed,styleLine, styleThick);
+Plot( StochK( periods , Ksmooth),"Stoch Line K5",colorBrightGreen,styleLine, styleThick);
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("Stochastic_30_MINS");
+periods = Param( "Periods", 8, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 3, 1, 200, 1 );
+Dsmooth = Param( "%D avg", 4, 1, 200, 1 );
+
+TimeFrameSet(in1Minute * 30);
+k30 = StochK( periods , Ksmooth);
+d30 = StochD( periods , Ksmooth, DSmooth );
+TimeFrameRestore();
+
+K = TimeFrameExpand(k30, in1Minute * 30);
+D = TimeFrameExpand(d30, in1Minute * 30);
+
+Plot(D, "Stoch Red-Blue D30", colorRed, styleThick );
+Plot(K, "Stoch K30", colorGreen, styleThick );
+
+Hi = IIf(k > d, k, d);
+Lo = IIf(k < d, k, d);
+
+COLOR = IIf(Ref(d,1) > Ref(k,1), colorOrange, colorLightBlue);
+//COLOR = IIf(K > D AND (K > 80 OR D > 80) OR D > K AND (K < 20 OR D <20), colorLightGrey, COLOR);
+
+PlotOHLC(Lo,Hi,Lo,Hi,"",COLOR, styleNoLabel | styleCloud);
+
+_SECTION_END();

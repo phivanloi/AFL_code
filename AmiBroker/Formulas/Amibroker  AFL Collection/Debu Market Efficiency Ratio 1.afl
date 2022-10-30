@@ -1,0 +1,14 @@
+_SECTION_BEGIN("Debu Market Efficiency Ratio");
+/*"Market - Efficiency - Ratio"
+.................................................. .......8.........................................
+{Market Efficiency Ratio}
+*/
+pds= Param("Periods",8,3,200);
+Speed= C - Ref(C, -pds);
+Volatility= Sum(abs(C - Ref(C, -1)),pds); 
+Efficiency= Speed / Volatility;
+MER= EMA(EMA(Efficiency, 5),3);
+Plot(MER,"MKt Eff. Ratio",colorRed);
+Plot(0,"ZERO LINE",colorBlue);
+
+_SECTION_END();

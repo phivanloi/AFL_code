@@ -1,0 +1,3 @@
+seo = (C+2*StdErr(C,8)- MA(C,3))/(4*(StdErr(C,8)))*100;
+
+Plot( seo , "Standard Error Oscillator", ParamColor("color", colorCycle ), ParamStyle("Style") );

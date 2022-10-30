@@ -1,0 +1,23 @@
+/* KPFast3 Bias
+	Plot either as a line OR as a ribbon
+*/
+//tskp_Fast3val1, tskp_Fast3val2
+parmFast3Style = ParamStyle("Fast3", styleHistogram+styleNoLabel, maskAll);
+parmFast3ColorUp  = ParamColor("Fast color Up", colorBlue);
+parmFast3ColorDn = ParamColor("Fast3 color Dn", colorRed);
+parmRibbon = ParamToggle("Plot as ribbon", "No|Yes" , 0);
+parmRibbonUpColor =ParamColor( "Fast3 ribbon color Up", ColorRGB(167, 224, 243) );
+parmRibbonDnColor =ParamColor( "Fast3 ribbon color Dn", ColorRGB(255, 192, 203) );
+parmRibbonSize = Param("Ribbon size", 1, 0.5, 10, 0.5);
+SetBarsRequired(350, -1);
+
+//calculations
+KPFast3 =  E_TSKPFAST3(Open,High,Low,Close,Volume);
+
+//Plots
+if(parmRibbon == 0)
+{
+	Plot( KPFast3, "Fast3", IIf(KPFast3 > 0, parmFast3ColorUp, parmFast3ColorDn) , parmFast3Style ); 
+}
+else
+	Plot( parmRibbonSize, StrFormat("Fast3(%g%)", SelectedValue(KPFast3) ), IIf(KPFast3> 0, parmRibbonUpColor, parmRibbonDnColor) , styleArea |  styleNoLabel | styleOwnScale , 0, 10);

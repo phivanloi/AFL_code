@@ -1,0 +1,24 @@
+//  Linear Correlation
+
+function crLinearCorrelation (crLength) {
+
+crX            = BarIndex();
+crCloseMA      = MA(Close,crLength);
+crXMA          = MA(crX,crLength);
+crCloseSquared = Close*Close;
+crXSquared     = crX*crX;
+
+crUpEQ   = Sum(crX * Close, crLength) - (crLength * crXMA * crCloseMA);
+crLowEQ1 = Sum(crXSquared, crLength) - (crLength * crXMA * crXMA);
+crLowEQ2 = Sum(crCloseSquared, crLength) - (crLength * crCloseMA * crCloseMA);
+crLowEQT = sqrt(crLowEQ1 * crLowEQ2);
+
+return IIf(crLowEQT == 0, 0, crUpEQ / crLowEQT);
+}
+
+//  R-Squared
+
+function crRSquare (crLength) {
+crR = crLinearCorrelation(crLength);
+return crR*crR;
+}

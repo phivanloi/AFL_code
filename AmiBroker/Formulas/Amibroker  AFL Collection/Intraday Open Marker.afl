@@ -1,0 +1,54 @@
+//////////////////////////////////////////////////////////////////////////////
+//
+// Intraday Open Marker		Version 1.0
+// Coded by J.J. Hurley
+// Date 1/1/2007				(Yep, coding indicators on new years day)
+//
+// The problem addressed here is trying to find the real Open value 
+// from eSignal (or other intraday data feed) for any particular day.
+// This is important in backtesting when you want to base a trade decision
+// on where the open was in relation to something else. eg Moving Average.
+// In intraday data feeds, the first bar for a day is usually from the 
+// pre-open trading hours, so using 
+//   TodayO = TimeFrameGetPrice ( "O", inDaily, 0 );
+// will only provide the open of the first bar in the pre-open market.
+// If I could be sure of the opening time, I could have used a time based 
+// function. However, I have not found a way to get eSignal to send data out 
+// with exchange time stamps. (its always local PC time, even on backfill).
+//
+// Second problem with using time to select the open is markets like the ASX
+// stager the opening times, so different stocks have different opening times.
+// Add to that, some days a stock will open late because of a short term 
+// trading holt, and therefore not at their usual time. 
+// By searching for a spike in the intraday volume, it should be a good measure
+// of when a stock has really opened for trading.
+
+Bars_so_far_today = 1 + BarsSince( Day() != Ref(Day(), -1));
+
+//////////////////////////////////////////////////
+// Today's Open is hard to determine by time
+//
+// So, lets make Today's Open (TodayO) based on 
+// the first volume spike 
+
+///////////////////////////////////////////////////////
+// PreOpenVol may need adjustment, 
+// this is my first take on identifying a Volume spike.
+// idea is to spot a big peak on a 1 minute chart 
+// above the minimal pre-Open Volume
+PreOpenVol = 20*MA(Volume,32);
+
+// If New Day, then set Today's Open to Null 
+// This is to indicate that the market has not opened
+// 
+Opened = IIf(BarsSince(Volume>PreOpenVol) > Bars_so_far_today, 0, 1);
+
+n=BarsSince(Opened==0);
+TodayO = IIf(Opened==1, Ref(Open,-n+1), Null);
+Clr_TodayO = ParamColor("Open marker", colorLightGrey);
+PlotShapes (IIf(Opened ==1 AND Ref(Opened, -1) ==0, shapeHollowCircle, shapeNone), Clr_TodayO, Layer=0, yposition=High, Offset = 10);
+
+//////////////////////////////////////////////
+//  Print out some details of current bar
+"Day of Month = " + WriteVal(Day(), 1.0);
+"Today's Real Open = " + WriteVal(TodayO, 1.5);

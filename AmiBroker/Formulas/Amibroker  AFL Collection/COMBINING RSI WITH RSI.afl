@@ -1,0 +1,26 @@
+function KST() 
+{ 
+   p1 = MA( ROC(Close,10), 10); 
+   p2 = MA( ROC( Close, 15), 10 ); 
+   p3 = MA( ROC( Close, 20), 10 ) ; 
+   p4 = MA( ROC( Close, 30), 15); 
+
+  return p1 + 2 * p2 + 3 * p3 + 4 * p4; 
+} 
+
+Buy = Cross( RSI( 17 ), 60 ) AND C > MA( C, 40 ); 
+Sell = Cross( 40, RSI( 17 ) ) OR C < MA( C, 40 ); 
+
+InDownTrend = Flip( Sell, Buy ); 
+
+CBuy = Cross( RSI( 5 ), 60 ) AND C > MA( C, 10 ) AND InDownTrend; 
+CSell = ( Cross( 40, RSI( 5 ) ) OR C < MA( C, 10 ) ) AND InDownTrend; 
+
+Buy = Buy OR CBuy; 
+Sell = Sell OR CSell; 
+
+Plot( KST(), "KST", colorGreen ); 
+Plot( RSI( 5 ), "RSI5", colorRed ); 
+Plot( RSI( 17 ), "RSI17", colorBlue );
+
+

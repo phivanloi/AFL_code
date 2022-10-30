@@ -1,0 +1,25 @@
+_SECTION_BEGIN("Price");
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );
+_N(Title = StrFormat("{{NAME}} - "+SectorID(1)+" - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+
+Plot( C, "", IIf(Close > Open, colorAqua, colorLightOrange), styleCandle + styleNoLabel);
+_SECTION_END();
+
+//The Guppy's Multiple Moving Averages modified by A. Hull//
+
+/* blue lines */
+Plot(EMA( Close, 3 ),"",colorBlue);
+Plot(EMA( Close, 5 ),"",colorBlue);
+Plot(EMA( Close, 7 ),"",colorBlue);
+Plot(EMA( Close, 9 ),"",colorBlue);
+Plot(EMA( Close, 11 ),"",colorBlue);
+Plot(EMA( Close, 15 ),"",colorBlue);
+
+
+/* red lines */
+Plot(EMA( Close, 21 ),"",colorRed);
+Plot(EMA( Close, 24 ),"",colorRed);
+Plot(EMA( Close, 27 ),"",colorRed);
+Plot(EMA( Close, 30 ),"",colorRed);
+Plot(EMA( Close, 33 ),"",colorRed);
+Plot(EMA( Close, 36 ),"",colorRed);

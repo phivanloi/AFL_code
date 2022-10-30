@@ -1,0 +1,41 @@
+// Downloaded From https://www.WiseStockTrader.com
+SetChartBkColor( ParamColor("Chart Color", colorBlack));
+_SECTION_BEGIN("BACKGROUD LTRS");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+GfxSetOverlayMode(1);
+GfxSetTextAlign( 6 );// center alignment
+GfxSetTextColor( ParamColor("Text Color", ColorHSB( 42, 42, 42 ) ));
+GfxSetBkMode(0); // transparent
+GfxSelectFont("Tahoma", Status("pxheight")/12);
+GfxTextOut( "PRASAD ANALYTICS ©", Status("pxwidth")/2, Status("pxheight")/14);
+GfxSelectFont("Tahoma", Status("pxheight")/9 );
+GfxTextOut( Name(), Status("pxwidth")/2, Status("pxheight")/4.1 );
+GfxSelectFont("Arial Narrow", Status("pxheight")/28 );
+GfxTextOut( "prasad9rao@gmail.com", Status("pxwidth")/2, Status("pxheight")/1.5);
+GfxSelectFont("arial narrow", Status("pxheight")/27 );
+GfxTextOut( "Dedicated to MY FATHER : BALKRISHNA RAO", Status("pxwidth")/2, Status("pxheight")/1.15);
+_SECTION_END();
+k = (GetPerformanceCounter()/100)%256; 
+printf("GetPerformance Counter %g",k);
+GfxSelectFont("Arial Narrow", 10,700 ); 
+GfxSetBkMode(1); 
+GfxSetTextColor(colorYellow); 
+//GfxTextOut("Dedicated to the loving memory of MY FATHER",100+k ,26); 
+
+RequestTimedRefresh(1); 
+_SECTION_END();
+VOLDAYS1 = Param("AD DAYS",20,1,50,1);
+AD_PER = Sum((Close-Open)/(High-Low)*Volume,VOLDAYS1)/Sum(Volume,VOLDAYS1);
+mycolorAD =IIf  (AD_PER<0,ColorRGB(252,255,200) , IIf( AD_PER>0,ColorRGB(252,255,0),ColorRGB(125,84,11)));
+Plot(AD_PER,"AD%",mycolorAD ,styleHistogram);
+GfxSetTextAlign( TA_left = 0);
+GfxSelectFont("Tahoma", 11, 700 ); 
+GfxSetTextColor(ColorRGB(209,191,255)); 
+GfxTextOut("PRASAD ANALYTICS - % Accu Dist",07, 0); 
+GfxSetTextAlign( TA_LEFT = 0 );
+GfxSelectFont("Tahoma", 11, 700 ); 
+GfxSetTextColor(ColorRGB(255,180,61)); 
+GfxTextOut(Name()+ "   " + Date(),07,30); 
+GfxSetTextColor(ColorRGB(109,101,255)); 
+GfxTextOut("AD[ "+VOLDAYS1+" ]"+" = "+NumToStr(AD_PER,1.2),07, 14); 
+Title = " "; 

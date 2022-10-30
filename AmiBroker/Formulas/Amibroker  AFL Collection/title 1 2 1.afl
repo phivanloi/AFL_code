@@ -1,0 +1,46 @@
+
+Main = C; 
+Col_cci = IIf(CCI(20) > 100, colorDarkGreen,IIf(CCI(20) <-100,colorDarkRed,IIf(CCI(20) > Ref(CCI(20),-1),colorBrightGreen,colorRed)));
+Plot(Main, "",Col_cci , styleBar+styleThick);
+//titles
+
+// trend based on EMA
+ 
+Plot(EMA(Close,34),"",colorWhite,styleThick); 
+Plot(EMA(Close,89),"",colorGreen,styleThick);
+
+//Plot(JurikJMA(Close,13,0),"",colorBlue,styleThick);
+//Plot(BBandTop(DEMA(C,20),10,1),"",colorYellow);
+//Plot(BBandBot(DEMA(C,20),10,1),"",colorYellow);
+//Plot(EMA(Close,34),"",colorRed,styleThick);
+Long_trend = WriteIf(EMA(C,34) > EMA(C,89),EncodeColor(colorBrightGreen)+ " UP ", EncodeColor(colorRed)+ " DN " );
+Mid_trend =  WriteIf(JurikJMA( Close, 13, 0) > Ref(JurikJMA( Close, 13, 0),-1),EncodeColor(colorBrightGreen)+ " UP ", EncodeColor(colorRed)+ " DN ");
+short_trend =  WriteIf(EMA(Close,3) > JurikJMA( Close, 13, 0),EncodeColor(colorBrightGreen)+ " UP ", EncodeColor(colorRed)+ " DN ");
+
+RSI_entry = EncodeColor(colorYellow)+"J-RSI  Trigger   : " + EncodeColor(colorWhite) + WriteIf(JurikRSX( C,6) > Ref(JurikRSX( C,6),-1),EncodeColor(colorBrightGreen)+" UP ", EncodeColor(colorRed)+ " DN ")
++ EncodeColor(colorWhite)+"Confirm : " + WriteIf(JurikRSX( C,6) > JurikRSX( C,11) AND JurikRSX( C,11) > Ref(JurikRSX( C,11),-2),EncodeColor(colorBrightGreen)+" UP ", WriteIf(JurikRSX( C,6) < JurikRSX( C,11) AND JurikRSX( C,11) < Ref(JurikRSX( C,11),-2),EncodeColor(colorRed)+ " DN ",EncodeColor(colorYellow)+ "-"))
+
+; 
+
+; 
+
+//Title = Name() + "  -  RSI(" + WriteVal(pd,0.0) + ")  -  Close=" +  WriteVal(Close,0.3) + "    UL=" +  WriteVal(UL,0.4) + "    MM=" +  WriteVal(MM,0.4) + "    LL=" +  WriteVal(LL,0.4); 
+Title =
+
+EncodeColor(colorYellow)+"Trend  on EMA  : "+EncodeColor(colorWhite)+"Long term : " +Long_trend
++EncodeColor(colorWhite)+"Mid term : " +mid_trend
++EncodeColor(colorWhite)+"Short term : " +short_trend
++"\n"+
+RSI_entry
++"\n"
+
+;
+
+
+
+_SECTION_END();
+
+_SECTION_END();
+
+_SECTION_BEGIN("JMA");
+_SECTION_END();

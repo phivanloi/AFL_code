@@ -1,0 +1,67 @@
+_SECTION_BEGIN("Trend");
+
+SetTradeDelays(0,0,0,0);
+SetPositionSize(10, spsPercentOfEquity ); 
+SetOption("AllowSameBarExit" , True );
+// If this option is not set true positions that are exited at the same bar remains open
+SetOption("PriceBoundChecking", False);  
+// This option must be set false in order to exit at specified stop price and not bar close
+
+
+//LK=Optimize("Trend", 50, 30, 60, 10 ) ;
+//FF=Optimize("Trend", 20, 10, 40, 10 ) ; 
+//StopLevel=Optimize("Stop",0.1,0.05,0.5,0.05 ) ; 
+
+
+StopLevel = 0.2;
+
+LK=50;
+
+FF=10;
+
+
+A1= IIf( L> Ref(HHV( Close,LK),-5), 1, 0); 
+
+A2= Sum( A1, LK ) ;
+
+A3= IIf(C>0, FF, 0); 
+
+
+Buy = Cross(A2,A3);
+
+Sell = 0;
+
+trailARRAY = Null;
+trailstop = 0;
+
+for( i = 1; i < BarCount; i++ )
+{
+
+   if( trailstop == 0 AND Buy[ i ] ) 
+   { 
+      trailstop = High[ i ] * (1-stoplevel);
+   }
+   
+   else Buy[ i ] = 0; // remove excess buy signals
+
+   if( trailstop > 0 )
+   {   
+      trailstop = Max( High[ i ] * (1-stoplevel), trailstop );
+      trailARRAY[ i ] = trailstop;
+   }
+
+   if( trailstop > 0 AND Low[ i ] < trailstop )
+   {
+      Sell[ i ] = 1;
+      SellPrice[ i ] = trailstop;
+      trailstop=0;
+   }
+ 
+}
+
+PlotShapes(Buy*shapeUpArrow,colorBlue,0,Low);
+PlotShapes(Sell*shapeDownArrow,colorRed,0,High);
+
+Plot( Close,"Price",colorWhite,styleBar);
+Plot( trailARRAY,"trailing stop level", colorRed );
+_SECTION_END();

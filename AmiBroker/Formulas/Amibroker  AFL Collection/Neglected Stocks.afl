@@ -1,0 +1,34 @@
+//Neglected stocks
+
+//.......Asishda...UpDays  Down Days ration in last 4 years........
+Positive = Sum(IIf(O < C,1,0),1000);// Positive Days
+Negative= Sum(IIf(O > C,1,0),1000);// Negative Days
+Doji    = Sum(IIf(O = C,1,0),1000);// Doji type days
+
+Ignored = Positive / Negative * 100;
+
+//.... Up 30% from Lowest in last 260 days
+LLV260 = LLV(L,260);
+Up30  = (100 * ((C + .01) - ( LLV260 + .01)) / (LLV260 + .01)) > 30 ;
+
+//... Asish vol
+bVV = V > Ref(V,-1) + Ref(V,-1) * 0.8 ;
+
+//... 5% breakout
+Brk_4pc = C > Ref(C,-1) + Ref(C,-1) * 0.04;
+
+//....  liquidity
+Liquid =   MA(C,21) * MA(V,21) > 250000 ; //WMA(V,89) > 80000;
+
+//....................
+R_S_Go = Ignored <50 AND Up30 AND bVV AND Brk_4pc AND Liquid;
+
+Buy = R_S_Go ;
+Sell= 0;//   
+Filter =  Buy  ; 
+
+ AddColumn(LastValue(C),"Currant",1.0,colorBlack,colorTan);
+ AddColumn(Ignored,"Ignored",1.0,colorBlack,colorTan);
+ AddColumn(Doji,"Doji",1.0,colorBlack,colorTan);
+ AddColumn(Positive,"Up Day",1.0,colorBlack,colorTan);
+ AddColumn(Negative,"Dn Day",1.0,colorBlack,colorTan);

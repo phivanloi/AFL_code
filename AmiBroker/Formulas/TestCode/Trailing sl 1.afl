@@ -1,0 +1,70 @@
+BuyPrice = C;                        							
+SellPrice = C;                        							
+Buy = C>MA(C,70);
+Short = Cover = 0;
+
+my_atr = ATR(14);
+init_ATR = 3*my_atr;
+adj_ATR = 5*my_atr;
+
+/// Original trail stop looping code at
+/// @link https://www.amibroker.com/kb/2007/03/24/how-to-plot-a-trailing-stop-in-the-price-chart
+/// Modified to flexible ATR at 
+/// @link https://forum.amibroker.com/t/flexible-atr-stop-loss/19645/4
+/// by fxshrat@gmail.com, commercial use prohibited
+Sell = 0;
+trailARRAY = break_arr = Null;
+color_arr = colorOrange;
+trailstop = bp = break_level = break_flag = stoplevel = 0;
+for( i = 1; i < BarCount; i++ )
+{
+    if( trailstop == 0 AND Buy[ i ] )
+    {
+        bp = BuyPrice[ i ];
+        stoplevel = init_ATR[ i ];
+        trailstop = bp - stoplevel;
+        break_level = bp + adj_ATR[ i ];
+    }
+    else Buy[ i ] = 0; // remove excess buy signals    
+
+    if( trailstop > 0 )
+    {
+        if ( C[ i ] > break_level AND break_flag == 0 ) {
+			stoplevel = adj_ATR[ i ];
+			trailstop = C[ i ] - stoplevel;
+			break_flag = 1;			
+        }
+        
+        if ( C[ i ] < trailstop ) {
+			Sell[ i ] = 1;
+			SellPrice[ i ] = C[ i ];
+			bp = break_level = break_flag = trailstop = stoplevel = 0;
+        }
+    }
+
+    if( trailstop > 0 )
+    {
+        trailstop = Max( C[ i ] - stoplevel, trailstop );
+        trailARRAY[ i ] = trailstop;   
+    }
+    
+    if ( break_level > 0 )
+		break_arr[ i ] = break_level;
+    
+    if ( break_flag > 0 )
+        color_arr[ i ] = colorRed;  
+}
+
+Plot( Close,"Price",colorBlack,styleBar);
+Plot( break_arr,"Break Level",colorGold);
+Plot( trailarray, "trailing stop line", color_arr, styleStaircase);
+PlotShapes(Buy*shapeUpArrow,colorGreen,0,Low);
+PlotShapes(Sell*shapeDownArrow,colorRed,0,High);
+
+intrade = Flip(Buy,Sell);
+
+Filter = intrade OR Sell;
+dynamic_color = IIf( Buy, colorGreen, color_arr );
+AddColumn( IIf( intrade, 'T', 'F' ), "Buy", formatChar, colorBlack, dynamic_color );
+AddColumn( IIf( Sell, 'T', Null ), "Sell", formatChar, -1, colorRed );
+AddColumn( Close, "Close", 1.2 );

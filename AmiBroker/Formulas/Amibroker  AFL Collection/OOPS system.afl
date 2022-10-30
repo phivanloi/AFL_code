@@ -1,0 +1,25 @@
+//OOPS system
+//A first Attempt
+//A Second Attempt
+
+SetTradeDelays(0,0,0,0);
+
+shortsetup=Open > Ref(H,-1);
+buysetup=Open < Ref(L,-1);
+
+ShortPrice=ValueWhen(shortsetup, Ref(H,-1));
+BuyPrice=ValueWhen(buysetup,Ref(L,-1));
+
+Buy=buysetup AND BuyPrice;
+Sell= C;
+Short=shortsetup AND SellPrice;
+Cover= C;
+
+Equity(1);
+
+Filter=1;
+AddColumn(IIf(buysetup==1,BuyPrice,0),"BuyPrice");
+AddColumn(IIf(shortsetup==1,ShortPrice,0),"ShortPrice");
+AddColumn(Shortsetup,"ShortSetup");
+AddColumn(Buysetup,"BuySetup");
+/***************************************************/

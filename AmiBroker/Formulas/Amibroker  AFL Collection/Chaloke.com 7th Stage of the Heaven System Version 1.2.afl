@@ -1,0 +1,350 @@
+//Chaloke.com 7th Stage of the Heaven System Version 1.0//
+// v.1.0 Created By Kook 20 Nov 2005    //
+// v.1.2  2nd Update By Kook 21 Nov 2005 //Bugs(Last SEC) reported from Mink 
+
+///Level 7///// 
+/////Chaloke System3--
+BckGndColor=ParamColor
+("BackGroundColor",colorBlack);
+GraphXSpace=1;
+P1=Param("ShortTerm Period",9,3,15,1); 
+P2=Param("MidTerm Period",15,9,24,1); 
+P3=Param("LongTerm Period",24,15,50,1); 
+P4=Param("Invesment Term",5,1,12,1); 
+P5=Param("ATR Period",5,1,25,1); 
+Sm=2*P5/10; 
+ATRX=Sm*ATR(P4); 
+S=EMA(C,P1) - ATRX; 
+M=EMA(C,P2) -ATRX; 
+lg=EMA(C,P3) -ATRX; 
+
+Sht=IIf(C==HHV(C,3),S,Ref(EMA(C,9),-1)-ATRX); 
+Mid=IIf(C==HHV(C,3),M,Ref(EMA(C,15),-1)-ATRX); 
+Lng=IIf(C==HHV(C,3),Lg,Ref(EMA(C,24),-1)-ATRX); 
+
+ColorSys3=IIf( Sht>Mid AND C > Sht ,colorBrightGreen ,IIf( C < lng OR Sht<lng ,colorRed,
+IIf(BarsSince(Sht>Mid AND C > Sht) < BarsSince(C < lng OR Sht<lng ) ,colorBrightGreen ,colorRed))); 
+Plot(C,"",ColorSys3,64);  
+//.........................................................................................//
+//.........................................................................................//
+//.........................................................................................//
+
+
+BuySys3=ColorSys3==colorBrightGreen AND Ref(ColorSys3,-1)!=colorBrightGreen ;
+SellSys3=ColorSys3==colorRed AND Ref(ColorSys3,-1)!=colorRed ;
+
+PlotShapes(shapeUpArrow*(BuySys3==1),colorSkyblue,0,L,Offset=-60);
+PlotShapes(shapeDownArrow*(SellSys3==1),colorSkyblue,0,H,Offset=-60);
+PlotShapes(shapeDigit7*(BuySys3==1),colorSkyblue,0,L,Offset=-75);
+PlotShapes(shapeDigit7*(SellSys3==1),colorSkyblue,0,H,Offset=75);
+
+//.........................................................................................//
+//.........................................................................................//
+//.........................................................................................//
+//..........................................................................................//
+
+
+//Level 6//
+
+// Chaloke System2
+Length=21;//21,15
+Smooth=5; //5,3
+FixV=5;
+Factor=1;
+cmopds=Length;
+CMO_1=Sum( IIf( C > Ref( C, -1 ) , ( C - Ref( C ,-1 ) ) ,0 ) ,cmopds ) ;
+CMO_2=Sum( IIf( C < Ref( C ,-1 ) , ( Ref( C ,-1 ) - C )  ,0 ) ,cmopds );
+
+CMO=100 * (( CMO_1 -CMO_2)  /( CMO_1+CMO_2)); 
+
+AbsCMO=( abs(CMO) )/100;
+
+SC=2/(Smooth+1);
+
+Chaloke=AMA( C, SC*AbsCMO );
+
+Sys2Up=Chaloke+(Factor*StDev(Chaloke,FixV));
+Sys2Dn=Chaloke-(Factor*StDev(Chaloke,FixV)); 
+
+
+Chaloke_Color=IIf(C > sys2up ,colorBrightGreen,IIf(C < sys2dn ,colorRed,colorBlack));
+
+ChalokeSwitch=Param(".ChalokeSwitch",0,0,1,1);
+Plot(Chaloke,"Kook Novice Chaloke System2",colorBlack, IIf(Chalokeswitch==1,1,styleNoLine) );
+Plot(Sys2Up,"Sys2Up",colorBlue, IIf(Chalokeswitch==1,1,styleNoLine) );
+Plot(sys2Dn,"Sys2Dn",colorRed, IIf(Chalokeswitch==1,1,styleNoLine) );  
+Plot(C,"Close",Chaloke_Color,64);
+PlotShapes(shapeUpArrow*Cross(C,Sys2UP),colorPink,0,L,Offset=-27);
+PlotShapes(shapeDownArrow*Cross(Sys2Dn,C),colorPink,0,H,Offset=-27);
+PlotShapes(shapeDigit6*Cross(C,Sys2UP),colorPink,0,L,Offset=-40);
+PlotShapes(shapeDigit6*Cross(Sys2Dn,C),colorPink,0,H,Offset=40);
+
+
+//.........................................................................................//
+//.........................................................................................//
+//.........................................................................................//
+//.........................................................................................//
+
+//Level 5//
+Tghlow=Trough(C,1.5);
+PKHg=Peak(C,1.5);
+PlotShapes(shapeUpArrow*(tghlow>Ref(tghlow,-1)),colorLightGrey,0,L,Offset=-5);
+PlotShapes(shapeDigit5*(tghlow>Ref(tghlow,-1)),colorLightGrey,0,L,Offset=-15);
+PlotShapes(shapeDownArrow*(PKHg<Ref(PKHg,-1)),colorLightGrey,0,H,Offset=-5);
+PlotShapes(shapeDigit5*(PKHg<Ref(PKHg,-1)),colorLightGrey,0,H,Offset=15);
+//.........................................................................................//
+//.........................................................................................//
+//.........................................................................................//
+
+
+
+//lEVEL 4/////
+///// Chaloke Modified ATR Trailing Stop --
+
+
+Prev=Ref(HHV(H-2.5*ATR(5),10),-BarsSince(C>HHV(H-2.5*ATR(5),10) AND C>Ref(C,-1)));
+AT=IIf( Cum(1)<16 , C,
+IIf( C > HHV(H-2.5*ATR(5),10) AND C > Ref(C,-1),HHV(H-2.5*ATR(5),10),
+Prev));
+Plot(AT,"Chaloke Modified ATR Trailing Stop",IIf(Ref(AT,-1)<C,colorYellow,BckGndColor),1);
+//PlotShapes(shapeDownArrow*Cross(AT,C),colorBlue,0,H,Offset=-24);
+Plot( IIf( Cross(AT,C) ,L*0.95,Null) ,"",BckGndColor,styleHistogram+styleNoLabel);
+Plot( IIf( Cross(AT,C) ,H*1.05,Null) ,"",colorYellow,styleHistogram+styleNoLabel);
+PlotShapes(shapeDigit4*( Cross(AT,C) ),colorYellow,0,H*1.05,Offset=-10);
+PlotShapes(shapeDigit4*( Cross(C,AT) ) ,colorYellow,0,L,Offset=-10);
+//PlotShapes(shapeUpArrow*( Cross(C,AT) ) ,colorYellow,0,L*0.95,Offset=5);
+//.........................................................................................//
+//.........................................................................................//
+//.........................................................................................//
+//.........................................................................................//
+
+
+//--Level 3 
+//Kook Auto SEC 
+//AUTO SEC Version 1.0// 
+// v.1.0 Created By Kook 16 Nov 2005 // 
+// v.1.1 1st Update By Kook 17 Nov 2005 // 
+// v.1.2 2nd Update By Kook 20 Nov 2005 //Bugs(Last SEC) reported from Mink 
+
+Heading="AUTO SEC Version 1.2"; 
+
+SECUpColor=ParamColor("SEC-UpColor",colorBrightGreen); 
+SECDnColor=ParamColor("SEC-DownColor",colorRed); 
+SECLastColor=ParamColor("SEC-LastColor",10); 
+BckGndColor=ParamColor("BackGroundColor",colorBlack); 
+ZZSwitch=Param("ZZSwitch",0,0,1,1); 
+Sens=Param("Sens",5,0.5,15,0.5); 
+SECSwitch=Param("SECSwitch",1,0,1,1); 
+
+BarPK=BarsSince(Zig(C,Sens)==Peak(C,Sens)); 
+BarTGH= BarsSince(Zig(C,Sens)==Trough(C,Sens)); 
+Turnpoint=Min(BarPK,BarTGH); 
+x = Cum(1); 
+lastx = ValueWhen(Turnpoint==0,( x )); 
+Daysback = ValueWhen(Turnpoint==0,(Max(PeakBars(C,Sens,1),TroughBars(C,Sens,1))))+1; 
+
+aa =ValueWhen(Turnpoint==0,LinRegIntercept( Close, Daysback) ); 
+bb =ValueWhen(Turnpoint==0,LinRegSlope( Close, Daysback)); 
+y = Aa + bb * ( x - (Lastx - DaysBack+1) ); 
+
+e= ValueWhen(Turnpoint==0,StdErr(C,Daysback)); 
+eU= y + 2*e; 
+eL= y - 2*e; 
+
+ColorSEC=IIf(Cross(bb,0) OR Cross(0,bb),BckGndColor,IIf(bb<0,SECDnColor,SECUpColor)); 
+Plot( IIf( x >= (lastx - Daysback), IIf( Ref(C,-1) <eU AND Ref(C,-1) >eL,y,Null) , -1e10 ) , "LinReg", colorSEC,4 ); 
+Plot(IIf( x >= (lastx - Daysback), IIf( Ref(C,-1) <eU AND Ref(C,-1) >eL,eU,Null) , -1e10 ) ,"",ColorSEC,4); 
+Plot(IIf( x >= (lastx - Daysback), IIf( Ref(C,-1) <eU AND Ref(C,-1) >eL,eL,Null) , -1e10 ) ,"",ColorSEC,4); 
+
+
+PlotShapes(shapeUpArrow*Cross(C,eU),colorWhite,0,L,Offset=-40); 
+PlotShapes(shapeDownArrow*Cross(eL,C),colorWhite,0,H,Offset=-40); 
+PlotShapes(shapeDigit3*Cross(C,eU),colorWhite,0,L,Offset=-55); 
+PlotShapes(shapeDigit3*Cross(eL,C),colorWhite,0,H,Offset=55); 
+
+DaysbackL = LastValue(Min(PeakBars(C,Sens,1),TroughBars(C,Sens,1))); 
+
+Slope= ValueWhen(Turnpoint==0,bb,0); 
+Level= ValueWhen(Turnpoint==0,aa,0); 
+Err= ValueWhen(Turnpoint==0,e,0); 
+
+Mback= Level + slope*( Turnpoint) ; 
+Uback= MBack + 2*Err; 
+Lback= MBack - 2*Err; 
+
+ColorSEC2=IIf(Cross(bb,0) OR Cross(0,bb),BckGndColor,IIf(bb<0,SECUpColor,SECDnColor)); 
+
+Plot( IIf( (X>(LastValue(x)-DaysbackL) ),Null ,Mback) ,"",ColorSEC2); 
+Plot( IIf( (X>(LastValue(x)-DaysbackL) ),Null ,Uback) ,"",ColorSEC2); 
+Plot( IIf( (X>(LastValue(x)-DaysbackL) ),Null ,Lback) ,"",ColorSEC2); 
+
+///////Last SEC/////////////////// 
+x = Cum(1); 
+lastxL = LastValue( x ); 
+DaysbackL = LastValue(Min(PeakBars(C,Sens,1),TroughBars(C,Sens,1)))+1; 
+Endbars = IIf(PeakBars(C,Sens,1)<TroughBars(C,Sens,1),LastValue(ValueWhen(C==LLV(C,DaysbackL),X)),LastValue(ValueWhen( C==HHV(C,DaysbackL),X))); 
+BarsL=Min(PeakBars(C,Sens,1),TroughBars(C,Sens,1)) ; 
+
+aaL = ValueWhen( Ref(Endbars,-1)!=Ref(x,-1) AND Endbars==x , LinRegIntercept( Close, DaysbackL-(LastValue(x)-Endbars)) ); 
+bbL = ValueWhen( Ref(Endbars,-1)!=Ref(x,-1) AND Endbars==x , LinRegSlope( Close, DaysbackL-(LastValue(x)-Endbars)) ); 
+eL= ValueWhen( Ref(Endbars,-1)!=Ref(x,-1) AND Endbars==x , StdErr(C,DaysbackL-(LastValue(x)-Endbars)) ); 
+SlopeL= LastValue(bbL); 
+LevelL= LastValue(aaL); 
+ErrL= LastValue(eL); 
+
+MbackL= LevelL + slopeL*( BarsL) ; 
+UbackL= MBackL + 2*ErrL; 
+LbackL= MBackL - 2*ErrL; 
+WL=(UbackL-LbackL)/sqrt((SlopeL*SlopeL)+1); 
+
+Plot( IIf(X>(LastValue(x)-DaysbackL) AND MbackL!=0,MbackL,Null) ,"",SECLastColor,styleNoLabel); 
+Plot( IIf(X>(LastValue(x)-DaysbackL) AND MbackL!=0,UbackL,Null) ,"",SECLastColor,styleNoLabel); 
+Plot( IIf(X>(LastValue(x)-DaysbackL) AND MbackL!=0,LbackL,Null) ,"",SECLastColor,styleNoLabel); 
+
+PlotShapes( IIf(X>(LastValue(x)-DaysbackL),shapeHollowUpArrow*Cross(C,UbackL) ,Null),11,0,L,Offset=-30); 
+PlotShapes( IIf(X>(LastValue(x)-DaysbackL),shapeHollowDownArrow*Cross(LbackL,C) ,Null),11,0,H,Offset=-30); 
+PlotShapes( IIf(X>(LastValue(x)-DaysbackL),shapeDigit3*Cross(C,UbackL) ,Null),11,0,L,Offset=-44); 
+PlotShapes( IIf(X>(LastValue(x)-DaysbackL),shapeDigit3*Cross(LbackL,C) ,Null),11,0,H,Offset=44); 
+
+aat =LastValue(ValueWhen(Turnpoint==0,LinRegIntercept( Close, Daysback) )); 
+bbt =LastValue(ValueWhen(Turnpoint==0,LinRegSlope( Close, Daysback))); 
+yt = Aat + bbt * ( x - (Lastx - DaysBack+1) ); 
+et= ValueWhen(Turnpoint==0,StdErr(C,Daysback)); 
+eUt= yt + 2*et; 
+eLt= yt - 2*et; 
+
+//Plot( IIf( x >= (lastx - Daysback) , IIf( x>= LastValue(lastx) AND SECswitch==1 AND MbackL!=0,yt,Null) , -1e10 ) , "LinReg", ColorSEC,styleNoLabel); 
+//Plot(IIf( x >= (lastx - Daysback) , IIf( x>= LastValue(lastx) AND SECswitch==1 AND MbackL!=0,eUt,Null) , -1e10 ) ,"",ColorSEC,styleNoLabel); 
+
+//Plot(IIf( x >= (lastx - Daysback) , IIf( x>= LastValue(lastx) AND SECswitch==1 AND MbackL!=0,eLt,Null) , -1e10 ),"",ColorSEC,styleNoLabel); 
+
+//Price & ZigZag// 
+Plot(Zig(C,Sens),"",IIf(ZZSwitch==1,colorSkyblue,BckGndColor),8+styleNoLabel); 
+
+//.........................................................................................// 
+//.........................................................................................// 
+//.........................................................................................// 
+//.........................................................................................//
+
+
+//--Level 2
+// RSI with SEC 
+//RSI with AUTO SEC Version 1.0//
+// v.1.0 Created By Kook 17 Nov 2005    //
+// v.1.1  1st Update By Kook 18 Nov 2005 //
+SECUpColor=ParamColor("SEC-UpColor",colorBrightGreen);
+SECDnColor=ParamColor("SEC-DownColor",colorRed);
+SECLastColor=ParamColor("SEC-LastColor",10);
+BckGndColor=ParamColor("BackGroundColor",colorBlack);
+ZZSwitch=Param("ZZSwitch",0,0,1,1);
+SensInd=Param("SensInd",35,0.5,100,0.5);
+SECLastColorInd=ParamColor("SECLastColorInd",10);
+Ind=RSI(14);
+Heading="RSI with AUTO SEC Version 1.0  RSI(14) = ";
+
+BarPKInd=BarsSince(Zig(Ind,SensInd)==Peak(Ind,SensInd));
+BarTGHInd= BarsSince(Zig(Ind,SensInd)==Trough(Ind,SensInd));
+TurnpointInd=Min(BarPKInd,BarTGHInd);
+xInd = Cum(1);
+lastxInd = ValueWhen(TurnpointInd==0,( xInd ));
+DaysbackInd= ValueWhen(TurnpointInd==0,(Max(PeakBars(Ind,SensInd,1),TroughBars(Ind,SensInd,1))))+1;
+
+aaInd =ValueWhen(TurnpointInd==0,LinRegIntercept( Ind, DaysbackInd) );
+bbInd =ValueWhen(TurnpointInd==0,LinRegSlope( Ind, DaysbackInd));
+yInd = aaInd + bbInd * ( xInd - (lastxInd - DaysbackInd+1) );
+
+eInd= ValueWhen(TurnpointInd==0,StdErr(Ind,DaysbackInd));
+eUInd= yInd + 2*eInd;
+eLInd= yInd - 2*eInd;
+
+Color=IIf(Cross(bbInd,0) OR Cross(0,bbInd),BckGndColor,IIf(bbInd<0,SECDnColor,SECUpColor));
+aatInd =LastValue(ValueWhen(TurnpointInd==0,LinRegIntercept( Ind, DaysbackInd) ));
+bbtInd =LastValue(ValueWhen(TurnpointInd==0,LinRegSlope( Ind, DaysbackInd)));
+ytInd = aatInd + bbtInd * ( xInd - (lastxInd - DaysbackInd+1) );
+etInd= ValueWhen(TurnpointInd==0,StdErr(Ind,DaysbackInd));
+eUtInd= ytInd + 2*etInd;
+eLtInd= ytInd - 2*etInd;
+
+
+PlotShapes(shapeUpArrow*Cross(Ind,eUInd),colorLightOrange,0,L,offset=-60);
+PlotShapes(shapeDownArrow*Cross(eLInd,Ind),colorLightOrange,0,H,Offset=-60);
+PlotShapes(shapeDigit2*Cross(Ind,eUInd),colorLightOrange,0,L,offset=-75);
+PlotShapes(shapeDigit2*Cross(eLInd,Ind),colorLightOrange,0,H,Offset=75);
+
+
+DaysbackLInd = LastValue(Min(PeakBars(Ind,SensInd,1),TroughBars(Ind,SensInd,1)));
+SlopeInd= ValueWhen(TurnpointInd==0,bbInd,0);
+LevelInd= ValueWhen(TurnpointInd==0,aaInd,0);
+ErrInd= ValueWhen(TurnpointInd==0,eInd,0);
+
+MbackInd= LevelInd + SlopeInd*( TurnpointInd) ;
+UbackInd= MbackInd + 2*ErrInd;
+LbackInd= MbackInd - 2*ErrInd;
+WInd=(UbackInd-LbackInd)/sqrt((SlopeInd*SlopeInd)+1);
+WInd2=ValueWhen(TurnpointInd==0,WInd,2);
+WInd3=ValueWhen(TurnpointInd==0,WInd,3);
+WInd4=ValueWhen(TurnpointInd==0,WInd,4);
+WInd5=ValueWhen(TurnpointInd==0,WInd,5);
+WInd6=ValueWhen(TurnpointInd==0,WInd,6);
+WIndMean=(WInd2+WInd3+WInd4+WInd5+WInd6)/5;
+
+///////Last SEC///////////////////
+xInd = Cum(1);
+lastxLInd = LastValue( xInd );
+DaysbackLInd = LastValue(Min(PeakBars(Ind,SensInd,1),TroughBars(Ind,SensInd,1)))+1;
+EndbarsInd= IIf(PeakBars(Ind,SensInd,1)<TroughBars(Ind,SensInd,1),LastValue(ValueWhen(Ind==LLV(Ind,DaysbackLInd),xInd)),LastValue(ValueWhen( Ind==HHV(Ind,DaysbackLInd),xInd)));
+BarsLInd=Min(PeakBars(Ind,SensInd,1),TroughBars(Ind,SensInd,1)) ;
+
+aaLInd = ValueWhen( Ref(EndbarsInd,-1)!=Ref(xInd,-1) AND EndbarsInd==xInd , LinRegIntercept( Ind, DaysbackLInd-(LastValue(xInd)-EndbarsInd)) );
+bbLInd = ValueWhen( Ref(EndbarsInd,-1)!=Ref(xInd,-1) AND EndbarsInd==xInd , LinRegSlope( Ind, DaysbackLInd-(LastValue(xInd)-EndbarsInd)) );
+eLInd= ValueWhen( Ref(EndbarsInd,-1)!=Ref(xInd,-1) AND EndbarsInd==xInd , StdErr(Ind,DaysbackLInd-(LastValue(xInd)-EndbarsInd)) );
+SlopeLInd= LastValue(bbLInd); 
+LevelLInd= LastValue(aaLInd); 
+ErrLInd= LastValue(eLInd);
+
+MbackLInd= LevelLInd + SlopeLInd*( BarsLInd) ;
+UbackLInd= MbackLInd + 2*ErrLInd;
+LbackLInd= MbackLInd - 2*ErrLInd;
+WLInd=(UbackLInd-LbackLInd)/sqrt((SlopeLInd*SlopeLInd)+1);
+
+
+PlotShapes( IIf(XInd>(LastValue(XInd)-DaysbackLInd),shapeHollowUpArrow*Cross(Ind,UbackLInd)  ,Null),10,0,L,Offset=-30);
+PlotShapes( IIf(XInd>(LastValue(XInd)-DaysbackLInd),shapeHollowDownArrow*Cross(LbackLInd,Ind)  ,Null),10,0,H,Offset=-30);
+PlotShapes( IIf(XInd>(LastValue(XInd)-DaysbackLInd),shapeDigit2*Cross(Ind,UbackLInd)  ,Null),10,0,L,Offset=-40);
+PlotShapes( IIf(XInd>(LastValue(XInd)-DaysbackLInd),shapeDigit2*Cross(LbackLInd,Ind)  ,Null),10,0,H,Offset=40);
+//.........................................................................................//
+//.........................................................................................//
+//.........................................................................................//
+//.........................................................................................//
+
+
+//-- Level1
+//Divergence
+PKD1=Peak(RSI(14),15,1);
+PKD2=Peak(RSI(14),15,2);
+PKDD1=PeakBars(RSI(14),15,1);
+PKDD2=PeakBars(RSI(14),15,2);
+TGD1=Trough(RSI(14),15,1);
+TGD2=Trough(RSI(14),15,2);
+TGDD1=TroughBars(RSI(14),15,1);
+TGDD2=TroughBars(RSI(14),15,2);
+Bullish=IIf((TGDD2-TGDD1)>7 AND TGD1 <50 AND TGD2<50 AND TGD1>TGD2 AND ( Ref(C,-TGDD1) < Ref(C,-TGDD2)),1,0);
+Bearish=IIf((PKDD2-PKDD1)>7 AND PKD1 >50 AND PKD2>50 AND PKD1<PKD2 AND ( Ref(C,-PKDD1) > Ref(C,-PKDD2)),1,0);
+PlotShapes(shapeDigit1*(Bullish==1 AND Ref(Bullish,-1)!=1),10,0,L,Offset=-50);
+PlotShapes(shapeDigit1*(Bearish==1 AND Ref(Bearish,-1)!=1),10,0,H,Offset=50);
+ 
+
+///// Chaloke.com Peak-Trough System /////--Add position 
+
+SensPT=Param("SensPT",1.5,0.5,15,0.5); 
+PKPT=Peak(Close,SensPT,1); 
+TGHPT=Trough(Close,SensPT,1); 
+ColorPT=IIf(BarsSince(Cross(C,Ref(PKPT,-1)))<BarsSince(Cross(Ref(TGHPT,-1),C)),colorBrightGreen,colorRed); 
+//Plot(Zig(C,SensPT),"",colorWhite);
+PlotShapes( Cross(C,Ref(PKPT,-1)) *shapeUpArrow,colorPaleGreen,0,L,Offset=-55); 
+PlotShapes( Cross(Ref(TGHPT,-1),C) *shapeDownArrow,colorPaleGreen,0,H,Offset=-55); 
+
+//Title Module Begin
+Change=C-Ref(C,-1);
+Title=Name()+"   "+Date()+"   "+EncodeColor(colorPink)+"Chaloke.com 7th Stage of the Heaven System V1.2"+EncodeColor(colorSkyblue)+" Vol="+NumToStr(Volume,1.2)+"\n         "+"O="+Open+"   H="+HHV(H,1)+"   L="+LLV(L,1)+"    Close="+ Close+"  ("+NumToStr(Change,1.2)+" )" +"\n";//Title Module End 
+ 

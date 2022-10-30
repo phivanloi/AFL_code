@@ -1,0 +1,26 @@
+_SECTION_BEGIN("PAC - ZTEMA");
+SetChartOptions(0,chartShowDates|chartShowArrows|chartLogarithmic|chartWrapTitle);
+HaClose = (O+H+L+C)/4;
+HaOpen = AMA( Ref( HaClose, -1 ), 0.5 );
+HaHigh = Max( H, Max( HaClose, HaOpen ) );
+HaLow = Min( L, Min( HaClose, HaOpen ) );
+PlotOHLC( HaOpen, HaHigh, HaLow, HaClose, "Modified " + Name(), colorRose, styleCandle );
+
+TC = MA( High, 5 );
+BC = MA( Low, 5 );
+
+Plot(tc, "", colorYellow);
+Plot(bc, "", colorYellow);
+
+a = haClose > TC;
+b = haClose < BC;
+
+state=IIf(BarsSince(a)<BarsSince(b),1,0);
+
+Buy = Cross(a,b);
+Sell = Cross(b,a);
+
+PlotShapes( IIf(Buy, shapeUpArrow,0) , colorLime,0,HaLow,-20);
+PlotShapes( IIf(Sell, shapeDownArrow,0) , colorOrange,0,HaHigh,-20);
+GraphZOrder = 1;
+_SECTION_END();

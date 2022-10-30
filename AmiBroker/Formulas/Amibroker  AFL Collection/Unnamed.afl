@@ -1,0 +1,4 @@
+/* Create date: 27 Sep 2008
+The RSI of the current bar is less than 15 */
+
+Buy = RSIa( Close, 14 ) < 15;

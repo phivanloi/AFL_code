@@ -1,0 +1,8 @@
+ weeklyopen = TimeFrameGetPrice("O",inWeekly); 
+weeklyhigh = TimeFrameGetPrice("H",inWeekly); 
+weeklylow = TimeFrameGetPrice("L",inWeekly); 
+weeklyclose = TimeFrameGetPrice("C",inWeekly); 
+
+weeklyOpen = TimeFrameCompress( weeklyOpen, inWeekly );weeklyHigh = TimeFrameCompress( weeklyHigh, inWeekly );weeklyLow = TimeFrameCompress( weeklyLow, inWeekly );weeklyClose = TimeFrameCompress( weeklyClose, inWeekly ); 
+
+PlotOHLC(weeklyopen,weeklyhigh,weeklylow,weeklyclose,"WEEK",colorBlack,styleCandle);

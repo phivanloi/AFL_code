@@ -1,0 +1,115 @@
+_SECTION_BEGIN("Zeff Kennedy IB and chart Patterns");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+M21=EMA(C,21);
+M8=EMA(C,8);
+CCOLOR=IIf(M8>M21,colorBrightGreen,colorRed);
+
+
+
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", CCOLOR, styleNoTitle | styleBar|styleThick ); 
+_SECTION_END();
+
+
+
+
+
+
+/////////////////////////////////////EMA 8 /////////////////////////////////////////////////////////////////
+
+M8=EMA(C,8);
+
+MULT=0.0001;
+TM8 = M8+MULT*M8;
+BM8 = M8-MULT*M8;
+//PlotOHLC( 0, TM8 , BM8 , BM8 , "", colorCustom13, styleCloud | styleNoLabel);
+
+/////////////////////////////////////EMA 21 /////////////////////////////////////////////////////////////////
+M21=EMA(C,21);
+
+TM21 = M21+MULT*M21;
+BM21 = M21-MULT*M21;
+//PlotOHLC( 0, TM21 , BM21 , BM21 , "", colorDarkYellow, styleCloud | styleNoLabel);
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+B34=EMA(C,34);
+
+TB34 = B34+MULT*B34;
+BB34 = B34-MULT*B34;
+PlotOHLC( 0, TB34 , BB34 , BB34 , "EMA34", colorDarkRed, styleCloud | styleNoLabel);
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+E1=EMA(C,144);
+E11=EMA(C,150);
+
+TE1 = E1+MULT*E1;
+BE1 = E1-MULT*E1;
+
+
+ColorE1=IIf(E1>E11,ColorRGB(0,500,10),ColorRGB(100,50,10));
+PlotOHLC( 0, TE1 , BE1, BE1, "", ColorE1, styleCloud | styleNoLabel);
+
+E2=EMA(C,200);
+E22=EMA(C,205);
+
+TE2 = E2+MULT*E2;
+BE2 = E2-MULT*E2;
+
+ColorE2=IIf(E2>E22,colorLightBlue,colorBlue);
+PlotOHLC( 0, TE2 , BE2 , BE2 , "", ColorE2, styleCloud | styleNoLabel);
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////// HANGING MAN CANDLE ////////////////////////////////////////////////////////////////////////////////////
+BT = BBandTop( C, 20, 2 ); 
+BB = BBandBot( C, 20, 2 );
+X=(BT-BB);
+
+dojiBuy=EMA(C,3)<EMA(C,10) AND C<EMA(C,3) AND ((O+C)/2)>L+0.7*(H-L) AND abs(O-C)<0.4*(H-L) AND V>MA(V,10) AND (H-L)>=0.8*MA((H-L),10) AND X>1.2*MA(X,10);
+dojisell=EMA(C,3)>EMA(C,10) AND C>EMA(C,3) AND ((O+C)/2)<H-0.7*(H-L)  AND abs(O-C)<0.4*(H-L) AND V>MA(V,10) AND (H-L)>=0.8*MA((H-L),10) AND X>1.2*MA(X,10);
+
+
+PlotShapes(dojiBuy*shapeDigit5,colorYellow, 0, High, Offset =-55);
+PlotShapes(dojiBuy*shapeHollowUpTriangle,colorYellow, 0, Low, Offset =-15);
+
+PlotShapes(dojisell*shapeDigit5,colorCustom12, 0, High, Offset =55);
+PlotShapes(dojisell*shapeHollowDownTriangle,colorCustom12, 0, High, Offset =-40);
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+//////////////////////////////// JEFF KENNEDY BAR PATTERNS //////////////////////////////////////////////////////
+/////////////////////////////////////////////// /////////////////////////////////////////////////////////////////
+
+
+
+
+CondDIB=(H<Ref(H,-1) AND Ref(H,-1)<Ref(H,-2)) AND (L>Ref(L,-1) AND Ref(L,-1)>Ref(L,-2));
+
+
+CondTRI=(H<Ref(H,-1) AND L>Ref(L,-1)) AND ((Ref(H,-1)<Ref(H,-2) OR Ref(H,-1)<Ref(H,-3)) AND (Ref(L,-1)>Ref(L,-2) OR Ref(L,-1)>Ref(L,-3))); 
+
+
+PlotShapes(CondDIB*shapeCircle,colorYellow, 0, Low, Offset =-15);
+PlotShapes(CondTRI*shapeSquare,colorCustom12, 0, Low, Offset =-30);
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Filter=CondDIB OR CondTRI OR dojiBuy OR dojisell;
+
+
+AddColumn(IIf(dojiBuy,1,IIf(dojisell,-1,Null)),"15MT",1.1,colorDefault,IIf(dojiBuy,colorBrightGreen,IIf(dojisell,colorRed,Null)));
+AddColumn(IIf(CondDIB,1,Null),"IB",1.1,colorDefault,IIf(CondDIB,colorRed,Null));
+AddColumn(IIf(CondTRI,2,Null),"TRIANGLE",1.1,colorDefault,IIf(CondTRI,colorDarkYellow,Null));
+_SECTION_END();
+
+
+
+
+

@@ -1,0 +1,35 @@
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, 
+Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", colorBlack, styleNoTitle | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Envelope");
+BandWt = Param("Env %",6, 2, 15,0.5) /100;
+ema17 = EMA(C, 17);
+ema17HB = ema17 * (1 + BandWt);
+ema17LB = ema17 * (1 - BandWt);
+
+Plot(ema17HB, "UB", colorRed, styleDashed | styleThick); 
+Plot(ema17LB, "LB", colorBlue, styleDashed | styleThick); 
+_SECTION_END();
+_SECTION_BEGIN("not touching 3 ema");
+
+Len01 = Optimize("Len01", Param("Len01", 3, 2, 15, 1), 2, 15, 1);
+Len02 = Optimize("Len02", Param("Len02", 15, 10, 100, 1), 10, 100, 1);
+
+ema03 = EMA(C, Len01);
+ema15 = EMA(C, Len02);
+
+color03 = IIf(ema03 > Ref(ema03, -1), colorGreen, colorRed);
+color15 = IIf(ema15 > Ref(ema15,-1), colorBlue, colorPink);
+
+FlagUP02 = ema03 > ema15 AND ema03 < L AND Ref(ema03,-1) < Ref(L,-1);
+FlagDN02 = ema03 < ema15 AND ema03 > H AND Ref(ema03,-1) > Ref(H,-1); 
+
+PlotShapes(FlagUP02 * shapeHollowDownArrow, colorGold, 0, H,-20);
+PlotShapes(FlagDN02 * shapeHollowUpArrow, colorGold, 0, L,-20);
+
+_SECTION_END(); 

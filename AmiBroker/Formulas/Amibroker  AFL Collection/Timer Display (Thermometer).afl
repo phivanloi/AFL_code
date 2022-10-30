@@ -1,0 +1,47 @@
+////////////////////////////////////////////////////
+
+IsLastBar = BarIndex() == LastValue( BarIndex() );
+
+PrecentBarLeft = TimeRem[BarCount-1] / Interval() ;
+
+ 
+
+PlotTimerBars = ParamToggle("plot remaining Time thermometer?","No|Yes",1);
+
+ 
+
+if (PlotTimerBars >0) 
+
+{
+
+TimerColor = IIf ((PrecentBarLeft > 0.1), colorBlue,colorLime);
+
+TimeBkgrColor= IIf ((PrecentBarLeft > 0.2), colorYellow, colorBlue);
+
+ 
+
+FS = IIf(PrecentBarLeft>0.2, 1.0, (IIf(PrecentBarLeft>0.1, 0.2, 0.1)));
+
+ 
+
+Plot(IIf(IsLastBar AND TimeBkgrColor == colorYellow,0.6,Null),"!", colorRed,
+
+       styleArea+styleOwnScale+styleNoLabel+styleNoTitle,0,2.00,1) ;
+
+Plot(IIf(IsLastBar AND TimeBkgrColor == colorYellow,0.54,Null),"!", colorWhite,
+
+       styleArea+styleOwnScale+styleNoLabel+styleNoTitle,0,2.00,1) ;
+
+Plot(IIf(IsLastBar,0.5,Null),"TimerBkgrnd", TimeBkgrColor,
+
+       styleArea+styleOwnScale+styleNoLabel+styleNoTitle,0,2.00,1) ;
+
+Plot(IIf(IsLastBar,0.5*(1-PrecentBarLeft/FS),Null),"TimerBar", TimerColor,
+
+       styleArea+styleOwnScale+styleNoTitle+styleNoLabel,0,2.00,1) ; // +styleNoLabel
+
+}
+
+ 
+
+////////////////////////////////////////////////////

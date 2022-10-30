@@ -1,0 +1,116 @@
+// PIBD DMI Histogram
+// Developed by James Pujals 2004-2005
+// Scaling > Custom > Min: -60   Max: 60
+// Grid Lines > +/-100
+
+//_SECTION_BEGIN("DI-Diff");
+// In Paramater dialog, why does DI-Diff Parameter and PIBD DMI Histogram (1023) Parameter show
+// Only DI-Diff Parameter affects indicator when value is changed
+Periods = Param("DMI/ADX Periods",10,5,40,1,1);
+_N( strPeriods = "("+WriteVal( Periods, 1.0 )+")" );
+DiDiff = PDI(Periods) - MDI(Periods);
+Plot( DiDiff, "DI_Diff "+strPeriods, colorYellow, styleHistogram );
+
+//========================================
+// INITIALIZATION
+FirstBar = -1;
+for(i=0;i < BarCount;++i)
+{
+	DiffBuySell[i] = 0; // 0=closed,1=position opened
+	ShapeArray[i] = 0;
+	if (DiDiff[i] != 0 AND FirstBar == -1)
+	{
+		FirstBar = i;
+	}
+}
+
+DiffTriggerBuy = 10;
+DiffTriggerSell = 10;
+PositionType = 0;
+SignalBar = 0;
+SignalDiff = 0;
+
+//========================================
+ 
+for (BIndex=FirstBar; BIndex < BarCount;++BIndex)
+{
+	if (BIndex == FirstBar)
+	{
+		SignalBar = BIndex;
+		SignalDiff = DiDiff[BIndex];
+		if (DiDiff[BIndex] > 0)
+		{
+			PositionType = 1; // BUY
+			DiffBuySell[BIndex] = 20;
+			ShapeArray[BIndex] = shapeUpArrow; // Plot below
+		}
+		else
+		{
+			PositionType = -1; // SELL
+			DiffBuySell[BIndex] = -20;
+			ShapeArray[BIndex] = shapeDownArrow; // Plot above
+		}
+	}
+	else
+	{
+		if (PositionType == 1)
+		{
+			if (SignalDiff < DiDiff[BIndex]) 
+			{
+				SignalBar = BIndex;
+				SignalDiff = DiDiff[BIndex];
+			}
+
+			if ((DiDiff[SignalBar] - DiDiff[BIndex]) > DiffTriggerSell)
+			{
+				PositionType = -1; // SELL
+				SignalBar = BIndex;
+				SignalDiff = DiDiff[BIndex];
+				DiffBuySell[BIndex] = -20;
+				ShapeArray[BIndex] = shapeDownArrow; // Plot above
+			}
+			else
+			{
+				DiffBuySell[BIndex] = DiffBuySell[BIndex-1];
+				ShapeArray[BIndex] = shapeNone; // Plot nothing
+			}
+		}
+		else
+		{
+			//PositionType = -1
+			if (SignalDiff > DiDiff[BIndex])
+			{
+				SignalBar = BIndex;
+				SignalDiff = DiDiff[BIndex];
+			}
+
+			if ((DiDiff[Bindex] - DiDiff[SignalBar]) > DiffTriggerBuy)
+			{
+				PositionType = 1; // BUY
+				SignalBar = BIndex;
+				SignalDiff = DiDiff[BIndex];
+				DiffBuySell[BIndex] = 20;
+				ShapeArray[BIndex] = shapeUpArrow; // Plot below
+			}
+			else
+			{
+				DiffBuySell[BIndex] = DiffBuySell[BIndex-1];
+				ShapeArray[BIndex] = shapeNone; // Plot nothing
+			}
+		}
+	}		
+
+ 	//_TRACE("BIndex="+NumToStr(BIndex)+" SignalBar="+NumToStr(SignalBar)+" SignalDiff="+NumToStr(SignalDiff)+" PositionType="+NumToStr(PositionType) + " DiDiff[BIndex]="+NumToStr(DiDiff[BIndex]) );
+}
+
+//========================================
+//Plot( DiffBuySell, "DiffBuySell", colorRed, styleDots | styleNoLine | styleThick );
+
+PlotShapes( ShapeArray, IIf(ShapeArray == shapeUpArrow, colorGreen, colorRed ), 0, DiDiff);
+
+//========================================
+PlotGrid( 10, colorWhite); // PDI Positive Strength Line
+PlotGrid( 0, colorWhite); // Neutral Zone
+PlotGrid( -10, colorWhite); // MDI Negative Strength Line
+//_SECTION_END();
+

@@ -1,0 +1,1186 @@
+/*
+	P_RSI_06a.afl
+
+	Progster's AFL skeleton for RSI-based trading strategy.
+
+	This strategy models 4 relevant indicator levels:
+
+	Low level on the indicator (i.e weakness, oversold)
+	High level on the indicator (i.e strength, overbought)
+
+	Long Exit (LX) level on the indicator (for optional indicator-based long trade profit-taking)	
+	Short Exit (SX) level on the indicator (for optional indicator-based short trade profit-taking)	
+
+	For optimization, there are 9 major numeric dimensions:
+
+		RSI_Base_Period
+		RSI_Smooth_Period
+		RSI_LowLvl
+		RSI_HighLvl
+		LX_Above_Lvl
+		SX_Below_Lvl
+		StopLossPct
+		PftTgtPct
+		TrailStopPct
+
+	along with various switches and choices:
+	
+		TradingMode
+		SignalType
+		FilterType
+		LongShortBoth
+		InvertSignals
+		SingleContract
+		
+		DayTrade Settings
+	
+	This strategy is designed to allow wide-scope or narrow-scope optimization to be configured from
+	the AB Parameters Dialog.  This means optimization across any combination of the major numeric dimensions
+	based strictly on Dialog settings, without requiring code edits.  
+
+	SO, IN GENERAL, YOU WILL NOT NEED TO EDIT THE CODE TO SCOPE YOUR OPTIMIZATION.
+
+	However, not every single parameter is so configured.  Any desired changes can be made once the code
+	has been studied and understood.
+
+	This code implements single contract/share next-bar-on-open testing and visualization (when TradingMode = 1).
+	This is only one of many ways AmiBroker can trade, but it is the most important and 
+	natural way to model (IMO), and is also consistent with many other platforms.  
+
+	Note:  Certain abbreviations have been carefully chosen to support textual substitution 
+	and avoid various incompatibilities (with keywords, with IO, and others).  Best all-around
+	results will be obtained by understanding and respecting these conventions in any further edits.
+
+	"Vary" is used to indicate where opt-im-iz-ation may be taking place.  Likewise for"OType". 
+	"Parm" is used instead of par-am-eter.
+
+	To generate a feature list from the Windows command line (if grep is installed):
+
+		grep "\*\*\*\*\*"  P_RSI_06a.afl	
+
+	Code for setup of cooperating indicator
+	Code for adding custom metric(s)
+	Code for AA window display of non-optimized parameters
+	Code for optimizer choice and setup
+	Code for single contract testing
+	Code for choosing a Trading Mode ( entries/exits, on-Open/on-Close )
+	Code for technical analysis calculation(s).
+	Code for trading long-only, short-only, or in both directions
+	Code for trading signals in the opposite direction
+	Code for a choice of trade signal filters
+	Code for limiting trading to an intraday time window
+	Code for optimizable indicator-based exits
+	Code for optimizable StopLoss and PftTgt
+	Code for determining and displaying exit reason
+	Code for histogram visualization of buy/sell/short/cover arrays.
+	Code for passing NetPft to cooperating display indicator in another chart pane.
+	Code for Displaying signals as an Exploration
+	Code for on-chart plotting of price, signal arrows, and trade duration/direction bar coloring
+	Code for creating and displaying informative title text
+	Code for display of filters
+
+	In the parameters dialog, leading "+++++++" indicates a "Use" switch, which turns a block of functionality On/Off.
+	In the parameters dialog, trailing "----------" indicates a "Vary" switch, which turns just opt-im-iz-ation On/Off.
+	
+	When altering or extending this strategy, to keep all intended functionality, visit every line containing "###" 
+	and make edits as/if necessary in accord with the instructions.
+
+	Regarding use with IO:  As of this writing, it is not possible to have built-in AB optimizer choice features and
+	use of IO from the same file.  However, every effort has been made to minimize the required differences.
+	Search on "non-IO" to find the 3 instructions (###) regarding changes for use with/without IO.
+
+	Author's note:
+
+	This code is the result of years of background experience, months of general investigation, and weeks of 
+	specific research, design, coding, and testing.
+
+	By beginning with this code, you get to avoid _alot_ of trial and error.
+	If what you see here seems clear and obvious upon reading, that is the hoped-for intent <g>.
+	However, getting to this point has been a both a journey and a labor.
+	This code is provided in return for a fee, which is relied upon for part of my livelihood.
+	Knowing the time/effort spent to produce it, I can assure you that this code is a deep-bargain-at-the-price
+	(that's my business model).  However, YMMV.
+
+	This code is not freeware, or trialware.
+	This code is a professionally produced commercial product, and you must purchase a license in order to use 
+	it or possess it.  If you are in posession of this code without having paid, you must either go to
+	CodeForTraders.com and pay the asking price, or else delete it immediately.
+
+	Caveats and Support Policy:  
+		http://www.codefortraders.com/Caveats.htm
+		http://www.codefortraders.com/Customer_Support.htm
+
+	Further extension/alteration/customization of this code is available on a for-hire, time-available basis to licensed users.
+	CodeForTraders.com also offers ecommerce services to AmiBroker developers (i.e. earn by selling your high-quality AB code).
+	Inquiries:  progster@CodeForTraders.com
+
+	Thanks to Tomasz Janeczko for AmiBroker, and to the many in the AB community who have documented and coded 
+	for AB before me.  This code builds on everything I could find and absorb so far.
+	
+	Hopefully, this code will help you to shorten your journey, and lighten your labor ...
+	Enjoy!
+
+	- Progster
+
+*/
+//	Copyright 2009 by Steve Johns, aka Progster, all rights reserved, worldwide.
+//	Exclusive distribution by CodeForTraders.com.  Other distribution prohibited.
+
+_SECTION_BEGIN("P_RSI_06a.afl");
+
+/*
+function ParmVary( ParamTitle, defaultVal, minv, maxv, step )
+{
+ return Optimize( ParamTitle,  Param( ParamTitle, defaultVal, minv, maxv, step ), minv, maxv, step );
+}
+
+//	New function by Progster, 4/20/2009
+//	ParmChoiceVary() allows you a choice to "lock down" or "vary" a parameter at optimization runtime.
+//	To get the desired effect, this function must be called unconiditonally from the top level.
+//	i.e. do not call from inside an  if(){} block.
+// --- Unacceptable to IO:  "Non-numeric <> value in Optimize Statement" ---
+function ParmChoiceVary( Mode, ParmTitle, defaultVal, minv, maxv, step )
+{
+	retval = 0 ;
+
+	if (Mode) {
+		retval = Optimize( ParmTitle,  Param( ParmTitle, defaultVal, minv, maxv, step ), minv, maxv, step ) ;
+	}
+	else {
+		retval = Param( ParmTitle, defaultVal, minv, maxv, step ) ;
+	}
+
+	return retval ;
+}
+*/
+
+//	Transform DateNum (e.g., 1040928 or 921114) to String mmddyyyy (e.g., 09/28/2004 or 11/14/1992)
+//	From the AFL Library:	http://www.amibroker.com/library/detail.php?id=415
+// 
+function DateToStr(nDate) {
+	//if you want string without separators you have to specify this in your
+	//NumToStr call http://www.amibroker.com/f?numtostr
+	//string=NumToStr(SelectedValue(nDate),1,False);
+	
+	//You can use StrFormat for more control http://www.amibroker.com/f?strformat
+	string = StrFormat("%7.07g", nDate);
+	
+	//extract string part
+	yy = StrLeft(string, 3);
+	mm = StrMid(string, 3, 2);
+	dd = StrRight(string, 2);
+	
+	//transform year
+	yy = StrToNum(yy) + 1900; //CORRECT BEFORE AND AFTER 2000
+	
+	//return string
+	return mm + "/" + dd + "/" + NumToStr(yy, 1, False);
+}
+
+//	********************		Start of:		parameters.afl		********************
+// ----- Strategy-specific Default parameter values
+
+//	All default values for parameters are assigned to variables here.
+//	The variables will be used as defaultVal arguments elsewhere so as not to be hard-coded .
+//	This entire block may be separated into an include file if desired,
+//	which will likely be the case when implementing advanced external control of AB
+//	for large scale test definition and replication.
+//	Suffixes:  _0 numeric setting, _I0 toggle or list setting
+
+Vary_SignalType_0 = 0 ;
+Vary_FilterType_0 = 0 ;
+Vary_TradingMode_0 = 0 ;
+SignalType_0 = 1 ;
+FilterType_0 = 0 ;
+TradingMode_0 = 1 ;
+
+Vary_RSI_Base_Period_0 = 1 ;
+Vary_RSI_Smooth_Period_0 = 1 ;
+RSI_Base_Period_0 = 2 ;
+RSI_Smooth_Period_0 = 3 ;
+
+Vary_RSI_LowLvl_0 = 1 ;
+Vary_RSI_HighLvl_0 = 1 ;
+RSI_LowLvl_0 = 5 ;
+RSI_HighLvl_0 = 95 ;
+
+LongShortBoth_0 = 3 ;
+InvertSignals_I0 = 0 ;
+SingleContract_I0 = 1 ;
+ExploreType_I0 = 1 ;
+ExtraDecimals_I0 = 0 ;
+EquitySend_0 = 1 ;
+
+UseIndLvlExits_I0 = 1;
+Vary_LX_Above_Lvl_I0 = 1 ;
+Vary_SX_Below_Lvl_I0 = 1 ;
+LX_Above_Lvl_0 = 60 ;
+SX_Below_Lvl_0 = 40 ;
+
+UseStopsAndTgts_I0 = 1 ;
+VaryStops_I0 = 0;					//	hold constant
+VaryTgts_I0 = 0;					//	hold constant
+VaryTrailStop_I0 = 0;				//	hold constant
+
+StopLossPct_0 = 1 ;
+PftTgtPct_0   = 5 ;
+TrailStopPct_0 = 20;
+
+DaytradeOnly_I0 = 0 ;		//	No, allow overnight trades
+NoEntriesBefore_0 = 930 ;
+ExitAllTime_0 = 1550 ;
+NoEntriesAfter_0 = 1530 ;
+
+OType_I0 = 1 ;						//	1-3:  "CMAE|Tribes|SPSO"
+VaryRuns_0 = 2 ;
+VaryMaxEval_0 = 200 ;
+
+CustomMetrics_I0 = 1 ;
+ShowSignalsHistogram_I0 = 1 ;
+
+// ----- end of:	Default parameter values
+//	********************		  End of:		parameters.afl		********************
+
+//	### Comment out this block when not doing parameter substitution via batch automation
+//	### Note: This inclusion is only appropriate for non-IO use.
+//	printf( "Included:  <Module_Data\\P_RSI_06a\\parameters.afl>\n" ) ;
+//	#include <Module_Data\P_RSI_06a\parameters.afl>		//	override the settings above (e.g. for batch automation)
+
+/*
+	The OptIterReload file is used to overwrite the formula parameter defaults with a different set
+	of initial values, generally a set that was written out by Progster's Excel VB macro 'AB_Opt_Params_Export()'.
+
+	IOW, the parameters used for a specific optimizer iteration may now be reloaded without manual typing!
+
+	Here is the process (in short):
+
+	1.	Perform an optimization and save the optimization results spreadsheet (automatically or manually).
+	2.	Open the spreadsheet in Excel, select a one-row region of parameters (for the iteration of interest).
+	3.	Use Alt-F8, and run Progster's VBA macro 'AB_Opt_Params_Export()'.  
+	4.	Verify the path to which you wish the output file (OptIterReload_0.afl) to be written, then press OK.
+
+	The file 'OptIterReload_0.afl' will be written to your chosen location.  It will contain AFL to (re)define
+	each of your selected parameter values as per the spreadsheet.  IOW, as per that particular optimization
+	iteration.
+
+	By including this file here, we set the parameter defaults values to same.
+
+	5.  Open the AB parameters dialog and press the 'Reset' button.  Your parameters are now set as desired.
+
+	The above works for both chart loading and backtest loading.  Therefore, it is now possible to quickly and
+	easily view/evaluate _all_ the pertinent info for _any_ iteration of any optimization.
+
+	Note:  It is possible that the spreadsheet will not contain a column for every operative parameter.
+	When comparing "reload" results to an optimization interation line, beware the effects of unrepresented 
+	parameters.
+
+	Note: because we are including this file, it must be present for this AFL to run.  However, it is OK 
+	for the file to be empty.  So, until you've generated a "real" OptIterReload_0.afl, just make sure there 
+	is an empty one at the include location.
+
+	Alternatively, just comment out the include line (which disables this functionality).
+
+*/
+
+//	### Note: This inclusion is only appropriate for non-IO use.
+//	printf( "Included:  <Module_Data\\OptIterReload_0.afl>" ) ;
+//	#include_once <Module_Data\OptIterReload_0.afl>		//	overrides defaults set in parameters.afl
+
+// ----- Code for Setup/Configuration
+
+// Intialize any variables/arrays which should never be undefined
+NetPft = 0 ;
+UsingIO = 0 ;
+
+// These seem to be necessary for IO (?)
+TradingMode = 1 ;  
+BuyDelay = SellDelay = ShortDelay = CoverDelay = 1 ;
+
+//	###		Name the indicator(s) in use.  This name will be used in many places.
+EnableTextOutput(False);
+Formula_Name = "P_RSI_06a" ;
+RSI_Name = "RSI" ;
+EnableTextOutput(True);
+
+sp2 = "  ";	//	two spaces, used for indenting grouped parameters
+
+//	Label the list parameters shown in the Interpretation window.
+//	Comment this out if ParamList() is NOT present anywhere below,
+//	or if every instance of it has been suppressed by wrapping with
+//	EnableTextOutput(False);	EnableTextOutput(True);
+//	printf( "List Parameter Choices: \n") ;  
+
+// This works if you want to use a different price than Close (but no optimization provided)
+//BasePrice = ParamField("BasePrice", 3) ;     
+//BasePricePlotStyle = ParamList("BasePricePlotStyle", "Line|NoPlot", 1);
+
+//	Parameter definitions.
+//	In this formula, parameters are grouped at the top and ordered for sensible display in the Parameter dialog.
+//	An alternative (not done here), is to place parameter definitions throughout the file near the code that uses them.
+
+// Note:  This construction fails in IO.  The brackets _must not_ be on the same line .
+/*
+	if (Vary_RSI_Smooth_Period) { RSI_Smooth_Period = Optimize( RSI_Name + "_Smooth_Period",  RSI_Smooth_Period_Param, 1,   20,     1) ; }
+	else { RSI_Smooth_Period  =  RSI_Smooth_Period_Param ; }
+*/
+
+// Master switch for using or not using IO - intended to control subsequent includes.  Not currently operational.
+// UsingIO = ParamToggle( "UsingIO", "No|Yes", 1);	
+
+//	Show the user that he is using IO, but offer no choice.
+//	### Comment these out for non-IO use.  For use with IO, uncomment these lines.
+//	UsingIO = ParamToggle( "UsingIO (No Opt Engine Choice)", "Yes|Yes", 0);		
+//	UsingIO = 1 ;
+
+//	IO needs to know about your #include directory, if you are including files
+//	You should be able to tell it in 'AmiBroker\IO\IO Defaults.txt'.   But if not, tell it here.
+////IO: IncludeDir: c:\AmiBroker_Formula_Root\Include
+
+//	Conceptually, this is what we want, but AB does not allow for conditional #include
+//		if (! UsingIO) {	#include <OptOptionChoices.afl>	}
+
+//	### Uncomment this for non-IO use.	For use with IO, comment this out.
+//	#include <OptOptionChoices.afl>			//	contents reproduced below
+
+//	********************		 Start of:		OptOptionChoices.afl		********************
+/*
+	When _NOT_ using IO, offer a choice of the AmiBroker built-in optimizers, and their settings.
+	If using IO, this choice should not be, and is not, offered.
+	UsingIO should be set in the file which is including this one.
+*/
+
+printf( "Included:  OptOptionChoices.afl" ) ;
+printf( "\n" ) ;		//	print blank line to Interpretation window for visual spacing
+
+if (UsingIO){
+}
+else{
+	// Pointless and dangerous when using IO
+	OType = ParamList("---- OType", "Exhaustive|CMAE|Tribes|SPSO", OType_I0);  // default:  CMAE, (Note:  "OType" instead of "Opti-mizerType" for IO compatibility)
+	VaryRuns = Param( "---- VaryRuns", VaryRuns_0, 0, 10, 1); 
+	VaryMaxEval = Param( "---- VaryMaxEval", VaryMaxEval_0, 0, 10000, 1); 
+
+	if (OType == "Exhaustive"){
+		VaryRuns = 0;
+		VaryMaxEval = 0;
+	}
+}
+//	********************		  End of:		OptOptionChoices.afl		********************
+
+
+PlotRawPrice = ParamToggle( "Plot Raw Price", "No|Yes", 1 );
+// RawPricePlotStyle = ParamList("RawPricePlotStyle", "Line|NoPlot", 1);
+
+PricePlotStyle = ParamStyle("PricePlotStyle", styleBar, maskPrice);
+PlotEntryArrows = ParamToggle( "PlotEntryArrows", "No|Yes", 1 );
+PlotExitArrows = ParamToggle( "PlotExitArrows", "No|Yes", 1 );
+
+Vary_TradingMode = ParamToggle( "Vary Trading Mode ---------- ", "No|Yes", Vary_TradingMode_0 );    // default No
+TradingMode_Param = Param( "TradingMode", TradingMode_0,     1,   4,     1) ; 
+
+if (Vary_TradingMode){ 
+ TradingMode = Optimize( "TradingMode", TradingMode_Param,  1,   4,     1) ; 
+}
+else{
+ TradingMode  =  TradingMode_Param ;
+}
+
+Vary_SignalType = ParamToggle( "Vary Signal Type ---------- ", "No|Yes", Vary_SignalType_0 );    // default No
+SignalType_Param = Param( "SignalType", SignalType_0,     1,   2,     1) ; 
+
+if (Vary_SignalType){ 
+ SignalType = Optimize( "SignalType", SignalType_Param,  1,   2,     1) ; 
+}
+else{
+ SignalType  =  SignalType_Param ;
+}
+
+Vary_FilterType = ParamToggle( "Vary Filter Type ---------- ", "No|Yes", Vary_FilterType_0 );    // default No
+FilterType_Param = Param( "FilterType", FilterType_0,     0,   3,     1) ; 
+
+if (Vary_FilterType){ 
+ FilterType = Optimize( "FilterType", FilterType_Param,  0,   3,     1) ; 
+}
+else{
+ FilterType  =  FilterType_Param ;
+}
+
+Vary_RSI_Base_Period = ParamToggle( "Vary Base Period ---------- ", "No|Yes", Vary_RSI_Base_Period_0 );    // default Yes
+RSI_Base_Period_Param =  Param( RSI_Name + "_Base_Period",      RSI_Base_Period_0,  2,    50,     1) ;
+
+if (Vary_RSI_Base_Period){ 
+ RSI_Base_Period = Optimize( RSI_Name + "_Base_Period",  RSI_Base_Period_Param,  2,    50,     1) ;
+}
+else{
+ RSI_Base_Period  =  RSI_Base_Period_Param ;
+}
+
+Vary_RSI_Smooth_Period = ParamToggle( "Vary Smooth_Period ---------- ", "No|Yes", Vary_RSI_Smooth_Period_0 );	// default Yes
+RSI_Smooth_Period_Param =  Param( RSI_Name + "_Smooth_Period",      RSI_Smooth_Period_0,     1,   20,     1) ; 
+
+if (Vary_RSI_Smooth_Period) { 
+ RSI_Smooth_Period = Optimize( RSI_Name + "_Smooth_Period",  RSI_Smooth_Period_Param, 1,   20,     1) ;
+}
+else{ 
+ RSI_Smooth_Period  =  RSI_Smooth_Period_Param ;
+}
+
+Vary_RSI_LowLvl = ParamToggle( "Vary Low Level ---------- ", "No|Yes", Vary_RSI_LowLvl_0 );      // default Yes
+RSI_LowLvl_Param =  Param( RSI_Name + "_LowLvl",      RSI_LowLvl_0,  0,    50,     2) ;
+
+if (Vary_RSI_LowLvl){ 
+ RSI_LowLvl = Optimize( RSI_Name + "_LowLvl",  RSI_LowLvl_Param,  0,    50,     2) ;
+}
+else{
+ RSI_LowLvl  =  RSI_LowLvl_Param ;
+}
+
+Vary_RSI_HighLvl = ParamToggle( "Vary High Level ---------- ", "No|Yes", Vary_RSI_HighLvl_0 );     // default Yes
+RSI_HighLvl_Param =  Param( RSI_Name + "_HighLvl",      RSI_HighLvl_0,  52,   100,    2) ;
+
+if (Vary_RSI_HighLvl){ 
+ RSI_HighLvl = Optimize( RSI_Name + "_HighLvl",  RSI_HighLvl_Param,  52,   100,    2) ;
+}
+else{
+ RSI_HighLvl  =  RSI_HighLvl_Param ;
+}
+
+LongShortBoth = Param( "LongShortBoth", LongShortBoth_0, 1, 3, 1 );    				// 3 iterations
+InvertSignals = ParamToggle( "InvertSignals", "No|Yes", InvertSignals_I0 );
+SingleContract = ParamToggle( "SingleContract", "No|Yes", SingleContract_I0 );
+EnableTextOutput(False);
+ExploreType = ParamList("ExploreType", "Current|Today|Historical", ExploreType_I0);
+EnableTextOutput(True);
+ExtraDecimals = ParamToggle( "ExtraDecimals", "No|Yes", ExtraDecimals_I0 );
+EquitySend = Param("EquitySend", EquitySend_0, 0, 10, 1);    // coordinate with NetPft receiver pane, 0 means no send
+
+// Optional Indicator-level exits
+// Note that both Use AND Vary settings are passed to ParmChoiceVary() for the desired effect.
+UseIndLvlExits = ParamToggle( "+++++++ UseIndLvlExits", "No|Yes", UseIndLvlExits_I0 );      // default Yes
+
+Vary_LX_Above_Lvl = ParamToggle( sp2 + "Vary LX Above Level ---------- ", "No|Yes", Vary_LX_Above_Lvl_I0 );    // default Yes
+LX_Above_Lvl_Param =  Param( sp2 + "LX_Above_Lvl", LX_Above_Lvl_0,     60,    100,     1) ; // Long Exit indicator level
+
+if ((UseIndLvlExits != 0) AND (Vary_LX_Above_Lvl != 0)){ 
+ LX_Above_Lvl = Optimize( sp2 + "LX_Above_Lvl", LX_Above_Lvl_Param,     60,    100,     1) ; // Long Exit indicator level
+}
+else{
+ LX_Above_Lvl  =  LX_Above_Lvl_Param ;
+}
+
+Vary_SX_Below_Lvl = ParamToggle( sp2 + "Vary SX Below Level ---------- ", "No|Yes", Vary_SX_Below_Lvl_I0 );    // default Yes
+SX_Below_Lvl_Param =  Param( sp2 + "SX_Below_Lvl", SX_Below_Lvl_0,     40,     60,     1) ; // Short Exit indicator level
+
+if ((UseIndLvlExits != 0) AND (Vary_SX_Below_Lvl != 0)){ 
+ SX_Below_Lvl = Optimize( sp2 + "SX_Below_Lvl", SX_Below_Lvl_Param,     40,     60,     1) ; // Short Exit indicator level
+}
+else{
+ SX_Below_Lvl  =  SX_Below_Lvl_Param ;
+}
+
+// Optional stop-loss and profit target exits.  
+
+UseStopsAndTgts = ParamToggle( "+++++++ UseStopsAndTgts", "No|Yes", UseStopsAndTgts_I0 ); //	default Yes, which displays/uses Stops.  If No, all stops disabled
+
+VaryStops = ParamToggle( sp2 + "Vary Stops ---------- ", "No|Yes", VaryStops_I0 ); // default Yes
+StopLossPct_Param =  Param( sp2 + "StopLossPct", StopLossPct_0, 0, 20, .1 );      // optimize or set stop loss
+
+if ((UseStopsAndTgts != 0) AND (VaryStops != 0)){ 
+ StopLossPct = Optimize( sp2 + "StopLossPct", StopLossPct_Param, 0, 20, .1 );            // optimized stop loss
+}
+else{
+ StopLossPct  =  StopLossPct_Param ;
+}
+
+VaryTgts = ParamToggle( sp2 + "Vary Targets ---------- ", "No|Yes", VaryTgts_I0 ); // default Yes
+PftTgtPct_Param =  Param( sp2 + "PftTgtPct", PftTgtPct_0, 0, 50, .1 );           // optimized profit target
+
+if ((UseStopsAndTgts != 0) AND (VaryTgts != 0)){ 
+ PftTgtPct = Optimize( sp2 + "PftTgtPct", PftTgtPct_Param, 0, 50, .1 );            // optimized profit target
+}
+else{
+ PftTgtPct  =  PftTgtPct_Param ;
+}
+
+VaryTrailStop = ParamToggle( sp2 + "Vary TrailStop ---------- ", "No|Yes", VaryTrailStop_I0 );   	// default Yes
+TrailStopPct_Param = Param( sp2 + "TrailStopPct", TrailStopPct_0, 0, 20, .1 );  	// optimize or set trail stop
+
+if ((UseStopsAndTgts != 0) AND (VaryTrailStop != 0)){ 
+ TrailStopPct = Optimize( sp2 + "TrailStopPct", TrailStopPct_Param, 0, 20, .1 );            // optimized trail stop
+}
+else{
+ TrailStopPct = TrailStopPct_Param ;
+}
+
+CustomMetrics = ParamToggle( "CustomMetrics", "No|Yes", CustomMetrics_I0 );
+ShowSignalsHistogram = ParamToggle( "ShowSignalsHistogram", "No|Yes", ShowSignalsHistogram_I0 );
+
+DaytradeOnly = ParamToggle("+++++++ DaytradeOnly", "No|Yes", DaytradeOnly_I0);
+NoEntriesBefore = Param(sp2 + "NoEntriesBefore", NoEntriesBefore_0, 930, 1559, 5); 
+ExitAllTime = Param(sp2 + "ExitAllTime", ExitAllTime_0, 930, 1559, 5); 
+NoEntriesAfter = Param(sp2 + "NoEntriesAfter", NoEntriesAfter_0, 930, 1559, 5); 
+
+printf( "\n") ;  	//	output blank line after list parameter choices
+
+
+//	*****	Code for setup of cooperating indicator
+
+//	Send parameter settings to the cooperating indicator	
+//	Example:  rRSI.p1.afl
+//	###		Create any new settings as necessary
+
+StaticVarSet(RSI_Name + "_Length", RSI_Base_Period);
+StaticVarSet(RSI_Name + "_Smooth", RSI_Smooth_Period);
+StaticVarSet(RSI_Name + "_LowLvl", RSI_LowLvl);
+StaticVarSet(RSI_Name + "_HighLvl", RSI_HighLvl);
+StaticVarSet(RSI_Name + "_LX_Above_Lvl", LX_Above_Lvl);
+StaticVarSet(RSI_Name + "_SX_Below_Lvl", SX_Below_Lvl);
+
+//	*****	Code for adding custom metric(s)
+//	This is a skeleton (with demos).
+//	Add your own desired custom metrics in this block.
+
+if(CustomMetrics){
+
+	SetOption("UseCustomBacktestProc", True );
+
+	// Enable custom backtest procedure
+	SetCustomBacktestProc("", 1);   	// "" means use current formula
+
+	if( Status("action") == actionPortfolio ){ 
+	
+		bo = GetBacktesterObject();    // retrieve the interface to portfolio backtester 
+		// bo.Backtest( False );     	// run default backtest procedure (generating a trade list)
+		bo.Backtest( True );      		// run default backtest procedure (don't generate a trade list)
+
+		// Custom trade metrics (on closed trade list)
+		for( trade = bo.GetFirstTrade(); trade; trade = bo.GetNextTrade() ) 						//	iterate over closed trade list
+		// for( openpos = bo.GetFirstOpenPos(); openpos; openpos = bo.GetNextOpenPos() ) 		//	iterate over open position list
+		{ 
+			// trade variable now holds Trade object
+	
+			// Calculate trade-level custom metric(s)
+			NetChg = trade.ExitPrice - trade.EntryPrice ;
+	
+			// Add trade-level custom metric(s) to the backtest report 
+			trade.AddCustomMetric( "NetChg", NetChg ); 
+
+		}
+
+		bo.ListTrades();  // NOW generate the trades list (after adding custom trade metric(s)
+	
+		stats = bo.GetPerformanceStats(0);  // get stats for all trades 
+	
+		// Expectancy calculations (two versions, same result).
+		// See:  Porfolio Backtester Interface Reference Guide
+	
+		//exp1 = stats.GetValue("WinnersAvgProfit")*stats.GetValue("WinnersPercent")/100 + stats.GetValue("LosersAvgLoss")*stats.GetValue("LosersPercent")/100; 
+		exp2 = stats.GetValue("NetProfit")/ (stats.GetValue("WinnersQty") + stats.GetValue("LosersQty")) ;
+	
+		// Add portfolio-level custom metric(s) to the optimization report 
+		// bo.AddCustomMetric( "Exp1 ($)", exp1 ); 
+		bo.AddCustomMetric( "Exp2 ($)", exp2 ); 
+
+		//	*****	Code for AA window display of non-varied parameters
+		//	Add non-varied parameters as custom metrics.
+		//	This let's you see in the output which fixed parm values were used.
+		//	The AA window automatically displays columns for parms being varied, so the intent here is to
+		//	only create custom metric columns for the parms which ARE NOT being varied.
+		//	###		In general, make sure all non-varied parms are present here.
+		//	###		Abbreviations are used in some places for column titles.  Change if desired.
+
+		//	_TRACE( "UseStopsAndTgts: " + NumToStr( UseStopsAndTgts ) ) ;
+
+		//	   Group Control                sub-item                  metric definition
+		//		   is ON                  not being varied  
+		if ((UseIndLvlExits != 0) AND (Vary_LX_Above_Lvl == 0)) {	bo.AddCustomMetric( "LX_Above_Lvl", LX_Above_Lvl ); 	}
+		if ((UseIndLvlExits != 0) AND (Vary_SX_Below_Lvl == 0)) {	bo.AddCustomMetric( "SX_Below_Lvl", SX_Below_Lvl ); 	}
+
+		if ((UseStopsAndTgts != 0) AND (VaryStops == 0)) {	bo.AddCustomMetric( "StopLossPct", StopLossPct ); 	}
+		if ((UseStopsAndTgts != 0) AND (VaryTgts == 0)) {	bo.AddCustomMetric( "PftTgtPct", PftTgtPct ); 	}
+		//	if (( != 0) AND ( != 0)) {	bo.AddCustomMetric( "",  ); 	}
+
+		//	   Single Control                                       metric definition
+		if (Vary_TradingMode == 0) { bo.AddCustomMetric( "Mode", TradingMode, TradingMode, TradingMode, 0); 	}
+		if (Vary_SignalType == 0) {	bo.AddCustomMetric( "Signal", SignalType, SignalType, SignalType, 0); 	}
+		if (Vary_FilterType == 0) {	bo.AddCustomMetric( "Filter", FilterType, FilterType, FilterType, 0); 	}
+		if (Vary_RSI_Base_Period == 0) {	bo.AddCustomMetric( RSI_Name + "_Base_Period", RSI_Base_Period ); 	}
+		if (Vary_RSI_Smooth_Period == 0) {	bo.AddCustomMetric( RSI_Name + "_Smooth_Period", RSI_Smooth_Period ); 	}
+		if (Vary_RSI_LowLvl == 0) { 	bo.AddCustomMetric( RSI_Name + "_LowLvl", RSI_LowLvl ); 	}
+		if (Vary_RSI_HighLvl == 0) { 	bo.AddCustomMetric( RSI_Name + "_HighLvl", RSI_HighLvl ); 	}
+		if ((UsingIO != 1) AND (VaryRuns != 0)) {	bo.AddCustomMetric( "VaryRuns", VaryRuns ); 	}
+		if ((UsingIO != 1) AND (VaryMaxEval != 0)) {	bo.AddCustomMetric( "VaryMaxEval", VaryMaxEval ); 	}
+
+		//	Non-optimized Toggles - always report
+		bo.AddCustomMetric( 	"LSB", LongShortBoth, LongShortBoth, LongShortBoth, DecPlaces = 0);
+		bo.AddCustomMetric( 	"Invert", InvertSignals, InvertSignals, InvertSignals, DecPlaces = 0);
+		bo.AddCustomMetric(  "UseIndLvlExits", UseIndLvlExits, UseIndLvlExits, UseIndLvlExits, DecPlaces = 0);
+		bo.AddCustomMetric(  "UseStopsAndTgts", UseStopsAndTgts, UseStopsAndTgts, UseStopsAndTgts, DecPlaces = 0);
+		
+		if (UsingIO != 1) { bo.AddCustomMetric( 	"OType", OType, OType, OType, DecPlaces = 0);	}
+
+		//	Daytrade Settings 
+		bo.AddCustomMetric(  "DaytradeOnly", DaytradeOnly, DaytradeOnly, DaytradeOnly, DecPlaces = 0);
+		bo.AddCustomMetric(  "NoEntriesBefore", NoEntriesBefore, NoEntriesBefore, NoEntriesBefore, DecPlaces = 0);
+		bo.AddCustomMetric(  "ExitAllTime", ExitAllTime, ExitAllTime, ExitAllTime, DecPlaces = 0);
+		bo.AddCustomMetric(  "NoEntriesAfter", NoEntriesAfter, NoEntriesAfter, NoEntriesAfter, DecPlaces = 0);
+
+		//	if ( == 0) {	bo.AddCustomMetric( "",  ); 	}
+
+	}	//	end of:		if( Status("action") == actionPortfolio ) 
+
+} // end of:  	if(CustomMetrics)
+
+//	Conceptually, this is what we want, but AB does not allow for conditional #include
+//		if (! UsingIO) {	#include <OptChoiceActions.afl>	}
+
+//	### Uncomment this for non-IO use.  For use with IO, comment out this line.
+#include <OptChoiceActions.afl>
+
+//	###		Comment this out if you prefer your extra columns (parms) at the end rather than in front
+//	###  Also, comment this out if not running in AB 5.23 or later !
+SetOption("ExtraColumnsLocation", 1 ); 	// put parameter columns up-front after optimization
+
+//	*****	Code for single contract testing
+
+if (SingleContract) PositionSize = MarginDeposit = 1;		//	Trade a single contract.
+
+//	*****	Code for choosing a Trading Mode ( entries/exits, on-Open/on-Close )
+/*	
+
+	TradingMode = 1 	(the default, as supplied)
+	Trade on the Open of the next bar after a Signal.
+	This requires setting the trade price arrays to Open, AND setting the trade delays to 1.
+	The backtester sets the entry array (Buy or Sell) at the signal bar, but for visual purposes,
+	we would consider the _next bar_ to be the bar of entry.
+
+	In this case, we cannot report the EntryPrice at the signal bar without looking into the future.
+	We can, however, report it 1 bar later (as done in the Title, below)
+
+*/
+
+//	Setting delays to 1 means trade "next bar at" <fill price>. 
+//	Setting delays to 0 means trade "this bar at" <fill price>
+//	###	Choose desired entry/exit style here.
+
+switch( TradingMode ){
+
+	case 1:
+		//	"Next bar at Open" trading
+		BuyDelay = 1;		BuyPrice = Open ;			//	LE at Open price of next bar
+		ShortDelay = 1;	ShortPrice = Open ;		//	SE at Open price of next bar
+		SellDelay = 1;	SellPrice = Open ; 		//	LX at Open price of next bar
+		CoverDelay = 1;	CoverPrice = Open ;		//	SX at Open price of next bar
+		break;
+
+	case 2:
+		// "This bar at Close" trading
+		BuyDelay = 0;		BuyPrice = Close ;		//	LE at Close price of signal bar
+		ShortDelay = 0;	ShortPrice = Close ;		//	SE at Close price of signal bar
+		SellDelay = 0;	SellPrice = Close ; 		//	LX at Close price of signal bar
+		CoverDelay = 0;	CoverPrice = Close ; 	//	SX at Close price of signal bar
+		break;
+
+	case 3:
+		//	Mixed mode trading, enter "Next bar at Open", exit "This bar at Close"
+		BuyDelay = 1;		BuyPrice = Open ;			//	LE at Open price of next bar
+		ShortDelay = 1;	ShortPrice = Open ;		//	SE at Open price of next bar
+		SellDelay = 0;	SellPrice = Close ; 		//	LX at Close price of signal bar
+		CoverDelay = 0;	CoverPrice = Close ; 	//	SX at Close price of signal bar
+		break;
+
+	/*
+	case 4:	//	bad results for reversal trades!  - this is a bogus case!
+		//	Mixed mode trading, , enter "This bar at Close", exit "Next bar at Open"
+		BuyDelay = 0;		BuyPrice = Close ;		//	LE at Close price of signal bar
+		ShortDelay = 0;	ShortPrice = Close ;		//	SE at Close price of signal bar
+		SellDelay = 1;	SellPrice = Open ; 		//	LX at Open price of next bar
+		CoverDelay = 1;	CoverPrice = Open ;		//	SX at Open price of next bar
+		break;
+	*/
+
+}
+
+SetTradeDelays( BuyDelay, SellDelay, ShortDelay, CoverDelay ) ;
+
+Short = Cover = 0 ;		//	zero these here, they will be calculated below
+
+//	*****	Code for technical analysis calculation(s).
+//	###		Add all desired TA calcs here.
+
+theRSI = RSI(RSI_Base_Period) ;
+SmoothedRSI = MA(theRSI, RSI_Smooth_Period);
+
+//	Choice of variations in the root signal calculation
+//	###		Add new signal definition choices as desired
+
+RSI_IsLow = RSI_IsHigh = 0 ;
+
+//	Buy weakness, sell strength - trade each area as it is entered
+if (SignalType == 1){
+	printf( "SignalType 1: Buy weakness, sell strength - trade each area as it is entered"	+ "\n" ) ;
+	RSI_IsLow = (SmoothedRSI <= RSI_LowLvl) AND (Ref(SmoothedRSI, -1) > RSI_LowLvl) ;		//	weakness, touch/downcross of low threshold
+	RSI_IsHigh = (SmoothedRSI >= RSI_HighLvl) AND (Ref(SmoothedRSI, -1) < RSI_HighLvl) ;	//	strength, touch/upcross of high threshold
+}
+//	Buy weakness, sell strength - trade each area as it is exited
+else if (SignalType == 2){
+	printf( "SignalType 2: Buy weakness, sell strength - trade each area as it is exited"	+ "\n" ) ;
+	RSI_IsLow = (SmoothedRSI >= RSI_LowLvl) AND (Ref(SmoothedRSI, -1) < RSI_LowLvl) ;		//	rebound from weakness, touch/upcross of low threshold
+	RSI_IsHigh = (SmoothedRSI <= RSI_HighLvl) AND (Ref(SmoothedRSI, -1) > RSI_HighLvl) ;	//	breakdown from strength, touch/downcross of high threshold
+}
+
+//	Output calculation values to Interpretation window.  Put spaces after each value.
+printf( WriteVal(theRSI, 1.2) 		+ "  " ) ;
+printf( WriteVal(SmoothedRSI, 1.2) 	+ "  " ) ;
+printf( "\n") ;
+
+//	*****	Code for trading long-only, short-only, or in both directions
+
+// Setup to trade long only, short only, or in both directions.
+// This block predicated on working with only 2 (rather than 4) basic signals.
+//	### Make sure to always assign Buy, Sell, Short, and Cover to prevent undefined errors later.
+
+if (LongShortBoth == 1){
+	Sell = Short = Cover = 0 ;
+
+	if (InvertSignals){
+		Buy = RSI_IsHigh;
+		// Sell = RSI_IsLow;
+	}
+	else {
+		Buy = RSI_IsLow;
+		// Sell = RSI_IsHigh;
+	}
+}
+else if (LongShortBoth == 2){
+	Buy = Sell = Short = 0 ;
+
+	if (InvertSignals){
+		Short = RSI_IsLow;
+		// Cover = RSI_IsHigh;
+	}
+	else {
+		Short = RSI_IsHigh;
+		// Cover = RSI_IsLow;
+	}
+}
+else if (LongShortBoth == 3){
+
+	// Stop-and-reverse setup - appropriate when there are only 2 underlying signals as here.
+	// Note that for stop-and-reverse case, AB requires the exit signal along with the new entry signal.
+	/*
+	Buy = RSI_IsLow;
+	Sell = RSI_IsHigh;
+	Short = Sell;
+	Cover = Buy;
+	*/
+
+	// Beware - incorrect!
+	/*
+	Buy = RSI_IsLow;
+	Short = RSI_IsHigh ;
+	Sell = Cover = 0 ;
+	*/
+
+	// Stop-and-reverse setup - appropriate when there are only 2 underlying signals as here.
+	// Note that for stop-and-reverse case, AB requires the exit signal along with the new entry signal.
+	if (InvertSignals){
+		Buy = RSI_IsHigh;
+		Sell = RSI_IsLow;
+		Short = Sell;
+		Cover = Buy;
+	}
+	else {
+		Buy = RSI_IsLow;
+		Sell = RSI_IsHigh;
+		Short = Sell;
+		Cover = Buy;
+	}
+
+}
+
+//	===Dbg 
+//	printf( "a  Buy: " + Buy + " Sell: " + Sell + " Short: " + Short + " Cover: " + Cover + "\n" ) ;
+
+//	*****	Code for trading signals in the opposite direction
+
+// Announce inversion of trading signals.  (Implementation is above)
+if (InvertSignals){
+	printf( "Inverting Signals"	+ "\n" ) ;
+}
+
+//	*****	Code for a choice of trade signal filters
+//	###		Add add new/different filter types as desired
+
+//	Choice of filters to apply.  FilterType 0 means "no filter".
+if (FilterType == 1){
+	LongOK = ShortOK = 0 ;
+	LongOK = Close > MA(Close, 200) ;
+	ShortOK = Close < MA(Close, 200) ;
+}
+if (FilterType == 2){
+	LongOK = ShortOK = 0 ;
+	LongOK = Close > MA(Close, 50) ;
+	ShortOK = Close < MA(Close, 50) ;
+}
+if (FilterType == 3){
+	currDateNum = DateTimeConvert( 0, DateTime() );
+
+	//	Works
+	TodaysOpen = IIf( currDateNum > Ref(currDateNum, -1), Open, 0 ) ;
+	TodaysOpen = IIf( TodaysOpen == 0, Ref(TodaysOpen, -BarsSince(TodaysOpen > 0)), TodaysOpen ) ;
+	//	printf( "currDateNum: " + NumToStr( currDateNum, 1.0 ) + "  TodaysOpen: " + NumToStr( TodaysOpen, 1.2 ) + "\n" ) ;
+
+	//	Also works
+	//	TimeFrameGetPrice( pricefield, interval, shift = 0, mode = expandFirst ) 
+	//	TO = TimeFrameGetPrice( "O", inDaily, expandFirst ) ;
+	//	printf( "TO: " + NumToStr( TO, 1.2 ) + "\n" ) ;
+
+	LongOK = ShortOK = 0 ;
+	
+	LongOK = Close > TodaysOpen ;
+	ShortOK = Close < TodaysOpen ;
+}
+//	etc. for different filters, if desired
+
+if (FilterType != 0){
+	Buy = Buy AND LongOK ;
+	Short = Short AND ShortOK ;
+}
+
+//	===Dbg 
+//	printf( "b  Buy: " + Buy + " Sell: " + Sell + " Short: " + Short + " Cover: " + Cover + "\n" ) ;
+
+
+//	*****	Code for limiting trading to an intraday time window (i.e. daytrading)
+
+//	Intraday time restrictions when daytrading
+if (DaytradeOnly==1)			
+{
+	NoSecTime = .01 * TimeNum() ;	//	time to the minute only, dropping seconds
+	printf( "Time: " + NumToStr( NoSecTime, 1.0) + "\n" ) ;
+	Buy &=  (NoSecTime >= NoEntriesBefore)  AND  (NoSecTime <= NoEntriesAfter) ;
+	Sell &=  (NoSecTime >= NoEntriesBefore)  AND  (NoSecTime <= NoEntriesAfter) ;
+	Short &=  (NoSecTime >= NoEntriesBefore)  AND  (NoSecTime <= NoEntriesAfter) ;
+	Cover &=  (NoSecTime >= NoEntriesBefore)  AND  (NoSecTime <= NoEntriesAfter) ;
+	
+	//	EOD exits - force a sell or cover, which is ignored if there is no position on
+	Sell  |=  (NoSecTime >= ExitAllTime) ;
+	Cover |=  (NoSecTime >= ExitAllTime) ;
+}
+
+//	*****	Code for optimizable StopLoss and PftTgt
+
+if (UseStopsAndTgts){
+
+	/*  ApplyStop( type, mode, amount, exitatstop, volatile = False, ReEntryDelay = 0 )   */
+	/*  ----------------------- dynamic mode:               */
+	
+	ApplyStop(stopTypeLoss, IIf( StopLossPct > 0, stopModePercent, stopModeDisable), StopLossPct, 0, False, 0 );
+	ApplyStop(stopTypeProfit, IIf( PftTgtPct > 0, stopModePercent, stopModeDisable), PftTgtPct, 0, False, 0 );
+	ApplyStop(stopTypeTrailing, IIf( TrailStopPct > 0, stopModePercent, stopModeDisable), TrailStopPct, 0, False, 0 );
+
+	//	Note: these built-ins do not result in setting Sell or Cover arrays when triggered.
+}
+
+//	*****	Code for optimizable indicator-based exits
+//	###		Set your exit reason text here.  This is used for on-screen display.
+
+EnableTextOutput(False);
+SellReason =  "" ;
+CoverReason = "" ;
+EnableTextOutput(True);
+
+if (UseIndLvlExits){
+
+	LvlSell =  SmoothedRSI > LX_Above_Lvl ;
+	LvlCover = SmoothedRSI < SX_Below_Lvl ;
+
+	Sell  |= ( LvlSell ) ;
+	Cover  |= ( LvlCover ) ;
+
+	SellReason = SellReason + WriteIf( LvlSell, "LX_Above_Lvl - ", "" ) ; 
+	CoverReason = CoverReason + WriteIf( LvlCover, "SX_Below_Lvl - ", "" ) ;
+	
+}
+
+
+//	*****	Code for determining and displaying exit reasons
+
+// Calculate equity array, stops not written to buy/sell/short/cover arrays, use AA window date range.
+// P1_Equity = Equity(0, -1); 
+
+// Calculate equity array, EVALUATE STOPS and write to buy/sell/short/cover arrays, use AA window date range.
+P1_Equity = Equity(1, -1); 				//	generate exit reasons
+
+//	Interpretation display of date range begin and end.
+//	Done near the Equity() calculation, as this is the range over which equity is calculated.
+DateRangeBegin = Status("rangefromdate") ;
+DateRangeEnd = Status("rangetodate") ;
+printf( "DateRangeBegin: " + DateToStr( DateRangeBegin ) + "\n" + "DateRangeEnd:    " + DateToStr( DateRangeEnd ) + "\n" ) ;
+
+//	Capture stop reason information to strings.
+_N(
+	SellReason = SellReason +
+	WriteIf( Sell == 1, "Regular Exit\n",
+	WriteIf( Sell == 2, "Max Loss\n",
+	WriteIf( Sell == 3, "Profit Tgt\n",
+	WriteIf( Sell == 4, "Trailing Stop\n",
+	WriteIf( Sell == 5, "N-bar Stop\n",
+	WriteIf( Sell == 6, "Ruin stop\n", "" ) ) ) ) ) )
+);
+
+_N(
+	CoverReason = CoverReason + 
+	WriteIf( Cover == 1, "Regular Exit\n",
+	WriteIf( Cover == 2, "Max Loss\n",
+	WriteIf( Cover == 3, "Profit Tgt\n",
+	WriteIf( Cover == 4, "Trailing Stop\n",
+	WriteIf( Cover == 5, "N-bar Stop\n",
+	WriteIf( Cover == 6, "Ruin stop\n", "" ) ) ) ) ) )
+);
+
+// _TRACE( "Sell: " + NumToStr( Sell ) ) ;
+// _TRACE( "Cover: " + NumToStr( Cover ) ) ;
+
+//	Write to the Interpretation Window to explain the currently selected TradingMode
+switch( TradingMode ){
+
+	case 1:
+		printf( "Mode 1: Next bar at Open trading (delay entries AND exits)"	+ "\n" ) ;
+		break;
+
+	case 2:
+		printf( "Mode 2: This bar at Close trading (no delay of entries OR exits)"	+ "\n" ) ;
+		break;
+
+	case 3:
+		printf( "Mode 3: Mixed mode trading, enter Next bar at Open, exit This bar at Close (delay entries, NOT exits)"	+ "\n" ) ;
+		break;
+
+	/*
+	case 4:
+		printf( "Mode 4: Mixed mode trading, enter This bar at Close, exit Next bar at Open (delay exits, not entries)"	+ "\n" ) ;
+		break;
+	*/
+
+}
+
+
+//	*****	Code for histogram visualization of buy/sell/short/cover arrays.
+
+//	Simple histogram visualization of buy/sell/short/cover arrays.
+//	Different heights indicate different exit reasons, as per above.
+//	Display range is confined to near bottom of pane.
+//	###		Keep comments in sync with actual colors if you change them.
+
+if (ShowSignalsHistogram){
+	HistBaseVal = .5;		HistMinVal = 0;	HistMaxVal = 15;
+	Plot( HistBaseVal + 1/Buy,"Buy",colorGreen,styleHistogram|styleOwnScale, HistMinVal, HistMaxVal);			//	Buy		-	Green
+	Plot( HistBaseVal + 1/Sell,"Sell",colorRed,styleHistogram|styleOwnScale, HistMinVal, HistMaxVal);			//	Sell	-	Red
+	Plot( HistBaseVal + 1/Short,"Short",colorOrange,styleHistogram|styleOwnScale, HistMinVal, HistMaxVal);		//	Short	- 	Orange
+	Plot( HistBaseVal + 1/Cover,"Cover",colorAqua,styleHistogram|styleOwnScale, HistMinVal, HistMaxVal);		//	Cover	-	Aqua
+}
+
+//	*****	Code for passing NetPft to cooperating display indicator in another chart pane.
+
+if( Status("ActionEx") == actionIndicator ){
+
+	IE = GetOption("InitialEquity") ;   
+
+	// Returns single-security Equity line based on Buy/Sell/Short/Cover rules, 
+	// Buy/Sell/Short/CoverPrice arrays, all apply stops, AND all other backtester settings. 
+	// P1_Equity = Equity(0, -1); // just calculate the equity array, use AA window date range
+
+	// Assign calculated equity to a static array so another pane can plot it
+	if (EquitySend > 0) StaticVarSet("Equity_P" + EquitySend, P1_Equity ); 
+
+	NetPft = P1_Equity - IE;  // local calculation of NetPft for use in Title
+
+} // end of:  if( Status("ActionEx") == actionIndicator ) #1
+
+//	*****	Code for Displaying signals as an Exploration
+
+if( Status("ActionEx") == actionExplore ){
+
+	if (ExploreType == "Current"){
+		IsLastBar = DateTime() == LastValue(DateTime()) ;  // filter on this to show current bar signals only in Exploration
+		ExpDateCon = IsLastBar ;
+	}
+	else if (ExploreType == "Today"){
+		IsLastDate = DateNum() == LastValue(DateNum()) ;  // filter on this to show last day's signals only in Exploration
+		ExpDateCon = IsLastDate ;
+	}
+	else if (ExploreType == "Historical"){
+		ExpDateCon = 1 ;           // allow historical signals in Exploration 
+	}
+
+	if (LongShortBoth == 1){
+		Filter = ExpDateCon AND (Buy OR Sell) ;
+		AddColumn( Buy, "Buy Next Bar", 1.0, colorDefault, IIf(Buy, colorGreen, colorDefault) );
+		AddColumn( Sell, "Sell Next Bar", 1.0, colorDefault, IIf(Sell, colorRed, colorDefault) );
+	}
+	else if (LongShortBoth == 2){
+		Filter = ExpDateCon AND (Short OR Cover) ;
+		AddColumn( Short, "Short Next Bar", 1.0, colorDefault, IIf(Short, colorRed, colorDefault) );
+		AddColumn( Cover, "Cover Next Bar", 1.0, colorDefault, IIf(Cover, colorGreen, colorDefault) );
+	}
+	else if (LongShortBoth == 3){
+		Filter = ExpDateCon AND (Buy OR Short) ;
+		AddColumn( Buy, "Buy Next Bar", 1.0, colorDefault, IIf(Buy, colorGreen, colorDefault) );
+		AddColumn( Short, "Short Next Bar", 1.0, colorDefault, IIf(Short, colorRed, colorDefault) );
+	}
+
+	//	###		Add exploration columns for all indicators
+
+	AddColumn( theRSI, RSI_Name, 1.2, colorDefault, IIf(Buy, colorGreen, IIf(Short, colorRed, colorDefault)) ); 
+	AddColumn( SmoothedRSI, "Smoothed " + RSI_Name, 1.2, colorDefault, IIf(Buy, colorGreen, IIf(Short, colorRed, colorDefault)) ); 
+
+} // end of:  if( Status("ActionEx") == actionExplore )
+
+//	*****	Code for on-chart plotting of price, signal arrows, and trade duration/direction bar coloring
+
+// if( Status("ActionEx") == actionIndicator ){
+if( Status("Action") == 1 ){       // INDICATOR
+
+	//	Enable/disable plotting of up/down arrows on the entry and exit signal bars.
+	//	This show location of signal generation, regardless of actual entry.
+	if(PlotEntryArrows){
+		PlotShapes( shapeUpArrow * (Buy > 0), colorGreen,0, L, -20); 			//	arrows at long entry bars
+		PlotShapes( shapeDownArrow * (Short > 0), colorRed,0,H, -20) ;		//	arrows at short entry bars
+	}
+
+	if(PlotExitArrows){
+			//	Don't plot exit arrows for reversal case - let the entry arrows indicate that instead
+			PlotShapes( ( Buy == 0 ) * shapeUpArrow * (Cover > 0) , colorYellow,0, L, -20); 			//	arrows at long exit bars
+			PlotShapes( ( Short == 0 ) * shapeDownArrow * (Sell > 0), colorYellow,0,H, -20) ;			//	arrows at short exit bars
+	}	
+
+	if ( (PlotRawPrice) )
+	{
+
+		/* Color the price bars to indicate:
+
+			Green - price performance after a Buy Signal (i.e. while long)
+			Red - performance after a sell signal	(i.e. while short)
+			Yellow - signal bars
+		*/
+		//	###		if you want to color the bars in a different way, this is where it is done
+
+		switch( TradingMode ){
+
+			case 1:
+				//	"Next bar at Open" trading  (delay entries and exits)
+				AmLong = Flip( Ref(Buy, -BuyDelay), Ref(Sell, IIf(SellDelay == 0, -1, -SellDelay) ) OR Ref(Short, -ShortDelay) ) ;
+				AmShort = Flip( Ref(Short, -ShortDelay), Ref(Cover, IIf(CoverDelay == 0, -1, -CoverDelay)) OR Ref(Buy, -BuyDelay) ) ;
+				printf( "Next bar at Open trading  (delay entries AND exits)"	+ "\n" ) ;
+				break;
+
+			case 2:
+				// "This bar at Close" trading		(no delay of entries or exits)
+				AmLong = Flip( Ref(Buy, -1), Ref(Sell, -1) OR Ref(Short, -1) ) ;
+				AmShort = Flip( Ref(Short, -1), Ref(Cover, -1) OR Ref(Buy, -1) ) ;
+				break;
+
+			case 3:
+				//	Mixed mode trading, enter "Next bar at Open", exit "This bar at Close"	(delay entries, not exits)
+				AmLong = Flip( Ref(Buy, -BuyDelay), Ref(Sell, -1) OR Ref(Short, -1) ) ;
+				AmShort = Flip( Ref(Short, -ShortDelay), Ref(Cover, -1) OR Ref(Buy, -1) ) ;
+				break;
+
+			/*
+			case 4:
+				//	Mixed mode trading, , enter "This bar at Close", exit "Next bar at Open"	(delay exits, not entries)
+				AmLong = Flip( Ref(Buy, -1), Ref(Sell, IIf(SellDelay == 0, -1, -SellDelay) ) OR Ref(Short, -1) ) ;
+				AmShort = Flip( Ref(Short, -1), Ref(Cover, IIf(CoverDelay == 0, -1, -CoverDelay)) OR Ref(Buy, -1) ) ;
+				break;
+			*/
+
+		}
+
+		BarColors =	IIf( AmShort, colorRed,
+						IIf( AmLong, colorGreen, 
+						colorWhite )  ) ;	
+
+		if (PlotRawPrice) Plot( Close, " ", BarColors, PricePlotStyle ) ;
+  
+	}
+}
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+//	*****	Code for creating and displaying informative title text
+//	###		Configure your chart title as desired
+
+//	Here is a fairly generic title, all in one line.
+// _N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+
+//	Prepare a TitlePriceStr, in several steps
+
+if (ExtraDecimals){
+	// 5-decimal precision.  Good for FX.  Would make a cluttered display for stocks and futures.
+	// _N() keeps this silent for later use.
+	_N(TitlePriceStr = StrFormat( "O %.5f, H %.5f, L %.5f, C %.5f \nNetPft %.0f", O, H, L, C, NetPft )) ;
+
+}
+else {
+	// 2-decimal precision.  Good for stocks and futures.  For FX, more decimals are typically needed 
+	// _N() keeps this silent for later use.
+	_N(TitlePriceStr = StrFormat( "O %.2f, H %.2f, L %.2f, C %.2f \nNetPft %.0f", O, H, L, C, NetPft )) ;
+}
+
+//	Configure a multi-line chart title, using the TitlePriceStr, and sometimes more.
+//	Unknown - In Interpretation:  why NetPft is 0, why BuySignal disappears ...
+
+	//	This is one giant line, down to the semicolon.
+	Title = "\n" + Name() + " " + Date() + "\n" + TitlePriceStr + "\n"
+
+	// Note that for for stop-and-reverse case, we don't want to display the exit part if the old-exit/new-entry pair.
+	// This is accomplished by suppressing exit display when entry is also present.
+	+ WriteIf(Buy, "Buy Signal ", "") 		+ WriteIf(Sell AND !Short, "Sell Signal - " + SellReason, "") 
+	+ WriteIf(Short, "Short Signal ", "") 	+ WriteIf(Cover AND !Buy, "Cover Signal - " + CoverReason, "") 
+
+	// These report the trade prices on the bar after the signal (where they are available).
+	// This is appropriate when trading "open next bar"
+	+ WriteIf(Ref(Buy, -BuyDelay), StrFormat("Buy at %g", BuyPrice), "") 
+	+ WriteIf(Ref(Short,-ShortDelay), StrFormat("Short at %g", ShortPrice), "") 
+	+ WriteIf(Ref(Sell,-SellDelay) AND !Ref(Short,-ShortDelay), StrFormat(" Sell at %g", SellPrice), "") 
+	+ WriteIf(Ref(Cover,-CoverDelay) AND !Ref(Buy,-BuyDelay), StrFormat(" Cover at %g", CoverPrice), "") 
+	+ "\n"  ;
+
+
+//	Send raw Buy/Sell/Short/Cover to cooperating indicator for verification/debugging purposes.
+
+StaticVarSet(Formula_Name + "_Buy", Buy);
+StaticVarSet(Formula_Name + "_Sell", Sell);
+StaticVarSet(Formula_Name + "_Short", Short);
+StaticVarSet(Formula_Name + "_Cover", Cover);
+
+
+// ----- end of:  P_RSI_06a.afl
+
+_SECTION_END();
+
+
+//	*****	Code for display of filters
+//	###		Configure (or comment out) display of filters as desired.  
+
+//	The MA plots were added so as to visualize the filters.
+
+ShowMAs = ParamToggle( "ShowMAs", "No|Yes", 1 );   // default Yes, which displays the Moving Averages
+
+if (ShowMAs){
+
+_SECTION_BEGIN("MA1");
+P = ParamField("Price field", 3);
+Periods = Param("Periods", 200, 2, 200, 1, 0 );
+Plot( MA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+_SECTION_BEGIN("MA2");
+P = ParamField("Price field", 3);
+Periods = Param("Periods", 50, 2, 50, 1, 0 );
+Plot( MA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+}

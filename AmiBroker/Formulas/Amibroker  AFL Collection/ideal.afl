@@ -1,0 +1,83 @@
+/*
+It buys and shorts top 20 securities according to absolute
+value of positionscore (user definable) - each at 5% of equity
+then each day it rebalances existing positions to 5%
+if only the difference between current position value and "ideal" value
+is greater than 0.5% and bigger than one share.
+ 
+Implementing exactly what you are after 
+(buying top (positive) 10 and shorting bottom (negative) 10)
+would be more complex and involve double nested loop and
+it will run slower, so I simplified this condition to just trade
+top 20 (long+short) according to absolute value of score 
+to make code easier and focus on rebalancing only.
+ 
+Implementing your original idea will become as easy as code below
+once I add options "maxopenposshort" and "maxopenposlong" to the backtester.
+This will arrive in one of upcoming versions.
+ 
+Note that I have added lots of debugging output via RawTextOutput
+and because of that the code is best run in "REPORT MODE: DETAILED LOG".
+If you want to run it in other report modes, please comment out
+RawTextOutput lines.
+*/
+
+
+EnableRotationalTrading(); 
+
+EachPosPercent = 5; 
+
+PositionScore = ROC( C, 20 ); 
+
+PositionSize = -EachPosPercent; 
+
+SetOption("WorstRankHeld", 40 ); 
+SetOption("MaxOpenPositions", 20 ); 
+
+SetOption("UseCustomBacktestProc", True ); 
+
+if( Status("action") == actionPortfolio ) 
+{ 
+   bo = GetBacktesterObject(); 
+
+   bo.PreProcess(); // Initialize backtester 
+
+   for(bar=0; bar<BarCount; bar++) 
+   { 
+      bo.ProcessTradeSignals( bar ); 
+       
+      CurEquity = bo.Equity; 
+      // rebalance to 5% each 
+      bo.RawTextOutput("Portfolio Equity\tValue = " + CurEquity + ",  " + 
+                EachPosPercent + "% = " + 0.01 * EachPosPercent * CurEquity ); 
+
+      for( pos = bo.GetFirstOpenPos(); pos; pos = bo.GetNextOpenPos() ) 
+       { 
+         posval = pos.GetPositionValue(); 
+    
+         diff = posval - 0.01 * EachPosPercent * CurEquity; 
+         price = pos.GetPrice( bar, "O" ); 
+
+         // rebalance only if difference between desired and 
+         // current position value is greater than 0.5% of equity 
+         // and greater than price of single share 
+         if( diff != 0 AND abs( diff ) > 0.005 * CurEquity AND abs( diff ) > price ) 
+         { 
+            bo.RawTextOutput("Attempt to scale" + WriteIf( diff < 0, " IN", " OUT" ) 
+               + "\t" + pos.Symbol + " Pos. value = " + posval + " diff vs. ideal = " 
+               + (-diff) + "(" + (-diff)/price + " shares)" ); 
+            bo.ScaleTrade( bar, pos.Symbol, diff < 0, price, abs( diff ) ); 
+         } 
+         else 
+         { 
+            bo.RawTextOutput("  --" + "\t" + pos.Symbol + " Pos. value = " + posval 
+                    + " diff vs. ideal = " + (-diff) + "(" 
+                    + WriteVal((-100*diff/CurEquity),1.2) + "% of Equity, "+ 
+                    (-diff)/price + " shares)" ); 
+         } 
+       } 
+
+   } 
+   bo.PostProcess(); // Finalize backtester 
+    
+} 

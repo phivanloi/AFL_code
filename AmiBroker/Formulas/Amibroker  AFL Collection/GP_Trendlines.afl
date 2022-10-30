@@ -1,0 +1,127 @@
+/*
+
+        Indicator that plots trend lines on a chart
+
+        This indicator plots the price chart as candlesticks and overlays it
+        with a programmable number of trend lines. The turning points for the
+        trend lines are determined by the "peak/trough change" parameter, which
+        is the percentage move in the opposite direction behind a low or high to
+        trigger a direction change. This is modified by a multiple of ATR(3)
+        to increase the value somewhat when the ATR is higher.
+
+        A programmable period (30 by default) EMA is used to decide if the latest
+        prices are moving up or down, again with the period modified by a
+        multiple of ATR(3) so that higher ATR stocks will use a somewhat longer
+        period. Alternating up and down trend lines are drawn backwards from
+        there, for as many as have been selected in the parameters (2 by
+        default).
+
+        The line drawing functions use the preferences setting for the main
+        chart to determine if the display is linear or logarithmic. The
+        indicator should be set to the same display mode as the main price
+        chart in the preferences, otherwise the lines will look curved.
+
+        Two other user-defined parameters are the close above percentage and
+        the draw overshoot.
+
+        The close above percentage is the percentage the closing price must be
+        above a downward trend line to signal a trend line crossover. A trend
+        line crossover is marked with an upward triangle.
+
+        The draw overshoot is the number of bars past the end peak or trough
+        of a trend line to keep drawing the trend line. However, whenever a
+        crossover is signalled, the down-sloping trend line will always be
+        drawn to either the crossover bar or to an amount below the lowest low
+        of the intervening period based on ATR(3), whichever occurs first (this
+        latter limit is just to stop a steep down-sloping line from being drawn
+        way down below the prices if the following uptrend is very shallow).
+
+        For the Line Count parameter, a value of zero will display trend lines
+        right back to the beginning of the chart.
+
+        If a range is selected on the chart, as indicated by the right and left
+        facing black triangles at the bottom, then trend lines will only be
+        calculated and displayed within that region. This can be useful to see
+        how the trend lines change as time moves forward, or when trying to
+        verify a buy or sell date in a back test.
+
+        To install the plugin DLL:
+
+          - Copy the DLL into the AmiBroker Plugins folder
+          - Start AmiBroker or select Tools->Plugins
+          - A warning about using an uncertified plugin should appear - accept it
+
+        Under Tools->Plugins again, the plugin should be listed under the
+        name "GreatPig's Trend Line Plug-in".
+
+        To use as an indicator:
+
+          - Place this file in the AmiBroker AFL folder
+          - Create a new indicator and call it something like "GP_Trendlines.afl"
+          - Select Load Formula and then select this file from the AFL folder
+          - Check the Show Dates and Middle checkboxes
+          - Check the Logarithmic checkbox if the main display is logarithmic
+          - Click Apply then Close
+          - Right-click and select Parameters to adjust parameters
+
+		Last change: WS 25/07/2005 9:32:04 PM
+*/                                                                                               
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );
+GP_tlineUp1[0] = 0;            //  Parameters required by plugin DLL
+GP_tlineUp2[0] = 0;
+GP_tlineDown1[0] = 0;
+GP_tlineDown2[0] = 0;
+GP_closeAbove[0] = 0;
+GP_aboveIx = -1;
+GP_yover = -1;
+GP_recentPeak = -1;
+GP_changeAtr[0] = 0;
+
+
+tchg = Param("1. Peak/Trough Change? (%)", 20, 1, 200, 1);
+closeOver = Param("2. Close Above? (%)", 3, 0, 50, 1);
+lineCnt = Param("3. Line Count?", 2, 0, 100, 1);
+endEma = Param("4. Test EMA Period?", 30, 2, 100, 1);
+oshoot = Param("5. Draw Overshoot?", 0, 0, 50, 1);
+
+Plot(Close, "Price", colorRose, styleCandle);      //  Plot main price array
+
+Bottom = IIf(Close < Open, Close, Open);    //  Bottom of open/close array
+Top = IIf(Close > Open, Close, Open);       //  Top of open/close array
+
+bi = BarIndex();
+startIx = BeginValue(bi) - bi[0];
+endIx = EndValue(bi) - bi[0];
+if (endIx < startIx)
+    endIx = startIx;
+
+GP_changeAtr = 1+5*(ATR(3)/Close);
+eend = EMA(Close, endEma*GP_changeAtr[endIx]); //  EMA period for end direction
+lrs = LinRegSlope(eend, 2);
+isUp = lrs[endIx] >= 0;                     //  Slope of EMA on last day
+
+fit = GP_DrawTrendLines(Bottom, Top, lineCnt, endIx, startIx, tchg, oshoot, closeOver, 0, isUp, Prefs(24));
+
+for (i = 0; i < startIx; i++) {
+    GP_tlineUp1[i] = -1e10;
+    GP_tlineUp2[i] = -1e10;
+    GP_tlineDown1[i] = -1e10;
+    GP_tlineDown2[i] = -1e10;
+    GP_closeAbove[i] = 0;
+    }
+for (i = endIx+1; i < BarCount; i++) {
+    GP_tlineUp1[i] = -1e10;
+    GP_tlineUp2[i] = -1e10;
+    GP_tlineDown1[i] = -1e10;
+    GP_tlineDown2[i] = -1e10;
+    GP_closeAbove[i] = 0;
+    }
+
+Plot(GP_tlineUp1, "", colorBlue, styleLine|styleThick);
+Plot(GP_tlineUp2, "", colorBlue, styleLine|styleThick);
+Plot(GP_tlineDown1, "", colorRed, styleLine|styleThick);
+Plot(GP_tlineDown2, "", colorRed, styleLine|styleThick);
+PlotShapes(IIf(GP_closeAbove, shapeUpTriangle, shapeNone), colorBlue, Graph0, Low-Low*0.03);
+
+//--------------------------------------------------------------------------
+//--------------------------------------------------------------------------

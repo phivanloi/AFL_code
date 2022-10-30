@@ -1,0 +1,29 @@
+//  Guppy01b.AFL MMA   7/26/2006
+SetChartOptions(2,chartShowDates);
+GraphXSpace=20;
+
+st2	= EMA(C,2);
+st3	= EMA(C,3);
+st4	= EMA(C,4);
+st5	= EMA(C,5);
+mt12	= EMA(C,12);
+mt15	= EMA(C,15);
+mt18	= EMA(C,18);
+mt21	= EMA(C,21);
+Lt30	= EMA(C,30);
+Lt35	= EMA(C,35);
+Lt40	= EMA(C,40);
+Lt45	= EMA(C,45);
+Lt50	= EMA(C,50);
+
+StDiffIndex = (st2-st3) + (st2-st4) + (st2-st5) + (st3-st4) + (st3-st5) + (st4-st5);
+MtDiffIndex = (mt12-mt15)+(mt12-mt18)+(mt12-mt21)+(mt15-mt18)+(mt15-mt21)+(mt18-mt21);
+LtDiffIndex = (Lt30-Lt35)+(Lt30-Lt40)+(Lt30-Lt45)+(Lt30-Lt50)+(Lt35-Lt40)+(Lt35-Lt45)+
+					(Lt35-Lt50)+(Lt40-Lt45)+(Lt40-Lt50)+(Lt45-Lt50);
+
+
+Plot(StDiffindex, "Guppy StDiffIndex",colorWhite,4);
+Plot(mtDiffindex, "Guppy mtDiffIndex",colorYellow,4);
+Plot(ltDiffindex, "Guppy LtDiffIndex",colorRed,4);
+//Plot(16,"",2,1);
+Plot(0,"",2,1);

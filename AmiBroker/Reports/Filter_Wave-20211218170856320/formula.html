@@ -1,0 +1,105 @@
+<HTML><HEAD>
+<TITLE>Filter_Wave - Backtest Report</TITLE><STYLE>
+<!--
+BODY { font-family:"Tahoma,Arial,Helvetica,Sans Serif"; font-size:8pt; }
+TD {  font-size:8pt; text-align: right; white-space: nowrap; }
+TH {  font-size:8pt; text-align: left; font-weight: normal; }
+.CH { text-align: right; font-weight:bold; }
+.CHL { text-align: left; font-weight:bold; }
+.BIG { font-size:10pt; font-weight:bold; text-align: center; }
+.TAB { font-size:10pt;  text-align: center; text-color:#CCCCCC; }
+.SELTAB { font-size:10pt; font-weight:bold; text-align: center; text-color:#000000; }
+.good { color:#006600; }
+.bad { color:#880000; }
+.neut { color:#000088; }
+a:active { background-color:#DDDDFF; }
+-->
+</STYLE>
+<SCRIPT>
+var curPart = 0;
+function showPart( i )
+{
+	 document.getElementById("part" + curPart ).style.display = "none";
+	 document.getElementById("part" + i ).style.display = "";
+	 curPart = i;
+}
+</SCRIPT>
+</HEAD>
+<BODY>
+<DIV ALIGN=CENTER><FONT class='TAB'><a href='stats.html'>Statistics</a> | <a href='charts.html'>Charts</a> | <a href='trades.html'>Trades</a> | <a href='formula.html'><FONT class='SELTAB'>Formula</FONT></a> | <a href='settings.html'>Settings</a> | <a href='symbols.html'>Symbols</a> | <a href='montecarlo.html'>Monte Carlo</a></FONT></DIV><br>
+<TABLE CELLSPACING=0 CELLPADDING=2 WIDTH=100%>
+<TR bgcolor="#DDDDDD"><TH COLSPAN=5 CLASS="BIG" >Formula</TH></TR>
+</TABLE><PRE>// Downloaded From https://www.WiseStockTrader.com 
+/* 
+This scanner was adopted from the posting by Krishna9260 but I have modified the scanner to provide a signal  
+after the close of the current candle for a definite direction.  
+ 
+Realtime Wavetrend Scanner which provides BUY/SELL Signals whenever there is a crossover happening.  
+between the Oversold and Overbought limit lines  
+Ideally the lines are maintained at -60 & -53 for Oversold levels and 53 & 60 for Overbought levels. 
+ 
+ 
+*/ 
+ 
+ 
+ 
+TimeframeSet(in15Minute); //Please change this to modify the scanner to suit your favourable timeframe// 
+ChannelPeriod = Param("Channel Period",10,1,50,1); 
+AvgPeriod = Param("Average Period",21,1,50,1); 
+OBL1 = Param("Over Bought Level 1",60,0,100,1); 
+OBL2 = Param ("Over Bought Level 2",53,0,100,1); 
+OSL1 = Param("Over Sold Level 1",-60,0,-100,1); 
+OSL2 = Param("Over Sold Level 2",-53,0,-100,1); 
+ColTCI=ParamColor("TCI Line Color",colorBrown); 
+ColOBL1 = ParamColor("Over Bought Level 1 Color",colorRed); 
+ColOBL2 = ParamColor("Over Bought Level 2 Color",colorRed); 
+ColOSL1 = ParamColor("Over Sold Level 1 Color",colorGreen); 
+ColOSL2 = ParamColor("Over Sold Level 2 Color",colorGreen); 
+XSpace = Param("GraphXSpace",7,0,20,0.5); 
+ 
+N1=ChannelPeriod; 
+N2=AvgPeriod; 
+ 
+AvgPrice=Ref(Avg,-1); // Typical Price = (H + L + C)/3 
+//AvgPrice=Avg; // Typical Price = (H + L + C)/3 
+ESA = Wilders(AvgPrice,N1); 
+D = Wilders(abs(AvgPrice-ESA),N1); 
+CI = (AvgPrice-ESA)/(0.015*D); 
+ 
+WT1 = EMA(CI,N2); 
+WT2 = MA(WT1,4); 
+ 
+Buy= Cross(WT1,WT2); 
+Sell= Cross(WT2,WT1); 
+CR1 = ValueWhen(Buy,WT1); 
+CR2 = ValueWhen(Sell,WT1); 
+Market_cap = V * C * 1000;  
+MA_market_cap = MA(V, 20) * C * 1000; 
+ 
+Buy_con =  V &gt; Percentile(V, 20, 90); 
+ 
+Filter=Buy OR Sell; 
+Filter = Buy_con = True; 
+Filter = MA_market_cap &lt;= 10^9 * 100 AND  MA_market_cap &gt;= 10^9 * 10; 
+//Filter=(Buy AND CR1&gt;=-60 AND CR1&lt;=-50) OR (Sell AND CR2&gt;=50 AND CR2&lt;=60); 
+ 
+//AddColumn(O,"Open",1.2,fgcolor=IIf(Buy,colorWhite,colorWhite),bkcolor=IIf(Buy,colorGreen,colorRed)); 
+ 
+AddColumn(C * 1000,"Close",1.2,fgcolor=IIf(Buy,colorWhite,colorWhite),bkcolor=IIf(Buy,colorGreen,colorRed)); 
+//AddColumn(V,"Volume",1,fgcolor=IIf(Buy,colorWhite,colorWhite),bkcolor=IIf(Buy,colorGreen,colorRed)); 
+AddColumn(WT1,"WaveTrend 1",1.4); 
+AddColumn(WT2,"WaveTrend 2",1.4); 
+AddColumn(IIf(Buy,CR1,CR2),"Crossover",1.4,fgcolor=IIf(Buy,colorWhite,colorWhite),bkcolor=IIf(Buy,colorGreen,colorRed)); 
+AddColumn(IIf(Buy,'B','S'),"Signal",formatChar,fgcolor=IIf(Buy,colorWhite,colorWhite),bkcolor=IIf(Buy,colorGreen,colorRed)); 
+AddColumn(Buy_con, "Vol", 1.2,bkcolor=IIf(Buy,colorGreen,colorRed)); 
+AddColumn(V, "Vol", 1.2); 
+AddColumn(MA(V, 20), "Vol_MA20", 1.2); 
+AddColumn(Percentile(V, 20, 90), "PT90_Vol", 1.2); 
+AddColumn(Market_cap, "Cap", 1.2); 
+AddColumn(MA_market_cap, "Cap_MA", 1.2); 
+ 
+ 
+AlertIf(Buy,"SOUND c:\\Windows\\Media\\tada.wav","Audio Alert",1); 
+AlertIf(Sell,"SOUND c:\\Windows\\Media\\tada.wav","Afgcolor=IIf(Buy,colorWhite,colorWhite),bkcolor=IIf(Buy,colorGreen,colorRed)udio Alert",2); 
+
+</PRE></BODY></HTML>

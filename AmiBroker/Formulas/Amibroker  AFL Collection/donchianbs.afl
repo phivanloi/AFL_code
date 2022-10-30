@@ -1,0 +1,24 @@
+_SECTION_BEGIN("Dochian1");
+// Plots  Donchian channel
+
+pds=5;
+DonchianUpper =HHV(Ref(H,-1),pds);
+DonchianLower = LLV(Ref(L,-1),pds);
+DonchianMiddle = (DonchianUpper+DonchianLower)/2;
+
+
+Plot(DonchianMiddle,"DM",colorRed,styleLine);
+
+pds=15;
+DonchianUpper =HHV(Ref(H,-1),pds);
+DonchianLower = LLV(Ref(L,-1),pds);
+DonchianMiddle = (DonchianUpper+DonchianLower)/2;
+
+Plot(DonchianMiddle,"DM",colorGreen,styleLine);
+_SECTION_END();
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

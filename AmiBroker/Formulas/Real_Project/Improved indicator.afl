@@ -1,0 +1,96 @@
+// Downloaded From https://www.WiseStockTrader.com
+/// This is an improved McGinleyDynamic to address the problem with the original.
+/// See author ImmortalFreedom notes at the link below
+/// @link https://www.tradingview.com/script/AKsKg1ih-McGinley-Dynamic-Improved-John-R-McGinley-Jr
+///
+/// An example of a problem - pick a stock that has gap down a lot and see what the functions oMD() and iMD() show.
+_SECTION_BEGIN( "Price" );
+SetChartOptions( 0, chartShowArrows | chartShowDates );
+_N( Title = StrFormat( "{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", ParamColor( "Color", colorBlack ), styleNoTitle | ParamStyle( "Style" ) | GetPriceStyle() );
+_SECTION_END();
+
+// Original McGinleyDynamic
+function oMD( array, period )
+{
+    local array, period;
+    local i, j, MD;
+
+    MD = Null;
+    j = NullCount( array );
+    MD[j] = array[j];
+
+    for( i = j + 1; i < BarCount; i++ )
+    {
+        // The equation is: D = D1 + (I - D1) / ( N * (I/D1)^4)
+        // where
+        //		D1 = yesterday's Dynamic,
+        //		I = today's price,
+        //		N = smoothing factor.
+        MD[ i ] = MD[ i - 1 ] + ( array[i] - MD[i - 1] ) / ( period * ( array[i] / MD[i - 1] ) ^ 4 );
+    }
+
+    return MD;
+}
+
+/// @link https://www.tradingview.com/script/AKsKg1ih-McGinley-Dynamic-Improved-John-R-McGinley-Jr
+/// Improved McGinleyDynamic
+function iMD( array, period, custom_k, custom_exp )
+{
+    local array, period, custom_k, custom_exp;
+    local i, j, MD;
+
+    period = max( 1.0, Period );
+    MD = Null;
+    j = NullCount( array );
+    MD[j] = array[j];
+
+    for( i = j + 1; i < BarCount; i++ )
+    {
+        // original MD
+        // MD[ i ] = MD[ i - 1 ] + ( array[i] - MD[i - 1] ) / ( period * ( array[i] / MD[i - 1] ) ^ 4 );
+        // author ImmortalFreedom came up with the formula
+        // MD[ i ] = MD[ i - 1 ] + ( array[i] - MD[i - 1] ) / ( custom_k * period * ( array[i] / MD[i - 1] ) ^ custom_exp );
+        // but author ImmortalFreedom finds Unconstrained McGinley Dynamic, susceptible to miscalculation
+        // It required upgrading the formulation with two constraints.
+        // MD[ i ] = MD[ i - 1 ] + ( array[i] - MD[i - 1] ) /  Min( period,  Max( 1.0, custom_k * period * ( array[i] / MD[i - 1] ) ^ custom_exp ))
+        // so even with k = 1 and exponent = 4, MD will not give the calculation of the original md
+        MD[ i ] = MD[ i - 1 ] + ( array[i] - MD[i - 1] ) / Min( period,  Max( 1.0, custom_k * period * ( array[i] / MD[i - 1] ) ^ custom_exp ) );
+    }
+
+    return MD;
+}
+
+_SECTION_BEGIN( "MD" );
+source = ParamField( "Price field", -1 );
+length = Param( "Length", 25, 1, 300, 0.5 );
+Plot( oMD( source, length ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle( "Style" ), Null, Null, 0, 1, 2 );
+_SECTION_END();
+
+_SECTION_BEGIN( "iMD" );
+source = ParamField( "Price field", -1 );
+_N( param_source = StrReplace( _PARAM_VALUES(), ")", "" ) );
+length = Param( "Length", 25, 1, 300, 0.5 );
+_N( formula  = ParamList( "Formulas k value", "Modern|Original|Custom k", 0 ) );
+kCustom  = Param( "Custom k (tweak)", 0.5, 0.3, 1.0, 0.05 );
+exponent = Param( "Exponent (tweak)", 4.0, 1.0, 5.0, 0.1 );
+
+switch( formula )
+{
+case "Modern":
+    k_value = 0.6;
+    break;
+
+case "Original":
+    k_value = 1.0;
+    break;
+
+case "Custom k":
+default:
+    k_value = kCustom;
+    break;
+}
+
+_N( Param_title = _SECTION_NAME() + Param_source + "," + length + "," + k_value + "," + exponent + ")" );
+Plot( iMD( source, length, k_value, exponent ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle( "Style" ), Null, Null, 0, 1, 2 );
+_SECTION_END();

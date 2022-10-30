@@ -1,0 +1,11 @@
+_SECTION_BEGIN("Analytic RSI formula");
+/*RSI 12*/
+Period=Param( "Period", 15, 1, 200, 1 );
+Var=StochD(14);
+Up=IIf(Var>Ref(Var,-1),abs(Var-Ref(Var,-1)),0);
+Dn=IIf(Var<Ref(Var,-1),abs(Var-Ref(Var,-1)),0);
+Ut=Wilders(Up,Period);
+Dt=Wilders(Dn,Period);
+RSIPeriod=100*(Ut/(Ut+Dt));
+Graph0=RSIPeriod;
+_SECTION_END();

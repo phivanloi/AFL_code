@@ -1,0 +1,30 @@
+_SECTION_BEGIN("RMO");
+SwingTrd1 = 100 * (Close - ((MA(C,2)+
+MA(MA(C,2),2)+
+MA(MA(MA(C,2),2),2) +
+MA(MA(MA(MA(C,2),2),2),2) +
+MA(MA(MA(MA(MA(C,2),2),2),2),2) +
+MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2) +
+MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2)+
+MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2),2)+
+MA(MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2), 2),2)+
+MA(MA(MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2), 2),2),2),2))
+/10))/(HHV(C,10)-LLV(C,10));
+SwingTrd2=
+EMA(SwingTrd1,30);
+SwingTrd3=
+EMA(SwingTrd2,30);
+RMO= EMA(SwingTrd1,81);
+Buy=Cross(SwingTrd2,SwingTrd3);
+Sell=Cross(SwingTrd3,SwingTrd2);
+Bull_Trend=EMA(SwingTrd1,81)>0;
+Bear_Trend=EMA(SwingTrd1,81)<0;
+Ribbon_kol=IIf(Bull_Trend,colorGreen, IIf(Bear_Trend,colorRed, colorBlack));
+Plot(4, "ribbon", Ribbon_kol, styleOwnScale|styleArea|styleNoLabel, -0.5,100);
+Impulse_UP= EMA(SwingTrd1,30) > 0;
+Impulse_Down= EMA(SwingTrd1,81) < 0;
+bar_kol=IIf(impulse_UP, colorBlue, IIf(impulse_Down, colorRed,IIf(Bull_Trend, colorRed, colorBlue)));
+Plot(Close,"Close",bar_kol,styleBar | styleThick );
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, colorBlue, colorRed ),0, IIf( Buy, Low, High ) );
+_SECTION_END();

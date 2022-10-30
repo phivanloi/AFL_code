@@ -1,0 +1,5 @@
+/*Pivot Point Reversals Automatic Analysis
+by Larry Lovrencic*/
+
+Buy=Ref(L,-1)<Ref(L,-2) AND Ref(L,-1)<L AND C>Ref(H,-1);
+Sell=Ref(H,-1)>Ref(H,-2) AND Ref(H,-1)>H AND C<Ref(L,-1); 

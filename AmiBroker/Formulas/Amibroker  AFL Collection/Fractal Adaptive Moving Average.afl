@@ -1,0 +1,26 @@
+// FRAMA - Fractal Adaptive Moving Average 
+Price = (H+L)/2; 
+N = Param( "N", 16, 2, 40, 2 ); // must be even 
+
+N3 = ( HHV( High, N ) - LLV( Low, N ) ) / N; 
+
+HH = HHV( High, N / 2 ) ; 
+LL = LLV( Low, N / 2 ); 
+
+N1 = ( HH - LL ) / ( N / 2 ); 
+
+HH = HHV( Ref( High, - N/2 ), N/2 ); 
+LL = LLV( Ref( Low, - N/2 ), N/ 2 ); 
+
+N2 = ( HH - LL ) / ( N / 2 ); 
+
+Dimen = IIf( N1 > 0 AND N2 > 0 AND N3 > 0, ( log( N1+N2) - log( N3 ) )/log( 2 ), Null ); 
+
+alpha = exp( -4.6 * (Dimen -1 ) ); 
+alpha = Min( Max( alpha, 0.01 ), 1 ); // bound to 0.01...1 range 
+
+Frama = AMA( Price, alpha ); 
+
+Plot( Frama, "FRAMA("+N+")", colorRed, styleThick ); 
+Plot( EMA( C, N ) , "EMA("+N+")", colorBlue ); 
+Plot( C, "Close", colorBlack, styleCandle ); 

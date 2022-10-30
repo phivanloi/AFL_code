@@ -1,0 +1,53 @@
+/*
+
+Rectangle System Development
+
+after: "Professional Stock Trading", M. Conway / A. Behle, 2003, pages 106, 107, 108
+
+Edward Pottasch, nov 2004
+
+*/
+
+RectangleLength = 4;
+RangeLength = RectangleLength * 3;
+RangeFactor = 1.0;
+RangeRatioLimit = 0.3;
+AtrPeriod = RangeLength;
+
+// rectangle
+hg = HHV(H,RectangleLength);
+lw = LLV(L,RectangleLength);
+HeightRectangle = hg - lw;
+
+// preceding range
+hgp = Ref(HHV(H,RangeLength),RectangleLength * -1);
+lwp = Ref(LLV(L,RangeLength),RectangleLength * -1);
+HeightRangeLength = hgp - lwp;
+
+// aspect ratio
+ar = HeightRectangle / HeightRangeLength;
+
+// ATR
+at = ATR(AtrPeriod);
+
+// decide if it is a rectangle
+yon = IIf(ar < RangeRatioLimit AND HeightRectangle < at * RangeFactor, 1, 0);
+
+// breakout level
+long_breakout_level = IIf(yon,yon * hg,Null);
+short_breakout_level = IIf(yon,yon * lw,Null);
+
+// decide about direction
+Buy = IIf(H > Ref(long_breakout_level,-1),1,0);
+BuyPrice = IIf(O > Ref(long_breakout_level,-1), O, Ref(long_breakout_level,-1));
+Short = IIf(L < Ref(short_breakout_level,-1),1,0);
+ShortPrice = IIf(O < Ref(short_breakout_level,-1), O, Ref(short_breakout_level,-1));
+
+Plot(C,"",colorWhite,64);
+Plot(Ref(hg,-1),"Long breakout level",colorBlue,1);
+Plot(Ref(lw,-1),"Short breakout level",colorYellow,1);
+
+PlotShapes(IIf(yon,shapeCircle,0),colorWhite, layer = 0, yposition = O, offset = 0 );
+
+PlotShapes(IIf(Buy,shapeUpArrow,0),colorWhite, layer = 0, yposition = BuyPrice, offset = 0 );
+PlotShapes(IIf(Short,shapeHollowDownArrow,0),colorLightBlue, layer = 0, yposition = ShortPrice, offset = 0 );

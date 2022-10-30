@@ -1,0 +1,3 @@
+fim = (H-L)/V;
+slick = IIf((V>Ref(V,-1) AND fim < Ref(fim,-1)),2,0);
+Plot(slick, "",4);

@@ -1,0 +1,305 @@
+//|------------------------------------------------------------------
+//|Tradingbasis.com - Automatic Pattern Recognition 1
+//|Version:5.5   12-May-2006
+//|Copyright C 2005, Tradingbasis.com
+//|http://www.tradingbasis.com
+//|e-mail: support@tradingbasis.com
+//|------------------------------------------------------------------
+SetChartOptions(0,chartShowDates|chartLogarithmic|chartWrapTitle);
+#pragma nocache
+#include  <\TBInc\Tradingbasis_f0.afl>
+AddparamUsefromChart(1); 
+AddAlertParam(0,0,0);
+_SECTION_BEGIN("Alerts");
+SRbS = ParamToggle("S/R broken","Off,On",1); 
+SRcS = ParamToggle("S/R confirmed","Off,On",1);
+PjabS = ParamToggle("Price just above/below","Off,On",1); 
+_SECTION_END();
+
+
+_SECTION_BEGIN("Main Parameters"); 
+Sensitivity = Param("Sensitivity",10,1,100,1);
+if(InChart)StaticVarSet("D4Q5T6",Sensitivity);
+if(inAA AND Usefromchart) Sensitivity = StaticVarGet("D4Q5T6"); 
+PlotP1P2 = ParamToggle("Plot P1/P2 Shapes","Off,On",1); 
+P1Shape = Param("P1 Shape Typ",35,0,50,1);//default 35 
+P2Shape = Param("P2 Shape Typ",37,0,50,1);//default 37 
+Parallellinesswitch = ParamToggle("Plot Parallel Lines","Off,On"); 
+DisRange = Param("Plot Parallel Lines Trigger",300,0,1000,20); 
+_SECTION_END();
+
+_SECTION_BEGIN("Styles");
+Style_SL= ParamStyle("Support",styleLine+styleThick,maskDefault)+styleNoRescale;
+Style_RL= ParamStyle("Resistance",styleLine+styleThick,maskDefault)+styleNoRescale;
+Style_PHL= ParamStyle("Parallel Support",styleLine+stylehidden,maskDefault)+styleNoRescale;
+Style_PLL= ParamStyle("Parallel Resistance",styleLine+stylehidden,maskDefault)+styleNoRescale;
+_SECTION_END();
+
+_SECTION_BEGIN("Colors");
+Color_SL=  ParamColor("Support",colorLime); 
+Color_RL= ParamColor("Resistance",colorRed); 
+Shadowcolor = ParamColor("Shadow",ColorRGB(56,63,118));
+Color_PLL= Color_RL; //ParamColor("Resistance",colorRed); 
+Color_PHL= Color_SL; //ParamColor("Support",colorLime); 
+_SECTION_END();
+
+if(Version()<4.75){Backgroundcolor = ParamColor("Your Background",colorWhite);} 
+
+if(inAA)
+{
+_SECTION_BEGIN("Pattern Selection");
+AscTs = ParamToggle("Ascending Triangle","Off,On",1); 
+DscTs = ParamToggle("Descending Triangle","Off,On",1); 
+STs = ParamToggle("Symmetrically Triangle","Off,On",1); 
+ETs = ParamToggle("Expanding Triangle","Off,On",1); 
+RWs = ParamToggle("Rising Wedge","Off,On",1); 
+FWs = ParamToggle("Falling Wedge","Off,On",1); 
+UTs = ParamToggle("Up Trend","Off,On",1); 
+DTs = ParamToggle("Down Trend","Off,On",1); 
+Rectangles = ParamToggle("Rectangle","Off,On",1); 
+NonDefinedPatterns = ParamToggle("Not defined Patterns","Off,On",0); 
+_SECTION_END();
+}
+
+HH = HHV(H,Sensitivity);
+LL = LLV(L,Sensitivity);
+Mid = LL+((HH-LL)/2);
+Div = 100-(HH/(0.01*Mid));
+Per = LastValue(abs(Div));
+
+x = Cum(1);
+PS = TroughBars(L,per,1) == 0;
+xb = LastValue(ValueWhen(PS,x,1));
+xa = LastValue(ValueWhen(PS,x,2));
+yb = LastValue(ValueWhen(PS,L,1));
+Ya = LastValue(ValueWhen(PS,L,2));
+xab_log = log(yb/yA)/(xb-xa);
+SL = exp((x-xb)*xab_log)*yb;
+RocSL = ROC(SL,1);
+
+PR1 = PeakBars(H,per,1) == 0;
+Xd = LastValue(ValueWhen(pR1,x,1 ));
+xc = LastValue(ValueWhen(pR1,x,2 ));
+yd = LastValue(ValueWhen(pR1,H,1));
+Yc = LastValue(ValueWhen(pR1,H,2));
+xcd_log = log(yd/yc)/(xd-xc);
+RL = exp((x-xd)*xcd_log)*yd;
+RocRL = ROC(RL,1);
+
+//LPL
+Low_Value = LastValue(Ref(LLV(L,xd-xc),-(x-xd)));
+x2 = LastValue(ValueWhen(L==Low_Value &  x>xc & x<xd,x)); 
+PLL = IIf(LastValue(x)-x2>5,exp((x-x2)*xcd_log)*Low_Value,-1e10);
+//HPL
+Hi_Value = LastValue(Ref(HHV(H,xb-xa),-(x-xb)));
+x3 = LastValue(ValueWhen(H==Hi_Value & x>xa & x<xb,x)); 
+PHL = IIf(LastValue(x)-x3>5,exp((x-x3)*xab_log)*Hi_Value,-1e10);
+//Channels
+AvgRoc = abs(MA(ROC(C,1),100));
+Threshold_parallel = 15;
+Threshold_Trend = 0.001*per;
+
+SLabs = SL-Ref(SL,-1); RLabs = RL-Ref(RL,-1); 
+ROC2SL = (SLabs/C)*100; ROC2RL = (RLabs/C)*100; 
+
+RSL = ROC2SL > Threshold_Trend; FlatSL = abs(ROC2SL) < Threshold_Trend; FSL = ROC2SL < -Threshold_Trend; 
+RRL = ROC2RL > Threshold_Trend; FlatRL = abs(ROC2RL) < Threshold_Trend; FRL = ROC2RL < -Threshold_Trend; 
+parallel= abs(((RocSL/RocRL)-1)*100)<Threshold_parallel;
+
+UT= RSL AND RRL AND parallel;
+DT= FSL AND FRL AND parallel;
+DT_UT = IIf (DT,-1,IIf(UT,1,0));
+Rectangle = parallel AND FlatSL AND FlatRL;
+
+Xm = xb-xa >4 & xd-xc >4; //x-min.distance - optional
+AscT= FlatRL & RSL & xa<xd & xc<xb & SL<RL;// & Xm; 
+DscT= FlatSL & FRL & xa<xd & xc<xb & SL>RL;// & Xm; 
+AT_DT= IIf(AscT,1,IIf(DscT,-1,0)); 
+ST = RSL & FRL & RL>SL & xa<xd & xc<xb & SL<RL;// & Xm; 
+ET = RRL & FSL & RL>SL & xa<xd & xc<xb & SL<RL;// & Xm;//abs(ROCSL/ROCRL)<3 - optional 
+ST_ET = IIf(ST,1,IIf(ET,-1,0)); 
+RW = RRL & RSL & RocSL>RocRL & SL>RL AND NOT parallel;// & Xm; 
+FW = FSL & FRL & RocRL<RocSL & SL<RL AND NOT parallel;// & Xm; 
+RW_FW = IIf (RW,1,IIf(FW,-1,0));
+//////////////////////////////////////////
+
+Distance = 0.5*ATR(14);
+//Support line signals
+Sup_break = Cross(SL,C) & X>XB;
+Sup_pricejustabove = L<SL+Distance & L>SL & X>XB; 
+Sup_confirmed = L<=SL & C>SL & X>XB;
+
+//Resistance line signals
+Res_break = Cross(C,RL) & X>XD;
+Res_pricejustbelow = H>RL-Distance & H<RL & X>XD; 
+Res_confirmed = H>=RL & C<RL & X>XD;
+
+/*Parallel lower line signals
+PLL_break = Cross(PLL,C);
+PLL_pricejustabove = L<PLL+Distance & L>PLL; 
+PLL_confirmed = L<=PLL & C>PLL;
+
+//Parallel higher line signals
+PHL_break = Cross(C,PHL);
+PHL_pricejustbelow = H>PHL-Distance & H<PHL; 
+PHL_confirmed = H>=PHL & C<PHL; 
+*/
+
+SupSignals = Sup_break | Sup_pricejustabove | Sup_confirmed; 
+ResSignals = Res_break | Res_pricejustbelow | Res_confirmed; 
+//PLLSignals = PLL_break | PLL_pricejustabove | PLL_confirmed; 
+//PHLSignals = PHL_break | PHL_pricejustbelow | PHL_confirmed;
+
+BS = Sup_confirmed OR Res_break;
+SS = Res_confirmed OR Sup_break;
+NS = Sup_pricejustabove OR Res_pricejustbelow;
+Buy = BS; Sell = SS;
+
+PatternDirection = 
+IIf(AscT|FW|UT,1,
+IIf(DscT|RW|DT,-1,
+IIf(ST|ET|Rectangle,0,0)));
+
+PatternText =
+WriteIf(LastValue(AscT),"Ascending Triangle", 
+WriteIf(LastValue(DscT),"Decending Triangle", 
+WriteIf(LastValue(ST),"Symmetrical Triangle", 
+WriteIf(LastValue(ET),"Expanding Triangle", 
+WriteIf(LastValue(RW),"Rising Wedge", 
+WriteIf(LastValue(FW),"Falling Wedge", 
+WriteIf(LastValue(UT),"Up Channel", 
+WriteIf(LastValue(DT),"Down Channel", 
+WriteIf(Rectangle,"Rectangle","Not defined")))))))));
+
+//Display Cond. fix when Chart is compl.zoomed out 
+PLLd = abs((LastValue(C)/LastValue(PLL))-1)<0.01*DisRange;
+PHLd = abs((LastValue(C)/LastValue(PHL))-1)<0.01*DisRange; 
+
+barvisible = Status("barvisible");
+firstvisiblebar = barvisible & NOT Ref(barvisible,-1);
+HHvisible = LastValue(HighestSince(firstvisiblebar,High));
+LLvisible = LastValue(LowestSince(firstvisiblebar,Low));
+RaH = HHvisible *1.05; //Rectangle High
+RaL = LLVisible *0.95; //Rectangle Low
+//Anyline_zero
+AnZ= ya==0 OR yb==0 OR yc==0 OR yd==0;
+SL_plot = IIf(x>=xa & SL>RaL & SL<RaH & NOT AnZ,SL,IIf(x>=xa & RaL==0 & NOT AnZ,SL,-1e10)); 
+RL_plot  = IIf(x>=xc & RL>RaL & RL<RaH & NOT AnZ,RL,IIf(x>=xc & RaL==0 & NOT AnZ,RL,-1e10)); 
+PLL_plot = IIf(x-x2>=0 & abs(LastValue(L/PLL)-1)<abs(LastValue((DisRange/1000)*ATR(14))) & PLL>RaL & PLL<RaH & NOT AnZ,PLL,IIf(x-x2>=0 & RaL==0 & PLLd & abs(LastValue(L/PLL)-1) <abs(LastValue((DisRange/1000)*ATR(14)))& NOT AnZ,PLL,-1e10)); 
+PHL_plot = IIf(x-x3>=0 & abs(LastValue(H/PHL)-1)<abs(LastValue((DisRange/1000)*ATR(14))) & PHL>RaL & PHL<RaH & NOT AnZ,PHL,IIf(x-x3>=0 & RaL==0 & PHLd & abs(LastValue(H/PHL)-1) <abs(LastValue((DisRange/1000)*ATR(14)))& NOT AnZ,PHL,-1e10));
+
+///////////Begin Ploting Part//////////// 
+#include  <\TBInc\Tradingbasis_1.afl> 
+LastBar = Cum(1) == LastValue(Cum(1)); 
+Plot(SL_plot ,"  SL" ,Color_SL,Style_SL+styleNoTitle); 
+Plot(RL_plot ,"  RL" ,Color_RL,Style_RL+styleNoTitle); 
+Plot(IIf(Parallellinesswitch,PLL_plot,-1e10),"PLL",Color_PLL,Style_PLL+styleNoTitle);
+Plot(IIf(Parallellinesswitch,PHL_plot,-1e10),"PHL",Color_PHL,Style_PHL+styleNoTitle);
+//Shapes
+PlotShapes(IIf(BS & x>LastValue(x)-1,5,shapeNone),Color_SL,0, Low,-13 ); 
+PlotShapes(IIf(SS & x>LastValue(x)-1,6,shapeNone),Color_RL,0, High,-13 ); 
+if(PlotP1P2)
+{ 
+PlotShapes(IIf(x==xa & NOT AnZ,P1Shape,shapeNone),Color_SL,0,SL,-13 ); 
+PlotShapes(IIf(x==xb & NOT AnZ,P2Shape,shapeNone),Color_SL,0,SL,-13 ); 
+PlotShapes(IIf(x==xc & NOT AnZ,P1Shape,shapeNone),Color_RL,0,H,13 ); 
+PlotShapes(IIf(x==xd & NOT AnZ,P2Shape,shapeNone),Color_RL,0,H,13 ); 
+} 
+
+// Shading
+BEGIN=Min(xa,xc);
+TRS = IIf(x>BEGIN-1,SL,-1e10);
+TRR = IIf(x>BEGIN-1,RL,-1e10);
+yVal=IIf(trs > trr,trr,trs);
+trr = IIf(trr>0,trr,Null);
+yval = IIf(yval>0,yval,Null);
+GraphZOrder = 0;
+if(Version()>4.75){
+PlotOHLC(0,trr,yval,0,"",Shadowcolor,styleCloud+styleNoLabel);}
+else
+{
+Plot(yVal,"",Backgroundcolor,styleArea+styleNoRescale+styleNoLabel);
+Plot(trr,"",Shadowcolor,styleArea+styleNoRescale+styleNoLabel);
+}
+///////////End Ploting Part////////////
+
+
+if(inAA){
+DefinedPatterns = AscT | DscT | ST | ET | RW | FW | UT | DT; 
+Filter = BarIndex()==LastValue(BarIndex()) AND NOT GroupID()==253;
+Filter = Filter AND 
+(AscT AND AscTs)| (DscT AND DscTs)| (ST AND STs)| 
+(ET AND ETs)| (RW AND RWs)| (FW AND FWs)| 
+(UT AND UTs)| (DT AND DTs)|(Rectangle AND Rectangles)| 
+(SupSignals AND NonDefinedPatterns AND NOT DefinedPatterns)|
+(ResSignals AND NonDefinedPatterns AND NOT DefinedPatterns); 
+// | PLLSignals | PHLSignals; ///////////////////////////////////////
+Adddefaultcolumns(2,1);
+AddTextColumn(WriteIf(Sup_pricejustabove,"Price just above", 
+WriteIf(Sup_confirmed,"Confirmed",
+WriteIf(Sup_break,"Break",""))),"Support Line",1.2, IIf(Sup_pricejustabove OR sup_confirmed,colorGreen,colorRed));
+AddTextColumn(
+WriteIf(Res_pricejustbelow,"Price just below", WriteIf(Res_confirmed,"confirmed",
+WriteIf(Res_break,"Break",""))),"Resistance Line",1.2, IIf(Res_pricejustbelow OR Res_confirmed,colorRed,colorGreen));
+
+patterncolor = 
+IIf(AscT|FW|UT,colorGreen,
+IIf(DscT|RW|DT,colorRed,
+IIf(ST|ET|Rectangle,colorBlue,colorBlack)));
+
+AddTextColumn(PatternText,"Pattern",0,patterncolor);
+AddTextColumn(FullName(),"Full name");
+}
+/*
+AddTextColumn(
+WriteIf(PLL_pricejustabove,"price just above",
+WriteIf(PLL_confirmed,"confirmed",
+WriteIf(PLL_break,"break",""))),"Parallel support line");
+
+AddTextColumn(
+WriteIf(PHL_pricejustbelow,"price just below",
+WriteIf(PHL_confirmed,"confirmed",
+WriteIf(PHL_break,"break",""))),"Parallel resistance line");
+*/
+
+
+/*
+if( Status("action") == actionCommentary )
+{   
+printf("\n\n"+"Parallel Level = " + WriteVal(abs(((RocSL/RocRL)-1)*100),1.2));
+printf("\n"+"Threshold_parallel = " + WriteVal(Threshold_parallel,1.2));
+printf("\n\n"+"SL Trend Level = " + WriteVal(ROC2SL,1.4));
+printf("\n"+"RL Trend Level = " + WriteVal(ROC2RL,1.4));
+printf("\n"+"Threshold Trend = " + WriteVal(Threshold_Trend,1.4));
+}
+*/
+
+// Alerts ////////////////////////////////////////////////////////////////////
+Alerttext = "";
+/*
+DefaultAlertText +", "
++ "\n"+ PatternText +", "
++"\nSupport Line =   "+ WriteVal(SL)+", "
++"\nResistance Line =   "+WriteVal(RL);
+*/
+
+if(SRbS){
+AddAlert(Res_break,Audio,Email,"Resistance broken,"+AlertText,2,BarComplete);
+AddAlert(Sup_break,Audio,Email,"Support broken"+AlertText,2,BarComplete);
+}
+if(SRcS){
+AddAlert(Sup_confirmed,Audio,Email,"Support confirmed"+AlertText,1,BarComplete);
+AddAlert(Res_confirmed,Audio,Email,"Resistance confirmed"+AlertText,2,BarComplete);
+}
+if(PjabS){
+AddAlert(Sup_pricejustabove AND PatternDirection ==1,Audio,Email,"Price just above Support"+AlertText,1,BarComplete);
+AddAlert(Res_pricejustbelow AND PatternDirection ==-1,Audio,Email,"Price just below Resistance"+AlertText,2,BarComplete);
+AddAlert(Sup_pricejustabove AND PatternDirection ==0,Audio,Email,"Price just above Support"+AlertText,5,BarComplete);
+AddAlert(Res_pricejustbelow AND PatternDirection ==0,Audio,Email,"Price just below Resistance"+AlertText,5,BarComplete);
+}
+////////////////////////////////////////////////////////////////////////////
+Title = "Tradingbasis.com - Automatic Pattern Recognition 1 "
++ default_title
++", "
++ EncodeColor(colorLime)+"Pattern: "+ PatternText
++ EncodeColor(IIf(NOT AnZ,colorLightBlue,colorRed))+", Sensitivity = " + WriteVal(Sensitivity,1)+ " "+EncodeColor(colorRed)+WriteIf(NOT AnZ,""," NO POINTS AVAILABLE -> REDUCE SENSITIVITY ");

@@ -1,0 +1,34 @@
+/*It is very good. I don't understand the reasoning behind formula yet, I just tried it. 
+Since this is a combination of elements, I added another AND colored it. I added a colored 
+Correlation formula with the TSE Stock Index AND a system I use to look for Short trending stocks. 
+Here is the result.*/
+
+/* CCT Kaleidoscope
+**
+** Originally developed by Steve Karnish
+** http://www.cedarcreektrading.com
+**
+** AFL translation by Tomasz Janeczko
+**
+** Set scaling: Automatic
+** Grid: Middle
+*/
+
+k=LinRegSlope(C,13)+ 100 * ( EMA( EMA( C - Ref( C, -1 ) ,34 ) ,21)/ 
+EMA( EMA( abs( C - Ref( C, -1) ),34 ), 21 ) )+100 * 
+( EMA( EMA( C - (0.5 * ( HHV(H,13) + LLV(L,13))),21),3)/ 
+(0.5 * EMA( EMA( HHV(H,13) - LLV(L,13),21),3 ) ) );
+EMAk=EMA(k,104);
+kse=Foreign("KSE-100","C");
+Gra=C;
+Summ=Correlation(kse,GRA,13);
+Graphh=EMA(Summ,5);
+Upbar1=Graphh>0 AND C>Ref(C,-5) AND H>Ref(H,-5) AND Low>Ref(L,-5);
+Upbar2=Graphh<0 AND C>Ref(C,-5) AND H>Ref(H,-5) AND Low>Ref(L,-5);
+Downbar1=Graphh>0 AND C<Ref(C,-5) AND H<Ref(H,-5) AND Low<Ref(L,-5);
+Downbar2=Graphh<0 AND C<Ref(C,-5) AND H<Ref(H,-5) AND Low<Ref(L,-5);
+barcolor = IIf( downbar1, 4, IIf(Upbar2,8,IIf(Downbar2,15,IIf( upbar1, 5, 0))));
+Color = ValueWhen( barcolor != 0, barcolor );
+
+Plot(k, "Kaleidoscope", Color, styleHistogram);
+Plot(EMAk, "", colorLightBlue, styleThick);

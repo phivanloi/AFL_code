@@ -1,0 +1,19 @@
+_SECTION_BEGIN("fisher");
+// General - purpose Inverse Fisher Transform function
+
+st=Param("Stoch. Period",15,5,60,1);
+wp=Param("WMA Period",9,3,21,1);
+
+function InvFisherTfm( array )
+{
+  e2y = exp( 2 * array );
+  return ( e2y - 1 )/( e2y + 1 );
+}
+Value1 = 0.1 * ( StochD(st,3,3)- 50 );
+Value2 = WMA( Value1, wp );
+
+Plot( InvFisherTfm( Value2 ), "IFT-RSI", colorRed, styleThick );
+
+PlotGrid( 0.5 );
+PlotGrid(-0.5 );
+_SECTION_END();

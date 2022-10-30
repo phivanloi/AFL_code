@@ -1,0 +1,279 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+
+_SECTION_BEGIN("Ichimoku TSL ");
+GraphXSpace =1;
+
+prds = Param("Standard Line Periods?", 12,5,26,1);
+prds1 = Param("Turning Line Periods?", 3,3,10,1);
+prds2 = Param("Delayed Line Periods?", 11,4,25,1);
+prds3 = Param("Spans Periods?", 18,10,52,1);
+
+TL = ( HHV( H, prds1) + LLV( L, prds1) )/2;
+SL = ( HHV( H, prds) + LLV( L, prds) )/2;
+DL = Ref( C, -prds2);
+Sp1 = Ref( ( SL + TL )/2, -prds2);
+Sp2 = Ref( (HHV( H, prds3) + LLV(L, prds3))/2, -prds2);
+
+
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );
+_N( Title = StrFormat( "{{NAME}} - " + SectorID( 1 ) + " - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", colorBlack, styleCandle | styleNoTitle | ParamStyle( "Style" ) | GetPriceStyle() );
+
+if ( ParamToggle( "Tooltip shows", "All Values|Only Prices" ) )
+{
+ToolTip = StrFormat( "Open: %gnHigh: %gnLow: %gnClose: %g (%.1f%%)nVolume: " + NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 ) ) );
+}
+Buy = Cross(Close,IIf(sp1>sp2,sp1,sp2));
+Sell = Cross(IIf(sp1<sp2,sp1,sp2),Close);
+Short=Sell;
+Cover=Buy;
+/* exrem is one method to remove surplus strade signals*/
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+Buyc=0;
+
+Buyc=Flip(Buy,Sell);
+Sellc=Flip(Sell,Buy);
+//Buyc=ValueWhen(Sell,-1);
+
+TrendSL= IIf(Buyc==1,Min(sp1,sp2),Max(sp1,sp2));
+
+Filter = 1;
+
+AddTextColumn( FullName(), "Company Name" );
+AddColumn( Buy, "Buy", 1 );
+AddColumn( Sell, "Sell", 1 );
+AddColumn( C, "Close", 1.3 );
+AddColumn( H, "High", 1.3 );
+//PlotOHLC (Sp1,Sp1,Sp2,Sp2,"Cloud",IIf(Sp1>Sp2,ParamColor("Span1 Color", ColorRGB(0,255,0)),ParamColor("Span2 Color",ColorRGB(255,104,32))),styleCloud);
+Plot(TrendSL,"IchiTrend",colorRed);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+
+if( Status("action") == actionIndicator ) 
+(
+Title = EncodeColor(colorWhite)+ "Ichimoku Cloud TSL" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"n" +EncodeColor(colorRed) +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+
+"Cl-"+C+"  "+ "Vol= "+ WriteVal(V)+"n"+ 
+EncodeColor(colorLime)+
+WriteIf (Buy , " GO LONG / Reverse Signal at "+C+"  ","")+
+WriteIf (Sell , " EXIT LONG / Reverse Signal at "+C+"  ","")+"n");
+
+for(i=BarCount-1;i>1;i--)
+
+{
+
+if(Buy[i] == 1)
+
+{
+
+entry = C[i];
+
+sig = "BUY";
+
+sl = TrendSL[i];
+
+tar1 = entry + (entry * .0050);
+
+tar2 = entry + (entry * .0092);
+
+tar3 = entry + (entry * .0179);
+
+ 
+
+bars = i;
+
+i = 0;
+
+}
+
+if(Sell[i] == 1)
+
+{
+
+sig = "SELL";
+
+entry = C[i];
+
+sl = TrendSL[i];
+
+tar1 = entry - (entry * .0050);
+
+tar2 = entry - (entry * .0112);
+
+tar3 = entry - (entry * .0212);
+
+ 
+
+ 
+
+bars = i;
+
+i = 0;
+
+}
+
+}
+
+Offset = 20;
+
+Clr = IIf(sig == "BUY", colorLime, colorRed);
+
+ssl = IIf(bars == BarCount-1, TrendSL[BarCount-1], Ref(TrendSL, -1));
+
+sl = ssl[BarCount-1];
+
+
+Plot(LineArray(bars-Offset, tar1, BarCount, tar1,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+
+Plot(LineArray(bars-Offset, tar2, BarCount, tar2,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+
+Plot(LineArray(bars-Offset, tar3, BarCount, tar3,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+
+
+
+//Plot(LineArray(bars-Offset, sl, BarCount, sl,1), "", colorDarkRed, styleLine|styleLine, Null, Null, Offset);
+
+//Plot(LineArray(bars-Offset, entry, BarCount, entry,1), "", colorGreen, styleLine|styleLine, Null, Null, Offset);
+
+
+
+/* 
+
+for (i=bars; i <BarCount;i++)
+
+{
+
+PlotText(""+sig+"@"+entry, BarCount-5,entry,Null,colorBlue);
+
+PlotText("T1@"+tar1,BarCount-5,tar1,Null,Clr);PlotText("T2@"+tar2,BarCount-5,tar2,Null,Clr);PlotText ("T3@"+tar3,BarCount-5,tar3,Null,Clr);
+
+ 
+
+}*/
+
+ 
+
+messageboard = ParamToggle("Message Board","Show|Hide",1);
+
+if (messageboard == 1 )
+
+{
+
+GfxSelectFont( "Tahoma", 13, 100 );
+
+GfxSetBkMode( 1 );
+
+GfxSetTextColor( colorWhite );
+
+ 
+
+if ( sig =="BUY")
+
+{
+
+GfxSelectSolidBrush( colorBlue ); // this is the box background color
+
+}
+
+else
+
+{
+
+GfxSelectSolidBrush( colorRed ); // this is the box background color
+
+}
+
+pxHeight = Status( "pxchartheight" ) ;
+
+xx = Status( "pxchartwidth");
+
+Left = 1100;
+
+width = 310;
+
+x = 5;
+
+x2 = 290;
+
+ 
+
+y = pxHeight;
+
+ 
+
+GfxSelectPen( colorGreen, 1); // broader color
+
+GfxRoundRect( x, y - 98, x2, y , 7, 7 ) ;
+
+GfxTextOut( ( "Marketcalls - Ichimoku TSL"),13,y-100);
+
+GfxTextOut( (" "),27,y-100);
+
+GfxTextOut( ("Last " + sig + " Signal came " + (BarCount-bars-1) * Interval()/60 + " mins ago"), 13, y-80) ; // The text format location
+
+GfxTextOut( ("" + WriteIf(sig =="BUY",sig + " @ ",sig + " @") + " : " + entry), 13, y-60);
+
+GfxTextOut( ("Trailing SL : " + Ref(TrendSL,-1) + " (" + WriteVal(IIf(sig == "SELL",entry-sl,sl-entry), 2.2) + ")"), 13, y-40);
+
+/*GfxTextOut( ("TGT:1 : " + tar1), 13, y -80);
+
+GfxTextOut( ("TGT:2 : " + tar2), 13,y-60);
+
+GfxTextOut( ("TGT:3 : " + tar3), 13,y-40);*/
+
+GfxTextOut( ("Current P/L : " + WriteVal(IIf(sig == "BUY",(C-entry),(entry-C)),2.2)), 13, y-22);;
+
+
+
+
+
+
+
+
+
+//Magfied Market Price
+
+FS=Param("Font Size",30,11,100,1);
+
+GfxSelectFont("Times New Roman", FS, 700, True ); 
+
+GfxSetBkMode( colorWhite );  
+
+GfxSetTextColor( ParamColor("Color",colorGreen) ); 
+
+Hor=Param("Horizontal Position",940,1,1200,1);
+
+Ver=Param("Vertical Position",12,1,830,1); 
+
+GfxTextOut(""+C, Hor , Ver );
+
+YC=TimeFrameGetPrice("C",inDaily,-1);
+
+DD=Prec(C-YC,2);
+
+xx=Prec((DD/YC)*100,2);
+
+GfxSelectFont("Times New Roman", 11, 700, True ); 
+
+GfxSetBkMode( colorBlack );  
+
+GfxSetTextColor(ParamColor("Color",colorYellow) ); 
+
+GfxTextOut(""+DD+"  ("+xx+"%)", Hor , Ver+45 );
+
+ 
+
+}
+
+
+_SECTION_END(); 

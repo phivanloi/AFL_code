@@ -1,0 +1,161 @@
+//------------------------------------------------------------------------------
+//  Formula Name	:      RSI Tranding for Amibroker AFL by pipschart
+//  Author	:      KrT group
+//  Uploader	:      www.pipschart.com
+//  E-mail		:      info@pipschart.com
+//  Amibroker Blog	:      www.pipschart.com/amibroker
+//  Origin		:      Modified & Collected from different sources.
+//------------------------------------------------------------------------------
+
+_SECTION_BEGIN("KrT group");
+GfxSetBkMode(1);
+X=750;
+Y=1;
+Font=10;
+GfxSelectFont("Impact",Font*2.2, 550);GfxSetTextColor(colorRed);GfxTextOut("KrT group",x,y);
+GfxSelectFont("Impact",Font*2.2, 550);GfxSetTextColor(colorGreen);GfxTextOut("RESEARCH",x+120,Y);
+
+_SECTION_END();
+
+//------------------------------------------------------------------------------
+
+SetBarsRequired(sbrAll, sbrAll);                                                        
+TP = Param("Trend Per", 300,2,1000);                                                                
+per_RSI= Param("RSI Per", 9, 7, 35,1);
+IND =  RSI(per_RSI);                                                                                                      
+Center = 50 ;
+
+Plot( RSI(per_RSI), "", 4, 4);     
+Plot(50,"",1,1) ;
+
+// CALCULATE  UPTREND
+
+startvalue = LastValue( LLV( IND, TP ) );                                                                          
+startbar =  LastValue( ValueWhen( IND == startvalue, BarIndex(), 1) );                      
+BP = BarCount - Startbar;                                                                                            
+
+secondvalue =  LastValue( LLV( IND, BP - 5  ) );                                                       
+secondbar =  LastValue( ValueWhen( IND == secondvalue, BarIndex(), 1) );            
+BP2 = BarCount - secondbar;  
+
+thirdvalue =  LastValue( LLV( IND, BP2 - 5 ) );                                                    
+thirdbar =  LastValue( ValueWhen( IND == thirdvalue, BarIndex(), 1) );             
+BP3 = BarCount - thirdbar;  
+
+fourthvalue =  LastValue( LLV( IND, BP3 - 5 ) );                                                       
+fourthbar =  LastValue( ValueWhen( IND ==fourthvalue, BarIndex(), 1) );         
+BP4 = BarCount - fourthbar;  
+
+fifthvalue =  LastValue( LLV( IND, BP4 - 5 ) );                                                    
+fifthbar =  LastValue( ValueWhen( IND ==fifthvalue, BarIndex(), 1) );       
+BP5 = BarCount - fifthbar;  
+
+sixthvalue =  LastValue( LLV( IND, BP5 - 5 ) );                                             
+sixthbar =  LastValue( ValueWhen( IND ==sixthvalue, BarIndex(), 1) );         
+
+Low_1= IIf( BarIndex() == startbar, 80, Null);
+Low_2= IIf( BarIndex() == secondbar, 80, Null);
+Low_3= IIf( BarIndex() == thirdbar, 80, Null);
+Low_4= IIf( BarIndex() == fourthbar, 80, Null);
+Low_5= IIf( BarIndex() == fifthbar, 80, Null);
+Low_6= IIf( BarIndex() == sixthbar, 80, Null);
+
+b = startvalue ;    
+FirstSlope = (secondvalue - b) / (secondbar - startbar) ;
+FirstTrendline = FirstSlope * ( BarIndex() - startbar ) + b;                                                             
+// Plot(  IIf(  BarIndex() >= startbar  AND FirstTrendline <= 90 , FirstTrendline, Null ) , "FirstTrendline", colorGreen, styleThick +2048 );        
+
+SecondSlope = (thirdvalue - b) / (thirdbar - startbar) ;
+SecondTrendline = SecondSlope * ( BarIndex() - startbar ) + b;                                                              
+
+ThirdSlope = (fourthvalue - b) / (fourthbar - startbar) ;
+ThirdTrendline = ThirdSlope * ( BarIndex() - startbar ) + b;  
+
+FourthSlope = (fifthvalue - b) / (fifthbar - startbar) ;
+FourthTrendline = FourthSlope * ( BarIndex() - startbar ) + b;  
+
+FifthSlope = (sixthvalue - b) / (sixthbar - startbar) ;
+FifthTrendline = FifthSlope * ( BarIndex() - startbar ) + b;  
+
+MainSlope = IIf( FirstSlope > SecondSlope,  IIf( SecondSlope > ThirdSlope,  IIf( ThirdSlope > FourthSlope, 
+ IIf( FourthSlope >  FifthSlope,  FifthSlope, FourthSlope),ThirdSlope), SecondSlope), FirstSlope) ;
+
+MainLine = MainSlope * ( BarIndex() - startbar ) + b;    
+Plot(  IIf(  BarIndex() >= startbar, MainLine, Null ) , "MainLine", colorDarkGreen, styleThick ) ;   
+
+
+IND_Diff = IIf(  BarIndex() >= startbar, abs( IND - MainLine), Null) ;
+MainTrendLine_Diff = Param("Difference IND from MainTrendLine", 2.5, 0.5,5,  0.5);
+
+Cond_Buy = IIf( BarIndex() >= Thirdbar AND  IND_Diff  <= MainTrendLine_Diff, IND, 0)  AND  MainLine < 55 ;
+
+PlotShapes( IIf( Cond_Buy, shapeUpArrow , shapeNone ), colorGreen );
+
+
+
+/////////////////////////////////////////////
+
+// CALCULATE  DOWNTREND
+
+starthigh = LastValue( HHV( IND, TP ) );                                                                         
+starthighbar =  LastValue( ValueWhen( IND == starthigh, BarIndex(), 1) );                
+HBP = BarCount - starthighbar;                                                                                   
+
+secondhigh =  LastValue( HHV( IND, HBP - 5  ) );                                                    
+secondhighbar =  LastValue( ValueWhen( IND == secondhigh, BarIndex(), 1) );      
+HBP2 = BarCount - secondhighbar;  
+
+thirdhigh =  LastValue( HHV( IND, HBP2 - 5 ) );                                                    
+thirdhighbar =  LastValue( ValueWhen( IND == thirdhigh, BarIndex(), 1) );            
+HBP3 = BarCount - thirdhighbar;  
+
+fourthhigh =  LastValue( HHV( IND, HBP3 - 5 ) );                                                         
+fourthhighbar =  LastValue( ValueWhen( IND ==fourthhigh, BarIndex(), 1) );           
+HBP4 = BarCount - fourthhighbar;  
+
+fifthhigh =  LastValue( HHV( IND, HBP4 - 5 ) );                                                   
+fifthhighbar =  LastValue( ValueWhen( IND ==fifthhigh, BarIndex(), 1) );         
+HBP5 = BarCount - fifthhighbar;  
+
+sixthhigh =  LastValue( HHV( IND, HBP5 - 5 ) );                                                
+sixthhighbar =  LastValue( ValueWhen( IND ==sixthhigh, BarIndex(), 1) );           
+
+High_1= IIf( BarIndex() == starthighbar, 90, Null);
+High_2= IIf( BarIndex() == secondhighbar, 90, Null);
+High_3= IIf( BarIndex() == thirdhighbar, 90, Null);
+High_4= IIf( BarIndex() == fourthhighbar, 90, Null);
+High_5= IIf( BarIndex() == fifthhighbar, 90, Null);
+High_6= IIf( BarIndex() == sixthhighbar, 90, Null);
+
+MainTrendLine_Diff = Param("Difference IND from MainTrendLine", 2.5, 0.5,7,  0.5);
+
+d = starthigh ;    
+FirstDownSlope = (secondhigh - d) / (secondhighbar - starthighbar) ;
+FirstDownTrendline = FirstDownSlope * ( BarIndex() - starthighbar ) + d;                                                               
+
+SecondDownSlope = (thirdhigh - d) / (thirdhighbar - starthighbar) ;
+SecondDownTrendline = SecondDownSlope * ( BarIndex() -  starthighbar ) + d;                                                          
+
+ThirdDownSlope = (fourthhigh - d) / (fourthhighbar - starthighbar) ;
+ThirdDownTrendline = ThirdDownSlope * ( BarIndex() - starthighbar ) + d;  
+
+FourthDownSlope = (fifthhigh - d) / (fifthhighbar - starthighbar) ;
+FourthDownTrendline = FourthDownSlope * ( BarIndex() - starthighbar ) + d;  
+
+FifthDownSlope = (sixthhigh - d) / (sixthhighbar - starthighbar) ;
+FifthDownTrendline = FifthDownSlope * ( BarIndex() - starthighbar ) + d;  
+
+MainDownSlope = IIf( FirstDownSlope < SecondDownSlope,  IIf( SecondDownSlope < ThirdDownSlope,  
+IIf( ThirdDownSlope < FourthDownSlope,  IIf( FourthDownSlope <  FifthDownSlope, FifthDownSlope, FourthDownSlope),ThirdDownSlope), SecondDownSlope), FirstDownSlope) ;
+
+MainDownLine =  IIf( MainDownSlope == 0, Null, MainDownSlope * ( BarIndex() - starthighbar ) + d ) ;    
+Plot(  IIf(  BarIndex() >=  starthighbar, MainDownLine, Null ) , "Main_DOWN_Line", colorViolet, styleThick ) ;    
+
+IND_Diff = IIf(  BarIndex() >=  starthighbar, abs( IND - MainDownLine), Null) ;
+
+Cond_Sell = IIf( BarIndex() >= Thirdbar AND  IND_Diff  <= MainTrendLine_Diff, IND, 0)  AND  MainDownLine > 45 ;
+
+PlotShapes( IIf( Cond_Sell, shapeDownArrow , shapeNone ), colorRed );
+
+
+Title =  Name() + "\\c17" +   "  " +"\\c12" + "RSI" +  " " + per_RSI   ;

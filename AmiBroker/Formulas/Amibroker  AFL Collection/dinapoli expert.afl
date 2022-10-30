@@ -1,0 +1,33 @@
+_SECTION_BEGIN("dinapoli expert");
+Periods = Param( "Periods", 8, 5, 55, 1 );
+KSmoothing = Param( "%K Smoothing", 3, 1, 55, 1 );
+DSmoothing = Param( "%D Smoothing", 3, 1, 55, 1 );
+KLine = ( Sum( ( Close - LLV( Close, Periods ) ), KSmoothing ) / Sum( ( HHV( Close, Periods ) - LLV( Close, Periods ) ), KSmoothing ) ) * 100;
+KLine = MA( KLine, KSmoothing );
+DLine = MA( KLine, DSmoothing );
+
+PeriodFast = Param( "Fast EMA", 8.3896, 2, 200, 1 );
+PeriodSlow = Param( "Slow EMA", 17.5185, 2, 200, 1 );
+PeriodSignal = Param( "Signal EMA", 9.0503, 2, 200, 1 );
+MACDInd = MACD(PeriodFast, PeriodSlow );
+SigInd = Signal(PeriodFast, PeriodSlow , PeriodSignal );
+
+x =KLine > DLine AND MACDInd > SIgInd;
+Plot (x,"",colorBlue,styleLine);
+y = KLine < DLine OR MACDInd < SIgInd;
+Plot (y,"",colorRed,styleLine);
+Buy = x;
+Sell = y;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); 
+PlotShapes( shapeHollowUpArrow* Buy , colorBrightGreen ,0);
+PlotShapes( shapeHollowDownArrow* Sell, colorRed ,0);
+
+Filter = Buy OR Sell;
+Short = Sell;
+Cover = Buy;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); 
+AddTextColumn(FullName(),"Name");
+AddColumn( Buy, "BUY" );
+AddColumn( Sell, "SELL" );
+
+_SECTION_END();

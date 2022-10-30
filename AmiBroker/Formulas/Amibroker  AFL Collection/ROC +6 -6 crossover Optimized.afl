@@ -1,0 +1,25 @@
+// ROC +6/-6 crossover ***Optimized***
+
+//Enters long/short when the Optimization period Price rate of change goes below/above the +6/-6% levels.
+
+//Note: Run Optimization first, insert optimized figure in ( pds= ) statement, then ( // ) out optimization lines, click on backtest.
+
+pds=7;
+pds2=6;
+pds=Optimize("pds",5,5,15,2);
+pds2=Optimize("pds2",5,5,7,1);
+p1=ROC(C,pds);
+p2=pds2;
+
+Buy=Ref(p1,-1) < -pds2 AND p1 >= -pds2;
+Sell=Ref(p1,-1) > pds2 AND p1 <= pds2;
+Short=Ref(p1,-1) > pds2 AND p1 <= pds2;
+Cover=Ref(p1,-1) < -pds2 AND p1 >= -pds2;
+
+Filter=Buy OR Sell OR Short OR Cover;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy);Short=ExRem(Short,Cover);Cover=ExRem(Cover,Short);
+
+AddColumn(Buy,"Buy");
+AddColumn(Sell,"sell");
+AddColumn(Short,"short");
+AddColumn(Cover,"cover");

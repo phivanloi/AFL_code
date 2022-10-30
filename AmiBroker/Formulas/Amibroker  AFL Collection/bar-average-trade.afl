@@ -1,0 +1,379 @@
+_SECTION_BEGIN("Back Ground");
+SetChartBkColor(ParamColor("Outer panel color ",colorBlack)); // color of outer border 
+SetChartBkGradientFill( ParamColor("Inner panel color upper half",colorBlack),ParamColor("Inner panel color lower half",colorBlack),ParamColor("Titleblock",colorBlack )); //color of inner panel
+_SECTION_END();
+
+_SECTION_BEGIN("Price All Style");
+
+TypeofPrice  = ParamList("Type of Price","Bar Chart,Candle Stick,AmiBroker,ragu,",0);
+switch(TypeofPrice)
+{
+   case "Bar Chart":
+		BarColor=IIf(C>Ref(C,-1),colorBlue,colorRed);
+		
+		// -- Plot basic candle chart
+dec = (Param("Decimals",2,0,7,1)/10)+1;
+PC = Ref(Close,-1);
+Ch=(C-pC);
+CHP=CH/pc*100;
+PlotOHLC(Open, High, Low, Close, 
+
+"\n"+"Volume      = "+WriteVal(V,dec)+
+"\n"+"C.Points    = "+WriteVal(Ch,dec)+
+"\n"+"Change     = "+ WriteVal(CHP,dec)+" %"+
+"\n"+
+"\n" + "  Open       = " +WriteVal (O,DEC) +
+ "\n"+"  High        = "+ WriteVal(H,DEC) +
+ "\n"+"  Low         = " +WriteVal( L,DEC) +
+ "\n"+ "  Close      " ,
+barcolor, styleBar);
+      break;
+
+   case "Candle Stick":
+		BgColor=colorBlack;//ParamColor("BgColor", colorBlack);
+		SetChartBkGradientFill( BgColor,BgColor,BgColor); 
+		upcolor=colorBlue;//ParamColor("Up color ",colorBlue);
+		downcolor=colorRed;//ParamColor("Down color ",colorRed);
+		barcolor=IIf(C>Ref(C,-1),upcolor,downcolor);
+		Insidecolor=IIf(C<O,barcolor,BgColor);
+		SetBarFillColor(Insidecolor);
+		
+// -- Plot basic candle chart
+dec = (Param("Decimals",2,0,7,1)/10)+1;
+PC = Ref(Close,-1);
+Ch=(C-pC);
+CHP=CH/pc*100;
+PlotOHLC(Open, High, Low, Close, 
+
+"\n"+"Volume      = "+WriteVal(V,dec)+
+"\n"+"C.Points    = "+WriteVal(Ch,dec)+
+"\n"+"Change     = "+ WriteVal(CHP,dec)+" %"+
+"\n"+
+"\n" + "  Open       = " +WriteVal (O,DEC) +
+ "\n"+"  High        = "+ WriteVal(H,DEC) +
+ "\n"+"  Low         = " +WriteVal( L,DEC) +
+ "\n"+ "  Close      " ,
+barcolor, styleCandle);
+
+		
+      break; 
+   case "AmiBroker":
+		_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+		
+// -- Plot basic candle chart
+dec = (Param("Decimals",2,0,7,1)/10)+1;
+PC = Ref(Close,-1);
+Ch=(C-pC);
+CHP=CH/pc*100;
+PlotOHLC(Open, High, Low, Close, 
+
+"\n"+"Volume      = "+WriteVal(V,dec)+
+"\n"+"C.Points    = "+WriteVal(Ch,dec)+
+"\n"+"Change     = "+ WriteVal(CHP,dec)+" %"+
+"\n"+
+"\n" + "  Open       = " +WriteVal (O,DEC) +
+ "\n"+"  High        = "+ WriteVal(H,DEC) +
+ "\n"+"  Low         = " +WriteVal( L,DEC) +
+ "\n"+ "  Close      " ,
+ styleBar);
+   break;
+
+   case "ragu":
+		
+   // -- Plot basic candle chart
+   GraphXSpace=Param("GraphXSpace",10,-100,100,1);
+   SetBarFillColor(IIf(O>C,24,19));
+dec = (Param("Decimals",2,0,7,1)/10)+1;
+PC = Ref(Close,-1);
+Ch=(C-pC);
+CHP=CH/pc*100;
+PlotOHLC(Open, High, Low, Close, 
+
+"\n"+"Volume      = "+WriteVal(V,dec)+
+"\n"+"C.Points    = "+WriteVal(Ch,dec)+
+"\n"+"Change     = "+ WriteVal(CHP,dec)+" %"+
+"\n"+
+"\n" + "  Open       = " +WriteVal (O,DEC) +
+ "\n"+"  High        = "+ WriteVal(H,DEC) +
+ "\n"+"  Low         = " +WriteVal( L,DEC) +
+ "\n"+ "  Close      " ,
+IIf(O>C,32,34),64);
+   
+
+
+
+}
+_SECTION_END();
+
+
+
+
+_SECTION_BEGIN( "RAGURAMAN FORMULA " );
+H1=Ref(H,-1);
+H2=Ref(H,-2);
+H3=Ref(H,-3);
+H4=Ref(H,-4);
+
+H5=Ref(H,-5);
+L1=Ref(L,-1);
+L2=Ref(L,-2);
+L3=Ref(L,-3);
+L4=Ref(L,-4);
+L5=Ref(L,-5);
+
+// asumsi C=O, define RE
+RE =(L+L1+L2)/3;
+// if  C>O define new RE, otherwise use RE above
+RE = IIf(C>O,(L+L2+L1)/2.9916, RE);
+// if  C<O define new RE, otherwise use RE above
+RE = IIf(C<O,(L+L2+L1)/3, RE);
+
+
+
+// asumsi C=O, define gr
+Gr =(H+h1+H2)/3;
+// if  C>O define new gr, otherwise use gr above
+Gr = IIf(C>O,(H+H2+h1)/3, Gr);
+// if  C<O define new gr, otherwise use gr above
+Gr = IIf(C<O,(H+h2+h1)/3.01, Gr);
+
+
+bs=GR;
+ss=RE;
+TimeFrameRestore();
+
+
+b=Ref(gr,-1);
+s=Ref(re,-1);
+
+Buy=Cross(C,b);
+Sell=Cross(S,C);
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+SellPrice=ValueWhen(Sell,bs,1);
+BuyPrice=ValueWhen(Buy,Bs,1);
+//Long=Flip(Buy,Sell);
+//Shrt=Flip(Sell,Buy );
+
+
+
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-10);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-20);                      
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-15); 
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=10);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=20);                      
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-15);
+
+
+GraphXSpace = 7;
+dist = 2.9*ATR(10);
+for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] ) PlotText( "BUY @   \n" +WriteVal( b[ i ],1.2), i, H[ i ]-dist[i], colorGreen,55 );
+if( Sell[i] ) PlotText( "SELL @ \n" +WriteVal(s[ i ],1.2), i, H[ i ]+dist[i], colorRed,55);
+}
+
+
+_SECTION_END();
+
+_SECTION_BEGIN("INTRADAY P.DAY OHLC ");
+Plot_Range = (TimeNum() >= 85500 AND TimeNum()<= 153500) AND (DateNum()==LastValue(DateNum()));
+FH_Range   = (TimeNum() >= 085500 AND TimeNum()<= 093000) AND (DateNum()==LastValue(DateNum()));
+dec = (Param("Decimals",2,0,7,1)/10)+1;
+FH_Prices  = High * FH_Range;
+FH_Marker  = BarsSince(FH_Range>0);
+
+Num_Bars   = 36000 / Interval(1);  
+
+TimeFrameSet(inDaily);
+TOP_        = Open;
+PH_        = Ref(High,-1);
+PL_        = Ref(Low,-1);
+PO_        = Ref(Open,-1);
+PC_        = Ref(Close,-1);
+PM_        = (PH_+PL_)/2;
+
+
+TO_        =Ref(Open,0);
+TH_        =Ref(High,0);
+TL_        =Ref(Low,0);
+
+TO         = TimeFrameExpand(TO_,inDaily,expandFirst); 
+PH         = TimeFrameExpand(PH_,inDaily,expandFirst); 
+PL         = TimeFrameExpand(PL_,inDaily,expandFirst); 
+PO         = TimeFrameExpand(PO_,inDaily,expandFirst); 
+PC         = TimeFrameExpand(PC_,inDaily,expandFirst); 
+PM         = TimeFrameExpand(PM_,inDaily,expandFirst); 
+TimeFrameRestore();
+
+isAll = True;
+isRth =  TimeNum() >= 085400 AND TimeNum() <= 093000;
+isdRth =  TimeNum() >= 085400 AND TimeNum() <= 160000;
+
+aRthL = IIf(isRth, L, 1000000);
+aRthH = IIf(isdRth, H, Null);
+aRthLd = IIf(isdRth, L, 1000000);
+
+
+FHH        = Ref(HHV(High*FH_Range,Num_Bars),-FH_Marker);
+FHL = TimeFrameCompress( aRthL, inDaily, compressLow );
+FHL = TimeFrameExpand( FHL, inDaily, expandFirst );
+
+FHH        = Ref(HHV(High*FH_Range,Num_Bars),-FH_Marker);
+TL = TimeFrameCompress( TL_, inDaily, compressLow );
+TL = TimeFrameExpand( TL_, inDaily, expandFirst );
+
+DayH = TimeFrameCompress( TH_, inDaily, compressHigh );
+DayH = TimeFrameExpand( TH_, inDaily, expandFirst );
+DayL = TimeFrameCompress( TL_, inDaily, compressLow );
+DayL = TimeFrameExpand( TL, inDaily, expandFirst );
+_SECTION_END();
+
+
+
+GfxSetOverlayMode( mode = 0 ); 
+GfxSelectPen( colorOrange, 3 ); 
+GfxSelectSolidBrush( colorBlack ); 
+GfxRoundRect( 2, 20, 175, 60, 15, 15 ); 
+GfxSetBkMode(1); 
+GfxSelectFont( "Arial", 10, 700, False );
+GfxSetTextColor( colorPaleGreen );
+GfxSetTextAlign(0);
+GfxSetTextColor( colorYellow );
+GfxTextOut("RAGURAMAN  STOPLOSS  ", 8 ,25 );
+
+
+
+GfxSetTextColor( colorRed );
+GfxTextOut( WriteIf(Buy  ,     "                 "+WriteVal(ss,dec),""), 8, 40);
+//GfxTextOut( WriteIf(  Long AND NOT Buy, "                 "+WriteVal(ss,dec ),""),8, 40);
+GfxSetTextColor( colorPaleGreen );
+//GfxTextOut( WriteIf( shrt AND NOT Sell, "                 "+WriteVal(bs,dec ),""),8, 40);
+GfxTextOut( WriteIf(Sell ,     "                 "+WriteVal(bs,dec),""), 8, 40);
+
+
+
+PV=TimeFrameGetPrice( "V",inDaily,-1);
+
+GfxSetOverlayMode( mode = 0 ); 
+GfxSelectPen( colorWhite, 3 ); 
+GfxSelectSolidBrush( colorBlack ); 
+GfxRoundRect( 180, 65, 365, 150, 15, 15 ); 
+GfxSetBkMode(1); 
+GfxSelectFont( "Arial", 10, 700, False );
+GfxSetTextColor( colorWhite  );
+GfxSetTextAlign(0);
+
+GfxTextOut( WriteIf(Open, "T.OPEN       =  "+WriteVal(TO,dec),""), 186, 70);
+GfxSetTextColor( colorPaleGreen  );
+GfxTextOut( WriteIf(High , "T.HIGH        =  "+WriteVal(DAYH,dec),""),186,85);
+GfxSetTextColor( colorRed  );
+GfxTextOut( WriteIf(Low, "T.LOW        =  "+WriteVal(DAYL,dec),""), 186, 100);
+GfxSetTextColor( colorWhite  );
+GfxTextOut( WriteIf(Close,"T.CLOSE     =  "+WriteVal(C,dec),""),186, 115);
+GfxSetTextColor( colorOrange  );
+GfxTextOut( WriteIf(Volume, "T.VOLUME  =  "+(WriteVal(V,dec)),""), 186, 130);
+
+GfxSetOverlayMode( mode = 0 ); 
+GfxSelectPen( colorWhite, 3 ); 
+GfxSelectSolidBrush( colorBlack ); 
+GfxRoundRect( 2, 65, 175, 150, 15, 15 ); 
+GfxSetBkMode(1); 
+GfxSelectFont( "Arial", 10, 700, False );
+GfxSetTextColor( colorWhite );
+GfxSetTextAlign(0);
+
+
+GfxTextOut( WriteIf(Open, "P OPEN       =  "+WriteVal(PO,dec),""), 8, 70);
+GfxSetTextColor( colorPaleGreen  );
+GfxTextOut( WriteIf(High , "P HIGH        =  "+WriteVal(PH,dec),""),8, 85);
+GfxSetTextColor( colorRed  );
+GfxTextOut( WriteIf(Low, "P LOW        =  "+WriteVal(PL,dec),""), 8, 100);
+GfxSetTextColor( colorWhite  );
+GfxTextOut( WriteIf(Close, "P CLOSE     =  "+WriteVal(PC,dec),""),8, 115);
+GfxSetTextColor( colorOrange  );
+GfxTextOut( WriteIf(Volume, "P VOLUME  =  "+(WriteVal(PV,dec)),""), 8, 130);
+GfxSetOverlayMode( mode = 0 ); 
+GfxSelectPen( colorOrange, 3 ); 
+GfxSelectSolidBrush( colorBlack ); 
+GfxRoundRect( 180, 20, 365, 60, 15, 15 ); 
+GfxSetBkMode(1); 
+GfxSelectFont( "Arial", 10, 700, False );
+GfxSetTextColor( colorYellow );
+GfxSetTextAlign(0);
+
+GfxTextOut( WriteIf(Open, "CHANGE POINT =  "+WriteVal(CH,dec),""), 188, 25);
+
+GfxTextOut( WriteIf(Open, "CHANGE %         =  "+WriteVal(CHP,dec)+"  %",""), 188, 40);
+
+
+
+
+
+
+
+GfxSetOverlayMode( mode = 0 ); 
+GfxSelectPen( colorGreen, 3 ); 
+GfxSelectSolidBrush( colorBlack ); 
+GfxRoundRect( 2, 155,295,195, 15, 15 ); 
+GfxSetBkMode(1); 
+GfxSelectFont( "Arial", 10, 700, False );
+GfxSetTextColor( colorPaleGreen );
+GfxSetTextAlign(0);
+dec = (Param("Decimals",2,0,7,1)/10)+1;
+bf=(H-B);
+SF=(S-L);
+GfxTextOut("       (                  )", 148 ,160 );
+GfxTextOut( WriteIf(Buy ,"            "+WriteVal(bF,DEC),""), 148, 160);
+GfxTextOut( WriteIf(Sell ,"             "+WriteVal(sF,DEC),""),148, 160);
+GfxTextOut( WriteIf(Buy , "BUY  Signal At = "+WriteVal(b,DEC),""), 8, 160);
+GfxTextOut( WriteIf(Sell , "SELL Signal At = "+WriteVal(s,DEC),""),8, 160);
+
+//GfxTextOut( WriteIf( Long AND NOT Buy, "BUY Entry At  = "+WriteVal(BuyPrice,DEC),""), 8, 160);
+//GfxTextOut( WriteIf( shrt AND NOT Sell, "SELL Entry At = "+WriteVal(SellPrice,dec ),""),8, 160);
+GfxSetTextColor( colorRed );
+GfxTextOut( WriteIf(Sell , "BUY Trade        = "+WriteVal(s-BuyPrice,DEC),""), 8, 175);
+GfxTextOut( WriteIf(Buy  , "SELL Trade     = "+WriteVal(SellPrice-b,DEC),""), 8, 175);
+BT=((S-BuyPrice)/BuyPrice)*100;
+ST=((SellPrice-b)/SellPrice)*100;
+GfxTextOut( WriteIf(Sell ,"              "+WriteVal(BT,DEC),""), 148, 175);
+GfxTextOut( WriteIf(Buy  ,"              "+WriteVal(ST,DEC),""), 148, 175);
+GfxSetTextColor( colorYellow );
+GfxTextOut("       (              % )", 149 ,175 );
+
+//GfxTextOut( WriteIf(  Long AND NOT Buy, "BUY Profit      = "+WriteVal(H-BuyPrice,dec ),""),8, 175);
+//GfxTextOut( WriteIf( shrt AND NOT Sell, "SELL Profit     = "+WriteVal(SellPrice-L,dec ),""),8, 175);
+BP=((H-BuyPrice)/BuyPrice)*100;
+SP=((SellPrice-L)/SellPrice)*100;
+
+//GfxTextOut( WriteIf(  Long AND NOT Buy, "              "+WriteVal(BP,dec ),""),148, 175);
+//GfxTextOut( WriteIf( shrt AND NOT Sell, "             "+WriteVal(SP,dec ),""),148, 175);
+
+
+_SECTION_END();
+
+
+
+_SECTION_BEGIN("Only Title")	;
+	GraphXSpace=Param("GraphXSpace",10,0,100,1);
+	dec = (Param("Decimals",2,0,7,1)/10)+1;
+	bi = BarIndex();
+	Lbi = LastValue(BarIndex());
+	sbi = SelectedValue(bi);
+	x1= BarCount-1;
+GfxSetBkMode(1); 
+GfxSelectFont( "Arial", 12, 700, False );
+GfxSetTextColor( colorYellow );
+
+GfxTextOut( WriteIf(Close , "    "+Date(),""), -10, 0);
+
+Title = EncodeColor(colorGold)+  Title =  
+"                             " + EncodeColor(5) + "{{INTERVAL}} " +
+	EncodeColor(54)+ "  Open  = "+ EncodeColor(5)+ WriteVal(O,dec) + 
+	EncodeColor(55)+ "   High  = "+ EncodeColor(5) + WriteVal(H,dec) +
+	EncodeColor(55)+ "   Low  = "+ EncodeColor(5)+ WriteVal(L,dec) + 
+	EncodeColor(55)+ "   Close  = "+ EncodeColor(5)+ WriteVal(C,dec)+
+	EncodeColor(4)+ "   Volume  = "+ EncodeColor(5)+ WriteVal(V)+
+   EncodeColor(55)+"    CHANGE %    =    "+EncodeColor(4)+WriteVal(CHP,DEC)+" % "; 
+_SECTION_END();

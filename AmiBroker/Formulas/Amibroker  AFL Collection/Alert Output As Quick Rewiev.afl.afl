@@ -1,0 +1,33 @@
+//=========================   QUICK VIEW [alert]   =============================
+//==============================================================================
+//×××   Period at finding changes at stocks price   ××××××××××××××××××××××××××××
+x      =-90; 
+eDay   =-1; 
+eWeek  =-5; 
+eMonth =-20; 
+eQTR   =-60; 
+eYEAR  =-260; 
+user   =x;
+//×××   HLEDAN? DELKA   ××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+qvCAS = eDay;        // There enter lenght period !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//×××   PODM?NKY   ×××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+qvCE       =C;
+qvHLEDANE  =Ref(C,qvCAS);
+qvBODY     =qvCE-qvHLEDANE;
+qvPROCENTA =100*(qvCE-qvHLEDANE)/qvHLEDANE;
+//×××   EXPLORE   ××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+Filter     = C; 
+AddTextColumn(Name(),"Ticker",2, IIf( MarketID()==0,5,4));
+AddColumn(qvHLEDANE,"Prev.Price",1.2);       
+AddColumn(C,"Price",1.2,IIf(C<1,11,IIf(C>=1 AND C<3,12,IIf(C>=3 AND C<20,1,0))));
+;
+AddColumn(qvBODY,"Change in $",1.2,2 ,IIf(qvBODY>=0.001,5,IIf(qvBODY==0,9,4 )));
+AddColumn(qvPROCENTA,"Change in %",1.2,2 ,IIf(qvPROCENTA>=0.001,5,IIf(qvPROCENTA==0,9,4 )));//×××   ALERT   ××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+Buy  = qvPROCENTA>0;
+Cover= qvProcenta==0;
+Sell = qvPROCENTA<0;
+AlertIf( Buy,"",WriteVal(qvPROCENTA,1.2),1,1,0 );
+AlertIf( Sell,"",WriteVal(qvPROCENTA,1.2),2,1,0 );
+AlertIf( Cover,"",WriteVal(qvPROCENTA,1.2),0,1,0 );
+//××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+         

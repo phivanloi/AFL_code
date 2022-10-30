@@ -1,0 +1,21 @@
+//Volume Price Analysis - Effort Index Afl  - Version 1.0
+//=====================Basic Section=======================================
+_SECTION_BEGIN("Effort versus Result- V.1.0");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+Vlp=Param("Volume lookback period",30,20,300,10);
+Vrg=MA(V,Vlp);// average volume
+spread=(H-L);
+avgSpread=Wilders(spread,Vlp);
+//----------------------EFFORT Index indicator code trial------------
+
+Effort=V*spread*(C-Ref(C,-1));
+effortSmt=(Effort+(2*Ref(Effort,-1))+(2*Ref(Effort,-2))+Ref(Effort,-3))/6;
+avgEffort=Vrg*avgSpread*(C-Ref(C,-1));
+avgEffortSmt=(avgEffort+(2*Ref(avgEffort,-1))+(2*Ref(avgEffort,-2))+Ref(avgEffort,-3))/6;
+//----------plotting----------------------
+Plot(avgEffortSmt,"Average Result",colorRed,2|styleThick);
+Plot(effortSmt,"Effort Index",colorLime,2|styleThick);
+PlotShapes(IIf(C>Ref(C,-1),IIf(effortSmt>0,shapeSmallCircle+shapePositionAbove,shapeSmallCircle),shapeNone),colorLime,effortSmt,effortSmt);
+PlotShapes(IIf(C<Ref(C,-1),IIf(effortSmt>0,shapeSmallCircle+shapePositionAbove,shapeSmallCircle),shapeNone),colorRed,effortSmt,effortSmt);
+PlotShapes(IIf(C<Ref(C,-1),IIf(effortSmt>0,shapeHollowCircle+shapePositionAbove,shapeSmallCircle),shapeNone),colorRed,effortSmt,effortSmt);
+PlotShapes(IIf(C>Ref(C,-1),IIf(effortSmt<0,shapeHollowCircle,shapeSmallCircle+shapePositionAbove),shapeNone),colorLime,effortSmt,effortSmt);

@@ -1,0 +1,11 @@
+ ///Chaloke Modified ATR Trailing Stop/// 
+
+Prev=Ref(HHV(H-2.5*ATR(5),10),-BarsSince(C>HHV(H-2.5*ATR(5),10) AND C>Ref(C,-1))); 
+A=IIf( Cum(1)<16 , C, 
+IIf( C > HHV(H-2.5*ATR(5),10) AND C > Ref(C,-1),HHV(H-2.5*ATR(5),10), 
+Prev)); 
+Plot(A,"Chaloke Modified ATR Trailing Stop",colorBlack,4); 
+Color=IIf(C>A,colorBrightGreen,IIf(C<A,colorRed,colorBlack)); 
+Plot(C,"",color,styleCandle); 
+PlotShapes(shapeDownArrow*Cross(A,C),colorBlue,0,H,Offset=-24); 
+GraphXSpace=3;

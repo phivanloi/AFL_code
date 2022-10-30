@@ -1,0 +1,31 @@
+//Volume Zone Oscillator 
+C1=C;
+V1=V;
+period=14;
+R= IIf (C1>Ref(C1,-1), V1,-V1); 
+VP= EMA (R, period);
+TV=EMA (V, period);
+VZO= 100*(VP/TV);
+Plot(Vzo,"",6,4);
+Plot(60,"",3,1);
+Plot(40,"",3,1);
+Plot(0,"",3,1);
+Plot(-60,"",3,1);
+Plot(-40,"",3,1);
+PlotOHLC(Null,60,40,Null,"",colorDarkRed,styleCloud);
+PlotOHLC(Null,-60,-40,Null,"",colorDarkGreen,styleCloud); 
+
+
+///////////////////////////////buy/sell///////////////////////
+Buy=Cross(VZO,-40);
+Sell=Cross(40,VZO);
+/////////////////////////shapes ///////////////////////////////
+shape = Buy * shapeUpTriangle + Sell * shapeDownTriangle;
+PlotShapes( shape, IIf( Buy, colorBrightGreen, colorRed ),0, IIf( Buy,VZO,VZO) );
+
+/////////////////////////exploration ///////////////////////////////
+Filter=Buy OR Sell;  
+AddColumn( IIf(Buy,1,IIf(Sell,-1,Null)) ,"B/S",1.0,colorWhite,IIf(Buy,colorGreen,IIf(Sell,colorRed,Null)),60);
+
+
+/////////////////////////////////////////////////////////////////////

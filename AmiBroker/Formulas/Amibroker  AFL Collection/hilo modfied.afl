@@ -1,0 +1,62 @@
+_SECTION_BEGIN("HiLo modified");
+K = Param("K",3,1,25,1,0);
+per = Param("per",6,1,10,1);
+filt = ATR(per)*k ; 
+ 
+Lo = 0; 
+Hi = H + 2*filt; 
+ 
+for(i = 2; i < BarCount; i ++) 
+{ 
+   if(i == 2) trend[1] = 1; 
+ 
+ 
+   if(trend[i-1] == 1) 
+   { 
+      LoN = C[i] - filt[i]; 
+      if(LoN > Lo[i-1]) 
+      { 
+         Lo[i] = LoN; 
+      } 
+      else
+      { 
+         Lo[i] = Lo[i-1]; 
+      } 
+      if(L[i] < Lo[i])    
+      { 
+         trend[i] = 0; 
+         Hi[i] = L[i] + filt[i]; 
+      } 
+      else trend[i] = 1; 
+   } 
+   if(trend[i-1] == 0) 
+   { 
+      HiN = C[i] + filt[i]; 
+      if(HiN < Hi[i-1]) 
+      { 
+         Hi[i] = HiN; 
+      } 
+      else
+      { 
+         Hi[i] = Hi[i-1]; 
+      } 
+      if(H[i] > Hi[i]) 
+      { 
+         trend[i] = 1; 
+         Lo[i] = H[i] - filt[i]; 
+      } 
+      else trend[i] = 0; 
+   } 
+} 
+ 
+Hi = IIf(!trend, Hi, Null); 
+Lo = IIf(trend, Lo, Null); 
+ 
+UpDw=Flip( Hi, Lo );
+Color = IIf(UpDw, colorRed, colorBlue); 
+ 
+HiLoLine = IIf(UpDw, Hi, Lo); 
+ 
+ 
+Plot(HiLoLine, "Hi Lo Line", Color, styleStaircase); 
+_SECTION_END();

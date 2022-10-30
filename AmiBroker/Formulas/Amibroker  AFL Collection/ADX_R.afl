@@ -1,0 +1,23 @@
+_SECTION_BEGIN("ADX");  
+range = Param("ADX Periods", 7, 2, 200, 1 ); 
+Col_adx = IIf(ADX(range) > Ref(ADX(range),-1) ,colorBlue, colorGrey40);
+Col_pdi = IIf(PDI(range) > MDI(range) AND ADX(range) > MDI(range),colorBrightGreen,colorDarkGreen);
+Col_Mdi = IIf(MDI(range) > PDI(range) AND ADX(range) > PDI(range),colorRed,colorDarkRed);
+
+Plot (20,"",colorGrey40,styleNoLabel);
+Plot (30,"",colorDarkBlue,styleNoLabel+styleDashed);
+trend = IIf(Col_adx ==colorBlue AND Col_pdi==colorBrightGreen,colorBrightGreen,IIf(Col_adx ==colorBlue AND Col_mdi==colorRed,colorRed,IIf(Col_pdi == colorBrightGreen AND Col_mdi == colorRed,colorYellow, IIf(Col_pdi==colorBrightGreen,colorDarkGreen,IIf(Col_mdi==colorRed,colorDarkRed,colorBlack)))));
+
+
+TimeFrameSet(in5Minute);
+Col_adx5 = IIf(ADX(range) > Ref(ADX(range),-1) ,colorBlue, colorGrey40);
+Col_pdi5 = IIf(PDI(range) > MDI(range) AND ADX(range) > MDI(range),colorBrightGreen,colorDarkGreen);
+Col_Mdi5 = IIf(MDI(range) > PDI(range) AND ADX(range) > PDI(range),colorRed,colorDarkRed);
+trend5 = IIf(Col_adx5 ==colorBlue AND Col_pdi5==colorBrightGreen,colorBrightGreen,IIf(Col_adx5 ==colorBlue AND Col_mdi5==colorRed,colorRed,IIf(Col_pdi5 == colorBrightGreen AND Col_mdi5 == colorRed,colorYellow, IIf(Col_pdi5==colorBrightGreen,colorDarkGreen,IIf(Col_mdi5==colorRed,colorDarkRed,colorBlack)))));
+TimeFrameRestore();
+Plot(2, "", trend5, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+Plot(4, "", Col_adx5, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+
+Plot(10, "", trend, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+
+_SECTION_END(); 

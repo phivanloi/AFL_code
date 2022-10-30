@@ -1,0 +1,52 @@
+// Detrended Price Oscillator
+// Written by Barry Scarborough
+// updated 8/9/05  - correct formula
+// updated 8/10/05 - correct formula
+
+n = Param("DPO period", 14, 2, 100, 1);
+p = int( ( n / 2) + 1);
+movA = MA(C, n);
+dpo = C -  Ref(movA, -p); // changed to use C, 8/10/05
+upDpo = dpo > 0; 
+dnDpo = dpo < 0; 
+
+Buy  = Cover = upDpo;
+Sell = Short = dnDpo;
+
+Plot (dpo, "DPO(" + NumToStr(n,1.0) + ")", colorRed);
+Plot (0, "", colorBlue);
+
+/*
+The Detrended Price Oscillator (DPO) compares the closing price to a prior simple moving average (SMA). The detrending procedure eliminates cycles longer than the 
+moving average look back period, isolating Short-term cycles, AND facilitating the identification of price turning points. 
+
+Calculation: 
+1. Determine the appropriate timeframe for analysis. One-half of this time period should be used as the look back period (n) for the SMA window. 
+2. Calculate a SMA of closing prices for an n-period look back window. 
+3. Determine the number of periods (e.g., days) to shift the SMA back in time, using equation [1]:
+
+ [1] p = int [ (n / 2) + 1]
+
+ where:  int is the integer function;
+ p is the number of periods to shift the SMA back in time, AND the remaining term was defined above.
+
+if the calculation [(n / 2) + 1] results in a non-integer value, the fractional part is dropped AND the integer number is used. The final step is to calculate the 
+difference between the current closing price AND the SMA, using equation [2]:
+
+ [2] DPO = Ct – SMAt-p
+
+where:
+ DPO is the Detrended Price Oscillator;
+ Ct is the closing price at time t,
+ SMAt-p is the simple moving average shifted back p periods in time.
+
+Interpretation:
+The DPO can be used for trading stock in both trending AND trading markets. In a trending market, a Buy Signal is given when the DPO value crosses from above to 
+below zero, AND then rises above zero. Conversely, a Sell Signal is indicated when the DPO crosses from below to above zero, AND then drops back below zero. 
+These signals should be taken only if the price trend is intact (e.g., a Buy Signal should only be taken if the price remains above the price moving average).
+
+To employ the DPO in a trading market of sideways, congested price movement, extreme levels for overbought AND oversold should be established based upon past 
+price activity. A Buy Signal is given when the DPO crosses below the oversold level AND then rises above it. A Sell Signal is indicated when the DPO crosses 
+above the overbought level AND then drops back below it.
+
+*/

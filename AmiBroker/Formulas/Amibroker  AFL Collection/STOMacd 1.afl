@@ -1,0 +1,4 @@
+_SECTION_BEGIN("STOMacd");
+StochMACD=100*(MACD(4,34)-LLV(MACD(4,34),14))/(HHV(MACD(4,34),14)-LLV(MACD(4,34),14));
+Plot(StochMACD,"",IIf(stochMACD > 80, colorBrightGreen, IIf(stochMACD < 20,colorRed,IIf(stochMACD > Ref(stochMACD,-1),colorBrightGreen, colorRed))),styleThick); 
+_SECTION_END();

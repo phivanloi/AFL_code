@@ -1,0 +1,6 @@
+Buy = 	EMA(  Close , 50 ) > Ref( EMA(  Close , 50 ) , -1 )
+AND Ref( EMA(  Close , 50 ) , -1 ) > Ref( EMA(  Close , 50 ) , -2 )
+AND Cross(  StochK( 15, 3 ), StochD( 15, 3, 3 ) );
+
+PlotShapes(Buy*shapeUpArrow,colorGreen);
+//PlotShapes(Sell*shapeDownArrow,colorRed);

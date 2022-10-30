@@ -1,0 +1,9 @@
+x = Param ("Number of periods",15,2,100,1);
+bp = HHV(H,x)-Ref(LLV(L,x),-x);
+sp = Ref(HHV(H,x),-x)-LLV(L,x);
+ttf = ((bp-sp)/(0.5*(bp+sp)))*100;
+
+Plot(ttf, "TTF("+x+")",4);
+PlotGrid(0, colorLightGrey);
+PlotGrid(100, colorLightGrey);
+PlotGrid(-100, colorLightGrey); 

@@ -1,0 +1,14 @@
+// Paste the code below to your price chart somewhere and green ribbon means both
+// both MACD and ADX trending up so if the red ribbon shows up the MACD and the ADX 
+// are both trending down.
+
+_SECTION_BEGIN("trending ribbon");
+uptrend=PDI()>MDI()AND Signal()<MACD();
+downtrend=MDI()>PDI()AND Signal()>MACD();
+
+
+Plot( 2, /* defines the height of the ribbon in percent of pane width */"ribbon",
+IIf( uptrend, colorGreen, IIf( downtrend, colorRed, 0 )), /* choose color */
+styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+
+_SECTION_END();

@@ -1,0 +1,12 @@
+a=EMA(C,30)-EMA(C,200);
+b=EMA(a,20);
+
+
+Buy = Cross( a,b );
+Sell = Cross( b,a );
+//Short = Sell;
+//Cover = Buy;
+
+AlertIf( Buy, "", "MACD BUY", 1,1+2 );
+
+AlertIf( Sell, "", "MACD SELL", 2 ,1+2);

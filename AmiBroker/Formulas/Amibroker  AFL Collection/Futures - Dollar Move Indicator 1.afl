@@ -1,0 +1,31 @@
+_SECTION_BEGIN("ERGOCCI xyte");
+// ERGODIC CCI port to Amibroker 5.20 MT4 code created by Louw Coetzer aka FX Sniper
+// by xyte for Inditraders forum members  http://www.inditraders.com
+// Version 0.2 (c) 8th September 2009, 6:05pm
+
+
+pq = Param("PQ:",8, 1, 50, 1 );
+pr = Param("PR:",4, 1, 50, 1 );
+ps = Param("PS:",5, 1, 50, 1);
+trigger = Param( "Trigger:", 4, 1, 50, 1 );
+ 
+Mtm = C - Ref ( C, -1 );
+AbsMtm = abs ( Mtm );
+
+Var1 = EMA(Mtm, pq);
+Var2 = EMA(Var1, pr);
+Var2a = EMA(AbsMtm, pq);
+Var2b = EMA(Var2a, pr);
+
+Num = EMA(Var2, ps);
+Den = EMA(Var2b, ps);
+
+ErgoCCI = (500 * Num) / Den ;
+MainCCI = EMA(ErgoCCI, trigger);
+
+Plot( ErgoCCI, "ERGODIC CCI ("+pq+","+pr+","+ps+","+trigger+")", colorBlue, ParamStyle("Style")|styleThick );
+Plot( MainCCI, "", ParamColor("color",colorRed),styleLine);
+PlotGrid (0, colorWhite );
+Plot(200,"", colorLightGrey, styleLine|styleThick);
+Plot(-200, "",colorLightGrey, styleLine|styleThick);
+_SECTION_END();

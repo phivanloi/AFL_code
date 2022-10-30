@@ -1,0 +1,50 @@
+GraphXSpace = 5;
+GraphZOrder = 1;
+_SECTION_BEGIN("Bar Chart");
+up = H > Ref( H, -1) AND L >= Ref( L, -1);
+dn = L < Ref( L, -1) AND H <= Ref( H, -1);
+"BAR:";
+sts = WriteIf(up, "Up Day",
+WriteIf(dn, "Down Day",
+WriteIf(Inside(), "Inside Day",
+WriteIf(Outside(), "Outside Day",
+""))));
+
+Color = IIf(Outside(), colorLightBlue, IIf(Inside(), colorYellow, IIf(up, colorLime, IIf(dn, colorRed, colorWhite))));
+
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );
+_N( Title = StrFormat( "{{NAME}} - " + SectorID( 1 ) + " - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", Color, styleBar | styleThick | styleNoTitle );
+_SECTION_END();
+
+_SECTION_BEGIN("Principal Moving Average");
+x = MA(C, 20);
+Plot(x, "", /*IIf(x > Ref(x,-1), colorGreen, colorRed)*/ colorRed, styleThick | styleDashed);
+_SECTION_END();
+
+_SECTION_BEGIN("Phase");
+RCP = C > MA(C,50) AND MA(C,50) < MA(C,200); // Recovery
+ACP = C > MA(C,50) AND C > MA(C,200) AND MA(C,50) < MA(C,200); // Accumulation
+BLP = C > MA(C,50) AND C > MA(C,200) AND MA(C,50) > MA(C,200); // Bullish
+WRP = C < MA(C,50) AND MA(C,50) > MA(C,200); // Warning
+DSP = C < MA(C,50) AND C < MA(C,200) AND MA(C,50) > MA(C,200); // Distribution
+BRP = C < MA(C,50) AND C < MA(C,200) AND MA(C,50) < MA(C,200); // Bearish
+
+Plot( 1, "", IIf(RCP, colorBlue, IIf(ACP, colorSeaGreen, IIf(BLP, colorDarkGreen, IIf(WRP, colorOrange, IIf(DSP, colorRed, IIf(BRP, colorDarkRed, 0)))))), styleOwnScale|styleArea|styleNoLabel, -0.1, 50 );
+"";
+"PHASE:";
+Phase = WriteIf(RCP, "Recovery",
+WriteIf(ACP, "Accumulation",
+WriteIf(BLP, "Bullish",
+WriteIf(WRP, "Warning",
+WriteIf(DSP, "Distribution",
+WriteIf(BRP, "Bearish",
+""))))));
+_SECTION_END();
+
+_SECTION_BEGIN("T3");
+#include <T3_include.afl>;
+Plot(T3(C,3),"T3",colorRed);
+Plot(T3(C,5),"T5",colorLightBlue);
+Plot(T3(C,8),"T8",colorLime);
+_SECTION_END();

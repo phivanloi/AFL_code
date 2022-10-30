@@ -1,0 +1,12 @@
+r = Param( "Periods", 1, 1, 100, 1 );
+s = Param( "First Smoothing Periods", 15, 1, 100, 1 );
+u = Param( "Second Smoothing Periods", 5, 1, 100, 1 );
+
+DI = EMA(EMA((C-Ref(C,-r)),s),u);
+
+Plot( DI, "DI("+r+","+s+","+u+")", ParamColor( "Color", colorRed ), ParamStyle("Style") );
+
+
+
+
+

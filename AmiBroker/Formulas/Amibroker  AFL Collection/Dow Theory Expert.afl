@@ -1,0 +1,57 @@
+FractalUp1 = IIf((L < Ref(L,2) AND L < Ref(L,1) AND L < Ref(L,-1) AND L < Ref(L,-2)),1,0);
+FractalDown1 = IIf((H > Ref(H,2) AND H > Ref(H,1) AND H > Ref(H,-1) AND H > Ref(H,-2)),1,0);
+FractalSupport1 = ValueWhen(FractalUP1,L,1);
+FractalResistance1 = ValueWhen(FractalDown1,H,1);
+Upp1 = Cross(H,Ref(FractalResistance1,-2));
+Downn1= Cross(Ref(FractalSupport1,-2),L);
+
+
+FractalUp2 = IIf((L < Ref(L,3) AND L < Ref(L,2) AND L = Ref(L,1) AND L < Ref(L,-1) AND L < Ref(L,-2)),1,0);
+FractalDown2 = IIf((H > Ref(H,3) AND H > Ref(H,2) AND H=Ref(H,1) AND H > Ref(H,-1) AND H > Ref(H,-2)),1,0);
+FractalSupport2 = ValueWhen(FractalUp2,L,1);
+FractalResistance2 = ValueWhen(FractalDown2,H,1);
+Upp2 = Cross(H,Ref(FractalResistance2,-3));
+Downn2 = Cross(Ref(FractalSupport2,-3),L);
+
+FractalUp3 = IIf((L < Ref(L,4) AND L < Ref(L,3) AND L = Ref(L,2) AND L <= Ref(L,1) AND L < Ref(L,-1) AND L < Ref(L,-2)),1,0);
+FractalDown3 = IIf((H > Ref(H,4) AND H > Ref(H,3) AND H=Ref(H,2) AND H >= Ref(H,1) AND H > Ref(H,-1) AND H > Ref(H,-2)),1,0);
+FractalSupport3 = ValueWhen(FractalUp3,L,1);
+FractalResistance3 = ValueWhen(FractalDown3,H,1);
+Upp3 = Cross(H,Ref(FractalResistance3,-4));
+Downn3 = Cross(Ref(FractalSupport3,-4),L);
+
+Upp = UPP1 OR  UPP2 OR  UPP3;
+Downn = DOWNN1 OR DOWNN2 OR DOWNN3;
+
+/*This expert uses fractal patterns to implement the Dow Theory. It is my refinement of the
+Performance Systems Fractal Trading System 1 included with Metastock Pro 7.2.
+The latter used only one type of Buy OR Sell fractal, this one uses three types.
+
+I limited it to three types to reduce calculation time, AND because the more complex fractal
+patterns occur fewer times.
+
+Bullish Trend = Higher Highs
+Bearish Trend = Lower Lows
+
+A bullish highlight is set when the High of a bar crosses above the High of the last Sell fractal.
+A bearish highlight is set when the Low of a bar crosses below the Low of the last Buy fractal.
+
+To save calculation time the default is long AND a green highlight is set. Only the shorts criterium
+is calculated AND this sets the relevant bars red after the shorts condition has been satisfied.
+
+The names of the highlight criteria are in quotation marks. Only one of the Short criteria must be
+enabled at a time. The Second shorts criterium is the same as the first, except it limits evaluation to
+1000 bars. You can set this to any number you want.
+
+This expert works well in trending markets, but often whiplashes in ranging markets. It is advisable to use it
+with momemtum indicator divergences OR other supplementary technique.*/
+
+red = BarsSince(DOWNN) < BarsSince(UPP);
+
+Color = IIf(red, colorRed, colorGreen);
+
+
+
+_N( Title = StrFormat( "{{NAME}} - " + SectorID( 1 ) + " - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", Color, styleBar  | styleNoTitle );
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );

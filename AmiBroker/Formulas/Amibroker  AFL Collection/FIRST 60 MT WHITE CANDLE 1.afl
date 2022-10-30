@@ -1,0 +1,7 @@
+_SECTION_BEGIN("FIRST 30 MT WHITE CANDLE");
+////FIRST 30 MT WHITE CANDLE
+
+
+myBarMark = IIf( TimeNum()<101500, colorWhite,IIf(C>O,colorGreen,colorRed)); 
+Plot( Close, "Close", myBarMark , styleCandle);
+_SECTION_END();

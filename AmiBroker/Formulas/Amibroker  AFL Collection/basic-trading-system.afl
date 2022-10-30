@@ -1,0 +1,120 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C,
+           SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+//MA10
+MA10col=IIf(MA(C,10)>Ref(MA(C,10),-1),colorLime,colorRed);
+Plot(MA(C,10),"",colorRed,styleLine) ; 
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+//MA20
+Plot( MA( C, 20 ),"", colorBlue,styleLine ); 
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+//EMA50
+Plot( EMA( C, 50 ),"", colorLime,styleLine|styleThick ); 
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+//EMA200
+Plot( EMA( C,200 ),"", colorCustom12,styleLine|styleThick ); 
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+_SECTION_BEGIN("Bollinger Bands");
+bb1col=IIf(BBandTop(C,20,2)>Ref(BBandTop(C,20,2),-1),colorLime,colorRed);
+bb2col=IIf(BBandBot(C,20,2)>Ref(BBandBot(C,20,2),-1),colorLime,colorRed);
+Plot( BBandTop( C, 20,2 ), "" , bb1col, styleThick ); 
+Plot( BBandBot( C, 20,2 ), "" , bb2col, styleThick ); 
+_SECTION_END();
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+/*-----------------------------------------------------------
+MTR Investors Group - www.MTRIG.com
+Color MACD Histogram Bars. Use on weekly chart to determine
+market trend. See Elder "Come into my trading room"
+-------------------------------------------------------------*/
+r1 = Param( "Fast avg", 12, 2, 200, 1 );
+r2 = Param( "Slow avg", 26, 2, 200, 1 );
+r3 = Param( "Signal avg", 9, 2, 200, 1 );
+ml = MACD(r1, r2);
+sl = Signal(r1,r2,r3);
+Hist = ml-sl;
+MACUP = Hist > Ref(Hist,-1);
+MACDN = Hist < Ref(Hist,-1);
+BarColor  = IIf(MACUP,colorLime,IIf(MACDN,colorOrange,colorBlue));
+//Plot( Hist, "MACD Histogram", BarColor  , styleHistogram |styleThick);
+//Plot(0, "0", colorBlack );
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+//TRENDING RIBBON
+// Paste the code below to your price chart somewhere and green ribbon means both
+// both MACD and ADX trending up so if the red ribbon shows up the MACD and the ADX 
+// are both trending down.
+_SECTION_BEGIN("trending ribbon");
+uptrend=PDI()>MDI() AND MACD()>Signal();
+downtrend=MDI()>PDI() AND Signal()>MACD();
+Plot( 2, /* defines the height of the ribbon in percent of pane width */"",
+IIf( uptrend, colorLime, IIf( downtrend, colorRed,colorTan )), /* choose color */
+styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+_SECTION_END();
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+//INDICATOR 5X5
+a=EMA(C,5);
+b=EMA(O,5);
+//Plot(a,"EMA(C,5)",colorRed);
+//Plot(b,"EMA(O,5)",colorBlue);
+Cp=a>b;
+Vd=b>a;
+Buy = ExRem(cp,vd);
+Sell = ExRem(vd,cp);
+//PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorBlue,0);
+//PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed,0);
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+//FORMULE
+PDIupmdi=PDI()>MDI();
+stochup=StochK()>StochD();
+Lim=ADX()<45 ;
+MFIup=MFI()>EMA(MFI(),5) ;
+MACDup=MACD()>Signal();
+Cupo=C>=O;
+band= (BBandTop( C, 20, 2 ) - BBandBot( C, 20, 2));
+Volatbuy=band>Ref(band,-1) ;
+ADXup=ADX()>Ref(ADX(),-1) ;
+CCIup=CCI()>EMA(CCI(),3);
+topup=BBandTop(C,20,2)>Ref(BBandTop(C,20,2),-1);
+botdn=BBandBot(C,20,2)<Ref(BBandBot(C,20,2),-1);
+MA20up=MA(C,20)>Ref(MA(C,20),-1);
+MA10up=MA(C,10)>Ref(MA(C,10),-1);
+MA10upma20=MA(C,10)>MA(C,20);
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+//PARAMTOGGLE
+// This combines indicators into one timing Signal
+//function ParamOptimize( description, default, minv, maxv, step )
+//    { return Optimize(description, Param(description,default, minv, maxv, step ), minv, maxv, step ); }
+tgl = ParamToggle("Result", "AND logic|Compare");
+// switch test calculation and compare the results
+if(tgl)
+{
+myBuy = macup AND MFIup AND CCIup AND topup AND botdn AND MA20up AND Cp AND stochup;
+myShort = !MACDup AND !pdiupmdi; 
+}
+else
+{
+myBuy   = IIf(hist>Ref(hist,-1) AND MFI()>EMA(MFI(),5) AND CCI()>EMA(CCI(),3) AND  BBandTop(C,20,2)>Ref(BBandTop(C,20,2),-1) AND
+          BBandBot(C,20,2)<Ref(BBandBot(C,20,2),-1) AND MA(C,20)>Ref(MA(C,20),-1) AND a>b AND StochK()>StochD()      ,1,0);
+myShort = IIf( MACD()<Signal() AND PDI()<MDI()        ,1,0);
+}
+
+Buy = ExRem(myBuy, myShort);
+Sell = ExRem(myShort, myBuy);
+
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorBlue,0,L,Offset=-10);
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed,0,H,Offset=-10);
+
+
+

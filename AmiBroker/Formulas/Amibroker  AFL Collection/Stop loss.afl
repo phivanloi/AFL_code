@@ -1,0 +1,17 @@
+a1=StDev(C,10)*2;
+h1=H+a1;
+L1=L-a1;
+
+//Title="95% chance for stop loss (add to buy price for short and sub from buy price for long) = "+sq + "Exitshort= "+(C+sq)+", Exitlong= "+(C-sq)+" a*2= "+a;
+Plot(h1, "STOP SHORT max at ", colorRed,styleLine);                         
+Plot(L1, "STOP LONG max at ",colorGreen,styleLine);
+a1=a1/2;
+h1=H+a1;
+L1=L-a1;
+Plot(h1, "STOP SHORT min at ", colorYellow,styleLine);                         
+Plot(L1, "STOP LONG at ",colorOrange,styleLine);
+Plot(C,"Close= ",colorBlack,styleBar);
+bp=(ATR(22)*25/100)+C;
+sp=C-(ATR(22)*25/100);
+Plot(bp,"Dont buy above this price ",colorDarkBlue,styleLine);
+Plot(sp,"Dont short below this price",colorBlue,styleLine);

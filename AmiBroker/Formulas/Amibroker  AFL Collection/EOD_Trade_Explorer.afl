@@ -1,0 +1,192 @@
+//Tillson's Part (RSI Smoothing)
+
+#include <T3_include.AFL>;
+TillsonBuy = Cross (t3(RSI(9),3), t3(RSI(9),5));
+TillsonSell =  Cross (t3(RSI(9),5), t3(RSI(9),3));
+
+//Appel's Triple Momentum
+x = ROC (C,5);
+y = ROC (C,15);
+Z = ROC (C,25);
+AROC=x+y+z;
+ABuy = Cross (t3(AROC,3), t3(AROC,5));
+ASell = Cross (t3(AROC,5), t3(AROC,3));
+
+
+//Price Smoothing
+Tillson2Buy = Cross (T3(C,3), T3(C,5));
+Tillson2Sell =  Cross (T3(C,5), T3(C,3));
+
+//Stochastics Part
+StochBuy = Cross(StochK(14,3), StochD(14,3,3));
+StochSell = Cross (StochD(14,3,3), StochK(14,3));
+
+//MCAD Histogram Signal
+r1 = Param( "Fast avg", 12, 2, 200, 1 );
+r2 = Param( "Slow avg", 26, 2, 200, 1 );
+r3 = Param( "Signal avg", 9, 2, 200, 1 );
+ml = MACD(r1, r2); 
+sl = Signal(r1,r2,r3);
+mhist=ml-sl;
+
+//MACD Signal Crosses
+MB= Cross (MACD(), Signal());
+MS = Cross( Signal(), MACD());
+MB_status=	WriteIf(MB, "Bullish", WriteIf(MS, "Bearish", "Neutral"));
+MS_Col=IIf(MB, colorGreen, IIf(MS, colorRed, colorLightGrey));
+
+mbuy = Cross(mhist,0) AND V >=50000 OR Cross(MACD(),Signal());
+msell = Cross(0,mhist) AND V >=50000 OR Cross(Signal(), MACD());
+
+//Wad: Larry Williams Acc/Distribution Status
+TRH = IIf(Ref(C, -1) > H, Ref(C, -1), H);
+TRL = IIf(Ref(C, -1) < L, Ref(C, -1), L);
+ad = IIf(C > Ref(C, -1), C - TRL, IIf(C < Ref(C, -1), C - TRH, 0));
+WAD = Cum(ad);
+wu = wad > Ref(wad,-1);
+wd = wad < Ref(wad,-1);
+wad_status=	WriteIf(wu, "Rising", WriteIf(wd, "Falling", "Neutral"));
+wad_Col=IIf(wu, colorGreen, IIf(wd, colorRed, colorLightGrey));
+
+//Bollinger Bands: last bar close at upper or lower band
+a1 = C>=BBandTop(C,20,2); 
+a2 = C<=BBandBot(C,20,2); 
+a3 = a1 OR a2; 
+ThisIsLastBar = BarIndex() == LastValue( BarIndex()); 
+bb_status=	WriteIf(a1, "BBT", WriteIf(a2, "BBB", "Neutral"));
+bb_Col=IIf(a1, colorGreen, IIf(a2, colorRed, colorLightGrey));
+
+
+//Longterm Bullish or Bearish
+Bull = C > MA(C,200);
+Bear= C < MA(C,200);
+lt_status=	WriteIf(Bull, "Bullish", WriteIf(Bear, "Bearish", "Neutral"));
+lt_Col=IIf(Bull, colorGreen, IIf(bear, colorRed, colorLightGrey));
+
+//Midterm Bullish or Bearish
+mBull = C > MA(C,50);
+mBear= C < MA(C,50);
+mt_status=	WriteIf(mBull, "Bullish", WriteIf(mBear, "Bearish", "Neutral"));
+mt_Col=IIf(mBull, colorGreen, IIf(mbear, colorRed, colorLightGrey));
+
+//Shortterm Bullish or Bearish
+sBull = C > MA(C,15);
+sBear= C < MA(C,15);
+st_status=	WriteIf(sBull, "Bullish", WriteIf(sBear, "Bearish", "Neutral"));
+t_Col=IIf(sBull, colorGreen, IIf(sbear, colorRed, colorLightGrey));
+
+//52 Week New High-New Low
+HI = High > Ref(HHV(High,260),-1);
+LI = Low < Ref(LLV(Low,260),-1);
+W_status=	WriteIf(HI, "High", WriteIf(LI, "Low", "Neutral"));
+W_Col=IIf(HI, colorGreen, IIf(LI, colorRed, colorLightGrey));
+
+//Price Volume Breakout: close greater than last close and volume at least twice as much 50-day MA
+HIV = C > Ref (C,-1) AND V > (MA(V,50)*2);
+LIV = C < Ref (C,-1) AND V < (MA(V,50)*2);
+V_status= WriteIf(HIV, "Gainer", WriteIf(LIV, "Loser", "Neutral"));
+V_Col=IIf(HIV, colorGreen, IIf(LIV, colorRed, colorLightGrey));
+
+Filter =  TillsonBuy OR TillsonSell OR Tillson2Buy OR Tillson2Sell OR StochBuy OR StochSell 
+OR mbuy OR msell OR ABuy OR ASell OR MB OR MS OR wu OR wd OR a3 OR ThisIsLastBar OR bull OR bear OR hiv OR liv OR hi OR li OR mbull OR mbear OR sbull OR sbear;
+
+//Eploration Section
+// 1. 3,5-Period T3 Crosses on RSI 
+
+Tbuy_status=	WriteIf(TillsonBuy, "Buy", WriteIf(TillsonSell, "Sell", "No Signal"));
+
+// Set the background color for Signal Status Column
+T3_Col=IIf(TillsonBuy, colorGreen, IIf(TillsonSell, colorRed, colorLightGrey));
+
+//StochRSI Exploration
+
+//StochRSIBuy_status=	WriteIf(StochRSIBuy, "Buy", WriteIf(StochRSIBuy, "Sell", "No Signal"));
+
+// Set the background color for Signal Status Column
+//StochRSI_Col=IIf(StochRSIBuy, colorGreen, IIf(StochRSIBuy, colorRed, colorLightGrey));
+
+// 2. 3,5-Periods T3 crosses on Price 
+
+T2buy_status=	WriteIf(Tillson2Buy, "Buy", WriteIf(Tillson2Sell, "Sell", "No Signal"));
+
+// Set the background color for Signal Status Column
+T32_Col=IIf(Tillson2Buy, colorGreen, IIf(Tillson2Sell, colorRed, colorLightGrey));
+
+// 3. 14-Perios Stochs
+
+Stochbuy_status=	WriteIf(StochBuy, "Buy", WriteIf(StochSell, "Sell", "No Signal"));
+
+// Set the background color for Signal Status Column
+Stoch_Col=IIf(StochBuy, colorGreen, IIf(StochSell, colorRed, colorLightGrey));
+
+
+//4. Daily Acc/Dist Status
+
+acc = AccDist() > Ref (AccDist(),-1);
+dist = AccDist() < Ref (AccDist(),-1);
+
+ad_status=	WriteIf(acc, "Accumulation", WriteIf(dist, "Distribution", "Neutral"));
+
+// Set the background color for Signal Status Column
+ad_Col=IIf(acc, colorGreen, IIf(dist, colorRed, colorLightGrey));
+
+
+//5. 14-Period daily ADX levels
+
+up= ADX(14) > Ref( ADX(14),-1);
+down= ADX(14) < Ref( ADX(14),-1);
+
+adx_status=	WriteIf(up, "Rising", WriteIf(down, "Falling", "Neutral"));
+
+// Set the background color for Signal Status Column
+adx_Col=IIf(up, colorGreen, IIf(down, colorRed, colorLightGrey));
+
+//6.MACD Histogram
+mbuy_status=	WriteIf(mbuy, "Bullish", WriteIf(msell, "Bearish", "No Signal"));
+
+// Set the background color for Signal Status Column
+m_Col=IIf(mbuy, colorGreen, IIf(msell, colorRed, colorLightGrey));
+
+//7.ATR
+ABuy_status=	WriteIf(ABuy, "Buy", WriteIf(ASell, "Sell", "No Signal"));
+
+// Set the background color for Signal Status Column
+ATR_Col=IIf(ABuy, colorGreen, IIf(ASell, colorRed, colorLightGrey));
+
+//8. 14-Period daily RSI levels
+
+up= RSI(14) > Ref( RSI(14),-1);
+down= RSI(14) < Ref( RSI(14),-1);
+
+rsi_status=	WriteIf(up, "Rising", WriteIf(down, "Falling", "Neutral"));
+
+// Set the background color for Signal Status Column
+rsi_Col=IIf(up, colorGreen, IIf(down, colorRed, colorLightGrey));
+
+
+
+
+AddTextColumn(Stochbuy_status, "Stochs", 1, colorWhite, Stoch_Col);
+//AddTextColumn(StochRSIBuy_status, "StochRSI", 1, colorWhite, StochRSI_Col);
+AddTextColumn(ABuy_status, "Appel's", 1, colorWhite, ATR_Col);
+AddTextColumn(Tbuy_status, "T3 RSI", 1, colorWhite, T3_Col);
+AddTextColumn(T2buy_status, "T3 Price", 1, colorWhite, T32_Col);
+AddTextColumn(mbuy_status, "MACD-H", 1, colorWhite, m_Col);
+AddTextColumn(MB_status, "MACD-S", 1, colorWhite, MS_Col);
+AddTextColumn(bb_status, "BBand", 1, colorWhite, bb_Col);
+//AddTextColumn(adx_status, "ADX", 1, colorWhite, adx_Col);
+AddColumn(C, "Close", 1.2, IIf(C > Ref(C,-1), colorGreen, colorRed));
+AddColumn(ROC(C,1), "ROC Price", 1.2, IIf(ROC(C,1) > 0, colorGreen, colorRed));
+AddColumn(V, "Volume", 1, IIf(V > Ref(V,-1), colorGreen, colorRed));
+AddColumn(ROC(V,1), "ROC Volume", 1.2, IIf(ROC(V,1) > 0, colorGreen, colorRed));
+AddTextColumn(ad_status, "Acc/Dist", 1, colorWhite, ad_Col);
+AddTextColumn(wad_status, "WAD", 1, colorWhite, wad_Col);
+AddColumn(ADX(14),"ADX-14",1,IIf(ADX(14) > Ref(ADX(14),-1), colorGreen, colorRed));
+//AddTextColumn(rsi_status, "RSI", 1, colorWhite, rsi_Col);
+AddColumn(RSI(14),"RSI-14",1, IIf(RSI(14) > Ref(RSI(14),-1), colorGreen, colorRed));
+//AddColumn(Ref (C,-1), "Last Close", 1.2);
+AddTextColumn(V_status, "Price Volume Breakout", 1, colorWhite, V_Col);
+AddTextColumn(W_status, "52-Week", 1, colorWhite, W_Col);
+AddTextColumn(lt_status, "Long Term", 1, colorWhite, lt_Col);
+AddTextColumn(mt_status, "Mid Term", 1, colorWhite, lt_Col);
+AddTextColumn(st_status, "Short Term", 1, colorWhite, lt_Col);

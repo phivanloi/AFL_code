@@ -1,0 +1,68 @@
+//|------------------------------------------------------------------
+//|Tradingbasis.com - Alert 1 Price based
+//|Version:2.0   07-July-2006
+//|Copyright © 2005, Tradingbasis.com
+//|http://www.tradingbasis.com
+//|e-mail: support@tradingbasis.com
+//|------------------------------------------------------------------
+SetChartOptions(0,chartShowDates|chartShowArrows|chartLogarithmic|chartWrapTitle);
+#pragma nocache
+#include  <\TBInc\Tradingbasis_f0.afl>
+
+AddAlertParam(1,0,0);
+
+_SECTION_BEGIN("Main Parameters"); 
+Switch2 = ParamToggle("Points/Percent","Points,Percent",1);
+Centering = ParamToggle("Range Centering","Off,On",1);
+Offset = Param("Maximum Deviation",0.5,0.0,5,0.01);
+SuRangeColor = ParamColor("Support Range",colorLime);
+ReRangeColor = ParamColor("Resistance Range",colorRed);
+_SECTION_END();
+
+SU = LastValue(Study("SU",GetChartID())); RE = LastValue(Study("RE",GetChartID()));
+digits = IIf(C>=60,1, IIf(C>=30&C<60,0.1, IIf(C>3 AND C<30,0.01,0.0001)));
+digits2 = IIf(LastValue(C)<3,1.4, IIf(LastValue(C)>=3 AND LastValue(C)<10,1.3,1.2));
+ALON = Audio|Email;
+
+SuAL_L = IIf(Centering,IIf(Switch2,SU-(Su*0.01*Offset),SU-digits*Offset),SU);
+SuAL_H = IIf(Switch2,SU+(Su*0.01*Offset),SU+digits*Offset);
+ReAL_L = IIf(Switch2,RE-(Re*0.01*Offset),RE-digits*Offset);
+ReAL_H = IIf(Centering,IIf(Switch2,RE+(Re*0.01*Offset),RE+digits*Offset),Re);
+
+Buy_1 = C<SuAL_H & C>=SuAL_L & SU>0;//Close in support range
+Buy_2 = Cross(C,ReAL_H) & Re>0;//Resistance broken
+Sell_1 = Cross(SuAL_L,C) & SU>0;//Support broken
+Sell_2 = C>ReAL_L & C<=ReAL_H & Re>0;//Close in resistance range
+
+AddAlert(Buy_1,Audio,Email,"Close in Support Range"+DefaultAlertText,1,BarComplete);
+AddAlert(Buy_2,Audio,Email,"Resistance broken"+DefaultAlertText,2,BarComplete);
+AddAlert(Sell_1,Audio,Email,"Support broken"+DefaultAlertText,2,BarComplete);
+AddAlert(Sell_2,Audio,Email,"Close in Resistance Range"+DefaultAlertText,2,BarComplete);
+
+#include  <\TBInc\Tradingbasis_1.afl>  
+
+Buy = 0;//no signals generated because AA window can't access getchartid().
+
+Shift = 10;
+x=Cum(1); Lx = x >=LastValue(x)-Shift;
+CV = IIf(Version()>=4.72,1,0);
+Plot(IIf(Lx & CV,SuAL_L,-1e10),"",SuRangeColor,styleNoRescale,0,0,Shift);
+Plot(IIf(Lx & CV,SuAL_H,-1e10),"",SuRangeColor,styleNoRescale,0,0,Shift);
+Plot(IIf(Lx & CV,ReAL_L,-1e10),"",ReRangeColor,styleNoRescale,0,0,Shift);
+Plot(IIf(Lx & CV,ReAL_H,-1e10),"",ReRangeColor,styleNoRescale,0,0,Shift);
+
+Nd = IIf(Su==0&Re>0,1,IIf(Re==0&Su>0,2,IIf(Su==0 & Re==0,3,0)));
+
+Title = "Tradingbasis.com - Alert 1" + default_title 
++EncodeColor(SuRangeColor)+", Support: " + WriteVal(LastValue(Study("SU",GetChartID())),digits2)
++ " (" + WriteVal(SuAL_L ,digits2)+"-"+WriteVal(SuAL_H,digits2)+"), "
++EncodeColor(ReRangeColor)+"Resistance: " + WriteVal(LastValue(Study("RE",GetChartID())),digits2)
++" (" + WriteVal(ReAL_L,digits2)+"-"+WriteVal(ReAL_H,digits2)+"), "
++EncodeColor(colorLightBlue)+""+"Max. Deviation: "+WriteVal(Offset,1.2)
++WriteIf(switch2," %, "," points, ") +EncodeColor(colorAqua)+ "Activated Alerts:"
++WriteIf(Audio AND NOT Email," Audio ",
+ WriteIf(Email AND NOT Audio," Email ",
+ WriteIf(Email AND Audio," Audio & Email "," None ")))
++WriteIf(Nd>0,"\n","")
++EncodeColor(colorRed)+WriteIf(Nd==1,"SU not defined ",
+ WriteIf(Nd==2,"RE not defined",WriteIf(Nd==3,"SU & RE not defined - No Alerts ","")));

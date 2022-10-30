@@ -1,0 +1,233 @@
+//////////////////////
+
+// Traders' Tips 2/2003
+
+// Zigzag Targets
+
+// AFL implementation by amibroker.com
+
+//////////////////////
+
+// calculate Zig-Zag
+
+Change = 8;
+
+ZoneWidth = 0.20; // zone width, 0.2 = 20%
+
+zz = Zig( Close, Change );
+
+// find last and previous Peak/Trough values 
+
+// and bars where they occur
+
+pk = Peak( Close, Change );
+
+tr = Trough( Close, Change );
+
+pkbars = PeakBars( Close, Change );
+
+trbars = TroughBars( Close, Change );
+
+// upswing is when last extremum was trough
+
+upswing = trbars < pkbars;
+
+fpk = ValueWhen( pkbars == 0, pk, 0 ); 
+
+ftr = ValueWhen( trbars == 0, tr, 0 ); 
+
+// Calculate price zones in upswing
+
+PriceZone = ZoneWidth * ( fpk - tr );
+
+B2 = upswing AND tr <= zz AND zz <= tr + PriceZone;
+
+LG = upswing AND tr + PriceZone <= zz AND zz <= fpk - PriceZone;
+
+S1 = upswing AND fpk - PriceZone <= zz AND zz <= fpk; 
+
+// Calculate price zones in downswing
+
+PriceZone = ZoneWidth * ( pk - ftr );
+
+S2 = NOT upswing AND pk >= zz AND zz >= pk - PriceZone;
+
+SH = NOT upswing AND pk - PriceZone >= zz AND zz >= ftr + PriceZone;
+
+B1 = NOT upswing AND zz <= ftr + PriceZone AND zz >= ftr; 
+
+/////////////////////
+
+// Display part
+
+// we plot bar chart, zig line and ribbon showing target zones
+
+////////////////////
+
+GraphXSpace = 3;
+
+Plot( Close, "Close", colorYellow, 64 );
+
+Plot( zz, "ZigZag", colorRed, styleThick );
+
+// Plot ribbon
+
+Plot( 3, /* defines the height of the ribbon in percent of pane width */
+
+"Ribbon",
+
+IIf( B2, colorGreen, 
+
+IIf( LG, colorLightGrey, 
+
+IIf( S1, colorLightOrange , 
+
+IIf( S2, colorRed, 
+
+IIf( SH, colorLightGrey, 
+
+IIf( B1, colorPaleGreen, colorBlue ) ) ) ) ) ), /* choose color */
+
+styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+
+////////////////////
+
+// Now part that calculates statistics
+
+////////////////////
+
+// Calculate normalized deviation oscillator
+
+DevOsc = Close - EMA( Close, 40 );
+
+HdevOsc = HHV( DevOsc, 80 );
+
+LdevOsc = LLV( DevOsc, 80 );
+
+NormOsc = 100 * DevOsc / IIf( DevOsc > 0, HdevOsc, abs(LdevOsc) );
+
+NormOsc = Prec( NormOsc, 2 ); // round to 2 decimal places
+
+UP100 = Cross( NormOsc, 99.99 );
+
+UP80_99 = Cross( NormOsc, 80 ) AND NormOsc >= 80 AND NormOsc <= 99.99;
+
+DN80_99 = Cross( 99.99, NormOsc ) AND NormOsc >= 80 AND NormOsc <= 99.99;
+
+UP60_79 = Cross( NormOsc, 60 ) AND NormOsc >= 60 AND NormOsc <= 79.99;
+
+DN60_79 = Cross( 79.99, NormOsc ) AND NormOsc >= 60 AND NormOsc <= 79.99;
+
+UP40_59 = Cross( NormOsc, 40 ) AND NormOsc >= 40 AND NormOsc <= 59.99;
+
+DN40_59 = Cross( 59.99, NormOsc ) AND NormOsc >= 40 AND NormOsc <= 59.99;
+
+UP20_39 = Cross( NormOsc, 20 ) AND NormOsc >= 20 AND NormOsc <= 39.99;
+
+DN20_39 = Cross( 39.99, NormOsc ) AND NormOsc >= 20 AND NormOsc <= 39.99;
+
+UP00_19 = Cross( NormOsc, 0 ) AND NormOsc >= 0 AND NormOsc <= 19.99;
+
+DN00_19 = Cross( 19.99, NormOsc ) AND NormOsc >= 0 AND NormOsc <= 19.99;
+
+UPM19_00 = Cross( NormOsc, -19.99 ) AND NormOsc >= -19.99 AND NormOsc <= 0;
+
+DNM19_00 = Cross( 0, NormOsc ) AND NormOsc >= -19.99 AND NormOsc <= 0; 
+
+UPM39_20 = Cross( NormOsc, -39.99 ) AND NormOsc >= -39.99 AND NormOsc <= -20;
+
+DNM39_20 = Cross( -20, NormOsc ) AND NormOsc >= -39.99 AND NormOsc <= -20;
+
+UPM59_40 = Cross( NormOsc, -59.99 ) AND NormOsc >= -59.99 AND NormOsc <= -40;
+
+DNM59_40 = Cross( -40, NormOsc ) AND NormOsc >= -59.99 AND NormOsc <= -40;
+
+UPM79_60 = Cross( NormOsc, -79.99 ) AND NormOsc >= -79.99 AND NormOsc <= -60;
+
+DNM79_60 = Cross( -60, NormOsc ) AND NormOsc >= -79.99 AND NormOsc <= -60;
+
+UPM99_80 = Cross( NormOsc, -99.99 ) AND NormOsc >= -99.99 AND NormOsc <= -80;
+
+DNM99_80 = Cross( -80, NormOsc ) AND NormOsc >= -99.99 AND NormOsc <= -80;
+
+DNM100 = Cross( -99.99, NormOsc );
+
+Filter = Status("lastbarinrange"); // display values for last bar only
+
+// Change the line below to:
+
+// Cond = B1; CondName = "B1"; // to get B1 zone stats
+
+// Cond = B2; CondName = "B2"; // to get B2 zone stats
+
+// Cond = LG; CondName = "LG"; // to get Long zone stats
+
+// Cond = S1; CondName = "S1"; // to get S1 zone stats
+
+// Cond = S2; CondName = "S2"; // to get S2 zone stats
+
+// Cond = SH; CondName = "SH"; // to get Short zone stats
+
+Cond = B1; CondName = "B1";
+
+AddColumn( Cum( Cond AND UP100 ), CondName + " up(100)", 1.0 );
+
+AddColumn( Cum( Cond AND UP80_99 ), CondName + " up(80-99)", 1.0 );
+
+AddColumn( Cum( Cond AND UP60_79 ), CondName + " up(60-79)", 1.0 );
+
+AddColumn( Cum( Cond AND UP40_59 ), CondName + " up(40-59)", 1.0 );
+
+AddColumn( Cum( Cond AND UP20_39 ), CondName + " up(20-39)", 1.0 );
+
+AddColumn( Cum( Cond AND UP00_19), CondName + " up(0-19)", 1.0 );
+
+AddColumn( Cum( Cond AND UPM19_00), CondName + " up(-19-0)", 1.0 );
+
+AddColumn( Cum( Cond AND UPM39_20), CondName + " up(-39--20)", 1.0 );
+
+AddColumn( Cum( Cond AND UPM59_40 ), CondName + " up(-59--40)", 1.0 );
+
+AddColumn( Cum( Cond AND UPM79_60 ), CondName + " up(-79--60)", 1.0 );
+
+AddColumn( Cum( Cond AND UPM99_80 ), CondName + " up(-99--80)", 1.0 );
+
+AddColumn( Cum( Cond AND DN80_99 ), CondName + " dn(80-99)", 1.0 );
+
+AddColumn( Cum( Cond AND DN60_79 ), CondName + " dn(60-79)", 1.0 );
+
+AddColumn( Cum( Cond AND DN40_59 ), CondName + " dn(40-59)", 1.0 );
+
+AddColumn( Cum( Cond AND DN20_39 ), CondName + " dn(20-39)", 1.0 );
+
+AddColumn( Cum( Cond AND DN00_19 ), CondName + " dn(0-19)", 1.0 );
+
+AddColumn( Cum( Cond AND DNM19_00), CondName + " dn(-19-0)", 1.0 );
+
+AddColumn( Cum( Cond AND DNM39_20 ), CondName + " dn(-39--20)", 1.0 );
+
+AddColumn( Cum( Cond AND DNM59_40 ), CondName + " dn(-59--40)", 1.0 );
+
+AddColumn( Cum( Cond AND DNM79_60 ), CondName + " dn(-79--60)", 1.0 );
+
+AddColumn( Cum( Cond AND DNM99_80 ), CondName + " dn(-99--80)", 1.0 );
+
+AddColumn( Cum( Cond AND DNM100 ), CondName + " dn(-100)", 1.0 );
+
+ALLUPS = ( UP100 OR UP80_99 OR UP60_79 OR UP40_59 OR UP20_39 OR UP00_19 
+
+OR UPM19_00 OR UPM39_20 OR UPM59_40 OR UPM79_60 OR UPM99_80 );
+
+ALLDOWNS = ( DN80_99 OR DN60_79 OR DN40_59 OR DN20_39 OR DN00_19 OR DNM19_00 
+
+OR DNM39_20 OR DNM59_40 OR DNM79_60 OR DNM99_80 OR DNM100 );
+
+AddColumn( Cum( Cond AND ALLUPS ), "Zone Total Up" );
+
+AddColumn( Cum( Cond AND ALLDOWNS ), "Zone Total Down" );
+
+AddColumn( Cum( ALLUPS ), "Grand Total Up" );
+
+AddColumn( Cum( ALLDOWNS ), "Grand Total Down" ); 
+
+ 

@@ -1,0 +1,36 @@
+/* Baseline Relative Performance Watchlist charts
+** Current Symbol used as a base line.
+** (Use an Index as your Base eg XAO,XEJ,XMJ Etc...)
+**
+** This example plots lines for each entry in watchlist
+** White = Base Line. (Usualy Selected Index)
+** 
+** Change the Watchlist with CTRL-R. Carefull of Big Watchlists.
+**
+** AFL implementation by Tomasz Janeczko
+** Watchlist & Parameter's Addition by Michael.S.G. 
+**
+** Use Automatic scaling, Grid: Percent, Limits, Middle
+*/
+Listnum = Param( "Watchlist", 5, 0, 100, 1 );// Watchlist to display.
+
+// the start point of comparision will be StartPoint bar
+sp = Param( "Startpoint %", 55, 1, 100, 1 ); 
+startpoint = int(BarCount*(sp/100));
+
+// Here is a base line - We Use Currenty Selected Ticker.
+// (Use an Index as your Base eg XAO,XEJ,XMJ Etc...) 
+price = Close;
+baseline = 100 * ( price/ValueWhen( Cum(1) == startpoint, price ) - 1 );
+
+// base line chart (flat line)
+Plot ( baseline - baseline,Name(),2,1);
+
+list = GetCategorySymbols( categoryWatchlist, listnum );
+for( i = 0; ( sym = StrExtract( list, i ) ) != ""; i++ )
+ {
+    price = Foreign( sym, "C" );
+	 Plot (100 * ( price/ValueWhen( Cum(1) == startpoint, price ) - 1 )- baseline,sym,6+i,1);
+ }
+
+"StartPoint =" +WriteVal(startpoint);

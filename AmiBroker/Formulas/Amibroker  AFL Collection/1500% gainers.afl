@@ -1,0 +1,20 @@
+// ........... 1500% gainers
+aK = LLV(L,260);
+bK = HHV(H,260);
+cK= bK > aK + aK;
+dK = LastValue(C);
+eK = dK < bK AND dK > bK * 0.75 ;
+Flx = aK AND bK AND cK AND dK AND eK ;
+//... Asish vol
+bVV = V > Ref(V,-1) + Ref(V,-1) * 0.8 ;
+//... 4% breakout
+Brk_5pc = C > Ref(C,-1) + Ref(C,-1) * 0.04;
+//.... liquidity
+Liquid = MA(C,21) * MA(V,21) > 25000 ;//
+
+//....................
+Ready_Steady_Go = Flx AND bVV AND Brk_5pc AND Liquid;
+Buy = Ready_Steady_Go ;
+Sell= 0;
+Filter = Buy;
+AddColumn(LastValue(C),"Currant",1.0,colorBlack,colorTan);

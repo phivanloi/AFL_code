@@ -1,0 +1,15 @@
+function T3( Price, T3Periods, s )
+{
+e1    = AMA( Price, 2 / (T3Periods+1));
+e2    = AMA( e1, 2 / (T3Periods+1));
+e3    = AMA( e2, 2 / (T3Periods+1));
+e4    = AMA( e3, 2 / (T3Periods+1));
+e5    = AMA( e4, 2 / (T3Periods+1));
+e6    = AMA( e5, 2 / (T3Periods+1));
+C1 = -s^3;
+C2 = 3*s^2*(1+s);
+C3 = -3*s*(s+1)^2;
+C4 = (1+s)^3;
+T3Result= c1*e6+c2*e5+c3*e4+c4*e3;
+return T3Result;
+}

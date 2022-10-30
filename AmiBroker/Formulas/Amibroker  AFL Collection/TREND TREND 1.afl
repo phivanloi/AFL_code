@@ -1,0 +1,116 @@
+_SECTION_BEGIN("Trend Lines");
+p1 = Param("TL 1 Periods", 20, 5, 50, 1);
+p2 = Param("TL 2 Periods", 5, 3, 25, 1);
+TL1 = LinearReg(C, p1);
+TL2 = EMA(TL1, p2);
+Col1 = IIf(TL1 > TL2, ParamColor("TL Up Colour", colorGreen), ParamColor("TL Dn Colour", colorRed));
+Plot(TL1, "TriggerLine 1", Col1, styleLine|styleThick|styleNoLabel);
+Plot(TL2, "TriggerLine 2", Col1, styleLine|styleThick|styleNoLabel);
+_SECTION_END();
+
+_SECTION_BEGIN("Linear Regression Channel");
+//CyberMan's Linear Regression Channel.
+
+//Linear Regression Line with 2 Standard Deviation Channels Plotted Above and Below 
+//The original was written by Patrick Hargus, with critical hints from Marcin Gorzynski, Amibroker.com Technical Support 
+//Wysiwyg coded the angle in degrees part
+//I modified the original Linear Regression code so that the line will change color based on the degree of the Linear Regression slope.
+//I combine this with my trading system.
+//When my system gives an entry signal I look at the Linear Regression Line and I will only take long positions if the Linear Regression line is green and the entry price is below the LR line.
+//When my system gives an entry signal I look at the Linear Regression Line and I will only take short positions if the Linear Regression line is red and the entry price is above the LR line.
+//It is usefull for filtering out lower probability trades.
+
+
+//================================================Start Chart Configuration============================================================================
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+SetChartBkGradientFill(ParamColor("Top", colorTeal), ParamColor("Bottom", colorLightGrey), ParamColor("Title", colorTeal));
+SetChartBkColor(colorTeal);
+
+
+Plot( C, "Close", colorWhite, styleCandle, Zorder = 1);
+SetChartOptions(0,chartShowArrows | chartShowDates);
+
+//================================================End Chart Configuration===============================================================================
+
+
+//====================================Start of Linear Regression Code==================================================================================
+
+P = ParamField("Price field",-1);
+
+Length = 150;
+
+Daysback = Param("Period for Liner Regression Line",Length,1,240,1);
+shift = Param("Look back period",0,0,240,1);
+
+//=============================== Math Formula ========================================================================================================
+
+x = Cum(1);
+lastx = LastValue( x ) - shift;
+aa = LastValue( Ref(LinRegIntercept( p, Daysback), -shift) );
+bb = LastValue( Ref(LinRegSlope( p, Daysback ), -shift) );
+y = Aa + bb * ( x - (Lastx - DaysBack +1 ) );
+
+//==================Plot the Linear Regression Line ====================================================================================================
+
+LRColor = ParamColor("LR Color", colorCycle ); 
+LRStyle = ParamStyle("LR Style");
+
+LRLine =  IIf( x > (lastx - Daysback) AND BarIndex() < Lastx, y, Null );
+
+LRStyle = ParamStyle("LR Style");
+Angle = Param("Angle", 0.05, 0, 1.5, 0.01);// A slope higher than 0.05 radians will turn green, less than -0.05 will turn red and anything in between will be white.
+
+LRLine = IIf( x > (lastx - Daysback) AND BarIndex() < Lastx, y, Null );
+
+Pi = 3.14159265 * atan(1); // Pi
+SlopeAngle = atan(bb)*(180/Pi);
+
+LineUp = SlopeAngle > Angle;
+LineDn = SlopeAngle < - Angle;
+
+if(LineUp)
+{
+Plot(LRLine, "Lin. Reg. Line Up", IIf(LineUp, colorBrightGreen, colorWhite), LRStyle);
+}
+else
+{
+Plot(LRLine, "Lin. Reg. Line Down", IIf(LineDn, colorDarkRed, colorWhite), LRStyle);
+} 
+
+//==========================  Plot 1st SD Channel ======================================================================================================
+
+SDP = Param("Standard Deviation", 1.5, 0, 6, 0.1);
+SD = SDP/2;
+
+width = LastValue( Ref(SD*StDev(p, Daysback),-shift) ); //Set width of inside chanels here.
+SDU = IIf( x > (lastx - Daysback) AND BarIndex() < Lastx, y+width , Null ) ;
+SDL = IIf( x > (lastx - Daysback) AND BarIndex() < Lastx, y-width , Null ) ;
+
+SDColor = ParamColor("SD Color", colorCycle );
+SDStyle = ParamStyle("SD Style");
+
+Plot( SDU , "Upper Lin Reg", colorWhite,SDStyle ); //Inside Regression Lines
+Plot( SDL , "Lower Lin Reg", colorWhite,SDStyle ); //Inside Regression Lines
+
+//==========================  Plot 2d SD Channel ========================================================================================================
+
+SDP2 = Param("2d Standard Deviation", 2.0, 0, 6, 0.1);
+SD2 = SDP2/2;
+
+width2 = LastValue( Ref(SD2*StDev(p, Daysback),-shift) ); //Set width of outside chanels here. 
+SDU2 = IIf( x > (lastx - Daysback) AND BarIndex() < Lastx, y+width2 , Null ) ;
+SDL2 = IIf( x > (lastx - Daysback) AND BarIndex() < Lastx, y-width2 , Null ) ;
+
+SDColor2 = ParamColor("2 SD Color", colorCycle );
+SDStyle2 = ParamStyle("2 SD Style");
+
+Plot( SDU2 , "Upper Lin Reg", colorWhite,SDStyle2 ); //OutSide Regression Lines
+Plot( SDL2 , "Lower Lin Reg", colorWhite,SDStyle2 ); //OutSide Regression Lines
+
+Trend = IIf(LRLine > Ref(LRLine,-1),colorGreen,colorRed);//Changes LR line to green if sloping up and red if sloping down.
+
+Plot( LRLine , "LinReg", Trend, LRSTYLE );
+
+//============================ End Indicator Code ========================================================================================================

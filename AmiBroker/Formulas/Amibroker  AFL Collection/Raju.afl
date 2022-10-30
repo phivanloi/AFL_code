@@ -1,0 +1,65 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+//Plot( C, "Close", ParamColor("Color", colorWhite ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+
+
+
+tchoice=Param("Title Selection ",2,1,2,1);
+
+Q=Param("% Change",2.1,1,10,1);
+Z= Zig(C ,q ) ;
+HH=((Z<Ref(Z,-1) AND Ref(Z,-1) > Ref(Z,-2)) AND (Peak(z,q,1 ) >Peak(Z,q,2)));
+LH=((Z<Ref(Z,-1) AND Ref(Z,-1) > Ref(Z,-2)) AND (Peak(Z,q,1 ) <Peak(Z,q,2)));
+HL=((Z>Ref(Z,-1) AND Ref(Z,-1) < Ref(Z,-2)) AND (Trough(Z,q,1 ) >Trough(Z,q,2)));
+LL=((Z>Ref(Z,-1) AND Ref(Z,-1) < Ref(Z,-2)) AND (Trough(Z,q,1 ) <Trough(Z,q,2)));
+GraphXSpace = 5;
+dist = 0.5*ATR(20); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( HH[i] ) PlotText( "HH", i, H[ i ]+dist[i], colorCustom12 );
+if( LH[i] ) PlotText( "LH", i, H[ i ]+dist[i], colorCustom12 ); 
+if( HL[i] ) PlotText( "HL", i, L[ i ]-dist[i], colorAqua );
+if( LL[i] ) PlotText( "LL", i, L[ i ]-dist[i], colorAqua );
+
+}
+TimeFrameSet(inDaily);
+MA3 = MA(C,3);
+Cl = C;
+TimeFrameRestore();
+MA3=(TimeFrameExpand( MA3, inDaily));
+Cl=(TimeFrameExpand( Cl, inDaily));
+barcolor =IIf(C > MA3 , colorGreen,IIf(C < MA3,colorRed, colorBlack) );
+Plot( C, "Close", barcolor , styleNoTitle |styleCandle); 
+
+_SECTION_END();
+
+_SECTION_BEGIN( "Chart Settings");
+SetChartOptions( 0,chartShowArrows|chartShowDates );
+SetChartBkColor( ParamColor( "Outer panel",colorBlack) );
+SetChartBkGradientFill(
+ParamColor(" Inner panel upper",colorDarkGrey),
+ParamColor(" Inner panel lower",colorBlack) );
+numbars = LastValue(Cum( Status("barvisib le")));
+dec = (Param("Decimals" ,2,0,7,1) /10)+1;
+bi=BarIndex( );
+sbi = BarIndex();
+
+//Plot(C,"",IIf( C>O,27, IIf(C<O,32,colorGrey50)),64) ;
+
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), Color, Style ); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), Color, Style ); 
+_SECTION_END();
+
+_SECTION_BEGIN("SAR");
+acc = Param("Acceleration", 0.02, 0, 1, 0.001 );
+accm = Param("Max. acceleration", 0.2, 0, 1, 0.001 );
+Plot( SAR( acc, accm ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style", styleDots | styleNoLine, maskDefault | styleDots | styleNoLine ) );
+_SECTION_END();

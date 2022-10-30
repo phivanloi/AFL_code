@@ -1,0 +1,68 @@
+/*	RUTTR signal - original concept by Werner Gansz, 1998. Modified by  
+	Fred Tonetti , 9/2004 - adapted by Bill Barnard for AmiBroker, 2/7/06.
+	This code uses the AddToComposite function to create the final signal, 
+	"~RUTTRFT", as well as several intermediate signals. They all have
+	values of 1 for the Buy condition, and 0 otherwise. Run a scan or an  
+	exploration in the AA window, using all quotations and the current symbol 
+	(select one which has as long a history as possible, such as RUT-I).
+*/
+
+fund			= Foreign("RUT-I","C");
+
+//	stochastic
+Average		= 65;
+Smooth		= 75;
+Trigger		= 13;
+StoMaxS 		= 87;
+Kstoch		= 100*(fund - LLV(fund, Average))/(HHV(fund, Average) - LLV(fund, Average));
+Dstoch		= EMA(Kstoch, Smooth);
+signalline	= EMA(Dstoch, Trigger);
+histogram	= Dstoch - signalline;
+stochBC		= histogram >= 0;
+stochSC		= histogram < 0 AND signalline < StoMaxS ;
+stochBC		= Flip(stochBC, stochSC);
+AddToComposite(stochBC,"~RUTSTOC","X", atcFlagDefaults|atcFlagEnableInExplore);
+
+//	MACD
+shortma 		= 20;
+longma 		= 30;
+signalma 		= 40;
+macdd 		= EMA(fund, shortma) - EMA(fund, longma);
+signalline 	= EMA(macdd, signalma);
+macdhisto 	= macdd - signalline;
+macdBC		= macdhisto >= 0;
+macdSC		= NOT macdBC;
+AddToComposite(macdBC,"~RUTMACD","X", atcFlagDefaults|atcFlagEnableInExplore);
+
+//	RSI
+RSILen 		=  5;
+RSILB  		=  4;
+RSIx   		= RSIa(fund, RSILen);
+RSIBC		= RSIx >= Ref(RSIx, -RSILB);
+RSISC		= NOT RSIBC;
+AddToComposite(RSIBC,"~RUTRSI","X", atcFlagDefaults|atcFlagEnableInExplore);
+
+//	ROC
+ROCMin 		= -1;
+ROCx   		= ROC(fund, 1);
+ROCSC		= ROCx < ROCMin;
+ROCBC		= NOT ROCSC;
+AddToComposite(ROCBC,"~RUTROC","X", atcFlagDefaults|atcFlagEnableInExplore);
+
+//	RuttrFT signal
+RuttrFTBC	= stochBC AND macdBC AND RSIBC;
+RuttrFTSC	= stochSC AND macdSC AND RSISC AND ROCSC;
+RuttrFTBC	= Flip(RuttrFTBC, RuttrFTSC);
+AddToComposite(RuttrFTBC,"~RUTTRFT","X", atcFlagDefaults|atcFlagEnableInExplore);
+
+
+
+//	retrieve newly-made symbol for verification in an Explore
+BuyCond		= Foreign("~RUTTRFT","Close");
+SellCond		= NOT BuyCond;
+Buy			= ExRem(BuyCond, SellCond);
+Sell			= ExRem(SellCond, BuyCond);
+
+Filter = Buy OR Sell;
+AddColumn(Buy, "Buy", 1.0);
+AddColumn(Sell, "Sell", 1.0);

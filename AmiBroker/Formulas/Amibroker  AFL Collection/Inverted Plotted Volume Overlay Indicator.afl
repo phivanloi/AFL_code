@@ -1,0 +1,41 @@
+_SECTION_BEGIN("Inverted Plotted Volume Overlay Indicator");
+// I was inspired by Dennis Brown's great looking chart, and here is yet another result.
+// This is an inverted plotted volume, displayed at the upper part of the main chart.
+// Just drag and drop this code into your main chart, adjust the moving average and height to your preference.
+Title = "";
+PlotVOL 	= ParamToggle( "Plot Volume","Off|On", 1);
+Days 		= Param("Days of MA", 1, 0.25, 5, 0.25); 
+Height 	= Param("Height", 25, 1, 100, 1) ;
+
+function VisibleMaxValue(Value)
+{ // NOTE: Both my VisibleMaxValue & VisibleMinValue is available at the AFL Library.
+ BI							= BarIndex();
+ FirstVisibleBarIndex	= Status("FirstvisiblebarIndex");
+ FirstVisibleBar     	= FirstVisibleBarIndex == BI;
+ HighestVisibleValue		= HighestSince(FirstVisibleBar, Value);
+ LastVisibleBarIndex		= Status("LastvisiblebarIndex");
+ BlankBars					= SelectedValue(LastVisibleBarIndex - BI);
+ LastVisibleBar     		= LastVisibleBarIndex == BI + BlankBars;
+ MaxValue 					= LastValue(ValueWhen(Lastvisiblebar, HighestVisibleValue));
+ return MaxValue;
+}
+
+if(LastValue(Volume) > 0) // In case you are looking at an Index without volume.
+{
+ UpBar 	= Close > Open;
+ DownBar	= Close < Open;
+ VolColor	= IIf(DownBar, colorRed, IIf(UpBar, colorBrightGreen, colorBlue));
+
+ if(PlotVOL)
+ {
+ Value 	= Volume;
+ MaxValue 	= VisibleMaxValue(Value);
+ Scale 	= MaxValue/Height; 
+ Height 	= Scale;
+ Period	= ((6.5 * 3600) / Interval()) * Days;
+ AverageVolume	= MA(Value, Period);
+ Plot(-AverageVolume/Scale,"", colorBlue, styleNoLabel | styleNoTitle | styleOwnScale | styleThick, -100, 0);
+ Plot(-Value/Scale,"", VolColor, styleNoLabel | styleNoTitle | styleOwnScale | styleThick | styleHistogram, -100, 0);
+ }
+}
+_SECTION_END();

@@ -1,0 +1,55 @@
+_SECTION_BEGIN("30 mt vertical lineMOD");
+
+A0915 = TimeNum() >= 091500;
+A0930 = TimeNum() >= 093000;
+A1000 = TimeNum() >= 100000;
+A1030 = TimeNum() >= 103000;
+A1100 = TimeNum() >= 110000;
+A1130 = TimeNum() >= 113000;
+A1200 = TimeNum() >= 120000;
+A1230 = TimeNum() >= 123000;
+A1300 = TimeNum() >= 130000;
+A1330 = TimeNum() >= 133000;
+A1400 = TimeNum() >= 140000;
+A1430 = TimeNum() >= 143000;
+A1500 = TimeNum() >= 150000;
+A1530 = TimeNum() >= 153000;
+
+
+B0=A0915>Ref(A0915,-1);
+B1=A0930>Ref(A0930,-1);
+B2=A1000>Ref(A1000,-1);
+B3=A1030>Ref(A1030,-1);
+B4=A1100>Ref(A1100,-1);
+B5=A1130>Ref(A1130,-1);
+B6=A1200>Ref(A1200,-1);
+B7=A1230>Ref(A1230,-1);
+B8=A1300>Ref(A1300,-1);
+B9=A1330>Ref(A1330,-1);
+B10=A1400>Ref(A1400,-1);
+B11=A1430>Ref(A1430,-1);
+B12=A1500>Ref(A1500,-1);
+B13=A1530>Ref(A1530,-1);
+
+
+Plot(B0, "",colorGrey40, styleHistogram| styleNoLabel| styleOwnScale, 0,1); 
+Plot(B1, "",colorGrey40, styleHistogram| styleNoLabel| styleOwnScale, 0,1); 
+Plot(B2, "",colorGrey40, styleHistogram| styleNoLabel| styleOwnScale, 0,1);
+Plot(B3, "",colorGrey40, styleHistogram| styleNoLabel| styleOwnScale, 0,1); 
+Plot(B4, "",colorGrey40, styleHistogram| styleNoLabel| styleOwnScale, 0,1);
+Plot(B5, "",colorGrey40, styleHistogram| styleNoLabel| styleOwnScale, 0,1); 
+Plot(B6, "",colorGrey40, styleHistogram| styleNoLabel| styleOwnScale, 0,1);
+Plot(B7, "",colorGrey40, styleHistogram| styleNoLabel| styleOwnScale, 0,1); 
+Plot(B8, "",colorGrey40, styleHistogram| styleNoLabel| styleOwnScale, 0,1);
+Plot(B9, "",colorGrey40, styleHistogram| styleNoLabel| styleOwnScale, 0,1); 
+Plot(B10, "",colorGrey40, styleHistogram| styleNoLabel| styleOwnScale, 0,1);
+Plot(B11, "",colorGrey40, styleHistogram| styleNoLabel| styleOwnScale, 0,1); 
+Plot(B12, "",colorGrey40, styleHistogram| styleNoLabel| styleOwnScale, 0,1);
+Plot(B13, "",colorGrey40, styleHistogram| styleNoLabel| styleOwnScale, 0,1);
+_SECTION_END();
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | styleHidden | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

@@ -1,0 +1,4 @@
+ttfdt = IIf(L<ValueWhen(LLV(L,7),L,2) AND ValueWhen(LLV(L,7),L,2)<ValueWhen(LLV(L,7),L,3) AND H<ValueWhen(LLV(L,7),H,2) AND ValueWhen(LLV(L,7),H,2)<ValueWhen(LLV(L,7),H,3),-1,0);
+ttfut = IIf(H>ValueWhen(HHV(H,7),H,2) AND ValueWhen(HHV(H,7),H,2)>ValueWhen(HHV(H,7),H,3) AND L>ValueWhen(HHV(H,7),L,2) AND ValueWhen(HHV(H,7),L,2)>ValueWhen(HHV(H,7),L,3),1,0);
+Plot(ttfdt, "",4);
+Plot(ttfut, "",5);

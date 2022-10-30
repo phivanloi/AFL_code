@@ -1,0 +1,106 @@
+_SECTION_BEGIN("rsi");
+
+SetChartBkColor( colorBlack ) ; 
+f = Param("Rsi of",5,1,50,1);
+s = Param("ema of rsi",13,2,100,1);
+A1=EMA(RSI(f),s);
+BBtop=BBandTop(A1,5,.5); 
+BBbot=BBandBot(A1,5,.5);
+//Color=IIf(a1<0 AND a1>Ref(a1,-1), colorBrightGreen,IIf(a1>0 AND a1>Ref(a1,-1),colorBrightGreen,IIf(a1>0 AND a1<Ref(a1,-1),colorRed,colorRed)));
+Color = IIf(A1 > bbtop, colorBrightGreen, IIf(a1 < bbbot,colorRed,colorYellow));
+Plot(a1,"rsi",color,styleDots+styleLine);
+//Plot(BBtop,"",colorYellow,styleDashed+styleNoLabel);
+//Plot(BBbot,"",colorYellow,styleDashed+styleNoLabel);
+Plot(80,"",31,1);
+Plot(20,"",31,1);
+
+_SECTION_END();
+RSI13 = EMA( a1, 13 );
+RSI39 = EMA( a1, 39 );
+Buy = Cross(a1,RSI13);
+Sell = Cross(RSI13,a1);
+PlotShapes(shapeHollowSmallUpTriangle*Buy,colorYellow);
+PlotShapes(shapeHollowSmallDownTriangle*Sell,colorYellow);
+
+
+Plot( EMA( a1, 13 ), "", IIf(EMA( a1, 13 ) > Ref(EMA( a1, 13 ),-1),colorWhite,colorGrey40), styleThick ); 
+Plot( EMA( a1, 39 ), "", IIf(EMA( a1, 39 ) > Ref(EMA( a1, 39 ),-1),colorAqua,colorBlue), styleThick ); 
+
+thick = Param("thickness",0.25,0.1,5,0.1);
+//Plot(6, "", Color, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+//PlotOHLC(50,50+thick,50-thick,50,"",Color,styleCloud);
+
+diff = round((a1 - Ref(a1,-1))*10)/10;
+diff13 = round((RSI13 - Ref(RSI13,-1))*10)/10;
+diff39 = round((RSI39 - Ref(RSI39,-1))*10)/10;
+
+_SECTION_BEGIN("TSKPScoreCard");
+
+
+Ctmpl = E_TSKPCOLORTMPL(Open,High,Low,Close,Volume);
+total = 0;
+total = total  + IIf(tskp_colortmplcnd0 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd1 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd2 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd3 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd4 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd5 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd6 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd7 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd8 > 0, 1, -1); 
+
+Cutoff = 5;
+for( i = 0; i < BarCount; i++ ) 
+{
+	if( total[i] >= Cutoff  )
+		Color[i] = colorBlue;
+	else if(  total[i] <= -Cutoff  )
+		Color[i] = colorRed;
+	else
+		Color[i] = colorYellow;
+}
+
+
+//PlotGrid(4,ParamColor("CutoffColor",colorCycle));
+//PlotGrid(-4,ParamColor("CutoffColor",colorCycle));
+
+if( Status("action") == actionCommentary ) 
+{ 
+
+printf(   "KPA900" +       NumToStr(tskp_colortmplcnd0) +  WriteIf(tskp_colortmplcnd0 > 0, " +++", " ---") );
+printf( "\nAutoStop" +     NumToStr(tskp_colortmplcnd1) +  WriteIf(tskp_colortmplcnd1 > 0, " +++", " ---") );
+printf( "\nHighlight" +    NumToStr(tskp_colortmplcnd2) +  WriteIf(tskp_colortmplcnd2 > 0, " +++", " ---") );
+printf( "\nCombo" +        NumToStr(tskp_colortmplcnd3) +  WriteIf(tskp_colortmplcnd3 > 0, " +++", " ---") );
+printf( "\nFast3" +        NumToStr(tskp_colortmplcnd4) +  WriteIf(tskp_colortmplcnd4 > 0, " +++", " ---") );
+printf( "\nSTTB" +         NumToStr(tskp_colortmplcnd5) +  WriteIf(tskp_colortmplcnd5 > 0, " +++", " ---") );
+printf( "\nTrigger/Stop" + NumToStr(tskp_colortmplcnd6) +  WriteIf(tskp_colortmplcnd6 > 0, " +++", " ---") );
+printf( "\n115Split" +     NumToStr(tskp_colortmplcnd7) +  WriteIf(tskp_colortmplcnd7 > 0, " +++", " ---") );
+printf( "\nMedium" +       NumToStr(tskp_colortmplcnd8) +  WriteIf(tskp_colortmplcnd8 > 0, " +++", " ---") );
+
+/*
+printf(         WriteIf(tskp_colortmplcnd0 > 0, "+++", "---") + "KPA900" +       NumToStr(tskp_colortmplcnd0));
+printf( "\n" +  WriteIf(tskp_colortmplcnd1 > 0, "+++", "---") + "AutoStop" +     NumToStr(tskp_colortmplcnd1) );
+printf( "\n" +  WriteIf(tskp_colortmplcnd2 > 0, "+++", "---") + "Highlight" +    NumToStr(tskp_colortmplcnd2) );
+printf( "\n" +  WriteIf(tskp_colortmplcnd3 > 0, "+++", "---") + "Combo" +        NumToStr(tskp_colortmplcnd3) );
+printf( "\n" +  WriteIf(tskp_colortmplcnd4 > 0, "+++", "---") + "Fast3" +        NumToStr(tskp_colortmplcnd4));
+printf( "\n" +  WriteIf(tskp_colortmplcnd5 > 0, "+++", "---") + "STTB" +         NumToStr(tskp_colortmplcnd5) );
+printf( "\n" +  WriteIf(tskp_colortmplcnd6 > 0, "+++", "---") + "Trigger/Stop" + NumToStr(tskp_colortmplcnd6) );
+printf( "\n" +  WriteIf(tskp_colortmplcnd7 > 0, "+++", "---") + "115Split" +     NumToStr(tskp_colortmplcnd7) );
+printf( "\n" +  WriteIf(tskp_colortmplcnd8 > 0, "+++", "---") + "Medium" +       NumToStr(tskp_colortmplcnd8) );
+*/
+}
+_SECTION_END();
+
+Title = 
+EncodeColor(colorYellow)+"scorecard = " + WriteIf(total > 0, EncodeColor(colorBlue)+total,EncodeColor(colorRed)+total)
++"\n"
++EncodeColor(colorWhite)+"RSI = " + A1
++" diff : " + WriteIf(diff > 0, EncodeColor(colorGreen)+diff,EncodeColor(colorRed)+diff)
++"\n"+EncodeColor(colorWhite)+"RSI-13 = " + RSI13
++" diff : " + WriteIf(diff13 > 0, EncodeColor(colorGreen)+diff13,EncodeColor(colorRed)+diff13)
++"\n"+EncodeColor(colorWhite)+"RSI-39 = " + RSI13
++" diff : " + WriteIf(diff39 > 0, EncodeColor(colorGreen)+diff39,EncodeColor(colorRed)+diff39)
+
+;
+
+_SECTION_END();

@@ -1,0 +1,47 @@
+_SECTION_BEGIN("Color Specific Bars S/R");
+//========== ===Method 2: Using Different BackgroundColors====== ========= ========= 
+Title = EncodeColor( 4)+ _DEFAULT_NAME( )+"; "+EncodeColor( 1) +
+StrFormat("{ {NAME}} - {{INTERVAL}} ; {{DATE}}; O=%g, H=%g, L=%g, C=%g
+(%.1f%%) 
+{{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ); 
+DisplaySel=ParamToggle("Display" ,"Rel.Location (%)|Price",0) ; 
+LVVL=LowestVisibleValue(L); 
+HVVH=HighestVisibleValue(H); 
+UpperPrice=round( 10000*(LVVL+ 0.7*(HVVH- LVVL)))/10000; //Forex: Rounding to get rid of annoying 5th digit; NOT strictly necessary 
+LowerPrice=round( 10000*(LVVL+ 0.3*(HVVH- LVVL)))/10000; //Forex: Rounding toget rid of annoying 5th digit; NOT strictly necessary 
+UPPrice = Param("UpperBand- Price",UpperPrice,LVVL,HVVH, 0.0001); 
+DNPrice = Param("LowerBand- Price",LowerPrice,LVVL,HVVH, 0.0001); 
+UP1 = 100; 
+UP2 = Param("Upper Band-Bottom (%)",75,0,100, 1); 
+DN1 = Param("Lower Band-Top (%)",25,1,100, 1); 
+DN2=0; 
+FillColorTop= ParamColor(" UB Fill Color",colorLightYellow); 
+FillColorBottom = ParamColor(" LB Fill Color",colorAqua) ; 
+FillColorBkGnd = ParamColor(" BkGnd Fill Color",colorTan) ; 
+Plot(C,"",1, 64); 
+Plot(50,"",6, ParamStyle(" Line
+Style",styleLeftAxisScale|styleNoLabel+styleDashed )); 
+if(DisplaySel) //Adjust with Price 
+{ 
+UP2= (UPPrice -LVVL)/(HVVH- LVVL)*100; 
+DN1= (DNPrice -LVVL)/(HVVH- LVVL)*100; 
+Plot(UPPrice ,"UpperBandPrice ",FillColorTop, 13); 
+Plot(DNPrice ,"LowerBandPrice ",FillColorBottom ,13); 
+PlotOHLC( UP1,UP1,50,UP1, "", FillColorTop, styleLeftAxisScale| styleNoLabel
+|styleCloud | styleClipMinMax, DN1,UP2 ); 
+PlotOHLC( DN2,DN2,50,DN2, "", FillColorBottom ,
+styleLeftAxisScale| styleNoLabel |styleCloud | styleClipMinMax, DN1, UP2 ); 
+} 
+if(!DisplaySel) //Adjust with Relative location (% of Total Visible range) 
+{ 
+UPPrice = LVVL+UP2*(HVVH- LVVL)/100; 
+DNPrice = LVVL+DN1*(HVVH- LVVL)/100; 
+Plot(UPPrice ,"UpperBandPrice ",FillColorTop, 13); 
+Plot(DNPrice ,"LowerBandPrice ",FillColorBottom ,13); 
+PlotOHLC( UP1,UP1,50,UP1, "", FillColorTop, styleLeftAxisScale| styleNoLabel
+|styleCloud | styleClipMinMax, DN1,UP2 ); 
+PlotOHLC( DN2,DN2,50,DN2, "", FillColorBottom ,
+styleLeftAxisScale| styleNoLabel |styleCloud | styleClipMinMax, DN1, UP2 ); 
+} 
+SetChartBkColor( FillColorBkGnd );
+_SECTION_END();

@@ -1,0 +1,154 @@
+_SECTION_BEGIN("Wolfe Tool");
+Wolfe=ParamToggle("Wolfe","OFF|ON",1);
+
+Type=ParamToggle("Label","PRICE|12345",1);
+Snap=ParamToggle("Snap","Yes|No",0);
+
+if(Wolfe==1)
+{
+SetBarsRequired( -2, -2 );
+bi = BarIndex();
+bis = SelectedValue( bi );
+
+symbol = Name();
+tframe = Interval();
+chartID = GetChartID();
+Xname = "X" + chartID + symbol + tframe;
+Yname = "Y" + chartID + symbol + tframe;
+
+LeftButton = GetCursorMouseButtons() & 1;
+a = Nz(StaticVarGet("counter"));
+if ( leftButton )
+{
+   StaticVarSet("counter", a+1);
+	
+ 	x = GetCursorXPosition(  );
+   y = GetCursorYPosition(  );
+   StaticVarSet( Xname + bis, x );
+   StaticVarSet( Yname + bis, y );
+	
+}
+
+
+j = 0;
+dt = DateTime();
+shapePlot = 0;
+shapePos = Null;
+xx = yy = Null;
+FirstVisibleBar = Status( "FirstVisibleBar" );
+Lastvisiblebar = Status( "LastVisibleBar" );
+for ( i = FirstVisibleBar; i <Lastvisiblebar AND i<BarCount; i++ )
+{
+   x = StaticVarGet( Xname + i );
+   y = StaticVarGet( Yname + i );
+
+   if ( x == dt[i] AND snap==0)
+   {
+       shapePlot[i] = 1;
+       shapePos[i] = IIf(abs(H[i]-y) < abs(L[i]-y), H[i], L[i]);
+       xx[j] = i;
+       yy[j] = IIf(abs(H[i]-y) < abs(L[i]-y), H[i], L[i]);
+       j++;
+   }
+	else if ( x == dt[i] AND snap==1)
+   {
+       shapePlot[i] = 1;
+       shapePos[i] = y;
+       xx[j] = i;
+       yy[j] = y;
+       j++;
+   }
+
+}
+
+
+
+shape = shapeSmallCircle;
+PlotShapes( shapePlot*shape, colorRed, 0, shapePos, 0 );
+Values=ParamToggle("Segment Values","No|Yes",0);
+vr=ParamToggle("R1","No|Yes",1);
+
+
+
+for ( i = 1; i <= j ; i++ )
+{
+	if(i==1 AND Type==1)
+	{PlotText("1 ",xx[i-1]-2,yy[i-1],colorBlue,colorLightGrey);}
+	if(i==2 AND Type==1)
+	{PlotText("2 ",xx[i-1]-2,yy[i-1],colorBlue,colorLightGrey);}
+	if(i==3 AND Type==1)
+	{PlotText("3 ",xx[i-1]-2,yy[i-1],colorBlue,colorLightGrey);}
+	if(i==4 AND Type==1)
+	{PlotText("4 ",xx[i-1]+2,yy[i-1],colorBlue,colorLightGrey);}
+	if(i==5 AND Type==1)
+	{PlotText("5 ",xx[i-1]+2,yy[i-1],colorBlue,colorLightGrey);}
+
+	if(Type==0)
+	{PlotText(""+yy[i-1],xx[i-1]+2,yy[i-1],colorWhite);}
+	
+	Plot( LineArray( xx[i-1], yy[i-1], xx[i], yy[i] ), "", colorYellow, styleLine|styleThick|styleNoRescale );
+	XA=yy[i]-yy[i-1];
+	AB=yy[i]-yy[i+1];
+	AD=yy[i]-yy[i+3];
+	BC=yy[i+1]-yy[i+2];
+	CD=yy[i+2]-yy[i+3];
+	r=CD/XA;
+	r2=AB/XA;
+	r3=XA/BC;
+
+	if(i==4){
+	epa1=LineArray(xx[i-4],yy[i-4],xx[i-1],yy[i-1],1);
+	Plot(epa1,"",colorRed,styleThick|styleNoRescale|styleNoTitle|styleNoLabel,Null,Null,0,-1);
+	}
+
+	//if(i==4){
+	//epa2=LineArray(xx[i-3],yy[i-3],xx[i-1],yy[i-1],1);
+	//Plot(epa2,"",colorRed,styleThick|styleNoRescale,Null,Null,0,-1);
+	//}
+
+	if(i==3){
+	epa3=LineArray(xx[i-3],yy[i-3],xx[i-1],yy[i-1],1);
+	Plot(epa3,"",colorBlue,styleThick|styleNoRescale|styleNoTitle|styleNoLabel,Null,Null,0,-2);
+	}
+
+	if(i==4){
+	epa4=LineArray(xx[i-3],yy[i-3],xx[i-1],yy[i-1],1);
+	Plot(epa4,"",colorBlue,styleThick|styleNoRescale|styleNoTitle|styleNoLabel,Null,Null,0,-2);
+	}
+
+
+
+	if(vr==1 AND i<4)
+	{
+	
+	Valid=WriteIf(i==1,"(1.19-1.68)",WriteIf(i==2,"(0.66-0.86)",WriteIf(i==3,"(1.19-1.82)","")));
+
+	PlotText(""+Prec(abs(r2), 2 )+" ("+(abs(xx[i-1]-XX[i+1]))+")\n"+Valid,XX[i-1]+int((xx[i+1]-XX[i-1])/2),yy[i-1]+((yy[i+1]-yy[i-1])/2),colorBlue,colorLightGrey);
+	//Plot( LineArray( xx[i-1], yy[i-1], xx[i+1], yy[i+1] ), "", colorBlue, styleDashed );
+	}
+
+	if(Values==1)
+	{
+	PlotText(""+Prec(abs(XA), 2 ),XX[i-1]+int((xx[i]-xx[i-1])/2),yy[i-1]+XA/2,colorBlue);
+	}
+
+}
+//For loop ended
+
+//BothButton = GetCursorMouseButtons() & 3;
+
+
+if ( GetCursorMouseButtons()== 11 )
+{
+
+	for ( i = 0; i < BarCount; i++ )
+   {
+       StaticVarRemove("counter");
+       StaticVarRemove( Xname + i );
+       StaticVarRemove( Yname + i );
+	 	RequestTimedRefresh(1,True );
+	}
+}
+
+}
+_SECTION_END();

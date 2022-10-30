@@ -1,0 +1,189 @@
+// ControlPanelInclude-004.afl
+procedure kStaticVarSet( SName, SValue ) 		
+	{
+	ChartID = GetChartID();
+	InIndicator = Status("Action") == 1;
+	if( InIndicator ) StaticVarSet(Sname+ChartID, Svalue); 
+	}
+ 
+function kStaticVarGet( SName ) 					
+	{ 
+	ChartID 	= GetChartID();
+	Var = StaticVarGet(Sname+ChartID);
+	return Var;
+	}
+ 
+procedure kStaticVarSetText( SName, SValue ) 	
+	{ 
+	ChartID 	= GetChartID();
+	InIndicator = Status("Action") == 1;
+	if( InIndicator ) StaticVarSetText(Sname+ChartID, Svalue); 
+	}
+ 
+function kStaticVarGetText( SName ) 				
+	{ 
+	ChartID = GetChartID();
+	return StaticVarGetText(Sname+ChartID); 
+	}
+ 
+function NewColumn()
+	{
+	VarSet("ColNumber", 0);
+	}
+ 
+function GetButtonClick( ColNumber, RowNumber )
+	{
+	global PanelYoffset, PanelXoffset, ButtonHeight, ButtonWidth;
+	LButtonDown = GetCursorMouseButtons() == 9;
+	Click = False;
+	if( LButtonDown )
+		{
+		ULButtonX 	= PanelXoffset + (ColNumber-1) * ButtonWidth;
+		LRButtonX	= ULButtonX + ButtonWidth;
+		ULButtonY 	= (RowNumber -1) * ButtonHeight + PanelYoffset;
+		LRButtonY	= ULButtonY + ButtonHeight;
+		MouseCoord 	= Nz(StaticVarGet("ClickCoordinates"));
+		if( MouseCoord == 0 AND LButtonDown )
+			{
+			MousePx = GetCursorXPosition( 1 );
+			MousePy = GetCursorYPosition( 1 );
+			if( MousePx > ULButtonX AND MousePx < LRButtonX AND MousePy > ULButtonY AND MousePy < LRButtonY )
+				{
+				StaticVarSet("ClickCoordinates",ColNumber*100+RowNumber);
+				Click = 1;
+				}
+			}
+		}
+	return Click;
+	}
+ 
+function ButtonColumnBegin( ColName ) 
+	{
+	global FontRatio, ColName, ColNumber, ButtonHeight, ButtonWidth, PanelXoffset, PanelYoffset, Colname;
+	ColNumber = VarGet("ColNumber");
+	if( IsEmpty( ColNumber ) ) 
+		{
+		VarSet("ColNumber",1);
+		StaticVarSet("ClickCoordinates",0);
+		}
+	else VarSet("ColNumber", ++ColNumber);
+	ColName = ColName+GetChartID();
+	kStaticVarSet("RowNumber"+ColName, 0);
+	VarSetText("ColName",ColName);
+	GfxSetOverlayMode( 0 );
+	GfxSelectFont( "Tahoma", ButtonHeight/FontRatio, 800 ); 
+	GfxSelectPen( colorBlack ); 
+	GfxSetBkMode( 1 );
+	}
+ 
+function ButtonHeader( Label, backColor1, BackColor2, TextColor)
+	{
+	global ColNumber, RowNumber, ColExpanded, Colname;
+	RowNumber = Nz(kStaticVarGet("RowNumber"+ColName))+1;
+	kStaticVarSet("RowNumber"+ColName, RowNumber);
+	SingleClick = GetButtonClick( ColNumber, RowNumber );
+	BackColor = backColor1;
+	ColExpanded = Nz(kStaticVarGet(ColName+"ColExpanded"));
+	if( SingleClick ) 
+		{
+		BackColor = backColor2; 
+		ColExpanded = Nz(kStaticVarGet(ColName+"ColExpanded"));
+		if( ColExpanded ) kStaticVarSet(ColName+"ColExpanded", False);
+		else kStaticVarSet(ColName+"ColExpanded", True);
+		}
+	ColExpanded = Nz(kStaticVarGet(ColName+"ColExpanded"));
+	kStaticVarSetText("Label"+ColName+RowNumber, Label);
+	kStaticVarSet("TextColor"+ColName+RowNumber, TextColor);
+	kStaticVarSet("BackColor"+ColName+RowNumber, backColor);
+	}
+ 
+function ButtonText( Label, backColor, TextColor)
+	{
+	global ColNumber, RowNumber, Colname;
+	ColExpanded = Nz(kStaticVarGet(ColName+"ColExpanded"));
+	if( ColExpanded )
+		{
+		ColName = VarGetText("ColName");
+		RowNumber = Nz(kStaticVarGet("RowNumber"+ColName))+1;
+		kStaticVarSet("RowNumber"+ColName, RowNumber);
+		kStaticVarSetText("Label"+ColName+RowNumber, Label);
+		kStaticVarSet("TextColor"+ColName+RowNumber, TextColor);
+		kStaticVarSet("BackColor"+ColName+RowNumber, backColor);
+		}
+	}
+ 
+function ButtonTrigger( Label, backColor1, BackColor2, TextColor)
+	{
+	global ColNumber, RowNumber, ColName;
+	ColExpanded = Nz(kStaticVarGet(ColName+"ColExpanded"));
+	if( ColExpanded )
+		{
+		ColName = VarGetText("ColName");
+		RowNumber = Nz(kStaticVarGet("RowNumber"+ColName))+1;
+		kStaticVarSet("RowNumber"+ColName, RowNumber);
+		Trigger = GetButtonClick( ColNumber, RowNumber );
+		if( Trigger ) BackColor = backColor2; else BackColor = backColor1;
+		kStaticVarSetText("Label"+ColName+RowNumber, Label);
+		kStaticVarSet("TextColor"+ColName+RowNumber, TextColor);
+		kStaticVarSet("BackColor"+ColName+RowNumber, backColor);
+		}
+	else Trigger = 0;
+	return Trigger;
+	}
+ 
+function ButtonRotate( LabelStr, BackColorStr, TextColorStr )
+{
+    global ColNumber, RowNumber, ColName, ColExpanded;
+ 
+    if ( ColExpanded )
+    {
+        ColName = VarGetText( "ColName" );
+        RowNumber = Nz( kStaticVarGet( "RowNumber" + ColName ) ) + 1;
+        kStaticVarSet( "RowNumber" + ColName, RowNumber );
+        Rotate = GetButtonClick( ColNumber, RowNumber );
+        if ( Rotate OR IsNull( StaticVarGet("RotateInit"+ ColName + RowNumber ) ) )
+        {
+            RotateIndex = Nz( kStaticVarGet( "RotateIndex" + ColName + RowNumber ) );
+            if ( StrExtract( LabelStr, RotateIndex + 1) != "" ) RotateIndex++;
+            else RotateIndex = 0;
+            kStaticVarSet( "RotateIndex" + ColName + RowNumber, RotateIndex );
+ 
+            Label = StrExtract( LabelStr, RotateIndex );
+ 
+            if ( StrExtract( BackColorStr, RotateIndex ) == "" ) BackColor = StrToNum( StrExtract( BackColorStr, 0 ) );
+            else BackColor = StrToNum( StrExtract( BackColorStr, RotateIndex ) );
+ 
+            if ( StrExtract( TextColorStr, RotateIndex ) == "" ) TextColor = StrToNum( StrExtract( TextColorStr, 0 ) );
+            else TextColor = 	StrToNum( StrExtract( TextColorStr, RotateIndex ) );
+ 
+            kStaticVarSetText( "Label" + ColName + RowNumber, Label );
+            kStaticVarSet( "TextColor" + ColName + RowNumber, TextColor );
+            kStaticVarSet( "BackColor" + ColName + RowNumber, BackColor );
+				StaticVarSet("RotateInit"+ ColName + RowNumber, True);
+        }
+    }
+    Label 	= kStaticVarGetText( "Label" + ColName + RowNumber);
+    return Label;
+}
+ 
+ 
+function ButtonColumnEnd()
+	{
+	global ButtonHeight, ButtonWidth, PanelYoffset, PanelXoffset, ColNumber, RowNumber, ColName;
+	ChartIDStr 	= NumToStr(GetChartID(),1.0,False);
+	ULButtonX 		= PanelXoffset + (ColNumber-1) * ButtonWidth;
+	LRButtonX		= ULButtonX + ButtonWidth;
+	for( Row = 1; Row <= RowNumber; Row++ ) 
+		{
+		ULButtonY 		= (Row-1) * ButtonHeight + PanelYoffset;
+		LRButtonY		= ULButtonY + ButtonHeight;
+		Label 	= kStaticVarGetText("Label"+ColName+Row);
+		TextColor 	= Nz(kStaticVarGet("TextColor"+ColName+Row));
+		BackColor 	= Nz(kStaticVarGet("BackColor"+ColName+Row));
+		GfxSelectSolidBrush( BackColor);
+		GfxRectangle( ULButtonX, ULButtonY, LRButtonX, LRButtonY ); 
+		GfxSetBkColor( BackColor);
+		GfxSetTextColor( TextColor );
+		GfxDrawText( Label, ULButtonX, ULButtonY, LRButtonX, LRButtonY, 32 | 1 | 4);
+		}
+	}

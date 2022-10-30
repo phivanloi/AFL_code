@@ -1,0 +1,32 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+//_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Delta = H - L ;
+ Delta1 = Delta/Ref(Delta, -1) - 1;
+Delta2 = MA(Delta, 20);
+//Delta1 = Delta / Ref(Delta,-1);
+Title = EncodeColor(12)+"Chart" + EncodeColor(ColorYellow)+FullName() +" - " + "\n" + 
+Delta + "                           " + Delta1+"     "+ Delta1 +"  "+   H + "     " + L;
+Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+
+
+/*
+GfxSetBkMode( 0 );
+GfxSelectFont( "Tahoma", 13, 100 );
+GfxSetTextColor( colorWhite );
+
+
+GfxSelectPen( colorGreen, 2 ); 
+GfxSelectSolidBrush( colorgreen ); 
+GfxRectangle( 10, 20, 250, 180 );
+
+city = ParamStr("City","Bangalore");
+GfxTextOut( "City : "+city,23,23); 
+GfxTextOut( "Temperature : " +NumToStr(StrToNum(temp1)-273.15) +" °C" ,23,48); 
+GfxTextOut( "Feels Like : " +NumToStr(StrToNum(fl)-273.15) +" °C",23,73);
+GfxTextOut( "Humidity : " + hm+"%",23,98); 
+GfxTextOut( "Pressure : " + pr+"hPa",23,123);*/
+
+_SECTION_END();
+
+

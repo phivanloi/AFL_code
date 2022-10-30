@@ -1,0 +1,164 @@
+_SECTION_BEGIN("Simple Pivot based Trading System");
+
+// User defined parameters.
+
+//GraphXSpace = 10; //defines how much extra space should be added above and below graph line (in percent).
+
+dist = 0.25*ATR(10); 
+Capital=Param("Total capital",100000,10000,1000000,1000);
+drawdown=Param("Max. loss per trade as % of Capital", 1.0,0.5,25.0,0.1);
+room=Param("Room for S/L as % of Pivot value",0,0.001,0.02,0.001);
+
+// Now calculate pivots. Method courtesy : Kenneth (www.traderji.com)
+
+PH= ValueWhen(
+(Ref(H,-2) > Ref(H, -4)) AND
+(Ref(H,-2) > Ref(H, -3)) AND
+(Ref(H,-2) > Ref(H, -1)) AND
+(Ref(H,-2) > H), Ref(H,-2));
+
+PL= ValueWhen(
+(Ref(L,-2) <= Ref(L, -4)) AND
+(Ref(L,-2) <= Ref(L, -3)) AND
+(Ref(L,-2) <= Ref(L, -1)) AND
+(Ref(L,-2) <= L), Ref(L,-2));
+
+// filter lines
+
+phfilter=PH+(room*PH);
+plfilter=PL-(room*PL);
+
+//Uncomment following code if you wish to see the pivot lines.
+Plot(Ref(PH,2), "UpPivot", ParamColor("UpPivot Color",colorRed), styleDashed);
+Plot(Ref(PL,2), "DownPivot",ParamColor("DownPivot Color",colorGreen), styleDashed);
+
+//Plot(Ref(Phfilter,2), "Upfilter", ParamColor("upfilter Color",colorRed), styleLine);
+//Plot(Ref(Plfilter,2), "Downfilter",ParamColor("dnfilter Color",colorGreen), styleLine);
+
+
+//Plot(Ref(UpFractal,2), "Up Fractal", ParamColor("Up Fractal Color",colorRed),8);
+//Plot(Ref(DownFractal,2), "Down Fractal",ParamColor("Down Fractal Color",colorGreen),8);
+
+
+
+ 
+/*for (a=4;a<BarCount;a++)
+{
+if ((H[a-2] >= H[a-4]) AND
+(H[a-2] >= H[a-3]) AND
+(H[a-2] >= H[a-1]) AND
+(H[a-2] >= H[a]))
+PlotText("PH", a-2, H[a-2], colorGreen);
+
+if ((L[a-2] <= L[a-4]) AND
+(L[a-2] <= L[a-3]) AND
+(L[a-2] <= L[a-1]) AND
+(L[a-2] <= L[a]))
+PlotText("PL", a-2, L[a-2]-dist[a-2], colorRed);
+}*/
+
+//Condition for buy : Enter when Close crosses latest pivot high.
+Buy = C> (PH+(room*PH));
+
+initialStopBuy=Ref(PL,2)-(Ref(PL,2)*room/100);
+trailStopBuy=IIf(C>PH,Ref(initialStopBuy,-1),initialStopBuy);
+
+newStopBuy=trailStopBuy;
+
+BuyLimitCapital=int(Capital/C);
+SLbuy=round(C-initialStopBuy);
+BuyLimitSL=int((Capital*drawdown)/(100*SLbuy));
+
+//Condition for sell : Exit when previous pivot low is cracked.
+Sell = C< (PL-(room*PL));
+
+Buy = ExRem(Buy,Sell);
+Sell= ExRem(Sell,Buy);
+
+//Short = Sell;
+//Cover = Buy;
+
+//Short=ExRem(Short,Cover);
+//Cover=ExRem(Cover,Short);
+
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ),0, IIf( Buy, Low, High ) );
+
+
+_SECTION_END();
+
+
+piv = (H+L)/2;
+Col_bar = IIf(CCI(14) > 100, colorGold, IIf(CCI(14) < -100,colorDarkRed,IIf(CCI(14) > Ref(CCI(14),-1),colorBrightGreen,colorRed)));
+Plot (Close,"Close",col_bar,styleBar+styleThick); 
+//Plot (Ref(piv,-3),"",colorGrey40,styleStaircase);
+/*
+
+Hi = IIf(Ref(MA(piv,5),-3) > Ref(MA(piv,8),-5) AND Ref(MA(piv,5),-3) > Ref(MA(piv,13),-8),Ref(MA(piv,5),-3),IIf(Ref(MA(piv,5),-3) < Ref(MA(piv,8),-5) AND Ref(MA(piv,8),-5) > Ref(MA(piv,13),-8),Ref(MA(piv,8),-5),IIf(Ref(MA(piv,13),-8) > Ref(MA(piv,5),-3) AND Ref(MA(piv,8),-5) < Ref(MA(piv,13),-8),Ref(MA(piv,13),-8),0))); 
+Lo = IIf(Ref(MA(piv,5),-3) < Ref(MA(piv,8),-5) AND Ref(MA(piv,5),-3) < Ref(MA(piv,13),-8),Ref(MA(piv,5),-3),IIf(Ref(MA(piv,5),-3) > Ref(MA(piv,8),-5) AND Ref(MA(piv,8),-5) < Ref(MA(piv,13),-8),Ref(MA(piv,8),-5),IIf(Ref(MA(piv,13),-8) < Ref(MA(piv,5),-3) AND Ref(MA(piv,8),-5) > Ref(MA(piv,13),-8),Ref(MA(piv,13),-8),0))); 
+Op = (Hi+Lo)/2;
+Cl = IIf(C > Hi AND C > Lo, Hi, IIf(C < Hi AND C < Lo, Lo,C));
+Plot(HI,"",colorWhite,styleThick);
+Plot(Lo,"",colorWhite,styleThick);
+Col_cloud = IIf(C > Hi,colorDarkGreen, IIf(C < Lo, colorDarkRed,colorYellow));
+PlotOHLC(Op,Hi,Lo,Cl,"",colorBlue,styleCloud+styleNoLabel);
+*/
+SL = ( HHV( H, 26 ) + LLV( L, 26) )/2;
+TL = ( HHV( H, 9 ) + LLV( L, 9 ) )/2;
+Span1 = (( SL + TL )/2);
+Span2 = (HHV( H, 52) + LLV(L, 52))/2;
+
+Plot(SL,"SL",colorWhite,styleThick); // standard, base, or kijun-sen line
+Plot(TL,"TL",colorYellow,styleThick); // turning, conversion, or tenkan-sen line
+PlotOHLC(Span1,Span2,Span1,Span2,"",IIf(Span1>Span2,colorDarkGreen,colorOrange),styleCloud|4096,0,0,26);
+
+
+
+
+_SECTION_BEGIN("Fibo for all bars");
+
+TimeFrameSet( in15Minute*2 ); 
+DH=Ref(H,-1); 
+DL=Ref(L,-1);
+DC=Ref(C,-1);
+
+
+pd = (O+ DH+ DL + DC )/4;
+sd1 = (2*pd)-DH;
+sd2 = pd -(DH - DL);
+sd3 = Sd1 - (DH-DL); 
+rd1 = (2*pd)-DL;
+rd2 = pd +(DH -DL);
+rd3 = rd1 +(DH-DL);
+
+
+
+//Plot (pd,"Pivot",colorBlue,styleDots);
+//Plot (rd1," R1 ",35,styleDots);
+//Plot (rd2," R2 ",35,styleDots);
+//Plot (rd3," R3 ",35,styleDots);
+
+//Plot (sd1," S1 ",4,styleDots);
+//Plot (Sd2," S2 ",4,styleDots);
+//Plot (Sd3," S3 ",4,8+16);
+/*
+style = IIf(ParamList("Chart style", "styleCandle|styleBar")=="styleCandle",64,128+4);
+Plot (C,Date ()+" close",1,style); //ENABLE THIS TO HAVE CANDLES AS WELL
+*/
+TimeFrameRestore();
+
+
+Title = EncodeColor(colorWhite)+ "LINKON'S PIVOT TRADING SYSTEM" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "
+//+ WriteIf(Col_action==colorGreen, EncodeColor(colorGreen)+"stay LONG","")+ WriteIf(Col_action==colorRed, EncodeColor(colorRed)+"stay SHORT","")+  WriteIf(Col_action==colorBlack, EncodeColor(colorYellow)+"No Trend","")+"\n"
++ "Vol= "+ WriteVal(V) +WriteIf ( V > MA(V,26) ,EncodeColor(colorGreen)+"  UP "+ (V/MA(V,26))*100 + " %", EncodeColor(colorRed)+"  DOWN "+ (V/MA(V,26))*100 + " %")
++ EncodeColor(colorGreen)+   "\n R3 : "+ EncodeColor(colorWhite)+RD3
++ EncodeColor(colorGreen)+   "\n R2 : "+ EncodeColor(colorWhite)+RD2
++ EncodeColor(colorGreen)+   "\n R1 : "+ EncodeColor(colorWhite)+RD1+ EncodeColor(colorGreen)+   "`            Hi: "+ EncodeColor(colorWhite)+H
++ EncodeColor(colorBlue)+   "\n Pivot : "+ EncodeColor(colorWhite)+pd + EncodeColor(colorYellow)+   "`   Op: "+ EncodeColor(colorWhite)+O+ EncodeColor(colorAqua)+   "Cl: "+ EncodeColor(colorBrightGreen)+C
++ EncodeColor(colorRed)+   "\n S1 : "+ EncodeColor(colorWhite)+SD1+ EncodeColor(colorRed)+   "`            Lo: "+ EncodeColor(colorWhite)+L
++ EncodeColor(colorRed)+   "\n S2 : "+ EncodeColor(colorWhite)+SD2
++ EncodeColor(colorRed)+   "\n S3 : "+ EncodeColor(colorWhite)+SD3
+;
+
+_SECTION_END();

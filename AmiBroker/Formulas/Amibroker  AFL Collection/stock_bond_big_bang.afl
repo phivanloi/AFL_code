@@ -1,0 +1,12 @@
+_SECTION_BEGIN("Stock_Bond_Big_Bang");
+
+p=Param("period", 4,2,100);
+q=Param("Big_Bang",8,1,20);
+d = (H-L)/V;
+d1 = (L-H)/V;
+Plot(A= MA(d,p),"", colorBlue, styleDots);
+Plot(b= MA(a,q),"", colorRed, styleDots);
+Plot(A1= MA(d1,p),"", colorBlue, styleDots);
+Plot(b1= MA(a1,q),"", colorRed, styleDots);
+_SECTION_END();
+

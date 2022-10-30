@@ -1,0 +1,4 @@
+_SECTION_BEGIN("Gain Trade");
+#pragma nocache
+#include <Gain_Trade.afl>
+_SECTION_END();

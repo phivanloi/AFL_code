@@ -1,0 +1,32 @@
+///// Chaloke System2 (2nd edition) ///// 
+
+//Parameter// 
+Length=Param("Length",15,5,50,5); 
+Smooth=Param("Smooth",3,1,5,1); 
+StdPrd=Param("Sys2Buffer",5,3,25,1); 
+
+// define True Range // 
+x1=Ref(C,-1); 
+TrueRange=Max(H-L,Max(abs(x1-H),abs(x1-L))); 
+RevTrueRange=Min(H-L,Min(abs(x1-H),abs(x1-L))); 
+
+// Average True Range // 
+ATRtrue=EMA(TrueRange,StdPrd); 
+ATRrev=EMA(RevTrueRange,StdPrd); 
+
+//Chande oscillator 
+cmopds=Length; 
+CMO_1=Sum( IIf( C > Ref( C, -1 ) , ( C - Ref( C ,-1 ) ) ,0 ) ,cmopds ) ; 
+CMO_2=Sum( IIf( C < Ref( C ,-1 ) , ( Ref( C ,-1 ) - C ) ,0 ) ,cmopds ); 
+CMO=100 * (( CMO_1 -CMO_2) /( CMO_1+CMO_2)); 
+AbsCMO=( abs(CMO) )/100; 
+
+SC=2/(Smooth+1); 
+Chaloke=AMA( C, SC*AbsCMO ); 
+Sys2Up=Chaloke+ATRrev + (ATRrev*StDev(ATRrev,StdPrd)); 
+Sys2Dn=Chaloke-ATRrev - (ATRrev*StDev(ATRrev,StdPrd)); 
+Chaloke_Color=IIf(C > sys2up ,colorBrightGreen,IIf(C < sys2dn ,colorRed,colorBlack)); 
+Plot(Chaloke,"Chaloke System2 ATRrev",colorBlack,styleLine); 
+Plot(Sys2Up,"Upper",colorBlue,styleLine); 
+Plot(sys2Dn,"Lower",colorRed,styleLine); 
+Plot(C,"",Chaloke_Color,64);

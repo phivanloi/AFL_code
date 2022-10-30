@@ -1,0 +1,64 @@
+/* Volume Oscillator */
+/* Indicator, system, and exploration */
+/* Steve Wiser slwiserr@erols.com */
+
+PlusDM= IIf(High>Ref(High,-1) AND Low>=Ref(Low,-1), High-Ref(High,-1),
+                 IIf(High>Ref(High,-1) AND Low<Ref(Low,-1)
+                 AND High-Ref(High,-1)>Ref(Low,-1)-Low,
+                High-Ref(High,-1),0));
+
+Vm=log(EMA(V,3));
+ 
+Buy= (C-L)*Vm+ (H-O)*Vm + 
+         IIf(C>O,(C-O)*Vm,0) + PlusDM*Vm + 
+         IIf(Ref(C,-1)<O,(O-Ref(C,-1))*Vm,0);
+
+MinDM = IIf(Low<Ref(Low,-1)   AND  High<=Ref(High,-1), Ref(Low,-1)-Low,
+               IIf(High>Ref(High,-1) AND Low<Ref(Low,-1)
+               AND High-Ref(High,-1)<Ref(Low,-1)-Low, Ref(Low,-1)-Low, 0));
+
+Sell= (H-C)*Vm + (O-L)*Vm + 
+         IIf(C<O,(O-C)*Vm,0) + MinDM*Vm + 
+         IIf(Ref(C,-1)>O,(Ref(C,-1)-O)*Vm,0);
+
+Wm=Wilders(Wilders(Buy,3)-Wilders(Sell,3),3);
+
+Buy=Cross(Wm,0);
+Sell=Cross(0,Wm);
+
+ 
+Graph1=Wm;
+/*Graph2=Wilders(Wm,30);*/
+Graph2=MA(Wm,8);
+
+Graph0=0;
+Graph0Style=Graph1Style=Graph2Style=5;
+Graph2Color=6;
+
+
+Filter= (Buy==1)  ;
+NumColumns = 6;
+Column0 =Ref(C+0.065,-1);
+Column0Format = 1.2;
+Column0Name = "Trigger Price";WriteVal(C+0.065);
+Column1 = C; 
+Column1Name = "Close       ";WriteVal(C);
+Column1Format = 1.2;
+Column2 = MA(V,17); 
+Column2Name = "17 Ma Vol   ";WriteVal(MA(V,17) );
+Column2Format = 1.0;
+Column3 = MA(C,17)/MA(C,50); 
+Column3Name = "% 17/50 ";WriteVal(  MA(C,17)/MA(C,50) );
+Column3Format = 1.2;
+Column3Format = 1.2;
+Column4= MA(C,17);
+Column4Name="17 C ma"; WriteVal(  MA(C,17) );
+Column4Format = 1.2;
+Column4= MA(C,50);
+Column4Name="50 C ma"; WriteVal( MA(C,50) );
+Column4Format = 1.2;
+Column5=Wm;
+Column5Name="Vol Osc"; WriteVal(Wm);
+Column5Format=1.2;  
+
+/*  End of Exploration Code. */

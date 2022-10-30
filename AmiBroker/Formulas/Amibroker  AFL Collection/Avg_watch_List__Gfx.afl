@@ -1,0 +1,49 @@
+
+_SECTION_BEGIN("ExploreWatchList");  
+pxchartHeight= Status("pxchartheight"); 
+top=Status("pxcharttop")+10; 
+bottom=Status("pxchartbottom");
+ad = 0.01 * Status("pxheight"); 
+textoffset = 1 * ad; 
+GfxRectangle(textoffset ,top, textoffset +215, bottom ); 
+wdth = 0.09;Hght = 10;
+listnum = Param("watchlist no",0,0,17,1); 	
+WO=0; 	WH=0; 	WL=0; 	WC=0; 	WV=0;
+list = CategoryGetSymbols(categoryWatchlist, listnum); 
+
+  for (i = 0; (sym = StrExtract(list, i )) != ""; i++) { 
+
+	SetForeign(sym); 
+		WO=WO+O;
+		WH=WH+H;
+		WL=WL+L;
+		WC=WC+C;
+		WV=WV+V;
+
+YC=TimeFrameGetPrice("C",inDaily,-1); 
+X = C - YC;
+TSp = Prec((X/YC)*100,2);
+GfxSelectFont("Tahoma", 8 , 700);
+GfxSetOverlayMode(0);
+GfxSelectPen( 7 );
+GfxSetBkMode( 1 );
+GfxSelectSolidBrush(1 );
+Color=IIf(LastValue(x)>0,colorGreen,IIf(LastValue(x)<0,colorRed,colorTan));
+GfxSetTextColor(color);
+GfxTextOut(sym,textoffset+2 ,pxchartHeight-Hght) ;
+GfxTextOut("   |   " + C ,textoffset+90 ,pxchartHeight-Hght) ;
+GfxTextOut("     |   " + TSp ,textoffset+150 ,pxchartHeight-Hght) ;
+RestorePriceArrays();
+Hght = Hght + 0.019*pxchartHeight;
+} 
+WO=WO/i;
+WH=WH/i;
+WL=WL/i;
+WC=WC/i;
+PlotOHLC( WO, WH, WL,WC, "Avg. WatchList", IIf( WC >= WO, colorGreen , colorRed), styleCandle ); 
+GfxSetTextColor(colorDarkBlue);
+GfxTextOut("Symbol",textoffset+2 ,pxchartHeight-Hght) ;
+GfxTextOut("   |   Close" ,textoffset+90,pxchartHeight-Hght) ;
+GfxTextOut("     |   Diff"  ,textoffset+150 ,pxchartHeight-Hght) ;
+Title = EncodeColor(colorWhite)+ "Avg. WatchList  # "+listnum+"  " + EncodeColor(colorRed)+" O=" +WO+", H=" +WH+", L=" +WL+", C=" +WC+", V=" +WV  ;
+_SECTION_END();

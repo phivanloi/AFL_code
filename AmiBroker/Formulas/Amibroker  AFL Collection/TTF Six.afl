@@ -1,0 +1,2 @@
+ttf6 = IIf(Ref(L,-2)==LLV(L,5),-1,0);
+Plot(ttf6, "",4);

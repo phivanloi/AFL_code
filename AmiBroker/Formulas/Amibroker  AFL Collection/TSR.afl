@@ -1,0 +1,171 @@
+//This is the formula for OR do while shortening cycle, the variables
+// from the parameters automatically using the indicator to change 
+//the function of money available to give shape to bring it possible flexibility. The formula is given below.
+//Thank you in advance for your help.
+
+
+//****** START TSR INDICATOR *******
+
+_SECTION_BEGIN("Chart Settings");
+	SetChartOptions(0,chartShowArrows|chartShowDates);
+	SetChartBkColor(ParamColor("Outer Panel",colorPaleBlue)); 
+	SetChartBkGradientFill(ParamColor("Upper Chart",1),ParamColor("Lower Chart",23));  
+_SECTION_END();
+
+_SECTION_BEGIN("LWMA 12 days"); 
+
+Short_period = 12; //12-day period is calculated for
+d1 = 12 * C; 
+d2 = 11 * Ref(C,-1); 
+d3 = 10 * Ref(C,-2); 
+d4 = 9 * Ref(C,-3); 
+d5 = 8 * Ref(C,-4); 
+d6 = 7 * Ref(C,-5); 
+d7 = 6 * Ref(C,-6); 
+d8 = 5 * Ref(C,-7); 
+d9 = 4 * Ref(C,-8); 
+d10 = 3 * Ref(C,-9); 
+d11 = 2 * Ref(C,-10); 
+d12 = 1 * Ref(C,-11); 
+Day_12_total= (d1 + d2 + d3 + d4 + d5 + d6 + d7 + d8 + d9 + d10 + d11 + d12 ) ; 
+Period_12_total = ( 12 + 11 + 10 + 9 + 8 + 7 + 6 + 5 + 4 + 3 + 2 + 1 ); 
+LWMA12 = Day_12_total / Period_12_total ; 
+_SECTION_END(); 
+
+//------------------------------------------------------------------------------------------// 
+
+_SECTION_BEGIN("LWMA 21 Days"); 
+
+trigger_period= 21; // 21-day period is calculated for
+  
+d1 = 21 * C; 
+d2 = 20 * Ref(C,-1); 
+d3 = 19 * Ref(C,-2); 
+d4 = 18 * Ref(C,-3); 
+d5 = 17 * Ref(C,-4); 
+d6 = 16 * Ref(C,-5); 
+d7 = 15 * Ref(C,-6); 
+d8 = 14 * Ref(C,-7); 
+d9 = 13 * Ref(C,-8); 
+d10 = 12 * Ref(C,-9); 
+d11 = 11 * Ref(C,-10); 
+d12 = 10 * Ref(C,-11); 
+d13 = 9 * Ref(C,-12); 
+d14 = 8 * Ref(C,-13); 
+d15 = 7 * Ref(C,-14); 
+d16 = 6 * Ref(C,-15); 
+d17 = 5 * Ref(C,-16); 
+d18 = 4 * Ref(C,-17); 
+d19 = 3 * Ref(C,-18); 
+d20 = 2 * Ref(C,-19); 
+d21 = 1 * Ref(C,-20); 
+Day_21_total = (d1 + d2 + d3 + d4 + d5 + d6 + d7 + d8 + d9 + d10 + d11 + d12 + d13 + d14 + d15 + d16 + d17 + d18 + d19 + d20 + d21 ) ; 
+Period_21_total = ( 21 + 20 + 19 + 18 + 17 + 16 + 15 + 14 + 13 + 12 + 11 + 10 + 9 + 8 + 7 + 6 + 5 + 4 + 3 + 2 + 1 ); 
+LWMA21 = Day_21_total / Period_21_total ; 
+
+_SECTION_END(); 
+
+//------------------------------------------------------------------------------------------// 
+
+_SECTION_BEGIN("LWMA 43 Günlük"); 
+
+long_period = 43; // 43-day period is calculated for 
+d1 = 43 * C; 
+d2 = 42 * Ref(C,-1); 
+d3 = 41 * Ref(C,-2); 
+d4 = 40 * Ref(C,-3); 
+d5 = 39 * Ref(C,-4); 
+d6 = 38 * Ref(C,-5); 
+d7 = 37 * Ref(C,-6); 
+d8 = 36 * Ref(C,-7); 
+d9 = 35 * Ref(C,-8); 
+d10 = 34 * Ref(C,-9); 
+d11 = 33 * Ref(C,-10); 
+d12 = 32 * Ref(C,-11); 
+d13 = 31 * Ref(C,-12); 
+d14 = 30 * Ref(C,-13); 
+d15 = 29 * Ref(C,-14); 
+d16 = 28 * Ref(C,-15); 
+d17 = 27 * Ref(C,-16); 
+d18 = 26 * Ref(C,-17); 
+d19 = 25 * Ref(C,-18); 
+d20 = 24 * Ref(C,-19); 
+d21 = 23 * Ref(C,-20); 
+d22 = 22 * Ref(C,-21); 
+d23 = 21 * Ref(C,-22); 
+d24 = 20 * Ref(C,-23); 
+d25 = 19 * Ref(C,-24); 
+d26 = 18 * Ref(C,-25); 
+d27 = 17 * Ref(C,-26); 
+d28 = 16 * Ref(C,-27); 
+d29 = 15 * Ref(C,-28); 
+d30 = 14 * Ref(C,-29); 
+d31 = 13 * Ref(C,-30); 
+d32 = 12 * Ref(C,-31); 
+d33 = 11 * Ref(C,-32); 
+d34 = 10 * Ref(C,-33); 
+d35 = 9 * Ref(C,-34); 
+d36 = 8 * Ref(C,-35); 
+d37 = 7 * Ref(C,-36); 
+d38 = 6 * Ref(C,-37); 
+d39 = 5 * Ref(C,-38); 
+d40 = 4 * Ref(C,-39); 
+d41 = 3 * Ref(C,-40); 
+d42 = 2 * Ref(C,-41); 
+d43 = 1 * Ref(C,-42); 
+Day_43_total = (d1 + d2 + d3 + d4 + d5 + d6 + d7 + d8 + d9 + d10 + d11 + d12 + d13 + d14 + d15 + d16 + d17 + d18 + d19 + d20 + d21 +d22 + d23+d24+d25+d26+d27+d28+d29+d30+d31+d32+d33+d34+d35+d36+d37+d38+d39+d40+d41+d42+d43) ; 
+Period_43_total = ( 43+42+41+40+39+38+37+36+35+34+33+32+31+30+29+28+27+26+25+24+23+22+21 + 20 + 19 + 18 + 17 + 16 + 15 + 14 + 13 + 12 + 11 + 10 + 9 + 8 + 7 + 6 + 5 + 4 + 3 + 2 + 1 ); 
+LWMA43 = Day_43_total / Period_43_total ; 
+ 
+
+_SECTION_END(); 
+
+//------------------------------------------------------------------------------------------// 
+
+_SECTION_BEGIN("TSR last calculation"); 
+
+X = ((2 * LWMA12) - LWMA43) ; // (2 * Short Period) - long Period 
+
+x1 = 21 * x ; 
+x2 = 20 * Ref(x, -1); 
+x3 = 19 * Ref(x, -2); 
+x4 = 18 * Ref(x, -3); 
+x5 = 17 * Ref(x, -4); 
+x6 = 16 * Ref(x, -5); 
+x7 = 15 * Ref(x, -6); 
+x8 = 14 * Ref(x, -7); 
+x9 = 13 * Ref(x, -8); 
+x10 = 12 * Ref(x, -9); 
+x11 = 11 * Ref(x, -10); 
+x12 = 10 * Ref(x, -11); 
+x13 = 9 * Ref(x, -12); 
+x14 = 8 * Ref(x, -13); 
+x15 = 7 * Ref(x, -14); 
+x16 = 6 * Ref(x, -15); 
+x17 = 5 * Ref(x, -16); 
+x18 = 4 * Ref(x, -17); 
+x19 = 3 * Ref(x, -18); 
+x20 = 2 * Ref(x, -19); 
+x21 = 1 * Ref(x, -20); 
+XDayTotal = (x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10 + x11 + x12 + x13 + x14 + x15 + x16 + x17 + x18 + x19 + x20 + x21); 
+XPeriodtotal = ( 21+20+19+18+17+16+15+14+13+12+11+10+9+8+7+6+5+4+3+2+1 ); 
+
+TSR = XDayTotal / XPeriodTotal ; 
+
+Plot(C,"Close",colorWhite,styleBar); 
+
+tsrcolor = IIf(TSR > Ref(TSR,-1),colorLime,colorRed); 
+Plot(TSR,"TSR",tsrcolor,styleLine|styleThick); 
+
+//------------------------------------------------------------------------------------------// 
+
+Title = EncodeColor(colorWhite) + Date() + " >>> " +EncodeColor(colorLightBlue) +  " Close >>> " +  EncodeColor(colorWhite)+ StrFormat("%1.2f",C) + EncodeColor(colorWhite) + " || " + 
+EncodeColor(colorLightBlue) + " TSR Short Periyod = " + EncodeColor(colorRed)+ StrFormat("%1.0f",Short_period)+ " Day " + EncodeColor(colorWhite) + " || " + 
+EncodeColor(colorLightBlue) + " TSR Long Periyod = " + EncodeColor(colorRed)+ StrFormat("%1.0f",long_period)+ " Day " + EncodeColor(colorWhite) + " || " + 
+EncodeColor(colorLightBlue) + " TSR Trigger Periyod = " + EncodeColor(colorRed)+ StrFormat("%1.0f",trigger_period)+ " Day " + EncodeColor(colorWhite) + " || " + 
+EncodeColor(colorLightBlue) + " TSR Final Value = " + EncodeColor(colorRed)+ StrFormat("%1.0f",TSR) + EncodeColor(colorWhite) + " || " ; 
+
+_SECTION_END(); 
+
+
+//****** END TSR INDICATOR *******

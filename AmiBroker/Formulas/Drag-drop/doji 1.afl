@@ -1,0 +1,20 @@
+_SECTION_BEGIN("DOJI");
+Plot(C,"",colorLightGrey,styleCandle);
+ 
+r=CdDoji( threshold = 0.05 );
+
+PlotShapes(r*shapeSmallCircle,colorWhite,Layer=0,yposition=H,Offset=12); 
+
+ 
+for(i=0;i<BarCount-1;i++) 
+{
+    if(r[i]==True)PlotText("Doji", i, H[i], colorWhite, bkcolor = colorDefault); 
+
+}
+
+ 
+Filter = 1;
+
+AddColumn(C, "Close", 1.2);
+AddColumn( r, "CANDLE", 1.4 , IIf( r, colorWhite, colorWhite ) );
+_SECTION_END();

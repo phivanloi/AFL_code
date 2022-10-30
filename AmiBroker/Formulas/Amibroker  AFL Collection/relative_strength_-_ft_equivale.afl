@@ -1,0 +1,21 @@
+fund			= Close;
+index			= Foreign(ParamStr("Index Symbol", "RUT-I"), "Close");
+
+mf				= IIf(IsEmpty(fund[BarCount - 1]), 1, LastValue(Cum(NOT IsEmpty(fund))));
+fund			= IIf(IsEmpty(fund), fund[BarCount -mf], fund);
+
+mi				= IIf(IsEmpty(index[BarCount - 1]), 1, LastValue(Cum(NOT IsEmpty(index))));
+index			= IIf(IsEmpty(index), index[BarCount -mi], index);
+/*
+fvb 			= Status("firstvisiblebar");
+lvb 			= Status("lastvisiblebar");
+startInd		= fvb;
+endInd		= Min(LastValue(BarIndex()), Max(Lvb - 1, 0));
+statPer		= endInd - startInd;
+*/
+mp 			= Min(mf, mi);
+num			= BarCount - mp;
+mult			= 10*index[num] / fund[num];	// makes the multiplier used in FastTrack's Rel Str
+rs				= mult * fund / index;
+
+Plot(rs, "Rel Str - FT numbers", 42);

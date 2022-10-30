@@ -1,0 +1,28 @@
+// Vortex Indicator 
+// S&C Traders Tips Jan 2010 
+period = Param("Period" , 14, 2 ); 
+
+VMP = Sum( abs( H - Ref( L, -1 ) ), period ); 
+VMM = Sum( abs( L - Ref( H, -1 ) ), period ); 
+STR = Sum( ATR( 1 ), period ); 
+VIP = VMP / STR; 
+VIM = VMM / STR; 
+ 
+Plot( VIP, "VI"+period+ "+", colorBlue); 
+Plot(0.0,"",colorGreen,styleLine,styleThick);
+Plot( VIM, "VI"+period+ "-", colorRed ); 
+ 
+//The system is defined as:
+//- Go long when the VI (or Dmi) goes from less than zero to greater than 
+//zero.
+//- Go short when the VI (or Dmi) goes from above zero to less than zero.
+// - All trades are placed "next day market on open."
+// That would translate to:
+ 
+ SetTradeDelays( 1,1,1,1); // everything delayed 1 day
+ Buy = VIP > 0 AND Ref(VIP,-1) < 0;
+ BuyPrice = Open;
+ Sell = VIP < 0 AND Ref(VIP,-1) > 0;
+ SellPrice = Open;
+ Short = Sell;
+ Cover = Buy;

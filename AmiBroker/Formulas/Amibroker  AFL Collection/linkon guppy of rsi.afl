@@ -1,0 +1,68 @@
+_SECTION_BEGIN("Background");
+	SetChartOptions(0,chartShowArrows|chartShowDates);
+	SetChartBkColor(ParamColor("Outer panel",colorBlack)); // color of outer border 
+	SetChartBkGradientFill( ParamColor("Inner panel upper",colorBlack),ParamColor("Inner panel lower",colorBlack));
+	tchoice=Param("Title Selection ",2,1,2,1);
+_SECTION_BEGIN("RSI");
+  
+a = Param("rsi", 21, 2, 90, 1, 10 );
+b1 = Param("period1", 3, 2, 300, 1, 10 );
+b2 = Param("period2", 33, 2, 300, 1, 10 );
+
+
+COLORRSI= IIf (EMA( RSI(a), 3 )>Ref(EMA( RSI(a), 3 ),-1), colorGreen,colorRed);
+COLORRSI1= IIf (EMA( RSI(a), 33 )>Ref(EMA( RSI(a), 33 ),-1), colorBlue,colorDarkBlue);
+
+
+//Plot( RSI( 21), "", colorWhite, styleThick  );
+Plot( EMA( RSI(a), 3 ),  "",colorYellow, styleThick, styleNoLabel ); 
+Plot( EMA( RSI(a), 4 ),  "",colorRSI, styleNoLabel); 
+Plot( EMA( RSI(a), 5 ),  "",colorRSI, styleNoLabel); 
+Plot( EMA( RSI(a), 7 ),  "",colorRSI, styleNoLabel); 
+Plot( EMA( RSI(a), 9 ),  "",colorRSI, styleNoLabel); 
+Plot( EMA( RSI(a), 11 ),  "",colorRSI, styleNoLabel); 
+Plot( EMA( RSI(a), 13 ),  "",colorRSI, styleNoLabel); 
+Plot( EMA( RSI(a), 15 ),  "",colorRSI, styleNoLabel); 
+Plot( EMA( RSI(a), 17 ),  "",colorRSI, styleNoLabel); 
+Plot( EMA( RSI(a), 19 ),  "",colorRSI, styleNoLabel); 
+Plot( EMA( RSI(a), 21 ),  "",colorOrange, styleThick, styleNoLabel); 
+
+Plot( EMA( RSI(a), 33 ),  "",colorAqua, styleThick, styleNoLabel ); 
+Plot( EMA( RSI(a), 36 ), "", COLORRSI1,  styleNoLabel ); 
+Plot( EMA( RSI(a), 40 ),  "",COLORRSI1,  styleNoLabel ); 
+Plot( EMA( RSI(a), 44 ),  "",COLORRSI1,  styleNoLabel ); 
+Plot( EMA( RSI(a), 50 ),  "",COLORRSI1,  styleNoLabel ); 
+Plot( EMA( RSI(a), 55 ),  "",COLORRSI1,  styleNoLabel); 
+Plot( EMA( RSI(a), 60 ),  "",COLORRSI1,  styleNoLabel); 
+Plot( EMA( RSI(a), 65 ),  "",COLORRSI1,  styleNoLabel ); 
+Plot( EMA( RSI(a), 70 ),  "",COLORRSI1,  styleNoLabel); 
+Plot( EMA( RSI(a), 75 ),  "",colorGreen, styleThick , styleNoLabel); 
+
+
+ 
+ST_buy = Cross(EMA( RSI(a), b1 ), EMA( RSI(a), b2 ));
+ST_Sell = Cross(EMA( RSI(a), b2 ), EMA( RSI(a), b1 ));
+
+//w= Param("Timing Tool", 31, 2, 300, 1, 10 );
+//r = Param("period", 5, 2, 300, 1, 10 );
+
+
+
+//MT_buy = Cross(CCI(w), EMA( CCI(w), r ));
+//MT_Sell = Cross(EMA( CCI(w), r ), CCI(w));
+
+
+//PlotShapes(shapeSmallCircle, COLORRSI1);
+
+PlotShapes(shapeUpTriangle * ST_buy, colorWhite);
+PlotShapes(shapeDownTriangle * ST_Sell, colorWhite);
+
+//PlotShapes(shapeSmallUpTriangle * MT_buy, colorGreen);
+//PlotShapes(shapeSmallDownTriangle * MT_Sell, colorGreen);
+
+
+
+
+
+// 5 crosses 21 : short term 
+_SECTION_END();

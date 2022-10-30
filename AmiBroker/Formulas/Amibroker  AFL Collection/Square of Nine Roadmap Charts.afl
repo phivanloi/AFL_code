@@ -1,0 +1,337 @@
+   
+         
+  
+//Advanced stock charting AND analysis program 
+
+//AFL Library
+//List Add formula 
+
+//Details:
+//Formula Name: Square of Nine Roadmap Charts 
+//Author/Uploader: Lal - (email hidden) 
+//Date/Time added: 2008-03-30 14:19:07 
+//Origin:  
+//Keywords: Square of Nine, Roadmap 
+//Level: semi-advanced 
+//Flags: indicator 
+
+//DISCLAIMER: Most formulas present in AFL on-line library are submitted by the users AND are provided here on an "as is" AND "as available" basis. AmiBroker.com makes no representations OR warranties of any kind to the contents OR the operation of material presented here. We do NOT maintain nor provide technical support for 3rd party formulas.
+
+//Download formula file  |  Delete formula 
+
+//Description:
+//Produces automatic trend channels based on a SINGLE bar.
+
+//Formula://
+
+/******************************************************************************************
+Name		: 	Square of Nine - Roadmap Charts (Amibroker implementation)
+Coded by	:	Lal
+Date		:	27th March 2008
+Note		:	Grateful thanks to Peter Amaral of Tradingfives.com
+				To gain an understanding of how these roadmap channels 
+				work, read the article here:
+
+				http://www.tradingfives.com/square-of-nine-in-excel.htm
+
+				Thanks also to wavemechanic for his inputs.  
+
+				Used properly, on the basis of a SINGLE  bar, Roadmap Charts
+				will produce  channels that will pretty much define the overall
+				future trend that can last anything from days to months or beyond.
+
+				To use, select the bar that you suspect to be a possible high or low.
+				Decide whether you want a bearish or a bullish channel.  Next choose
+				an appropriate "Factor" (try starting with a value of 1) and a
+"Multiplier."   
+				For tickers that are greater than 3 digits, you may try a Multiplier 
+				value of 0.10 and those below 3 digits, a value of 10.  Tickers with 
+				with just 3 digits, leave the Multiplier at 1.  However, there are no
+absolute
+				rules here and experimentation is strongly encouraged.
+
+				The Horizontal lines are support/resistance lines while the vertical lines
+				are timing lines.  
+
+				All the lines plotted by this script can extend beyond the last bar.  So
+make sure
+				you have enough blank bars in the right margin (set by Preferences).
+***************************************************************************************************/
+
+_SECTION_BEGIN("So9_Params");
+Base_Factor		=	ParamList("Factor",
+"0.015625|0.03125|0.0625|0.1250|0.1875|0.2500|0.3125|0.3750|0.4375|0.5|0.5625|0.6250|0.6875|0.8125|0.8750|0.9375|1.0|1.250|1.5|1.75|2.0|2.5|3.0|4.0",
+16);
+Multiplier			=	ParamList("Multiplier", "0.001|0.01|0.10|1|10|100|1000|10000",
+3);
+Auto_Price			=	ParamToggle("Auto-select Price field?", "No|Yes", 1);
+Price_Field		=	ParamField("Use ");
+Max_Hor_Lines	=	Param("Max Hor. Lines", 10, 2, 100, 1);
+Plot_Half_Lines	=	ParamToggle("Hor. HalfLines?", "No|Yes");
+Extend_Bars		=	Param("Extend Plot by", 20, 0, 50, 1);
+Channel_Type		=	ParamList("Channel Type", "Bullish|Bearish|None", 0);
+Max_Chanl_Lines =	Param("Max Channel Lines", 3, 1, 20, 1);
+Show_Degrees	=	ParamToggle("Show Degrees?", "No|Yes", 1);
+_SECTION_END();
+
+_SECTION_BEGIN("Line Colours");
+Bull_Line_Color	=	ParamColor("Bullish Horizontals", colorDarkGreen);
+Bull_Half_Color	=	ParamColor("Bullish Horizontal Halfs", colorRed);
+Bull_Vert_Color	=	ParamColor("Bullish Verticals", colorGrey50);
+Bull_Chanl_Color	=	ParamColor("Bullish Channels", colorDarkGreen);
+
+Bear_Line_Color	=	ParamColor("Bearish Horizontals", colorRed);
+Bear_Half_Color	=	ParamColor("Bearish Horizontal Halfs", colorDarkGreen);
+Bear_Vert_Color	=	ParamColor("Bearish Verticals", colorGrey50);
+Bear_Chanl_Color	=	ParamColor("Bearish Channels", colorRed);
+_SECTION_END();
+
+SetChartBkGradientFill( ParamColor("BgTop", colorTeal),ParamColor("BgBottom",
+colorLightGrey));
+SetChartOptions(0,chartShowArrows|chartShowDates);
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle |
+ParamStyle("Style") | GetPriceStyle() ); 
+SetBarsRequired(100000, 100000);
+
+EnableTextOutput(False);
+
+// Convert list-type parameters to numbers
+Base_Factor_N 	= 	StrToNum(Base_Factor);
+Multiplier_N		=	StrToNum(Multiplier);
+
+Vertical =	0;
+
+// Display various bits of info. in Interpretation window
+printf("\nSquare of Nine Roadmap Channels\n");
+printf("-----------------------------------------\n");
+if(Channel_Type == "Bullish")
+	printf("Channel Type: 	Bullish\n");
+if(Channel_Type == "Bearish")
+	printf("Channel Type: 	Bearish\n");
+if(Channel_Type == "None")
+	printf("Channel Type: 	NONE\n");
+printf("Factor	: 	%g\n", Base_Factor_N);
+printf("Multiplier:		%g\n", Multiplier_N);
+printf("Origin Bar:	%g\n", SelectedValue(BarIndex()));
+
+// Plot Bullish Channels with horizontal Support/Resistance
+if(Channel_Type == "Bullish")
+{
+	// Select price for pivot low
+	if(Auto_Price == 1)
+	{
+		Price_Field = L;
+	}
+
+	Bull_Hor_A[0] = SelectedValue(Price_field);		// 1st Horizontal is drawn from the current bar
+
+	for(i = 1; i <= Max_Hor_Lines-1; i++)
+	{
+
+		Bull_Hor	=	( sqrt(Price_Field * Multiplier_N) + (Base_Factor_N * i)) ^2;
+		Degrees	=	180 * Base_Factor_N * i;
+		Bull_Hor	=	Bull_Hor/Multiplier_N;		// Put value back to pre-multiplication for plotting
+
+		Start_Bar	=	SelectedValue(BarIndex());
+		Start_Y	=	SelectedValue(Bull_Hor);
+		End_Bar	=	BarCount - 1;
+		End_Y		=	Start_Y;
+		Hor_Plot	=	LineArray(Start_Bar - Extend_Bars, Start_Y, End_Bar, End_Y, 1);
+
+		Plot(Hor_Plot, "", Bull_Line_Color, styleLine|styleNoRescale, Null, Null,
+Extend_Bars);
+		
+		if(Show_Degrees)
+		{
+			PlotText("" + NumToStr(Degrees, 4, 1) + "", Start_bar+2, Start_Y + 1 ,
+colorBlack);
+		}
+
+		if(i == 1)
+		{
+			// Plot the 1st Horizontal.  This is a one-time execution.
+			Plot(LineArray(Start_Bar - Extend_Bars, SelectedValue(Price_Field), End_Bar,
+SelectedValue(Price_Field), 0), "", Bull_Line_Color, styleLine|styleNoRescale,
+Null, Null, Extend_Bars);
+		}
+
+		Bull_Hor_A[i] = SelectedValue(Bull_Hor);	// Store the next horizontal value
+	
+		// Plot the half-level horizontals conditionally
+		if(Plot_Half_Lines)
+		{
+			Bull_Hor	=	(Bull_Hor_A[i-1] + Bull_Hor_A[i])/2;
+			Start_Bar	=	SelectedValue(BarIndex());
+			Start_Y	=	SelectedValue(Bull_Hor);
+			End_Bar	=	BarCount - 1;
+			End_Y		=	Start_Y;
+			Hor_Plot	=	LineArray(Start_Bar - Extend_Bars, Start_Y, End_Bar, End_Y, 1);
+			Plot(Hor_Plot, "", Bull_Half_Color, styleLine|styleNoRescale, Null, Null,
+Extend_Bars);
+		}
+	
+	}	// End loop for plotting horizontal lines
+
+	// Plot Vertical Lines
+	Vertical		=	 round(sqrt(Price_Field * Multiplier_N));
+	Next_Vertical	=	SelectedValue(BarIndex() ) + Vertical;
+	Plot(IIf(BarIndex()  >= SelectedValue(BarIndex( )),
+(Cum(1)-SelectedValue(BarIndex()) - 1)%SelectedValue(Vertical) == 0, Null), "",
+Bull_Vert_Color, styleHistogram| styleOwnScale|styleNoLabel);
+
+	// DIsplay timing info
+	printf("Timing Interval:	%g\n", Vertical);
+	
+	// Logic to plot at least one vertical bar BEYOND Barcount()
+	Next_Vertical = SelectedValue(BarIndex()) +SelectedValue( Vertical);
+	while(Next_Vertical < BarCount)
+	{
+		Next_Vertical  = Next_Vertical + SelectedValue(Vertical);
+	}
+
+	// Work out how many bars to shift the vertical to the right from current selected bar
+	Shift	=	Next_Vertical[0] - SelectedValue(BarIndex());
+	Line1 = BarIndex() == SelectedValue(BarIndex());	// are we at current bar?
+	Plot(Line1,"", colorRed, styleHistogram| styleOwnScale, Null, Null, Shift) ;
+// Plot vertical with a forward shift
+
+	// Plot channel lines 
+	for(a = 0; a <= Max_Chanl_Lines - 1; a++)
+	{
+		Start_Bar	=	SelectedValue(BarIndex())  - Extend_Bars;
+		Start_Y	=	Bull_Hor_A[a];
+		End_Bar	=	Start_Bar + SelectedValue(Vertical);
+		End_Y		=	Bull_Hor_A[a+1];
+		Channel_Line	=	LineArray(Start_Bar - 0, Start_Y, End_Bar, End_Y, 1);
+		Plot(Channel_line, "", Bull_Chanl_Color,
+styleLine|styleNoRescale|styleNoLabel, Null, Null, Extend_Bars);
+	}
+}
+
+// Plot Bearish Channels with horizontal Support/Resistance
+if(Channel_Type == "Bearish")
+{
+	// Select price for pivot high
+	if(Auto_Price == 1)
+	{
+		Price_Field = H;
+	}
+
+	Bear_Hor_A[0] = SelectedValue(Price_field);		// 1st Horizontal is drawn from the current bar
+
+	for(i = 1; i <= Max_Hor_Lines-1; i++)
+	{
+		Bear_Hor	=	( sqrt(Price_Field * Multiplier_N)  - (Base_Factor_N * i)) ^2;
+		Degrees	=	180 * Base_Factor_N * i;
+		Bear_Hor	=	Bear_Hor/Multiplier_N;		// Put value back to pre-multiplication for plotting
+
+		Start_Bar	=	SelectedValue(BarIndex());
+		Start_Y	=	SelectedValue(Bear_Hor);
+		End_Bar	=	BarCount - 1;
+		End_Y		=	Start_Y;
+		Hor_Plot	=	LineArray(Start_Bar - Extend_Bars, Start_Y, End_Bar, End_Y, 1);
+
+		Plot(Hor_Plot, "", Bear_Line_Color, styleLine|styleNoRescale, Null, Null,
+Extend_Bars);
+
+		if(Show_Degrees)
+		{
+			PlotText("" + NumToStr(Degrees, 4, 1) + "", Start_bar+2, Start_Y + 1 ,
+colorBlack);
+		}
+
+		if(i == 1)
+		{
+			// Plot the 1st Horizontal.  This is a one-time execution.
+			Plot(LineArray(Start_Bar - Extend_Bars, SelectedValue(Price_Field), End_Bar,
+SelectedValue(Price_Field), 0), "", Bear_Line_Color,
+styleLine|styleThick|styleNoRescale, Null, Null, Extend_Bars);
+		}
+
+		Bear_Hor_A[i] = SelectedValue(Bear_Hor);	// Store the next horizontal value
+	
+		// Plot the half-level horizontals if asked
+		if(Plot_Half_Lines)
+		{
+			Bear_Hor	=	(Bear_Hor_A[i-1] + Bear_Hor_A[i])/2;
+			Start_Bar	=	SelectedValue(BarIndex());
+			Start_Y	=	SelectedValue(Bear_Hor);
+			End_Bar	=	BarCount - 1;
+			End_Y		=	Start_Y;
+			Hor_Plot	=	LineArray(Start_Bar - Extend_Bars, Start_Y, End_Bar, End_Y, 1);
+			Plot(Hor_Plot, "", Bear_Half_Color, styleLine|styleNoRescale, Null, Null,
+Extend_Bars);
+		}
+	
+	}
+
+	// Plot Vertical Lines
+	Vertical	=	 round(sqrt(Price_Field * Multiplier_N));
+	Next_Vertical	=	SelectedValue(BarIndex()) + Vertical;
+	Plot(IIf(BarIndex() >= SelectedValue(BarIndex( )),
+(Cum(1)-SelectedValue(BarIndex())-1)%SelectedValue(Vertical) == 0, Null), "",
+Bear_Vert_Color, styleHistogram| styleOwnScale|styleNoLabel) ;
+
+	// DIsplay timing info
+	printf("Timing Interval:	%g\n", Vertical);
+
+	// Logic to plot at least one vertical bar BEYOND Barcount()
+	Next_Vertical = SelectedValue(BarIndex()) +SelectedValue( Vertical);
+	while(Next_Vertical < BarCount)
+	{
+		Next_Vertical  = Next_Vertical + SelectedValue(Vertical);
+	}
+
+	// Work out how many bars to shift the vertical to the right from current selected bar
+	Shift	=	Next_Vertical[0] - SelectedValue(BarIndex());
+	Line1 = BarIndex() == SelectedValue(BarIndex());	// are we at current bar?
+	Plot(Line1,"", colorDarkGreen, styleHistogram| styleOwnScale|styleNoLabel,
+Null, Null, Shift) ; // Plot vertical with a forward shift
+
+	// Plot channel lines 
+	//Extend_Bars = 0;
+	for(a = 0; a <= Max_Chanl_Lines - 1; a++)
+	{
+		Start_Bar	=	SelectedValue(BarIndex()) - Extend_Bars;
+		Start_Y	=	Bear_Hor_A[a];
+		End_Bar	=	Start_Bar + SelectedValue(Vertical);
+		End_Y		=	Bear_Hor_A[a+1];
+		Channel_Line	=	LineArray(Start_Bar - 0, Start_Y, End_Bar, End_Y, 1);
+		Plot(Channel_line, "", Bear_Chanl_Color,
+styleLine|styleNoRescale|styleNoLabel, Null, Null, Extend_Bars);
+	}
+
+} // End bearish channels
+
+Channel_Bull_Text	=	WriteIf(Channel_Type == "Bullish", "Bullish", "" );
+Channel_Bear_Text	=	WriteIf(Channel_Type == "Bearish", "Bearish", "");
+Channel_Null_Text	=	"";
+
+Price_Info = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g,
+Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) );
+
+Title  =		EncodeColor(colorBlack) +  Price_Info + "\n" +  
+				EncodeColor(colorBlack) + "Channel Type: " + 
+				EncodeColor(colorBlue) 	 + Channel_Bull_Text +
+				EncodeColor(colorRed)	 + Channel_Bear_Text +
+				EncodeColor(colorBlack) + Channel_Null_Text + "\n" +
+				EncodeColor(colorBlack) + "Factor: " + EncodeColor(colorBlue) + Base_Factor
++ "\n" +  
+				EncodeColor(colorBlack) + "Multiplier: " + EncodeColor(colorDarkGreen) +
+Multiplier_N + "\n" + 
+				EncodeColor(colorBlack) + "Origin Bar: " + EncodeColor(colorYellow) +
+SelectedValue(BarIndex()) + "\n" +
+				EncodeColor(colorBlack) + "Timing Interval: " + EncodeColor(colorDarkBlue)
++ Vertical;
+//Comments:
+
+//Add your comment:
+//Your Name:   
+//Your e-mail:   
+//Comment:   
+    
+   
+
+
+//About | Privacy | Terms of Use | Contact information 
+//Copyright © 2001 AMIBROKER.COM  

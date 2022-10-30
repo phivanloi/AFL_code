@@ -1,0 +1,31 @@
+// see buy only in 3 mins chart
+// khushi00@rocketmail.com
+_SECTION_BEGIN("khushi my love");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+Buy= EMA(C,13)>EMA(EMA(C,13),9) AND Cross (C,Peak(C,1.5,1));
+Sell= EMA(C,13)<EMA(EMA(C,13),9) AND Cross(Trough(C,1.5,1),C); 
+
+
+MYcolor = IIf( EMA(C,13)>EMA(EMA(C,13),9) AND  C>Peak(C,1.5,1), colorGreen, IIf(EMA(C,13)>EMA(EMA(C,13),9) AND C<Peak(C,1.5,1),colorBlue, colorRed ));
+PlotOHLC( Open,  High,  Low,  Close, "", Mycolor, styleBar |styleThick  ); 
+
+shape1 = Buy * shapeUpArrow ;
+shape2 = Sell * shapeDownArrow;
+
+PlotShapes( shape1, IIf( Buy, colorGreen,colorRed),0, IIf( Buy, Low, High ) );
+PlotShapes( shape2, IIf( Sell, colorRed,colorGreen),0, IIf( Sell, High, Low ) );
+
+dist = 1.5*ATR(10); 
+
+Filter = Buy OR Sell ;
+
+AddColumn(Buy,"buy",1.2);
+AddColumn(Sell,"sell",1.2);
+
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "Buy\n@ " + C[ i ], i, L[ i ]-dist[i], colorGreen ); 
+if( Sell[i] ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorRed ); 
+}

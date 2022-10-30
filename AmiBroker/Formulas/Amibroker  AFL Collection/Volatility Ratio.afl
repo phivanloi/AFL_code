@@ -1,0 +1,7 @@
+n = Param("movn",15,1,50,1);
+
+ratio = C / Ref(C,-1);
+natlog = log(ratio);
+TSMVolatilityRatio = MA(natlog, n);
+
+Plot(TSMVolatilityRatio, "Volatility Ratio("+n+")", colorRed);

@@ -1,0 +1,15 @@
+_SECTION_BEGIN("MACD HIst"); 
+ 
+SetChartBkColor( colorBlack ) ;
+f = Param("fast ema",12,1,50,1);
+s = Param("Slow ema",26,2,100,1); 
+t = Param ("signal",9,1,50,1);
+A1=EMA(C,f)-EMA(C,s); 
+a2 = EMA(a1,t);
+Hist = a1-a2;
+em = EMA(Hist,9);
+
+Bar_col = IIf(EM > Ref(EM,-1),colorBrightGreen,colorRed);
+
+
+_SECTION_END();

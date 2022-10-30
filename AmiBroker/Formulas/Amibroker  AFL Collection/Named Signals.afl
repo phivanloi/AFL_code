@@ -1,0 +1,188 @@
+/*			Named Signals.afl - Bill Barnard, 1/23/06
+	This file is to be used as an include file for  SIGNAL STUDY.afl .
+	Read discussion (first parameter) in SIGNAL STUDY.afl 	*/
+
+if (sigSelect=="Named Signals") 	{
+
+//	retrieve stored parameter information
+NSParamsList			= "";
+NSParamsFileName	= "ConfigFiles\\NSParams"+GetChartID()+".bf";
+
+fh 						= fopen( NSParamsFileName, "r");
+if( fh )
+{
+   	while( ! feof( fh ) )
+   	{
+      	NSParamsList = fgets( fh );
+   	}
+	fclose( fh );
+}
+
+q0			=		IIf(NSParamsList !="", 	StrToNum(StrExtract(NSParamsList,  0	)), 0	 		);//	sigsource
+q1			= WriteIf(NSParamsList !="", 				  StrExtract(NSParamsList,   1	), 	"Type a SIGNAL NAME here instead of these words"	);//	signame
+q2			= WriteIf(NSParamsList !="", 				  StrExtract(NSParamsList,   2	), 	"Type a SIGNAL LIST here instead of these words"	);//	signame
+q3			=		IIf(NSParamsList !="", 	StrToNum(StrExtract(NSParamsList,  3	)), 0	 		);//	signum
+
+
+_SECTION_BEGIN("SIGNALS");
+Sigsorc	= ParamList("Signals from?", "Using  LIST  of Signals below,Using  NAME  of Signal just below", q0);
+Sigsors	= WriteIf(Sigsorc=="Using  LIST  of Signals below", "SList", "SName");
+sigsource= IIf(Sigsors=="SList", 0, 1);
+signame	= ParamStr("Type in a Signal Name", q1);
+signame	= WriteIf(signame=="Type a SIGNAL NAME here instead of these words", signame, StrToUpper(signame) );
+siglist		= ParamStr("Comma-separated Signal List", StrReplace(q2, "#", ",") );
+siglist		= WriteIf(siglist=="Type a SIGNAL LIST here instead of these words", siglist, StrToUpper(siglist) );
+signum	= Param("Signal Number (Position in List above)", q3, 0, 50, 1);		//	Signal selector
+
+//	Determine desired signal
+temp 		= "xxx";
+for 		(n = 0; temp != ""; n++)  temp = StrExtract(siglist, n);
+signumb	= Min(signum, n-1);
+sig			= WriteIf(signumb==0, "BUYandHOLD", StrExtract(siglist, signumb-1));
+sig			= WriteIf(sigsors=="SList" , sig, 
+				WriteIf(signame=="Type a SIGNAL NAME here instead of these words", "", signame));
+nosig		= IIf(Sigsors=="SName"  AND
+					(signame=="Type a SIGNAL NAME here instead of these words" OR signame=="") OR
+					(sigsors=="SList"  AND (siglist=="" AND signum !=0)), 1, 0);
+sig			= removeSpaces( sig );
+sigL		= sig;
+sigS		= WriteIf(StrRight(sig, 2)=="-L" OR StrRight(sig, 2)=="-l", StrLeft(sig, StrLen(sig) -2)+"-S", sig);
+_SECTION_END();
+
+//	Establish buy and sell conditions
+LBuySig = LSellSig = SBuySig = SSEllSig = LBuyC = LSellC = SBuyC = SSellC = Buy = Sell = Close - Close;
+noLsig = noSsig = 0;
+
+if (StrToUpper(sig)=="BUYANDHOLD")
+{
+	Buy[0]			= 1;
+	Sell[0]			= 0;
+	LBuyC				= Close - Close + 1;
+}
+else if (sig !="")
+{
+	if (NOT StrRight(StrToUpper(sig), 2)=="-L" ) 	//	if using a binary signal
+	{
+		// 	get signal from AmiBroker, if it exists
+		signl			= Foreign(sig, "Close");
+		sigPresent	= LastValue( Highest(signl));
+		if (sigPresent)
+		{
+			BC			= signl;
+			SC			= NOT BC;
+			Buy		= ExRem(BC, SC);
+			Sell 		= ExRem(SC, BC);
+			sigFrom	= "Ami";
+		}
+		else	if (FTDrive != "none")		//	get signal from FT
+		{
+			script     	= GetScriptObject();
+			signl        	= script.FTGetSig(FTDrive, sig, DNum);
+			sigFrom	= WriteIf(LastValue( Highest(Sell)), "FT", "");
+		}
+
+		LBuyC			= Flip(Buy, Sell);
+		LSellC		= Flip(Sell, Buy);			
+	}
+	else	//	if using independent buy and sell signals
+	{
+		// 	get long signal from AmiBroker, if it exists
+		signl			= Foreign(sigL, "Close");
+		sigPresent	= LastValue( Highest(signl));
+		if (sigPresent)
+		{
+			BC		= signl;
+			SC		= NOT BC;
+			Buy	= ExRem(BC, SC);
+			Sell 	= ExRem(SC, BC);
+			sigFrom	= "Ami";
+		}
+		else	if (FTDrive != "none")		//	get long signal from FT
+		{
+			script     	= GetScriptObject();
+			signl        	= script.FTGetSig(FTDrive, sigL, DNum);
+			sigFrom	= WriteIf(LastValue( Highest(Sell)), "FT", "");
+			noLSig	= IIf(sigFrom=="", 1, 0);
+		}
+
+		// make every bar either a buy condition (state) or sell condition
+		n	= 0;
+		while (Buy[n]==0 AND Sell[n]==0 AND n < BarCount - 1)	{n = n + 1; }
+		if (Buy[n]==1)
+		{
+			LBuyC 	= Flip(Buy, Sell);
+			LSellC 	= (NOT LBuyC);
+		}
+		else
+		{
+			LSellC 	= Flip(Sell, Buy);
+			LBuyC 	= (NOT LSellC);
+		}
+
+		// 	get short signal from AmiBroker, if it exists
+		signl			= Foreign(sigS, "Close");
+		sigPresent	= LastValue( Highest(signl));
+		if (sigPresent)
+		{
+			BC		= signl;
+			SC		= NOT BC;
+			Buy	= ExRem(BC, SC);
+			Sell 	= ExRem(SC, BC);
+			sigFrom	= "Ami";
+		}
+		else	if (FTDrive != "none")		//	get short signal from FT
+		{
+			script     	= GetScriptObject();
+			signl        	= script.FTGetSig(FTDrive, sigS, DNum);
+			sigFrom	= WriteIf(LastValue( Highest(Sell)), "FT", "");
+			noSSig	= IIf(sigFrom=="", 1, 0);
+		}
+
+		// make every bar either a buy condition (state) or sell condition
+		n	= 0;
+		while (Buy[n]==0 AND Sell[n]==0 AND n < BarCount - 1)	{n = n + 1; }
+		if (Buy[n]==1)
+		{
+			SBuyC 	= Flip(Buy, Sell);
+			SSellC 	= (NOT SBuyC);
+		}
+		else
+		{
+			SSellC 	= Flip(Sell, Buy);
+			SBuyC 	= (NOT SSellC);
+		}
+	}
+}
+
+BuyCond	= LBuyC;
+SellCond	= LSellC;
+
+//	Check for a signal name that was not recognized
+nosig			= IIf(nosig, 1, IIf((LastValue(Highest(Sell))==0 OR LastValue(Highest(Buy))==0 )
+								AND NOT StrToUpper(sig)=="BUYANDHOLD", 1, IIf(noLSig, 1, 0)));
+if (nosig)
+{
+	sig			= WriteIf(noSSig, sig+" & "+sigS, WriteIf(sig=="", ".....", sig));
+	sig			= sig+ "  Not Found";
+	sigS		= sig;
+	sigFrom	= "";
+	Buy		= Sell = Close - Close;
+	Buy[0]	= 1;
+}
+
+
+//	make an initiation file to store params
+NSParamsList = ""	+
+	sigsource						+","+
+	signame							+","+
+	StrReplace(siglist, "," ,"#")	+","+
+	signum							+","+
+	"";
+
+fh 	= fopen( NSParamsFileName, "w");
+if( fh )
+{
+   	fputs(NSParamsList, fh);
+	fclose( fh );
+}
+}

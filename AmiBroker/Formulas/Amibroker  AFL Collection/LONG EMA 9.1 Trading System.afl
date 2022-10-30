@@ -1,0 +1,73 @@
+EMAfast = Param("First Period",9,3,21,1);
+EMAslow = Param("Second Period",63,21,200,1);
+
+EMALine1 = EMA(Close,EMAFast);
+EMALine2 = EMA(Close,EMASlow);
+
+Diff = EMALine1 - Ref(EMALine1,-1);
+Diff = ValueWhen(Diff != 0, Diff,1);
+
+Long  = Diff>0 AND Ref(Diff,-1)<0;
+Shrt  = Diff<0 AND Ref(Diff,-1)>0;
+
+BuyPrice = ValueWhen(Long,High+0.01,1);
+SellPrice = ValueWhen(Long | Shrt,Low-0.01,1);
+
+Buy = Cross(High,BuyPrice) AND Diff>0;
+Sell = Cross(SellPrice,Low);
+  
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+//Risk Manager
+//PositionSize = (0.04 * Equity(0))/(BuyPrice-SellPrice)*BuyPrice;
+
+Filter = Buy OR Sell;
+AddTextColumn(WriteIf(Buy,"Buy",WriteIf(Sell,"Sell","None")),"TS",colorWhite,colorBlue);
+AddColumn(IIf(Buy,BuyPrice,IIf(Sell,SellPrice,0)),"Entrada",5.2,colorWhite,colorBlue);
+AddColumn(IIf(Buy,SellPrice,IIf(Sell,BuyPrice,0)),"Saída",5.2,colorWhite,colorBlue);
+AddColumn(EMALine1,"EMAFast"+EMAFast,5.2,colorWhite,colorBlue);
+AddColumn(EMALine2,"EMASlow"+EMASlow,5.2,colorWhite,colorBlue);
+AddColumn(RSI(2),"RSI(2)",2.2);
+
+
+Plot(EMALine1,"EMA-Fast", ParamColor("EMA-Fast Color", colorPaleBlue),styleThick);
+Plot(EMALine2,"EMA-Slow", ParamColor("EMA-Slow Color",colorRed),styleThick);
+
+f = ATR(3);
+shapeEntry = Buy * shapeUpArrow + Sell * shapeDownArrow;
+shapeTrade = Long * shapeSmallCircle + Shrt * shapeSmallCircle;
+PlotShapes( shapeTrade, IIf( Long, colorBlue, colorBlack ), 0, IIf( Long, Low-0.01, High+0.01));
+PlotShapes( shapeEntry, IIf( Buy, colorGreen, colorRed ), 0, IIf( Buy, Low-f, High+f));
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowDates|chartShowArrows|chartLogarithmic|chartWrapTitle);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ))+"\n"+ 
+EncodeColor(colorBlue)+
+WriteIf (Long, " GO LONG   / "+EncodeColor(colorGreen)+"START "+Prec(BuyPrice,2)+" / "+EncodeColor(colorRed)+"STOP "+Prec(SellPrice,2)+"  ","")+
+WriteIf (Shrt, " EXIT LONG / "+EncodeColor(colorRed)+"STOP "+Prec(SellPrice,2)+"  ",""));
+
+Plot( C, "", IIf(Close > Open, colorGreen, colorRed), styleBar + styleNoLabel);
+
+_SECTION_END();
+
+_SECTION_BEGIN("trending ribbon");
+uptrend= Diff > 0;
+downtrend= Diff < 0;
+Plot( 2, "",IIf( uptrend, colorGreen, IIf( downtrend, colorRed, 0 )), styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+_SECTION_END();
+
+_SECTION_BEGIN("Background text");
+GfxSetOverlayMode(1);
+GfxSelectFont("Tahoma", Status("pxheight")/6 );
+GfxSetTextAlign( 6 );// center alignment
+GfxSetTextColor( ColorRGB( 60, 45, 80 ) );
+//GfxSetTextColor( ColorHSB( 42, 42, 42 ) );
+//GfxSetTextColor( ColorHSB( 5, 5,242) );
+GfxSetBkMode(0); // transparent
+GfxTextOut( Name(), Status("pxwidth")/2, Status("pxheight")/12 );
+GfxSelectFont("Tahoma", Status("pxheight")/12 );
+GfxTextOut( "EMA9.1 System", Status("pxwidth")/2, Status("pxheight")/3 );
+GfxSelectFont("Tahoma", Status("pxheight")/20 );
+
+//_SECTION_END();

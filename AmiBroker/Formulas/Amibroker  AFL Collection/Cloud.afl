@@ -1,0 +1,9 @@
+Plot( Close, "Price", colorBlack, styleCandle); 
+
+btop = BBandTop(Close);
+bbot = BBandBot(Close);
+Plot( bbot , "BBot", colorGreen, styleThick);
+Plot( btop , "BTop", colorGreen, styleThick); 
+
+PlotOHLC( btop, btop, bbot, bbot, "", colorYellow,styleCloud );
+

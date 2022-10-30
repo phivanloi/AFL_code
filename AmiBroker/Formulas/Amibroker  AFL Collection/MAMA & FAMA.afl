@@ -1,0 +1,4 @@
+price = (H+L)/2;
+Plot(C,"Close",colorRose,64);
+Plot(sbMAMA(price,0.5,0.005),"MAMA",4,1);
+Plot(sbFAMA,"FAMA",3,1);

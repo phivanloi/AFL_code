@@ -1,0 +1,88 @@
+// we use logarithmic returns
+in =ln(Close/Ref(Close,-1));
+BarsToEnd = LastValue( BarIndex() ) - BarIndex();
+// calculate R/S statistics
+// for last 256 bars. We divide this period into
+// 1 region of 256 bars
+// 2 regions of 128 bars
+// 4 regions of 64 bars
+// 8 regions of 32 bars
+// 16 regions of 16 bars
+// 32 regions of 8 bars
+// (63 regions in total)
+mean8 = ValueWhen( BarsToEnd % 256 == 0, MA( in, 256 ), 0 );
+mean7 = ValueWhen( BarsToEnd % 128 == 0, MA( in, 128 ), 0 );
+mean6 = ValueWhen( BarsToEnd % 64 == 0, MA( in, 64 ), 0 );
+mean5 = ValueWhen( BarsToEnd % 32 == 0, MA( in, 32 ), 0 );
+mean4 = ValueWhen( BarsToEnd % 16 == 0, MA( in, 16 ), 0 );
+mean3 = ValueWhen( BarsToEnd % 8 == 0, MA( in, 8 ), 0 );
+dist8 = Cum( in - mean8 ) - ValueWhen( BarsToEnd % 256 == 0, in-mean8 );
+dist7 = Cum( in - mean7 ) - ValueWhen( BarsToEnd % 128 == 0, in-mean7 );
+dist6 = Cum( in - mean6 ) - ValueWhen( BarsToEnd % 64 == 0, in-mean6 );
+dist5 = Cum( in - mean5 ) - ValueWhen( BarsToEnd % 32 == 0, in-mean5 );
+dist4 = Cum( in - mean4 ) - ValueWhen( BarsToEnd % 16 == 0, in-mean4 );
+dist3 = Cum( in - mean3 ) - ValueWhen( BarsToEnd % 8 == 0, in-mean3 );
+// calculate RS statistics for all regions
+RS8 = ( HHV( dist8, 256 ) - LLV( dist8, 256 ) ) / StDev( in , 256 );
+RS7 = ( HHV( dist7, 128 ) - LLV( dist7, 128 )) / StDev( in , 128 );
+RS6 = ( HHV( dist6, 64 ) - LLV( dist6, 64 )) / StDev( in , 64 );
+RS5 = ( HHV( dist5, 32 ) - LLV( dist5, 32 )) / StDev( in , 32 );
+RS4 = ( HHV( dist4, 16 ) - LLV( dist4, 16 )) / StDev( in , 16 );
+RS3 = ( HHV( dist3, 8 ) - LLV( dist3, 8 )) / StDev( in , 8 );
+// calculate average RS is corresponding regions
+ARS8 = RS8;
+ARS7 = ( RS7 + Ref( RS7, -128 ) ) / 2;
+ARS6 = ( RS6 +
+Ref( RS6, -64 ) + Ref( RS6, -128 ) +
+Ref( RS6, -192) ) / 4;
+ARS5 = ( RS5 +
+Ref( RS5, -32 ) + Ref( RS5, -64 ) +
+Ref( RS5, -96 ) + Ref( RS5, -128 ) +
+Ref( RS5, -160 ) + Ref( RS5, -192 ) +
+Ref( RS5, -224 ) ) / 8;
+ARS4 = ( RS4 +
+Ref( RS4, -16 ) + Ref( RS4, -32 ) +
+Ref( RS4, -48 ) + Ref( RS4, -64 ) +
+Ref( RS4, -80 ) + Ref( RS4, -96 ) +
+Ref( RS4, -112 ) + Ref( RS4, -128 ) +
+Ref( RS4, -144 ) + Ref( RS4, -160 ) +
+Ref( RS4, -176 ) + Ref( RS4, -192 ) +
+Ref( RS4, -208 ) + Ref( RS4, -224 ) +
+Ref( RS4, -240 ) ) / 16;
+ARS3 = ( RS3 +
+Ref( RS3, -8 ) + Ref( RS3, -16 ) +
+Ref( RS3, -24 ) + Ref( RS3, -32 ) +
+Ref( RS3, -40 ) + Ref( RS3, -48 ) +
+Ref( RS3, -56 ) + Ref( RS3, -64 ) +
+Ref( RS3, -72 ) + Ref( RS3, -80 ) +
+Ref( RS3, -88 ) + Ref( RS3, -96 ) +
+Ref( RS3, -104 ) + Ref( RS3, -112 ) +
+Ref( RS3, -120 ) + Ref( RS3, -128 ) +
+Ref( RS3, -136 ) + Ref( RS3, -144 ) +
+Ref( RS3, -152 ) + Ref( RS3, -160 ) +
+Ref( RS3, -168 ) + Ref( RS3, -176 ) +
+Ref( RS3, -184 ) + Ref( RS3, -192 ) +
+Ref( RS3, -200 ) + Ref( RS3, -208 ) +
+Ref( RS3, -216 ) + Ref( RS3, -224 ) +
+Ref( RS3, -232 ) + Ref( RS3, -240 ) +
+Ref( RS3, -248 ) ) / 32;
+// calculate Hurst exponent as a linear regression slope
+// of Log2( AvgRS )/ Log2( region size )
+Y8 = log( ARS8 )/log( 2 );
+Y7 = log( ARS7 )/log( 2 );
+Y6 = log( ARS6 )/log( 2 );
+Y5 = log( ARS5 )/log( 2 );
+Y4 = log( ARS4 )/log( 2 );
+Y3 = log( ARS3 )/log( 2 );
+Sumx = 3+4+5+6+7+8; // sum of log2( region size )
+Sumy = Y8 + Y7 + Y6 + Y5 + Y4 + Y3; // sum of log2( AvgRS )
+sumxy = 8*Y8 + 7*Y7 + 6*Y6 + 5*Y5 + 4*Y4 + 3*Y3;
+Sumx2 = 3*3 + 4*4 + 5*5 + 6*6 + 7*7 + 8*8;
+// the slope of linear regression from R/S
+// is the estimate of Hurst exponent
+b=( 6 * sumxy - sumx*sumy )/( 6 * sumx2 - sumx*sumx);
+Hurst = b;
+Filter = BarsToEnd == 0;
+AddColumn( Close, "Close", 1.5 );
+AddColumn( Hurst, "Hurst Exponent", 1.5);
+AddColumn( 2-Hurst, "Fractal Dim", 1.5 );

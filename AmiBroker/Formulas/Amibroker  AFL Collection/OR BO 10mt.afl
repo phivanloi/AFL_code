@@ -1,0 +1,47 @@
+_SECTION_BEGIN("ORBO 10mt");
+priceTitle=EncodeColor(colorYellow)+ StrFormat("    {{NAME}}  --  {{INTERVAL}}" ) + "\n"+ EncodeColor(colorCustom11)+
+"Date =  " + Date() ;
+ToolTip=StrFormat("  Close = %g (%.1f%%)",C,SelectedValue( ROC( C, 1 ) ));
+Title ="DHIRAJ" + priceTitle + "\n" + EncodeColor(colorWhite) + ToolTip; 
+
+
+breakoutime = 100500;
+afterbreakout0 = Cross(TimeNum(),100500);
+afterbreakout1 = TimeNum()>=100500;
+NewDay = Day()!= Ref(Day(), -1);
+highestoftheday = HighestSince(newday,H,1);
+Lowestoftheday =LowestSince(newday,L,1);
+ORBHigh = ValueWhen(afterbreakout0,highestoftheday,1);
+ORBLow = ValueWhen(afterbreakout0,lowestoftheday,1);
+buycandidate =Cross(C,orblow) AND afterbreakout1;
+sellcandidate = Cross(orbhigh,C) AND afterbreakout1 ;
+
+BuyCond2 = Cross(C, WMA((L+C+H)/3,9)+0.01);/*((MidMA, LongMA);*/
+SellCond4=Cross( WMA((L+C+H)/3,9)+0.01,C); 
+Buy1 = BuyCond2;
+Sell1 = SellCond4 ;
+entryprice=WMA((L+C+H)/3,9)+0.01;
+ENTRYSELL=WMA((L+C+H)/3,9)-0.01;
+
+Buy= Cross(C,orbhigh) AND afterbreakout1;
+Sell = Cross(orblow,C) AND afterbreakout1;
+color = IIf(Buy,colorGreen,IIf(Sell,colorRed,IIf(buycandidate,colorBlue,IIf(sellcandidate,colorPink,0))));
+
+
+Plot(C,"",colorYellow,styleBar);
+PlotShapes( shapeUpArrow * Buy, colorGreen,0,L,-12);
+PlotShapes( shapeDownArrow * Sell, colorRed,0,H,-12);
+//Plot(afterbreakout0,"",colorBlue,styleHistogram|styleOwnScale);
+
+StyleOR=styleNoLine|styleDots+styleThick;
+
+Plot(ORBHigh,"RESISTENCE",colorGreen,StyleOR);
+Plot(ORBLow,"SUPPORT",colorRed,StyleOR);
+Filter = Buy OR Sell OR sellcandidate  OR buycandidate OR Buy1 OR Sell1;
+
+
+//Filter = Buy OR Sell OR sellcandidate  OR buycandidate;
+AddColumn(C,"CMP",0,colorBlue);
+AddColumn(IIf(Buy OR sellcandidate,ORBHigh,ORBLow),"INTRA ",0,colorDefault,color);
+AddColumn(IIf(Buy1,entryprice,ENTRYSELL),"DELIVERY ",0,colorDefault,IIf(Buy1,colorGreen, colorRed));
+_SECTION_END();

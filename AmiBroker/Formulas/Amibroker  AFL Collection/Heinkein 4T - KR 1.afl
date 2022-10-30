@@ -1,0 +1,36 @@
+// created by chandrakant
+//modified on 120309..credit goes to of Karthik sir 
+
+/*1. Here are some observations to keep in mind that will help assure
+you are in a good trending move which is detrimental to the success 
+of the trade moving higher before the inevitable over exhausted trend.
+ 
+2 Consider only going long on the 5M if the 30M (two rows above) is also blue.
+
+3 Consider the 1hr row as well being blue since it has an effect too.
+
+4 The 15M row has to be blue with NO exceptions
+
+5 The 30M row if blue has less effect on the trade as compared to the 15M row 
+but keep this in mind. The 30M row being blue helps the 15M row continue to stay blue. 
+
+6 The 1hr row has even less effect OR importance but it too keeps the 30M 
+from weakening to some minor degree. 
+*/
+// Define label bar (x) position location
+
+blankRightBars = 4; //insert actual blank right bars specified in Preferences 
+barsInView = Status("lastvisiblebarindex") - Status("firstvisiblebarindex") - blankRightBars;
+Offset = Param("Offset Bar", 0.95, 0, 2, 0.02);
+textOffset = BarCount - (Offset * barsInView);
+
+_SECTION_BEGIN("default");
+HaClose =EMA((O+H+L+C)/4,3); 
+HaOpen = AMA( Ref( HaClose, -1 ), 0.5 ); 
+HaHigh = Max( H, Max( HaClose, HaOpen ) ); 
+HaLow = Min( L, Min( HaClose, HaOpen ) );
+PlotText("Heinkein 4T tf :"+Interval(2), textoffset, 41.01, colorYellow);
+
+Color = IIf( Haopen > Haclose,4, IIf( Haopen == Haclose,colorYellow, 6));
+Plot(10,"", Color,  styleHistogram+styleThick|styleOwnScale|styleNoLabel, 0, 100 );
+Plot( 11,"",colorBlack,styleOwnScale|styleArea|styleNoLabel,0, 100 );

@@ -1,0 +1,22 @@
+_SECTION_BEGIN("5 MA PIVOT SUP RES");
+x=Param("Average ",5,1,21);
+P = ( H+ L + C )/3;
+HP1 = (P + (P - L));
+LP1 = (P - (H - p));
+
+HP2 = (P + 2*(P - L));
+LP2 = (P - 2*(H - p));
+
+PAV = (HP1 - LP1);
+s=MA(PAV,x);
+U=EMA(P,x);
+Up=(s + U);
+Lo=(U - s );
+Plot (Up,"PIVOT RESISTANCE",ParamColor( "Color", colorCycle ), ParamStyle("Style"));
+Plot (Lo,"PIVOT SUPPORT",ParamColor( "Color", colorCycle ), ParamStyle("Style"));
+
+ChartStyle = ParamStyle("Chart Type", styleBar, maskAll);
+Plot(C, "", colorGrey50, ChartStyle);
+
+GraphXSpace=3;
+_SECTION_END();

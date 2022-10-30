@@ -1,0 +1,68 @@
+_SECTION_BEGIN("ribbon");
+
+Col_rsi = IIf(EMA(RSI(21),3) > EMA(RSI(21),34),colorBlue,colorRed);
+//MultiRibbon(Col_rsi, 1, "Trend RSI"); 
+//=========================================================
+
+Plot(15, "trend rsi", Col_rsi, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+Plot(16, "", colorBlack, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+
+
+
+EMA3 = EMA(RSI(21),3);
+ema34 = EMA(RSI(21),34);  
+
+diff = ema3-EMA34;
+ema_short = EMA(diff,1); 
+EMA_Long = EMA(diff,5);
+
+Col_rsi_DIFF = IIf (EMA_long > Ref(EMA_long,-1),colorBlue,colorRed);
+
+//MultiRibbon(COL_rsi_DIFF, 2, "RSI Diff"); 
+Plot(30, "", COL_rsi_DIFF, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+Plot(31, "", colorBlack, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+
+Col_rsi_yellow = IIf(EMA_short > 0, colorAqua,colorYellow);
+//MultiRibbon(Col_rsi_yellow, 3, "trend confirm"); 
+Plot(45, "", Col_rsi_yellow, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+Plot(46, "", colorBlack, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+//==========================
+BB_rsi_21_top = BBandTop( EMA3, 10,1); 
+BB_rsi_21_bot = BBandBot( EMA3, 10,1 ); 
+
+Col_rsi_buy = IIf(EMA3 > BB_rsi_21_top, colorBlue, IIf(EMA3 < BB_rsi_21_bot,colorRed,IIf(EMA3 > O,colorAqua,colorOrange)));
+Plot(60, "", Col_rsi_buy, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+//Plot(61, "", colorBlack, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+//MultiRibbon(Col_rsi_buy, 4, "rsi buy"); 
+
+//==========================================================================
+
+r1 = 11; 
+r2 = 35; 
+r3 = 6; 
+ml = MACD(r1, r2);
+sl = Signal(r1,r2,r3);
+Hst1 = ml-sl;
+Hst = EMA(Hst1,5);
+A2=EMA(C,4)-EMA(C,34);
+r = 3;
+a1 = EMA(a2,r); 
+BBtops=BBandTop(A1,10,1); 
+BBbots=BBandBot(A1,10,1);
+
+Color_bar=IIf(a1>BBtops, colorBlue,IIf(a1<BBbots,colorRed,IIf(a1 > O,colorAqua,colorOrange)));
+
+bbtop = BBandTop( Hst, 9, 0.5 );
+bbbot = BBandBot( Hst, 9, 0.5 );
+bbtop1 = BBandTop( Hst1, 9, 0.5 );
+bbbot1 = BBandBot( Hst1, 9, 0.5 );
+
+Color = IIf (Hst > BBtop,colorAqua,IIf(hst < bbbot,colorOrange, IIf(Hst > O,colorAqua,colorOrange)));
+Color2 =IIf (Hst1 > BBtop1,colorAqua,IIf(hst1 < bbbot1,colorOrange, IIf(HST1 > O,colorBlue,colorOrange)));
+
+Plot(70, "", Color_bar, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+Plot(71, "", colorBlack, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+Plot(85, "", Color, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+//Plot(86, "", colorBlack, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+Plot(100, "", color2, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+_SECTION_END();

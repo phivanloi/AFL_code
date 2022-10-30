@@ -1,0 +1,65 @@
+_SECTION_BEGIN("Weekly");
+TimeFrameSet( inWeekly);
+
+Piv = ( HHV(H, 3) + LLV(L, 3) + C )/3 ;
+HL = ( HHV(H, 3) - LLV(L, 3) )/2 ;
+up = Piv + HL ;
+dn = Piv - HL ;
+
+TimeFrameRestore();
+
+Plot( TimeFrameExpand( Piv, inWeekly), "Weekly", colorBlue, styleDots|styleNoLine, Null, Null, 1 ); 
+Plot( TimeFrameExpand( up, inWeekly),  " ", colorBlue, styleDashed, Null, Null, 1 ); 
+Plot( TimeFrameExpand( dn, inWeekly), " ", colorBlue, styleDashed, Null, Null, 1 ); 
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("Monthly");
+ TimeFrameSet( inMonthly);
+
+Piv = ( HHV(H, 3) + LLV(L, 3) + C )/3 ;
+HL = ( HHV(H, 3) - LLV(L, 3) )/2 ;
+up = Piv + HL ;
+dn = Piv - HL ;
+
+TimeFrameRestore();
+
+Plot( TimeFrameExpand( piv, inMonthly), "Monthly", colorCustom12, styleDots|styleNoLine, Null, Null, 1 ); 
+Plot( TimeFrameExpand( up, inMonthly),  " ", colorCustom12, styleDashed, Null, Null, 1 ); 
+Plot( TimeFrameExpand( dn, inMonthly), " ", colorCustom12, styleDashed, Null, Null, 1 ); 
+
+_SECTION_END();
+
+_SECTION_BEGIN("Quarterly");
+ TimeFrameSet( inQuarterly);
+
+Piv = ( HHV(H, 3) + LLV(L, 3) + C )/3 ;
+HL = ( HHV(H, 3) - LLV(L, 3) )/2 ;
+up = Piv + HL ;
+dn = Piv - HL ;
+
+TimeFrameRestore();
+
+Plot( TimeFrameExpand( piv, inQuarterly), "Quarterly", colorCustom10, styleDots|styleNoLine, Null, Null, 1 ); 
+Plot( TimeFrameExpand( up, inQuarterly),  " ", colorCustom10, styleDashed, Null, Null, 1 ); 
+Plot( TimeFrameExpand( dn, inQuarterly), " ", colorCustom10, styleDashed, Null, Null, 1 ); 
+
+_SECTION_END();
+
+_SECTION_BEGIN("Yearly");
+ TimeFrameSet( inYearly);
+
+Piv = ( HHV(H, 3) + LLV(L, 3) + C )/3 ;
+HL = ( HHV(H, 3) - LLV(L, 3) )/2 ;
+up = Piv + HL ;
+dn = Piv - HL ;
+
+
+TimeFrameRestore();
+
+Plot( TimeFrameExpand( piv, inYearly), "Yearly", colorCustom16, styleDots|styleNoLine, Null, Null, 1 ); 
+//Plot( TimeFrameExpand( up, inYearly),  " ", colorCustom16, styleDashed, Null, Null, 1 ); 
+//Plot( TimeFrameExpand( dn, inYearly), " ", colorCustom16, styleDashed, Null, Null, 1 ); 
+
+_SECTION_END();

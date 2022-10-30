@@ -1,0 +1,24 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleCandle ); 
+
+wt  = Param("Weight", 2.5, 0.5, 5, 0.5);
+Len = Param("Len", 15, 5, 30, 5);
+
+Ch = ChandelierCl(ATR(Len),wt);
+
+Buy  = Close > Ref( Ch, -1);
+Sell = Close < Ref( Ch, -1);
+
+Buy  = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+Short = Sell;
+Cover = Buy;
+
+Plot(Ch,"ChandelierCl",IIf(Ch < C, colorBlueGrey, colorLime),styleThick);  
+
+SetPositionSize(100,4);
+
+_SECTION_END();

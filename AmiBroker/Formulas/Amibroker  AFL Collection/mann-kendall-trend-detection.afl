@@ -1,0 +1,57 @@
+_SECTION_BEGIN("Mann-Kendall");
+SetChartBkColor(ParamColor("Background Color",ColorRGB(0,0,0)));
+Length= Param( "Period", 21, 5, 200, 1 ); 
+function Trend(Price,Length) {
+ Price=C;
+    Result = 0;
+ 
+     
+ 
+    for (k=Length;k<BarCount;k++) {
+ 
+        S = 0;
+ 
+        for (i=k-Length+1;i<k;i++) {         
+            for (j=k-Length;j<i-1;j++) {
+                Signum = sign(Price[i]-Price[j]);
+                S += Signum;
+            }           
+        }
+         
+        Variance =( Length*(Length-1.0)*(2*Length+5.0))/18.0;       
+        StdDev = sqrt(Variance);
+ 
+        zScore = 0;
+        if (S >= 0) {
+            zScore=((S-1)/StdDev);
+        }else {
+            zScore=(S+1)/StdDev;
+        }
+ 
+        Result[k] = 0; //0- no trend, -1 - decreasing trend, 1 - increasing trend
+ 
+        isTrend = False;
+        if ((zScore>=1.65)||(zScore<=-1.65)) { 
+            isTrend=True;
+        }
+ 
+        if (isTrend)    {       
+            if (S<0){
+                Result[k] = -1;
+            }else {
+                Result[k] = 1;
+            }
+        }
+ 
+    }
+ 
+    return Result;
+}
+Plot(C,"",colorBrightGreen,styleCandle);
+Plot(Trend(C,Length),"",colorBlue,styleLine+styleThick|styleOwnScale);
+Title =EncodeColor( colorWhite) + " Trend Detection   " + EncodeColor(36)+  Title = Name() + "     " + EncodeColor(36) + Date() ;
+
+//Plot(1,"",colorRed,styleLine,styleThick);
+//Plot(0,"",colorRed,styleDashed,styleThick);
+//Plot(-1,"",colorRed,styleLine,styleThick);
+_SECTION_END();

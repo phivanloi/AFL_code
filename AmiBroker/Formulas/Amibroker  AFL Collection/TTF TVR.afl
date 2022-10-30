@@ -1,0 +1,6 @@
+tide = IIf((MA(Close,5)>MA(Close,13) AND MA(Close,5)>MA(Close,34)),1,0);
+ripple = IIf((MA(Close,5)< MA(Close,13) AND MA(Close,5)<MA(Close,34)),-1,0);
+
+TVR = tide + ripple;
+
+Plot(tvr, "", 4);

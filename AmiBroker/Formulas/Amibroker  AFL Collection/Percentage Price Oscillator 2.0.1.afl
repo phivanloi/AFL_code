@@ -1,0 +1,24 @@
+_SECTION_BEGIN("PPO");
+//Further understanding of PPO indicator visit www.Stockchart.com
+PPOShort = Param("PPO Short Period", 8, 1, 150, 1);
+PPOLong = Param("PPO Long Period", 17, 1, 150, 1);
+PPOsignal = Param("PPOsignal", 9, 1, 150, 1);
+PPO = (EMA(C, PPOShort ) - EMA(C, PPOLong ))/ EMA(C, PPOLong );
+PPOS = (EMA(ppo, PPOsignal  ));
+Val=ppo-PPOS ;
+Plot( PPO , "ppo", colorGreen, styleLine| styleThick  ); 
+Plot ( PPOS ,"PPO Signal",  colorOrange, styleLine| styleThick   ); 
+dynamic_color = IIf( Val> 0, colorGreen, colorRed ); 
+Plot( Val, "PPO Histogram", dynamic_color, styleHistogram | styleThick  );
+
+Buy=Cross(PPO,PPOS);
+Sell=Cross(PPOS,PPO);
+
+
+shape = Buy * shapeHollowUpArrow + Sell * shapeHollowDownArrow;
+Buy=ExRem(Buy, Sell);
+Sell=ExRem(Sell, Buy);
+
+
+PlotShapes( shape, IIf( Buy, colorLime, colorRed ), 0,IIf( Buy, Ref(PPO,-1)*0.9, Ref(PPO,-1)*1.05)  );
+_SECTION_END();

@@ -1,0 +1,20 @@
+_SECTION_BEGIN("JMA");
+PlotOHLC(JurikJMA( Close, 5, 0), JurikJMA( Close, 5, 0)+0.04, JurikJMA( Close, 5, 0)-0.04, JurikJMA( Close, 5, 0),"",IIf(JurikJMA( Close, 5, 0) > Ref(JurikJMA( Close, 5, 0),-1),colorGreen,colorRed), styleCloud); 
+_SECTION_END();
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("EMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Linear Regression");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( LinearReg( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();

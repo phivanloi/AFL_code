@@ -1,0 +1,93 @@
+
+
+_SECTION_BEGIN("ema3,15");
+x = EMA(Close,3);
+y = EMA(Close,15);
+
+Plot(EMA(Close,3),"",colorBrightGreen, styleLine, styleThick);
+Plot(EMA(Close,15),"",colorRed, styleLine, styleThick);
+GraphXSpace=0.5;
+Plot(C,"",colorBlue,styleCandle);
+XR=(EMA(Close,3) * (2 / 6 - 1) - EMA(Close,15) * (2 / 11 - 1)) / (2 / 6 - 2 / 11);
+
+
+Buy = Close > EMA( Close , 15 )
+AND Ref( Close , -1 ) > Ref( EMA( Close , 15 ) , -1 )
+AND Cross(x,y);
+
+Sell = Close > EMA( Close , 3 )
+AND Open > EMA( Close , 3 );
+
+Short = Close < EMA( Close , 3 )
+AND Ref( Close , -1 ) < Ref( EMA( Close , 3 ) , -1 )
+
+AND Cross(y,x);
+
+Cover = Close < EMA( Close , 3 )
+AND Open < EMA( Close , 3 );
+
+SellPrice=ValueWhen( Sell, C, 1);
+BuyPrice=ValueWhen( Buy,C, 1);
+Long=Flip(Buy,Sell);
+Shrt=Flip(Sell,Buy );
+
+
+PlotShapes(shapeUpArrow*Buy,colorGreen, 0, L, Offset=-45);
+PlotShapes(shapeSmallDownTriangle*Sell,colorGreen, 0, L, Offset=-45);
+PlotShapes(shapeSmallUpTriangle*Cover,colorOrange, 0, L, Offset=-45);
+PlotShapes(shapeDownArrow*Short,colorOrange, 0, H, Offset=-45);
+AlertIf( Buy, "SOUND C:\\Windows\\Media\\notify.wav", "Audio alert", 2 );
+AlertIf( Sell, "SOUND C:\\Windows\\Media\\chord.wav", "Audio alert", 2 );
+AlertIf( Cover, "SOUND C:\\Windows\\Media\\notify.wav", "Audio alert", 2 );
+AlertIf( Short, "SOUND C:\\Windows\\Media\\chord.wav", "Audio alert", 2 );
+
+_SECTION_END();
+
+_SECTION_BEGIN("supp");
+("Price");
+RSIperiod = 15; // Param("RSI p",3,14,30,1);
+Percent = 5; // Param("ZIG %",8,9,15,1);
+EMAperiod = 5; //Param("EMA p",4,5,10,1);
+HHVperiod = 8; //Param("HHV p",3,5,10,1);
+NumLine = 2; //Param("Num Lines",3,1,20,1);
+
+Base = DEMA(RSI(RSIperiod),EMAperiod);
+
+GraphXSpace=0.5;
+Plot(C,"",colorWhite,styleCandle);
+
+for( i = 1; i <= numline; i++ )
+{
+ResBase = LastValue(Peak(Base,Percent,i));
+SupBase = LastValue(Trough(Base,Percent,i));
+Plot(ValueWhen( ResBase==Base, HHV(H,HHVperiod) ), "Resist Level", colorRed, styleLine);
+Plot(ValueWhen( supbase==Base, LLV(L,HHVperiod) ), "Support Level", colorGreen, styleLine);
+}
+
+_SECTION_END();
+
+_SECTION_BEGIN("SAR");
+acc = Param("Acceleration", 0.02, 0, 1, 0.001 );
+accm = Param("Max. acceleration", 0.2, 0, 1, 0.001 );
+Plot( SAR( acc, accm ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style", styleDots | styleNoLine, maskDefault | styleDots | styleNoLine ) );
+
+//=================TITLE============================ ================================================== ==================
+_SECTION_BEGIN("Title");
+if( Status("action") == actionIndicator )
+(
+Title = EncodeColor(colorWhite)+ ":EMA 3/15, Support & Resistance Levels using RSI:, SAR Dotted Line - buy/sell white arrow/triangle - short-cover orange arrow/triangle" + " - " + Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+" - " + Date() +" - "+"\n" +EncodeColor(colorYellow) +"Op-"+O+" "+"Hi-"+H+" "+"Lo-"+L+" "+
+"Cl-"+C+" "+ "Vol= "+ WriteVal(V)+"\n"+
+EncodeColor(colorRed)+
+WriteIf (Buy , " GO LONG / Reverse Signal at "+C+" ","")+
+WriteIf (Sell , " EXIT LONG / Reverse Signal at "+C+" ","")+"\n"+EncodeColor(colorWhite)+
+WriteIf(Sell , "Total Profit/Loss for the Last Trade Rs."+(C-BuyPrice)+"","")+
+WriteIf(Buy , "Total Profit/Loss for the Last trade Rs."+(SellPrice-C)+"","")+
+WriteIf(Long AND NOT Buy, "Trade : Long - Entry price Rs."+(BuyPrice),"")+
+WriteIf(shrt AND NOT Sell, "Trade : Short - Entry price Rs."+(SellPrice),"")+"\n"+
+WriteIf(Long AND NOT Buy, "Current Profit/Loss Rs."+(C-BuyPrice)+"","")+
+WriteIf(shrt AND NOT Sell, "Current Profit/Loss Rs."+(SellPrice-C)+"",""));
+AlertIf( Buy, "SOUND C:\\Windows\\Media\\Windows XP Startup.wav", "Audio alert", 2 );
+AlertIf( Sell, "SOUND C:\\Windows\\Media\\Ringin.wav", "Audio alert", 2 );
+
+_SECTION_END();

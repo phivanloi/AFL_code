@@ -1,0 +1,230 @@
+Version(5.20);
+SetChartBkColor(16);
+SetBarsRequired(sbrAll);
+GraphXSpace=Param("GraphXSpace",15,-100,300,1);
+daynum= Now(9);//day of the week
+SatSun= IIf((daynum==1 OR daynum==7),1,0);
+dec= IIf(StrRight(Name(),3) == "", 3.2, 3.2);
+dec= (Param("Decimals",2,0,7,1)/10)+1;
+uc= ParamColor("Up Candle Fill Color",19);
+dc= ParamColor("Dn Candle Fill Color",24);
+nc= ParamColor("Neutral Fill Color",21);
+bc= BarCount-1;
+x= BarIndex();
+Lx= LastValue(x);
+sx= SelectedValue(x);
+//==============================
+SetBarFillColor(IIf(C>O,uc,IIf(C<O,dc,nc)));
+Plot(C,"",IIf(C>Ref(C,-1),34,IIf(C<Ref(C,-1),32,42)),64);
+Plot(MA(C,200),"",52,4);
+//========= GFX Status =========
+lvb= Status("LastVisibleBar");
+fvb= Status("FirstVisibleBar");
+mny= Status("AxisMiny"); mxy= Status("AxisMaxy");
+pxl= Status("pxChartLeft"); pxw= Status("pxChartWidth");
+pxh= Status("pxChartHeight"); pxb= Status("pxChartBottom");
+mth= mxy-mny;
+tvb= lvb-fvb;
+function tpX(x) { return pxl+(x-fvb)*pxw/(tvb+1); }
+function tpY(y) { return pxb-floor(0.5 +(y-mny)*pxh/mth); }
+//======== GFX Flat Line ========
+procedure sln(xs,ys,xe,col,thk,sty) {
+xs=LastValue(tpx(xs)); ys=LastValue(tpy(ys));
+xe=LastValue(tpx(xe)); av=xs>0 AND xe>xs;
+GfxSelectPen(col,thk,sty); GfxSetBkColor(16);
+IIf(av,GfxPolyline(xs,ys,xe,ys),Null); }
+//======== Fib Function =========
+f0=0; f1=0; p=0; n=0; d=0;
+function fvd(fib) {
+fv=fib*d; ffv=IIf(p,f0+fv,f0-fv);
+return IIf(ffv>0,ffv,Null); }
+//======== Plot Shapes ========
+procedure pshp(x,y,shp,co,shf) {
+x=SelectedValue(x); y=SelectedValue(y);
+PlotShapes(IIf(BarIndex()==x,shp,0),co,0,y,shf); }
+//======== Fractal Peak Trough ========
+x= BarIndex();
+function pkID(nb){ p=H==HHV(H,2*nb)AND Ref(HHV(H,nb),nb)<H;
+return p AND LastValue(x)-ValueWhen(p,x)>nb; }
+function trID(nb){ t=L==LLV(L,2*nb)AND Ref(LLV(L,nb),nb)>L;
+return t AND LastValue(x)-ValueWhen(t,x)>nb; }
+//=============================
+_SECTION_BEGIN("Select Pivots");
+//=============================
+//SetBarsRequired(sbrAll,sbrAll);
+nn= Param("Fractal Minimum",5,2,150,1);
+plf= ParamList("Pivots/Ribbon","Off|Fractals|Ribbon|Both",0);
+wwv=ParamToggle("Plot Wolfe Wave","Off|On",1);
+cvg= ParamToggle("Require Convergence","Off|On",1);
+sym= ParamToggle("Require Symmetry","Off|On",1);
+fib=ParamToggle("Fib Retracements","Off|On",1);
+mnR= Param("Min Time Retrace %",0.50,0.50,1.00,0.01);//Min % of P1-P2 bars
+mxR= Param("Max Time Retrace %",1.62,1.00,4.00,0.01);//Max % of P1-P2 bars
+mx5= Param("Max P5 Time Retrace %",2.62,1,5,0.01);//Max % of P2-P3 bars
+nmn= Param("Near 5 %",0.62,0.50,0.995,0.001);//% of Retrace
+//==================
+x= BarIndex();
+Lx=LastValue(x);
+//==================
+pk= pkID(nn); tr= trID(nn);
+tx1= ValueWhen(tr,x,1); px2= ValueWhen(pk,x,2);
+pk= IIf(pk,IIf(px2<tx1,pk,IIf(ValueWhen(pk,H,2)>H,False,pk)),pk);
+px1= ValueWhen(pk,x,1); tx2= ValueWhen(tr,x,2);
+tr= IIf(tr,IIf(tx2<px1,tr,IIf(ValueWhen(tr,L,2)<L,False,tr)),tr);
+px0= ValueWhen(pk,x,0); tx0= ValueWhen(tr,x,0);
+py0= ValueWhen(pk,H,0); ty0= ValueWhen(tr,L,0);
+pk= IIf(pk AND px0>x,IIf(px0<tx0,IIf(py0>=H,False,pk),pk),pk);
+tr= IIf(tr AND tx0>x,IIf(tx0<px0,IIf(ty0<=L,False,tr),tr),tr);
+//===================
+px= BarsSince(pk==1); tx= BarsSince(tr==1);
+sup= SelectedValue(px) > SelectedValue(tx);
+res= SelectedValue(tx)>= SelectedValue(px);
+shp=shapeSmallCircle;
+col= IIf(pk==1,42,IIf(tr==1,10,IIf(px>tx,19,IIf(tx>px,24,29))));
+if(plf=="Ribbon" OR plf=="Both")Plot(2.25,"F
+Swing",col,styleOwnScale|styleArea|4096,-1,100);
+if(plf=="Fractals" OR plf=="Both"){PlotShapes(shp*pk,42,0,H,5);
+PlotShapes(shp*tr,10,0,L,-5);}
+//===================
+yr1= ValueWhen(pk,H,1); xr1= ValueWhen(pk,x,1);
+yr2= ValueWhen(pk,H,2); xr2= ValueWhen(pk,x,2);
+yr3= ValueWhen(pk,H,3); xr3= ValueWhen(pk,x,3);
+ys1= ValueWhen(tr,L,1); xs1= ValueWhen(tr,x,1);
+ys2= ValueWhen(tr,L,2); xs2= ValueWhen(tr,x,2);
+ys3= ValueWhen(tr,L,3); xs3= ValueWhen(tr,x,3);
+//======== 5 POINT BEAR WAVE ========
+be45xR= (xs1-xr2)/(xs2-xr3);
+be55xR= (xr1-xs1)/(xr2-xs2);
+becvg5= (yr2-ys1)<=(yr3-ys2);
+be45xV= be45xR>=mnR AND be45xR<=mxR;
+be55xV= be55xR>=mnR AND be55xR<=mx5;
+if(sym==0)bexo5= xr1>xs1 AND xs1>xr2 AND xr2>xs2 AND xs2>xr3;
+if(cvg==0)bepo5= yr2>yr3 AND yr1>yr2 AND ys1>ys2 AND ys1<yr2;
+if(sym==1)bexo5= xr1>xs1 AND xs1>xr2 AND xr2>xs2 AND xs2>xr3 AND be45xV AND
+be55xV;
+if(cvg==1)bepo5= yr2>yr3 AND yr1>yr2 AND ys1>ys2 AND ys1<yr2 AND becvg5;
+bq5= bexo5 AND bepo5;
+//===================
+x15= SelectedValue(ValueWhen(bq5,xr3));
+y15= SelectedValue(ValueWhen(bq5,yr3));//P1
+x25= SelectedValue(ValueWhen(bq5,xs2));
+y25= SelectedValue(ValueWhen(bq5,ys2));//P2
+x35= SelectedValue(ValueWhen(bq5,xr2));
+y35= SelectedValue(ValueWhen(bq5,yr2));//P3
+x45= SelectedValue(ValueWhen(bq5,xs1));
+y45= SelectedValue(ValueWhen(bq5,ys1));//P4
+x55= SelectedValue(ValueWhen(bq5,xr1));
+y55= SelectedValue(ValueWhen(bq5,yr1));//P5
+Ln135= LineArray(x15,y15,x35,y35,1);
+Ln245= LineArray(x25,y25,x45,y45,1);
+trgt5= LineArray(x15,y15,x45,y45,1);
+//========= BEAR PLOTTING =========
+if(wwv) {
+Plot(Ln135,"",25,4|2048);
+Plot(Ln245,"",43,4|2048);
+Plot(trgt5,"",42,4|2048);
+pshp(x15,y15,shapeDigit1,42,15); pshp(x25,y25,shapeDigit2,42,-15);
+pshp(x35,y35,shapeDigit3,42,15); pshp(x45,y45,shapeDigit4,42,-15);
+pshp(x55,y55,shapeDigit5,42,15);
+}
+x5up= ValueWhen(x>x45,Cross(H,Ln135));
+x5dn= ValueWhen(x>x45,Cross(Ln135,H));
+near= ValueWhen(x>x45,C>Ln245+(Ln135-Ln245)*nmn AND C<Ln135 AND NOT x5up AND
+NOT x5dn);
+//======== BEAR PRICE & TIME FIBS ========
+if(fib) {
+//======== Price Fibs ========
+p=x45>x35; n=x45<x35; f0=y45; f1=y35; d=y35-y45;//Price Fibs
+i618=fvd(0.618); i127=fvd(1.27); i162=fvd(1.62);
+//====== Price AP Fibs ======
+p=x45>x35; n=x45<x35; f0=y45; f1=y35; d=y35-y25;//AP Fibs
+a618=fvd(0.618); a100=fvd(1.00); a127=fvd(1.27);
+a162=fvd(1.62); a200=fvd(2.00); a224=fvd(2.24); a262=fvd(2.62);
+//======== Time Fibs ========
+p=x45>x35; n=x45<x35; f0=x45; f1=x35; d=x35-x25;//Time Fibs
+x500=fvd(0.500); x618=fvd(0.618); x100=fvd(1.00);
+x162=fvd(1.618); x262=fvd(2.62);
+//======== PLOTTING ========
+sln(x500,i618,x162,43,1,1); sln(x500,i127,x162,36,1,1);
+sln(x500,i162,x162,34,1,1); sln(x500,y35,x162,32,1,1);
+sln(x500,a618,x162,43,1,0); sln(x500,a100,x262,55,1,0);
+sln(x500,a127,x262,44,1,0); sln(x500,a162,Lx,34,1,0);
+sln(x100,a200,Lx,52,1,0); sln(x100,a224,Lx,42,1,0);
+sln(x100,a262,Lx,51,1,0);
+}
+//===================
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx xxx
+//======== 5 POINT BULL WAVE ========
+bu45xR= (xr1-xs2)/(xr2-xs3);
+bu55xR= (xs1-xr1)/(xs2-xr2);
+bucvg5= (yr1-ys2)<=(yr2-ys3);
+bu45xV= bu45xR>=mnR AND bu45xR<=mxR;
+bu55xV= bu55xR>=mnR AND bu55xR<=mx5;
+if(sym==0)buxo5= xs1>xr1 AND xr1>xs2 AND xs2>xr2 AND xr2>xs3;
+if(cvg==0)bupo5= yr2>ys3 AND yr2>yr1 AND ys3>ys2 AND ys2>ys1 AND yr2>yr1 AND
+yr1>ys3;
+if(sym==1)buxo5= xs1>xr1 AND xr1>xs2 AND xs2>xr2 AND xr2>xs3 AND bu45xV AND
+bu55xV;
+if(cvg==1)bupo5= yr2>ys3 AND yr2>yr1 AND ys3>ys2 AND ys2>ys1 AND yr2>yr1 AND
+yr1>ys3 AND bucvg5;
+pq5= buxo5 AND bupo5;
+//===================
+x15= SelectedValue(ValueWhen(pq5,xs3));
+y15= SelectedValue(ValueWhen(pq5,ys3));//P1
+x25= SelectedValue(ValueWhen(pq5,xr2));
+y25= SelectedValue(ValueWhen(pq5,yr2));//P2
+x35= SelectedValue(ValueWhen(pq5,xs2));
+y35= SelectedValue(ValueWhen(pq5,ys2));//P3
+x45= SelectedValue(ValueWhen(pq5,xr1));
+y45= SelectedValue(ValueWhen(pq5,yr1));//P4
+x55= SelectedValue(ValueWhen(pq5,xs1));
+y55= SelectedValue(ValueWhen(pq5,ys1));//P5
+Ln135= LineArray(x15,y15,x35,y35,1);
+Ln245= LineArray(x25,y25,x45,y45,1);
+trgt5= LineArray(x15,y15,x45,y45,1);
+//========= BULL PLOTTING =========
+if(wwv) {
+Plot(Ln135,"",27,4|2048);
+Plot(Ln245,"",32,4|2048);
+Plot(trgt5,"",51,4|2048);
+pshp(x15,y15,shapeDigit1,43,-15); pshp(x25,y25,shapeDigit2,43,15);
+pshp(x35,y35,shapeDigit3,43,-15); pshp(x45,y45,shapeDigit4,43,15);
+pshp(x55,y55,shapeDigit5,10,-15);
+}
+x5up= ValueWhen(x>x45,Cross(L,Ln135));
+x5dn= ValueWhen(x>x45,Cross(Ln135,L));
+near= ValueWhen(x>x45,C<Ln245-(Ln245-Ln135)*nmn AND NOT x5up AND NOT x5dn);
+//======== BEAR PRICE & TIME FIBS ========
+if(fib) {
+//======== Price Fibs ========
+p=x45<x35; n=x45>x35; f0=y45; f1=y35; d=y45-y35;//Price Fibs
+i618=fvd(0.618); i127=fvd(1.27); i162=fvd(1.62);
+//====== Price AP Fibs ======
+p=x45<x35; n=x45>x35; f0=y45; f1=y35; d=y25-y35;//AP Fibs
+a618=fvd(0.618); a100=fvd(1.00); a127=fvd(1.27);
+a162=fvd(1.62); a200=fvd(2.00); a224=fvd(2.24); a262=fvd(2.62);
+//======== Time Fibs ========
+p=x45>x35; n=x45<x35; f0=x45; f1=x35; d=x35-x25;//Time Fibs
+x500=fvd(0.500); x618=fvd(0.618); x100=fvd(1.00);
+x162=fvd(1.618); x262=fvd(2.62);
+//======== PLOTTING ========
+sln(x500,i618,x162,43,1,1); sln(x500,i127,x162,36,1,1);
+sln(x500,i162,x162,34,1,1); sln(x500,y35,x162,32,1,1);
+sln(x500,a618,x162,43,1,0); sln(x500,a100,x262,55,1,0);
+sln(x500,a127,Lx,44,1,0); sln(x500,a162,Lx,34,1,0);
+sln(x100,a200,Lx,52,1,0); sln(x100,a224,Lx,42,1,0);
+sln(x100,a262,Lx,51,1,0);
+}
+RequestTimedRefresh(1);
+Title = "\\c55" + Title = Name() + " " + FullName()+ " \\c32" +
+Date() + " \\c43" + "{{INTERVAL}} " +
+"\\c55 Open = \\c43" + WriteVal(O,dec) +
+"\\c55 High = \\c43" + WriteVal(H,dec) +
+"\\c55 Low = \\c32" + WriteVal(L,dec) +
+"\\c55 Close = \\c52" + WriteVal(C,dec)+
+"\\c55 Volume = \\c43"+ WriteVal(V,dec) +
+"\\c55 ATR-9 = \\c42" + WriteVal(ATR(9),dec) +
+"\\c55 Fractal =\\c10"+nn+"\\c55 Bars " +
+"\\c55 x = " + WriteVal(x,1)+"\n\n" +
+"\\c55x4 Retrace = \\c43"+ WriteVal(be45xR,1.2)+"%\n" +
+"\\c55x5 Retrace = \\c43"+ WriteVal(be55xR,1.2);

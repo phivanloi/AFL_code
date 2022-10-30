@@ -1,0 +1,8 @@
+Lb = Param("Look-Back Periods?",3,2,10,1);
+HLd = IIf(Close>Ref(MA(H,Lb),-1),1,IIf(Close<Ref(MA(L,Lb),-1),-1,0));
+HLv = ValueWhen(HLd!=0,HLd,1);
+HiLo = IIf(HLv==-1,MA(H,Lb),MA(L,Lb));
+Plot(HiLo, "Gann HiLo", colorRed);
+
+Buy = BarsSince(C < HiLo);
+Sell = BarsSince(C > HiLo);

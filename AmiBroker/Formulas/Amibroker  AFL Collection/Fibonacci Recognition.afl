@@ -1,0 +1,168 @@
+//|------------------------------------------------------------------
+//|Fibonacci Recognition								
+//|ABU 3TTA
+//|A7MAD  AL-HARPI
+//|e-mail: ahmad_h1402@hotmail.com
+//|------------------------------------------------------------------
+SetChartOptions(0,chartShowDates|chartShowArrows|chartLogarithmic|chartWrapTitle);
+#pragma nocache
+#include  <\TBInc\Tradingbasis_f0.afl> 
+
+_SECTION_BEGIN("Main Parameters");
+AddparamUsefromChart(1);
+Sensitivity = Param("Sensitivity",10,0,100,1); 
+if(InChart)StaticVarSet("P0O3U2",Sensitivity);if(inAA AND Usefromchart) Sensitivity = StaticVarGet("P0O3U2"); 
+Colorstyle = ParamToggle("Color Mode","S/R|Custom",1);
+Color_SL=  ParamColor("Support (S/R Mode)",colorLime);
+Color_RL=  ParamColor("Resistance (S/R Mode)",colorRed);
+_SECTION_END();
+
+
+_SECTION_BEGIN("Levels");
+L1_level = Param("Level 1",38.2,0,200,1);
+L2_level = Param("Level 2",50.0,0,200,1);
+L3_level = Param("Level 3",61.8,0,200,1);
+L4_level = Param("Level 4",138.2,0,200,1);
+L5_level = Param("Level 5",150,0,200,1);
+L6_level = Param("Level 6",161.8,0,200,1);
+L7_level = Param("Level 7",200,0,300,1);
+_SECTION_END();
+
+_SECTION_BEGIN("Styles");
+SwingLow_style = ParamStyle("Swing Low",styleLine+styleDots,maskAll);
+SwingHigh_style = ParamStyle("Swing High",styleLine+styleDots,maskAll);
+L1_style = ParamStyle("Level 1",styleLine+styleDashed,maskAll);
+L2_style = ParamStyle("Level 2",styleLine,maskAll);
+L3_style = ParamStyle("Level 3",styleLine+styleDashed,maskAll);
+L4_style = ParamStyle("Level 4",styleLine+styleDashed,maskAll);
+L5_style = ParamStyle("Level 5",styleLine,maskAll);
+L6_style = ParamStyle("Level 6",styleLine+styleDashed,maskAll);
+L7_style = ParamStyle("Level 7",styleLine+styleThick+styleDots,maskAll);
+_SECTION_END();
+
+_SECTION_BEGIN("Colors");
+SwingLow_color = ParamColor("Swing Low",colorLime);
+SwingHigh_color = ParamColor("Swing High",colorRed);
+L1_color = ParamColor("Level 1",colorTurquoise);
+L2_color = ParamColor("Level 2",colorYellow);
+L3_color = ParamColor("Level 3",colorTurquoise);
+L4_color = ParamColor("Level 4",colorTurquoise);
+L5_color = ParamColor("Level 5",colorBlue);
+L6_color = ParamColor("Level 6",colorTurquoise);
+L7_color = ParamColor("Level 7",colorGold);
+_SECTION_END();
+
+_SECTION_BEGIN("Selection");
+L1_switch = ParamToggle("Plot Level 1", "Off|On",1);
+L2_switch = ParamToggle("Plot Level 2", "Off|On",1);
+L3_switch = ParamToggle("Plot Level 3", "Off|On",1);
+L4_switch = ParamToggle("Plot Level 4", "Off|On",1);
+L5_switch = ParamToggle("Plot Level 5", "Off|On",1);
+L6_switch = ParamToggle("Plot Level 6", "Off|On",1);
+L7_switch = ParamToggle("Plot Level 7", "Off|On",1);
+_SECTION_END();
+#include  <\TBInc\Tradingbasis_1.afl> 
+
+IV_periods = 50;//for IV
+Middle_price = L+((H-L)/2);
+IV = ((H/Middle_price)-1)*100;
+IV_AVG = MA(IV,IV_periods);
+
+//////////////////////////
+per = LastValue(Sensitivity *LastValue(0.3*IV_AVG)); 
+x=Cum(1); Range = 0.01;
+PS = TroughBars(L,per,1) == 0;
+xa = LastValue(ValueWhen(PS,x,1));//x from last trough
+Ya = LastValue(ValueWhen(PS,L,1));//y (Low) last trough
+PR = PeakBars(H,per,1) == 0;
+xb = LastValue(ValueWhen(PR,x,1));//x from last peak
+Yb = LastValue(ValueWhen(PR,H,1));//y (High) last peak
+
+//UP = upSwing DN = downSwing
+UP = xb>xa;//upSwing
+DN = xa>xb;//DownSwing
+SwingLow = IIf(UP,Ya,Yb);
+SwingHigh = IIf(UP,Yb,Ya);
+L1 = IIf(L1_switch,IIf(UP,yb-(yb-ya)*(L1_Level/100),IIf(DN,ya+(yb-ya)*(L1_Level/100),-1e10)),-1e10);
+L2 = IIf(L2_switch,IIf(UP,yb-(yb-ya)*(L2_Level/100),IIf(DN,ya+(yb-ya)*(L2_Level/100),-1e10)),-1e10);
+L3 = IIf(L3_switch,IIf(UP,yb-(yb-ya)*(L3_Level/100),IIf(DN,ya+(yb-ya)*(L3_Level/100),-1e10)),-1e10);
+L4 = IIf(L4_switch,IIf(UP,yb-(yb-ya)*(L4_Level/100),IIf(DN,ya+(yb-ya)*(L4_Level/100),-1e10)),-1e10);
+L5 = IIf(L5_switch,IIf(UP,yb-(yb-ya)*(L5_Level/100),IIf(DN,ya+(yb-ya)*(L5_Level/100),-1e10)),-1e10);
+L6 = IIf(L6_switch,IIf(UP,yb-(yb-ya)*(L6_Level/100),IIf(DN,ya+(yb-ya)*(L6_Level/100),-1e10)),-1e10);
+L7 = IIf(L7_switch,IIf(UP,yb-(yb-ya)*(L7_Level/100),IIf(DN,ya+(yb-ya)*(L7_Level/100),-1e10)),-1e10);
+CurrentRT_EXT = IIf(UP,-100*(yb-C)/(yb-ya),100*(C-ya)/(yb-ya));//Retracement_Value
+MaxRT_EXT = IIf(UP,-100*(yb-L)/(yb-ya),100*(H-ya)/(yb-ya));//Retracement_Value
+
+InZone = C<yb & C>ya;//filter to receive signals in a retracement zone.
+
+Distance = 0.5*ATR(14);
+Sup_break = Cross(Ya,C) & X>Xa;
+Sup_pricejustabove = L<Ya+Distance & L>Ya & X>Xa; 
+Sup_confirmed = L<=Ya & C>Ya & X>Xa;
+
+Res_break = Cross(C,Yb) & X>Xb; 
+Res_pricejustbelow = H>Yb-Distance & H<Yb & X>Xb;
+Res_confirmed = H>=Yb & C<Yb & X>Xb;
+
+SupSignals = Sup_break | Sup_pricejustabove | Sup_confirmed;
+ResSignals = Res_break | Res_pricejustbelow | Res_confirmed;
+
+BS = Sup_confirmed OR Res_break; 
+SS = Res_confirmed OR Sup_break;
+
+
+Filter = BarIndex()==LastValue(BarIndex()) AND NOT GroupID()==253;
+
+Adddefaultcolumns(1,1);
+AddColumn(CurrentRT_EXT,"Current RT/EXT %");
+AddColumn(MaxRT_EXT,"Current max. RT/EXT %");
+AddTextColumn(
+WriteIf(Sup_pricejustabove,"Price just above",
+WriteIf(Sup_confirmed,"Confirmed",
+WriteIf(Sup_break,"Break",""))),"Swing Low",1.2,
+IIf(Sup_pricejustabove OR sup_confirmed,colorGreen,colorRed));
+
+AddTextColumn(
+WriteIf(Res_pricejustbelow,"Price just below",
+WriteIf(Res_confirmed,"Confirmed",
+WriteIf(Res_break,"Break",""))),"Swing High",1.2,
+IIf(Res_pricejustbelow OR Res_confirmed,colorRed,colorGreen));
+AddTextColumn(FullName(),"Full name");
+
+//Anyline_zero 
+AnZ= ya==0  OR  yb==0  OR  L1==0  OR  L2==0  OR  L3==0  OR  L4==0  OR  L5==0;
+xab = IIf(xb>xa,xb,xa);
+
+SLcol = IIf(Colorstyle,SwingLow_color,IIf( LastValue(C)<ya, Color_RL, Color_SL ));
+SHcol = IIf(Colorstyle,SwingHigh_color,IIf( LastValue(C)<yb, Color_RL, Color_SL ));
+
+Plot(IIf(x>=xa &NOT AnZ,ya,-1e10),"",SLcol,1+8 + 2048);
+Plot(IIf(x>=xb &NOT AnZ,yb,-1e10),"",SHcol,1+8 + 2048);
+
+L1col = IIf(Colorstyle,L1_color,IIf( LastValue(C)<L1, Color_RL, Color_SL ));
+L2col = IIf(Colorstyle,L2_color,IIf( LastValue(C)<L2, Color_RL, Color_SL ));
+L3col = IIf(Colorstyle,L3_color,IIf( LastValue(C)<L3, Color_RL, Color_SL ));
+L4col = IIf(Colorstyle,L4_color,IIf( LastValue(C)<L4, Color_RL, Color_SL ));
+L5col = IIf(Colorstyle,L5_color,IIf( LastValue(C)<L5, Color_RL, Color_SL ));
+L6col = IIf(Colorstyle,L6_color,IIf( LastValue(C)<L6, Color_RL, Color_SL ));
+L7col = IIf(Colorstyle,L7_color,IIf( LastValue(C)<L7, Color_RL, Color_SL ));
+
+Plot(IIf(x>=xab &NOT AnZ,L1,-1e10),"",L1col,L1_style+styleNoRescale);
+Plot(IIf(x>=xab &NOT AnZ,L2,-1e10),"",L2col,L2_style+styleNoRescale);
+Plot(IIf(x>=xab &NOT AnZ,L3,-1e10),"",L3col,L3_style+styleNoRescale);
+Plot(IIf(x>=xab &NOT AnZ,L4,-1e10),"",L4col,L4_style+styleNoRescale);
+Plot(IIf(x>=xab &NOT AnZ,L5,-1e10),"",L5col,L5_style+styleNoRescale);
+Plot(IIf(x>=xab &NOT AnZ,L6,-1e10),"",L6col,L6_style+styleNoRescale);
+Plot(IIf(x>=xab &NOT AnZ,L7,-1e10),"",L7col,L7_style+styleNoRescale);
+
+PlotText(""+L1_level+" %",LastValue(BarIndex()+2),L1,L1col,colorDefault);
+PlotText(""+L2_level+" %",LastValue(BarIndex()+2),L2,L2col,colorDefault);
+PlotText(""+L3_level+" %",LastValue(BarIndex()+2),L3,L3col,colorDefault);
+PlotText(""+L4_level+" %",LastValue(BarIndex()+2),L4,L4col,colorDefault);
+PlotText(""+L5_level+" %",LastValue(BarIndex()+2),L5,L5col,colorDefault);
+PlotText(""+L6_level+" %",LastValue(BarIndex()+2),L6,L6col,colorDefault);
+PlotText(""+L7_level+" %",LastValue(BarIndex()+2),L7,L7col,colorDefault);
+PlotText("100 %",LastValue(BarIndex()+2),SwingLow,IIf(LastValue(up),SwingLow_color,SwingHigh_color),colorDefault);
+PlotText("0 %",LastValue(BarIndex()+2),Swinghigh,IIf(LastValue(dn),SwingLow_color,SwingHigh_color),colorDefault);
+
+Title = "Fibonacci Recognition"+ default_title + EncodeColor(IIf(NOT AnZ,colorLightBlue,colorRed))+", Sensitivity = " + WriteVal(Sensitivity,1)+ EncodeColor(colorRed)+WriteIf(NOT AnZ,"","  NO POINTS AVAILABLE -> REDUCE SENSITIVITY")+ EncodeColor(IIf(LastValue(L)>0,Color_SL,Color_RL))+", Current Correction = "+WriteVal(CurrentRT_EXT,1.0)+"%     ";

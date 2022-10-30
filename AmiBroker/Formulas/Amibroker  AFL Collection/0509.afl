@@ -1,0 +1,52 @@
+Version(5.20); // requires v5.20 
+SetBarsRequired(sbrAll); 
+
+// get start date 
+Start = Cross( DateNum(), ParamDate("Start Date", "2009-01-01" ) ); 
+Started = Flip( Start, 0 ); 
+
+StopMode = ParamToggle("Stop Mode", "Fixed|Chandelier" ); 
+StopLevel = Param("Fixed perc %", 5, 0.1, 20, 0.1)/100;
+
+StopATRFactor =Optimize("multiple",Param("Chandelier ATR multiple", 4, 0.5,10,0.25 ),0.5,10,0.25);
+StopATRPeriod =Optimize("period",Param("Chandelier ATR period", 14, 3, 20,1),3,20,1); 
+
+// calculate support and resistance levels 
+if( StopMode == 0 ) // fixed percent trailing stop 
+{ 
+ sup = C * ( 1 - stoplevel ); 
+ res = C * ( 1 + stoplevel ); 
+} 
+else // Chandelier ATR-based stop 
+{ 
+ sup = C - StopATRFactor * ATR( StopATRPeriod ); 
+ res = C + StopATRFactor * ATR( StopATRPeriod ); 
+} 
+
+// calculate trailing stop line 
+trailARRAY = Null; 
+trailstop = 0; 
+for( i = 1; i < BarCount; i++ ) 
+{ 
+ if( Started[ i ] == 0 ) continue; 
+
+ if( C[ i ] > trailstop AND C[ i - 1 ] > trailstop ) 
+   trailstop = Max( trailstop, sup[ i ] ); 
+ else 
+ if( C[ i ] < trailstop AND C[ i - 1 ] < trailstop ) 
+   trailstop = Min( trailstop, res[ i ] ); 
+ else 
+   trailstop = IIf( C[ i ] > trailstop, sup[ i ], res[ i ] ); 
+
+ trailARRAY[ i ] = trailstop; 
+} 
+
+// generate buy/sell signals based on crossover with trail stop line 
+Buy = Start OR Cross( C, trailArray ); 
+Sell = Cross( trailArray, C ); 
+
+PlotShapes(Buy*shapeUpArrow,colorGreen,0,trailarray); 
+PlotShapes(Sell*shapeDownArrow,colorRed,0,trailarray); 
+
+Plot( Close,"Price",47,styleBar); 
+Plot( trailARRAY,"trailing stop level-0509", colorRed );

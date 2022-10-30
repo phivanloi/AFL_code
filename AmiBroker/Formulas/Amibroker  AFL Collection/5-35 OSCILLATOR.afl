@@ -1,0 +1,19 @@
+_SECTION_BEGIN("5-35 OSCILLATOR");
+A2 = MA(C,5);
+B2 = MA(C,35);
+D2 = A2-B2;
+
+Colorm=IIf(D2>Ref(D2,-1),colorRed,colorDarkRed);
+Plot( D2, "535", Colorm, styleHistogram|styleNoLabel );
+
+
+
+PlotOHLC( 0, D2, 0 , 0 , "535",Colorm, styleCloud | styleNoLabel);
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+
+
+_SECTION_END();

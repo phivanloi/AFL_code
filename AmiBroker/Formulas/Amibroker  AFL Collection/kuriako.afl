@@ -1,0 +1,34 @@
+SL = ( HHV( H, 22 ) + LLV( L, 22) )/2;
+TL = ( HHV( H, 7) + LLV( L, 7 ) )/2;
+DL = Ref( C, 22 );
+Span1 = Ref( ( SL + TL )/2, -22 );
+Span2 = Ref( (HHV( H, 44) + LLV(L, 44))/2, -22);
+High=H;
+Close=C;
+Low=L;
+TL=TL;
+SL=SL;
+DL=DL;
+Span1=Span1;
+Span2=Span2;
+TLH=(TL+H)/2;
+TLC=(TL+C)/2;
+SLH=(SL+H)/2;
+SLC=(SL+C)/2;
+Span1=Span1;
+Span2=Span2;
+
+MaxGraph = 6;
+
+Plot(SL,"SL",colorBlue,styleThick); // standard, base, or kijun-sen line
+Plot(TL,"TL",colorRed,styleThick); // turning, conversion, or tenkan-sen line
+Plot(DL,"DL",colorBlack,styleLine); // delayed, lagging, or chikou span
+Plot(Close,"Close",colorYellow,styleLine,styleThick); // price close
+
+
+Buy= Cross(C , TL ) ; 
+Sell=Cross(TL , C); 
+IIf( (Buy),PlotShapes(shapeUpArrow*Buy,colorBlue),0);
+IIf( (Sell),PlotShapes(shapeDownArrow*Sell,colorRed),0) ;
+
+Title = "{{NAME}} - {{INTERVAL}} {{DATE}} - Ichimokku -11: {{VALUES}}";

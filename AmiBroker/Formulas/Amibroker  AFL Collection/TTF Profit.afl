@@ -1,0 +1,9 @@
+fim = (H-L)/V;
+slick = IIf((V>Ref(V,-1) AND fim < Ref(fim,-1)),2,0);
+rake = IIf(V < Ref(V,-1) AND fim > Ref(fim,-1),-2,0);
+fall = IIf(fim < Ref(fim,-1) AND V < Ref(V,-1), -1,0);
+green = IIf(V > Ref(V,-1) AND fim > Ref(fim,-1), 1,0);
+
+prft = slick + rake + fall + green;
+
+Plot(prft, "",4);

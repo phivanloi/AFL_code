@@ -1,0 +1,98 @@
+// NiftyTradersSingleema filtered system
+// Do not redistribute: Copyright Niftytraders
+// Contact: niftytradersinc@yahoo.com for pricing.
+
+//#include <Charting.afl>;
+//#include <Plotsignals.afl>;
+//#include <stoploss.afl>;
+if(Name()=="NIFTY-I")
+SetForeign("S&P CNX NIFTY");
+SetChartOptions(0,chartShowArrows=0|chartShowDates);
+
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Cl %g, Vol %g, (%.1f%%) {{VALUES}}", O, H, L, C, V,SelectedValue( ROC( C, 1 ) ) ));
+Colorme=ParamColor("Color", colorWhite );
+Colorme=IIf(Colorme==colorWhite,IIf(C<O,colorRed,colorLime),Colorme);
+
+Plot( C, "Close", Colorme , styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+
+
+
+longema=Param("Longema",13,5,65*5,2);
+Shortema=Param("ShortEMA",2,1,34,1);
+Offset=Param("EMAOffset",1,1,5,1);
+
+sma=EMA(C,Shortema);
+Lma=EMA(C,Longema);
+Plot(LMA,"LMA",colorOrange);
+Shorttrend=EMA(C,Shortema)>Ref(EMA(C,Shortema),-1);
+Longtrend=EMA(C,Longema)>Ref(EMA(C,Longema),-1);
+//Lttrend=IIf(C>EMA(C,trailingstopema),1,-1);
+tradefilter=1;
+
+trendupshortema=Cross(EMA(C,Shortema),Ref(EMA(C,Shortema),-1));
+trenduplongema=Cross(EMA(C,longEMA),Ref(EMA(C,longEMA),-1));
+
+Crossshortup=Cross(EMA(C,Shortema),Ref(EMA(C,Shortema),-1));
+Crossshortdown=Cross(Ref(EMA(C,Shortema),-1),EMA(C,Shortema));
+
+
+Buyme=Shorttrend ;//AND trenduplongema;
+Sellme= shorttrend==0 AND Longtrend==0;
+//Sellme=C<Ref(LLV(L,3),-2) AND C<trigger;
+Shortme=Crossshortdown AND Longtrend==0;
+Coverme=Shorttrend==1;
+
+RestorePriceArrays();
+Plot(sma,"shortema",colorGreen);
+Plot(Lma,"trig",colorOrange);
+
+
+Buy=Buyme;
+Sell=Sellme;
+Short=Shortme;
+Cover=Coverme;
+//Cleansignals();
+
+function Plotsignal(SignalOffset,Offset)
+{
+global Buy,Sell,Short,Cover;
+
+Buyme=ExRem(Buy,Sell);
+Sellme=ExRem(Sell,Buy);
+Shortme=ExRem(Short,Cover);
+Coverme=ExRem(Cover,Short);
+Bs=Ref(Buyme,-SignalOffset);
+Ss=Ref(Sellme,-SignalOffset);
+Shs=Ref(Shortme,-SignalOffset);
+cs=Ref(Coverme,-SignalOffset);
+
+shape=IIf(CS, shapeHollowUpArrow,0);
+shape=IIf(Ss, shapeDownArrow,shape);
+shape=IIf(Bs, shapeUpArrow,shape);
+shape=IIf(Shs, shapeHollowDownArrow,shape);
+
+
+
+Colorme=IIf(Bs OR Cs,colorBrightGreen,0);
+Colorme=IIf(Ss OR SHs, colorRed,Colorme);
+Offsetme=0-ATR(5)*Offset;
+Signal1=Bs OR ss OR Cs OR shs;
+PlotShapes(IIf(Signal1,shape,0),Colorme,0,IIf(Bs OR Cs,L,H),Offsetme);
+//PlotShapes(IIf(Signal1,shape,0),Colorme,0,IIf(Bs OR Cs,L,H),Offsetme);
+
+
+// test text writing
+y=IIf(bs,L,H);
+text=WriteIf(bs,"Buy me", "Sell me");
+dist=0-2*Offsetme;
+//for( i = 0; i < BarCount; i++ ) 
+{ 
+//if( Buy[i] ) PlotText( "Buy\n@" + C[ i ], i, L[ i ]-dist[i], colorGreen ); 
+//if( Sell[i] ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorRed, colorYellow ); 
+} 
+	return 0;
+
+}
+
+Plotsignal(0,0.1);
+//MAnagesize();

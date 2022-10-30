@@ -1,0 +1,93 @@
+_SECTION_BEGIN("Williams%R_30 with 9 period signal line");
+//------------------------------------------------------------------------------
+//
+//  Formula Name:    Williams  %R with 9 period signal line
+//  Author/Uploader: Anthony Faragasso 
+//  E-mail:          ajf1111@epix.net
+//  Date/Time Added: 2001-11-11 07:31:44
+//  Origin:          
+//  Keywords:        
+//  Level:           basic
+//  Flags:           indicator
+//  Formula URL:     http://www.amibroker.com/library/formula.php?id=133
+//  Details URL:     http://www.amibroker.com/library/detail.php?id=133
+//
+//------------------------------------------------------------------------------
+//
+//  An interesting phenomena of the %R indicator is its uncanny ability to
+//  anticipate a
+//
+//  reversal in the security's price. The indicator almost always forms a peak
+//  an turns
+//
+//  down a few days before the security's price peaks and turns down. Likewise,
+//  %R
+//
+//  usually creates a trough and turns up a few days before the security's
+//  price
+//
+//  turns up.
+//
+//------------------------------------------------------------------------------
+
+/* Williams %R and 9 day Mov.avg.*/
+/* by Anthony Faragasso */
+MaxGraph =10;
+
+R = ((HHV(H,30) - C) /(HHV (H,30) -LLV (L,30))) *-100;
+Graph0 = R;
+//Graph1 =-30;
+//Graph2 =-70;
+//Graph3 =-90;
+//Graph4 =-10;
+Graph0Color =2;
+Graph0Style=StyleHidden;
+Graph5=EMA(R , 3);
+Graph5Color =colorRed;
+Graph5Style=1|styleThick;
+
+Graph6=EMA(R , 9);
+Graph6Style =styleNoLabel;
+Graph6Color =2;
+
+
+//Graph1Style =Graph2Style= 1;
+//Graph1Style =Graph2Style= 2|styleNoLabel;
+
+
+//Graph3Style  =Graph4Style =2|styleNoLabel;
+
+//Graph3Color = Graph4Color =6;
+//Graph3Color = Graph4Color =1;
+
+
+//Graph2Color = Graph1Color =12;
+
+/*x = BarsSince( Cross( r, MA( r, 9)));*/
+/*y = BarsSince( Cross( MA(r, 9), r));*/
+/*Graph8 = ( x == 0 OR y == 0 ) * 30;*/
+
+Title =Name() + " -Williams %R: " +" % R Line " +"("+ WriteVal ( Graph0,format=1.2)+")"+ "  Signal Line " + ""+"("+WriteVal(Graph5,format=1.2)+")" +" , "   + Date(  );
+Buy=Ref(R,-1) < -80 AND R > -80;
+Sell=Ref(R,-1) > -20 AND R < -20;
+Short=Ref(R,-1) > -20 AND R < -20;
+Cover=Ref(R,-1) < -80 AND R > -80;
+
+Filter=Buy OR Sell OR Short OR Cover;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); Short=ExRem(Short,Cover); Cover=ExRem(Cover,Short);
+
+AddColumn(Buy,"Buy");
+AddColumn(Sell,"sell");
+AddColumn(Short,"short");
+AddColumn(Cover,"cover");
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone) ,colorBrightGreen);
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed);
+
+//////////////////////////////////////////////////////////
+Plot (-80, "", colorLightBlue, styleNoLabel);
+Plot (-50, "", colorBlue, styleNoLabel|styleThick);
+Plot (-20, "", colorLightBlue, styleNoLabel);
+
+
+
+_SECTION_END();

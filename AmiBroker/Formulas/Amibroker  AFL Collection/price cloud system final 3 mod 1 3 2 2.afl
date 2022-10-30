@@ -1,0 +1,48 @@
+// define the long term trend
+
+/* ema-34 is the direction of the trend. Now depending on the angle of the ema34 we assume target and stretegy. 
+first requirement is to find the angle of ema34
+*/
+
+// Angle variables
+
+PI = atan(1.00) * 4; 
+periods = 30; 
+HighHigh = HHV(H, periods); 
+LowLow = LLV(L, periods); 
+range = 25 / (HighHigh - LowLow) * LowLow;
+
+// EMA34 Angle
+
+EMA34 = EMA(C,34);
+x1_EMA34 = 0; 
+x2_EMA34 = 1; 
+y1_EMA34 = 0; 
+y2_EMA34 = (Ref(EMA34, -1) - EMA34) / Avg * range; 
+c_EMA34 = sqrt((x2_EMA34 - x1_EMA34)*(x2_EMA34 - x1_EMA34) + (y2_EMA34 - y1_EMA34)*(y2_EMA34 - y1_EMA34)); 
+angle_EMA34 = round(180 * acos((x2_EMA34 - x1_EMA34)/c_EMA34) / PI); 
+angle_EMA34 = IIf(y2_EMA34 > 0, - angle_EMA34, angle_EMA34); 
+
+ColorANGLE_EMA = IIf(angle_EMA34 >=5,colorTurquoise,
+IIf(angle_EMA34 <5 AND angle_EMA34 >=3.57,colorDarkGreen,
+IIf(angle_EMA34 <3.57 AND angle_EMA34 >=2.14,colorPaleGreen,
+IIf(angle_EMA34 <2.14 AND angle_EMA34 >=.71,colorLime,
+IIf(angle_EMA34 <=-1*5,colorDarkRed,
+IIf(angle_EMA34 >-1*5 AND angle_EMA34 <=-1*3.57,colorRed,
+IIf(angle_EMA34 >-1*3.57 AND angle_EMA34 <=-1*2.14,colorOrange,
+IIf(angle_EMA34 >-1*2.14 AND angle_EMA34 <=-1*.71,colorLightOrange,colorYellow))))))));
+
+
+
+
+Title = "" + Name() + ", " + Interval(2) + ", " + Date() + "\n" + 
+
+EncodeColor(colorWhite) + ", " + 
+
+TitleTimeRem + EncodeColor(colorWhite) + 
+
+TitleAngleEMA34 + EncodeColor(colorWhite) + ", " + TitleAngleLSMA25 + 
+
+TitleTrending + "\n" + EncodeColor(colorWhite)+"Signal = "+Signaltitle + ChoppyTitle; //+ EncodeColor(colorWhite) + Ctoema + Ctitle + EncodeColor(colorWhite) + " " + angletitle + " " + "bars trending, " + " " + " "+Exittitle; 
+
+;

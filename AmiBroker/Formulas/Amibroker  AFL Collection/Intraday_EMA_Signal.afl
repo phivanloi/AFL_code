@@ -1,0 +1,5 @@
+small = 50;
+Large = 100;
+
+Buy   = Cross(EMA(C,small),EMA(C,large));
+Sell  = Cross(EMA(C,large),EMA(C,small));

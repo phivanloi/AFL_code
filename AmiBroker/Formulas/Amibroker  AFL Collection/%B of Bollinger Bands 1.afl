@@ -1,0 +1,25 @@
+_SECTION_BEGIN("%B of Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 20, 2, 100, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+//Color = ParamColor("Color", colorCycle );
+//Style = ParamStyle("Style");
+//Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), Color, Style ); 
+//Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), Color, Style );
+
+BBW = BBandTop(P, Periods, Width)  -  BBandBot(P, Periods, Width);
+b=  (C -  BBandBot(P, Periods, Width))  / BBW; 
+Plot( b,"%b",colorGrey40);
+e_ema = EMA(b,3);
+Plot (e_ema,"ema_b",colorBlue);
+_SECTION_END();
+
+_SECTION_BEGIN("Bollinger Bands1");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 5, 2, 300, 1 );
+Width = Param("Width", 0.5, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), Color, Style ); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), Color, Style ); 
+_SECTION_END();

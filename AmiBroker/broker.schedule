@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<AmiBroker-Schedule CompactMode="0">
+<Task>
+<BatchFile>C:\Users\Admins\Desktop\stock_price\Batch1.abb</BatchFile>
+<StartMode>1</StartMode>
+<StartDateTime>2022-10-04 01:50:30</StartDateTime>
+<RepeatMode>1</RepeatMode>
+<FromHour>0</FromHour>
+<ToHour>23</ToHour>
+<DayFlags>127</DayFlags>
+<NextRunDateTime>2022-10-29 18:50:30</NextRunDateTime>
+</Task>
+<Settings>
+<CloseOnCompletion>0</CloseOnCompletion>
+</Settings>
+</AmiBroker-Schedule>

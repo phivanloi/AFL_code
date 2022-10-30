@@ -1,0 +1,260 @@
+_SECTION_BEGIN("NICK MA Swing");
+SetBarsRequired(200,0);
+
+GraphXSpace = 5;
+SetChartOptions(0,chartShowArrows|chartShowDates);
+k =  Optimize("K",Param("K",2.25,0.25,5,0.25),0.25,5,0.25);
+Per= Optimize("atr",Param("atr",22,3,40,1),3,20,1);
+HACLOSE=(O+H+L+C)/4;
+HaOpen = AMA( Ref( HaClose,  -1 ),  0.5 );
+HaHigh = Max( H,  Max( HaClose,  HaOpen ) );
+HaLow = Min( L,  Min( HaClose,  HaOpen ) );
+//PlotOHLC( HaOpen, HaHigh, HaLow, HaClose, "" + Name(), colorBlack, styleCandle | styleNoLabel );
+j=Haclose;
+
+//=======================================================================================================================
+//=========================Indicator==============================================================================================
+f=ATR(14);
+
+rfsctor = WMA(H-L, Per);
+
+revers = k * rfsctor;
+
+Trend = 1;  
+NW[0] = 0;  
+
+
+for(i = 1; i < BarCount; i++)
+{
+ if(Trend[i-1] == 1)                
+ {
+  if(j[i] < NW[i-1])                 
+  {
+   Trend[i] = -1;                   
+   NW[i] = j[i] + Revers[i];        
+  }
+  else                              
+  {
+   Trend[i] = 1;
+   if((j[i] - Revers[i]) > NW[i-1])
+   {
+    NW[i] = j[i] - Revers[i]; 
+   }
+   else
+   {
+    NW[i] = NW[i-1];
+   }
+  } 
+ }
+ if(Trend[i-1] == -1)               
+ {
+  if(j[i] > NW[i-1])                
+  {
+   Trend[i] = 1;                    
+   NW[i] = j[i] - Revers[i];        
+  }
+  else                              
+  {
+   Trend[i] = -1;
+   if((j[i] + Revers[i]) < NW[i-1]) 
+   {
+    NW[i] = j[i] + Revers[i]; 
+   }
+   else
+   {
+    NW[i] = NW[i-1];
+   }
+  }
+ }
+}
+
+//===============system================
+
+Plot(NW, "", IIf(Trend == 1, 27, 4), 4);
+Buy=Cover=Cross(j,nw);
+Sell=Short=Cross(nw,j);
+SellPrice=ValueWhen(Sell,C,1);
+BuyPrice=ValueWhen(Buy,C,1);
+Long=Flip(Buy,Sell);
+Shrt=Flip(Sell,Buy );
+_SECTION_END();
+//=================TITLE================================================================================================
+_SECTION_BEGIN("Title");
+if( Status("action") == actionIndicator ) 
+(
+Title = EncodeColor(colorWhite)+ "NICK MA Swing System" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"\n" +EncodeColor(colorYellow) +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+
+"Cl-"+C+"  "+ "Vol= "+ WriteVal(V)+"\n"+ 
+EncodeColor(colorLime)+
+WriteIf (Buy , " GO LONG / Reverse Signal at "+C+"  ","")+
+WriteIf (Sell , " EXIT LONG / Reverse Signal at "+C+"  ","")+"\n"+EncodeColor(colorWhite)+
+WriteIf(Sell , "Total Profit/Loss for the Last Trade Rs."+(C-BuyPrice)+"","")+
+WriteIf(Buy  , "Total Profit/Loss for the Last trade Rs."+(SellPrice-C)+"","")+
+WriteIf(Long AND NOT Buy, "Trade : Long - Entry price Rs."+(BuyPrice),"")+
+WriteIf(shrt AND NOT Sell, "Trade : Short - Entry price Rs."+(SellPrice),"")+"\n"+ 
+WriteIf(Long AND NOT Buy, "Current Profit/Loss Rs."+(C-BuyPrice)+"","")+
+WriteIf(shrt AND NOT Sell, "Current Profit/Loss Rs."+(SellPrice-C)+"",""));
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+_SECTION_END();
+
+_SECTION_BEGIN("Time Left"); 
+function GetSecondNum()
+{
+    Time 		= Now( 4 );
+    Seconds 	= int( Time % 100 );
+    Minutes 	= int( Time / 100 % 100 );
+    Hours 	= int( Time / 10000 % 100 );
+    SecondNum = int( Hours * 60 * 60 + Minutes * 60 + Seconds );
+    return SecondNum;
+}
+RequestTimedRefresh( 1 );
+TimeFrame = Interval();
+SecNumber = GetSecondNum();
+Newperiod = SecNumber % TimeFrame == 0;
+SecsLeft = SecNumber - int( SecNumber / TimeFrame ) * TimeFrame;
+SecsToGo = TimeFrame - SecsLeft;
+
+x=Param("xposn",918,0,1000,1);
+y=Param("yposn",586,0,1000,1);
+
+GfxSelectSolidBrush( ColorRGB( 230, 230, 230 ) );
+GfxSelectPen( ColorRGB( 230, 230, 230 ), 2 ); 
+if ( NewPeriod )
+{
+   	GfxSelectSolidBrush( colorYellow );
+	GfxSelectPen( colorYellow, 2 );  
+	Say( "New period" );  
+}
+GfxRoundRect( x+55, y+17, x-4, y-2, 0, 0 );
+GfxSetBkMode(1); 
+GfxSelectFont( "Arial", 9, 700, False );
+GfxSetTextColor( colorBlack );
+GfxTextOut(  ""+SecsToGo+" / "+NumToStr( TimeFrame, 1.0 ), x, y );
+_SECTION_END();
+
+SetBarsRequired(100000,0);
+GraphXSpace = 3;
+
+
+k = Param("K", 0.01, 0, 0.2, 0.001);
+
+Trend[0] = 1;  
+Revers[0] = C[0] - C[0]*k;
+PE[0] = C[0];
+
+for(i = 1; i < BarCount; i++)
+{
+	if(Trend[i-1] == 1)					//Up Trend
+	{
+		if(C[i] > PE[i-1])				// High 
+		{
+			Trend[i] = 1;
+			PE[i] = C[i];
+			Revers[i] = C[i] - C[i]*k;
+		}
+		else
+		{
+			if(C[i] < Revers[i-1])		
+			{
+				Trend[i] = -1;
+				PE[i] = C[i];
+				Revers[i] = C[i] + C[i]*k;
+			}
+			else							
+			{
+				Trend[i] = 1;
+				PE[i] = PE[i-1];
+				Revers[i] = Revers[i-1];
+			}
+		}
+	}
+//======================================
+	else									//Down Trend
+	{
+		if(C[i] < PE[i-1])				// Low
+		{
+			Trend[i] = -1;
+			PE[i] = C[i];
+			Revers[i] = C[i] + C[i]*k;
+		}
+		else
+		{
+			if(C[i] > Revers[i-1])		 
+			{
+				Trend[i] = 1;
+				PE[i] = C[i];
+				Revers[i] = C[i] - C[i]*k;
+			}
+			else							
+			{
+				Trend[i] = -1;
+				PE[i] = PE[i-1];
+				Revers[i] = Revers[i-1];
+			}
+		}
+	}
+}
+
+Plot(Revers, "NRTR WATR", IIf(Trend == 1, colorBlue, colorOrange), 4);
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+//Plot( C, "", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+Buy=Cross(C,Revers);
+Sell=Cross(Revers,C);
+Filter=Buy OR Sell;
+PlotShapes(Buy*shapeHollowUpTriangle,colorPink, 0, Low, Offset =-35);
+PlotShapes(Buy*shapeDigit8,colorAqua, 0, Low, Offset =-50);
+PlotShapes(Sell*shapeHollowDownTriangle,colorCustom12, 0, High, Offset =-10);
+PlotShapes(Sell*shapeDigit8,colorRed, 0, High, Offset =25);
+AddColumn( IIf(Buy,1,IIf(Sell,-1,0)) ,"12",1.0,colorBlack,IIf(Sell,colorGreen,IIf(Sell,colorRed,colorBlack)));
+
+
+_SECTION_END();
+
+_SECTION_BEGIN("ABKPScoreCardColors");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+//_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g% (%0.4f%) {{VALUES}}", O, H, L, C, SelectedValue( C - Ref(C, -1)) ));
+if( ParamToggle("Tooltip shows", "All Values|Only Prices" ) )
+{
+ ToolTip=StrFormat("Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.2f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 )));
+}
+parmSCUpColor = ParamColor("SC up color", colorBlue);
+parmSCDnColor = ParamColor("SC down color", colorRed);
+parmSCNuColor = ParamColor("SC neutral color", colorYellow);
+parmRibbon = ParamToggle("Plot as ribbnon", "No|Yes", 0);
+parmThreshold = Param("SC Threshold", 5, 0, 10, 1);
+SetBarsRequired(350, -1);
+// KP indicators
+Ctmpl = E_TSKPCOLORTMPL(Open,High,Low,Close,Volume);
+KPScoreCard = 0;
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd0 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd1 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd2 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd3 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd4 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd5 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd6 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd7 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd8 > 0, 1, -1); 
+
+
+Color = IIf(KPScoreCard >= parmThreshold, parmSCUpColor, IIf(KPScoreCard <= -parmThreshold, parmSCDnColor, parmSCNuColor) );
+if(parmRibbon == 0)
+	{
+		Plot( C, "Close", Color , styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+	}
+else
+	{
+		Plot( C, "Close", ParamColor("Color", colorWhite ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+		Plot(KPScoreCard,"ScoreCard",Color,ParamStyle("ScoreCardStyle", styleStaircase | styleOwnScale | styleArea ,maskAll), -10, 100);
+	}
+_SECTION_END();
+
+_SECTION_BEGIN("TSKPAutoStop");
+Plot( E_TSKPAUTOSTOP(High,Low,Close) , _DEFAULT_NAME(), ParamColor( "Color", colorYellow ), ParamStyle("Style",style=styleNoLabel, mask=maskDefault)); 
+_SECTION_END();

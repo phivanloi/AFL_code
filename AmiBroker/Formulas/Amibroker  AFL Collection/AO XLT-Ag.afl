@@ -1,0 +1,6 @@
+tgt = Param ("Trading Rande CCI:",100,50,150);
+Pe = Param ("Periods for CCI:",20,1,100,1);
+a = CCI(Pe)<-tgt;
+b = CCI(Pe)>tgt;
+state = IIf(a>b,-1,IIf(a==b,0,1));
+Plot(state, "",4);

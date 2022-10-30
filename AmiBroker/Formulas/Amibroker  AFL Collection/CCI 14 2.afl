@@ -1,0 +1,21 @@
+_SECTION_BEGIN("CCI");
+cc_i = Param ("cci",14,2,50,1);
+Short_p = Param("short period",5,1,25,1);
+Long_p = Param("long period",10,1,50,1);
+Cc = EMA(CCI(Cc_i),Long_p);
+C2 = EMA(CCI(Cc_i),Short_P);
+Plot( C2, "CCI", colorRed, styleThick  ); 
+Plot( Cc, "CCI", colorBlue, styleThick  ); 
+
+Plot(100,"",colorWhite,styleDashed);
+Plot(-100,"",colorWhite,styleDashed);
+
+
+Sell = Cross(Cc,C2);
+
+Buy = Cross(C2,Cc);
+
+PlotShapes (Buy*shapeUpArrow,colorRed);
+PlotShapes (Sell*shapeDownArrow,colorRed);
+  
+_SECTION_END();

@@ -1,0 +1,91 @@
+_SECTION_BEGIN("Multiple Ribbon ");
+// You plot a Ribbon by calling the function as follows: MultiRibbon("Color", "Ribbon Number", "Name To Display");
+// The "Ribbon Number" is simply the order of the ribbon, starting with 1 as the bottom Ribbon. You can add as many 
+// ribbons as you want, until you run out of chart space. Just keep track of the 'Serial Number' (Ribbon Number). :-)
+
+
+RibbonThickness	= Param("Ribbon Thickness", 15, 1, 15, 0.1);
+Font				= ParamList("Font:","Arial|Calibri|Futura|Tahoma|Times New Roman");
+"";
+function GfxConvertBarToPixelX(Bar) 
+{ 
+ lvb = Status("lastvisiblebar"); fvb = Status("firstvisiblebar"); 
+ pxchartleft = Status("pxchartleft"); pxchartwidth = Status("pxchartwidth"); 
+ return pxchartleft + Bar  * pxchartwidth / (Lvb - fvb + 1); 
+} 
+
+procedure MultiRibbon(RibbonColor, Position, Label)
+{
+ LineColor	= colorLightGrey;
+ Position	= RibbonThickness * Position;
+ x2 = Status("pxchartright");
+ y2 = Status("pxchartbottom");
+
+ RibbonColor = IIf(GfxConvertBarToPixelX(BarIndex()-Status("firstvisiblebarindex")) > y2/1.5 * (RibbonThickness/100) * 18 , RibbonColor, colorYellow);
+
+ Plot(0, "", LineColor, styleOwnScale | styleNoLabel, 0, 100);
+ Plot(Position, "", LineColor, styleOwnScale | styleNoLabel, 0, 100);
+ Plot(Position, "", RibbonColor, styleArea | styleOwnScale | styleNoLabel, 0, 100);
+
+ GfxSetTextColor(colorBlack); 
+ GfxSelectFont(Font, y2/1.5 * (RibbonThickness/100), 400); 
+ GfxDrawText(Label, 8, y2 * 1.001 -(y2 * Position/100) , y2/1.5 * (RibbonThickness/100) * 17, y2, 2 + 32 + 256);
+ 
+}
+
+//============================================candle sticks=======================
+Up_MACD_TRIX = Trix( 9 ) > Ref( Trix( 9 ) , -1 )
+AND MACD( 12, 26 ) > Ref( MACD( 12, 26 ) , -1 );
+ 
+Down_MACD_TRIX =  Trix( 9 ) < Ref( Trix( 9 ) , -1 )
+AND MACD( 12, 26 ) < Ref( MACD( 12, 26 ) , -1 );
+
+Colormacd = IIf(Up_MACD_TRIX,colorLime,IIf(Down_MACD_TRIX,colorBlue,colorCustom12)); 
+
+//PlotOHLC( Open, High, Low, Close, "", Colormacd, styleCandle ); 
+//
+//=========================================EMA================================
+
+Short_trend = IIf(MA (Close,3)>EMA( Close,13), colorBrightGreen, colorRed );
+mid_trend  = IIf(EMA( Close,13) > EMA( Close,39), colorBrightGreen, colorRed  );
+Long_trend = IIf(EMA (Close,39) > EMA (Close, 50),colorBrightGreen, colorRed  );
+
+MultiRibbon(Long_trend, 1, "LONG-TREND"); 
+MultiRibbon(mid_trend, 2, "MID-TREND"); 
+MultiRibbon(Short_trend, 3, "SHORT-TREND"); 
+//==========================rsi-7=============================================
+RSIcolor=IIf(RSI(7)>50, colorBrightGreen, colorRed );
+MultiRibbon(RSIcolor, 4, "RSI  : "+RSI(7)); 
+//--------------------------------------------------------------------------------------
+//
+//=======================================MACD=====================================
+MACDcolor = IIf(MACD(8,21)>Signal(8,21,9), colorBrightGreen, colorRed  );
+MultiRibbon(MACDcolor, 5, "MACD  : "+MACD(8,21)); 
+//---------------------------------------------------------------------------------------
+
+//=====================================trix============================================
+Trixcolor=IIf(Trix( 9 ) > Ref( Trix( 9 ) , -1 ),colorBrightGreen, colorRed );
+MultiRibbon(Trixcolor, 6, "TRIX : "+Trix(9));
+//=============================BB============================================
+
+
+A1=EMA(C,12)-EMA(C,26); 
+BBtop=BBandTop(A1,10,1); 
+BBbot=BBandBot(A1,10,1);
+BBcolor=IIf(a1<0 AND a1>Ref(a1,-1),colorBrightGreen,IIf(a1>0 AND a1>Ref(a1,-1),colorBrightGreen,IIf(a1>0 AND a1<Ref(a1,-1),colorRed,colorRed)));
+MultiRibbon(BBcolor, 7, "BIlinger Band  : "); 
+ 
+
+
+
+//==================interpretation============================
+
+WriteIf(EMA( Close,13)>EMA( Close,39),"EMA says : UP TREND \n EMA -50 SL of "+ WriteVal(EMA(Close,50)),"EMA says : DOWN TREND \n  EMA "+ WriteVal(EMA(Close,50)));
+WriteIf (Trix( 9 ) > Ref( Trix( 9 ) , -1 ),"\n TRIX =" + WriteVal(Trix( 9 ))+ " : UP","\n TRIX =" + WriteVal(Trix( 9 ))+"   : DOWN");
+WriteIf (MACD( 12, 26 ) > Ref( MACD( 12, 26 ) , -1 ), "MACD ="+ WriteVal(MACD( 12, 26 ))+ " : UP","MACD ="+ WriteVal(MACD( 12, 26 ))+ " : DOWN");
+WriteIf(ADX( 9 ) > Ref( ADX( 9 ) , -1 ),"ADX ="+WriteVal (ADX(9))+"   :TREND-ING","ADX ="+WriteVal (ADX(9))+"   : ----");
+WriteIf (RSI( 7 ) > Ref( RSI(7) , -1 ), "RSI ="+ WriteVal(RSI( 7))+ " : UP","RSI ="+ WriteVal(RSI( 7))+ " : DOWN");
+WriteIf (CCI( 10 ) > Ref( CCI(10) , -1 ), "CCI ="+ WriteVal(CCI( 10))+ " : UP","CCI ="+ WriteVal(CCI( 10))+ " : DOWN");
+WriteIf(StochK( 14)< Ref (StochK( 14),1) ,"stochastic ="+WriteVal (StochK(14))+" : UP " ,"stochastic ="+WriteVal (StochK( 14))+" : DOWN ");
+"";
+WriteIf (Close > SAR( 0.02, 0.2 ),"SAR says : go LONG at "+Close+" \n with a Stop-Loss = " + WriteVal(  SAR( 0.02, 0.2 )),"SAR says : go Short at "+Close+"\n with a Stop-Loss = " + WriteVal(  SAR( 0.02, 0.2 )));

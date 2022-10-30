@@ -1,0 +1,73 @@
+/*
+	rCCI.p1.afl
+
+	"r"emote CCI set up via static variables written by cooperating strategy.
+
+	Written by:	Progster
+
+	Copyright 2009 - Distributed under license by CodeForTraders.com.
+	Other distribution prohibited.
+
+*/
+_SECTION_BEGIN("rCCI");
+
+//	Name of indicator to be displayed.
+//	This is used for fetching of static variables (written elsewhere).  ]
+
+Ind01_Name = "CCI" ;
+
+//	Parameter settings
+ShowRaw = ParamToggle( "ShowRaw", "No|Yes", 1 ) ;
+ShowSmooth = ParamToggle( "ShowSmooth", "No|Yes", 1 ) ;
+ShowThreshholds = ParamToggle( "ShowThreshholds", "No|Yes", 1 ) ;
+TimedRefresh = ParamToggle( "Do TimedRefresh? ", "No|Yes", 0 ) ;
+
+//	if visible, optionally refresh every 1 second (to pick up change in static variables)
+if (TimedRefresh){	RequestTimedRefresh( 1, True );	}
+
+//	Read static variables set by strategy formula: #P_CCI_05.afl
+//	Set generic local variables.
+
+RawPeriod = StaticVarGet(Ind01_Name + "_Length");
+SmoothPeriod = StaticVarGet(Ind01_Name + "_Smooth");
+LowLine = StaticVarGet(Ind01_Name + "_LowLvl");
+HighLine = StaticVarGet(Ind01_Name + "_HighLvl");
+
+LX_Line = StaticVarGet(Ind01_Name + "_LX_Above_Lvl");
+SX_Line = StaticVarGet(Ind01_Name + "_SX_Below_Lvl");
+
+RawValue = CCI(RawPeriod) ;
+SmoothValue = MA(RawValue, SmoothPeriod);
+
+SetChartOptions(0,0,chartGrid30|chartGrid70);
+
+//	Calculate a color array that is different for high, low, and in-between indicator values.
+SmoothColor = IIf( SmoothValue > HighLine, ParamColor( "High Color", colorYellow ), 
+IIf( SmoothValue < LowLine, ParamColor( "Low Color", colorYellow ), 
+ParamColor( "Smooth Color", colorTeal ) )  );
+
+ShowTitle = ParamToggle( "ShowTitle", "No|Yes", 1 ) ;
+
+if (ShowTitle){
+	Title = "rCCI.p1 " + "RawValue(" + RawPeriod + ") = " + RawValue + " SmoothValue(" + SmoothPeriod + ") = " + SmoothValue ;
+}
+else{
+	Title = "" ;
+}
+
+//	Plot of raw indicator
+if (ShowRaw){ Plot( RawValue, _DEFAULT_NAME(), ParamColor( "Raw Color", colorDarkRed ), ParamStyle("Style")  ); } 
+
+//	Plot of smoothed indicator
+if (ShowSmooth){ Plot( SmoothValue, _DEFAULT_NAME(), SmoothColor, ParamStyle("Style")  );	} 
+
+//	Plots of action thresholds
+if (ShowThreshholds) {
+	Plot( LowLine, _DEFAULT_NAME(), ParamColor( "Low Line Color", colorGreen ), ParamStyle("Style")  );
+	Plot( HighLine, _DEFAULT_NAME(), ParamColor( "High Line Color", colorRed), ParamStyle("Style")  );
+	Plot( LX_Line, _DEFAULT_NAME(), ParamColor( "LX Line Color", colorDarkGreen ), ParamStyle("Style")  );
+	Plot( SX_Line, _DEFAULT_NAME(), ParamColor( "SX Line Color", colorDarkRed), ParamStyle("Style")  );
+}
+
+
+_SECTION_END();

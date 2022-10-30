@@ -1,0 +1,16 @@
+Price = (H+L)/2;
+MomLength = 15;
+
+PriceMomSum = 0;
+FiveMomSum = 0;
+
+FiveMom = abs(Price - Ref(Price, -5));
+PriceMom = Price * FiveMom;
+for (i=0; i < MomLength; i++) {
+	PriceMomSum = PriceMomSum + Ref(PriceMom, -i);
+	FiveMomSum = FiveMomSum + Ref(FiveMom, -i);
+}
+NLEF = PriceMomSum / FiveMomSum;
+
+Plot(Close, "Close", colorBlack, styleLine);
+Plot(NLEF, "NonLinear Ehlers Filter", IIf(Close>NLEF, colorGreen, colorRed), styleLine);

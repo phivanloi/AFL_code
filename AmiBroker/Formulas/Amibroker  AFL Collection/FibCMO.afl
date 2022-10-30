@@ -1,0 +1,20 @@
+p= C;
+pd1 = 3; pd2 = 5; pd3 = 8;
+UpDay1 = Sum((P-Ref(P,-1))*(P>Ref(P,-1)),pd1);
+DownDay1 = Sum((Ref(P,-1)-P)*(P<Ref(P,-1)),pd1);
+cmo1 = 100 * ((UpDay1-DownDay1)/(UpDay1+DownDay1));
+
+UpDay2 = Sum((P-Ref(P,-1))*(P>Ref(P,-1)),pd2);
+DownDay2 = Sum((Ref(P,-1)-P)*(P<Ref(P,-1)),pd2);
+cmo2 = 100 * ((UpDay2-DownDay2)/(UpDay2+DownDay2));
+
+UpDay3 = Sum((P-Ref(P,-1))*(P>Ref(P,-1)),pd3);
+DownDay3 = Sum((Ref(P,-1)-P)*(P<Ref(P,-1)),pd3);
+cmo3 = 100 * ((UpDay3-DownDay3)/(UpDay3+DownDay3));
+
+fc = (CMO1+CMO2+CMO3)/3;
+
+Plot( fc , "FibCMO("+pd1+","+pd2+","+pd3+")", ParamColor("color", colorCycle ), ParamStyle("Style") );
+
+PlotGrid(40, colorLightGrey);
+PlotGrid(-40, colorLightGrey);

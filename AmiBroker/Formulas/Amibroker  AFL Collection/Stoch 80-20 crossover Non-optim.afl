@@ -1,0 +1,20 @@
+//Stoch 80/20 crossover ***Non-optimized***
+
+//Enters long/short when the stochastic oscillator crosses the 20/80 signal lines. Exit trades on reversing signals only.
+
+pds=5;
+
+s1=StochK(pds);
+
+Buy=  Ref(s1,-1) < 20 AND s1 >= 20;
+Sell= Ref(s1,-1) > 80 AND s1 <= 80;
+Short=Ref(s1,-1) > 80 AND s1 <= 80;
+Cover=Ref(s1,-1) < 20 AND s1 >= 20;
+
+Filter=Buy OR Sell OR Short OR Cover;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); Short=ExRem(Short,Cover); Cover=ExRem(Cover,Short);
+
+AddColumn(Buy,"buy");
+AddColumn(Sell,"sell");
+AddColumn(Short,"short");
+AddColumn(Cover,"cover");

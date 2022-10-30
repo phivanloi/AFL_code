@@ -1,0 +1,75 @@
+_SECTION_BEGIN("NICK MA Swing"); 
+ 
+
+EMA1= EMA(Close,12);
+EMA2= EMA(EMA1,12);
+Difference= EMA1 - EMA2;
+ZeroLagEMAp= EMA1 + Difference;
+//---------------------------------------
+EMA1= EMA(Close,26);
+EMA2= EMA(EMA1,26);
+Difference= EMA1 - EMA2;
+ZeroLagEMAq= EMA1 + Difference;
+//---------------------------------------
+ZeroLagMACD=ZeroLagEMAp - ZeroLagEMAq;
+
+ST33= ZeroLagMACD;
+bars=50;
+TR1= LLVBars(ST33,5);
+COND1=TR1> 0 AND Ref(TR1,-1)==0 AND Ref(ST33,-1)<0;
+TR2= IIf(COND1,Ref(ST33,-1),0);
+M1= ValueWhen(COND1,ST33);
+P1= ValueWhen(COND1,LLV(L,3));
+DM1=M1- Ref(M1,-1);DP1=P1-Ref(P1,-1);
+DT= Ref(BarsSince(COND1),-1);
+POSDIV=DM1> 0 AND DP1<0 AND DT<BARS; 
+TR11= HHVBars(ST33,5);
+COND11=TR11> 0 AND Ref(TR11,-1)==0 AND Ref(ST33,-1)>0;
+TR21= IIf(COND11,Ref(ST33,-1),0);
+M11= ValueWhen(COND11,ST33);
+P11= ValueWhen(COND11,HHV(H,3));
+DM11=M11- Ref(M11,-1);DP11=P11-Ref(P11,-1);
+DT1= Ref(BarsSince(COND11),-1);
+NEGDIV=DM11< 0 AND DP11>0 AND DT1<BARS;
+PlotShapes(shapeDigit3*POSDIV,colorBrightGreen);
+PlotShapes(shapeDigit3*NEGDIV,colorRed);
+col_bar = IIf(ZeroLagMACD > Ref(ZeroLagMACD,-1),colorBrightGreen,colorRed);
+Plot(Close,"close",colorWhite,styleBar+styleThick);
+
+
+_SECTION_BEGIN("KPL");
+
+no=Param( "Swing", 2, 1, 55 ); 
+tsl_col=ParamColor( "Color", colorCycle );
+
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+tsl=IIf(avn==1,sup,res);
+
+
+Buy1=Cross(C,tsl);
+Sell1=Cross(tsl,C);
+
+Period = Param("Period",14,1,100,1);
+
+n = Param("ref level",95,50,100,1);
+
+
+LLVBarsSince = LLVBars(L, Period) + 1;
+HHVBarsSince = HHVBars(H, Period) + 1;
+
+Aroon_Down = 100 * (Period - LLVBarsSince) / (Period - 1);
+Aroon_Up   = 100 * (Period - HHVBarsSince) / (Period - 1);
+Aroon_Osc  = Aroon_Up - Aroon_Down;
+Sell2= Ref(Aroon_Osc,-1)>n AND Aroon_Osc <n;
+Buy2= Ref(Aroon_Osc,-1)<-n AND Aroon_Osc >-n;
+
+Buy = Buy1 AND Buy2;
+Sell = Sell1 AND Sell2;
+
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ), 0, IIf( Buy, Low,High));
+_SECTION_END();
+_SECTION_END();

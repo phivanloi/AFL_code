@@ -1,0 +1,16 @@
+_SECTION_BEGIN("ichimoku Charts");
+
+SL = ( HHV( H, 22 ) + LLV( L, 22) ) / 2;
+TL = ( HHV( H, 8 ) + LLV( L, 8 ) ) / 2;
+DL = Ref( C, 22 );
+Span1 = ( SL + TL ) / 2 ;
+Span2 = Ref(( HHV( H, 44) + LLV(L, 44) ) / 2, -4) ;
+
+Plot(SL,"",32,5|4096,0,0,-26);
+Plot(TL,"",27,5|4096,0,0,-26);
+Plot(IIf(Cum(1)-2 < LastValue(BarIndex())-22,DL,Null),"",29,1,0,0,-26);
+Plot(span1,"",32,1);
+Plot(span2,"",38,1);
+Plot(C,"",1,styleCandle,0,0,-26);
+PlotOHLC(Span1,Span2,Span1,Span2,"",IIf(Span1>Span2,colorBrightGreen,colorRed),styleCloud|4096);
+_SECTION_END();

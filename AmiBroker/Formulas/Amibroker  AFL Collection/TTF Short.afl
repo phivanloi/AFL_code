@@ -1,0 +1,10 @@
+ttfut = IIf(H>ValueWhen(HHV(H,7),H,2) AND ValueWhen(HHV(H,7),H,2)>ValueWhen(HHV(H,7),H,3) AND L>ValueWhen(HHV(H,7),L,2) AND ValueWhen(HHV(H,7),L,2)>ValueWhen(HHV(H,7),L,3),1,0);
+fim = (H-L)/V;
+slick = IIf((V>Ref(V,-1) AND fim < Ref(fim,-1)),2,0);
+rake = IIf(V < Ref(V,-1) AND fim > Ref(fim,-1),-2,0);
+fall = IIf(fim < Ref(fim,-1) AND V < Ref(V,-1), -1,0);
+green = IIf(V > Ref(V,-1) AND fim > Ref(fim,-1), 1,0);
+prft = slick + rake + fall + green;
+Shrt = IIf(ttfut == 1 AND prft == 1 OR 2 AND ((ValueWhen(HHV(H,7), prft,2)==1 OR 2) OR (ValueWhen(HHV(H,7),prft,3) == 1 OR 2)) AND L < ValueWhen(LLV(L,7),L,3),-1,0);
+
+Plot(shrt, "",4);

@@ -1,0 +1,29 @@
+/*********************************************************
+		Use On Hourly TimeFrame
+**********************************************************/
+
+_SECTION_BEGIN("Hourly Exhaustion");
+	last_High = Ref(H, -1);
+	last_low = Ref(L, -1);
+	last_open = Ref(O, -1);
+	last_close = Ref(C, -1);
+	
+	strength = ((last_open - last_close)/(last_high - last_low))*100;
+	
+	exhaustion_cond = abs(strength) < 15;
+	
+	Filter = C > 75 AND exhaustion_cond AND Inside();
+		AddColumn(C, "LTP", 1.2);
+		AddColumn(strength, "Strength", 1.2);
+			
+		if(LastValue(exhaustion_cond)){
+			sig_text = Name()+" Exhaustion Candle on Hourly with strength = "+NumToStr(strength, 1.2);
+			
+		/* UNCOMMENT THIS AFTER ENTERING YOUR API ADDRESS
+		
+			hURL = InternetOpenURL(" ** put ur api address here ** "+sig_text);
+		*/	
+			InternetClose(hURL);
+		}
+/** CODED BY ANKITKUMAR CHHEDA (twitter.com/sassy_ankit) **/
+_SECTION_END();

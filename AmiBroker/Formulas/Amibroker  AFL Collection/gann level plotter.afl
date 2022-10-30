@@ -1,0 +1,54 @@
+//gann level plotter developed by engr.sameer@gmail.com//
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+Plot( C, "Close", ParamColor("Color", colorOrange ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+
+//gann breakout formula
+YH=HHV(Close,365);
+YEL=LLV(Close,365);
+YCENTRE=(YH+YEL)/2;
+yhov=IIf(Close>ycentre,yEL,yel);
+g1=sqrt(yEL);
+x1=Param("GANN MULTIPLIER",2,0.5,5,0.5);
+L0=floor((g1-1*X1)^2);
+L1=floor((g1-0*x1)^2);
+L2=floor((g1+1*x1)^2);
+L3=floor((g1+3*x1)^2);
+L4=floor((g1+4*x1)^2);
+L5=floor((g1+5*x1)^2);
+L6=floor((g1+6*x1)^2);
+L7=floor((g1+7*x1)^2);
+L8=floor((g1+8*x1)^2);
+L9=floor((g1+9*x1)^2);
+L10=floor((g1+10*x1)^2);
+L11=floor((g1+11*x1)^2);
+L12=floor((g1+12*x1)^2);
+L13=floor((g1+13*X1)^2);
+L14=floor((g1+14*X1)^2);
+L15=floor((g1+15*X1)^2);
+L16=floor((g1+16*X1)^2);
+L17=floor((g1+17*X1)^2);
+L18=floor((g1+18*X1)^2);
+L19=floor((g1+19*X1)^2);
+L20=floor((g1+20*X1)^2);
+
+Cx=C+0.12345;
+//choosing the current levels//
+x=IIf(Cx>L0 AND cx<L1,L0,IIf(cx>L1 AND cx<L2,L1,IIf(cx>L2 AND cx<L3,L2,IIf(cx>L3 AND cx<L4,L3,IIf(cx>L4 AND cx<L5,L4,IIf(cx>L5 AND cx<L6,L5,IIf(cx>L5 AND cx<L7,L6,IIf(cx>L7 AND cx<L8,L7,IIf(cx>L8 AND cx<L9,L8,IIf(cx>L9 AND cx<L10,L9,IIf(cx>L10 AND cx<L11,L10,IIf(cx>L11 AND cx<L12,L11,IIf(cx>L12 AND cx<L13,L12,IIf(cx>L13 AND cx<L14,L13,IIf(cx>L14 AND cx<L15,L14,IIf(cx>L15 AND cx<L16,L15,IIf(cx>L16 AND cx<L17,L16,IIf(cx>L17 AND cx<L18,L17,IIf(cx>L18 AND cx<L19,L18,IIf(cx>L19 AND cx<L20,L19,L20))))))))))))))))))));
+p=IIf(x==L0,L0,IIf(x==L1,L1,IIf(x==L2,L2, IIf(x==L3,L3,IIf(x==L4,L4,IIf(x==L5,L5, IIf(x==L6,L6 ,IIf(x==L6,L6 , IIf(x==L7,L7 ,IIf(x==L8,L8 ,IIf(x==L9,l9,IIf(x==L10,L10 ,IIf(x==L11,L11,IIf(x==L12,L12,IIf(x==L13,L13,IIf(x==L14,L14,IIf(x==L15,L15,IIf(x==L16,L16,IIf(x==L17,L17,IIf(x==L18,L18,IIf(x==L19,L19,IIf(x==L20,L20,L20))))))))))))))))))))));
+q=IIf(x==L0,L1,IIf(x==L1,L2,IIf(x==L2,L3, IIf(x==L3,L4,IIf(x==L4,L5,IIf(x==L5,L6, IIf(x==L6,L7 ,IIf(x==L6,L8 , IIf(x==L7,L8 ,IIf(x==L8,L9 ,IIf(x==L9,L10,IIf(x==L10,L11 ,IIf(x==L11,L12,IIf(x==L12,L13,IIf(x==L13,L14,IIf(x==L14,L15,IIf(x==L15,L16,IIf(x==L16,L17,IIf(x==L17,L18,IIf(x==L18,L19,IIf(x==L19,L20,IIf(x==L20,L20,L20))))))))))))))))))))));
+r=IIf(x==L0,L2,IIf(x==L1,L3,IIf(x==L2,L4, IIf(x==L3,L5,IIf(x==L4,L6,IIf(x==L5,L7, IIf(x==L6,L8 ,IIf(x==L6,L9 , IIf(x==L7,L9 ,IIf(x==L8,L10 ,IIf(x==L9,L11,IIf(x==L10,L12 ,IIf(x==L11,L13,IIf(x==L12,L14,IIf(x==L13,L15,IIf(x==L14,L16,IIf(x==L15,L17,IIf(x==L16,L18,IIf(x==L17,L19,IIf(x==L18,L20,IIf(x==L19,L20,IIf(x==L20,L20,L20))))))))))))))))))))));
+
+//plotting section//
+Plot(p,"support if falls below",colorBlack,styleDots);
+Plot(q,"crucial if crosses this",colorBlue,styleDots);
+Plot(r,"target or resistance",colorRed,styleDots);
+//Plot((r-((r-q)/2)),"intermediatelevel",colorLightGrey,styleDots);
+//Plot((p+((q-p)/2)),"intermediatelevel2",colorLightGrey,styleDots);
+
+
+_SECTION_BEGIN("Volume");
+Plot( Volume, _DEFAULT_NAME(), ParamColor("Color", colorLavender ), styleNoTitle | ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick | styleNoLabel, maskHistogram  ), 2 );
+_SECTION_END();

@@ -1,0 +1,45 @@
+Title="sameers nifty options system arrowup:buy call,arrowdown:sell call,triangledown:buyput,triangle up:exit put";
+
+SetChartOptions(0,0,chartGrid30|chartGrid70);
+periods = Param( "Periods", 15, 1, 200, 1 );
+Colordyn=IIf(TEMA(RSI( periods),5)>MA(TEMA(RSI( periods),5),20),colorGreen,colorRed);
+Plot( TEMA(RSI( periods),5), "Sameers nifty option system  
+Arrowup:Sell put Buy call  
+arrow down:sellput AND Buy call", Colordyn,stylenotitle);
+_SECTION_END();
+
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), Color, styleNoTitle ); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), Color, styleNoTitle ); 
+_SECTION_END();
+
+aa=TEMA(RSI(14),5);
+bb=MA(aa,20);
+bbt=BBandTop(aa,20,2.5);
+bbt=BBandBot(aa,20,2.5);
+
+Buy=Cross(aa,bb) AND C>MA(C,50);
+Sell= Cross(bb,aa);
+Short=Cross(bb,aa) AND C<MA(C,50);;
+
+Cover=Cross(aa,bb);;
+Buy = ExRem( Buy, Sell );
+Sell = ExRem( Sell, Buy );
+Short=ExRem(Short,Cover);
+Cover=ExRem(Cover,Short);
+
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorWhite);
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorWhite);
+PlotShapes(IIf(Short,shapeDownTriangle,shapeNone),colorYellow);
+PlotShapes(IIf(Cover,shapeUpTriangle,shapeNone),colorYellow);
+
+_SECTION_BEGIN("MA1");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( MA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), styleNoTitle ); 
+_SECTION_END();

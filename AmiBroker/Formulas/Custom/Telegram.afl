@@ -1,0 +1,31 @@
+SECTION_BEGIN("Telegram Alerts - Modern Method");
+
+Version(6.17);  //Code is Compatible with 6.17 and Higher
+
+TelegramAlerts = ParamTrigger("Telegram Alert","Send Alert");
+TelegramAPI_ID = ParamStr("Telegram Bot API Key","1200942736:AAEG8y9qyJ7aHefUm4vt_xKqkNBxfKd3qCc");  //Get the Bot API key via BotFather in Telgram
+TelgramCHAT_ID = ParamStr("Telegram Channel ID","@Victor_AlgoTrading");  //Channel ID example : @marketcalls_in
+
+Message = "Buy Alert in" +Name() + " : BuyPrice Value is " + BuyPrice + " Time " + TimeNum())";
+Message1 = "Sell Alert in" +Name() + " : SellPrice Value is " + SellPrice + " Time " + TimeNum())";
+
+if (LastValue(ValueWhen(Ref(Buy,-1),BarIndex())==BarIndex()) AND StaticVarGet(Name()+GetChartID()+"buyAlert")==0)
+{
+ih = InternetOpenURL("https://api.telegram.org/bot"+TelegramAPI_ID+"/sendMessage?chat_id="+TelgramCHAT_ID+"&text="+Message); 
+InternetClose(ih);
+}
+else
+if (LastValue(ValueWhen(Ref(Sell,-1),BarIndex())==BarIndex()) AND StaticVarGet(Name()+GetChartID()+"sellAlert")==0 )
+{
+ih = InternetOpenURL("https://api.telegram.org/bot"+TelegramAPI_ID+"/sendMessage?chat_id="+TelgramCHAT_ID+"&text="+Message1); 
+InternetClose(ih);
+}
+if (LastValue(TimeNum()) == StaticVarGet(Name()+GetChartID()+"buyAlertBar"))
+StaticVarSet(Name()+GetChartID()+"buyAlert",1); //alert was triggered, no more alerts on this bar
+else
+StaticVarSet(Name()+GetChartID()+"buyAlert",0); // new bar formed, and alerts can be trigered.
+
+
+_SECTION_END();
+
+

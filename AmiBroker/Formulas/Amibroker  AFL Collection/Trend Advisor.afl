@@ -1,0 +1,34 @@
+pointer[0] = 0;
+
+/* Phase filter */
+
+Cond1 = Close > MA(Close, 50)AND NOT(Close > MA(Close, 200))AND NOT(MA(Close, 50) > MA(Close, 200));
+Cond2 = Close > MA(Close, 50)AND Close > MA(Close, 200)AND NOT(MA(Close, 50) > MA(Close, 200));
+Cond3 = Close > MA(Close, 50)AND Close > MA(Close, 200)AND MA(Close, 50) > MA(Close, 200);
+Cond4 = NOT(Close > MA(Close, 50))AND Close > MA(Close, 200)AND MA(Close, 50) > MA(Close, 200);
+Cond5 = NOT(Close > MA(Close, 50))AND NOT(Close > MA(Close, 200))AND MA(Close, 50) > MA(Close, 200);
+Cond6 = NOT(Close > MA(Close, 50))AND NOT(Close > MA(Close, 200))AND NOT(MA(Close, 50) > MA(Close, 200));
+
+
+for (i = 1; i < BarCount; i++)
+{
+
+  if (Cond1[i])
+    pointer[i] = 1;
+  if (Cond2[i])
+    pointer[i] = 2;
+  if (Cond3[i])
+    pointer[i] = 3;
+  if (Cond4[i])
+    pointer[i] = 4;
+  if (Cond5[i])
+    pointer[i] = 5;
+  if (Cond6[i])
+    pointer[i] = 6;
+
+}
+
+/* Plot Graphic */
+dynamic_color = IIf(pointer < 4, colorGreen, colorRed);
+Plot(pointer, "TrendAdv2", dynamic_color, styleHistogram, Null, Null, 0);
+SetChartBkGradientFill(ParamColor("BgTop", colorWhite), ParamColor("BgBottom", colorLightYellow));

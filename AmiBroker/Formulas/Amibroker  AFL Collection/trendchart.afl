@@ -1,0 +1,44 @@
+"TrendChart";
+ 
+//Coding by rmike
+//Version 2.0
+//Based upon the work of Andrew cardwell
+ 
+//Intellectual Copyright (for amibroker coding only) - rmike
+ 
+//Works quite nicely with setting of 13 & higher on a weekly chart. For daily/ Intraday charts you will need to experiment with faster settings,
+//the default of 9 is provided. 
+ 
+//You are free to distribute this chart afl with the proviso that it is not modified or edited
+//in any way and is distributed with due acknowledgement/ reference to the original author.
+ 
+ 
+ 
+p=Param("RSI Periods", 9, 2, 100,1);
+ 
+A=EMA(C,9);
+A1=WMA(C,45);
+B=EMA(RSI(p),9);
+B1=WMA(RSI(p),45);
+ 
+TU=A>A1 AND B>B1;
+TD=A<=A1 AND B<=B1;
+TSU=A>A1 AND B<=B1;
+TSD=A<=A1 AND B>B1;
+ 
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) )
++ EncodeColor(colorBlue) + "\nTrend Interpretation - " + EncodeColor(colorGreen) + WriteIf(TU,"TREND UP","") + EncodeColor(colorRed) + WriteIf(TD,"TREND DOWN","" )
++ EncodeColor(colorPaleGreen) + WriteIf(TSU,"TREND SIDEWAYS TO UP","" ) + EncodeColor(colorPink) + WriteIf(TSD,"TREND SIDEWAYS TO DOWN","" ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+ 
+if( ParamToggle("Chart Type", "Trend Ribbon|Trend Background" ) ) 
+{ 
+ Plot( 1, "", IIf( TU, ParamColor("TU Color", colorGreen ), IIf( TD, ParamColor("TD Color", colorRed ), IIf(TSU, ParamColor("TSU Color", colorLime ), IIf(TSD, ParamColor("TSD Color", colorPink ), Null )))), styleOwnScale|styleArea|styleNoLabel, 0, 1 );
+} 
+else
+{
+ Plot( 2, "", IIf( TU, ParamColor("TU Color", colorGreen ), IIf( TD, ParamColor("TD Color", colorRed ), IIf(TSU, ParamColor("TSU Color", colorLime ), IIf(TSD, ParamColor("TSD Color", colorPink ), Null )))), styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+}

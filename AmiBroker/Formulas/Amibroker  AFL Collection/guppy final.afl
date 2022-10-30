@@ -1,0 +1,292 @@
+_SECTION_BEGIN("guppy");
+e3 = EMA(Close,3);
+e5 = EMA(Close,5);
+e8 = EMA(Close,8); 
+e10 = EMA(Close,10);
+e12 = EMA(Close,12);  
+e15 = EMA(Close,15);
+
+e30 = EMA(Close,30);
+e35 = EMA(Close,35);
+e40 = EMA(Close,40); 
+e45 = EMA(Close,45);
+e50 = EMA(Close,50);
+e55 = EMA(Close,55);
+e60 = EMA(Close,60);
+Buy_guppy = e3>e45;
+Sell_guppy = e45 > e3;
+//Buy_guppy = ExRem (Buy_guppy,Sell_guppy);
+//Sell_guppy = ExRem(Sell_guppy,Buy_guppy);
+//PlotShapes(Buy_guppy*shapeUpTriangle, colorYellow);
+//PlotShapes(Sell_guppy*shapeDownTriangle,colorYellow);
+Col_e3 = IIf (e3 > Ref(e3,-1),colorAqua,colorBlue);
+Col_e5 = IIf (e5 > Ref(e5,-1),colorAqua,colorBlue);
+Col_e8 = IIf (e8 > Ref(e8,-1),colorAqua,colorBlue);
+Col_e10=IIf (e10 >Ref(e10,-1),colorAqua,colorBlue);
+Plot (C,"",colorWhite,styleLine);
+Plot (e3,"",col_e3,styleThick);
+Plot (e5,"",col_e5,styleThick);
+Plot (e8,"",col_e8,styleThick);
+Plot (e10,"",col_e10,styleThick);
+Plot (e12,"",colorBlue,styleNoLabel);
+Plot (e15,"",colorBlue,styleNoLabel);
+
+Plot (EMA(High,30),"",colorYellow,styleThick);
+Plot (EMA(Low,30),"",colorYellow,styleThick);
+
+Plot (e35,"",colorRed,styleNoLabel+styleThick);
+Plot (e40,"",colorRed,styleNoLabel+styleThick);
+Plot (e45,"",colorRed,styleNoLabel+styleThick);
+Plot (e50,"",colorRed,styleNoLabel+styleThick);
+Plot (e55,"",colorRed,styleNoLabel+styleThick);
+Plot (e60,"",colorRed,styleNoLabel+styleThick);
+
+_SECTION_END();
+
+"plotted pivots \n
+Plotted the avarage as a bars \n
+";
+_SECTION_END();
+
+_SECTION_BEGIN("Fibo for all bars");
+/*
+TimeFrameSet( in15Minute*4 );
+//hourly timeframe
+//guppy
+guppy_hr_buy = EMA(Close,15) > EMA(Close,30) AND EMA(Close,15) > EMA(Close,35) AND EMA(Close,15) > EMA(Close,40) AND EMA(Close,15) > EMA(Close,45);
+guppy_hr_sell = EMA(Close,15) < EMA(Close,30) AND EMA(Close,15) < EMA(Close,35) AND EMA(Close,15) < EMA(Close,40) AND EMA(Close,15) < EMA(Close,45);
+
+Buy_rsiema_hr = EMA(RSI(21),3)  > EMA(RSI(21),34);
+Sell_rsiema_hr= EMA(RSI(21),34) > EMA(RSI(21),3); 
+
+Buy_macd_hr = MACD(3,34)>Signal(3,34,9);
+sell_macd_hr = MACD(3,34)<Signal(3,34,9);
+
+EMA3 = EMA(RSI(14),3);
+ema27 = EMA(RSI(14),27);  
+
+diff = ema3-EMA27;
+EMA_Long = EMA(diff,5);
+
+Buy_magic_hr = EMA_long > Ref(EMA_long,-1);
+Sell_magic_hr = EMA_long < Ref(EMA_long,-1);
+
+Buy_adx_hr = ADX(9) > Ref(ADX(9),-1) AND PDI(9) > MDI(9);
+sell_adx_hr = ADX(9) > Ref(ADX(9),-1) AND PDI(9) < MDI(9);
+
+TimeFrameRestore();
+
+*/
+
+TimeFrameSet( in15Minute*2 ); 
+DH=Ref(H,-1); 
+DL=Ref(L,-1);
+DC=Ref(C,-1);
+
+
+pd = ( DH+ DL + DC )/3;
+sd1 = (2*pd)-DH;
+sd2 = pd -(DH - DL);
+sd3 = Sd1 - (DH-DL); 
+rd1 = (2*pd)-DL;
+rd2 = pd +(DH -DL);
+rd3 = rd1 +(DH-DL);
+
+guppy_30min_buy = EMA(Close,15) > EMA(Close,30) AND EMA(Close,15) > EMA(Close,35) AND EMA(Close,15) > EMA(Close,40) AND EMA(Close,15) > EMA(Close,45);
+guppy_30min_sell = EMA(Close,15) < EMA(Close,30) AND EMA(Close,15) < EMA(Close,35) AND EMA(Close,15) < EMA(Close,40) AND EMA(Close,15) < EMA(Close,45);
+Buy_rsiema_30min = EMA(RSI(21),3)  > EMA(RSI(21),34);
+Sell_rsiema_30min= EMA(RSI(21),34) > EMA(RSI(21),3); 
+Buy_macd_30Min = MACD(3,34)>Signal(3,34,9);
+sell_macd_30min = MACD(3,34)<Signal(3,34,9);
+
+EMA3 = EMA(RSI(14),3);
+ema27 = EMA(RSI(14),27);  
+
+diff = ema3-EMA27;
+EMA_Long = EMA(diff,5);
+
+Buy_magic_30min = EMA_long > Ref(EMA_long,-1);
+Sell_magic_30min = EMA_long < Ref(EMA_long,-1);
+Buy_adx_30min = ADX(9) > Ref(ADX(9),-1) AND PDI(9) > MDI(9);
+sell_adx_30min = ADX(9) > Ref(ADX(9),-1) AND PDI(9) < MDI(9);
+
+TimeFrameRestore();
+
+TimeFrameSet( in15Minute ); 
+guppy_15min_buy = EMA(Close,15) > EMA(Close,30) AND EMA(Close,15) > EMA(Close,35) AND EMA(Close,15) > EMA(Close,40) AND EMA(Close,15) > EMA(Close,45);
+guppy_15min_sell = EMA(Close,15) < EMA(Close,30) AND EMA(Close,15) < EMA(Close,35) AND EMA(Close,15) < EMA(Close,40) AND EMA(Close,15) < EMA(Close,45);
+Buy_rsiema_15min = EMA(RSI(21),3)  > EMA(RSI(21),34);
+Sell_rsiema_15min= EMA(RSI(21),34) > EMA(RSI(21),3); 
+Buy_macd_15Min = MACD(3,34)>Signal(3,34,9);
+sell_macd_15min = MACD(3,34)<Signal(3,34,9);
+
+EMA3 = EMA(RSI(14),3);
+ema27 = EMA(RSI(14),27);  
+
+diff = ema3-EMA27;
+EMA_Long = EMA(diff,5);
+
+Buy_magic_15min = EMA_long > Ref(EMA_long,-1);
+Sell_magic_15min = EMA_long < Ref(EMA_long,-1);
+Buy_adx_15min = ADX(9) > Ref(ADX(9),-1) AND PDI(9) > MDI(9);
+sell_adx_15min = ADX(9) > Ref(ADX(9),-1) AND PDI(9) < MDI(9);
+
+TimeFrameRestore();
+
+TimeFrameSet( in5Minute ); 
+guppy_5min_buy = EMA(Close,15) > EMA(Close,30) AND EMA(Close,15) > EMA(Close,35) AND EMA(Close,15) > EMA(Close,40) AND EMA(Close,15) > EMA(Close,45);
+guppy_5min_sell = EMA(Close,15) < EMA(Close,30) AND EMA(Close,15) < EMA(Close,35) AND EMA(Close,15) < EMA(Close,40) AND EMA(Close,15) < EMA(Close,45);
+Buy_rsiema_5min = EMA(RSI(21),3)  > EMA(RSI(21),34);
+Sell_rsiema_5min= EMA(RSI(21),34) > EMA(RSI(21),3); 
+Buy_macd_5Min = MACD(3,34)>Signal(3,34,9);
+sell_macd_5min = MACD(3,34)<Signal(3,34,9);
+EMA3 = EMA(RSI(14),3);
+ema27 = EMA(RSI(14),27);  
+
+diff = ema3-EMA27;
+EMA_Long = EMA(diff,5);
+
+Buy_magic_5min = EMA_long > Ref(EMA_long,-1);
+Sell_magic_5min = EMA_long < Ref(EMA_long,-1);
+
+Buy_adx_5min = ADX(9) > Ref(ADX(9),-1) AND PDI(9) > MDI(9);
+sell_adx_5min = ADX(9) > Ref(ADX(9),-1) AND PDI(9) < MDI(9);
+
+TimeFrameRestore();
+
+
+TimeFrameSet( in1Minute*3 ); 
+guppy_3min_buy = EMA(Close,15) > EMA(Close,30) AND EMA(Close,15) > EMA(Close,35) AND EMA(Close,15) > EMA(Close,40) AND EMA(Close,15) > EMA(Close,45);
+guppy_3min_sell = EMA(Close,15) < EMA(Close,30) AND EMA(Close,15) < EMA(Close,35) AND EMA(Close,15) < EMA(Close,40) AND EMA(Close,15) < EMA(Close,45);
+Buy_rsiema_3min = EMA(RSI(21),3)  > EMA(RSI(21),34);
+Sell_rsiema_3min= EMA(RSI(21),34) > EMA(RSI(21),3); 
+Buy_macd_3Min = MACD(3,34)>Signal(3,34,9);
+sell_macd_3min = MACD(3,34)<Signal(3,34,9);
+EMA3 = EMA(RSI(14),3);
+ema27 = EMA(RSI(14),27);  
+
+diff = ema3-EMA27;
+EMA_Long = EMA(diff,5);
+
+Buy_magic_3min = EMA_long > Ref(EMA_long,-1);
+Sell_magic_3min = EMA_long < Ref(EMA_long,-1);
+Buy_adx_3min = ADX(9) > Ref(ADX(9),-1) AND PDI(9) > MDI(9);
+sell_adx_3min = ADX(9) > Ref(ADX(9),-1) AND PDI(9) < MDI(9);
+
+TimeFrameRestore();
+/*
+
+TimeFrameSet( in1Minute*2 ); 
+guppy_2min_buy = EMA(Close,15) > EMA(Close,30) AND EMA(Close,15) > EMA(Close,35) AND EMA(Close,15) > EMA(Close,40) AND EMA(Close,15) > EMA(Close,45);
+guppy_2min_sell = EMA(Close,15) < EMA(Close,30) AND EMA(Close,15) < EMA(Close,35) AND EMA(Close,15) < EMA(Close,40) AND EMA(Close,15) < EMA(Close,45);
+Buy_rsiema_2min = EMA(RSI(21),3)  > EMA(RSI(21),34);
+Sell_rsiema_2min= EMA(RSI(21),34) > EMA(RSI(21),3); 
+Buy_macd_2Min = MACD(3,34)>Signal(3,34,9);
+sell_macd_2min = MACD(3,34)<Signal(3,34,9);
+EMA3 = EMA(RSI(14),3);
+ema27 = EMA(RSI(14),27);  
+
+diff = ema3-EMA27;
+EMA_Long = EMA(diff,5);
+
+Buy_magic_2min = EMA_long > Ref(EMA_long,-1);
+Sell_magic_2min = EMA_long < Ref(EMA_long,-1);
+Buy_adx_2min = ADX(9) > Ref(ADX(9),-1) AND PDI(9) > MDI(9);
+sell_adx_2min = ADX(9) > Ref(ADX(9),-1) AND PDI(9) < MDI(9);
+
+TimeFrameRestore();
+*/
+TimeFrameSet( in1Minute ); 
+guppy_1min_buy = EMA(Close,15) > EMA(Close,30) AND EMA(Close,15) > EMA(Close,35) AND EMA(Close,15) > EMA(Close,40) AND EMA(Close,15) > EMA(Close,45);
+guppy_1min_sell = EMA(Close,15) < EMA(Close,30) AND EMA(Close,15) < EMA(Close,35) AND EMA(Close,15) < EMA(Close,40) AND EMA(Close,15) < EMA(Close,45);
+Buy_rsiema_1min = EMA(RSI(21),3)  > EMA(RSI(21),34);
+Sell_rsiema_1min= EMA(RSI(21),34) > EMA(RSI(21),3); 
+Buy_macd_1Min = MACD(3,34)>Signal(3,34,9);
+sell_macd_1min = MACD(3,34)<Signal(3,34,9);
+EMA3 = EMA(RSI(14),3);
+ema27 = EMA(RSI(14),27);  
+
+diff = ema3-EMA27;
+EMA_Long = EMA(diff,5);
+
+Buy_magic_1min = EMA_long > Ref(EMA_long,-1);
+Sell_magic_1min = EMA_long < Ref(EMA_long,-1);
+Buy_adx_1min = ADX(9) > Ref(ADX(9),-1) AND PDI(9) > MDI(9);
+sell_adx_1min = ADX(9) > Ref(ADX(9),-1) AND PDI(9) < MDI(9);
+
+TimeFrameRestore();
+//Buy = (Buy_magic_15min OR buy_macd_15min) AND (Buy_magic_5min OR Buy_adx_5min) AND guppy_1min_buy AND Buy_magic_1min ;
+//Sell = (sell_magic_15min OR sell_macd_15min) AND (sell_magic_5min OR sell_adx_5min) AND guppy_1min_sell AND sell_magic_1min ;
+Buy = Buy_adx_5min;
+Sell =sell_adx_5min;
+
+//Buy = ExRem(Buy,Sell);
+//Sell = ExRem(Sell,Buy);
+//PlotShapes(Buy*shapeSmallUpTriangle, colorGreen);
+//PlotShapes(Sell*shapeSmallDownTriangle, colorRed);
+Buy_col = IIf(Buy,colorBlue,IIf(Sell,colorRed,colorYellow));
+
+Buy_col1 = IIf(Buy_adx_15min,colorBlue,IIf(Sell_adx_15min,colorRed,colorYellow));
+Plot(5, "", Buy_col1, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+Plot(10, "", Buy_col, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+Title = EncodeColor(colorWhite)+ "LINKON'S PIVOT TRADING SYSTEM" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+ "Cl-"+EncodeColor(colorYellow)+C+"  "+ "\n"
+//+ WriteIf(C > pd, EncodeColor(colorGreen)+"stay long",EncodeColor(colorRed)+"stay SHORT") 
++ "Vol= "+ WriteVal(V) +WriteIf ( V > MA(V,26) ,EncodeColor(colorGreen)+"  UP "+ (V/MA(V,26))*100 + " %", EncodeColor(colorRed)+"  DOWN "+ (V/MA(V,26))*100 + " %")+ EncodeColor(colorGreen)+   " R3 : "+ EncodeColor(colorWhite)+RD3 + EncodeColor(colorGreen)+   " R2 : "+ EncodeColor(colorWhite)+RD2+ EncodeColor(colorGreen)+   " R1 : "+ EncodeColor(colorWhite)+RD1+ EncodeColor(colorBlue)+   " Pivot : "+ EncodeColor(colorWhite)+pd+ EncodeColor(colorRed)+   " S1 : "+ EncodeColor(colorWhite)+SD1+ EncodeColor(colorRed)+   " S2 : "+ EncodeColor(colorWhite)+SD2 + EncodeColor(colorRed)+   " S3 : "+ EncodeColor(colorWhite)+SD3         
+//+ EncodeColor(colorAqua)+ "\n60 min : " +  WriteIf(guppy_hr_buy, EncodeColor(colorGreen)+ "Guppy - Buy",WriteIf(guppy_hr_sell,EncodeColor(colorRed)      + "Guppy - sell",EncodeColor(colorWhite)+ "Guppy - side"))+  WriteIf(Buy_rsiema_hr, EncodeColor(colorGreen)+ " ! RSI - Buy",WriteIf(sell_rsiema_hr,EncodeColor(colorRed)+ " ! RSI - Sell", ""))+  WriteIf(Buy_macd_hr, EncodeColor(colorGreen)+ " ! MACD - Buy",WriteIf(sell_MACD_hr,EncodeColor(colorRed)+ " ! MACD - Sell", ""))+  WriteIf(Buy_magic_hr, EncodeColor(colorGreen)+ " ! Magic - Buy",WriteIf(sell_Magic_hr,EncodeColor(colorRed)+ " ! Magic - Sell", ""))+  WriteIf(Buy_ADX_hr, EncodeColor(colorGreen)+ " ! ADX - Buy",WriteIf(sell_adx_hr,EncodeColor(colorRed)+ " ! ADX - Sell",EncodeColor(colorWhite)+ " ! ADX - side"))
+//+ EncodeColor(colorAqua)+ "\n30 min : " +  WriteIf(guppy_30min_buy, EncodeColor(colorGreen)+ "Guppy - Buy",WriteIf(guppy_30min_sell,EncodeColor(colorRed)+ "Guppy - sell", EncodeColor(colorWhite)+ "Guppy - side"))+  WriteIf(Buy_rsiema_30min, EncodeColor(colorGreen)+ " ! RSI - Buy",WriteIf(sell_rsiema_30min,EncodeColor(colorRed)+ " ! RSI - sell", ""))+  WriteIf(Buy_macd_30min, EncodeColor(colorGreen)+ " ! MACD - Buy",WriteIf(sell_MACD_30min,EncodeColor(colorRed)+ " ! MACD - Sell", ""))+  WriteIf(Buy_magic_30min, EncodeColor(colorGreen)+ " ! Magic - Buy",WriteIf(sell_Magic_30min,EncodeColor(colorRed)+ " ! Magic - Sell", ""))+  WriteIf(Buy_ADX_30min, EncodeColor(colorGreen)+ " ! ADX - Buy",WriteIf(sell_adx_30min,EncodeColor(colorRed)+ " ! ADX - Sell",EncodeColor(colorWhite)+ " ! ADX - side"))
++ EncodeColor(colorAqua)+ "\n15 min : " +  WriteIf(guppy_15min_buy, EncodeColor(colorGreen)+ "Guppy - Buy",WriteIf(guppy_15min_sell,EncodeColor(colorRed)+ "Guppy - sell", EncodeColor(colorWhite)+ "Guppy - side"))+  WriteIf(Buy_rsiema_15min, EncodeColor(colorGreen)+ " ! RSI - Buy",WriteIf(sell_rsiema_15min,EncodeColor(colorRed)+ " ! RSI - sell", ""))+  WriteIf(Buy_macd_15min, EncodeColor(colorGreen)+ " ! MACD - Buy",WriteIf(sell_MACD_15min,EncodeColor(colorRed)+ " ! MACD - Sell", ""))+  WriteIf(Buy_magic_15min, EncodeColor(colorGreen)+ " ! Magic - Buy",WriteIf(sell_Magic_15min,EncodeColor(colorRed)+ " ! Magic - Sell", ""))+  WriteIf(Buy_ADX_15min, EncodeColor(colorGreen)+ " ! ADX - Buy",WriteIf(sell_adx_15min,EncodeColor(colorRed)+ " ! ADX - Sell",EncodeColor(colorWhite)+ " ! ADX - side"))
++ EncodeColor(colorAqua)+ "\n  5 min : " +  WriteIf(guppy_5min_buy, EncodeColor(colorGreen)+ "Guppy - Buy",WriteIf(guppy_5min_sell,EncodeColor(colorRed)+ "Guppy - sell", EncodeColor(colorWhite)+ "Guppy - side"))+    WriteIf(Buy_rsiema_5min, EncodeColor(colorGreen)+ " ! RSI - Buy",WriteIf(sell_rsiema_5min,EncodeColor(colorRed)+ " ! RSI - sell", ""))+  WriteIf(Buy_macd_5min, EncodeColor(colorGreen)+ " ! MACD - Buy",WriteIf(sell_MACD_5min,EncodeColor(colorRed)+ " ! MACD - Sell", ""))+  WriteIf(Buy_magic_5min, EncodeColor(colorGreen)+ " ! Magic - Buy",WriteIf(sell_Magic_5min,EncodeColor(colorRed)+ " ! Magic - Sell", ""))+  WriteIf(Buy_ADX_5min, EncodeColor(colorGreen)+ " ! ADX - Buy",WriteIf(sell_adx_5min,EncodeColor(colorRed)+ " ! ADX - Sell",EncodeColor(colorWhite)+ " ! ADX - side"))
++ EncodeColor(colorAqua)+ "\n  3 min : " +  WriteIf(guppy_3min_buy, EncodeColor(colorGreen)+ "Guppy - Buy",WriteIf(guppy_3min_sell,EncodeColor(colorRed)+ "Guppy - sell", EncodeColor(colorWhite)+ "Guppy - side"))+  WriteIf(Buy_rsiema_3min, EncodeColor(colorGreen)+ " ! RSI - Buy",WriteIf(sell_rsiema_3min,EncodeColor(colorRed)+ " ! RSI - sell", ""))+  WriteIf(Buy_macd_3min, EncodeColor(colorGreen)+ " ! MACD - Buy",WriteIf(sell_MACD_3min,EncodeColor(colorRed)+ " ! MACD - Sell", ""))+  WriteIf(Buy_magic_3min, EncodeColor(colorGreen)+ " ! Magic - Buy",WriteIf(sell_Magic_3min,EncodeColor(colorRed)+ " ! Magic - Sell", ""))+  WriteIf(Buy_ADX_3min, EncodeColor(colorGreen)+ " ! ADX - Buy",WriteIf(sell_adx_3min,EncodeColor(colorRed)+ " ! ADX - Sell",EncodeColor(colorWhite)+ " ! ADX - side"))
+//+ EncodeColor(colorAqua)+ "\n  2 min : " +  WriteIf(guppy_2min_buy, EncodeColor(colorGreen)+ "Guppy - Buy",WriteIf(guppy_2min_sell,EncodeColor(colorRed)+ "Guppy - sell", EncodeColor(colorWhite)+ "Guppy - side"))+  WriteIf(Buy_rsiema_2min, EncodeColor(colorGreen)+ " ! RSI - Buy",WriteIf(sell_rsiema_2min,EncodeColor(colorRed)+ " ! RSI - sell", ""))+  WriteIf(Buy_macd_2min, EncodeColor(colorGreen)+ " ! MACD - Buy",WriteIf(sell_MACD_2min,EncodeColor(colorRed)+ " ! MACD - Sell", ""))+  WriteIf(Buy_magic_2min, EncodeColor(colorGreen)+ " ! Magic - Buy",WriteIf(sell_Magic_2min,EncodeColor(colorRed)+ " ! Magic - Sell", ""))+  WriteIf(Buy_ADX_2min, EncodeColor(colorGreen)+ " ! ADX - Buy",WriteIf(sell_adx_2min,EncodeColor(colorRed)+ " ! ADX - Sell",EncodeColor(colorWhite)+ " ! ADX - side"))
++ EncodeColor(colorAqua)+ "\n  1 min : " +  WriteIf(guppy_1min_buy, EncodeColor(colorGreen)+ "Guppy - Buy",WriteIf(guppy_1min_sell,EncodeColor(colorRed)+ "Guppy - sell", EncodeColor(colorWhite)+ "Guppy - side"))+  WriteIf(Buy_rsiema_1min, EncodeColor(colorGreen)+ " ! RSI - Buy",WriteIf(sell_rsiema_1min,EncodeColor(colorRed)+ " ! RSI - sell", ""))+  WriteIf(Buy_macd_1min, EncodeColor(colorGreen)+ " ! MACD - Buy",WriteIf(sell_MACD_1min,EncodeColor(colorRed)+ " ! MACD - Sell", ""))+  WriteIf(Buy_magic_1min, EncodeColor(colorGreen)+ " ! Magic - Buy",WriteIf(sell_Magic_1min,EncodeColor(colorRed)+ " ! Magic - Sell", ""))+  WriteIf(Buy_ADX_1min, EncodeColor(colorGreen)+ " ! ADX - Buy",WriteIf(sell_adx_1min,EncodeColor(colorRed)+ " ! ADX - Sell",EncodeColor(colorWhite)+ " ! ADX - side"))
+;
+
+entry_long = EMA(High,30);
+entry_short = EMA(Low,30);
+exit_long = EMA(Low,10);
+exit_short = EMA(High,10);
+
+//Plot (entry_long,"",colorBlue,styleThick);
+//Plot (entry_short,"",colorBlue,styleThick);
+Plot (exit_long,"",colorRed,styleDashed);
+Plot (exit_short,"",colorRed,styleDashed);
+
+Buya = Close > entry_long;
+Shorta = Close < entry_short;
+Sella = Close < exit_long;
+Covera = Close > exit_short;
+
+Buya = ExRem(Buya,Shorta);
+Shorta = ExRem(Shorta,Buya);
+Sella = ExRem(Sella,Covera);
+Covera  = ExRem(Covera,Sella);
+dist = 1.5*ATR(10); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buya[i] ) PlotText( "Buy\n@" + C[ i ] , i, L[ i ]-dist[i], colorBlack,colorGreen ); 
+if( Shorta[i] ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorBlack, colorRed ); 
+if( Sella[i] ) PlotText( "v" , i, H[ i ]+dist[i], colorBlack, colorRed ); 
+if( Covera[i] ) PlotText( "^", i, L[ i ]-dist[i], colorBlack, colorGreen ); 
+
+
+} 
+
+PlotShapes( Buya * shapeUpTriangle + Shorta * shapeDownTriangle, IIf( Buya, colorYellow, colorYellow ) );
+//PlotShapes( Cover * shapeSmallSquare + Sell * shapeSmallSquare, IIf( Cover, colorYellow, colorYellow ) );
+
+_SECTION_BEGIN("Keltner Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+
+CenterLine = MA( P, Periods );
+KTop   = CenterLine + Width * ATR( Periods );
+KBot = CenterLine - Width * ATR( Periods );
+
+Plot( KTop, "KBTop" + _PARAM_VALUES(), Color, Style ); 
+Plot( KBot, "KBBot" + _PARAM_VALUES(), Color, Style ); 
+_SECTION_END();

@@ -1,0 +1,43 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+_SECTION_END();
+////////////////extremely strong/weak cond/////////////////
+nobuy=IIf(C<MA(L,100) AND C<EMA(L,20) AND C<MA(Avg,4),1,0);
+noshort=IIf(C>MA(L,100) AND C>EMA(L,20) AND C>MA(Avg,4),1,0);
+//Plot(LLV(Low,360),"",colorWhite,styleNoLine);
+//////////////////first formula of mean reversion////////////////////////////
+b2=24;//Optimize("2valup",89,10,90,1);//best value obt is 45
+s2=13;//Optimize("2vap",90,10,90,1);//best value obt is 28
+
+RSIsmoothner=8;//Optimize("rsm",5,1,21,1);// best value obt is 5
+rsiper=3;///Optimize("dd",3,2,20,1);//best value is 3
+slf=slf=0.06;///Optimize("stoploss",0.03,0.02,.07,.01);
+
+
+x=RSI(RSIper);
+y=MA(RSI(RSIper),RSIsmoothner);
+p=MA(RSI(2),3);
+Buy=Cross(x,y) AND p<b2 AND nobuy==0;
+BuyPrice=ValueWhen(Buy,Close,1);
+Sell= Close<BuyPrice-slf*C OR (Cross(y,x) AND p>28);
+Short=Cross(y,x) AND p>s2 AND noshort==0;;
+ShortPrice=ValueWhen(Short,Close,1);
+Cover=Close>ShortPrice+slf*C OR (Cross(x,y) AND p<45 ) ;
+Buy = ExRem( Buy, Sell );
+Sell = ExRem( Sell, Buy );
+Short=ExRem(Short,Cover);
+Cover=ExRem(Cover,Short);
+
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorWhite);
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorWhite);
+PlotShapes(IIf(Short,shapeDownTriangle,shapeNone),colorYellow);
+PlotShapes(IIf(Cover,shapeUpTriangle,shapeNone),colorYellow);
+PositionSize=C*50;
+GfxSetOverlayMode(1);
+GfxSelectFont("Tahoma", Status("pxheight")/12 );
+GfxSetTextAlign( 6 );// center alignment
+GfxSetTextColor( ColorRGB( 200, 200, 200 ) );
+GfxSetBkMode(1); // transparent
+//GfxTextOut( "N i f t y  P a g e", Status("pxwidth")/2, Status("pxheight")/12 );

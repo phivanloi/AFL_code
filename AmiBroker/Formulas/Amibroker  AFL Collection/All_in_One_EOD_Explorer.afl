@@ -1,0 +1,71 @@
+//52 Week New High-New Low
+HI = High > Ref(HHV(High,260),-1);
+LI = Low < Ref(LLV(Low,260),-1);
+W_status=	WriteIf(HI, "High", WriteIf(LI, "Low", "Neutral"));
+W_Col=IIf(HI, colorGreen, IIf(LI, colorRed, colorLightGrey));
+
+
+//Price Volume Breakout
+HIV = C > Ref (C,-1) AND V > (MA(V,50)*2);
+LIV = C < Ref (C,-1) AND V < (MA(V,50)*2);
+V_status=	WriteIf(HIV, "Gainer", WriteIf(LIV, "Loser", "Neutral"));
+V_Col=IIf(HIV, colorGreen, IIf(LIV, colorRed, colorLightGrey));
+
+
+//50/200 Crosses
+BC= Cross(MA(C,50),MA(C,200));
+BR= Cross(MA(C,200),MA(C,50));
+B_status=	WriteIf(BC, "Bullish", WriteIf(BR, "Bearish", "Neutral"));
+B_Col=IIf(BC, colorGreen, IIf(BR, colorRed, colorLightGrey));
+
+//MACD Cosses
+MB= Cross (MACD(), Signal());
+MS = Cross( Signal(), MACD());
+MB_status=	WriteIf(MB, "Bullish", WriteIf(MS, "Bearish", "Neutral"));
+MS_Col=IIf(MB, colorGreen, IIf(MS, colorRed, colorLightGrey));
+
+//RSI Status
+r=RSI(14) < 70 AND Ref (RSI(14),-1) > 70 AND Ref (RSI(14),-2) > 70;
+r2= RSI(14) > 70 AND Ref (RSI(14),-1) < 70 AND Ref (RSI(14),-2) < 70;
+r_status=	WriteIf(r, "Declining", WriteIf(r2, "Improving", "Neutral"));
+r_Col=IIf(r, colorGreen, IIf(r2, colorRed, colorLightGrey));
+
+//Bollinger Bands
+bb= C > BBandTop( C, 20, 2) AND Ref (C,-1) < Ref(BBandTop( C, 20, 2),-1);
+bb1= C < BBandBot( C, 20, 2) AND Ref (C,-1) > Ref(BBandBot( C, 20, 2),-1);
+bb_status=	WriteIf(BB, "AboveTop", WriteIf(r2, "BelowBottom", "Neutral"));
+bb_Col=IIf(r, colorGreen, IIf(r2, colorRed, colorLightGrey));
+
+//Daily Acc/Dist Status
+acc = AccDist() > Ref (AccDist(),-1);
+dist = AccDist() < Ref (AccDist(),-1);
+ad_status=	WriteIf(acc, "Accumulation", WriteIf(dist, "Distribution", "Neutral"));
+ad_Col=IIf(acc, colorGreen, IIf(dist, colorRed, colorLightGrey));
+
+//Longterm Bullish or Bearish
+Bull = C > MA(C,200);
+Bear= C < MA(C,200);
+lt_status=	WriteIf(Bull, "Bullish", WriteIf(Bear, "Bearish", "Neutral"));
+lt_Col=IIf(Bull, colorGreen, IIf(bear, colorRed, colorLightGrey));
+
+//Median Price
+mp=(H+L)/2;
+
+Filter = HI OR LI OR HIV OR LIV OR BC OR BR OR MB OR MS OR acc OR dist OR bull OR bear;
+
+AddColumn(C, "Close", 1.2, IIf(C > Ref(C,-1), colorGreen, colorRed));
+AddColumn(ROC(C,1), "ROC Price", 1.2, IIf(ROC(C,1) > 0, colorGreen, colorRed));
+AddColumn(mp, "Median Price", 1.2, IIf(mp > Ref(mp,-1), colorGreen, colorRed));
+AddColumn(V, "Volume", 1, IIf(V > Ref(V,-1), colorGreen, colorRed));
+AddColumn(ROC(V,1), "ROC Volume", 1.2, IIf(ROC(V,1) > 0, colorGreen, colorRed));
+AddTextColumn(V_status, "Price Volume Breakout", 1, colorWhite, V_Col);
+AddTextColumn(ad_status, "Acc/Dist", 1, colorWhite, ad_Col);
+AddColumn(NVI(), "NVI", 1, IIf(NVI() > Ref(NVI(),-1), colorGreen, colorRed));
+AddColumn(MFI(21),"MFI-21",1.2, IIf(MFI(21) > Ref(MFI(21),-1), colorGreen, colorRed));
+AddColumn(RSI(14),"RSI-14",1.2, IIf(RSI(14) > Ref(RSI(14),-1), colorGreen, colorRed));
+AddColumn(ADX(14),"ADX-14",1.2,IIf(ADX(14) > Ref(ADX(14),-1), colorGreen, colorRed));
+AddTextColumn(bb_status, "BBand", 1, colorWhite, bb_Col);
+AddTextColumn(MB_status, "MACDX", 1, colorWhite, MS_Col);
+AddTextColumn(W_status, "52-Week", 1, colorWhite, W_Col);
+AddTextColumn(B_status, "50/200", 1, colorWhite, B_Col);
+AddTextColumn(lt_status, "Long Term", 1, colorWhite, lt_Col);

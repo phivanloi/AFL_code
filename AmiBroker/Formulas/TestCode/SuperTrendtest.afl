@@ -1,0 +1,575 @@
+
+text = ParamToggle("Plot Text","Off|On",1);
+fibs = ParamToggle("Plot Fibs","Off|On",0);
+aama = ParamToggle("Plot Ema ","Off|On",0);
+ahl = ParamToggle("Plot YHiLo ","Off|On",0);
+showsl = ParamToggle("Stop Loss Line", "Show|Hide", 0);
+
+////stoploss line//////////
+no=20;
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+supres=IIf(avn==1,sup,res);
+a=Cross(C,supres);
+b=Cross(supres,C);
+if (showsl == 0)
+{
+Plot(supres,"Stop Loss",colorCustom8,styleDots);
+}
+//////////////////
+
+if(aama==1){
+_SECTION_BEGIN("ema");
+P = ParamField("Field");
+Type = ParamList("Type", "Weighted,Simple,Exponential,Double Exponential,Tripple Exponential,Wilders");
+
+Periods89 = Param("Periods180", 180, 2, 300 );
+Displacement2 = Param("Displacement2", 2, -50, 50 );
+Plot( EMA( P, Periods89 ),
+_DEFAULT_NAME(), colorWhite, styleDots, 0, 0, Displacement2 );
+_SECTION_END();
+}
+///////////////////////////ZERO//////////////////////
+
+_SECTION_BEGIN("TREND");
+SetBarsRequired(100000,0);
+GraphXSpace = 15;
+
+ea = EMA (C,10);
+eb = EMA (C,20);
+SetBarFillColor( IIf( ea > eb, colorGreen, colorRed ) ); 
+Plot( C, "Price", IIf( ea > eb, colorGreen, colorRed ), styleCandle );
+Buy = ea > eb AND TimeNum() > 092000 AND TimeNum() < 150000;
+Sell = eb > ea OR TimeNum() > 150000;
+Short = 0;
+Cover = 0;
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+Short = ExRem(Short,Cover);
+Cover = ExRem(Cover,Short);
+
+
+SetTradeDelays(1,1,1,1);
+
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+
+Factor=Param("Factor",6,1,10,1);
+Pd=Param("ATR Periods",6,1,100,1);
+Up=(H+L)/2+(Factor*ATR(Pd));
+Dn=(H+L)/2-(Factor*ATR(Pd));
+iATR=ATR(Pd);
+TrendUp=TrendDown=Null;
+trend[0]=1;
+changeOfTrend=0;
+flag=flagh=0;
+
+for (i = 1; i <BarCount; i++) {
+TrendUp[i] = Null;
+TrendDown[i] = Null;
+
+trend[i]=1;
+
+
+if (Close[i]>Up[i-1]) {
+trend[i]=1;
+if (trend[i-1] == -1) changeOfTrend = 1;
+
+}
+else if (Close[i]<Dn[i-1]) {
+trend[i]=-1;
+if (trend[i-1] == 1) changeOfTrend = 1;
+}
+else if (trend[i-1]==1) {
+trend[i]=1;
+changeOfTrend = 0; 
+}
+else if (trend[i-1]==-1) {
+trend[i]=-1;
+changeOfTrend = 0;
+}
+
+if (trend[i]<0 && trend[i-1]>0) {
+flag=1;
+}
+else {
+flag=0;
+}
+
+if (trend[i]>0 && trend[i-1]<0) {
+flagh=1;
+}
+else {
+flagh=0;
+}
+
+if (trend[i]>0 && Dn[i]<Dn[i-1]){
+Dn[i]=Dn[i-1];
+}
+
+if (trend[i]<0 && Up[i]>Up[i-1])
+{ Up[i]=Up[i-1];
+}
+
+if (flag==1)
+{ Up[i]=(H[i]+L[i])/2+(Factor*iATR[i]);;
+} 
+if (flagh==1)
+{ Dn[i]=(H[i]+L[i])/2-(Factor*iATR[i]);;
+}
+if (trend[i]==1) {
+TrendUp[i]=Dn[i];
+if (changeOfTrend == 1) {
+TrendUp[i-1] = TrendDown[i-1];
+changeOfTrend = 0;
+}
+}
+else if (trend[i]==-1) {
+TrendDown[i]=Up[i];
+if (changeOfTrend == 1) {
+TrendDown[i-1] = TrendUp[i-1];
+changeOfTrend = 0;
+}
+}
+} 
+
+Plot(TrendUp,"Trend",colorGreen);
+Plot(TrendDown,"Down",colorRed);
+
+Buy = trend==1;
+Sell=trend==-1;
+
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+Short=Sell;
+Cover=Buy;
+
+
+BuyPrice=ValueWhen(Buy,C);
+SellPrice=ValueWhen(Sell,C);
+ShortPrice=ValueWhen(Short,C);
+CoverPrice=ValueWhen(Cover,C);
+
+
+Title = EncodeColor(colorWhite)+ "win" + " - " + Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+" - " + Date() +" - "+"\n" +EncodeColor(colorRed) +"Op-"+O+" "+"Hi-"+H+" "+"Lo-"+L+" "+
+"Cl-"+C+" "+ "Vol= "+ WriteVal(V)+"\n"+ 
+EncodeColor(colorLime)+
+WriteIf (Buy , " GO LONG / Reverse Signal at "+C+" ","")+
+WriteIf (Sell , " EXIT LONG / Reverse Signal at "+C+" ","")+"\n"+EncodeColor(colorYellow)+
+WriteIf(Sell , "Total Profit/Loss for the Last Trade Rs."+(C-BuyPrice)+"","")+
+WriteIf(Buy , "Total Profit/Loss for the Last trade Rs."+(SellPrice-C)+"","");
+
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50); 
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+PlotShapes(IIf(Short, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+PlotShapes(IIf(Short, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50); 
+PlotShapes(IIf(Short, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+
+TrendSL=IIf(trend==1,TrendUp,TrendDown);
+
+for(i=BarCount-1;i>1;i--)
+{
+if(Buy[i] == 1)
+{
+entry = C[i];
+sig = "BUY";
+sl = TrendSL[i];
+tar1 = entry + (entry * .0050);
+tar2 = entry + (entry * .0092);
+tar3 = entry + (entry * .0179);
+
+bars = i;
+i = 0;
+}
+if(Sell[i] == 1)
+{
+sig = "SELL";
+entry = C[i];
+sl = TrendSL[i];
+tar1 = entry - (entry * .0050);
+tar2 = entry - (entry * .0112);
+tar3 = entry - (entry * .0212);
+
+
+bars = i;
+i = 0;
+}
+}
+Offset = 20;
+Clr = IIf(sig == "BUY", colorLime, colorRed);
+ssl = IIf(bars == BarCount-1, TrendSL[BarCount-1], Ref(TrendSL, -1));
+sl = ssl[BarCount-1];
+
+
+Plot(LineArray(bars-Offset, tar1, BarCount, tar1,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+//Plot(LineArray(bars-Offset, tar2, BarCount, tar2,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+//Plot(LineArray(bars-Offset, tar3, BarCount, tar3,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+
+//Plot(LineArray(bars-Offset, sl, BarCount, sl,1), "", colorDarkRed, styleLine|styleLine, Null, Null, Offset);
+//Plot(LineArray(bars-Offset, entry, BarCount, entry,1), "", colorGreen, styleLine|styleLine, Null, Null, Offset);
+
+for (i=bars; i <BarCount;i++)
+{
+PlotText(""+sig+"@"+entry, BarCount+1,entry,Null,colorBlue);
+PlotText("T1@"+tar1,BarCount+3,tar1,Null,Clr);//PlotText("T2@"+tar2,BarCount+3,tar2,Null,Clr);//Plot Text ("T3@"+tar3,BarCount+3,tar3,Null,Clr);
+
+}
+
+messageboard = ParamToggle("Message Board","Show|Hide",1);
+if (messageboard == 1 )
+{
+GfxSelectFont( "Book Antiqua bold", 10, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorWhite );
+
+if ( sig =="BUY")
+{
+GfxSelectSolidBrush( colorBlue ); // this is the box background color
+}
+else
+{
+GfxSelectSolidBrush( colorRed ); // this is the box background color
+}
+pxHeight = Status( "pxchartheight" ) ;
+xx = Status( "pxchartwidth");
+Left = 1100;
+width = 310;
+x = 5;
+x2 = 290;
+
+y = pxHeight;
+
+GfxSelectPen( colorGreen, 1); // broader color
+GfxRoundRect( x, y - 98, x2, y , 7, 7 ) ;
+GfxTextOut( ( "TREND"),13,y-100);
+GfxTextOut( (" "),27,y-100);
+GfxTextOut( ("Last " + sig + " Signal came " + (BarCount-bars-1) * Interval()/60 + " mins ago"), 13, y-80) ; // The text format location
+GfxTextOut( ("" + WriteIf(sig =="BUY",sig + " @ ",sig + " @") + " : " + entry), 13, y-60);
+GfxTextOut( ("Trailing SL : " + TrendSL + " (" + WriteVal(IIf(sig == "SELL",entry-sl,sl-entry), 2.2) + ")"), 13, y-40);
+/*GfxTextOut( ("TGT:1 : " + tar1), 13, y -80);
+GfxTextOut( ("TGT:2 : " + tar2), 13,y-60);
+GfxTextOut( ("TGT:3 : " + tar3), 13,y-40);*/
+GfxTextOut( ("Current P/L : " + WriteVal(IIf(sig == "BUY",(C-entry),(entry-C)),2.2)), 13, y-22);;
+
+}
+
+// TO ADD//
+
+//Previous Days HI LO //
+
+DayH = TimeFrameGetPrice("H", inDaily, -1);    DayHI = LastValue (DayH,1);// yesterdays high
+DayL = TimeFrameGetPrice("L", inDaily, -1);    DayLI = LastValue (DayL,1);   // yesterdays low
+DayC = TimeFrameGetPrice("C", inDaily, -1);    // yesterdays close
+DayO = TimeFrameGetPrice("O", inDaily);    // current day open
+DayH2= TimeFrameGetPrice("H", inDaily, -2); DayH2I = LastValue (DayH2,1); // Two days before high
+DayL2= TimeFrameGetPrice("L", inDaily, -2); DayL2I = LastValue (DayL2,1); // Two days before low
+DayH3= TimeFrameGetPrice("H", inDaily, -3); DayH3I = LastValue (DayH3,1); // Three days before high
+DayL3= TimeFrameGetPrice("L", inDaily, -3); DayL3I = LastValue (DayL3,1); // Three days before low
+
+numbars = LastValue(Cum(Status("barvisible")));
+hts = -33.5;
+if(ahl ==1)
+{
+YHL = ParamToggle("Yesterday HI LO","Show|Hide",1);
+if(YHL==1) {
+Plot(DayL,"YL",colorTurquoise,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(DayH,"YH",colorTurquoise,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+PlotText(" YH " , LastValue(BarIndex())-(numbars/Hts), DayHI, colorTurquoise);
+PlotText(" YL " , LastValue(BarIndex())-(numbars/Hts), DayLI, colorTurquoise);
+}
+}
+TDBHL = ParamToggle("2/3Days before HI LO","Show|Hide",0);
+if(TDBHL==1) {
+Plot(DayL2,"2DBL",colorTurquoise,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(DayH2,"2DBH",colorTurquoise,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(DayL3,"3DBL",colorTurquoise,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(DayH3,"3DBH",colorTurquoise,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+PlotText(" 2DBH " , LastValue(BarIndex())-(numbars/Hts), DayH2I, colorTurquoise);
+PlotText(" 2DBL " , LastValue(BarIndex())-(numbars/Hts), DayL2I, colorTurquoise);
+PlotText(" 3DBH " , LastValue(BarIndex())-(numbars/Hts), DayH3I, colorTurquoise);
+PlotText(" 3DBL " , LastValue(BarIndex())-(numbars/Hts), DayL3I, colorTurquoise);
+}
+
+
+PP = (DayL + DayH + DayC)/3; PPI = LastValue (PP,1); // Pivot
+R1 = (PP * 2) - DayL; R1I = LastValue (R1,1); // Resistance 1
+S1 = (PP * 2) - DayH; S1I = LastValue (S1,1); // Support 1
+R2 = PP + R1 - S1; R2I = LastValue (R2,1); // Resistance 2
+S2 = PP - R1 + S1; S2I = LastValue (S2,1); // Support 2
+R3 = PP + R2 - S1; R3I = LastValue (R3,1); // Resistance 3
+S3 = PP - R2 + S1; S3I = LastValue (S3,1); // Support 3
+
+ppl = ParamToggle("Pivot Levels","Show|Hide",0);
+if(ppl==1) {
+Plot(PP, "PP",colorYellow,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(R1, "R1",colorViolet,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(S1, "S1",colorViolet,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(R2, "R2",colorViolet,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(S2, "S2",colorViolet,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(R3, "R3",colorViolet,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(S3, "S3",colorViolet,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+
+PlotText(" Pivot ", LastValue(BarIndex())-(numbars/Hts), PPI, colorYellow);
+PlotText(" R1 " , LastValue(BarIndex())-(numbars/Hts), R1I, colorViolet);
+PlotText(" S1 " , LastValue(BarIndex())-(numbars/Hts), S1I, colorViolet);
+PlotText(" R2 " , LastValue(BarIndex())-(numbars/Hts), R2I, colorViolet);
+PlotText(" S2 " , LastValue(BarIndex())-(numbars/Hts), S2I, colorViolet);
+PlotText(" R3 " , LastValue(BarIndex())-(numbars/Hts), R3I, colorViolet);
+PlotText(" S3 " , LastValue(BarIndex())-(numbars/Hts), S3I, colorViolet);
+}
+
+
+rg = (DayH - DayL);
+
+H5=DayC+1.1*rg; H5I = LastValue (H5,1);
+H4=DayC+1.1*rg/2; H4I = LastValue (H4,1);
+H3=DayC+1.1*rg/4; H3I = LastValue (H3,1);
+H2=DayC+1.1*rg/6; H2I = LastValue (H2,1);
+H1=DayC+1.1*rg/12; H1I = LastValue (H1,1);
+L1=DayC-1.1*rg/12; L1I = LastValue (L1,1);
+L2=DayC-1.1*rg/6; L2I = LastValue (L2,1);
+L3=DayC-1.1*rg/4; L3I = LastValue (L3,1);
+L4=DayC-1.1*rg/2; L4I = LastValue (L4,1);
+L5=DayC-1.1*rg; L5I = LastValue (L5,1);
+
+pcl = ParamToggle("Camerilla Levels","Show|Hide",0);
+if(pcl==1) {
+Plot(H5,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(H4,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(H3,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(H2,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(H1,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(L1,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(L2,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(L3,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(L4,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(L5,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+PlotText(" H5 = " , LastValue(BarIndex())-(numbars/Hts), H5I +0.05, colorRose);
+PlotText(" H4 = " , LastValue(BarIndex())-(numbars/Hts), H4I +0.05, colorRose);
+PlotText(" H3 = " , LastValue(BarIndex())-(numbars/Hts), H3I +0.05, colorRose);
+PlotText(" H2 = " , LastValue(BarIndex())-(numbars/Hts), H2I +0.05, colorRose);
+PlotText(" H1 = " , LastValue(BarIndex())-(numbars/Hts), H1I +0.05, colorRose);
+PlotText(" L1 = " , LastValue(BarIndex())-(numbars/Hts), L1I +0.05, colorRose);
+PlotText(" L2 = " , LastValue(BarIndex())-(numbars/Hts), L2I +0.05, colorRose);
+PlotText(" L3 = " , LastValue(BarIndex())-(numbars/Hts), L3I +0.05, colorRose);
+PlotText(" L4 = " , LastValue(BarIndex())-(numbars/Hts), L4I +0.05, colorRose);
+PlotText(" L5 = " , LastValue(BarIndex())-(numbars/Hts), L5I +0.05, colorRose);
+}
+
+
+THL = ParamToggle("Todays Hi Lo","Show|Hide",1);
+if(THL==1) {
+isRth = TimeNum() >= 084500 & TimeNum() <= 085959;
+isdRth = TimeNum() >= 084500 & TimeNum() <= 160000;
+aRthL = IIf(isRth, L, 1000000);
+aRthH = IIf(isdRth, H, Null);
+aRthLd = IIf(isdRth, L, 1000000);
+DayH = TimeFrameCompress( aRthH, inDaily, compressHigh );
+DayH = TimeFrameExpand( DayH, inDaily, expandFirst );
+DayL = TimeFrameCompress( aRthLd, inDaily, compressLow );
+DayL = TimeFrameExpand( DayL, inDaily, expandFirst );
+Bars = BarsSince(TimeNum() >= 94500 AND TimeNum() < 095959);//,BarIndex(),1); // AND DateNum()==LastValue(DateNum());
+x0 = BarCount-LastValue(Bars);
+x1 = BarCount-1;
+DayHline=LineArray(x0,LastValue(DayH),x1,LastValue (DayH),0); 
+DayLline=LineArray(x0,LastValue(DayL),x1,LastValue (DayL),0); 
+DayHlineI = LastValue (DayHline,1);
+DayLlineI = LastValue (DayLline,1);
+Plot(DayHline,"DayH",colorYellow,styleBar|styleNoRescale|styleNoTitle);
+Plot(DayLline,"DayL",colorYellow,styleBar|styleNoRescale|styleNoTitle);
+PlotText(" Day Hi " , LastValue(BarIndex())-(numbars/Hts), DayHlineI +0.05, colorYellow);
+PlotText(" Day Lo " , LastValue(BarIndex())-(numbars/Hts), DayLlineI +0.05, colorYellow);
+}
+
+
+_SECTION_BEGIN("WMA");
+P = ParamField("Price field",3);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( WMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorPink ), ParamStyle("Style") );
+_SECTION_END();
+
+
+_SECTION_BEGIN("Name and Price");
+FS=Param("Font Size",12,11,100,1);
+GfxSelectFont("Times New Roman", FS, 700, True ); 
+GfxSetBkMode( colorBlack );  
+GfxSetTextColor( ParamColor("Color",colorYellow) ); 
+Hor=Param("Horizontal Position",547,1,1200,1);
+Ver=Param("Vertical Position",1,1,830,1); 
+GfxTextOut(""+Name(), Hor+30 , 20 );
+GfxTextOut(""+C, Hor+50 , 40);
+_SECTION_END();
+
+
+
+
+
+
+
+_SECTION_BEGIN("Fibo Retrace and Extensions");
+//fibs = ParamToggle("Plot Fibs","Off|On",1);
+pctH = Param ("Pivot Hi %", 0.325,0.001,2.0,0.002);
+HiLB = Param ("Hi LookBack",1,1,BarCount-1,1);
+pctL = Param ("Pivot Lo %", 0.325,0.001,2.0,0.002);
+LoLB = Param ("Lo LookBack",1,1,BarCount-1,1);
+Back = Param ("Extend Left = 2",1,1,500,1);
+Fwd = Param("Plot Forward", 0, 0, 500, 1);
+//text = ParamToggle("Plot Text","Off|On",1);
+hts = Param ("Text Shift", -33.5,-50,50,0.10);
+style =ParamStyle("Line Style",styleLine,styleNoLabel);
+x = BarIndex();
+pRp = PeakBars( H, pctH, 1) == 0;
+yRp0 = SelectedValue(ValueWhen( pRp, H, HiLB));
+xRp0 = SelectedValue(ValueWhen( pRp, x, HiLB));
+pSp = TroughBars( L, pctL, 1) == 0;
+ySp0 = SelectedValue(ValueWhen( pSp, L, LoLB));
+xSp0 = SelectedValue(ValueWhen( pSp, x, LoLB));
+Delta = yRp0 - ySp0;
+
+function fib(ret)
+{
+retval = (Delta * ret);
+Fibval = IIf(ret < 1.0
+AND xSp0 < xRp0, yRp0 - retval, IIf(ret < 1.0
+AND xSp0 > xRp0, ySp0 + retval,IIf(ret > 1.0
+AND xSp0 < xRp0, yRp0 - retval, IIf(ret > 1.0
+AND xSp0 > xRp0, ySp0 + retval, Null))));
+return FibVal;
+}
+
+x0 = Min(xSp0,xRp0)-Back;
+x1 = (BarCount -1);
+
+r236 = fib(0.236); r236I = LastValue (r236,1);
+r382 = fib(0.382); r382I = LastValue (r382,1);
+r050 = fib(0.50); r050I = LastValue (r050,1);
+r618 = fib(0.618); r618I = LastValue (r618,1);
+r786 = fib(0.786); r786I = LastValue (r786,1);
+e127 = fib(1.27); e127I = LastValue (e127,1);
+e162 = fib(1.62); e162I = LastValue (e162,1);
+e200 = fib(2.00); e200I = LastValue (e200,1);
+e262 = fib(2.62); e262I = LastValue (e262,1);
+e424 = fib(4.24); e424I = LastValue (e424,1);
+
+p00 = IIf(xSp0 > xRp0,ySp0,yRp0); p00I = LastValue (p00,1);
+p100 = IIf(xSp0 < xRp0,ySp0,yRp0); p100I = LastValue (p100,1);
+color00 =IIf(xSp0 > xRp0,colorLime,colorRed);
+color100 =IIf(xSp0 < xRp0,colorLime,colorRed);
+
+numbars = LastValue(Cum(Status("barvisible")));
+fraction= IIf(StrRight(Name(),3) == "", 3.2, 3.2);
+
+if(fibs==1)
+{
+Plot(LineArray(xRp0-Fwd,yRp0,x1,yRp0,Back),"PR",32,8|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(xSp0-Fwd,ySp0,x1,ySp0,Back),"PS",27,8|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,r236,x1,r236,Back),"",45,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,r382,x1,r382,Back),"",44,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,r050,x1,r050,Back),"",41,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,r618,x1,r618,Back),"",43,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,r786,x1,r786,Back),"",42,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,e127,x1,e127,Back),"e127",47,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,e162,x1,e162,Back),"e162",47,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,e200,x1,e200,Back),"p200",47,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,e262,x1,e262,Back),"p262",47,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,e424,x1,e424,Back),"p424",25,style|styleNoRescale,Null, Null,Fwd);
+}
+
+if(text==1)
+{
+PlotText(" 0% = " + WriteVal(p00,fraction), LastValue(BarIndex())-(numbars/hts), p00I + 0.05, color00);
+PlotText("23% = " + WriteVal(r236,fraction), LastValue(BarIndex())-(numbars/hts), r236I + 0.05, 45);
+PlotText("38% = " + WriteVal(r382,fraction), LastValue(BarIndex())-(numbars/hts), r382I + 0.05, 44);
+PlotText("50% = " + WriteVal(r050,fraction), LastValue(BarIndex())-(numbars/hts), r050I + 0.05, 41);
+PlotText("62% = " + WriteVal(r618,fraction), LastValue(BarIndex())-(numbars/hts), r618I + 0.05, 43);
+PlotText("78% = " + WriteVal(r786,fraction), LastValue(BarIndex())-(numbars/hts), r786I + 0.05, 42);
+PlotText("100% = " + WriteVal(p100,fraction), LastValue(BarIndex())-(numbars/hts),p100I + 0.05, color100);
+PlotText("127% = " + WriteVal(e127,fraction), LastValue(BarIndex())-(numbars/hts),e127I + 0.05, 47);
+PlotText("162% = " + WriteVal(e162,fraction), LastValue(BarIndex())-(numbars/hts),e162I + 0.05, 47);
+PlotText("200% = " + WriteVal(e200,fraction), LastValue(BarIndex())-(numbars/hts),e200I + 0.05, 47);
+PlotText("262% = " + WriteVal(e262,fraction), LastValue(BarIndex())-(numbars/hts),e262I + 0.05, 47);
+PlotText("424% = " + WriteVal(e424,fraction), LastValue(BarIndex())-(numbars/hts),e424I + 0.05, 25);
+}
+
+procedure calcTrend_proc(ATR_Period,tr,ATR_Multiplier,TrendMode,CalcPrice)
+{
+global buffer_line_down;
+global buffer_line_up;
+buffer_line_down = Null;
+buffer_line_up = Null;
+ 
+PHASE_NONE = 0;
+PHASE_BUY = 1;
+PHASE_SELL = -1;
+ 
+phase=PHASE_NONE;
+band_upper = 0;band_lower = 0;
+   
+for(i = ATR_Period + 1; i < BarCount; i++)
+{
+    band_upper = CalcPrice[i] + ATR_Multiplier * tr[i];
+    band_lower = CalcPrice[i] - ATR_Multiplier * tr[i];
+     
+    if(phase==PHASE_NONE)
+    {
+        buffer_line_up[i] = CalcPrice[i];
+        buffer_line_down[i] = CalcPrice[i];
+    }
+    if(phase!=PHASE_BUY && Close[i]>buffer_line_down[i-1] && !IsEmpty(buffer_line_down[i-1])) 
+    {
+        phase = PHASE_BUY;
+        buffer_line_up[i] = band_lower;
+        buffer_line_up[i-1] = buffer_line_down[i-1];
+    }
+    if(phase!=PHASE_SELL && Close[i]<buffer_line_up[i-1] && !IsEmpty(buffer_line_up[i-1]))
+    {
+        phase = PHASE_SELL;
+        buffer_line_down[i] = band_upper;
+        buffer_line_down[i-1] = buffer_line_up[i-1];
+    }   
+    if(phase==PHASE_BUY && ((TrendMode==0 && !IsEmpty(buffer_line_up[i-2])) || TrendMode==1) )
+    {
+        if(band_lower>buffer_line_up[i-1]) 
+        {
+            buffer_line_up[i] = band_lower;
+        }
+        else
+        {
+            buffer_line_up[i] = buffer_line_up[i-1];
+        }
+    }
+    if(phase==PHASE_SELL && ((TrendMode==0 && !IsEmpty(buffer_line_down[i-2])) || TrendMode==1) )
+    {
+        if(band_upper<buffer_line_down[i-1])
+        {
+            buffer_line_down[i] = band_upper;
+        }
+        else
+        {
+            buffer_line_down[i] = buffer_line_down[i-1];
+        }
+    }
+}
+}
+ 
+SetBarsRequired(sbrAll,sbrAll);
+ 
+TrendMode = ParamToggle("TrendMode","Off|On",1);
+ATR_Multiplier = Param("ATR_Multiplier",2,0.1,10,0.1);
+ATR_Period = Param( "ATR_Period",5,1,20,1);
+tr = ATR(ATR_Period);
+ 
+CalcPrice = (H+L)/2;
+calcTrend_proc(ATR_Period,tr,ATR_Multiplier,TrendMode,CalcPrice);
+ 
+SetChartOptions(0,chartShowDates);
+Plot(C,"C",colorWhite,64);
+Plot(buffer_line_up,"\ntu",ColorRGB(28,134,238),styleThick);
+Plot(buffer_line_down,"\ntd",ColorRGB(205,51,51),styleThick);
+ 
+Plot( 2,"",IIf(buffer_line_up,colorGreen,colorBlack),styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+Plot( 4,"",IIf(buffer_line_down,colorRed,colorBlack),styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+

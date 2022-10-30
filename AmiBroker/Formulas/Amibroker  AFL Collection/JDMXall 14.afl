@@ -1,0 +1,41 @@
+_SECTION_BEGIN("JDMXall");
+//SetBarsRequired(10000, 0); 
+
+
+Length=Param( "Length ", 14, 0, 100);
+ad = JurikDMX( Length);
+adplus = JurikDMXPlus( Length);
+adminus = JurikDMXMinus( Length);
+ad_pm_diff = adplus - adminus;
+ad_diff = ad - Ref(ad,-1);
+adplus_diff = adplus - Ref(adplus,-1);
+adminus_diff = adminus - Ref(adminus,-1);
+
+
+ADI_col = IIf(adplus_diff > 0 AND adminus_diff < 0,colorGreen,IIf(adplus_diff < 0 AND adminus_diff > 0, colorRed,colorBlack));
+
+//ADX_col = IIf(ADX(7) > (Ref(ADX(7),-1)+Ref(ADX(7),-2))/2 , colorBlue,colorBlack);
+ADX_col = IIf(ad_diff > 5 OR ad_diff < -5, colorBlue, colorBlack);
+
+
+
+Plot( JurikDMXPlus( Length), _DEFAULT_NAME(), colorGreen, ParamStyle("Style") );
+Plot( JurikDMXMinus( Length), _DEFAULT_NAME(), colorRed, ParamStyle("Style") );
+Plot( JurikDMX( Length), _DEFAULT_NAME(), colorBlue, styleOwnScale+styleThick+styleDots );
+
+
+
+Title 
+= EncodeColor(colorGreen) +   "\n JMX plus          : "+ adplus + WriteIf(adplus > Ref(adplus,-1), EncodeColor(colorGreen)+ "     : UP by : "+ adplus_diff, EncodeColor(colorRed)+"     : Down by : "+ adplus_diff)
+
++ EncodeColor(colorRed)   +   "\n JMX minus         : "+ adminus + WriteIf(adminus > Ref(adminus,-1), EncodeColor(colorRed)+ "     : UP by : "+ adminus_diff, EncodeColor(colorGreen)+"     : Down by : "+ adminus_diff)
++   "\n "
++ EncodeColor(colorYellow)+  "\n Diff P-M          : "+ WriteIf( ad_pm_diff > 0, EncodeColor(colorGreen),EncodeColor(colorRed))+ ad_pm_diff
++   "\n "
+
++ EncodeColor(colorWhite)   +   "\n JMX all         : "+ ad + WriteIf(ad > Ref(ad,-1), EncodeColor(colorGreen)+ "     : UP by : "+ ad_diff, EncodeColor(colorRed)+"     : Down by : "+ ad_diff)
+
+;
+
+
+_SECTION_END();

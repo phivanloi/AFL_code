@@ -1,0 +1,46 @@
+// TASC Oct 2010 - SVE Inv Fisher 
+
+RSIPer = Param("RSI Period", 4, 2, 30 ); 
+EMAper = Param("EMA Period", 4, 1, 100 ); 
+
+mwiter = C; 
+RainbW = 0; 
+for( i = 0; i < 10; i++ ) 
+{ 
+   weight = Max( 5 - i, 1 ); 
+   mwiter = WMA( mwiter, 2 ); 
+   RainbW += weight * mwiter; 
+} 
+
+RainbW /= 20; 
+
+x = 0.1 * ( RSIa( RainbW, RSIper ) - 50 ); 
+
+EMA1 = EMA( x, EMAPer ); 
+EMA2 = EMA( EMA1, EMAPer ); 
+Difference = EMA1 - EMA2; 
+Z1Ema = EMA1 + Difference; 
+
+ex = exp( 2 * Z1EMA ); 
+y = ( ex - 1 )/( ex + 1 ); 
+invfish = 50 * ( y + 1 ); 
+
+Plot( invfish, "SVE Inverse Fisher RSI", colorRed );
+
+
+// ARSI formula 
+// variable  period version 
+
+Period = Param("ARSI Period", 14, 1, 100 ); 
+Chg = C - Ref( C, -1 ); 
+UpCount = Sum( Chg >= 0, Period ); 
+DnCount = Period - UpCount; 
+UpMove = AMA( Max( Chg, 0 ), Nz( 1/UpCount ) ); 
+DnMove = AMA( Max( -Chg, 0 ), Nz( 1/DnCount ) ); 
+
+RS = UpMove/DnMove; 
+
+ARSI = 100-(100/(1+RS)); 
+
+Plot( ARSI, "ARSI_V("+Period+")", colorBlue ); 
+

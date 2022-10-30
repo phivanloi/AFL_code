@@ -1,0 +1,73 @@
+_SECTION_BEGIN("High & Low Pivot");
+/* criteria for high and low pivot */
+
+
+HP = IIf( H < Ref(H,-1) AND Ref(H ,-1) > Ref(H ,-2)  AND Ref(H ,-1) > Ref(H ,-3), 1, 0);
+LP = IIf( L > Ref(L ,-1) AND Ref(L ,-1) < Ref(L ,-2)  AND Ref(L ,-1) < Ref(L ,-3), 1, 0);
+
+
+EnableScript("jscript");
+<%
+result = VBArray(AFL("High")).toArray();
+
+
+function TrendLine( starti, startv, endi, endv )
+{
+  for( j = starti; j <= endi; j++ )
+  { 
+    result[ j ] = startv + ( j - starti )*(endv-startv)/(endi-starti);
+  }
+}
+
+
+High = VBArray(AFL("High")).toArray();
+Low = VBArray(AFL("Low")).toArray();
+HP = VBArray(AFL("HP")).toArray();
+LP = VBArray(AFL("LP")).toArray();
+
+
+endi = -1;
+starti = -1;
+dir = 0;
+for( i = High.length - 0; i >= 0; i-- )
+{
+   if( dir == 1 && LP[ i ] )
+   {
+     TrendLine( i, Low[ i ], endi, endv );
+        
+     endi = i;
+     endv = Low[ i ];
+     dir = -1;
+   }
+   else
+   if( dir == -1 && HP[ i ] )
+   {
+     TrendLine( i, High[ i ], endi, endv );
+        
+     endi = i;
+     endv = High[ i ];
+     dir = 1;
+   }
+   else
+   if( dir == 0 && endi == -1 && LP[ i ] )  
+   {
+      endi = i;
+      endv = Low[ i ];
+      dir = -1;
+   }
+   else
+   if( dir == 0 && endi == -1 && HP[ i ] )  
+   {
+      endi = i;
+      endv = High[ i ];
+      dir = 1;
+   }
+}
+
+
+AFL("Graph0")=result;
+%>
+Graph0Color=colorYellow;
+Graph1=Close;
+Graph1Style=64;
+_SECTION_END();

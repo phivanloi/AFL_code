@@ -1,0 +1,175 @@
+/*							Price Oscillator.afl - Bill Barnard, 11/27/05
+	This is to be used as an include file for SIGNAL STUDY.afl or the entire contents are to be
+	pasted into SIGNAL OPTIMIZE.afl. Read discussion (first parameter) in SIGNAL STUDY.afl 	*/
+
+AA		=  (Status("action")==3 OR Status("action")==4 OR Status("action")==5);	//	= 1 in AA
+if (AA)	sigSelect = "Price Oscillator";
+if (sigSelect=="Price Oscillator")	{
+
+if (AA)	//	if this code is being used in AA
+{
+  	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	Current		= ParamToggle("Use Current Symbol?", "Using Symbol named just below for Indicator,Using Current Symbol for Indicator");
+	indicSym		= ParamStr("Indicator Symbol", "RUT-I");
+	param1		= Optimize("long",  14, 1, 15, 1);
+	param2		= Optimize("short", 10, 1, 14, 1);
+	param2		= Min(Param1 - 1, Param2);
+	param3		= 1;//Optimize("Buy Line",  1, -4, 4, 0.1);
+	param4		= 0;//Optimize("Sell Line",  0, -4, 4, 0.1);
+	param6		= 1;//Optimize("AveTyp",  1, 0, 5, 1);
+	param7		= ParamToggle("Standard number series or Fibonacci?",
+								"Using standard number series|Using Fibonacci series");
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+}
+
+//	if this code is being used for an indicator, retrieve stored param information
+if (Status("action")==1)
+{
+	POParamsList			= "";
+	POParamsFileName	= "ConfigFiles\\POParams"+GetChartID()+".bf";
+
+	fh 						= fopen( POParamsFileName, "r");
+	if( fh )
+	{
+		while( ! feof( fh ) )
+		{
+			POParamsList = fgets( fh );
+		}
+		fclose( fh );
+	}
+
+	q0		=		IIf(POParamsList !="", 	StrToNum(StrExtract(POParamsList,  0	)), 0	 		);//	Current
+	q1		= WriteIf(POParamsList !="", 				  StrExtract(POParamsList,   1	), 	"RUT-I"	);//	indicSym
+	q2		=		IIf(POParamsList !="", 	StrToNum(StrExtract(POParamsList,  2	)), 10	 		);//	param1
+	q3		=		IIf(POParamsList !="", 	StrToNum(StrExtract(POParamsList,  3	)), 8			);//	param2
+	q4		=		IIf(POParamsList !="", 	StrToNum(StrExtract(POParamsList,  4	)), 10	 		);//	param3
+	q5		=		IIf(POParamsList !="", 	StrToNum(StrExtract(POParamsList,  5	)), 0	 		);//	param4
+	q6		=		IIf(POParamsList !="", 	StrToNum(StrExtract(POParamsList,  6	)), 1			);//	param5
+	q7		=		IIf(POParamsList !="", 	StrToNum(StrExtract(POParamsList,  7	)), 1	 		);//	param6
+	q8		=		IIf(POParamsList !="", 	StrToNum(StrExtract(POParamsList,  8	)), 1			);//	param7
+	q9		=		IIf(POParamsList !="", 	StrToNum(StrExtract(POParamsList,  9	)), 0	 		);//	param8
+
+
+	_SECTION_BEGIN("INDICATOR PARAMETERS");
+	Current		= ParamToggle("Price Oscillator -                  Use Current Symbol?",
+						"Symbol below makes Indicator - click to change,Current Symbol makes Indicator - click to change", q0);
+	IndicString	= ParamStr("Price Oscillator -                        Indicator Symbol", "Indicator Symbol---"+q1);
+	indicSym		= StrMid(StrToUpper(IndicString), 19, 5) ;
+	param1		= Param("Price Oscillator -                  Long Average Period",  q2, 1, 250, 1);
+	param2		= Param("Price Oscillator -                 Short Average Period", q3, 1, 249, 1);
+	param2		= Min(Param1 - 1, Param2);
+	param3		= Param("Price Oscillator -                                         Buy %",  q4, -100, 100, 1);
+	param4		= Param("Price Oscillator -                                         Sell %",  q5, -100, 100, 1);
+	param5		= q6;//Param("Price Oscillator -                         DrawDown Limit",  q6, 0, 30, 1);
+	param6		= q7;//Param("Price Oscillator -                              DrawUp Limit",  q7, 0, 30, 1);
+	param7		= ParamList("Price Oscillator -                             Average Type", "Simple Moving Average,"+
+								"Exponential Moving Average,Double Moving Average,Triple Moving Average,"+
+								"Weighted Moving Average,Till3 Moving Average", q8);
+	param7		= 	IIf(param7=="Simple Moving Average", 0, IIf(param7=="Exponential Moving Average", 1,
+						IIf(param7=="Double Moving Average", 2, IIf(param7=="Triple Moving Average", 3,
+						IIf(param7=="Weighted Moving Average", 4, 5)))));
+	param8		= ParamToggle("Price Osc - Standard number series or Fibonacci?",
+								"Using standard number series - click to change|Using Fibonacci series - click to change", q9);
+
+		_SECTION_END();
+}
+
+//	Buy/Sell rules start here
+aveStr		= "MA,EMA,DEMA,TEMA,WMA,Till3";
+aveType 		= StrExtract(aveStr, Param7);
+
+tmp1		= Param1;	tmp2		= Param2;
+if (Param8)
+{
+	Param1	= Min(Param1, 15);
+	Param1	= Max(Param1, 3);
+	Param2	= Min(Param1 - 1, Param2);
+	Param1 	= fib(Param1);
+	Param2	= fib(Param2);
+}
+
+ind1		= IIf(current, Close, Foreign(indicSym, "Close"));
+Nam		= WriteIf(current, Name(), indicSym);		Name1	= Nam+"  "+aveType+"  Price Oscillator "+V0(param1)+","+V0(param2);
+indError	= IIf(IsNull(ind1), 1, 0);
+indicSym	= WriteIf(indError, "", indicSym);
+indstart	= param1 + param2;
+slow		= MovAve(aveType, ind1, param1);
+fast		= MovAve(aveType, ind1, param2);
+diff		= 100*(fast - slow) / slow;
+mult		= IIf(LastValue(Highest(abs(diff))) > 10, 1, IIf(LastValue(Highest(abs(diff))) > 1, 0.1, 
+									IIf(LastValue(Highest(abs(diff))) > 0.1, 0.01, 0.001)));
+param1	= tmp1;
+param2	= tmp2;
+
+xplot1	= ind1;
+xplot2	= slow;											Name5	= "Slow "+aveType+w2(slow);
+xplot3	= fast;											Name6	= "Fast "+aveType+w2(fast);
+
+ind2		= diff;												Name2	= "Difference"+w2(ind2)+"%";
+ind3		= Param3*mult;								Name3	= "Buy Line"+WriteIf(mult==0.001, w3(ind3), 
+																				WriteIf(mult==0.01, w2(ind3), WriteIf(mult==0.1, w1(ind3), 
+																				w0(ind3))))+"%";
+ind4		= Param4*mult;
+//ind4		= Min(ind3, ind4);								
+																Name4	= "Sell Line"+WriteIf(mult==0.001, w3(ind4), 
+																				WriteIf(mult==0.01, w2(ind4), WriteIf(mult==0.1, w1(ind4), 
+																				w0(ind4))))+"%"+sp(5)+nl(1);
+
+Buy		= IIf(BarIndex() > indstart, Cross(ind2, ind3), 0);
+Sell		= IIf(BarIndex() > indstart, Cross(ind4, ind2), 0);
+
+BuyCond	= Flip(Buy, Sell);
+SellCond	= Flip(Sell, Buy);
+
+Buy		= ExRem(Buy, Sell);
+Sell		= ExRem(Sell, Buy);
+
+/*
+ind5		= 100*(HHV(ind1, BarsSince(Sell)) - ind1)/ HHV(ind1, BarsSince(Sell));
+																Name5	= "Draw Down"+w2(ind5);
+ind6		= 100*(- LLV(ind1, BarsSince(Buy)) + ind1)/ LLV(ind1, BarsSince(Buy));
+																Name6	= "Draw Up"+w2(ind6);
+ind7		= Param5;										Name7	= Name5+" (lim. "+V0(ind7)+")";
+ind8		= Param6;										Name8	= Name6+" (lim. "+V0(ind8)+")";
+
+Buy		= Flip(Buy, Sell) AND Cross(ind6, ind8);
+Sell		= Flip(Sell, Buy) AND Cross(ind5, ind7);
+
+Buy		= ExRem(Buy, Sell);
+Sell		= ExRem(Sell, Buy);
+*/
+
+//Name5=Name6	= "";		//we are  through with them and don't want them in title
+ind1=ind5=ind6=ind7=ind8= Null;	//we are  through with them and don't want them plotted
+
+if (Status("action")==1)	// if this code is being used for an indicator
+{
+	//	make an initiation file to store params
+	POParamsList = ""+
+		Current		+","+
+		indicSym		+","+
+		param1		+","+
+		param2		+","+
+		param3		+","+
+		param4		+","+
+		param5		+","+
+		param6		+","+
+		param7		+","+
+		param8		+","+
+		"";
+
+	fh 	= fopen( POParamsFileName, "w");
+	if( fh )
+	{
+		fputs(POParamsList, fh);
+		fclose( fh );
+	}
+}
+
+showExtraPlots		= 1;
+
+}

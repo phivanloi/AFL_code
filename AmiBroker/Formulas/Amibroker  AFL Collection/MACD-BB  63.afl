@@ -1,0 +1,38 @@
+_SECTION_BEGIN("MACD");
+A1=EMA(C,13)-EMA(C,34); 
+A2=MA(C,5)-EMA(C,34); 
+A3=MA(C,5)-EMA(C,13); 
+Buy_ema = EMA(C,5) > EMA(C,34) AND EMA(C,5) > EMA(C,13);
+Sell_ema = EMA(C,5) < EMA(C,34) AND EMA(C,5) < EMA(C,13); 
+
+Plot(a1,"main",IIf(A1 > Ref(a1,-1), colorBrightGreen, colorRed),styleDots+styleThick);
+Plot(a2,"mid",IIf(A2 > Ref(a2,-1), colorBrightGreen, colorRed),styleThick);
+Plot(a3,"trigger",IIf(A3 > Ref(a3,-1), colorBrightGreen, colorRed),styleDashed);
+
+
+Buy = Buy_ema AND a2 > Ref(a2, -1)AND a3 > Ref(a3,-1) ;
+Sell = Sell_ema AND a2 < Ref(a2, -1)AND a3 < Ref(a3,-1) ;
+//Buy = ExRem(Buy,Sell);
+//Sell = ExRem(Sell,Buy);
+Col = IIf(Buy,colorBrightGreen,IIf(Sell,colorRed,colorDarkGrey));
+
+Plot(0,"",Col,styleThick);
+Plot(0.1,"",Col,styleNoLabel);
+Plot(0.2,"",Col,styleNoLabel);
+Plot(-0.1,"",Col,styleNoLabel);
+Plot(-0.2,"",Col,styleNoLabel);
+
+_SECTION_END();
+
+Title =
+WriteIf(a1 > 0, EncodeColor(colorBrightGreen),EncodeColor(colorRed))+"MAIN     "+
+WriteIf(a1 > Ref(a1,-1), EncodeColor(colorBrightGreen)+"POS",EncodeColor(colorRed)+"NEG")+round(a1*10)/10+
+"\n"+
+WriteIf(a2 > 0, EncodeColor(colorBrightGreen),EncodeColor(colorRed))+"MID       "+
+WriteIf(a2 > Ref(a2,-1), EncodeColor(colorBrightGreen)+"POS",EncodeColor(colorRed)+"NEG")+round(a2*10)/10+
+"\n"+
+WriteIf(a3 > 0, EncodeColor(colorBrightGreen),EncodeColor(colorRed))+"Trigger "+
+WriteIf(a3 > Ref(a3,-1), EncodeColor(colorBrightGreen)+"POS",EncodeColor(colorRed)+"NEG")+round(a3*10)/10
+
+
+;

@@ -1,0 +1,14 @@
+// PIBD Stochastic Fast
+// Developed by James Pujals 2004
+// Scaling > Custom > Min: 0   Max: 100
+// Grid Lines > 50 and +20/80
+
+STperiods = 10;  // Stochastic Periods = Price Channel Periods
+PctK = 1; // %K Periods
+PctD = 3; // %D Periods
+
+Plot( StochK(STperiods,PctK), 
+	"Stochastic %K("+WriteVal( STperiods , 1.0 )+","+PctK+")", colorRed );
+
+Plot( StochD(STperiods,PctK,PctD), 
+	"Stochastic %D("+WriteVal( STperiods , 1.0 )+","+PctK+","+PctD+")", colorWhite );

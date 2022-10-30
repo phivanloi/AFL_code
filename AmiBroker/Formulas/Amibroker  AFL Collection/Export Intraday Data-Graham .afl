@@ -1,0 +1,47 @@
+/*
+Export intraday to TXT files 
+One file for each stock
+In the first line insert the directory you want to save them to, make sure the directory exists
+Select your charts to export with the "Apply to" filter in AA window 
+change the database config to +/-2 hours to take account of relevenat daylighyt saving changes
+
+Press Scan button
+by Graham Kavanagh 01 Feb 2005
+*/
+x = "C:\\IDData"+ WriteVal(Year(),1)+WriteVal(Month(),1)+WriteVal(Day(),1);
+
+fmkdir( x );
+Buy=DateNum()>=1070101;
+//Buy = ( (TimeNum()>=190000 AND DateNum()==1050315) OR (TimeNum()<=030000 AND DateNum()==1050316) ) AND V>0;
+
+fh = fopen( x + "\\" +Name()+".txt", "w"); 
+if( fh ) 
+{ 
+fputs( "Ticker,Date,Time,Open,High,Low,Close,Volume \n", fh ); 
+y = Year(); 
+m = Month(); 
+d = Day(); 
+r = Hour();
+e = Minute();
+n = Second();
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] )
+{
+fputs( Name() + "," , fh );
+ds = StrFormat("%02.0f-%02.0f-%02.0f,", 
+y[ i ], m[ i ], d[ i ] ); 
+fputs( ds, fh ); 
+
+ts = StrFormat("%02.0f:%02.0f:%02.0f,", 
+r[ i ],e[ i ],n[ i ] ); 
+fputs( ts, fh ); 
+
+qs = StrFormat("%.4f,%.4f,%.4f,%.4f,%.0f\n", 
+O[ i ],H[ i ],L[ i ],C[ i ],V[ i ] ); 
+fputs( qs, fh ); 
+} 
+} 
+fclose( fh ); 
+} 

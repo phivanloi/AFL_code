@@ -1,0 +1,60 @@
+/*
+
+  From the Book "BreakThrough Trading - Revolutionary Thinking in Relative Analysis"
+  Author: Leon Wilson
+
+  Wilson created 3 band:
+  RSI = 34 periods (default)
+  Neutral Zone :  45(Lower Neutral Zone) to 55 (Upper Neutral Zone)   ==>default
+  Upper Channel Zone:  55(Upper Neutral Zone) to 70 (Overbought)  			 ==>default
+  Lower Channel Zone:  45(Lower Neutral Zone) to 30 (Oversold)  			 ==>default
+
+
+  Implement from:
+  http://www.traders.com/Documentation/FEEDbk_docs/Archive/072006/TradersTips/TradersTips.html
+  -- Script Creaded By Tomasz Janeczko, AmiBroker.com 
+
+*/
+
+Version(4.80); // requires version 4.80 and above
+
+SetChartBkGradientFill( ParamColor("BgTop", colorWhite),ParamColor("BgBottom", colorLightYellow)); 
+
+Periods = Param("Channel Periods", 34, 1, 250 );
+Smooth = Param("Smoothing", 1, 1, 55 );
+Value2 = Param("Over Bought", 70, 50, 99 );
+Value3 = Param("Over Sold", 30, 1, 50 );
+Value4 = Param("Upper Neutral Zone", 55, 50, 99 );
+Value5 = Param("Lower Neutral Zone", 45, 1, 50 );
+
+r = RSI( Periods );
+OB = EMA( r - Value2, Smooth );
+OS = EMA( r - Value3, Smooth );
+NzU = EMA( r - Value4, Smooth );
+NzL = EMA( r - Value5, Smooth );
+Ch1 = Close - Close * OB / 100;
+Ch2 = Close - Close * NzU / 100;
+Ch3 = Close - Close * NzL / 100;
+Ch4 = Close - Close * OS / 100;
+
+//-- TohMz: Allow selection of Bar/Candlestick charting ----------------------------------------
+//  Select top Menu <View> => <Price Char Style> => [Auto|Line|Line with dots|CandleSticks|Bars]
+//
+_N(Title = StrFormat("{{NAME}}- {{INTERVAL}} {{DATE}} O= %g, H= %g, L= %g, C= %g (%.1f%%) V= " +WriteVal( V, 1.0 ) +"\n{{VALUES}}", O, H, L, C,
+SelectedValue( ROC( C, 1 )) ));
+PriceStyle = GetPriceStyle();
+PriceStyleOpt = ParamStyle("Style") | PriceStyle;
+
+if (PriceStyle==styleCandle)
+   Plot( C, "", colorBlack,  PriceStyleOpt); 
+else
+   Plot( C, "", IIf( Close >= Ref(C, -1), colorBlue, colorRed ),
+PriceStyleOpt);
+//----------------------------------------------------------------------------------------------
+
+Plot( Ch1, "", colorLightGrey );
+Plot( Ch2, "", colorLightGrey, styleNoLabel | styleNoTitle );
+PlotOHLC( Ch1, Ch1, Ch2, Ch2, "Upper Channel ", ParamColor("Upper Channel Color",ColorRGB( 230, 230, 230)), styleCloud );  //TohMz: Color Selection
+Plot( Ch3, "", colorLightBlue );
+Plot( Ch4, "", colorLightBlue, styleNoLabel | styleNoTitle );
+PlotOHLC( Ch3, Ch3, Ch4, Ch4, "Lower Channel ", ParamColor("Lower Channel Color",ColorRGB( 210, 210, 255)), styleCloud );  //TohMz: Color Selection

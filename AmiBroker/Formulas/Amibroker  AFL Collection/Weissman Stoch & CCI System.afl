@@ -1,0 +1,23 @@
+Plot( Close, "Price", IIf(Close > Open, colorGreen, colorRed), styleBar);
+
+Plot( MA (C, 9), "MA-9", colorRed);
+Plot( MA (C, 26), "MA-26", colorBlue);
+
+
+Buy= StochD(14,3,3) < 15 AND CCI(10) <-100;
+PlotShapes(shapeUpArrow*Buy,colorGreen);
+Sell = StochD(14,3,3) >30;
+PlotShapes(shapeDownArrow*Sell,colorRed);
+Filter = Buy OR Sell;
+
+AddColumn( Buy, "Buy", 1);
+AddColumn(Sell, "Sell", 1);
+AddColumn(Close,"Close",1.2);
+AddColumn(Volume,"Volume",1.0);
+AddColumn( RSI(), "RSI", 1.2 );
+AddColumn( ROC( Close, 15 ), "ROC(15)", 1.2 );
+AddColumn( MFI(), "MFI", 1.2 );
+AddColumn( OBV(), "OBV", 1.2 );
+AddColumn( CCI(), "CCI", 1.2 );
+AddColumn( Ultimate(), "Ultimate", 1.4 );
+_SECTION_END();

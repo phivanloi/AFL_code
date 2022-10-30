@@ -1,0 +1,75 @@
+_SECTION_BEGIN("SafeZone Stop");
+/*SafeZone Stop*/
+/*by Christopher Winn*/
+/*September 1st, 2003*/
+
+/*Programmed based on information presented in Dr. Alexander Elder's 
+book "Come Into My Trading Room*/
+
+/*This formula has been programmed with Parameter functionality.  
+Both the Lookback period and the multiplier of the Average Downside 
+Penetration can be modified as well as the colour of the Safezone 
+Stop Line*/
+
+GraphXSpace = 3;
+
+/* OHLC chart */ 
+
+Col = IIf ( Close > Ref (Close, -1), colorBrightGreen, colorRed);
+
+Plot(Close,"", Col, styleBar + styleThick);
+
+
+/*Moving average*/
+
+EMAShort = Param ("EMA Short", 13, 1, 30, 1);
+
+EMA1 = EMA (Close, EMAShort);
+
+Plot (EMA1, "", colorYellow, styleLine);
+
+
+/* Safezone Stop*/
+
+DayLow = Low;
+
+YesterdayLow = Ref (Low, -1);
+
+DownsidePen = IIf ( (DayLow < YesterdayLow), (YesterdayLow - 
+DayLow), 0);
+
+Lookback = Param ("Lookback Period", 20, 2, 50, 1);
+
+SumOfDownPen = Sum (DownSidePen, Lookback);
+
+PenYorN = IIf ( (DayLow < YesterDayLow), 1, 0);
+
+NumofDownPen = Sum (PenYorN, Lookback);
+
+AvgDownPen = (SumofDownPen / NumofDownPen);
+
+SafezoneCoeff = Param("Safezone Coefficient", 3, 1, 5, 0.1);
+
+TodayStop = (YesterdayLow - (SafezoneCoeff * (Ref (AvgDownPen, -
+1))));
+
+Max1 = Max (TodayStop, Ref(TodayStop, -1));
+
+Max2 = Max (Max1, Ref(TodayStop, -2));
+
+ProtectedStop = Max (Max1, Max2);
+
+Plot (ProtectedStop, "", ParamColor("Safe Zone Color", colorBlue), 
+styleLine);
+
+Daychange = 100*((Close / Ref (Close, -1))-1);
+
+Title = Name() + " " + Date() + "   Reg Stop:  $" + WriteVal 
+(TodayStop, 1.2) + ",   Protect Stop:  $" + WriteVal (ProtectedStop, 
+1.2)+ "   Open  $" + WriteVal (Open, 1.2) + ",  High  $" + WriteVal 
+(High, 1.2) + ",  Low  $" + WriteVal (Low, 1.2) + ",  Close  $" + 
+WriteVal (Graph0, 1.2) + ",  Daychng  ($" + WriteVal ( (Close - Ref 
+(Close, -1)), 2.2 ) + " , " + WriteVal (Daychange, 6.2) + "%)" 
++ "\n" + "Safe Zone Stop";
+ 
+_SECTION_END();

@@ -1,0 +1,88 @@
+_SECTION_BEGIN("Fib_Levels");
+/*---------------------------------------------------
+   Automatic Fib Levels
+   Aron Pipa, December, 11, 2005
+--------------------------------------------------------*/
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+Plot(C,"", IIf(C>O,colorGreen,colorRed) , styleCandle);
+// Get values for fib levels
+
+StartBar=SelectedValue(BarIndex());
+FinishBar = EndValue( BarIndex() );
+i = startbar;
+period = FinishBar - StartBar;
+
+Lo =LLV(L,period);
+Hi = HHV(H,period);
+Line0 = 0;
+Line1 = 0;
+Line2 = 0;
+Line3 = 0;
+Line4= 0;
+Line100 = 0;
+
+for( i = startbar; i < finishbar; i++ )
+{
+if(EndValue(C)<SelectedValue(C))
+{
+Line0  = EndValue(Lo);
+Line100 = EndValue(Hi);
+Line1 = Line0 + abs(Line100-Line0)*0.236;
+Line2 = Line0 + abs(Line100-Line0)*0.382;
+Line3 = Line0 + abs(Line100-Line0)*0.5;
+Line4 = Line0 + abs(Line100-Line0)*0.618;
+
+}
+else
+{
+Line100  = EndValue(Lo);
+Line0 = EndValue(Hi);
+Line1 =Line0 - abs(Line100-Line0)*0.236;
+Line2 = Line0 - abs(Line100-Line0)*0.382;
+Line3 = Line0 - abs(Line100-Line0)*0.5;
+Line4 = Line0 - abs(Line100-Line0)*0.618;
+
+}
+}
+
+// external fib lines begining fom selecetdbarindex()
+fib0= LineArray(startbar, Line0, finishbar, Line0, 0, 1);
+fib100 = LineArray(startbar, Line100, finishbar, Line100, 0, 1);
+
+// depth of middle lines
+n= round((finishbar-startbar)/2);
+
+// middle lines
+fib1= LineArray((finishbar-n), Line1, finishbar, Line1, 0, 1);
+fib2= LineArray((finishbar-n), Line2, finishbar, Line2, 0, 1);
+fib3= LineArray((finishbar-n), Line3, finishbar, Line3, 0, 1);
+fib4= LineArray((finishbar-n), Line4, finishbar, Line4, 0, 1);
+
+Plot(fib0,"", colorGreen);
+Plot(fib100,"", colorRed);
+Plot(fib1,"", colorYellow);
+Plot(fib2,"", colorPink);
+Plot(fib3,"", colorOrange);
+Plot(fib4,"", colorLightBlue);
+
+
+_SECTION_END();
+
+_SECTION_BEGIN("EMA");
+
+Plot( EMA( Close,10),"EMA-10",colorRed,styleDots  ); 
+Plot( EMA( Close,30),"EMA-30",colorBlue,styleDots  ); 
+Plot( EMA( Close,50),"EMA-50",colorGreen,styleDots  ); 
+EMAcrossUP = Cross (EMA(Close,10), EMA(Close,30));
+EMAcrossDOWN = Cross (EMA(Close,30), EMA(Close,10));
+
+PlotShapes(EMAcrossUP*shapeDigit1,colorBlack); 
+PlotShapes(EMAcrossDOWN*shapeDigit1,colorRed); 
+
+Buy = EMAcrossUP;
+Sell = EMAcrossDOWN;
+WriteIf( EMAcrossUP, "10 & 30 ema crossed : possible up move") 
+WriteIf( EMAcrossDOWN, "10 & 30 ema crossed : possible down move") 
+
+_SECTION_END();

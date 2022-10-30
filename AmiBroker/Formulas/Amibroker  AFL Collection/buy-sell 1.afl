@@ -1,0 +1,53 @@
+ Plot( Close, "Close", colorBlack, styleCandle );
+MaxGraph = 12;
+BuyOffSet = 18;//Optimize("BuyOffSet",18,15,20,1);
+SellOffset = BuyOffSet;//Optimize("SellOffset",2,2,14,2);
+RegLength = 5;//Optimize("RegLength",5, 2,11,2);
+BuyATRPeriod = 2;//Optimize("BuyATRPeriod",2,2,5,1);
+SellATRPeriod = BuyATRPeriod;//Optimize("SellATRPeriod",4,2,11,2);
+ATRMultiplier = 0.5;//Optimize("ATRMultiplier",1,0.7,1.25,.05);
+Graph8 = HHV(H-ATRMultiplier*ATR(BuyATRPeriod),BuyOffset); /* RED */
+Graph9 = LLV(L+ATRMultiplier*ATR(SellATRPeriod),SellOffset); /* GREEN */
+ave=(Graph8+Graph9)/2;
+Graph8Style=Graph9Style = 1;
+Graph9Color= 5; /* 5 is green */
+Graph8Color = 4; /* 4 is red */
+//Band
+Var1=(Open+Low+High+Close)/4;
+Var2=EMA(EMA(Close, 2), 2);
+Var3=EMA(EMA(Var2, 5), 5);
+sup1=EMA(EMA(Var1,5),2);
+sup2= LLV(sup1,13);
+sup3= LLV(Low,60)*1.02;
+res1= HHV(sup1,13);
+res2= HHV(sup1,60);
+res3= HHV(High,60)*0.98;
+Plot(5, "",
+IIf(sup1>Ref(sup1,-1),colorGreen,
+IIf(sup2>Ref(sup2,-1),colorGrey50,
+IIf(res1>Ref(res1,-1),colorBlue,
+IIf(res2>Ref(res2,-1),colorYellow,
+IIf(sup2=Ref(sup2,-1),colorRed,
+IIf(res1=Ref(res1,-1),colorPink,
+IIf(res2=Ref(res2,-1),colorLightBlue,
+IIf(res3=Ref(res3,-1),colorBlue,colorWhite)))))))),
+styleOwnScale|styleArea|styleNoLabel,-0.5, 350 );
+nn=21;
+mmm=120;
+TYP=(High + Low + 2*Close)/4;
+CI=(TYP-MA(TYP,14))/(0.015*StDev(TYP,14));
+CCCI=EMA(CI,5)+mmm;
+Hh=HHV(H,nn);
+Ll=LLV(L,nn);
+MM=(Hh+Ll)/2;
+CCCC=EMA(CCCI*(Hh-Ll)/(2*mmm)+Ll,5);
+Plot(Hh,"Hh50",11,styleLine);
+Plot(Ll,"Ll50",colorBlue,styleLine);
+Plot(CCCC,"CCCC",colorYellow,styleLine+4);
+
+Buy = (Cccc>Ref(Cccc,-1) AND Ref(Cccc,-1)<Ref(Cccc,-2) AND Cccc<ave) OR Cross(Cccc,Ll) OR Cross(Cccc,Graph9);
+PlotShapes( IIf( Buy, shapeDigit8, shapeNone ), colorBlue, layer = 0, yposition = L, offset = -10 );
+Sell= (Cccc<Ref(Cccc,-1) AND Ref(Cccc,-1)>Ref(Cccc,-2) AND Cccc>ave) OR Cross(Hh,Cccc) OR Cross(Graph8,Cccc);
+PlotShapes( IIf( Sell, shapeDigit8, shapeNone ), colorRed, layer = 0, yposition = H, offset = 10 );
+
+Plot( Volume, "Volume", colorLightBlue, styleHistogram | styleOwnScale );

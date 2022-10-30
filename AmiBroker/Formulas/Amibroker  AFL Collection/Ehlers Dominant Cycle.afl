@@ -1,0 +1,119 @@
+_SECTION_BEGIN("Unnamed 13");
+// Dominant Cycle
+
+SetBarsRequired( 10000, 0 );
+
+// USER DEFINED PARAMS
+
+Price = ( High + Low ) / 2;
+
+// FORMULA
+
+// initialize variables
+
+Smooth = Detrender = I1 = Q1 = jI = jQ = I2 = Q2 = Re = Im = Period = SmoothPeriod = 0;
+
+// calculate dominant cycle period
+
+for ( i = 6; i < BarCount; i++ )
+
+{
+
+// smooth price data with 4-bar WMA
+
+Smooth[i] = ( 4 * Price[i] + 3 * Price[i-1] + 2 * Price[i-2] + Price[i-3] ) / 10;
+
+// compute amplitude correction
+
+AmpCorr[i] = 0.075 * Period[i-1] + 0.54;
+
+// compute detrended price data and Quadrature component with 7-bar Hilbert Transform
+
+Detrender[i] = ( 0.0962 * Smooth[i] + 0.5769 * Smooth[i-2] - 0.5769 * Smooth[i-4] - 0.0962 * Smooth[i-6] ) * AmpCorr[i];
+
+Q1[i] = ( 0.0962 * Detrender[i] + 0.5769 * Detrender[i-2] - 0.5769 * Detrender[i-4] - 0.0962 * Detrender[i-6] ) * AmpCorr[i];
+
+// compute InPhase component by referencing center bar of Hilbert Transformer ( 3 bars ago )
+
+I1[i] = Detrender[i-3];
+
+// advance the phase of I1 and Q1 by 90 degrees with 7-bar Hilbert Transform
+
+jI[i] = ( 0.0962 * I1[i] + 0.5769 * I1[i-2] - 0.5769 * I1[i-4] - 0.0962 * I1[i-6] ) * AmpCorr[i];
+
+jQ[i] = ( 0.0962 * Q1[i] + 0.5769 * Q1[i-2] - 0.5769 * Q1[i-4] - 0.0962 * Q1[i-6] ) * AmpCorr[i];
+
+// perform Phasor addition for 3-bar averaging
+
+I2[i] = I1[i] - jQ[i];
+
+Q2[i] = Q1[i] + jI[i];
+
+// smooth the I and Q components
+
+I2[i] = 0.2 * I2[i] + 0.8 * I2[i-1];
+
+Q2[i] = 0.2 * Q2[i] + 0.8 * Q2[i-1];
+
+// apply the Homodyne Discriminator
+
+Re[i] = I2[i] * I2[i-1] + Q2[i] * Q2[i-1];
+
+Im[i] = I2[i] * Q2[i-1] - Q2[i] * I2[i-1];
+
+// smooth the Re and Im components
+
+Re[i] = 0.2 * Re[i] + 0.8 * Re[i-1];
+
+Im[i] = 0.2 * Im[i] + 0.8 * Im[i-1];
+
+// compute Dominant Cycle period
+
+if ( Im[i] != 0 AND Re[i] != 0 )
+
+Period[i] = 360 / atan( Im[i] / Re[i] );
+
+// limit ROC of the cycle period to +/- 50% of previous cycle period
+
+if ( Period[i] > 1.5 * Period[i-1] )
+
+Period[i] = 1.5 * Period[i-1];
+
+if ( Period[i] < 0.67 * Period[i-1] )
+
+Period[i] = 0.67 * Period[i-1];
+
+// limit the cycle period to be > 6 or < 50
+
+if ( Period[i] < 6 )
+
+Period[i] = 6;
+
+if ( Period[i] > 50 )
+
+Period[i] = 50;
+
+// smooth the cycle period
+
+Period[i] = 0.2 * Period[i] + 0.8 * Period[i-1];
+
+SmoothPeriod[i] = 0.33 * Period[i] + 0.67 * SmoothPeriod[i-1];
+
+}
+
+Plot( SmoothPeriod, "Dominant Cycle", colorWhite, styleLine|styleOwnScale );
+
+Plot( Re, "Re", colorLightBlue, styleLine|styleOwnScale );
+
+Plot( Im, "Im", colorRed, styleLine|styleOwnScale );
+
+Plot( Im/Re, "Im/Re", colorDarkGreen, styleLine|styleOwnScale );
+
+Plot( atan(Im/Re), "atan(Im/Re)", colorBrightGreen, styleLine|styleOwnScale );
+
+Plot( Period, "Period", colorOrange, styleLine|styleOwnScale );
+
+
+_SECTION_END();
+
+GraphXSpace = 5;

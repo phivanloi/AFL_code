@@ -1,0 +1,35 @@
+//www.Tatechnics.in
+_SECTION_BEGIN("No. of Bars");
+GraphXSpace = 5;
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+k=j=0;
+for(i = 1; i < BarCount; i++)
+{
+if (C[i] > C[i-1]) 
+   {
+   j[i] = j[i-1]+1;
+   k[i] = 0;
+   }
+else 
+   {
+   if (C[i] < C [i-1])
+    {
+    j[i] = 0;
+    k[i] = k[i-1]+1;
+    }
+    else
+    {
+    j[i] = j[i-1];
+    k[i] = k[i-1];
+    }
+   }
+}
+  
+Plot(C,"Price", IIf(C>Ref(C,-1), colorLime,colorRed),styleBar | styleThick);
+
+Title = EncodeColor(10)+ "NICK MA Swing System V.3" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(16) +
+ "  - " + Date() +" - "+EncodeColor(16) +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+
+"Cl-"+C+"  "+"\n"+ "Number of Consecutive  Upbars = "+ WriteVal(j,1)+"\n"+ "Number of Consecutive  Down bars = "+ WriteVal(k,1);
+
+_SECTION_END();

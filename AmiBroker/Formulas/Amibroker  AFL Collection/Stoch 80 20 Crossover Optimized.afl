@@ -1,0 +1,21 @@
+//Stochastic 80/20 Crossover ***Optimized***
+
+//Enters long/short on stochastic indicator crossing the 80/20 line. Exit on reversing signals only.
+
+//Note: Run Optimization first, insert optimized figure in ( pds= ) statement, then ( // ) out optimization line, click on backtest.
+
+pds=13;
+pds=Optimize("pds",14,5,25,4);
+
+Buy=Ref(StochK(pds),-1) < 20 AND StochK(pds) >= 20;
+Sell=Ref(StochK(pds),-1) > 80 AND StochK(pds) <= 80;
+Short=Ref(StochK(pds),-1) > 80 AND StochK(pds) <= 80;
+Cover=Ref(StochK(pds),-1) < 20 AND StochK(pds) >= 20;
+
+Filter=Buy OR Sell OR Short OR Cover;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); Short=ExRem(Short,Cover); Cover=ExRem(Cover,Short);
+
+AddColumn(Buy,"Buy");
+AddColumn(Sell,"sell");
+AddColumn(Short,"short");
+AddColumn(Cover,"cover");

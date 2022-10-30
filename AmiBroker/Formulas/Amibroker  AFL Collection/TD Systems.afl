@@ -1,0 +1,184 @@
+_SECTION_BEGIN("TD Systems");
+// Parameters
+ShowNumbers= ParamToggle("Show 1-8 Numbers","No|Yes", 1);
+ShowTDPoints = ParamToggle("Show TD Points", "No|Yes", 1);
+ShowTDST = ParamToggle("Show TD Setup Trend", "No|Yes", 1);
+tdstsa = 0;
+tdstba = 0;
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//********************************************** TD Points ************************************************** ******************/
+function TD_Supply()
+{
+return ( H > Ref(H, 1) AND H > Ref(H, -1) AND H > Ref(C, -2));
+}
+function TD_Demand()
+{
+return ( L < Ref(L, 1) AND L < Ref(L, -1) AND L < Ref(C, -2));
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// *********************************************** TD Sequential ************************************************** **********/
+// *** Setup Buy Signal ***
+//nine consecutive days closes less than the close four days earlier
+Con = C < Ref( C, -4);
+Buy9Bars = BarsSince(BarsSince(Con));
+Buy9Signal = Buy9Bars == 9;
+
+// *** Requirements ***
+//The first day of the nine-day must be preceded by a close day immediately before it that is greater than or equal to the close four days earlier
+Con = Ref(C, -9) >= Ref(C, -13);
+Buy9Req = Buy9Signal AND Con;
+
+// *** Intersection ***
+// the high of either day 8 or day 9 is greater than or equal to the low three, four, five, six, or seven days earlier
+Con1 = (H >= Ref(L, -3)) OR ( Ref(H, -1) >= Ref(L, -3));
+Con2 = (H >= Ref(L, -4)) OR ( Ref(H, -1) >= Ref(L, -4));
+Con3 = (H >= Ref(L, -5)) OR ( Ref(H, -1) >= Ref(L, -5));
+Con4 = (H >= Ref(L, -6)) OR ( Ref(H, -1) >= Ref(L, -6));
+Con5 = (H >= Ref(L, -7)) OR ( Ref(H, -1) >= Ref(L, -7));
+
+Buy9Intr = Buy9Req AND (Con1 OR Con2 OR Con3 OR Con4 OR Con5);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// *** Setup Sell Signal ***
+//nine consecutive days closes greater than the Close four days earlier.
+Con = C > Ref( C, -4);
+Sell9Bars = BarsSince(BarsSince(Con));
+Sell9Signal = Sell9Bars == 9;
+
+// *** Requirements ***
+//The first day of the nine-day must be preceded by a Close day immediately before it that is less than the Close four days earlier
+Con = Ref(C, -9) < Ref(C, -13);
+Sell9Req = Sell9Signal AND Con;
+
+// *** Intersection ***
+//the low of either day 8 or day 9 is less than or equal to the high three, four, five, six, or seven days earlier
+Con1 = (L <= Ref(H, -3)) OR ( Ref(L, -1) <= Ref(H, -3));
+Con2 = (L <= Ref(H, -4)) OR ( Ref(L, -1) <= Ref(H, -4));
+Con3 = (L <= Ref(H, -5)) OR ( Ref(L, -1) <= Ref(H, -5));
+Con4 = (L <= Ref(H, -6)) OR ( Ref(L, -1) <= Ref(H, -6));
+Con5 = (L <= Ref(H, -7)) OR ( Ref(L, -1) <= Ref(H, -7));
+
+Sell9Intr = Sell9Req AND (Con1 OR Con2 OR Con3 OR Con4 OR Con5);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+if(StrToNum(NumToStr(Buy9Intr))) Sell9Intr = False;
+if(StrToNum(NumToStr(Sell9Intr))) Buy9Intr = False;
+BuySignal = Flip(Buy9Intr, Sell9Intr);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// *** Buy Countdown ***
+//With respect to a pending Buy Signal, the close must be less than the low two days earlier; 
+Con = C < Ref(L, -2);
+Buy13Count = Sum(Con AND BuySignal, BarsSince(Buy9Intr));
+Buy13Signal = Buy13Count == 13;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// *** Sell Countdown ***
+//with respect to a pending Sell Signal, the Close must be greater than the High two trading days earlier.
+Con = C > Ref(H, -2);
+Sell13Count = Sum(Con AND NOT BuySignal, BarsSince(Sell9Intr));
+Sell13Signal = Sell13Count == 13;
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//*********************************************** TD Sequential Plotting area *************************************************/
+Plot(C, "", IIf(O>=C, colorRed, colorGreen), styleBar);
+PlotShapes(IIf(Buy9Intr OR Sell9Intr, shapeDigit9, shapeNone),colorBlue, 0, H, 20);
+if(ShowNumbers)
+PlotShapes(IIf(Buy9Bars==1, shapeDigit1,
+IIf(Buy9Bars==2, shapeDigit2,
+IIf(Buy9Bars==3, shapeDigit3,
+IIf(Buy9Bars==4, shapeDigit4,
+IIf(Buy9Bars==5, shapeDigit5,
+IIf(Buy9Bars==6, shapeDigit6,
+IIf(Buy9Bars==7, shapeDigit7,
+IIf(Buy9Bars==8, shapeDigit8,
+IIf(Buy9Bars >9, shapeStar,shapeNone))))))))),colorGreen, 0, H, H*.001);
+if(ShowNumbers)
+PlotShapes(
+IIf(Sell9Bars==1, shapeDigit1,
+IIf(Sell9Bars==2, shapeDigit2,
+IIf(Sell9Bars==3, shapeDigit3,
+IIf(Sell9Bars==4, shapeDigit4,
+IIf(Sell9Bars==5, shapeDigit5,
+IIf(Sell9Bars==6, shapeDigit6,
+IIf(Sell9Bars==7, shapeDigit7,
+IIf(Sell9Bars==8, shapeDigit8,
+IIf(sell9bars>9, shapeStar,shapeNone))))))))),colorRed, 0, H, H*.001);
+
+Sell = Sell13Signal AND NOT BuySignal;
+Buy = Buy13Signal AND BuySignal;
+Sell = ExRem(Sell, Buy);
+Buy = ExRem(Buy, Sell);
+PlotShapes(Sell*shapeDownArrow, colorYellow, 0, H, -H*.001);
+PlotShapes(Buy*shapeUpArrow, colorBrightGreen, 0, L, -L*.001);
+
+if(StrToNum(NumToStr(BuySignal)))
+bgColor = ColorRGB(0,66, 2);
+else
+bgColor = ColorRGB(66,2, 0);
+SetChartBkGradientFill( colorBlack, bgColor);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//*********************************************** TD Points Plotting area *************************************************/
+if(ShowTDPoints)
+{
+PlotShapes(TD_Supply()*shapeSmallCircle, colorRed, 0, H, H*.001);
+PlotShapes(TD_Demand()*shapeSmallCircle, colorGreen, 0, L, -L*.001);
+///////////////////////////////////////////////////////////////////////////
+y0 = StrToNum(NumToStr(ValueWhen(TD_Demand(), L)));
+x = LineArray(0, y0, (BarCount-1), y0);
+Plot(x, "", colorGold, styleDashed);
+y0 = StrToNum(NumToStr(ValueWhen(TD_Supply(), H)));
+x = LineArray(0, y0, (BarCount-1), y0);
+Plot(x, "", colorGold, styleDashed);
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//*********************************************** TDST Plotting area *************************************************/
+// ---------------->>>> Code from Dave <<<----------------------
+//
+if(ShowTDST)
+{
+tdstba =Cum(0);
+tdstb = Null;
+HHV9 = HHV(H,9);
+for (i = 0; i < 10; i++) tdstba[i] = Null;
+
+for( i = 10; i < BarCount; i++ ) 
+{ 
+if (Buy9Bars[i] == 9)
+{
+HHV_b = HHV9[i];
+if (HHV_b > C[i-9])
+tdstb = HHV_b;
+else tdstb = C[i-9];
+
+for (j = 0; j < 9; j++ )
+tdstba[i-j] = tdstb;
+}
+else tdstba[i] = tdstb;
+}
+
+tdstsa =Cum(0);
+tdsts = Null;
+LLV9 = LLV(L,9);
+for (i = 0; i < 10; i++) tdstsa[i] = Null;
+
+for( i = 10; i < BarCount; i++ ) 
+{ 
+if (Sell9Bars[i] == 9)
+{
+LLV_b = LLV9[i];
+if (LLV_b < C[i-9])
+tdsts = LLV_b;
+else tdsts = C[i-9];
+
+for (j = 0; j < 9; j++ )
+tdstsa[i-j] = tdsts;
+}
+else tdstsa[i] = tdsts;
+}
+Plot(tdstba, "TDSTb", colorBlue,styleStaircase | styleThick|styleDots);
+Plot(tdstsa, "TDSTs", colorRed,styleStaircase | styleThick|styleDots);
+
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Title = "{{DATE}} - "+Name()+" ("+ FullName()+ ") - "+" Open="+O+", High="+H+", Low="+L+", Close="+C+StrFormat(" (%.2f %.1f%%) ",IIf(ROC(C,1)==0,0,C-Ref(C,-1)),SelectedValue( ROC( C, 1 )))+
+"\n"+EncodeColor(colorBlue) +"TDST Buy = " +WriteVal(tdstba, 5.2) +" "+EncodeColor(colorRed) +"TDST Sell = " +WriteVal(tdstsa, 5.2)+
+"\n"+EncodeColor(colorGold)+WriteIf(BuySignal, "(Buy Signal Active:"+Buy13Count, "(Sell Signal Active: "+Sell13Count)+")";
+
+_SECTION_END();

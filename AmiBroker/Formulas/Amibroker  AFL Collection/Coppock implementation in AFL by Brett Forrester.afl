@@ -1,0 +1,15 @@
+/* Coppock Guide implementation in AFL by Brett Forrester, 2001 
+
+Set Data to Monthly View for proper display */
+
+Graph0=(ROC(Close,14)*10 + ROC(Close,11)*10 +   
+ROC(Ref(Close,-1),14)*9 +   ROC(Ref(Close,-1),11)*9 +  
+ROC(Ref(Close,-2),14)*8 +   ROC(Ref(Close,-2),11)*8 +  
+ROC(Ref(Close,-3),14)*7 +   ROC(Ref(Close,-3),11)*7 +  
+ROC(Ref(Close,-4),14)*6 +   ROC(Ref(Close,-4),11)*6 +  
+ROC(Ref(Close,-5),14)*5 +   ROC(Ref(Close,-5),11)*5 + 
+ROC(Ref(Close,-6),14)*4 +   ROC(Ref(Close,-6),11)*4 +  
+ROC(Ref(Close,-7),14)*3 +   ROC(Ref(Close,-7),11)*3 +  
+ROC(Ref(Close,-8),14)*2 +   ROC(Ref(Close,-8),11)*2 +  
+ROC(Ref(Close,-9),14) +   ROC(Ref(Close,-9),11))/10;
+Title=Name() + " Monthly Coppock =" + WriteVal( Graph0 ) ;

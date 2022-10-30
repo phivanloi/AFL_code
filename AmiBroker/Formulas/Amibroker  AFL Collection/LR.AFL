@@ -1,0 +1,61 @@
+_SECTION_BEGIN("Linear Regression");
+LinReg  = ParamList("Linear Regression ?", "No|Yes");
+LRColor = ParamColor("L/R Color", colorRed);
+LRStyle = ParamStyle("L/R Style", styleLine | styleThick, maskAll);
+SDMult  = Param("Std Dev Multiplier", 2.00, 0.01, 5.00, 0.01);
+SDAuto  = ParamList("S/D Auto", "No|Yes");
+SDPoints= Param("Auto Points", 1, 1, 10, 1);
+SDWhich = ParamList("Which Points", "Both|Either");
+SDProj  = Param("Projection", 0, 0, 100, 1);
+
+Price   = C;
+Cum1    = Cum(1);
+BVCum1  = BeginValue(Cum1);
+BVCum1LV= LastValue(BVCum1);
+EVCum1  = EndValue(Cum1); 
+Periods = EVCum1 - BVCum1;
+
+aa      = EndValue(LinRegIntercept(Price, Periods));
+bb      = EndValue(LinRegSlope(Price, Periods));
+yy      = aa + bb * (Cum1 - (EVCum1 - Periods));
+StdDev  = StDev(Price, Periods);
+
+Filter = 1;
+
+if (LinReg == "Yes")
+{
+    if (SDAuto == "Yes")
+    {
+        SDUpDn = SDMult / 2;
+        for (i = 1; i <= 10; i++)
+        {
+            yyTop = IIf(Cum1 >= (EVCum1 - Periods) AND Cum1 <= EVCum1, yy + SDMult * EndValue(StdDev), -1e10);
+            yyBot = IIf(Cum1 >= (EVCum1 - Periods) AND Cum1 <= EVCum1, yy - SDMult * EndValue(StdDev), -1e10);
+
+            yyTopC = LastValue(Cum(IIf(H >= yyTop, 1, 0)));
+            yyBotC = LastValue(Cum(IIf(L <= yyBot, 1, 0)));
+
+            if ((SDWhich == "Both"   && (yyTopC >= SDPoints && yyBotC >= SDPoints)) ||
+                (SDWhich == "Either" && (yyTopC >= SDPoints || yyBotC >= SDPoints)))
+                SDMult = SDMult + SDUpDn;
+            else
+                SDMult = SDMult - SDUpDn;
+            SDUpDn = SDUpDn / 2;
+        }
+    }
+
+    Plot(IIf(Cum1 >= BVCum1 AND Cum1 <= EVCum1 + SDProj, yy, -1e10), "", LRColor, LRStyle); 
+    Plot(IIf(Cum1 >= BVCum1 AND Cum1 <= EVCum1 + SDProj, yy + SDMult * EndValue(StdDev), -1e10), "", LRColor, LRStyle); 
+    Plot(IIf(Cum1 >= BVCum1 AND Cum1 <= EVCum1 + SDProj, yy - SDMult * EndValue(StdDev), -1e10), "", LRColor, LRStyle); 
+    Plot(IIf(Cum1 == EVCum1, 1, 0), "", colorLightGrey, styleHistogram | styleOwnScale | styleNoLabel, 0, 1);
+
+    if (Cum1 = BVCum1LV)
+    {
+        if (EndValue(bb) < 0)
+            PlotText("SDx=" + NumToStr(SDMult, 1.2), BVCum1LV, yy[BVCum1LV] + 2 * SDMult * EndValue(StdDev), colorWhite);
+        else
+            PlotText("SDx=" + NumToStr(SDMult, 1.2), BVCum1LV, yy[BVCum1LV] - 2 * SDMult * EndValue(StdDev), colorWhite);
+    }
+
+}
+_SECTION_END();

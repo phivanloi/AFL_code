@@ -1,0 +1,10 @@
+Lessertimeframe= 5;
+Greatertimeframe= 7;
+Lessertimeframe= Optimize( "Lessertimeframe ",2,2,5,1) ;
+Greatertimeframe= Optimize( "Greatertimefram e",7,7,14, 1);
+
+Plot(EMA(Close, 5) ,"",colorRed, styleLine, styleThick) ;
+Plot(EMA(Open, 7 ),"",colorBlue, styleLine, styleThick) ;
+Plot(EMA(C,55) ,"",colorBlack, styleLine, styleThick) ;
+Buy = Cross(EMA(C, 5),EMA(O,7)
+Sell = Cross(EMA(O, 7),EMA(C,5) 

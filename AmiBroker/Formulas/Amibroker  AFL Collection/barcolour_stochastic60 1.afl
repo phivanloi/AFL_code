@@ -1,0 +1,35 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+//Plot( C, "Close", ParamColor("Color", colorWhite ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+
+
+
+TimeFrameSet(in1Minute * 5);
+Cl = C;
+_SECTION_BEGIN("Stochastic %K");
+periods = Param( "Periods", 8, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 3, 1, 200, 1 );
+//Plot( StochK( periods , Ksmooth), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+_SECTION_END();
+
+_SECTION_BEGIN("Stochastic %D");
+periods = Param( "Periods", 8, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 3, 1, 200, 1 );
+Dsmooth = Param( "%D avg", 4, 1, 200, 1 );
+//Plot( StochD( periods , Ksmooth, DSmooth ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+_SECTION_END();
+
+A=StochK( periods , Ksmooth);
+B=StochD( periods , Ksmooth, DSmooth );
+
+
+TimeFrameRestore();
+A=(TimeFrameExpand( A, in1Minute * 60));
+B=(TimeFrameExpand( B, in1Minute * 60));
+Cl=(TimeFrameExpand( Cl, in1Minute * 60));
+
+barcolor =IIf(A > B  , colorGreen,IIf(A < B,colorRed, colorBlack) );
+Plot( C, "Close", barcolor , styleNoTitle |styleCandle); 
+
+_SECTION_END();

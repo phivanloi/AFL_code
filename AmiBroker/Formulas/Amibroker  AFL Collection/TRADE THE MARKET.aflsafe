@@ -1,0 +1,19 @@
+/*36 "TRADE THE MARKET" SYSTEMS graphic part*/
+f1=Foreign("~55meanRSIt","V");
+F10=Foreign("~55meanRSIt10","V");F20=Foreign("~55meanRSIt20","V");
+F30=Foreign("~55meanRSIt30","V");F40=Foreign("~55meanRSIt40","V");
+bear= Foreign("~macdbear","V");bull=Foreign("~macdbull","V");
+t=f1/(bull+bear);
+T10=F10/(BULL+BEAR);T20=F20/(BULL+BEAR);
+T30=F30/(BULL+BEAR);T40=F40/(BULL+BEAR);
+B1=Cross(T10,T20);B2=Cross(T10,T30);B3=Cross(T10,T40);
+B4=Cross(T20,T30);B5=Cross(T20,T40);B6=Cross(T30,T40);
+S1=Cross(T20,T10);S2=Cross(T30,T10);S3=Cross(T40,T10);
+S4=Cross(T30,T20);S5=Cross(T40,T20);S6=Cross(T40,T30);
+B=Optimize("B",1,1,6,1);S=Optimize("S",1,1,6,1);
+Buy=IIf(B==1,B1,IIf(B==2,B2,IIf(B==3,B3,IIf(B==4,B4,IIf(B==5,B5,B6)))));
+Sell=IIf(S==1,S1,IIf(S==2,S2,IIf(S==3,S3,IIf(S==4,S4,IIf(S==5,S5,S6)))));
+Plot(T10,"T10",5,1);
+Plot(T20,"T20",1,1);
+Plot(T30,"T30",4,1);
+Plot(T40,"T40",2,1);

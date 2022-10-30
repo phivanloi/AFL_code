@@ -1,0 +1,21 @@
+//Bollinger Band Swing Trader ***Non-Optimized***
+
+//Enters long/short when the 3 day moving average of the lows/highs goes outside (below/above) the 14 day bollinger band.
+
+MA1=MA(L,3);
+MA2=MA(H,3);
+p1=MA(L,14)-(1*StDev(L,14));
+p2=MA(H,14)+(1*StDev(H,14));
+
+Buy=Ref(MA1,-1) < Ref(p1,-1)AND Ref(MA1,-1) < MA1;
+Sell=Ref(MA2,-1) > Ref(p2,-1) AND Ref(MA2,-1) > MA2;
+Short=Ref(MA2,-1) > Ref(p2,-1) AND Ref(MA2,-1) > MA2;
+Cover=Ref(MA1,-1) < Ref(p1,-1)AND Ref(MA1,-1) < MA1;
+
+Filter=Buy OR Sell OR Short OR Cover;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); Short=ExRem(Short,Cover); Cover=ExRem(Cover,Short);
+
+AddColumn(Buy,"Buy");
+AddColumn(Sell,"sell");
+AddColumn(Short,"short");
+AddColumn(Cover,"cover");

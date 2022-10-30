@@ -1,0 +1,22 @@
+period = Param( "%b period", 18, 1, 100 ); 
+TeAv = Param( "TEMA average", 8, 1, 30 ); 
+afwh = Param( "Standard deviation High", 1.6, 0.1, 5 ); 
+afwl = Param( "Standard deviation Low", 1.6, 0.1, 5 ); 
+afwper = Param( "Standard deviation period", 63, 1, 200 ); 
+
+price = (O+H+L+C)/4; 
+HaOpen = AMA( Ref( price, -1 ), 0.5 ); 
+haC = ( price + haOpen + Max( H, haOpen ) + Min( L, haOpen ) ) / 4; 
+
+TMA1 = TEMA( haC, TeAv ); 
+TMA2 = TEMA( TMA1, TeAv ); 
+Diff = TMA1 - TMA2; 
+ZlHA = TMA1 + Diff; 
+
+ztema = TEMA( ZLHA, TeAv ); 
+stdztema = StDev( ztema, period ); 
+
+percb = ( ztema + 2 * stdztema - WMA( ztema, period ) ) / ( 4 * stdztema ) * 100; 
+Plot( percb, "PercB", colorBlue ); 
+Plot( 50 + afwh*StDev( percb, afwper ) , "Upper", colorRed, styleDashed ); 
+Plot( 50 - afwl*StDev( percb, afwper ) , "Lower", colorRed, styleDashed ); 

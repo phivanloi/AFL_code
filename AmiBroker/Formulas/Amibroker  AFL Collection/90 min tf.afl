@@ -1,0 +1,56 @@
+SetChartBkGradientFill(ParamColor("Color Top", colorWhite),ParamColor("Color Bottom", colorLightGrey),ParamColor("Color Title", colorWhite));
+Period= ParamList("Base","Monthly|Weekly|Daily|90Minute|Hourly|15Minute|5Minute|1Minute",0);
+Plotvol = ParamToggle("Plot Volume", "No|Yes");
+style = styleCandle;
+ColorOutline = ParamColor("Color outline", colorDarkGrey);
+ColorVol = ParamColor("Color Volume", colorWhite);
+
+
+if(Period=="Monthly"){
+ TimeFrameSet(inMonthly);
+ PlotOHLC(Open, High, Low, Close, "Monthly Price Chart", ColorOutline, style);
+ if(Plotvol == 1)
+  Plot(V,"Volume",ColorVol, styleHistogram|styleOwnScale);
+}
+if(Period=="Weekly"){
+ TimeFrameSet(inWeekly);
+ PlotOHLC(Open, High, Low, Close, "Weekly Price Chart", ColorOutline, style );
+ if(Plotvol == 1)
+  Plot(V,"Volume",ColorVol, styleHistogram|styleOwnScale);
+}
+if(Period=="Daily"){
+ TimeFrameSet(inDaily);
+ PlotOHLC(Open, High, Low, Close, "Daily Price Chart", ColorOutline, style );
+ if(Plotvol == 1)
+  Plot(V,"Volume",ColorVol, styleHistogram|styleOwnScale);
+}
+if(Period=="90Minute"){
+ TimeFrameSet(60*90);
+ PlotOHLC(Open, High, Low, Close, "90Minute Price Chart", ColorOutline, style);
+ if(Plotvol == 1)
+  Plot(V,"Volume",ColorVol, styleHistogram|styleOwnScale);
+}
+if(Period=="Hourly"){
+ TimeFrameSet(inHourly);
+ PlotOHLC(Open, High, Low, Close, "Hourly Price Chart", ColorOutline, style );
+ if(Plotvol == 1)
+  Plot(V,"Volume",ColorVol, styleHistogram|styleOwnScale);
+}
+if(Period=="15Minute"){
+ TimeFrameSet(in15Minute);
+ PlotOHLC(Open, High, Low, Close, "15Minute Price Chart", ColorOutline, style );
+ if(Plotvol == 1)
+  Plot(V,"Volume",ColorVol, styleHistogram|styleOwnScale);
+}
+if(Period=="5Minute"){
+ TimeFrameSet(in5Minute);
+ PlotOHLC(Open, High, Low, Close, "5Minute Price Chart", ColorOutline, style);
+ if(Plotvol == 1)
+  Plot(V,"Volume",ColorVol, styleHistogram|styleOwnScale);
+}
+if(Period=="1Minute"){
+ TimeFrameSet(in1Minute);
+ PlotOHLC(Open, High, Low, Close, "1Minute Price Chart", ColorOutline, style);
+ if(Plotvol == 1)
+  Plot(V,"Volume",ColorVol, styleHistogram|styleOwnScale);
+}

@@ -1,0 +1,7 @@
+// tskp_mediumma,tskp_mediumup,tskp_mediumdown
+dummy = E_TSKPMEDIUM(Close);
+
+Plot( tskp_mediumup, "MediumUp", ParamColor( "UpColor", colorBlue ), ParamStyle("UpStyle",default=styleHistogram+styleThick+styleNoLabel,mask=maskHistogram) );
+Plot( tskp_mediumdown, "MediumDown", ParamColor( "DownColor", colorRed ), ParamStyle("DownStyle",default=styleHistogram+styleThick+styleNoLabel,mask=maskHistogram) );
+Plot( tskp_mediumma, "MediumMA", ParamColor( "MAColor", colorWhite ), ParamStyle("MAStyle",default=styleHistogram+styleThick+styleNoLabel,mask=maskHistogram) );
+

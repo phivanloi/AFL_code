@@ -1,0 +1,162 @@
+_SECTION_BEGIN("ICHIMOKU CHART Brianwild");
+/*ICHIMOKU CHART Brianwild
+
+A bullish signal occurs when the Tenkan-Sen (RED line) crosses the Kijun-Sen
+(BLUE line) from below.
+Conversely, a bearish Signal is issued when the Tenkan-Sen crosses the
+Kijun-Sen from above. 
+
+Support and resistance levels are shown as Kumo (or clouds). The Kumo can also
+be used to help identify
+ the prevailing trend of the market. If the price line is above the Kumo, the
+prevailing trend is said to be up,
+ while if the price is below the Kumo, the prevailing trend is said to be down.
+The default colour here for the clouds is 
+light blue - but the hue, etc, parameters can be adjusted to suit the user's
+display.
+
+The theory is that the bullish signals are strong when the TL,SL cross occurs
+above the cloud; it is medium within the
+cloud, and weak if it occurs below the cloud. These are shown here as green
+solid up arrows, 
+Conversely, the bearish signals are said to be strong when the cross is below
+the cloud and weak when above. These signals
+are plotted as down red arrows or triangles, or brown hollw down arrows. 
+
+As an attempt at clarity on a cluttered plot, all signal arrows, etc are
+plotted within the clouds (rather than near the 
+candles as is normal). The user can also toggle between a candle plot or a line
+plot of the close price, to reduce 
+the clutter somewhat.
+
+A final feature of the Ichimoku chart is the VIOLET line, or Chikou Span (or
+Lagging Span). It is said that this line
+indicates the strength of the buy or sell signal. If the Chikou Span is below
+the closing price and a sell signal occurs,
+then the strength is with sellers, otherwise it is a weak sell signal.
+Conversely, if a buy signal occurs and the Chikou
+Span is above the price, then there is strength to the upside. These
+considerations could  be coupled with the other
+signals, if desired, but this has not been done here. 
+
+Final Comment: This program produces quite a pretty graph - but I have not so
+far been impressed with the signals!
+I have seen many weak signals followed by strong moves and strong signals
+followed by weak moves. Typical of technical
+analysis I guess. If anyone finds the Ichimoku approach useful I would be keen
+to hear about it.
+*/
+
+SL = ( HHV( H, 26 ) + LLV( L, 26) )/2;// standard, base, or kijun-sen line
+TL = ( HHV( H, 9 ) + LLV( L, 9 ) )/2;// turning, conversion, or tenkan-senline 
+DL = Ref( C, 25 );						// delayed close price, or chikou span
+Span1 = Ref( ( SL + TL )/2, -25 );		//Span1 and Span2 define the clouds
+Span2 = Ref( (HHV( H, 52) + LLV(L, 52))/2, -25);
+
+CStyle = ParamToggle("Showcandles?","N|Y");//Choose Candle or Line for Price Plot
+//hue = Param("Hue",140,0,255,1);
+//sat = Param("Sat",100,0,255,1);
+//bri = Param("bri",220,0,255,1);
+
+hue = Param("Hue",10,0,255,1);
+sat = Param("Sat",10,0,255,1);
+bri = Param("bri",20,0,255,1);
+
+MaxGraph = 8;
+Refline = (Span1 + Span2)/2;
+Graph0 = Refline;
+Graph0Style = 16;//No line plotted, used as a reference line for arrows etc.
+if(Cstyle )
+Plot(C,"Price",colorBlack,styleCandle);
+else
+PlotOHLC(O,H,L,C,"Price",IIf(C>O,colorGreen,colorRed),styleCandle);
+//Plot(Close,"Close",colorBlack,styleThick); 
+Plot(SL,"SL",colorBlue,styleThick); 
+Plot(TL,"TL",colorRed,styleThick); 
+Plot(DL,"DL",colorViolet,styleLine); 
+//PlotOHLC(Span1,Span1,Span2,Span2,"Cloud",ColorHSB(Hue,sat,bri),styleCloud);
+
+
+
+
+above = IIf(TL>Span1 AND TL>Span2,1,0);
+within = IIf((TL>Span1 AND TL<Span2) OR (TL<Span1 AND TL>Span2) ,1,0);
+below = IIf(TL<Span1 AND TL<Span2,1,0);
+Buy = Cross(TL,SL);
+Sell = Cross(SL,TL);
+StrongBuy = Buy AND above;
+MediumBuy = Buy AND within;
+WeakBuy = Buy AND below;
+StrongSell = Sell AND below;
+MediumSell = Sell AND within;
+WeakSell = Sell AND above;
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+GraphXSpace = 5; 
+dist = 4.5*ATR(10);  
+ 
+//for( i = 0; i < BarCount; i++ )  
+//{if( Buy[i] ) PlotText( "Buy\n@" + C[ i ], i, L[ i ]-dist[i], colorGreen );  
+//if( Sell[i] ) PlotText( "sell\n@" + C[ i ], i, H[ i ]+dist[i], colorRed); }
+
+
+ 
+for( i = 0; i < BarCount; i++)  
+{  
+if( StrongBuy[i] ) 
+PlotText( "StrongBuy\n@" +C[ i ], i, L[ i ]-dist[i], colorBrightGreen );
+if( MediumBuy[i] ) 
+PlotText( "MediumBuy" + C[ i ], i, L[ i ]-dist[i], ColorRGB(0,100,0) );
+if( WeakBuy[i] ) 
+PlotText( "WeakBuy" + C[ i ], i, L[ i ]-dist[i], ColorRGB(0,50,0) );
+
+
+
+  
+if( StrongSell[i] ) PlotText( "Strongsell\n@" + C[ i ], i, H[ i ]+dist[i], ColorRGB(300,0,0));
+if( MediumSell[i] ) PlotText( "Mediumsell\n@" + C[ i ], i, H[ i ]+dist[i], ColorRGB(150,0,0)); 
+if( WeakSell[i] ) PlotText( "Weaksell\n@" + C[ i ], i, H[ i ]+dist[i], ColorRGB(50,0,0));   
+} 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, 
+ Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C,SelectedValue( ROC( C, 
+ 1 ) ) ));
+//ColorKumo=IIf(StrongBuy,ColorRGB(0,100,10),IIf(MediumBuy,ColorRGB(0,50,10),IIf(WeakBuy,ColorRGB(0,20,10),IIf(StrongSell,ColorRGB(100,0,10),IIf(MediumSell,ColorRGB(50,0,10),IIf(WeakSell,ColorRGB(20,0,10),ColorHSB(Hue,sat,bri)))))));
+
+ColorKumo=IIf(C>Span1,ColorRGB(0,80,20),IIf(C<Span2,ColorRGB(80,0,20),colorGrey40));
+PlotOHLC(Span1,Span1,Span2,Span2,"Cloud",ColorKumo,styleCloud);
+
+
+PlotShapes(StrongBuy*shapeUpTriangle,colorBrightGreen, 0, Low, Offset =-10);
+//PlotShapes(StrongBuy*shapeDigit1,colorBrightGreen, 0, Low, Offset =-25);
+PlotShapes(MediumBuy*shapeHollowUpTriangle,colorBrightGreen, 0, Low, Offset =0);
+//PlotShapes(MediumBuy*shapeDigit2,colorBrightGreen, 0, Low, Offset =-15);
+PlotShapes(WeakBuy*shapeHollowUpTriangle,colorGreen, 0, Low, Offset =-15);
+//PlotShapes(WeakBuy*shapeDigit3,colorGreen, 0, Low, Offset =-30);
+
+
+PlotShapes(StrongSell*shapeDownTriangle,colorRed, 0, High, Offset =-40);
+//PlotShapes(StrongSell*shapeDigit1,colorRed, 0, High, Offset =55);
+PlotShapes(MediumSell*shapeHollowDownTriangle,colorRed, 0, High, Offset =-40);
+//PlotShapes(MediumSell*shapeDigit2,colorRed, 0, High, Offset =55);
+PlotShapes(WeakSell*shapeHollowDownTriangle,colorRed, 0, High, Offset =-40);
+//PlotShapes(WeakSell*shapeDigit3,colorRed, 0, High, Offset =55);
+
+
+///////////////////////////////////////////////////////////////////////////////
+Filter=StrongBuy OR MediumBuy OR WeakBuy OR StrongSell OR MediumSell OR WeakSell;
+
+AddColumn( IIf(StrongBuy,C,IIf(StrongSell,-C,Null)) ,"STRONG",1.0,colorWhite,IIf(StrongBuy,colorBrightGreen,IIf(StrongSell,colorRed,colorBlack))); 
+AddColumn( IIf(MediumBuy,C,IIf(MediumSell,-C,Null)) ,"MEDIUM",1.0,colorWhite,IIf(MediumBuy,colorGreen,IIf(MediumSell,colorDarkRed,colorBlack))); 
+AddColumn( IIf(WeakBuy,C,IIf(WeakSell,-C,Null)) ,"WEAK",1.0,colorWhite,IIf(WeakBuy,colorGreen,IIf(WeakSell,colorDarkRed,colorBlack))); 
+
+
+_SECTION_END();
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | styleHidden | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

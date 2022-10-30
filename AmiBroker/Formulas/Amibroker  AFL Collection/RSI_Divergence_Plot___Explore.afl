@@ -1,0 +1,85 @@
+// RSI Divergence - Plot and Explore
+
+_SECTION_BEGIN("RSI divergence");
+
+P = Param("Period RSI", 14, 9, 14, 1);
+VRSI = RSI(P);
+
+Length = 100; 
+Lapse = 3; 
+
+fUp = VRSI > Ref(VRSI, -1) & VRSI > Ref(VRSI, 1) & VRSI >55;
+fDown = VRSI < Ref(VRSI, -1) & VRSI < Ref(VRSI, 1) & VRSI < 45;
+
+Div = 0;
+
+for(i = Length; i < BarCount; i++)
+{
+
+// Down
+if(fUp[i])
+{
+k = i-1;
+do
+{
+if(VRSI[k] > VRSI[i] & fUp[i] & fUp[k])
+{
+if(C[k] < C[i] & i-k > Lapse)
+{
+Div[i] = 1;
+}
+k = i-Length;
+}
+else
+k = k-1;
+} while( k > i-Length );
+}
+
+////////////////////////////
+
+// Up
+
+if(fDown[i])
+{
+k = i-1;
+do
+{
+if(VRSI[k] < VRSI[i] & fDown[i] & fDown[k])
+{
+if(C[k] > C[i] & i-k > Lapse)
+{
+Div[i] = -1;
+}
+k = i-Length;
+}
+else
+k = k-1;
+} while( k > i-Length );
+}
+
+}
+
+
+
+Fon = IIf(Div == 0, 0, 1);
+
+Col = IIf(Div == 1, 4, IIf(Div == -1, 5, 1));
+
+Color = IIf(Div == 1, 32, IIf(Div == -1, 27, 1));
+
+Color = IIf(fUp == 1, 32, IIf(fDown == 1, 27, 1));
+
+Div = IIf(Div == 0, Null, abs(Div));
+Fon = abs(Div);
+
+
+// Title = EncodeColor(4)+"RSI(" + WriteVal(P, 2.0) + ")" + EncodeColor(1) + " ="+WriteVal(RSI(P)); 
+// Plot( RSI(P), "RSI", Col, 5);
+// Plot( 25,"", 4, 16+4096);
+// Plot( 75,"", 4, 16+4096);
+Plot(Fon, "", Color, 16384+32768+4096 | styleOwnScale, MinValue = 0, MaxValue = 1);
+_SECTION_END();
+
+Filter=Fon==1;
+AddColumn
+(C,"Close",1.2,Color);

@@ -1,0 +1,145 @@
+GraphXSpace = 5;
+_SECTION_BEGIN( "Gann Trend" );
+Us = BarsSince(Sum(H>Ref(H,-1),2)==2);
+Ds = BarsSince(Sum(L<Ref(L,-1),2)==2);
+Hc = HighestSince(Us==0,H,1);
+Lc = LowestSince(Ds==0,L,1);
+Sd1 = IIf(Us==0,IIf((L!=Lc) AND (Ref(L,-1)!=Lc),1,0),IIf(Ds==0,IIf((H!=HC) AND (Ref(H,-1)!=Hc),-1,0),0));
+Sd2 = IIf(Sd1==1, IIf(Ref(BarsSince(Sd1==1),-1) >Ref(BarsSince(Sd1==-1),-1),1,0), IIf(Sd1==-1,IIf(Ref(BarsSince(Sd1==1),-1) < Ref(BarsSince(Sd1==-1),-1),-1,0),0));
+TD1 = ValueWhen(Sd2!=0,Sd2,1);
+
+
+
+//{Gann-Trend 4/27/99}
+Sd =  TD1 ;
+//{Swing Change High}
+Sch = IIf(Sd==1 AND Ref(sd,-1)==-1,1,0);
+//{Swing Change Low}
+Scl = IIf(Sd==-1 AND Ref(Sd,-1)==1,1,0);
+//{Peak Value}
+Pv = IIf(Scl==1,HighestSince(Sch==1,H,1),0);
+//{Trough Value}
+Tv = IIf(Sch==1,LowestSince(Scl==1,L,1),0);
+//{Trend Direction}
+Td = IIf(H>ValueWhen(Pv>0,Pv,1),1,IIf(L<ValueWhen(Tv>0,Tv,1),-1,0));
+//{UpTrend=1 DownTrend =-1}
+Tdv=ValueWhen(Td!=0,Td,1);
+
+Plot( 1, "", IIf(tdv == 1,colorDarkGreen, IIf(tdv < 1, colorDarkRed, 0)), styleOwnScale|styleArea|styleNoLabel, -0.1, 50 );
+_SECTION_END();
+
+_SECTION_BEGIN( "Gann HiLo" );
+Lb = Param("Look-Back Periods?",3,2,10,1);
+HLd = IIf(Close>Ref(MA(H,Lb),-1),1,IIf(Close<Ref(MA(L,Lb),-1),-1,0));
+HLv = ValueWhen(HLd!=0,HLd,1);
+HiLo = IIf(HLv==-1,MA(H,Lb),MA(L,Lb));
+Plot(HiLo, "Gann HiLo", colorRed);
+
+a = C > HiLo;
+b = C < HiLo;
+
+Buy = tdv == 1;
+Sell = tdv < 1;
+
+PlotShapes( IIf(Buy, shapeSmallCircle,0) , colorLime,0,L,-10);
+PlotShapes( IIf(Sell, shapeSmallCircle,0) , colorOrange,0,H,10);
+_SECTION_END();
+
+_SECTION_BEGIN("Gann Swing chart v4 ");
+/* Gann Swing chart v4 */
+/* Last modified 24 Feb 2001 */
+/* AFL implementation by */
+/* (C)2001 Tomasz Janeczko */
+/* one and two - bar reversal version */
+
+/* Change this to 1 for two-bar mode */
+twobarmode = 0;
+
+outsidebar = Outside();
+insidebar = H <= Ref( H, -1 ) AND L >= Ref( L, -1 ); // built-in inside() works with < > instead of <= >=
+
+upbar = H > Ref( H, -1 ) AND L >= Ref( L, -1 );
+downbar = L < Ref( L, -1 ) AND H <= Ref( H, -1 );
+
+upbar2 = upbar OR ( outsidebar AND Ref( downbar, 1 ) ) ;
+downbar2 = downbar OR ( outsidebar AND Ref( upbar, 1 ) );
+
+Poi = outsidebar AND Ref( insidebar, 1 );
+Poo = outsidebar AND Ref( outsidebar, 1 );
+Pooi = Poo AND Ref( insidebar, 2 );
+Poio = Poi AND Ref( outsidebar, 2 );
+Poii = Poi AND Ref( insidebar, 2 );
+Pooo = Poo AND Ref( outsidebar, 2 );
+Poooi = Pooo AND Ref( insidebar, 3 );
+Pooio = Pooi AND Ref( outsidebar, 3 );
+Poioo = Poio AND Ref( outsidebar, 3 );
+
+upbar3 = upbar2 OR ( Poi AND Ref( downbar, 2 ) );
+downbar3 = downbar2 OR ( Poi AND Ref( upbar, 2 ) );
+
+upbar4 = upbar3 OR ( Poo AND Ref( upbar, 2 ) );
+downbar4 = downbar3 OR ( Poo AND Ref( downbar, 2 ) );
+
+upbar5 = upbar4 OR ( Pooi AND Ref( upbar, 3 ) );
+downbar5 = downbar4 OR ( Pooi AND Ref( downbar, 3 ) );
+
+upbar6 = upbar5 OR ( Poio AND Ref( upbar, 3 ) );
+downbar6 = downbar5 OR ( Poio AND Ref( downbar, 3 ) );
+
+upbar7 = upbar6 OR ( Poii AND Ref( downbar, 3 ) );
+downbar7 = downbar6 OR ( Poii AND Ref( upbar, 3 ) );
+
+upbar8 = upbar7 OR ( Pooo AND Ref( downbar, 3 ) );
+downbar8 = downbar7 OR ( Pooo AND Ref( upbar, 3 ) );
+
+upbar9 = upbar8 OR ( Poooi AND Ref( downbar, 4 ) );
+downbar9 = downbar8 OR (Poooi AND Ref( upbar, 4 ) );
+
+upbar10 = upbar9 OR ( Pooio AND Ref( downbar, 4 ) );
+downbar10 = downbar9 OR ( Pooio AND Ref( upbar, 4 ) );
+
+upbar11 = upbar10 OR ( Poioo AND Ref( downbar, 4 ) );
+downbar11 = downbar10 OR ( Poioo AND Ref( upbar, 4 ) );
+
+fupbar = upbar11;
+fdownbar = downbar11;
+
+// Two-bar mode handling
+fupbar = IIf( twobarmode, fupbar AND Ref( fupbar, 1 ), fupbar );
+fdownbar = IIf( twobarmode, fdownbar AND Ref( fdownbar, 1 ), fdownbar );
+
+/* Barcount since most recent up and down swings */
+Us = BarsSince( fupbar ); 
+Ds = BarsSince( fdownbar ) ;
+
+Sd1 =IIf( Us==0, 1, IIf( Ds==0, -1, 0) );
+
+Sd2 = IIf( Sd1 == 1, IIf( Ref( BarsSince(Sd1==1), -1) > Ref( BarsSince( Sd1 == -1), -1), 1, 0), 
+IIf( Sd1 == -1, IIf( Ref( BarsSince(Sd1==1),-1) < Ref( BarsSince( Sd1 == -1),-1), -1, 0), 0 ) ); 
+
+g0 = ValueWhen( Sd2, Sd2 ); /* sample and hold non-zero values */
+
+/* shift back one bar, add one dummy swing at the end and shift forward */
+/* to ensure proper handling of the last swing */
+lastbar = Cum(1) == LastValue( Cum(1) );
+swinglevel = IIf( g0 == -1, HighestSince( Sd2 == 1, H ), LowestSince( Sd2 == -1, L ) );
+swinglevel = IIf( lastbar, IIf( g0 == -1, LowestSince( Sd2 == -1, L ), HighestSince( Sd2 == 1, H )), Ref( swinglevel, 1 ) );
+
+/* Gann Swing chart drawn here */
+gsc = Ref( ValueWhen( Ref( Sd2 != 0, 1 ) OR lastbar, swinglevel , 0 ), -1 );
+
+Plot( gsc, "", colorBlue, 512+1024);
+_SECTION_END();
+
+_SECTION_BEGIN( "Price" );
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );
+_N( Title = StrFormat( "{{NAME}} - " + SectorID( 1 ) + " - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", colorRose, styleCandle | styleNoTitle | ParamStyle( "Style" ) | GetPriceStyle() );
+
+if ( ParamToggle( "Tooltip shows", "All Values|Only Prices" ) )
+{
+    ToolTip = StrFormat( "Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: " + NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 ) ) );
+}
+Plot(MA(C,50), "MA(50)", colorGreen, styleThick);
+Plot(MA(C,200), "MA(200)", colorRed, styleThick);
+_SECTION_END();

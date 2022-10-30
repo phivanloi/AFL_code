@@ -1,0 +1,18 @@
+/*
+// return both values
+	            r[0] = mydll.call("E_GETRETURN",stateID,0);
+            r[1] = mydll.call("E_GETRETURN",stateID,1);
+            // r[2] = mydll.call("E_GETRETURN",stateID,2);
+            
+            if( r[0] > 0 )
+                setBarBgColor(Color.blue);
+            else if( r[0] < 0 )
+                setBarBgColor(Color.red);
+*/
+// tskp_sttb1, tskp_sttb2,tskp_sttb3
+dummy = E_TSKPSHORTTERMTRADEBIAS(High,Low,Close);
+
+Color = IIf(tskp_sttb1>0,colorBlue,colorRed);
+
+//Plot( tskp_sttb2, "STTB2", ParamColor("STTB2Color", colorCycle ), ParamStyle("STTB2Style") );
+Plot( tskp_sttb1, "STTB1", Color , ParamStyle("Style", default=styleHistogram+styleNoLabel, mask=maskHistogram) ); 

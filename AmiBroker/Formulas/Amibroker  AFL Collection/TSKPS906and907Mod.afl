@@ -1,0 +1,6 @@
+sc = E_TSKPSCORECARD(High,Low,Close,Volume);
+// tskp_scorecard1, tskp_scorecard2, tskp_scorecard3, tskp_scorecard4
+kp906 = tskp_scorecard1;
+kp907 = tskp_scorecard2;
+Plot( kp906, "906", ParamColor( "906Color", colorBlack ), ParamStyle("906Style",styleNoLabel) );
+Plot( kp907, "907", ParamColor( "907Color", colorWhite ), ParamStyle("907Style",styleNoLabel) );

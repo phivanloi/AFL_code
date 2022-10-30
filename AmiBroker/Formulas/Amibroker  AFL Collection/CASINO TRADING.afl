@@ -1,0 +1,38 @@
+///// Trading system to be evaluated
+Buy = Cross( Close, EMA(Close, 15) );
+Sell = Cross( EMA(Close, 15), Close );
+///////////////////////////////////
+e = Equity(1);
+tradeend = Sell;
+profit = e - ValueWhen( Buy, e );
+endprofit = IIf( tradeend , profit, 0 );
+LosingTrades = LastValue( Cum( endprofit < 0 ) );
+WiningTrades = LastValue( Cum( endprofit > 0 ) );
+TotalTrades = LastValue( Cum( tradeend ) );
+AddColumn( LosingTrades, "Losing trades", 1 );
+AddColumn( WiningTrades, "Wining trades", 1 );
+AddColumn( TotalTrades, "Total trades", 1 );
+Filter = Status("lastbarinrange");
+// now we will count the number of
+// count trades winning in given $ ranges
+NumRanges = 25; // number of ranges to generate
+RangeSize = 100; // controls $ size of the range
+for( i = 0; i < NumRanges; i++ )
+{
+  rangestart = i * RangeSize;
+  rangeend = (i+1)*RangeSize;
+  if( i == NumRanges - 1 ) rangeend = 999999;
+  AddColumn(
+  LastValue( 100* Cum( endprofit > rangestart AND endprofit < rangeend ) /TotalTrades ),
+  "% with profit " + rangestart + ".." + rangeend );
+}
+for( i = 0; i < NumRanges; i++ )
+{
+  rangestart = (-i - 1 ) * RangeSize;
+  rangeend = -i*RangeSize;
+  if( i == NumRanges - 1 ) rangestart = -999999;
+  AddColumn(
+  LastValue( 100* Cum( endprofit > rangestart AND endprofit < rangeend ) /TotalTrades ),
+  " % with loss " + rangeend + ".." + rangestart );
+}
+

@@ -1,0 +1,57 @@
+//  macrosssystem.afl
+//
+//  the classic moving average crossover
+//  using weighted moving average
+//
+
+//  set up the leagths for the moving averges
+SetChartBkGradientFill( ParamColor("Inner panel upper",colorBlack),ParamColor("Inner panel lower",colorBlack));
+
+Length1 = Param("length1",3,1,81,2);
+Length2 = Param("length2",13,2,200,2);
+
+//  the moving average calculations
+WMA1 = WMA(C,Length1);
+WMA2 = WMA(C,Length2);
+
+//  the buy and sell logic
+//  buy when wma1 crosses from below wma2 to above wma2.
+Buy = Cross(WMA1,WMA2);
+Sell = Cross(WMA2,WMA1);
+
+Short = Sell;
+Cover = Buy;
+
+//  compute the equity for the single ticker
+e = Equity();
+Maxe = LastValue(Highest(e));
+Plot(Close, "price",colorBlue,styleCandle );
+
+//  plot the wma lines.
+Plot(WMA1,"wma1",colorGreen,styleLine);
+Plot(WMA2,"wma2",colorBlue,styleLine);
+
+//  plot the buy and sell arrows.
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes(shape, IIf(Buy,colorGreen,colorRed), 0,
+IIf(Buy,Low,High));
+
+//  plot the equity curve
+Plot(e,"equity",colorBlue,styleLine|styleOwnScale,0,Maxe);
+Plot(10000,"",colorBlue,styleLine|styleOwnScale,0,Maxe);
+GraphXSpace = 5;
+
+_SECTION_BEGIN("Keltner Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+
+CenterLine = MA( P, Periods );
+KTop   = CenterLine + Width * ATR( Periods );
+KBot = CenterLine - Width * ATR( Periods );
+
+Plot( KTop, "KBTop" + _PARAM_VALUES(), Color, Style ); 
+Plot( KBot, "KBBot" + _PARAM_VALUES(), Color, Style ); 
+_SECTION_END();

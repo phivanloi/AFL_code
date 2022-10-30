@@ -1,0 +1,16 @@
+/* Standard Error Bands */
+Periods = Param("Standard Error", 80, 3, 200, 1); 
+Smooth  = Param("Smooth",14,2,100,1);
+
+
+LRCurve = LinearReg( C, periods ); 
+MALRCurve  = MA(LRCurve, Smooth);
+SEValue = StdErr( C, periods ); 
+SErrorAvg =  MA(SEValue, Smooth);
+
+LowerBand = MALRCurve - SErrorAvg ;
+UpperBand = MALRCurve + SErrorAvg ;
+
+Plot( MALRCurve , "MidBand", ParamColor("ColorMB",colorIndigo)  , ParamStyle("StyleMB", style=styleDashed, Mask=maskDefault )); 
+Plot( UpperBand , "UpperBand", ParamColor("ColorUp",colorIndigo)  , ParamStyle("StyleUp", style=styleLine, Mask=maskDefault ));
+Plot( LowerBand , "LowerBand", ParamColor("ColorLo",colorIndigo)  , ParamStyle("StyleLo", style=styleLine, Mask=maskDefault ));

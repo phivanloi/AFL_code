@@ -1,0 +1,15 @@
+SetChartOptions(0,chartShowDates|chartShowArrows|chartLogarithmic|chartWrapTitle);
+GraphXSpace = 5;
+Plot(C,"",colorBlack,styleCandle);
+x = Ref(H,-1);
+Y = Ref(L,-1);
+a=x+5;
+b=y-5;
+aa=StochK(39,3);
+bb=StochD(39,3,3);
+Buy = Cover = C>a AND aa>bb;
+Sell = Short = C<b AND aa<bb;
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorBlue,0,L,-15);
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed,0,H,-15);

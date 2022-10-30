@@ -1,0 +1,123 @@
+_SECTION_BEGIN("SingleMA1");
+
+SetChartOptions(0, chartShowDates | chartWrapTitle);
+ 
+Type = ParamList("Average Type", "SMA,EMA,LinReg");
+P = Param("Averaging Period", 20, 3, 100);
+Q = Param("%Change", 2, 0.1, 10, 0.1);
+BP = Param("BB Period", 20, 3, 100);
+BW = Param("BB Width", 2, 0.5, 10, 0.5);
+BBOption = ParamToggle("Plot BB", "No I Yes");
+
+Report = ParamList("Trigs or Update or Tgt-SL?", "Triggers|Update|Tgt-SL");
+
+if(Type == "EMA") A = EMA(C, P);
+if(Type == "SMA") A = MA(C, P);
+if(Type == "LinReg") A = LinearReg(C, P);
+
+SL = Trough(L, Q, 1);
+Tgt = 2 * H - SL;
+MeanPrice = Prec((O + C) / 2, 2);
+
+Part = 100 * (H - A) / (H - L);
+
+BBTop = BBandTop(C, BP, BW);
+BBBot = BBandBot(C, BP, BW);
+
+Buy = (Prec(C, 2) > Prec(A, 2)) AND Part > 70;
+Sell = H < A;
+ 
+Buy = ExRem(Buy, Sell);
+Sell = ExRem(Sell, Buy);
+Bought = Flip(Buy, Sell);
+Sold = Flip(Sell, Buy);
+NextTgt = ValueWhen(Buy, Tgt, 1);
+
+for(i = 1; i < BarCount; i++)
+	{
+		if(Bought[i] AND NOT Buy[i]) 
+		{
+			SL[i] = Max(SL[i], SL[i - 1]);
+			if(C[i - 1] >= 0.9999 * NextTgt[i - 1]) NextTgt[i] = Tgt[i - 1];
+			NextTgt[i] = Max(NextTgt[i], NextTgt[i - 1]);
+		}			
+	}
+BuyDate = ValueWhen(Buy, Ref(DateTime(), 1), 1);
+BuyPrice = ValueWhen(Buy, Ref(MeanPrice, 1), 1);
+SellPrice = ValueWhen(Sell, Ref(MeanPrice, 1), 1);
+
+TgtReached = IIf(Bought AND NOT Buy AND C >= 0.9999 * NextTgt, True, False);
+SLHit = IIf(Bought AND NOT Buy AND C < SL, True, False);
+SLHit = ExRem(SLHit, Buy);
+
+if(Status("action") == actionIndicator)
+	{
+		Ttl = EncodeColor(colorTurquoise) + "Single MA system, AFL by ANANT NAVALE" + "\n"
+			+ WriteIf(Buy, EncodeColor(colorGreen) + "Buy Triggered Today, Buy this stock Tomorrow.","") 
+			+ WriteIf(Sell, EncodeColor(colorRed) + "Sell Triggered Today, Sell This stock Tomorrow.", "")
+			+  EncodeColor(colorTan) + WriteIf(Bought AND NOT Buy, "Bought @ " + BuyPrice + ". "
+			+ "Target Price = " + NextTgt + ", Stop Loss = " + SL + ".\n"
+			+ WriteIf(TgtReached, "Target Reached. Next Target = " + Ref(NextTgt, 1) + ".\n", "")
+			+ EncodeColor(colorGold) + "Profit / Loss so far = " + Prec(100 * (C - BuyPrice) / BuyPrice, 2) + "%", "")
+			+ WriteIf(Sold AND NOT Sell, "Sold @ " + SellPrice + "\nProfit / Loss in Previous Trade = " + Prec(100 * (SellPrice - BuyPrice) / BuyPrice, 2) + "%", "");
+
+		_N(Title = StrFormat("{{NAME}} ({{INTERVAL}}), {{DATE}} ; O=%g, H=%g, L=%g, C=%g, {{VALUES}}\n\n", O, H, L, C) + Ttl);
+
+		Marker = Buy * shapeUpArrow + Sell * shapeDownArrow;
+		MarkerColor = IIf(Sell, colorRed, colorSeaGreen);
+		MarkerDist = Buy * L *0.995 + Sell * H * 1.005;
+
+		PlotOHLC(O, H, L, C, "", colorLightGrey, styleBar);
+		Plot(A, Type + "(" + P +")", colorYellow, styleLine | styleThick);
+		//Plot(IIf(Bought, NextTgt, Null), "Target", colorBlueGrey, styleLine);
+		//Plot(SL, "Trail SL", colorTeal, styleLine); 
+		PlotShapes(Marker, MarkerColor, 0, MarkerDist);
+		if(BBOption) Plot(BBtop, "BB-Top", colorPink, styleLine);
+		if(BBOption) Plot(BBBot, "BB-Bot", colorPink, styleLine);
+	}
+
+if((Status("action") == actionExplore) AND Report == "Triggers")
+	{
+		Filter = Buy OR Sell;
+
+		SetOption("NoDefaultColumns", True);
+
+		AddTextColumn(Name(), "Symbol", 77, colorDefault, colorDefault, 120);
+		AddColumn(DateTime(), "Trigger Date", formatDateTime);
+		AddColumn(IIf(Buy, 66, 83), "Signal", formatChar, colorYellow, IIf(Buy, colorGreen, colorRed));
+		AddColumn(C, "C. M. P.", 6.2);
+		AddColumn(IIf(Buy OR Bought, NextTgt, Null),  "Target", 6.2);
+		AddColumn(IIf(Buy OR Bought, SL, Null), "StopLoss", 6.2);
+	}
+if((Status("action") == actionExplore) AND Report == "Update")
+	{
+		Filter = True;
+		
+		SetOption("NoDefaultColumns", True);
+
+		AddColumn(DateTime(), "Updated On", formatDateTime, colorDefault, colorDefault, 96);
+		AddTextColumn(Name(), "Symbol", 77, colorDefault, colorDefault, 120);
+		AddColumn(BuyDate, "Buy Date", formatDateTime, colorDefault, colorDefault, 96);
+		AddColumn(BuyPrice, "Buy Price", 6.2);
+		AddColumn(NextTgt, "Target", 6.2);
+		AddColumn(SL, "StopLoss", 6.2);
+		AddColumn(C, "CMP", 6.2, colorDefault, colorDefault, 96);
+	}
+if((Status("action") == actionExplore) AND Report == "Tgt-SL")
+	{
+		Filter = TgtReached OR SLHit;
+		
+		SetOption("NoDefaultColumns", True);
+
+		AddColumn(DateTime(), "Updated On", formatDateTime, colorDefault, colorDefault, 96);
+		AddTextColumn(Name(), "Symbol", 77, colorDefault, colorDefault, 120);
+		AddColumn(BuyDate, "Buy Date", formatDateTime, colorDefault, colorDefault, 96);
+		AddColumn(BuyPrice, "Buy Price", 6.2);
+		AddColumn(NextTgt, "Target", 6.2);
+		AddColumn(SL, "StopLoss", 6.2);
+		AddColumn(C, "CMP", 6.2, colorDefault, colorDefault, 96);
+		AddColumn(IIf(TgtReached, 89, 32), "Tgt Hit?", formatChar, colorYellow, IIf(TgtReached, colorGreen, colorDefault));
+ 		AddColumn(IIf(SLHit, 89, 32), "SL-Hit", formatChar, colorYellow, IIf(SLHit, colorRed, colorDefault));
+	}
+
+_SECTION_END();

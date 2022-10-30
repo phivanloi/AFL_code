@@ -1,0 +1,13 @@
+_SEction_begin("Alert Sound");
+Plot(C, "",IIf(C > Ref(C , -1), colorCustom9, colorRed), styleCandle);
+Plot(EMA(C, 5), "EMA5", colorCustom12, styleLine|styleThick);
+Plot(EMA(C, 10), "EMA10", colorCustom11, styleLine|styleThick);
+Buy = Cross(EMA(C, 5), EMA(C, 10));
+Sell = Cross(EMA(C,10), EMA(C, 5));
+Short = Sell;
+Cover = Buy;
+PlotShapes(shapeUpArrow * Cover, colorCustom12, 0, Low);
+PlotShapes(shapeDownArrow * Short, colorCustom11, 0, High);
+AlertIf(Buy, "SOUND C:\\Program Files (x86)\\AmiBroker\\Sound\\long.wav", "Audio Alert", 1);
+AlertIf(Sell, "SOUND C:\\Program Files (x86)\\AmiBroker\\Sound\\short.wav", "Audio Alert", 2);
+_SECTION_END();

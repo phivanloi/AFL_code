@@ -1,0 +1,49 @@
+_SECTION_BEGIN("WTD_CLOSE");
+
+ /************** WEIGHTED AVERAGE CLOSE PRICE **************/
+
+ SetChartOptions(0, chartShowDates | chartWrapTitle);
+
+ SetBarsRequired( sbrAll ); // If you have AmiBroker Version lower than 5.20 then delete this line completely
+
+ DN = DateNum();
+ PV = C * V;
+ CumV = Cum(V);
+ CumPV = Cum(PV);
+ WTDC = CumPV / CumV;
+
+ for(i = 1; i< BarCount; i++)
+ {
+ CumV[i] = V[i] + CumV[i - 1];
+ CumPV[i] = PV[i] + CumPV[i - 1];
+ WTDC[i] = CumPV[i] / CumV[i];
+ if(DN[i] != DN[i - 1]) 
+ {
+ CumV[i] = V[i];
+ CumPV[i] = PV[i];
+ WTDC[i] = C[i]; 
+ } 
+ }
+
+
+
+ if(Status("action") == actionIndicator)
+ {
+ _N(Title = StrFormat("{{NAME}} ({{INTERVAL}} {{DATE}} {{OHLCX}}, V=%1.0f, PV=%1.2f, CumV=%1.0f, WTDC=%1.2f", V, PV, CumV, WTDC));
+ Plot(C, "", colorGrey50, styleBar);
+ }
+
+ if(Status("action") == actionExplore)
+ {
+ Filter = 1;
+ SetOption("NoDefaultColumns", True);
+ AddColumn(DateTime(), "Date", formatDateTime);
+ AddColumn(C, "Close", 1.2);
+ AddColumn(V, "Volume", 1.0);
+ AddColumn(CumV, "Cum.Vol.", 1.0);
+ AddColumn(PV, "C X Vol.", 1.2);
+ AddColumn(CumPV, "Sum PV", 1.2);
+ AddColumn(WTDC, "Wtd. Close", 1.2);
+ }
+
+ _SECTION_END();

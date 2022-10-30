@@ -1,0 +1,5 @@
+
+FG = ((C+Ref(C,-1)+Ref(C,-2)+Ref(C,-3)+Ref(C,-5)+Ref(C,-8)+Ref(C,-13)+Ref(C,-21)+Ref(C,-34)+Ref(C,-55)+Ref(C,-89)+Ref(C,-144))/C)*-1;
+
+Plot(FG, "FibboGatto", colorRed);
+Plot(EMA(FG,38), "", colorLightBlue);

@@ -1,0 +1,20 @@
+function Trix2( array, period )
+{
+tmp = DEMA(DEMA( DEMA( array, period ), period ), period );
+result = (tmp - Ref( tmp , -1 ))/Ref( tmp, -1 ) ;
+return result;
+}
+//(O+C)/2
+Trixline = Trix2( (C), 5 );
+TrixSignal = DEMA( Trixline, 3 );
+
+Plot( Trixline, "TRIX(5)", colorRed ,4);
+Plot( TrixSignal, "DMA(TRIX,3)", colorBlue ,4);
+
+GoldenCross = Cross( TrixLine, TrixSignal );
+TrixFall = Trixline < Ref( Trixline, -1 ) AND Ref( Trixline, -1 ) > Ref( Trixline, -2 );
+
+Buy = GoldenCross;
+Sell = TrixFall;
+Plot( Flip( Buy, Sell ), "Trade", colorPaleGreen, styleArea | styleOwnScale, 0, 1 );
+GraphXSpace=7;

@@ -1,0 +1,23 @@
+breakoutime = 101500;
+ afterbreakout0 = Cross(TimeNum(),101500);
+ afterbreakout1 = TimeNum()>=101500;
+ NewDay = Day()!= Ref(Day(), -1);
+ highestoftheday = HighestSince(newday,H,1);
+ Lowestoftheday =LowestSince(newday,L,1);
+ ORBHigh = ValueWhen(afterbreakout0,highestoftheday,1);
+ ORBLow = ValueWhen(afterbreakout0,lowestoftheday,1);
+ Buy= Cross(C,orbhigh) AND afterbreakout1;
+ Sell = Cross(orblow,C) AND afterbreakout1;
+ Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+
+
+Short=Cross(C,ORblow) AND afterbreakout1;
+Cover=Cross(ORbhigh,C) AND afterbreakout1;
+
+ Plot(C,"",colorYellow,styleBar);
+ PlotShapes( shapeUpArrow * Buy, colorGreen,0,L,-12);
+ PlotShapes( shapeDownArrow * Sell, colorRed,0,H,-12);
+ Plot(afterbreakout0,"",colorBlue,styleHistogram|styleOwnScale);
+ Plot(ORBHigh,"",colorGreen,styleDots);
+ Plot(ORBLow,"",colorRed,styleDots);

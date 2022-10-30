@@ -1,0 +1,24 @@
+/* UpdateCompositeCharts.afl
+To update all industry/sector Charts */
+
+// Set Options
+Buy=0; // required by scan mode
+values = Volume > 0; // returns .T. for  each symbol
+Filter=1; 
+
+sym = "~" +SectorID(1)+"-"+ IndustryID(1);
+
+AddToComposite( O, sym,"O");
+AddToComposite( H, sym,"H");
+AddToComposite( L, sym,"L");
+AddToComposite( C, sym,"C");
+AddToComposite( V, sym, "V");
+AddToComposite( values, sym, "I" ); // total traded symbols added and shown as oi.
+
+sym = "~" + SectorID(1);
+AddToComposite( O, sym,"O");
+AddToComposite( H, sym,"H");
+AddToComposite( L, sym,"L");
+AddToComposite( C, sym,"C");
+AddToComposite( V, sym, "V");
+AddToComposite( values, sym, "I" );

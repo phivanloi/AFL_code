@@ -1,0 +1,95 @@
+//=============
+//===Interpretasi dan Kegunaan MACD===
+
+/*
+MACD's common signals:
+===Buy Signal
+A Buy Signal is generated when the MACD crosses above the MACD Signal Line.
+===Sell Signal
+Similarly, when the MACD crosses below the MACD Signal Line a Sell Signal is generated.
+*/
+//===================================
+/*
+Moving Average Crossover:
+The primary method of interpreting the MACD is with moving average crossovers. 
+When the shorter-term 12-period exponential moving average (EMA) crosses over the longer-term 26-period EMA a Buy Signal is generated.
+
+Buy Signal
+=======A buy signal is generated when the MACD (blue line) crosses above the zero line.
+Sell Signal
+=======When the MACD crosses below the zero line, then a sell signal is generated.
+*/
+
+//====================================
+/*
+HISTOGAM SIGNALS:
+==============
+TOP or BOTTOM of HISTOGRAM SINALS
+===Three consecutive days of shrinking MACD histogram from top or bottom served as the buy or sell signals shown with arrows. 
+This is an aggressive example. One could wait until the MACD histogram went to zero, but that would be the same signal as the MACD moving average crossover.
+
+Convergence: 
+===The MACD histogram is shrinking in height. This occurs because there is a change in direction OR a slowdown in the stock trend. 
+When that occurs, the MACD line is getting closer to the MACD signal line. 
+
+Divergence: 
+===The MACD histogram is increasing in height (either in the positive or negative direction). 
+This occurs because the MACD is accelerating faster in the direction of the prevailing market trend. 
+When a stock is moving strongly in a direction, the MACD histogram will increase in height. 
+When the MACD histogram does not increase in height or begins to shrink, the market is slowing down and is a warning of a possible reversal. 
+*/
+//=================
+
+/*REVERSAL SIGN
+The MACD is NOT only good for Buy AND Sell signals, the MACD can be used for warnings of potential change in the direction of stocks.
+
+===Bearish divergence occurs when a technical analysis indicator is suggesting that a price should be going down 
+but the price of the stock is continuing to maintain its current uptrend. 
+Misal: Price bikin High ke Higher (garis trend up) tapi MACD malah bikin LowerHigh <= High (garis trend down). Sinyal trend akan bearish.
+This bearish divergence was an early warning sign of things to come with the market/stock.
+This bearish divergence warned of the impending downturn of the market.
+
+===Bullish divergence occurs when the indicator is indicating that price should be bottoming and heading higher, 
+yet the actual price action is continuing downward.
+Misal: Price bikin Higher ke LowHigh (garis trend down) tapi MACD malah bikin HigherHigh > High (garis trend up). Sinyal trend akan bullish.
+
+===In addition to bearish and bullish divergences, the MACD can confirm price movement as well. 
+Misal: MACD dari High bikin Higher diterusin bikin Higher lagi (Bullish Continuation), sebaliknya MACD dari Low bikin LowerLow bikin LowerLow lagi (Bearish Continuation).
+
+These valuable divergences can signal to get out of a long or short position before profits erode.
+*/
+
+//========================
+/*
+CATATAN:
+===MACD is a trend following indicator, and is designed to identify trend changes. It's generally not recommended for use in ranging market conditions. 
+===The signal line crossing is the usual trading rule. This is to buy when the MACD crosses up through the signal line, or sell when it crosses down through the signal line. 
+These crossings may occur too frequently, and other tests may have to be applied.
+===With the emergence of computerized analysis, it has become highly unreliable in the modern era, and standard MACD based trade execution now produces a greater 
+distribution of losing trades [citation needed]. 
+===Some additions have been made to MACD over the years but even with the addition of the MACD histogram, it remains a lagging indicator. 
+===Most strategies no longer recommend using MACD as the primary method of analysis, but instead believe it should be used as a monitoring tool only.
+===The histogram shows when a crossing occurs. When the MACD line crosses through zero on the histogram it is said that the MACD line has crossed the signal line. 
+The histogram can also help visualizing when the two lines are coming together. Both may still be rising, but coming together, so a falling histogram suggests a crossover may be approaching.
+===A crossing of the MACD line up through zero is interpreted as bullish, or down through zero as bearish. 
+These crossings are of course simply the original EMA(12) line crossing up or down through the slower EMA(26) line.
+===It is recommended to look at a MACD on a weekly scale before looking at a daily scale to avoid making short term trades against the direction of the intermediate trend.
+Sometimes it is prudent to apply a price filter to the Bullish Moving Average Crossover to ensure that it will hold. 
+An example of a price filter would be to buy if MACD breaks above the 9-day EMA and remains above for three days. The buy signal would then commence at the end of the third day.
+===The MACD is a filtered measure of the velocity (ES: speed). The velocity has been passed through two first order linear low pass filters. 
+The "signal line" is that resulting velocity, filtered again. The difference between those two, the histogram, is a measure of the acceleration, with all three filters applied. 
+The "MACD crossing the signal line" suggests that the direction of the acceleration is changing. "MACD line crossing zero" suggests that the average velocity is changing direction.
+
+//==============================
+
+/*OTHER INTERPRETATION
+The MACD can be a very helpful technical indicator, and is subject to several conventional interpretations which can all be useful depending on your trading and investment philosophies:
+1.  One interpretation is that a positive MACD value is a bullish signal, and a negative MACD value is a bearish signal.
+2.  The crossover interpretation is the most common. The signal line is used alongside the MACD to determine the appropriate entry and exit point. 
+Using this interpretation, the trading rule is to sell when the MACD falls below its signal line. Similarly, a buy signal occurs when the MACD rises above its signal line.
+3.  A third popular method of interpretation is that when the MACD is making new highs or lows, and the price is not also making new highs and lows, 
+it signals a possible trend reversal. This type of interpretation is often verified with an overbought/oversold oscillator. 
+
+//=======================
+
+*/

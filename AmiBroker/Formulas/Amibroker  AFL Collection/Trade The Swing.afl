@@ -1,0 +1,10 @@
+_SECTION_BEGIN("Unnamed 9");
+function LinearRegReversal( array, period )
+{
+  Lr = LinearReg( array, period );
+    return IIf( Lr >= Ref( Lr, -1 ), 1, -1 );
+}
+Plot( LinearRegReversal( C, 5 ), "LR Reversal", colorWhite,styleThick);
+PlotGrid(1);
+PlotGrid(-1);
+_SECTION_END();

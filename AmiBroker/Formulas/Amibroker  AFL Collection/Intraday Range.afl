@@ -1,0 +1,38 @@
+/*----------------------------------------------------------------
+ 
+Intraday Range and Periods Framer
+
+This script will draw horizontal lines for the following items:
+
+- Previous day close (red dashed line)
+- Today open (pink dotted line)
+- Today high and low (pink lines)
+- Premarket range 8:30am to 9:30am EST (blue dashed lines)
+- 5 min opening range (dark green lines)
+- 30 mintue opening range (light green lines)
+
+It also draws yellow vertical lines marking the following periods:
+- Day start (blue triangle)
+- Day end (red triangle)
+- 5 min opening period end (dark green triangle)
+- 30 minute period end (light green triangle)
+- Mid day slow period (gray triangles)
+
+The important part of this script is that it shows how to get
+accurate values from the TimeFrameCompress and TimeFrameExpand
+functions when displaying intraday data on a chart that is not 
+limited to market hours only (9:30am to 4:00pm EST).  If you
+did not use the methods shown in this script, then the TF functions
+might return values that you did not want.  You would still get 
+open, high, low, and prev clos values, but they would most likely 
+off as they would include the pre and post market values as well.
+By using arrays of boolean values indicating what period the each
+bar in is, the TF functions can then be used effectively while
+still showing all data the 24 hour period has to offer.
+
+I leave it up to you to put alerts or filtering criteria in the script.
+
+8/13/2009
+bluueskyy
+
+------------------------------------------------------------------*/

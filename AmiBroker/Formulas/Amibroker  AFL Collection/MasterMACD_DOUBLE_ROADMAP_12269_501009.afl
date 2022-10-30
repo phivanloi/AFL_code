@@ -1,0 +1,31 @@
+_SECTION_BEGIN("MACD_DOUBLE_12269_501009");
+r1 = Param( "Fast avg", 12, 2, 200, 1 );
+r2 = Param( "Slow avg", 26, 2, 200, 1 );
+r3 = Param( "Signal avg", 9, 2, 200, 1 );
+ml = MACD(12,26);
+sl = Signal(12,26,9);
+
+Colorm=IIf(ml>Ref(ml,-1),colorYellow,colorRed);
+Plot( ml, "ROADMAP", Colorm, styleHistogram|styleThick|styleNoLabel);
+Plot( ml, "", colorRed,styleThick|styleNoLabel);
+Plot( sl, "", colorTeal,styleThick|styleNoLabel);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////// MACD 50-100-9  ////////////////////////////////////////////////////////////////////////////////////
+Aml = MACD(50,100);
+Asl = Signal(50,100,9);
+
+
+
+ColorAAm=IIf(Aml>Ref(Aml,-1),ColorRGB(10,180,50),ColorRGB(170,10,50));
+ColorAm=IIf(Aml>Ref(Aml,-1),ColorRGB(10,80,50),ColorRGB(70,10,50));
+
+//Plot( Aml, "MACD12269", Colorm, styleHistogram );
+//Plot( Asl, "Signal", colorTeal, styleNoLabel );
+
+
+Plot( Aml, "", ColorAAm, styleNoLabel );
+PlotOHLC( 0, Aml, 0 ,0 , "MACD", ColorAm, styleCloud|styleNoLabel);
+
+
+_SECTION_END();

@@ -1,0 +1,43 @@
+
+
+
+_SECTION_BEGIN("ERO ATR BUY SELL");
+
+ero = Param("ATR multiple", 2.5, 0.5, 10, 0.1 )*Param("ATR period", 10, 3, 50 );  
+ero_col=ParamColor( "Color", colorCycle );
+
+r=HHV(H,ero);
+s=LLV(L,ero);
+ab=IIf(H>Ref(r,-1),1,IIf(L<Ref(s,-1),-1,0));
+ac=ValueWhen(ab!=0,ab,1);
+sl=IIf(ac==1,s,r);
+
+Plot(sl, _DEFAULT_NAME(), ero_col, styleStaircase); // or styleaArea
+
+Buy=Cross(H,sl);
+Sell=Cross(sl,L);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+_SECTION_END();
+
+_SECTION_BEGIN("FAST");
+P = ParamField("Price field",-1);
+Periods =Param("periods",15,2,300,1,10);
+Plot(EMA(P,Periods),_DEFAULT_NAME(),  colorLime, styleLine);
+_SECTION_END();
+
+_SECTION_BEGIN("SLOW");
+P = ParamField("Price field",-1);
+Periods = Param("periods", 30, 2, 300, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), colorOrange, styleLine);
+_SECTION_END();
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

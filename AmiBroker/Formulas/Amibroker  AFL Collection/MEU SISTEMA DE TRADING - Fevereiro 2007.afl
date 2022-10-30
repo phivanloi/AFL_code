@@ -1,0 +1,45 @@
+//MEU SISTEMA DE TRADING - Fevereiro 2007
+
+//Referencias:
+//Envelope: "Come Into My Trading Room" - Dr.Alexander Elder - Canais - p.102
+//MACD: "Come Into My Trading Room" - Dr.Alexander Elder - MACD Histogram - p.110
+//
+
+GraphXSpace = 5; /* cria um espaço de 5% acima e abaixo do grafico */
+
+Periodo = Param("Periodo", 26, 5, 100);
+K = Param("Ajuste do Canal", 0.1, 0.01, 0.3, 0.01);
+LinhaSuperior = ( EMA( C, Periodo) + EMA( C, Periodo ) * K);
+LinhaInferior = ( EMA( C, Periodo) - EMA( C, Periodo ) * K);
+
+
+Plot( LinhaSuperior, "LSup", colorGrey50,styleLine);
+Plot( LinhaInferior, "LInf", colorGrey50,styleLine);
+
+Plot( EMA( C, Periodo ), "EMA", colorRed, styleLine);
+
+style = ParamStyle("Tipo de Barra", styleCandle, maskPrice);
+Plot( C, "Close Price", colorRed, style );
+
+//***** Plotar com pontos azuis os níveis de máxima histórica ****************
+LongPerMax = Param("Periodo Max Historica", 10, 1, 100, 1 ); 
+LastHigh = HHV( H, LongPerMax ); /* Toma a maior máxima no período selecionado acima */
+PreviousLastHigh=Ref(LastHigh, -1); /* Toma a máxima do dia anterior à maior máxima do período */
+Plot( PreviousLastHigh, " HHV(H,"+WriteVal(LongPerMax,1)+")", colorBlue, styleNoLine|styleDots|styleNoRescale );
+
+//***** Plotar com pontos vermelhos os níveis de mínima histórica ****************
+LongPerMin = Param("Periodo Min Historica", 10, 1, 100, 1 ); 
+LastLow = LLV( L, LongPerMin ); /* Toma a menor mínima no período selecionado acima */
+PreviousLastLow=Ref(LastLow, -1); /* Toma a mínima do dia anterior à menor mínima do período */
+Plot( PreviousLastLow, " LLV(L,"+WriteVal(LongPerMin,1)+")", colorRed, styleNoLine|styleDots|styleNoRescale );
+
+//******** Plota linhas e preenchimento em cor violeta do canal ********************
+
+PlotOHLC(LinhaSuperior,LinhaSuperior,LinhaInferior,LinhaInferior,"Banda",ColorRGB(245,245,255),styleCloud );
+
+//***** Plota setas verde e vermelha para compra e venda com MACD ******
+
+Buy=Cross( MACD(), Signal() ); /* Buy=1,se MACD cruza subindo a linha de Sinal */
+Sell=Cross( Signal(), MACD() ); /* Sell=1,se Sinal cruza subindo a linha MACD */
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow; 
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ), 0, IIf( Buy, Low, High ) ); /* se Buy=1, seta verde e na minima */

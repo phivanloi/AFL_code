@@ -1,0 +1,29 @@
+Ctmpl = E_TSKPCOLORTMPL(Open,High,Low,Close,Volume);
+total = 0;
+total = total  + IIf(tskp_colortmplcnd0 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd1 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd2 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd3 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd4 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd5 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd6 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd7 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd8 > 0, 1, -1); 
+
+
+for( i = 0; i < BarCount; i++ ) 
+{
+
+	if( total[i] >= 5 )
+		Color[i] = colorBlue;
+	else if(  total[i] <= -5 )
+		Color[i] = colorRed;
+	else
+		Color[i] = colorYellow;
+} 
+
+CO = Open;
+CH = High;
+CL = Low;
+CC = Close;
+PlotOHLC( CO,CH,CL,CC, "Price", color, styleCandle );//Plot Selected Ticker

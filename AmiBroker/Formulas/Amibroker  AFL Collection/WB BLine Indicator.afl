@@ -1,0 +1,27 @@
+//WB BLineUavg
+//{I think it should be the first line}
+{ppr:=(Ref(Open,-3) + HHV(H,4) + LLV(L,4) + C) / 4;}
+ppr:=(Ref(Open,-3) + HHV(H,3) + LLV(L,3) + C) / 4;
+tmp:=ppr - Ref(ppr,-1);
+uamt:=if(tmp>=0,tmp,0);
+uavg:=((PREV*2)+uamt)/3;
+uavg;
+
+//WB BLineDavg
+//{I think it should be the first line}
+{ppr:=(Ref(Open,-3) + HHV(H,4) + LLV(L,4) + C) / 4;}
+ppr:=(Ref(Open,-3) + HHV(H,3) + LLV(L,3) + C) / 4;
+tmp:=ppr - Ref(ppr,-1);
+damt:=if(tmp<0,-tmp,0);
+davg:=((PREV*2)+damt)/3;
+davg;
+
+//ind
+uavg:=Fml("WB BLineUavg");
+davg:=Fml("WB BLineDavg");
+obos:=if(uavg+davg<>0, 100*uavg/(uavg+davg),0);
+obosmy:=Mov(obos,3,S);
+obosmy;
+//sig
+if(Trough(1,Fml("WB BLine Indicator"),0.01) < 30 AND       TroughBars(1,Fml("WB BLine Indicator"),0.01)=1, H,
+if(Peak(1,Fml("WB BLine Indicator"),0.01) > 70 AND         PeakBars(1,Fml("WB BLine Indicator"),0.01)=1, -L, 0.00))

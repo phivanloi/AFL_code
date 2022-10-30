@@ -1,0 +1,56 @@
+/***********************************************************************************************************
+  Dinapoli Perferred Stochastic
+  Based on "Joe DiNapoli - The Practical Application of Fibonacci Analysis to
+Investment Markets"
+  APPENDIX E
+
+  Derived from given eSignal formula suggested by LaNard on 2008-05-31 in the
+comment:
+  refer "DiNapolis 3x Displaced Moving Averages" at
+  http://www.amibroker.com/library/detail.php?id=1090
+
+  Script Created by TohMz
+  
+***********************************************************************************************************/
+SetChartOptions(0,0,chartGrid20|chartGrid50|chartGrid80);
+
+function StochRaw(nLength, nSmoothing)
+{
+  Hh = HHV(High, nLength);
+  Ll = LLV(Low, nLength);
+  Hh = HHV(High, nLength);
+  Ll = LLV(Low, nLength);
+  return ((Close - ll) / (hh - ll)) * 100; 
+}
+
+function PreferStochK(nLength, nSmoothing) 
+{
+  percentK =StochRaw(nLength, nSmoothing);
+
+  MAVt[0]=0;
+  for(i=1; i<BarCount; i++)
+     MAVt[i] = MAVt[i-1] + (percentK[i] - MAVt[i-1]) / nSmoothing;
+  return MAVt;
+}
+
+function PreferStochD(nLength, nSmoothing, nSmoothings) 
+{
+  percentK = PreferStochK(nLength, nSmoothing);
+  MAVt[0] = 0;
+  for(i=1; i<BarCount; i++)
+         MAVt[i] = MAVt[i-1] + (percentK[i] - MAVt[i-1]) / nSmoothings;
+  return MAVt;
+
+}
+
+Period = Param("Period", 8, 3, 100);
+Ksmooth = Param("%K Smooth", 3, 3, 100);
+Dsmooth = Param("%D Smooth", 3, 3, 100);
+Upper = Param("%Upper Level", 75, 0, 100);
+Lower = Param("%Lower Level", 25, 0, 100);
+
+
+Plot( PreferStochK(Period, Ksmooth),    "percentK", colorBlue);
+Plot( PreferStochD(Period, Ksmooth, Dsmooth), "percentD", colorRed);
+Plot(Upper, "", colorBlack, styleDashed);
+Plot(Lower, "", colorBlack, styleDashed);

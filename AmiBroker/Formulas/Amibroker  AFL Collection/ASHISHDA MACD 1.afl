@@ -1,0 +1,12 @@
+_SECTION_BEGIN("ASHISHDA MACD");
+a=TSF(C,3)+TSF(C,5)+TSF(C,8)+TSF(C,13)+TSF(C,17)+TSF(C,26);
+b=TSF(C,8)+TSF(C,13)+TSF(C,26)+TSF(C,35)+TSF(C,50)+TSF(C,56);
+mova= TSF(a,3);
+movb=TSF(b,26);
+diff= a + mova;
+diff1= b + movb;
+m= diff - diff1;
+m1= TSF(m,5)*.5;
+Plot(m1, "Special MACD", colorBlue, styleLine);
+Plot(Ref(m1, -1), "Signal", colorRed, styleLine);
+_SECTION_END(); 

@@ -1,0 +1,161 @@
+_SECTION_BEGIN("GANN Levels");
+/*
+For Stocks/Index/Commodities "order" need to be 0.1 to 0.5
+
+For Forex "order" should be 0.001 ( except JPY pairs ), for JPY pairs it need to be 0.01
+*/
+
+Op=TimeFrameGetPrice("O",inDaily,0);  
+
+order=Param("Order",0.5,0.001,0.1,0.001,sincr = 0);
+
+level1 = 1.25;
+level2 = 2.50;
+level3 = 3.33;
+level4 = 5;
+level5 = 6.66;
+level6 = 7.5;
+level7 = 10;
+
+level1 = level1 * order;
+level2 = level2 * order;
+level3 = level3 * order;
+level4 = level4 * order;
+level5 = level5 * order;
+level6 = level6 * order;
+level7 = level7 * order;
+
+bAboveI=(sqrt(Op)+level1)*(sqrt(Op)+level1); // BUY Zone
+bAbove = round(bAboveI);				       
+
+sBelowI=(sqrt(Op)-level1)*(sqrt(Op)-level1);  // SELL Zone
+sBelow = round(sBelowI);
+
+Sstop= bAbove ;
+Bstop= sBelow ;
+
+// Resistance Levels (or Targets for Buy trade)
+
+BTgt1 = round((sqrt(Op)+level2)*(sqrt(Op)+level2));
+BTgt2 = round((sqrt(Op)+level3)*(sqrt(Op)+level3));
+BTgt3 = round((sqrt(Op)+level4)*(sqrt(Op)+level4));
+BTgt4 = round((sqrt(Op)+level5)*(sqrt(Op)+level5));
+BTgt5 = round((sqrt(Op)+level6)*(sqrt(Op)+level6));
+BTgt6 = round((sqrt(Op)+level7)*(sqrt(Op)+level7));
+
+// Support Levels (or Targets for Short trade)
+
+STgt1 = round((sqrt(Op)-level2)*(sqrt(Op)-level2));
+STgt2 = round((sqrt(Op)-level3)*(sqrt(Op)-level3));
+STgt3 = round((sqrt(Op)-level4)*(sqrt(Op)-level4));
+STgt4 = round((sqrt(Op)-level5)*(sqrt(Op)-level5));
+STgt5 = round((sqrt(Op)-level6)*(sqrt(Op)-level6));
+STgt6 = round((sqrt(Op)-level7)*(sqrt(Op)-level7));
+
+GfxSetBkMode( 1 );
+GfxSelectFont("Arial", 12, 900 );
+GfxSetTextColor( colorLime );
+GfxSelectPen( colorBlack, 1, 0) ;
+GfxSelectSolidBrush( colorBlue );
+
+BTgtext = "Buy Targets : " + NumToStr(btgt1,1.2,False) + " - " + NumToStr(btgt2,1.2,False) + " - " + NumToStr(btgt3,1.2,False)+ " - " + NumToStr(btgt4,1.2,False) + " - " + NumToStr(btgt5,1.2,False) + " - " + NumToStr(btgt6,1.2,False);
+STgtext = "Short Targets : " + NumToStr(stgt1,1.2,False) + " - " + NumToStr(stgt2,1.2,False) + " - " + NumToStr(stgt3,1.2,False)+ " - " + NumToStr(stgt4,1.2,False) + " - " + NumToStr(stgt5,1.2,False) + " - " + NumToStr(stgt6,1.2,False);
+
+// GANN levels based on MKT opening price ( please change this time according to exchnage opening time )
+GfxTextOut("Buy Above : " + WriteIf(TimeNum()>092900, NumToStr(bAbove,1.2,False) + " SL : " + NumToStr(sBelow,1.2,False),"Waiting for Signal"), 10, 65);
+GfxTextOut(WriteIf(TimeNum()>092900,BTgtext,""), 10, 85);
+
+GfxSetBkMode( 1 );
+GfxSelectFont("Arial", 12, 900 );
+GfxSetTextColor( colorOrange );
+GfxSelectPen( colorBlack, 1, 0) ;
+GfxSelectSolidBrush( colorBlue );
+
+GfxTextOut("Short Below : " + WriteIf(TimeNum()>092900, NumToStr(sBelow,1.2,False) + " SL : " + NumToStr(bAbove,1.2,False),"Waiting for Signal"), 10, 105);
+GfxTextOut(WriteIf(TimeNum()>092900,STgtext,""), 10, 125);
+
+BuySignal = (Cross(H,babove)OR Cross(C,babove) OR (H>babove AND L<=babove)) AND Op<babove ;
+ShortSignal = (Cross(Sbelow,L) OR Cross(Sbelow,C) OR (H>=sbelow AND L<sbelow))AND Op>sbelow ;
+
+BuySignal = ExRem(BuySignal,ShortSignal);
+ShortSignal = ExRem(ShortSignal,BuySignal);
+
+ShortProfitStop= (STgt1 AND L<=Stgt1 AND C>Stgt1) OR (STgt2 AND L<=Stgt2 AND C>Stgt2) OR (STgt3 AND L<=Stgt3 AND C>Stgt3) OR (STgt4 AND L<=Stgt4 AND C>Stgt4) OR (STgt5 AND L<=Stgt5 AND C>Stgt5) OR (STgt6 AND L<=Stgt6 AND C>Stgt6);
+BuyProfitStop= (Btgt1 AND H>=btgt1 AND C<Btgt1) OR (Btgt2 AND H>=Btgt2 AND C<btgt2) OR (Btgt3 AND H>=Btgt3 AND C<btgt3) OR (Btgt4 AND H>=Btgt4 AND C<btgt4) OR (Btgt5 AND H>=Btgt5 AND C<btgt5) OR (Btgt6 AND H>=Btgt6 AND C<btgt6);
+
+SetOption("MaxOpenPositions", 1 );
+SetPositionSize(100,spsShares);
+
+Buy = BuySignal;
+Sell = C<Bstop OR BuyProfitStop;
+
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+Short = ShortSignal;
+Cover = C>SStop OR ShortProfitStop;
+
+PlotShapes(IIf(Buysignal, shapeSquare, shapeNone),colorBlue, 0, L, Offset=-20);
+PlotShapes(IIf(Buysignal, shapeSquare, shapeNone),colorBlue, 0,L, Offset=-30);
+PlotShapes(IIf(Buysignal, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-25);
+
+PlotShapes(IIf(Shortsignal, shapeSquare, shapeNone),colorRed, 0, H, Offset=20);
+PlotShapes(IIf(Shortsignal, shapeSquare, shapeNone),colorOrange, 0,H, Offset=30);
+PlotShapes(IIf(Shortsignal, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-25);
+
+Short = ExRem(Short,Cover);
+Cover = ExRem(Cover,Short);
+
+AlertIf( Buy, "", "BUY @ " + C, 1 );
+AlertIf( Sell, "", "SELL @ " + C, 2 );
+
+PlotShapes(IIf(Cover, shapeUpArrow,shapeNone),colorGreen, 0, Low, Offset=-20);
+PlotShapes(IIf(Sell, shapeDownArrow,shapeNone),colorRed, 0, High, Offset=-20);
+
+
+numbars = LastValue(Cum(Status("barvisible")));
+hts  = -33.5;
+
+gl = ParamToggle("GANN Levels","Show|Hide",0);
+if(gl==1) {
+
+Plot(sstop,"BUY Zone",colorDarkGreen,styleDots|styleNoLine|styleNoRescale|styleNoTitle );
+Plot(bstop,"SELL Zone",colorDarkRed,styleDots|styleNoLine|styleNoRescale|styleNoTitle );
+
+Plot(BTgt1,"BUY TGT1",colorOrange,styleDots|styleNoLine|styleNoRescale|styleNoTitle );
+Plot(BTgt2,"BUY TGT2",colorOrange,styleDots|styleNoLine|styleNoRescale|styleNoTitle );
+Plot(BTgt3,"BUY TGT3",colorOrange,styleDots|styleNoLine|styleNoRescale|styleNoTitle );
+Plot(BTgt4,"BUY TGT4",colorOrange,styleDots|styleNoLine|styleNoRescale|styleNoTitle );
+Plot(BTgt5,"BUY TGT5",colorOrange,styleDots|styleNoLine|styleNoRescale|styleNoTitle );
+Plot(BTgt6,"BUY TGT6",colorOrange,styleDots|styleNoLine|styleNoRescale|styleNoTitle );
+
+Plot(STgt1,"SELL TGT1",colorLime,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(STgt2,"SELL TGT1",colorLime,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(STgt3,"SELL TGT1",colorLime,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(STgt4,"SELL TGT1",colorLime,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(STgt5,"SELL TGT1",colorLime,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+Plot(STgt6,"SELL TGT1",colorLime,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+
+PlotText(" BUY Zone" ,    LastValue(BarIndex())-(numbars/Hts), LastValue(sstop,1), colorDarkGreen);
+PlotText(" SELL Zone" ,    LastValue(BarIndex())-(numbars/Hts), LastValue(bstop,1), colorDarkRed);
+
+PlotText(" BUY TGT1" ,    LastValue(BarIndex())-(numbars/Hts), LastValue(BTgt1,1), colorOrange);
+PlotText(" BUY TGT2" ,    LastValue(BarIndex())-(numbars/Hts), LastValue(BTgt2,1), colorOrange);
+PlotText(" BUY TGT3" ,    LastValue(BarIndex())-(numbars/Hts), LastValue(BTgt3,1), colorOrange);
+PlotText(" BUY TGT4" ,    LastValue(BarIndex())-(numbars/Hts), LastValue(BTgt4,1), colorOrange);
+PlotText(" BUY TGT5" ,    LastValue(BarIndex())-(numbars/Hts), LastValue(BTgt5,1), colorOrange);
+PlotText(" BUY TGT6" ,    LastValue(BarIndex())-(numbars/Hts), LastValue(BTgt6,1), colorOrange);
+
+PlotText(" SELL TGT1" ,    LastValue(BarIndex())-(numbars/Hts), LastValue(STgt1,1), colorLime);
+PlotText(" SELL TGT2" ,    LastValue(BarIndex())-(numbars/Hts), LastValue(STgt2,1), colorLime);
+PlotText(" SELL TGT3" ,    LastValue(BarIndex())-(numbars/Hts), LastValue(STgt3,1), colorLime);
+PlotText(" SELL TGT4" ,    LastValue(BarIndex())-(numbars/Hts), LastValue(STgt4,1), colorLime);
+PlotText(" SELL TGT5" ,    LastValue(BarIndex())-(numbars/Hts), LastValue(STgt5,1), colorLime);
+PlotText(" SELL TGT6" ,    LastValue(BarIndex())-(numbars/Hts), LastValue(STgt6,1), colorLime);
+
+}
+
+_SECTION_END();
+
+_SECTION_END();
+

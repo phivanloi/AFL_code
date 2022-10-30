@@ -1,0 +1,56 @@
+_SECTION_BEGIN("MABIUTS");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+Title = ("Mabiuts - " + Name()+"  " + Date() +"  "+Interval(2) +"  "+ EncodeColor(colorLime)+",Open "+Open +" ,High "+H+" ,Low "+L+" ,Close "+C+" "+"{{VALUES}}");
+
+
+Buy= EMA(C,13)>EMA(EMA(C,13),9) AND  Cross (C,Peak(C,5,1)) ;
+Sell=Cross (EMA(EMA(C,13),9),EMA(C,13));
+
+Short=EMA(C,13)<EMA(EMA(C,13),9) AND  Cross (Trough(C,5,1),C) ;
+Cover =Cross (EMA(C,13),EMA(EMA(C,13),9));// OR Cross (C,Peak(C,2,1)) ;
+Short = ExRem(Short,Cover);
+Cover = ExRem(Cover,Short);
+
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+
+
+MYcolor = IIf( EMA(C,13)>EMA(EMA(C,13),9) AND  C>Peak(C,2,1), colorLime, IIf(EMA(C,13)>EMA(EMA(C,13),9) AND C<Peak(C,2,1),colorBlue, colorRed));
+
+PlotOHLC( Open,  High,  Low,  Close, "", Mycolor, styleBar|styleThick   ); 
+
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow + Short * shapeDownTriangle +  Cover * shapeUpTriangle;
+
+
+PlotShapes( shape, IIf( Buy, colorGreen, IIf(Short, colorYellow ,IIf(Cover, colorTurquoise,colorRed ))),0, IIf( Buy, Low, High ) );
+
+GraphXSpace = 5;
+dist = 1.5*ATR(10); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "Buy\n@" + C[ i ], i, L[ i ]-dist[i], colorGreen ); 
+if( Sell[i] ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorRed);
+if( Short[i] ) PlotText( "Short\n@" + C[ i ], i, H[ i ]+dist[i], colorYellow);
+if( Cover[i] ) PlotText( "cover\n@" + C[ i ], i, H[ i ]+dist[i], colorTurquoise);
+ 
+} 
+
+
+
+
+_SECTION_BEGIN("Volume");
+Plot( Volume, _DEFAULT_NAME(), ParamColor("Color", colorLavender ), styleNoTitle | ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick | styleNoLabel, maskHistogram  ), 2 );
+
+_SECTION_BEGIN("EMA1");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 200, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+_SECTION_BEGIN("EMA2");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 200, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();

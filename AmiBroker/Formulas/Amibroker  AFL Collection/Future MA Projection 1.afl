@@ -1,0 +1,18 @@
+_SECTION_BEGIN("TSI");
+r = Param( "TSI period 'Length':",4, 1, 100, 1 );
+s = Param( "TSI period 'Smoothing':",8, 1, 100, 1 );
+u=Param("TSI period 'Smoothing':", 5, 1, 100, 1);
+sig = Param( "Signal period:", 4, 1, 100, 1 );
+ 
+Mtm = C - Ref ( C, -1 );
+AbsMtm = abs ( Mtm );
+Num_T =EMA( EMA ( EMA ( Mtm, r ), s),u );
+Den_T =EMA( EMA ( EMA ( AbsMtm, r ), s),u );
+
+TSI = 500 * Nz ( Num_T / Den_T );
+tsicolor=IIf(tsi>Ref(tsi,-1),colorCustom4,colorOrange);
+Plot( TSI, "TSI("+r+","+s+","+u+")", tsicolor, ParamStyle("Style")|styleThick+8 );
+Plot(EMA(TSI,sig), "", ParamColor("color",colorYellow),styleLine|styleThick+8);
+Plot (0, "", colorWhite, styleLine|styleThick);PlotGrid(200, colorLightGrey);
+PlotGrid(-200, colorLightGrey);
+_SECTION_END();

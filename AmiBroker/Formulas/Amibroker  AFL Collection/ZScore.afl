@@ -1,0 +1,3 @@
+periods = 20;
+ZScore = ( Close - MA( Close, periods ) ) / StDev( Close, periods );
+Plot( ZScore, "Z-Score", colorRed );

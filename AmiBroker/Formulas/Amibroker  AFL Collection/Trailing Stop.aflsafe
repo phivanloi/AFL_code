@@ -1,0 +1,205 @@
+/*							Trailing Stop.afl - Bill Barnard, 12/19/05
+	This is to be used as an include file for SIGNAL STUDY.afl or the entire contents are to be
+	pasted into SIGNAL OPTIMIZE.afl. Read discussion (first parameter) in SIGNAL STUDY.afl 	*/
+
+AA		=  (Status("action")==3 OR Status("action")==4 OR Status("action")==5);	//	= 1 in AA
+if (AA)	sigSelect = "Trailing Stop";
+if (sigSelect=="Trailing Stop")	{
+
+if (AA)	//	if this code is being used in AA
+{
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	Current		= ParamToggle("Use Current Symbol?", "Using Symbol named just below for Indicator,Using Current Symbol for Indicator");
+	indicSym		= ParamStr("Indicator Symbol", "RUT-I");
+	bah			= 0;
+	param1		= 1;//Optimize("Smooth",  1, 1, 5, 1);
+	param2		= Optimize("SellPerc", 	5, 1, 51, 2);
+	param3		= Optimize("BuyPerc", 	5, 1, 31, 2);
+	param6		= 1;//Optimize("AveTyp",  1, 0, 5, 1);
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+}
+
+//	if this code is being used in an indicator, retrieve stored param information
+if (Status("action")==1)
+{
+	PRParamsList			= "";
+	PRParamsFileName	= "ConfigFiles\\PRParams"+GetChartID()+".bf";
+
+	fh 						= fopen( PRParamsFileName, "r");
+	if( fh )
+	{
+		while( ! feof( fh ) )
+		{
+			PRParamsList = fgets( fh );
+		}
+		fclose( fh );
+	}
+
+	q0		=		IIf(PRParamsList !="", 	StrToNum(StrExtract(PRParamsList,  0	)), 0	 		);//	Current
+	q1		= WriteIf(PRParamsList !="", 				  StrExtract(PRParamsList,   1	), 	"RUT-I"	);//	indicSym
+	q2		=		IIf(PRParamsList !="", 	StrToNum(StrExtract(PRParamsList,  2	)), 1	 		);//	param1
+	q3		=		IIf(PRParamsList !="", 	StrToNum(StrExtract(PRParamsList,  3	)), 5			);//	param2
+	q4		=		IIf(PRParamsList !="", 	StrToNum(StrExtract(PRParamsList,  4	)), 5	 		);//	param3
+	q5		=		IIf(PRParamsList !="", 	StrToNum(StrExtract(PRParamsList,  5	)), 0	 		);//	param4
+	q6		=		IIf(PRParamsList !="", 	StrToNum(StrExtract(PRParamsList,  6	)), 0			);//	param5
+	q7		=		IIf(PRParamsList !="", 	StrToNum(StrExtract(PRParamsList,  7	)), 1	 		);//	param6
+	q8		=		IIf(PRParamsList !="", 	StrToNum(StrExtract(PRParamsList,  8	)), 0			);//	param7
+	q9		=		IIf(PRParamsList !="", 	StrToNum(StrExtract(PRParamsList,  9	)), 0	 		);//	param8
+
+
+	_SECTION_BEGIN("INDICATOR PARAMETERS");
+	Current		= ParamToggle("Price Reversal -                     Use Current Symbol?", 
+						"Symbol below makes Indicator - click to change,Current Symbol makes Indicator - click to change", q0);
+	IndicString	= ParamStr("Trailing Stop -                               Indicator Symbol", "Indicator Symbol---"+q1);
+	indicSym		= StrMid(StrToUpper (IndicString), 19, 5)) ;
+	bah			= ParamToggle("Trailing Stop -                 Signals or Buy and Hold?",
+								"Using Price Reversal Signals - click to change,Showing Buy and Hold - click to change");
+	param1		= Param("Trailing Stop -                    Price Smoothing Period", q2, 1, 100, 1);
+	param2		= Param("Trailing Stop -                       Sell Reversal Percent", q3, 1, 50, 1);
+	param3		= Param("Trailing Stop -                       Buy Reversal Percent", q4, 1, 30, 1);
+	param4		= ParamToggle("Trailing Stop - Multiply Percentages above by 0.1?",
+								"Using Reversal Percentages above - click to change,Multiplying Percentages above by 0.1 - click to change", q5);
+	param5		= q6;
+	param6		= ParamList("Trailing Stop -                                  Average Type", "Simple Moving Average,"+
+								"Exponential Moving Average,Double Moving Average,Triple Moving Average,"+
+								"Weighted Moving Average,Till3 Moving Average", q7);
+	param6		= 	IIf(param6=="Simple Moving Average", 0, IIf(param6=="Exponential Moving Average", 1,
+						IIf(param6=="Double Moving Average", 2, IIf(param6=="Triple Moving Average", 3,
+						IIf(param6=="Weighted Moving Average", 4, 5)))));
+	param7		= q8;
+	param8		= q9;
+
+	manset		= ParamToggle("Trailing Stop -            Using Manually Set Signals?", 
+							"NOT Using Manually Set Signals - click to change,Using Manually Set Signals - click to change");
+	Clear1		= ParamTrigger("Trailing Stop -                     Remove Signal at Pole", "Click to Remove Signal at Pole");
+	setbuy		= ParamTrigger("Trailing Stop -                                  Set Buy Signal", "Click to Set BUY Signal at Pole");
+	setsell		= ParamTrigger("Trailing Stop -                                  Set Sell Signal", "Click to Set SELL Signal at Pole");
+	reset			= ParamTrigger("Trailing Stop -     Remove All Manually Set Signals", "Click to Remove All Manually Set Signals");
+	_SECTION_END();
+}
+
+//	Buy/Sell rules start here
+aveStr		= "MA,EMA,DEMA,TEMA,WMA,Till3";
+aveType 		= StrExtract(aveStr, Param6);
+
+ind1		= IIf(current, Close, Foreign(indicSym, "Close"));
+indError	= IIf(IsNull(ind1), 1, 0);
+indicSym	= WriteIf(indError, "", indicSym);
+Nam		= WriteIf(current, Name(), indicSym);					Name1	= Nam+w2(ind1)+wi(bah, "    Buy and Hold\n");
+
+if (NOT bah)
+{
+	ind2		= MovAve(aveType, ind1, Param1);						Name2	= aveType+"("+Param1+") of "+Nam+w2(ind2);
+	ind1		= Null;	//	through with it and don't want it plotted
+	mult		= IIf(Param4, 0.1, 1);
+
+	Buy[0] 		= 1;
+	BuyLine[0]	= Null;
+	SellLine[0] 	= (1 - 0.01*mult*Param2)*ind2[0];
+	Hiest[0]		= ind2[0];
+
+	for (i=1; i < BarCount; i++)
+	{
+		Hiest[i]		= Max(Hiest[i-1], ind2[i]);
+		SellLine[i] 	= (1 - 0.01*mult*Param2)*Hiest[i];
+		BuyLine[i]	= Null;
+
+		if (ind2[i] < SellLine[i] )
+		{
+			Sell[i] 	= 1;
+			BuyLine[i ]	= (1 + 0.01*mult*Param3)*ind2[i];
+			Loest[i] 	= ind2[i];
+			n = IIf(i < BarCount - 1, 1, 0);
+
+			while (ind2[i + n] <  (1 + 0.01*mult*Param3)*Min(Loest[i + n  - 1], ind2[i + n]) AND (i + n) < BarCount - 1 )
+			{
+				Loest[i + n]		= Min(Loest[i + n  - 1], ind2[i + n]) ;
+				BuyLine[i + n]	= (1 + 0.01*mult*Param3)*Loest[i + n];
+				SellLine[i + n]	= Null;
+				n					= n + 1;
+			}
+
+			Buy[i + n] 		= IIf((i + n)==(BarCount - 1), 0, 1);
+			Loest[i + n]		= Min(Loest[i + n  - 1], ind2[i + n]) ;
+			BuyLine[i + n]	= (1 + 0.01*mult*Param3)*Loest[i + n];
+			Hiest[i + n]		= ind2[i + n];
+			SellLine[i + n] 	= (1 - 0.01*mult*Param2)*Hiest[i + n];
+			i					= i + n;
+		}
+	}
+
+	ind3	= BuyLine;															Name3	= "Buy Level"+w2(ind3);
+	ind4	= SellLine;															Name4	= "Sell Level"+w2(ind4);
+																					Name7	= "\nBuy Reversal %"+
+																								WriteIf(Param4, w1(mult*Param3), w0(Param3));
+																					Name8	= "Sell Reversal %"+
+																								WriteIf(Param4, w1(mult*Param2), w0(Param2));
+
+
+	Buy		= ExRem(Buy, Sell);
+	Sell		= ExRem(Sell, Buy);
+
+
+	if (Status("action")==1)	// if this code is being used for an indicator
+	{
+		//	if using manually set signals
+		if (manset)
+		{
+			if (reset)
+			{
+				for (i=0; i<BarCount; i++)
+				{
+					StaticVarSet("B"+i, Null);
+					StaticVarSet("S"+i, Null);
+				}
+			}
+
+			if( setbuy ) 	StaticVarSet("B"+SelectedValue(BIn), 1);
+
+			if( setsell ) 	StaticVarSet("S"+SelectedValue(BIn), 1);
+
+			if (Clear1)
+			{
+				StaticVarSet("B"+SelectedValue(BIn), 0);
+				StaticVarSet("S"+SelectedValue(BIn), 0);
+			}
+
+			for (i=0; i<BarCount; i++)
+			{
+				Buy[i] = IIf(NOT IsEmpty(StaticVarGet("B"+i)), StaticVarGet("B"+i), Buy[i]) ;
+				Sell[i] = IIf(NOT IsEmpty(StaticVarGet("S"+i)), StaticVarGet("S"+i), Sell[i]) ;
+			}
+		}
+	}
+}
+else 	Buy	= 1;
+
+if (Status("action")==1)	// if this code is being used for an indicator
+{
+	//	make an initiation file to store params
+	PRParamsList = ""+
+		Current		+","+
+		indicSym		+","+
+		param1		+","+
+		param2		+","+
+		param3		+","+
+		param4		+","+
+		param5		+","+
+		param6		+","+
+		param7		+","+
+		param8		+","+
+		"";
+
+	fh 	= fopen( PRParamsFileName, "w");
+	if( fh )
+	{
+		fputs(PRParamsList, fh);
+		fclose( fh );
+	}
+}
+
+}

@@ -1,0 +1,229 @@
+_SECTION_BEGIN("MetaCandle");
+BgColor=ParamColor("BgColor", colorBlack);
+SetChartBkGradientFill( BgColor,BgColor,BgColor); 
+upcolor=ParamColor("Up color ",colorGreen);
+downcolor=ParamColor("Down color ",colorRed);
+barcolor=IIf(C>Ref(C,-1),upcolor,downcolor);
+Insidecolor=IIf(C<O,barcolor,BgColor);
+SetBarFillColor(Insidecolor);
+//PlotOHLC( Open, High, Low, Close, " " , barcolor, styleCandle | styleThick );
+SetChartOptions(0,chartShowArrows|chartShowDates);
+	//SetChartBkColor(ParamColor("Outer Panel",colorPaleBlue));
+	//SetChartBkGradientFill(ParamColor("Upper Chart",1),ParamColor("Lower Chart",23));
+	GraphXSpace=Param("GraphXSpace",10,0,100,1);
+	dec = (Param("Decimals",2,0,7,1)/10)+1;
+	bi = BarIndex();
+	Lbi = LastValue(BarIndex());
+	sbi = SelectedValue(bi);
+	x1= BarCount-1;
+Title = EncodeColor(55)+  Title = Name() + "     " + EncodeColor(32) + Date() +
+"      " + EncodeColor(5) + "{{INTERVAL}}  " +
+	EncodeColor(55)+ "     Open = "+ EncodeColor(52)+ WriteVal(O,dec) + 
+	EncodeColor(55)+ "     High = "+ EncodeColor(5) + WriteVal(H,dec) +
+	EncodeColor(55)+ "      Low = "+ EncodeColor(32)+ WriteVal(L,dec) + 
+	EncodeColor(55)+ "    Close = "+ EncodeColor(52)+ WriteVal(C,dec)+
+	EncodeColor(55)+ "    Volume = "+ EncodeColor(52)+ WriteVal(V,1);
+
+TimeFrameSet(inDaily);
+DayHigh = LastValue(H);
+DayLow = LastValue(L);
+TimeFrameRestore();
+
+//Title = Date() + ", Op=" + Open + ", Hi=" + High + ", Lo=" + Low + ", LTP=" + Close + ", Change= " + SelectedValue( ROC( C, 1 ) ) + "%" + "\n Today`s High=" + DayHigh + ", Today`s Low=" + DayLow + " © PRIME SYSTEM" ;
+
+
+prev=AMA2(C,1,0);
+d=IIf(C>Ref(Max(Max(H,Ref(H,-20)),Max(Ref(H,-10),Ref(H,-15))),-1),Min(Min(L,Ref(L,-20)),Min(Ref(L,-10),Ref(L,-15))),
+IIf(C<Ref(Min(Min(L,Ref(L,-20)),Min(Ref(L,-10),Ref(L,-15))),-1),Max(Max(H,Ref(H,-20)),Max(Ref(H,-10),Ref(H,-15))),PREV));
+a=Cross(Close,d);
+b=Cross(d,Close);
+state=IIf(BarsSince(a)<BarsSince(b),1,0);
+s=state>Ref(state,-1);
+ss=state<Ref(state,-1);
+sss=state==Ref(state,-1);
+col=IIf(state == 1 ,51,IIf(state ==0,4,1));
+Plot(C,"",Col,64);
+Buy = s;
+Sell = ss;
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes(shape, IIf(Buy,colorGreen,colorRed), 0, IIf(Buy,Low,High));
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-10);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-20);
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-15);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=20);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=30);
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-25);
+//WriteIf(s,"EXIT all Short positions\nif trading long positions, enter long Now-\nOR at the market price on tomorrow's Open with stop="+EncodeColor(4)+WriteVal(L+.75*ATR(5),1.4)+" ,","");
+//WriteIf(ss,"exit all long positions today with a Market On Close (MOC) order\nOR at the market price on tomorrow's Open with stop="+EncodeColor(4)+WriteVal(Ref(H+.75*ATR(5), -1),1.4)+",","");
+//WriteIf( sss ,"No trading signals today.","") ;
+
+
+dist = 0.8*ATR(10);
+dist1 = 2*ATR(10);
+for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] )
+{
+PlotText( "\nBuy:" + L[ i ] + "\nT= " + (L[i]*1.005) + "\nSL= " + (L[i]*0.9975), i, L[ i ]-dist[i], colorGreen, colorWhite );
+}
+if( Sell[i] )
+{
+PlotText( "Sell:" + H[ i ] + "\nT= " + (H[i]*0.995) + "\nSL= " + (H[i]*1.0025), i, H[ i ]+dist1[i], colorRed, colorWhite );
+}
+}
+
+
+Filter = s OR sss OR sss ;
+AddColumn(C,"close",1.2);
+AddColumn( IIf( s, 66,1 ), "buy", formatChar, 1, bkcolor =IIf (s,colorYellow, colorPink ));
+AddColumn( IIf( Ss, 83,1 ), "sell", formatChar, 1, bkcolor =IIf (Ss,colorPink, colorWhite ));
+AddColumn( IIf( sss, 87,1 ), "wait", formatChar, 1, bkcolor =IIf (sss,colorYellow, colorRed ));
+
+
+_SECTION_BEGIN("swing1");
+no=20;
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+supres=IIf(avn==1,sup,res);
+a=Cross(C,supres);
+b=Cross(supres,C);
+style = a * styleStaircase + b * styleStaircase;
+PlotShapes(a,style, IIf(a,colorGreen,colorRed), 0, IIf(a,Low,High));
+Plot(supres,"Swing",colorYellow,styleStaircase);
+_SECTION_END();
+
+
+
+_SECTION_BEGIN("trend");
+uptrend=PDI(20)>MDI(10)AND Signal(29)<MACD(13);
+downtrend=MDI(10)>PDI(20)AND Signal(29)>MACD(13);
+Plot( 2, /* defines the height of the ribbon in percent of pane width */"ribbon",
+IIf( uptrend, colorGreen, IIf( downtrend, colorRed, 0 )), /* choose color */
+styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+_SECTION_END();
+
+Buy = s AND a AND uptrend ;
+Short = ss AND b AND downtrend ;
+Sell = ss AND b AND downtrend ;
+Cover = s AND a AND uptrend ;
+
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+Cover=ExRem(Cover,Short);
+Short=ExRem(Short,Cover);
+
+Filter=Buy OR Sell;
+Filter= Cover OR Short;
+
+AddColumn( Buy, "Buy", 1);
+AddColumn(Sell, "Sell", 1);
+AddColumn(Close,"Close",1.2);
+AddColumn(Volume,"Volume",1.0);
+
+
+// Plot the Buy and Sell arrows.
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-10);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-20);
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-15);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=20);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=30);
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-25);
+
+
+
+
+
+//plot volume graph
+
+// set background gradient colours
+//SetChartBkGradientFill( ParamColor("BgTop", ColorRGB( 172,172,172 )),ParamColor("BgBottom", ColorRGB( 102,136,187 )),ParamColor("titleblock",ColorRGB( 255,255,255 )));
+_SECTION_BEGIN("Raghee Horner's EMA's");
+EMA1 = EMA(H,34);
+EMA2 = EMA(L,34);
+EMA3 = EMA(C,34);
+
+Plot( EMA1, "EMA1" ,ParamColor( "Color1", colorRed ), ParamStyle("Style", styleLine|styleThick) | styleNoRescale );
+Plot( EMA2, "EMA2" ,ParamColor( "Color2", colorGreen ), ParamStyle("Style", styleLine|styleThick) | styleNoRescale );
+Plot( EMA3, "EMA3" ,ParamColor( "Color3", colorBlue ), ParamStyle("Style", styleLine|styleThick) | styleNoRescale );
+_SECTION_END();
+
+_SECTION_BEGIN("Supertrend");
+procedure calcTrend_proc(ATR_Period,tr,ATR_Multiplier,TrendMode,CalcPrice)
+{
+global buffer_line_down;
+global buffer_line_up;
+buffer_line_down = Null;
+buffer_line_up = Null;
+
+PHASE_NONE = 0;
+PHASE_BUY = 1;
+PHASE_SELL = -1;
+
+phase=PHASE_NONE;
+band_upper = 0;band_lower = 0;
+  
+for(i = ATR_Period + 1; i < BarCount; i++)
+{
+	band_upper = CalcPrice[i] + ATR_Multiplier * tr[i];
+	band_lower = CalcPrice[i] - ATR_Multiplier * tr[i];
+	
+	if(phase==PHASE_NONE)
+	{
+		buffer_line_up[i] = CalcPrice[i];
+		buffer_line_down[i] = CalcPrice[i];
+	}
+	if(phase!=PHASE_BUY && Close[i]>buffer_line_down[i-1] && !IsEmpty(buffer_line_down[i-1])) 
+	{
+		phase = PHASE_BUY;
+		buffer_line_up[i] = band_lower;
+		buffer_line_up[i-1] = buffer_line_down[i-1];
+	}
+	if(phase!=PHASE_SELL && Close[i]<buffer_line_up[i-1] && !IsEmpty(buffer_line_up[i-1]))
+	{
+		phase = PHASE_SELL;
+		buffer_line_down[i] = band_upper;
+		buffer_line_down[i-1] = buffer_line_up[i-1];
+	}	
+	if(phase==PHASE_BUY && ((TrendMode==0 && !IsEmpty(buffer_line_up[i-2])) || TrendMode==1) )
+	{
+		if(band_lower>buffer_line_up[i-1]) 
+		{
+			buffer_line_up[i] = band_lower;
+		}
+		else 
+		{
+			buffer_line_up[i] = buffer_line_up[i-1];
+		}
+	}
+	if(phase==PHASE_SELL && ((TrendMode==0 && !IsEmpty(buffer_line_down[i-2])) || TrendMode==1) )
+	{
+		if(band_upper<buffer_line_down[i-1])
+		{
+			buffer_line_down[i] = band_upper;
+		}
+		else
+		{
+			buffer_line_down[i] = buffer_line_down[i-1];
+		}
+	}
+}
+}
+
+TrendMode = ParamToggle("TrendMode","Off|On",1);
+ATR_Multiplier = Param("ATR_Multiplier",2,0.1,10,0.1);
+ATR_Period = Param( "ATR_Period",5,1,20,1);
+tr = ATR(ATR_Period);
+
+CalcPrice = (H+L)/2;
+calcTrend_proc(ATR_Period,tr,ATR_Multiplier,TrendMode,CalcPrice);
+
+//Plot(buffer_line_up,"\ntu",ColorRGB(28,134,238),styleThick);
+//Plot(buffer_line_down,"\ntd",ColorRGB(205,51,51),styleThick);
+
+//Plot( 2,"",IIf(buffer_line_up,colorGreen,colorBlack),styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+//Plot( 4,"",IIf(buffer_line_down,colorRed,colorBlack),styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+_SECTION_END();
+_SECTION_END();

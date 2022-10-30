@@ -1,0 +1,18 @@
+StoRSI1 = ((RSI(21)-LLV(RSI(21),8))/((HHV(RSI(21),13))-LLV(RSI(21),13)))*100;
+
+StoRSI2 = ((RSI(21)-LLV(RSI(21),21))/((HHV(RSI(21),21))-LLV(RSI(21),21)))*100;
+
+StoRSI3 = ((RSI(14)-LLV(RSI(14),14))/((HHV(RSI(14),14))-LLV(RSI(14),14)))*100;
+
+StoRSI4 = EMA((RSI(21)-LLV(RSI(21),13))/(HHV(RSI(21),8)-(LLV(RSI(21)+0.00001,13))),8) * 100;
+
+StoRSI5 = EMA((RSI(5)-LLV(RSI(5),5))/(HHV(RSI(5),5)- (LLV(RSI(5),5))),3)*100;
+
+StoRSI6 = EMA((RSI(13)-LLV(RSI(13),13))/(HHV(RSI(13),13)- (LLV(RSI(13),13))),3)*100;
+
+Plot(StoRSI1 , "", 4);
+Plot(StoRSI2 , "", 4);
+Plot(StoRSI3 , "", 4);
+Plot(StoRSI4 , "", 5);
+Plot(StoRSI5 , "", 5);
+Plot(StoRSI6 , "", 5);

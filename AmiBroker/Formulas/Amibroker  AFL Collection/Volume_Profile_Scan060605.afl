@@ -1,0 +1,437 @@
+Buy=Sell=0;
+
+Version(4.77);
+
+SetBarsRequired(32000,-1);
+
+
+function Slot(price,tick)
+{
+// used in Market Prfile for allocating the right price slot
+result=floor(price/tick)*tick;
+  return result;
+}
+
+
+
+Maxdays=23;
+
+
+//Edit starttime and endTradingday===================================================
+
+starttime=093000;
+endTradingday=161500;
+
+//===================================================================================
+
+endtime=161500-(Interval()/60)*100;
+
+
+
+Treshold=70;
+Vol=0;
+Hi=0;
+Lo=0;
+Hiday=0;
+Loday=999999;
+Minrow=0;
+Maxrow=0;
+Openprice=0;
+ClosePrice=0;
+Peakvol=0;
+Peakrow=0;
+TPOLenght=0;
+TPOrow=0;
+pricexvol=0;
+POC=0;
+UVAVol=0;
+LVAVol=0;
+VolAbovePOC=0;
+VolBelowPOC=0;
+TotalVolday=0;
+VWAP=0;
+TotalVol=0;
+
+ndate=DateNum();
+ntime=TimeNum();
+
+procedure BarIndexvalue(starttime,endtime,endTradingDay,Maxdays)
+{
+SetBarsRequired(100000,-1);
+
+global endbar;
+global startbar;
+global startdate;
+global enddate;
+
+Trading_day=IIf(Now(4)>=starttime AND Now(4)<=endTradingDay AND Now(9) != 7 AND Now(9)!= 1,1,0); 
+TimeFrameSet(inDaily);
+startdate=LastValue(Ref(DateNum(),-Maxdays));
+enddate=IIf(Trading_day==1,Ref(DateNum(),-1),DateNum());
+enddate=LastValue(enddate);
+TimeFrameRestore();
+startdate=TimeFrameExpand(startdate,inDaily);
+enddate=TimeFrameExpand(enddate,inDaily);
+startbar=LastValue(ValueWhen(DateNum()==startdate AND TimeNum()==starttime,BarIndex(),1));
+endbar=LastValue(ValueWhen(DateNum()==enddate AND TimeNum()==endtime,BarIndex(),1));
+}
+
+
+Lo=999999;
+Hi=0;
+SetInterval=2;
+
+Hiday=0;
+Loday=999999;
+
+Tick=IIf(Name()=="ES #F" OR Name()=="NQ #F", 0.25,IIf(Name()=="YM #F", 2.5,IIf(Name()=="AB #F", 20,1.0)));
+
+Trading_day=IIf(Now(4)>=starttime AND Now(4)<=endTradingDay AND Now(9) !=7 AND Now(9)!= 1,1,0); 
+Trading_day=LastValue(Trading_day);
+
+BarIndexvalue(starttime,endtime,endTradingDay,Maxdays);
+
+
+TimeFrameSet(inDaily);
+z=EndValue(BarIndex());
+maxprice=(ceil(HHV(H,maxdays+1))/tick)*tick; 
+minprice=(floor(LLV(L,Maxdays+1))/tick)*tick;
+if(Trading_day==1)
+	{
+		Maxprice[z]=Maxprice[z-1];
+		Minprice[z]=Minprice[z-1];
+	}
+TimeFrameRestore();
+Maxprice=LastValue(TimeFrameExpand(Maxprice,inDaily,expandFirst));
+Minprice=LastValue(TimeFrameExpand(Minprice,inDaily, expandFirst));
+
+
+
+
+numprices=LastValue((maxprice-minprice)/tick+1);
+
+osInitialize();
+
+
+	pricetable=osTabCreate();
+
+		osTabAddColumn("Prices",1,pricetable);
+
+
+	for (i=1;i<=Maxdays+1;i++)
+	{
+		osTabAddColumn("day" + NumToStr(i,1.0),1,pricetable);
+
+		
+	}
+
+
+
+
+	for (i=0; i<numprices; i++)
+	{	
+			for (j=1;j<=Maxdays+1; j++)
+			{
+				osTabSetNumber(0,i,j,pricetable);
+			}
+	}
+ //setup prices in column 1 
+    i=0;
+	j=Maxprice;
+	while (j>=Minprice )
+		{  
+			osTabSetNumber(j,i,0,pricetable);
+			j=j-tick;
+          i=i+1;
+		}      
+TimeFrameSet(in1Minute);
+
+nday=Maxdays+1;
+Peakvol=0;
+it=1;
+		for (barid=startbar; barid<=endbar; barid++)
+			{
+					
+				if( ndate[barid]>ndate[barid-1] AND it != 1) 
+
+					{	
+						
+						nday=nday-1;
+					}
+
+					it=it+1;	
+
+						
+					if(ntime[barid]>=starttime AND ntime[barid]<=endtime)
+						{
+							if(ntime[barid]==starttime) { Openprice[nday] = O[barid]; }
+							if(ntime[barid]==endtime)   { Closeprice[nday]= C[barid]; }
+
+
+						
+						numstick=(slot(H[barid],tick)-slot(L[barid],tick))/tick+1;
+							Vol=V[barid]/numstick;
+							Hi=slot(H[barid],tick);
+							Lo=slot(L[barid],tick);
+
+							
+							
+							j=Hi;
+							while(j>=Lo)
+								{
+									row=(Maxprice-j)/tick;
+									Cellvol=osTabGet(row,nday,PriceTable);
+									Cellvol=Cellvol+Vol;
+									osTabSetNumber(Cellvol,row,nday,PriceTable);
+
+										if (Cellvol>Peakvol[nday])
+										 { 
+												Peakvol[nday] = Cellvol; 
+												Peakrow[nday]=row; 
+										 }
+											
+									j=j-tick;
+								}
+						
+						}	
+						if(nday<=Maxdays) 
+							{ 
+								nrow=peakrow[nday];
+							 	POC[nday]=osTabGet(nrow,0,pricetable); 
+							}
+						if (Lo<LoDay[nday])
+										 { 
+												LoDay[nday] = Lo; 
+												MinRow[nday]=(Maxprice-Lo)/tick;
+
+										 }
+						if (Hi>HiDay[nday])
+										 { 
+												HiDay[nday] = Hi; 
+												Maxrow[nday]=(Maxprice-Hi)/tick;
+										 }
+
+			}
+
+//VolumeAbovePOC
+
+
+VolumeAbovePOC=0;
+for (i=1; i<=Maxdays; i++)
+	{
+		rowabovpoc=Peakrow[i]-1;
+		Mxxrow=Maxrow[i];
+		for (j=Mxxrow; j<=rowabovpoc; j++)
+			{ 
+			VolumeAbovePOC[i]=osTabGet(j,i,pricetable)+VolumeAbovePOC[i];
+			}
+	}
+
+//VolumebelowPOC
+VolumeBelowPOC=0;
+for (i=1; i<=Maxdays; i++)
+	{
+		rowbelopoc=Peakrow[i]+1;
+		Mnnrow=Minrow[i];
+		for (j=rowbelopoc; j<=Mnnrow; j++)
+			{ 
+			VolumeBelowPOC[i]=osTabGet(j,i,pricetable)+VolumeBelowPOC[i];
+			}
+	}
+//TotalVolday and pricexvol
+for (i=1; i<=Maxdays; i++)
+	{
+		Mnnrow=Minrow[i];
+		Mxxrow=Maxrow[i];
+		 for (j=Mxxrow; j<=Mnnrow; j++)
+			{ 
+			 x=osTabGet(j,i,pricetable); 
+			 TotalVolday[i]= x + TotalVolDay[i];
+			 Pricexvol[i]= x * osTabGet(j,0,pricetable)+Pricexvol[i];
+			}
+	}
+
+VWAP=Pricexvol/TotalVolDay;
+
+
+//valuearea calculation
+UVAVol=0;
+LVAVol=0;
+
+Volabov=0;
+Volbelo=0;
+Volvalue=Peakvol;
+rowabov=0;
+rowbelo=0;
+
+ndays=Maxdays+1;
+
+it=0;
+for (i=1; i<=ndays; i++)
+	{
+		
+		rowabovpoc=Peakrow[i]-1;
+		Mxxrow=Maxrow[i];
+		rowbelopoc=Peakrow[i]+1;
+		Mnnrow=Minrow[i];
+				j=rowabovpoc;
+				k=rowbelopoc;
+		if(j>Mxxrow+1)  
+			{
+				blocka= osTabGet(j,i,pricetable)+osTabGet(j-1,i,pricetable);
+			}
+			else
+			{
+				blocka= 1;
+			}
+
+		if(k<Mnnrow-1)
+			{
+				blockb= osTabGet(k,i,pricetable)+osTabGet(k+1,i,pricetable);
+			}
+			else
+			{
+				blockb= 1;
+			}
+			
+		while(j>=Mxxrow AND k<=Mnnrow)
+			{	
+				
+				
+					  	if(blocka>Blockb) 
+							{
+								finaltweak=blocka;
+								Volvalue[i]=Blocka+Volvalue[i];
+								rowabov[i]=j;	
+								j=j-2;
+								if(j>Mxxrow+1) {blocka= osTabGet(j,i,pricetable)+osTabGet(j-1,i,pricetable);} else	{ blocka= 1;}
+								it=1;
+							}
+						else
+							{	
+								finaltweak=blockb;
+								Volvalue[i]=Blockb+Volvalue[i];
+								rowbelo[i]=k;
+								k=k+2;
+								if(k<Mnnrow-1) {blockb= osTabGet(k,i,pricetable)+osTabGet(k+1,i,pricetable);} else	{ blockb= 1;}
+								it=2;
+							}
+				
+				if(Volvalue[i]>=Treshold*TotalVolDAy[i]/100)
+
+						{
+							jx=j;
+							kx=k;
+							j=Mxxrow-1;
+							k=Mnnrow+1;
+						}
+							
+					
+			}
+	if(it=1)	{Volvalue[i]=Volvalue[i]-finaltweak; j=jx+1;}			
+	if(it=2)  {Volvalue[i]=Volvalue[i]-finaltweak; k=kx-1;}
+			
+			blocka= osTabGet(j,i,pricetable);
+			blockb= osTabGet(k,i,pricetable);
+
+			
+			while(j>=Mxxrow AND k<=Mnnrow)
+			{	
+				
+				
+					  	if(blocka>Blockb) 
+							{
+								Volvalue[i]=Blocka+Volvalue[i];
+								rowabov[i]=j;	
+								j=j-1;
+								if(j>=Mxxrow) {blocka= osTabGet(j,i,pricetable);} else	{ blocka= 1;}
+
+								it=3;
+							}
+						else
+							{	
+								Volvalue[i]=Blockb+Volvalue[i];
+								rowbelo[i]=k;
+								k=k+1;
+								if(k<=Mnnrow) {blockb= osTabGet(k,i,pricetable);} else	{ blockb= 1;}
+
+								it=3;
+							}
+				
+				if(Volvalue[i]>=Treshold*TotalVolDAy[i]/100)
+
+						{
+							j=Mxxrow-1;
+							k=Mnnrow+1;
+						}
+
+			}
+		if(rowabov[i]<Mxxrow) { rowabov[i]=Mxxrow; }  
+		if(rowbelo[i]>Mnnrow) { rowbelo[i]=Mnnrow; }  
+		UVAvol[i]=osTabGet(rowabov[i],0,pricetable);
+		LVAVol[i]=osTabGet(rowbelo[i],0,pricetable);
+		ExactTreshold[i]=round(100*Volvalue[i]/TotalVolDay[i]);
+
+	}
+
+							
+osTabExport("Pricetable.txt",",",pricetable);
+
+osTabDelete(pricetable);
+
+
+
+
+
+
+Lastdailybar=LastValue(ValueWhen(DateNum()==enddate,BarIndex(),1));
+nday=Maxdays+1;
+it=1; 
+for (barid=startbar; barid<=endbar; barid++)
+			{
+					
+				
+			if( ndate[barid]>ndate[barid-1] AND it != 1) 
+
+					{	
+						
+						nday=nday-1;
+						
+					}
+					it=it+1;	
+								
+				Openprice[barid]=Openprice[nday];
+				Closeprice[barid]=Closeprice[nday];
+				POC[barid]=POC[nday];
+				VWAP[barid]=VWAP[nday];
+				VolumeAbovePOC[barid]=VolumeAbovePOC[nday];
+				UVAvol[barid]=UVAvol[nday];
+				LVAvol[barid]=LVAvol[nday];
+				VolumeBelowPOC[barid]=VolumeBelowPOC[nday];
+				ExactTreshold[barid]=ExactTreshold[nday];
+				Peakrow[barid]=Peakrow[nday];
+				Peakvol[barid]=Peakvol[nday];
+			  	Maxrow[barid]=Maxrow[nday];
+				Minrow[barid]=Minrow[nday];
+				
+
+		}
+
+
+AddToComposite(Openprice,"~Volume_Profile","open");
+AddToComposite(Closeprice,"~Volume_Profile","close");
+
+AddToComposite(POC,"~Volume_Profile","High");
+AddToComposite(VWAP,"~Volume_Profile","Low");
+AddToComposite(VolumeAbovePOC,"~Volume_Profile","Volume");
+
+
+AddToComposite(UVAvol,"~Volume_Profile_2","open");
+AddToComposite(LVAvol,"~Volume_Profile_2","close");
+AddToComposite(ExactTreshold,"~Volume_Profile_2","High");
+AddToComposite(Peakrow,"~Volume_Profile_2","Low");
+AddToComposite(PeakVol,"~Volume_Profile_2","I");
+
+AddToComposite(VolumeBelowPOC,"~Volume_Profile_2","Volume");
+AddToComposite(Maxrow,"~Volume_Profile_3","High");
+AddToComposite(Minrow,"~Volume_Profile_3","low");

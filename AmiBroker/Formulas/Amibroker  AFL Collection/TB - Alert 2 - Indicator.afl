@@ -1,0 +1,90 @@
+//|------------------------------------------------------------------
+//|Tradingbasis.com - Alert 2 Indicator based
+//|Version:1.5   03-May-2006
+//|Copyright © 2005, Tradingbasis.com
+//|http://www.tradingbasis.com
+//|e-mail: support@tradingbasis.com
+//|------------------------------------------------------------------
+SetChartOptions(0,chartShowDates|chartWrapTitle);
+#pragma nocache
+#include  <\TBInc\Tradingbasis_f0.afl>
+
+AddparamUsefromChart(1);
+AddAlertParam(1,0,0);
+
+_SECTION_BEGIN("Main Parameters"); 
+Offset = Param("Maximum Deviation",20,0.01,200,0.01);
+if(InChart) StaticVarSet("X0S2V0",Offset);if(inAA AND Usefromchart) Offset = StaticVarGet("X0S2V0");
+Centering = ParamToggle("Range Centering","Off,On",0);
+if(InChart) StaticVarSet("C3A8G2",Centering);if(inAA AND Usefromchart) Centering = StaticVarGet("C3A8G2"); 
+RE = Param("Upper Level",100,-100,100,1);
+if(InChart) StaticVarSet("G8A7E1",RE);if(inAA AND Usefromchart) RE = StaticVarGet("G8A7E1"); 
+SU = Param("Lower Level",-100,-100,100,1);
+if(InChart) StaticVarSet("W5R0Q2",SU);if(inAA AND Usefromchart) SU = StaticVarGet("W5R0Q2"); 
+
+_SECTION_BEGIN("Styles");
+Indstyle = ParamStyle("Indicator",styleLine,maskAll);
+_SECTION_END();
+
+_SECTION_BEGIN("Colors");
+ReColor = ParamColor("Upper Range",colorRed);
+SuColor = ParamColor("Lower Range",colorGreen);
+Indcolor = ParamColor("Indicator",colorYellow);
+_SECTION_END();
+
+//////////////////////////////////////////////////////////
+_SECTION_END();
+
+Ind = Taio; //Enter your indicator here
+
+ALON = Audio|Email;
+
+SuAL_L = IIf(Centering,SU-Offset,SU);
+SuAL_H = SU+Offset;
+ReAL_L = RE-Offset;
+ReAL_H = IIf(Centering,RE+Offset,Re);
+
+Buy_1 = Ind<SuAL_H & Ind>=SuAL_L;//Indicator in support range
+Buy_2 = Cross(Ind,SuAL_H); //Indicator breaks out of lower range
+Sell_1 = Cross(ReAL_L,Ind);//Indicator breaks out of upper range
+Sell_2 = Ind>ReAL_L & Ind<=ReAL_H;//Indicator in upper range
+
+AddAlert(Buy_1,Audio,Email,"Indicator in Lower Range"+DefaultAlertText,1,BarComplete);
+AddAlert(Buy_2,Audio,Email,"Indicator left Lower Range"+DefaultAlertText,1,BarComplete);
+AddAlert(Sell_1,Audio,Email,"Indicator left Upper Range"+DefaultAlertText,2,BarComplete);
+AddAlert(Sell_2,Audio,Email,"Indicator in Upper Range"+DefaultAlertText,2,BarComplete);
+
+Buy = Buy_1 OR Buy_2;
+Sell = Sell_1 OR Sell_2;
+Filter = NOT GroupID()==253;
+Filter = Filter AND (Buy OR Sell);
+
+Adddefaultcolumns(2,1);
+AddTextColumn(FullName(),"Full name");
+
+//////////////////////////////////////////////////////////////
+Plot(Ind,"Indicator",Indcolor,Indstyle);
+Plot(SU,"Low-Level",SuColor,styleDashed);
+Plot(RE,"High-Level",ReColor,styleDashed);
+Shift = 10;
+x=Cum(1); Lx = x >=LastValue(x)-Shift;
+CV = IIf(Version()>=4.72,1,0);
+Plot(IIf(Lx & CV,SuAL_L,-1e10),"",SuColor,styleNoRescale+styleNoLabel,0,0,Shift);
+Plot(IIf(Lx & CV,SuAL_H,-1e10),"",SuColor,styleNoRescale,0,0,Shift);
+Plot(IIf(Lx & CV,ReAL_L,-1e10),"",ReColor,styleNoRescale,0,0,Shift);
+Plot(IIf(Lx & CV,ReAL_H,-1e10),"",ReColor,styleNoRescale+styleNoLabel,0,0,Shift);
+
+
+Nd = IIf(Su==0&Re>0,1,IIf(Re==0&Su>0,2,IIf(Su==0 & Re==0,3,0)));
+
+Title = "Tradingbasis.com - Alert 2, " +
+StrFormat(" - {{NAME}} - {{INTERVAL}} {{DATE}}, ")+  
+EncodeColor(Sucolor)+"Low Level: " + WriteVal(SU,1.0)+
+" (" + WriteVal(SuAL_L,1.1)+" to "+WriteVal(SuAL_H,1.0)+"), "+
+EncodeColor(Recolor)+"High Level: " + WriteVal(RE,1.0)+
+" (" + WriteVal(ReAL_L,1.0)+" to "+WriteVal(ReAL_H,1.0)+"), "+
+EncodeColor(colorLightBlue)+"Max. Deviation = "+WriteVal(Offset,1.0)+" Points, "+
+EncodeColor(colorAqua)+"Activated Alerts:"
++WriteIf(Audio AND NOT Email," Audio ",
+ WriteIf(Email AND NOT Audio," Email ",
+ WriteIf(Email AND Audio," Audio & Email "," None ")));

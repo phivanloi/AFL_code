@@ -1,0 +1,8 @@
+m23:=Mov(C,23,E);
+m50:=Mov(C,50,E);
+if(Fml("WB DblStoch Signal")>0 {Buy Signal}
+   AND m23>m50 AND C>m23
+   AND BarsSince(L<m23)<4, H,
+if(Fml("WB DblStoch Signal")<0 {Sell Signal}
+   AND m23<m50 AND C<m23
+   AND BarsSince(H>m23)<4, -L, 0))

@@ -1,0 +1,83 @@
+_SECTION_BEGIN("Hull Moving Average");
+/***************************************/
+/* Hull Moving Average version 1.0 */
+/* by Avi b a */
+/* The Hull Moving Average solves the age 
+old dilemma of making a moving average more 
+responsive to current price activity whilst maintaining curve smoothness...
+read more at-(Had to omit this link in order to post)/***************************************/
+
+SetChartBkColor(16);
+
+
+Period = Param("Period",3,1,100,1);
+Hull= WMA( 2*WMA(C,int(3/2))- WMA(C,3),int(sqrt(Period)));
+
+Period = Param("Period",5,1,100,1);
+Hull5 = WMA( 2*WMA(C,int(5/2))-WMA(C,5),int(sqrt(Period)));
+
+Period = Param("Period",7,1,100,1);
+Hull7 = WMA( 2*WMA(C,int(7/2))- WMA(C,7),int(sqrt(Period)));
+
+Period = Param("Period",9,1,100,1);
+Hull9 = WMA( 2*WMA(C,int(9/2))- WMA(C,9),int(sqrt(Period)));
+
+Period = Param("Period",11,1,100,1);
+Hull11 = WMA( 2*WMA(C,int(11/2))- WMA(C,11),int(sqrt(Period)));
+
+Period = Param("Period",13,1,100,1);
+Hull13 = WMA( 2*WMA(C,int(13/2))- WMA(C,13),int(sqrt(Period)));
+
+Period = Param("Period",21,1,100,1);
+Hull21 = WMA( 2*WMA(C,int(21/2))- WMA(C,21),int(sqrt(Period)));
+
+Period = Param("Period",24,1,100,1);
+Hull24= WMA( 2*WMA(C,int(24/2))- WMA(C,24),int(sqrt(Period)));
+
+Period = Param("Period",27,1,100,1);
+Hull27 = WMA( 2*WMA(C,int(27/2))- WMA(C,27),int(sqrt(Period)));
+
+Period = Param("Period",30,1,100,1);
+Hull30 = WMA( 2*WMA(C,int(30/2))- WMA(C,30),int(sqrt(Period)));
+
+Period = Param("Period",33,1,100,1);
+Hull33 = WMA( 2*WMA(C,int(33/2))- WMA(C,33),int(sqrt(Period)));
+
+Period = Param("Period",38,1,100,1);
+Hull38 = WMA( 2*WMA(C,int(38/2))- WMA(C,38),int(sqrt(Period)));
+
+
+
+for( i = 1 ; i < BarCount-2; i++ ) 
+{
+if (hull[i] <hull[i-1] && hull[i] <hull[i+1])
+Lpml[i]=1; 
+else
+Lpml[i] =0;
+
+if (hull[i] >hull[i-1] && hull[i] >hull[i+1])
+Lpmh[i]=1;
+else
+Lpmh[i] =0;
+}
+
+GR =ExRem(LpmH,Lpmh);
+RD =ExRem(Lpml,Lpml);
+
+
+Plot(Hull," Hull3",43,1);
+Plot(Hull5," Hull5",43,1);
+Plot(Hull7," Hull7",43,1);
+Plot(Hull9," Hull9",43,1);
+Plot(Hull11," Hull11",43,1);
+Plot(Hull13," Hull13",43,1);
+Plot(Hull21," Hull21",33,1);
+Plot(Hull24," Hull24",33,1);
+Plot(Hull27," Hull27",33,1);
+Plot(Hull30," Hull30",33,1);
+Plot(Hull33," Hull33",33,1);
+Plot(Hull38," Hull38",33,1);
+
+SetChartOptions(2, chartWrapTitle );
+Plot(C,"",4,64);
+_SECTION_END();

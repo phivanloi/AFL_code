@@ -1,0 +1,78 @@
+_SECTION_BEGIN("Band Color");
+Smoother = Param("OscColorSmooth", 7, 2, 20);
+
+OscLookback = 8; //5 is good
+
+
+n=Smoother;
+ys1=(High+Low+Close*2)/4;
+rk3=EMA(ys1,n);
+rk4=StDev(ys1,n);
+rk5=(ys1-rk3)*100/rk4;
+rk6=EMA(rk5,n);
+UP=EMA(rk6,n);
+DOWN=EMA(up,n);
+Oo=IIf(up<down,up,down);
+Hh=Oo;
+Ll=IIf(up<down,down,up);
+Cc=Ll;
+barcolor3=IIf(Ref(oo,-1)<Oo AND Cc<Ref(Cc,-1),colorBlue,IIf(up>down,colorWhite,colorOrange));
+flowerClose = EMA((Open+High+Low+Close)/4,3) ;
+
+ChgPrice1 = ROC( flowerClose, OscLookback );
+//ChgVolume = ROC( V, Lookback );
+
+
+PriceUp1 = IIf( ChgPrice1 > 0, 18, -18 );
+Period1 = 6; //6 is good 
+
+_SECTION_END();
+
+_SECTION_BEGIN("XmAn");
+
+
+m = Param("Periods", 9, 5, 20, 1 );
+n = Param("Average", 6, 3, 10, 1 );
+
+pa =EMA((Open+High+Low+Close)/4,3) ;//(2*C+H+L)/4;
+cost = pa*Volume;
+
+scost5 = Sum(cost,n);
+svolume5 = Sum(Volume,n);
+pa5 = scost5/svolume5;
+
+RSV = (pa5-LLV(pa5,m))/(HHV(pa5,m)-LLV(pa5,m))*100;
+pak = WMA(rsv,n);
+paD = WMA(paK,n);
+
+UP=pak; 
+DOWN=pad; 
+Oo=IIf(up<down,up,down);
+Hh=Oo;
+Ll=IIf(up<down,down,up);
+Cc=Ll;
+barcolor2=IIf(up>down,5,colorRed);
+
+Plot(Oo,"",barcolor3,styleLine|styleThick);
+Plot(Ll,"",barcolor3,styleLine|styleThick);
+PlotOHLC( Oo,hh,ll,Cc, "nfzrmn", barcolor3, styleCloud );
+
+PlotOHLC( UP,UP,50,UP, "", IIf( UP > 50, colorRed, colorBlue ), styleCloud | styleClipMinMax, 10, 92.5 ); 
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("FastOBOS");
+
+Ovos = ParamToggle("Display_OBOS", "No|Yes", 1);
+OBSetting=Param("Levels",15,1,500,1);
+Bline = StochD(OBSetting);
+Oversold=Bline<=30;
+Overbought=Bline>=85;
+
+if(Ovos)
+{
+PlotShapes (IIf(Oversold, shapeSmallCircle, shapeNone) ,colorWhite, layer = 0, yposition = Oo, offset = -4 );
+PlotShapes (IIf(Overbought, shapeSmallCircle, shapeNone) ,colorRed, layer = 0, yposition = Ll, offset = 4);
+}
+

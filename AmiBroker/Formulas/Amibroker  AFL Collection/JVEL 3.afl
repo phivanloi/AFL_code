@@ -1,0 +1,15 @@
+_SECTION_BEGIN("JVEL");
+//SetBarsRequired(10000, 0); 
+
+
+Plot( JurikVEL( C,3), "", colorWhite, styleThick );
+Plot( JurikVEL( C,4), "", colorBlue, styleNoLabel );
+Plot( JurikVEL( C,5), "", colorBlue, styleNoLabel );
+Plot( JurikVEL( C,6), "", colorBlue, styleNoLabel );
+Plot( JurikVEL( C,7), "", colorBlue, styleNoLabel );
+Plot( JurikVEL( C,8), "", colorBlue, styleNoLabel );
+Plot( JurikVEL( C,9), "", colorBlue, styleNoLabel );
+Plot( JurikVEL( C,10), "", colorBlue, styleNoLabel );
+Plot( JurikVEL( C,11), "", colorBlue, styleNoLabel );
+Plot( JurikVEL( C,12), "", colorBlue, styleNoLabel );
+_SECTION_END();

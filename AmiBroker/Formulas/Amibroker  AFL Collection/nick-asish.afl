@@ -1,0 +1,140 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("NICK MA Swing+AshishDa system");
+SetBarsRequired(200,0);
+
+GraphXSpace = 5;
+SetChartOptions(0,chartShowArrows|chartShowDates);
+k =  Optimize("K",Param("K",1,0.25,5,0.25),0.25,5,0.25);
+Per= Optimize("atr",Param("atr",4,3,20,1),3,20,1);
+HACLOSE=(O+H+L+C)/4;
+HaOpen = AMA( Ref( HaClose,  -1 ),  0.5 );
+HaHigh = Max( H,  Max( HaClose,  HaOpen ) );
+HaLow = Min( L,  Min( HaClose,  HaOpen ) );
+//PlotOHLC( HaOpen, HaHigh, HaLow, HaClose, "" + Name(), colorBlack, styleCandle | styleNoLabel );
+j=Haclose;
+
+//=======================================================================================================================
+//=========================Indicator==============================================================================================
+f=ATR(14);
+
+rfsctor = WMA(H-L, Per);
+
+revers = k * rfsctor;
+
+Trend = 1;  
+NW[0] = 0;  
+
+
+for(i = 1; i < BarCount; i++)
+{
+ if(Trend[i-1] == 1)                
+ {
+  if(j[i] < NW[i-1])                 
+  {
+   Trend[i] = -1;                   
+   NW[i] = j[i] + Revers[i];        
+  }
+  else                              
+  {
+   Trend[i] = 1;
+   if((j[i] - Revers[i]) > NW[i-1])
+   {
+    NW[i] = j[i] - Revers[i]; 
+   }
+   else
+   {
+    NW[i] = NW[i-1];
+   }
+  } 
+ }
+ if(Trend[i-1] == -1)               
+ {
+  if(j[i] > NW[i-1])                
+  {
+   Trend[i] = 1;                    
+   NW[i] = j[i] - Revers[i];        
+  }
+  else                              
+  {
+   Trend[i] = -1;
+   if((j[i] + Revers[i]) < NW[i-1]) 
+   {
+    NW[i] = j[i] + Revers[i]; 
+   }
+   else
+   {
+    NW[i] = NW[i-1];
+   }
+  }
+ }
+}
+
+//===============system================
+
+
+Buy=Cover=Cross(j,nw);
+Sell=Short=Cross(nw,j);
+SellPrice=ValueWhen(Sell,C,1);
+BuyPrice=ValueWhen(Buy,C,1);
+Long=Flip(Buy,Sell);
+Shrt=Flip(Sell,Buy );
+
+//=================TITLE================================================================================================
+
+if( Status("action") == actionIndicator ) 
+(
+Title = EncodeColor(colorWhite)+ "NICK MA Swing System" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"\n" +EncodeColor(colorBlack) +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+
+"Cl-"+C+"  "+ "Vol= "+ WriteVal(V)+"\n"+ 
+EncodeColor(colorRed)+
+WriteIf (Buy , " GO LONG / Reverse Signal at "+C+"  ","")+
+WriteIf (Sell , " EXIT LONG / Reverse Signal at "+C+"  ","")+"\n"+EncodeColor(colorWhite)+
+WriteIf(Sell , "Total Profit/Loss for the Last Trade Rs."+(C-BuyPrice)+"","")+
+WriteIf(Buy  , "Total Profit/Loss for the Last trade Rs."+(SellPrice-C)+"","")+
+WriteIf(Long AND NOT Buy, "Trade : Long - Entry price Rs."+(BuyPrice),"")+
+WriteIf(shrt AND NOT Sell, "Trade : Short - Entry price Rs."+(SellPrice),"")+"\n"+ 
+WriteIf(Long AND NOT Buy, "Current Profit/Loss Rs."+(C-BuyPrice)+"","")+
+WriteIf(shrt AND NOT Sell, "Current Profit/Loss Rs."+(SellPrice-C)+"",""));
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+AlertIf( Buy, "SOUND C:\\Windows\\Media\\Ringin.wav", "Audio alert", 2 );
+AlertIf( Sell, "SOUND C:\\Windows\\Media\\Ringin.wav", "Audio alert", 2 );
+_SECTION_END();
+
+///////////////////////// AshishDa System ///////////////////////////////
+///////////////////// BULLISH SETUP ///////////////////////////////
+
+WillR=-100 * ( HHV( H, 14 ) - C )/( HHV( H, 14 ) - LLV( L, 14 ) );
+a= IIf(LLV(RSI(14),20)< Ref(LLV(RSI(14),20),-2) AND LLV(RSI(14),20) < 35,1,0);
+b= IIf(Ref(a,-1) ==1 AND a ==0 ,1,0);
+m= IIf(Hold(b,10) AND WillR < -95,1,0);
+n= IIf(Ref(m,-1) ==1 AND m ==0 ,1,0);
+PlotShapes(shapeUpArrow*n,colorGreen,0, L,-15 );
+
+
+////////////////////////////// BEARISH SETUP /////////////////////////////
+aWillR=-100 * ( HHV( H, 14 ) - C )/( HHV( H, 14 ) - LLV( L, 14 ) );
+aa= IIf(HHV(RSI(14),20)> Ref(HHV(RSI(14),20),-2) AND HHV(RSI(14),20) > 65,1,0);
+ab= IIf(Ref(aa,-1) ==1 AND aa ==0 ,1,0);
+am= IIf(Hold(ab,10) AND aWillR > -10,1,0);
+an= IIf(Ref(am,-1) ==1 AND am ==0 AND C<O,1,0);
+PlotShapes(shapeDownArrow*an,colorRed,0, H,-15 );
+
+
+Filter=n>0 OR AN>0 OR Buy OR Sell;
+
+
+
+AddColumn( IIf(n>0,1,IIf(an>0,-1,Null)) ,"B_S",1.0,colorWhite,IIf(n>0,colorGreen,IIf(an>0,colorRed,colorBlack))); 
+AddColumn( IIf(Buy,BuyPrice,IIf(Sell,SellPrice,Null)) ,"NMA",1.0,colorWhite,IIf(Buy,colorGreen,IIf(Sell,colorRed,colorBlack))); 
+
+_SECTION_END();

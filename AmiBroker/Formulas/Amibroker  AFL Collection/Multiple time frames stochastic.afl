@@ -1,0 +1,70 @@
+_SECTION_BEGIN("Parameters");
+
+
+Plot(Param("Wyprzedanie",25,0,100),"",ParamColor("Level-color",colorGrey50), ParamStyle ( "Level-style" ,styleDashed |styleNoTitle | styleNoRescale ) );
+Plot(Param("Wykupienie",75,0,100) ,"",ParamColor("Level-color",colorGrey50), ParamStyle ( "Level-style" ,styleDashed |styleNoTitle | styleNoRescale ) );
+
+TimeframeL = ParamList("Time Frame Short",List = "15 min,30 min,Hourly,4 Hour,Daily,Weekly",2);
+Tf1=
+IIf(TimeframeL == "15 min",in15Minute,
+IIf(TimeframeL == "30 min",1800,
+IIf(TimeframeL == "Hourly",inHourly,
+IIf(TimeframeL == "4 Hour",inHourly*4,
+IIf(TimeframeL == "Daily",inDaily,
+IIf(TimeframeL == "Weekly",inWeekly,
+IIf(TimeframeL == "Weekly",inMonthly,Null)))))));
+
+
+_SECTION_END();
+
+
+
+_SECTION_BEGIN("Stochastic %D");
+
+periods = Param( "Periods", 8, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 3, 1, 200, 1 );
+Dsmooth = Param( "%D avg", 3, 1, 200, 1 );
+Plot( StochD( periods , Ksmooth, DSmooth ), _DEFAULT_NAME(), ParamColor( "Color", colorBlue ), ParamStyle("Style") );
+
+_SECTION_END();
+
+_SECTION_BEGIN("Stochastic %K");
+
+periods = Param( "Periods", 8, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 3, 1, 200, 1 );
+Plot( StochK( periods , Ksmooth), _DEFAULT_NAME(), ParamColor( "Color", colorRed ), ParamStyle("Style") );
+
+
+
+_SECTION_END();
+
+_SECTION_BEGIN("Stoch.%D-H");
+
+periods = Param( "Periods", 8, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 3, 1, 200, 1 );
+Dsmooth = Param( "%D avg", 3, 1, 200, 1 );
+
+TimeFrameSet(Tf1);
+StochDh= StochD( periods , Ksmooth, DSmooth );
+TimeFrameRestore();
+
+
+Plot( TimeFrameExpand( StochDh, Tf1), _DEFAULT_NAME(), ParamColor( "Color", colorGreen ), ParamStyle("Style") );
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("Stoch.%K-H");
+
+periods = Param( "Periods", 8, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 3, 1, 200, 1 );
+
+TimeFrameSet(Tf1);
+StochDk = StochK( periods , Ksmooth);
+TimeFrameRestore();
+
+Plot( TimeFrameExpand( StochDk, Tf1) , _DEFAULT_NAME(), ParamColor( "Color", colorGreen ), ParamStyle("Style") );
+
+
+
+_SECTION_END(); 

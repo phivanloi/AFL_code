@@ -1,0 +1,15 @@
+*Long Reversal Bar
+
+//H < H1 AND L < L1 AND ((H + L) / 2) < C
+
+Lrev= H < Ref(H,-1) AND L < Ref(L,-1) AND ((H+L)/2) < C ;
+
+*Short Reversal Bar
+
+//H > H1 AND L > L1 and C < ((H + L) / 2)
+
+/Srev= H > Ref(H,-1) AND L > Ref(L,-1) AND C < ((H + L)/2);
+
+
+--------------------------------------
+NOT my code !!!!

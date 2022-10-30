@@ -1,0 +1,134 @@
+
+//ESSENTIAL TRADER TOOLS//
+// Compiled by K.Vidyasagar, vkunisetty@yahoo.com //
+_SECTION_BEGIN("Price");
+SetChartBkGradientFill( ParamColor("BgTop",colorBlack),ParamColor("BgBottom",colorBlack),ParamColor("Titleblock",colorLightGrey));
+SetChartOptions(0,chartShowDates|chartShowArrows|chartLogarithmic|chartWrapTitle);
+GraphXSpace = 5;
+Plot(C,"",colorWhite,styleCandle);
+_SECTION_END();
+
+//Previous Days HI LO //
+
+DayH = TimeFrameGetPrice("H", inDaily, -1);	 DayHI = LastValue (DayH,1);// yesterdays high
+DayL = TimeFrameGetPrice("L", inDaily, -1);	 DayLI = LastValue (DayL,1);	// yesterdays low
+DayC = TimeFrameGetPrice("C", inDaily, -1);	 	// yesterdays close
+DayO = TimeFrameGetPrice("O", inDaily);			// current day open
+DayH2= TimeFrameGetPrice("H", inDaily, -2);  DayH2I = LastValue (DayH2,1); // Two days before high
+DayL2= TimeFrameGetPrice("L", inDaily, -2);  DayL2I = LastValue (DayL2,1);  // Two days before low
+DayH3= TimeFrameGetPrice("H", inDaily, -3);  DayH3I = LastValue (DayH3,1);  // Three days before high
+DayL3= TimeFrameGetPrice("L", inDaily, -3);  DayL3I = LastValue (DayL3,1);  // Three days before low
+
+numbars = LastValue(Cum(Status("barvisible")));
+hts  = -33.5;
+
+YHL = ParamToggle("Yesterday HI LO","Show|Hide",1);
+if(YHL==1) {
+  Plot(DayL,"YL",colorTurquoise,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+  Plot(DayH,"YH",colorTurquoise,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+  PlotText(" YH " , 	LastValue(BarIndex())-(numbars/Hts), DayHI, colorTurquoise);
+  PlotText(" YL " , 	LastValue(BarIndex())-(numbars/Hts), DayLI, colorTurquoise);
+}
+
+TDBHL = ParamToggle("2/3Days before HI LO","Show|Hide",0);
+if(TDBHL==1) {
+  Plot(DayL2,"2DBL",colorTurquoise,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+  Plot(DayH2,"2DBH",colorTurquoise,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+  Plot(DayL3,"3DBL",colorTurquoise,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+  Plot(DayH3,"3DBH",colorTurquoise,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+  PlotText(" 2DBH " , 	LastValue(BarIndex())-(numbars/Hts), DayH2I, colorTurquoise);
+  PlotText(" 2DBL " , 	LastValue(BarIndex())-(numbars/Hts), DayL2I, colorTurquoise);
+  PlotText(" 3DBH " , 	LastValue(BarIndex())-(numbars/Hts), DayH3I, colorTurquoise);
+  PlotText(" 3DBL " , 	LastValue(BarIndex())-(numbars/Hts), DayL3I, colorTurquoise);
+}
+
+// Pivot Levels //
+PP = (DayL + DayH + DayC)/3;  PPI = LastValue (PP,1);   // Pivot
+R1  =  (PP * 2) - DayL;       R1I = LastValue (R1,1);   // Resistance 1
+S1  =  (PP * 2)  - DayH;      S1I = LastValue (S1,1);   // Support 1
+R2  =  PP + R1 - S1;          R2I = LastValue (R2,1);   // Resistance 2
+S2  =  PP - R1 + S1;          S2I = LastValue (S2,1);   // Support 2
+R3  =  PP + R2 - S1;          R3I = LastValue (R3,1);   // Resistance 3
+S3  =  PP - R2 + S1;          S3I = LastValue (S3,1);   // Support 3
+
+ppl = ParamToggle("Pivot Levels","Show|Hide",1);
+if(ppl==1)  {
+  Plot(PP, "PP",colorYellow,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+  Plot(R1, "R1",colorViolet,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+  Plot(S1, "S1",colorViolet,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+  Plot(R2, "R2",colorViolet,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+  Plot(S2, "S2",colorViolet,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+  Plot(R3, "R3",colorViolet,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+  Plot(S3, "S3",colorViolet,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+
+  PlotText(" Pivot ",  LastValue(BarIndex())-(numbars/Hts), PPI, colorYellow);
+  PlotText(" R1 " ,    LastValue(BarIndex())-(numbars/Hts), R1I, colorViolet);
+  PlotText(" S1 " ,    LastValue(BarIndex())-(numbars/Hts), S1I, colorViolet);
+  PlotText(" R2 " ,    LastValue(BarIndex())-(numbars/Hts), R2I, colorViolet);
+  PlotText(" S2 " ,    LastValue(BarIndex())-(numbars/Hts), S2I, colorViolet);
+  PlotText(" R3 " ,    LastValue(BarIndex())-(numbars/Hts), R3I, colorViolet);
+  PlotText(" S3 " ,    LastValue(BarIndex())-(numbars/Hts), S3I, colorViolet);
+}
+// Camerilla Levels //
+
+rg = (DayH - DayL);
+
+H5=DayC+1.1*rg;     H5I = LastValue (H5,1);
+H4=DayC+1.1*rg/2;   H4I = LastValue (H4,1);
+H3=DayC+1.1*rg/4;   H3I = LastValue (H3,1);
+H2=DayC+1.1*rg/6;   H2I = LastValue (H2,1);
+H1=DayC+1.1*rg/12;  H1I = LastValue (H1,1);
+L1=DayC-1.1*rg/12;  L1I = LastValue (L1,1);
+L2=DayC-1.1*rg/6;   L2I = LastValue (L2,1);
+L3=DayC-1.1*rg/4;   L3I = LastValue (L3,1);
+L4=DayC-1.1*rg/2;   L4I = LastValue (L4,1);
+L5=DayC-1.1*rg;     L5I = LastValue (L5,1);
+
+pcl = ParamToggle("Camerilla Levels","Show|Hide",0);
+if(pcl==1)  {
+   Plot(H5,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+   Plot(H4,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+   Plot(H3,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+   Plot(H2,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+   Plot(H1,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+   Plot(L1,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+   Plot(L2,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+   Plot(L3,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+   Plot(L4,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+   Plot(L5,"",colorRose,styleDots|styleNoLine|styleNoRescale|styleNoTitle);
+   PlotText(" H5 = " , 	LastValue(BarIndex())-(numbars/Hts), H5I  +0.05, colorRose);
+   PlotText(" H4 = " , 	LastValue(BarIndex())-(numbars/Hts), H4I  +0.05, colorRose);
+   PlotText(" H3 = " , 	LastValue(BarIndex())-(numbars/Hts), H3I  +0.05, colorRose);
+   PlotText(" H2 = " , 	LastValue(BarIndex())-(numbars/Hts), H2I  +0.05, colorRose);
+   PlotText(" H1 = " , 	LastValue(BarIndex())-(numbars/Hts), H1I  +0.05, colorRose);
+   PlotText(" L1 = " , 	LastValue(BarIndex())-(numbars/Hts), L1I  +0.05, colorRose);
+   PlotText(" L2 = " , 	LastValue(BarIndex())-(numbars/Hts), L2I  +0.05, colorRose);
+   PlotText(" L3 = " , 	LastValue(BarIndex())-(numbars/Hts), L3I  +0.05, colorRose);
+   PlotText(" L4 = " , 	LastValue(BarIndex())-(numbars/Hts), L4I  +0.05, colorRose);
+   PlotText(" L5 = " , 	LastValue(BarIndex())-(numbars/Hts), L5I  +0.05, colorRose);
+}
+
+// Current Days Hi Lo //
+THL = ParamToggle("Todays Hi Lo","Show|Hide",1);
+if(THL==1)  {
+  isRth = TimeNum() >= 084500 & TimeNum() <= 085959;
+  isdRth = TimeNum() >= 084500 & TimeNum() <= 160000;
+  aRthL = IIf(isRth, L, 1000000);
+  aRthH = IIf(isdRth, H, Null);
+  aRthLd = IIf(isdRth, L, 1000000);
+  DayH = TimeFrameCompress( aRthH, inDaily, compressHigh );
+  DayH = TimeFrameExpand( DayH, inDaily, expandFirst );
+  DayL = TimeFrameCompress( aRthLd, inDaily, compressLow );
+  DayL = TimeFrameExpand( DayL, inDaily, expandFirst );
+  Bars = BarsSince(TimeNum() >= 94500 AND TimeNum() < 095959);//,BarIndex(),1); // AND DateNum()==LastValue(DateNum());
+  x0 = BarCount-LastValue(Bars);
+  x1 = BarCount-1;
+  DayHline=LineArray(x0,LastValue(DayH),x1,LastValue (DayH),0); 
+  DayLline=LineArray(x0,LastValue(DayL),x1,LastValue (DayL),0); 
+  DayHlineI = LastValue (DayHline,1);
+  DayLlineI = LastValue (DayLline,1);
+  Plot(DayHline,"DayH",colorYellow,styleBar|styleNoRescale|styleNoTitle);
+  Plot(DayLline,"DayL",colorYellow,styleBar|styleNoRescale|styleNoTitle);
+  PlotText(" Day Hi " , 	LastValue(BarIndex())-(numbars/Hts), DayHlineI  +0.05, colorYellow);
+  PlotText(" Day Lo " , 	LastValue(BarIndex())-(numbars/Hts), DayLlineI  +0.05, colorYellow);
+ }

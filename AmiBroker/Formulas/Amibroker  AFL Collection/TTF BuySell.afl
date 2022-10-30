@@ -1,0 +1,14 @@
+ttfosc = MA(C, 5) - MA(C, 34);
+
+fivebar = MA(ttfosc, 5);
+
+PriceUp = ROC( C, 5 ) > 0 ; 
+ind = ROC( ttfosc, 5 ) > 0; 
+BullishDiv = NOT PriceUP AND ind;
+BearishDiv = PriceUP AND NOT ind;
+xfac = IIf(BullishDiv OR BearishDiv >=0.75,1,0);
+eot = IIf(xfac == 1 AND ttfosc > 0, 1, 0);
+
+bs = IIf(ttfosc > fivebar AND eot < 1, 1,-1);
+
+Plot(bs, "",4);

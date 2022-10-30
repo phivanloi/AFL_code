@@ -1,0 +1,35 @@
+_SECTION_BEGIN("JRSX"); 
+//SetBarsRequired(10000, 0);  
+
+
+Len=Param( "Length ", 14, 0, 100);
+
+Plot( JurikRSX( C,Len), "", IIf(JurikRSX( C,Len) > Ref(JurikRSX( C,Len),-1),colorBrightGreen,colorRed), styleThick);
+Plot( JurikRSX( C,7), "", colorWhite, styleThick);
+Buy = JurikRSX( C,Len) > Ref(JurikRSX( C,Len),-1);
+Sell = JurikRSX( C,Len) < Ref(JurikRSX( C,Len),-1);
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+PlotShapes(shapeHollowSmallUpTriangle*Buy,colorYellow);
+PlotShapes(shapeHollowSmallDownTriangle*Sell,colorYellow);
+//Plot( JurikRSX( C,10), "", colorBlue, styleDashed);
+
+_SECTION_BEGIN("JDMXall");
+//SetBarsRequired(10000, 0); 
+
+
+Col_adx = IIf(JurikDMX( 20) < Ref(JurikDMX( 20),-1),colorOrange,colorBlue);
+Col_jrsi = IIf(JurikRSX( C,9) > Ref(JurikRSX( C,9),-1),colorBrightGreen,colorRed);
+Buy = Col_adx == colorBlue AND Col_jrsi == colorBrightGreen;
+Sell = Col_adx == colorOrange AND Col_jrsi == colorRed;
+diff = round((JurikRSX( C,7) - Ref(JurikRSX( C,7),-1))*10)/10;
+diff1 = round((JurikRSX( C,Len) - Ref(JurikRSX( C,Len),-1))*10)/10; 
+//PlotShapes(shapeSmallUpTriangle*Buy,colorBlue);
+//PlotShapes(shapeSmallDownTriangle*Sell,colorYellow);
+Title = 
+
+EncodeColor(colorWhite)+"Diff "+ WriteIf(diff > 0, EncodeColor(colorGreen)+diff,EncodeColor(colorRed) +diff)+
+"\n"+
+WriteIf(diff1 > 0, EncodeColor(colorGreen)+"main Diff = " +diff1,EncodeColor(colorRed)+"Main Diff = " +diff1);
+
+_SECTION_END();

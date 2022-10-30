@@ -1,0 +1,18 @@
+Title = "Woodies CCI " + " " + FullName() + " " + Date( ) ;
+
+A=Param("CCI TURBO PERIODS",6,3,14,1);
+A1=Param("CCI 14 PERIODS",14,7,20,1);
+A2=ParamColor("CCI TURBO",colorBrightGreen);
+A3=ParamColor("CCI 14",colorRed);
+A4=CCI(A);
+A5=CCI(A1);
+A6=IIf(A5<0,colorBrightGreen,colorRed);
+A7=IIf(Ref(A5,-5) <0 AND Ref(A5,-4) <0 AND Ref(A5,-3) <0 AND Ref(A5,-2) <0 AND Ref(A5,-1) <0,colorRed,A6);
+A8=IIf(Ref(A5,-5) >0 AND Ref(A5,-4) >0 AND Ref(A5,-3) >0 AND Ref(A5,-2) >0 AND Ref(A5,-1) >0,colorBrightGreen,A7);
+Plot(A5,"CCI TURBO HISTOGRAM",A8,styleHistogram);
+Plot(A4,"CCI TURBO",A2,styleThick);
+Plot(A5,"CCI 14",A3,styleThick);
+Plot(0,"ZERO LINE",colorBlack,styleThick);
+Plot(100,"HUNDRED LINE",colorBlack,styleDots);
+Plot(-100,"MINUS LINE",colorBlack,styleDots);
+

@@ -1,0 +1,27 @@
+_SECTION_BEGIN("wave");
+SetChartOptions(1, chartShowDates);   
+
+pr = Param("ZZ", 5, 1, 100);
+ 
+EWpk = PeakBars(H, pr, 1) == 0;
+EWtr = TroughBars(L, pr, 1) == 0;
+
+zz = Zig(C, pr);
+zzHi = Zig(H, pr);
+zzLo = Zig(L, pr);
+Avg = (zzHi+zzLo)/2;
+
+RetroSuccessSecret = IIf(EWpk, zzHi, IIf(EWtr, zzLo, IIf(Avg > Ref(Avg,-1), H, L)));
+EW = Zig(RetroSuccessSecret, pr);
+Plot(C, "Close", colorBlack, styleCandle);
+Plot(EW, "wave", colorBlue, styleThick);
+
+Buy = TroughBars(EW, pr, 1) == 0;
+Sell = PeakBars(EW, pr, 1) ==0;
+Buy = ExRem(Buy, Sell);
+Sell = ExRem(Sell, Buy);
+PlotShapes( shapeUpArrow * Buy, colorGreen, 0, Low );
+PlotShapes( shapeDownArrow * Sell, colorRed, 0, High );
+
+
+_SECTION_END();

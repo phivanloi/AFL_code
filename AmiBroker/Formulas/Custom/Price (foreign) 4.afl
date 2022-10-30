@@ -1,0 +1,15 @@
+_SECTION_BEGIN("Price");
+Ticker = ParamStr("Symbol", Name() );
+PlotForeign( Ticker, Ticker, ParamColor("Color", colorCycle ), ParamStyle("Style") | GetPriceStyle() ); 
+
+
+a = HHV(H, 10);
+b = LLV(L, 10); 
+a1 = Peak(H,10);
+b1 = Trough(L,10);
+ // BarsSince(
+
+Plot(a, "HHV", colorAqua, styleLine);
+Plot(b, "LLV", colorRose, styleLine);
+
+_SECTION_END();

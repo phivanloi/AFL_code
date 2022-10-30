@@ -1,0 +1,26 @@
+/* Calculate indices of new 30 week high's vs new 30 week lows */
+/* Set the filter so as to scan a given market */
+/* Set Period to Weekly */
+/* The new indexes will be found in Group 253 */
+
+H1 = Close > Ref(HHV(Close,30),-1);
+H2 = High > Ref(HHV(High,30),-1);
+
+L1 = Close < Ref(LLV(Close,30),-1);
+L2 = Low < Ref(LLV(Low,30),-1);
+
+H_L_Array1 = H1 - L1;
+H_L_Array2 = H2 - L2;
+
+// Do not generate signals
+
+Buy = 0; 
+Filter = 0;
+
+AddToComposite( H_L_Array1, "~Idx30Wk_Close_HL", "X", 19);
+AddToComposite( H_L_Array2, "~Idx30Wk_Abs_HL", "X", 19);
+
+
+    
+                             
+                                                                           

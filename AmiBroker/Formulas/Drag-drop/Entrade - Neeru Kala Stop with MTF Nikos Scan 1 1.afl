@@ -1,0 +1,106 @@
+
+TimeFrameSet(inDaily);
+DayHigh = LastValue(H);
+DayLow = LastValue(L);
+TimeFrameRestore();
+
+//Title = Date() + ", Op=" + Open + ", Hi=" + High + ", Lo=" + Low + ", LTP=" + Close + ", Change= " ;
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+
+
+no=21;
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+supres=IIf(avn==1,sup,res);
+a=Cross(C,supres);
+b=Cross(supres,C);
+style = a * styleStaircase + b * styleStaircase;
+PlotShapes(a,style, IIf(a,colorGreen,colorRed), 0, IIf(a,Low,High));
+Plot(supres,"Swing",colorYellow,styleStaircase);
+_SECTION_END();
+
+_SECTION_BEGIN("Magnified Market Price");
+FS=Param("Font Size",30,30,100,1);
+GfxSelectFont("Arial", FS, 900, italic = False, underline = False, True );
+GfxSetBkMode( colorOrange );
+GfxSetTextColor( ParamColor("Color",colorYellow) );
+//Hor=Param("Horizontal Position",800,800,800,800);
+
+Hor=Param("Horizontal Position",20,20,500,20);
+Ver=Param("Vertical Position",50,50,250,50);
+GfxTextOut(""+C,Hor , Ver );
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+GfxSelectFont("Arial", 12, 700, italic = False, underline = False, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor(ParamColor("Color",colorYellow) );
+GfxTextOut(""+DD+" ("+xx+"%)", Hor+5, Ver+45 );
+_SECTION_END();
+
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+Plot( C, "Close", IIf(Close > supres,  colorBrightGreen, colorRed), styleCandle | styleThick ); 
+_SECTION_END();
+
+
+_SECTION_BEGIN("Buy and Sell siganls");
+
+TimeFrameSet( inHourly ); // switch now to hourly
+
+mah_12C = EMA( C, 12); // 12 bar moving average from hourly data
+mah_34C = EMA( C, 34); // 34 bar moving average from hourly data
+mah_200C = EMA( C, 200); // 200 bar moving average from hourly data
+
+Buy1 = mah_12C > mah_34C AND mah_34C > mah_200C;
+Sell1 = mah_12C < mah_34C AND mah_34C < mah_200C;
+
+TimeFrameRestore(); // restore time frame to original
+
+Buy = Cross(Close,supres) AND Buy1;
+Sell = Cross(supres,Close);
+Short = Cross(supres,Close) AND Sell1;
+Cover = Cross(Close,supres);
+
+
+
+Buy = ExRem( Buy, Sell );
+Sell = ExRem( Sell, Buy );
+Short = ExRem( Short, Cover );
+Cover= ExRem( Cover,Short );
+
+
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-25);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-35);
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorYellow, 0,L, Offset=-30);
+PlotShapes(IIf(Short, shapeSquare, shapeNone),colorRed, 0, H, Offset=25);
+PlotShapes(IIf(Short, shapeSquare, shapeNone),colorOrange, 0,H, Offset=35);
+PlotShapes(IIf(Short, shapeDownArrow, shapeNone),colorYellow, 0,H, Offset=-30);
+
+PlotShapes(IIf(Sell, shapeCircle, shapeNone),colorYellow, 0, H, Offset=25);
+PlotShapes(IIf(Cover, shapeCircle, shapeNone),colorYellow, 0, L, Offset=-25);
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("Magnified Market Price");
+FS=Param("Font Size",30,30,100,1);
+GfxSelectFont("Arial", FS, 900, italic = False, underline = False, True );
+GfxSetBkMode( colorOrange );
+GfxSetTextColor( ParamColor("Color",colorYellow) );
+//Hor=Param("Horizontal Position",800,800,800,800);
+
+Hor=Param("Horizontal Position",20,20,500,20);
+Ver=Param("Vertical Position",50,50,250,50);
+GfxTextOut(""+C,Hor , Ver );
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+GfxSelectFont("Arial", 12, 700, italic = False, underline = False, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor(ParamColor("Color",colorYellow) );
+GfxTextOut(""+DD+" ("+xx+"%)", Hor+5, Ver+45 );
+_SECTION_END();

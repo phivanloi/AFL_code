@@ -1,0 +1,277 @@
+<HTML><HEAD>
+<TITLE>Test_model - Backtest Report</TITLE><STYLE>
+<!--
+BODY { font-family:"Tahoma,Arial,Helvetica,Sans Serif"; font-size:8pt; }
+TD {  font-size:8pt; text-align: right; white-space: nowrap; }
+TH {  font-size:8pt; text-align: left; font-weight: normal; }
+.CH { text-align: right; font-weight:bold; }
+.CHL { text-align: left; font-weight:bold; }
+.BIG { font-size:10pt; font-weight:bold; text-align: center; }
+.TAB { font-size:10pt;  text-align: center; text-color:#CCCCCC; }
+.SELTAB { font-size:10pt; font-weight:bold; text-align: center; text-color:#000000; }
+.good { color:#006600; }
+.bad { color:#880000; }
+.neut { color:#000088; }
+a:active { background-color:#DDDDFF; }
+-->
+</STYLE>
+<SCRIPT>
+var curPart = 0;
+function showPart( i )
+{
+	 document.getElementById("part" + curPart ).style.display = "none";
+	 document.getElementById("part" + i ).style.display = "";
+	 curPart = i;
+}
+</SCRIPT>
+</HEAD>
+<BODY>
+<DIV ALIGN=CENTER><FONT class='TAB'><a href='stats.html'>Statistics</a> | <a href='charts.html'>Charts</a> | <a href='trades.html'>Trades</a> | <a href='formula.html'><FONT class='SELTAB'>Formula</FONT></a> | <a href='settings.html'>Settings</a> | <a href='symbols.html'>Symbols</a> | <a href='montecarlo.html'>Monte Carlo</a></FONT></DIV><br>
+<TABLE CELLSPACING=0 CELLPADDING=2 WIDTH=100%>
+<TR bgcolor="#DDDDDD"><TH COLSPAN=5 CLASS="BIG" >Formula</TH></TR>
+</TABLE><PRE>_SECTION_BEGIN("Test_model"); 
+ 
+ 
+// Thu thap them du lieu Trend tang 
+/* 
+1. EMA(5,10,20,34,55) 
+2. Volume 
+3. HHV, ADX (PDI),  
+ 
+*/ 
+ 
+index =  "VN30F1M,VN30INDEX,VNINDEX";  
+vn30 = "VHM,VIC,REE,VJC,BVH,PDR,VRE,VCB,HDB,VNM,NVL,TCH,BID,KDH,MBB,SSI,POW,MWG,PLX,TPB,CTG,HPG,MSN,TCB,FPT,STB,GAS,SBT,PNJ,VPB"; 
+ 
+Filter = Name() == "VN30F1M" OR Name() == "VN30INDEX" OR Name() == "VNINDEX" OR Name() == "VHM" OR Name() == "VIC"  
+OR Name() == "REE" OR Name() == "VJC" OR Name() == "BVH" OR Name() == "PDR" OR Name() == "VRE" OR Name() == "VCB" OR Name() == "HDB"   
+OR Name() == "SSI" OR Name() == "POW" OR Name() == "MWG" OR Name() == "PLX" OR Name() == "TPB" OR Name() == "CTG"  
+OR Name() == "HPG" OR Name() == "MSN" OR Name() == "TCB" OR Name() == "FPT" OR Name() == "STB" OR Name() == "GAS"  
+OR Name() == "SBT" OR Name() == "PNJ" OR Name() == "VPB"; 
+//Plot(C,"\nPrice",IIf(C&gt;O,ParamColor("Wick UP Color", colorCustom9),IIf(C&lt;=O,ParamColor("Wick Down Color", colorCustom5),colorLightGrey)),64,0,0,0,0); 
+//Plot(C - Foreign("VN30INDEX", "C", True); 
+/* 
+Plot(H-L, "spread", colorWhite, style =  styleDashed); 
+Plot(ATR(1), "atr1",colorBlueGrey, style =  styleLine); 
+Plot(ATR(5), "atr1", colorBlueGrey, style =  styleLine); 
+Plot(ATR(10), "atr1", colorBlueGrey, style =  styleLine); 
+Plot(ATR(20), "atr1", colorBlueGrey, style =  styleLine); 
+*/ 
+emac1 = IIF(EMA(C, 5) &gt; EMA(C,10) &gt; EMA(C, 20) &gt; EMA(C,34) &gt; EMA(C,55),1,0); 
+emac2 = IIF(EMA(C, 5) &lt; EMA(C,10) &lt; EMA(C, 20) &lt; EMA(C,34) &lt; EMA(C,55),0,1); 
+self_corr = Correlation(C, Ref(C,-5),20); 
+corr_ATR10 = Correlation(H-L,ATR(10),100); 
+corr_ATR20 = Correlation(H-L,ATR(20),100); 
+corr_ATR1 = Correlation(H-L,ATR(1),100); 
+corr_ATR5 = Correlation(H-L,ATR(5),100); 
+corr_vn30 = Correlation(C, Foreign("VN30INDEX", "C", True),100); 
+atr0 = ATR(1); 
+atr01 = ATR(5); 
+atr1 = ATR(10); 
+atr2 = ATR(20); 
+ 
+/////////////////// Pivot Point //////////////// 
+k=IIf(ParamList("select type","daily|next day")=="daily",-1,0); 
+k1=-1; 
+TimeFrameSet(inDaily); 
+day_h= Ref(H,K); 
+day_l= Ref(L,K); 
+day_c= Ref(C,K); 
+TimeFrameRestore(); 
+ 
+TimeFrameSet(inWeekly); 
+Week_h= Ref(H,K1); 
+Week_l= Ref(L,K1); 
+Week_c= Ref(C,K1); 
+TimeFrameRestore(); 
+ 
+TimeFrameSet(inMonthly); 
+month_h= Ref(H,K1); 
+month_l= Ref(L,K1); 
+month_c= Ref(C,K1); 
+TimeFrameRestore(); 
+ 
+/*--------------------------------------*/ 
+// day 
+DH=Day_h; 
+DL=Day_L; 
+DC=Day_C; 
+// DAY PIVOT Calculation 
+pd = ( DH + DL + DC )/3; 
+sd1 = (2*pd)-DH; 
+sd2 = pd - (DH - DL); 
+sd3 = sd1 - (DH - DL);  
+rd1 = (2*pd)-DL; 
+rd2 = pd +(DH -DL); 
+rd3 = rd1 +(DH-DL); 
+ 
+/* 
+y0= pd;  
+y1= pd;  
+x0=BarCount - 10;  
+x1=BarCount - 1;  
+pdarray = LineArray( x0, y0, x1, y1, 1 );  
+*/ 
+Plot(pd, "Trend line", colorBlue );  
+ 
+// week 
+WH=Week_h; 
+WL=Week_l; 
+WC=Week_c; 
+// WEEK PIVOT Calculation 
+pw = ( WH+ WL + WC )/3; 
+sw1 = (2*pw)-WH; 
+sw2 = pw -(WH - WL); 
+sw3 = sw1 - (WH-WL);  
+rw1 = (2*pw)-WL; 
+rw2 = pw +(WH -WL); 
+rw3 = rw1 +(WH-WL); 
+// month 
+MH=month_h; 
+ML=month_l; 
+MC=month_c; 
+// MONTH PIVOT Calculation 
+pm = ( MH + ML + MC )/3; 
+sm1 = (2*pm)-MH; 
+sm2 = pm -(MH - ML); 
+sm3 = Sm1 - (MH-ML);  
+rm1 = (2*pm)-ML; 
+rm2 = pm +(MH -ML); 
+rm3 = rm1 +(MH-ML); 
+ 
+///////// Bollinger band ///////////// 
+std  = StDev(C, 20, True); 
+ma20 = MA(C, 20); 
+bb_a = BBandTop(C, 20, 2);  
+band_high = ma20 + 2 * std; 
+band_low = ma20 - 2 * std; 
+con_bb = IIF( C &gt; band_high, 4, IIF(C &lt; band_high AND C &gt; ma20, 3,  
+IIF(C &gt; band_low AND C &lt; ma20, 2, IIF(C &lt; band_low, 1, Null)))); 
+ 
+//////// EMA. MA /////////////////// 
+// IIf(EMA(C, 5) 
+ 
+//////// Volume ///////// 
+vol_a = Percentile(V, 20, 50); 
+vol_b = Percentile(V, 20, 50); 
+con_vol = IIF((V &gt; vol_b) AND V &gt; Ref(V, -1) AND V &gt; Ref(V,-2) , 1, 0); 
+ 
+/////////  Spread ////// 
+ 
+tenkan=Param("Tenkan",9,9,20,1); 
+kijun=Param("Kijun",17,9,50,1); 
+spanBPeriod = Param("Span B Period",26,9,60,1); 
+forward = Param("Shift BAck/Forward", 26,9,60,1); 
+TKcolor = ParamColor("Tenkan color",colorCustom12); 
+KJcolor = ParamColor("Kijun color",colorBlue); 
+// 2. Calculation condition setup 
+TK = (HHV(H,tenkan)+LLV(L,tenkan))/2; 
+KJ=(HHV(H,kijun)+LLV(L,kijun))/2; 
+SpanA = ((KJ+TK)/2); 
+SpanB = (HHV(H,spanBPeriod)+LLV(L, spanBPeriod))/2; 
+// swords dow 
+TKDown = TK&lt;Ref(TK,-1); 
+KJDown = KJ&lt;Ref(KJ,-1); 
+//swords up 
+TKUp = TK&gt;Ref(TK,-1); 
+KJUp = KJ&gt;Ref(KJ,-1); 
+// 3. Indicator 
+SetChartOptions(0,chartShowArrows|chartShowDates); 
+//SetChartBkGradientFill(ParamColor("BgTop",colorBlack),ParamColor("BgBottom",colorBlack)); 
+Plot(TK,"TK",TKcolor,styleThick); 
+Plot(KJ,"KJ",KJcolor,styleThick); 
+Plot(C,"",colorGreen,styleThick,Null,Null,-forward);//chiku 
+Plot(C,"",colorBlack,GetPriceStyle()); 
+ 
+Plot(SpanA, "SpanA", colorAqua, styleThick,0,0,forward); 
+Plot(SpanB, "SpanB", colorGreen, styleThick,0,0,forward); 
+PlotOHLC(SpanA,SpanB,SpanA,SpanB,"",IIf(SpanA&gt;SpanB,colorLime,colorLightOrange),styleCloud|4096,0,0,26); 
+// 
+ 
+/// Chien luoc 
+mua = IIf(C&gt;=O, 1,0); 
+ban= IIf(C&lt;O, 1,0); 
+LucCau=mua*V; 
+LucCung=ban*V; 
+period=Param("chuky",4,3,10,1); 
+LucCau10 = MA(LucCau,period); 
+LucCung10 = MA(LucCung,period); 
+LucCungCau10=(LucCau10-LucCung10); 
+//// xac dinh  
+uptrend = LucCungCau10&gt;0 AND RSI(14)&gt;54; 
+downtrend = LucCungCau10&lt;0 AND RSI(14)&lt;46; 
+sideway= RSI(14)&lt;=54 AND RSI(14)&gt;=46 
+OR (LucCungCau10&lt;0 AND RSI(14)&gt;54) 
+OR (LucCungCau10&gt;0 AND RSI(14)&lt;46); 
+ 
+//// 
+UpperCloud = Ref(Max(SpanA,SpanB),-forward); 
+LowerCloud = Ref(Min(SpanA,SpanB),-forward); 
+//chien luoc cu 
+Buy= TK&gt;Ref(TK,-1) AND KJ&gt;Ref(KJ,-1)  
+AND LucCungCau10 &gt;0; 
+Sell = Cross(LowerCloud,C); 
+period=Param("chuky",4,3,10,1); 
+//Chien luoc moi 
+ 
+	// Remove redundant signals 
+Buy= ExRem (Buy,Sell); 
+Sell = ExRem (Sell,Buy); 
+ 
+ 
+AddColumn(O,"Open");  
+AddColumn(H,"High");  
+AddColumn(L,"Low");  
+AddColumn(C,"Close");  
+AddColumn(V,"Volume",1.0);  
+AddColumn(IIf(Name() == "VN30F1M", C * 0.18 * V * 100000,  C*V),"Value",1.0);  
+AddColumn(H-L,"Spread", 1.2); 
+AddColumn(ATR(5), "ATR5", 1.2); 
+AddColumn(ATR(10), "ATR10", 1.2);  
+AddColumn(ATR(20), "ATR20", 1.2);  
+  
+/* 
+AddColumn(atr1,"Spread_ATR10", 1.2); 
+AddColumn(atr2,"Spread_ATR20", 1.2); 
+AddColumn(atr0,"Spread_ATR1", 1.2); 
+AddColumn(atr01,"Spread_ATR5", 1.2); 
+AddColumn(emac1, "EMA1", 1.2); 
+AddColumn(emac2, "EMA2", 1.2);  
+AddColumn(self_corr, "self_corr", 1.2); 
+AddColumn(corr_vn30, "corr_VN30", 1.2);  
+AddColumn(corr_ATR10, "corr_ATR10", 1.2); 
+AddColumn(corr_ATR20, "corr_ATR20", 1.2);  
+AddColumn(corr_ATR1, "corr_ATR1", 1.2); 
+AddColumn(corr_ATR5, "corr_ATR5", 1.2);  
+*/ 
+AddColumn(pd, "Pivot Daily", 1.2); 
+AddColumn(sd1, "Support 1 Daily", 1.2); 
+AddColumn(sd2, "Support 2 Daily", 1.2); 
+AddColumn(sd3, "Support 2 Daily", 1.2); 
+AddColumn(rd1, "Resistance 1 Daily", 1.2); 
+AddColumn(rd2, "Resistance 2 Daily", 1.2); 
+AddColumn(rd3, "Resistance 3 Daily", 1.2); 
+AddColumn(pw, "Pivot Weekly", 1.2); 
+AddColumn(sw1, "Support 1 Weekly", 1.2); 
+AddColumn(sw2, "Support 2 Weekly", 1.2); 
+AddColumn(rw1, "Resistance 1 Weekly", 1.2); 
+AddColumn(rw2, "Resistance 2 Weekly", 1.2); 
+AddColumn(pm, "Pivot Weekly", 1.2); 
+AddColumn(sm1, "Support 1 Monthly", 1.2); 
+AddColumn(sm2, "Support 2 Monthly", 1.2); 
+AddColumn(rm1, "Resistance 1 Monthly", 1.2); 
+AddColumn(rm2, "Resistance 2 Monthly", 1.2); 
+ 
+AddColumn(ma20, "MA20", 1.2); 
+ 
+AddColumn(band_high, "Bolinger Band High", 1.2); 
+AddColumn(band_low , "Bolinger Band Low", 1.2); 
+AddColumn(con_bb, "Filter Bollinger Band", 1.2); 
+ 
+AddColumn(vol_a, "TP50_Vol", 1.2); 
+AddColumn(vol_b, "TP80_Vol", 1.2); 
+AddColumn(con_vol , "Filter Volume", 1.2); 
+ 
+_SECTION_END(); 
+
+</PRE></BODY></HTML>

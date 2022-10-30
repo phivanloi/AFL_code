@@ -1,0 +1,3 @@
+price = (H+L)/2;
+	Plot(sbSNR(price),"SNR",4,1);
+	Plot(6,"",1,1);

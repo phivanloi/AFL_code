@@ -1,0 +1,23 @@
+/* KPShortTermTrend Bias
+	Plot either as a Histogram OR as a ribbon
+*/
+// tskp_sttb1, tskp_sttb2,tskp_sttb3
+parmSTTBStyle = ParamStyle("STTB", styleHistogram+styleNoLabel, maskAll);
+parmSTTBColorUp  = ParamColor("STTB color Up", colorBlue);
+parmSTTBColorDn = ParamColor("STTB color Dn", colorRed);
+parmRibbon = ParamToggle("Plot as ribbon", "No|Yes" , 0);
+parmRibbonUpColor =ParamColor( "STTB ribbon olor Up", ColorRGB(167, 224, 243) );
+parmRibbonDnColor =ParamColor( "STTB ribbon color Dn", ColorRGB(255, 192, 203) );
+parmRibbonSize = Param("Ribbon size", 1, 0.5, 10, 0.5);
+SetBarsRequired(350, -1);
+
+//calculations
+dummy = E_TSKPSHORTTERMTRADEBIAS(High,Low,Close);
+KPSTTB1 = tskp_sttb1;
+//Plots
+if(parmRibbon == 0)
+{
+	Plot( KPSTTB1, "STTB1", IIf(KPSTTB1 > 0, parmSTTBColorUp, parmSTTBColorDn) , parmSTTBStyle ); 
+}
+else
+	Plot( parmRibbonSize, StrFormat("STTB1(%g%)", SelectedValue(KPSTTB1) ) , IIf(KPSTTB1> 0, parmRibbonUpColor, parmRibbonDnColor) , styleArea |  styleNoLabel | styleOwnScale , 0, 10);

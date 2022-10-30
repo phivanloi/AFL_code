@@ -1,0 +1,50 @@
+/************************************************************************************
+    Consolidate all NR1(Inside Day), NR4 and NR7 ideas  from Amibroker & Metastock
+    from different forums.
+    Advisory price chart display
+
+    Based on "Day Trading With Short Term Price Patterns And Opening Range Breakout"
+    By Toby Crabel
+
+    The Option:
+      1) NR4 - Show NR4 & NR1
+      2) NR7 - Show NR7 & NR1
+      3) All - Show NR1, NR4, NR7
+
+    Created By TohMz
+
+****************************************************************************/
+
+
+_N(Title = StrFormat("{{NAME}}- {{INTERVAL}} {{DATE}} O= %g, H= %g, L= %g, C= %g (%.1f%%) V= " +WriteVal( V, 1.0 ) +"\n{{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+PriceStyle = GetPriceStyle();
+PriceStyleOpt = ParamStyle("Style") | PriceStyle;
+
+if (PriceStyle==styleCandle)
+   Plot( C, "", colorBlack,  PriceStyleOpt); 
+else
+   Plot( C, "", IIf( Close >= Ref(C, -1), colorBlue, colorRed ), PriceStyleOpt);
+
+
+NRx = ParamList("4 or 7 Days Narrow Range", "All|NR4|NR7");
+
+rang=High-Low;
+
+if (NRx=="NR4" OR NRx=="All")
+{
+   nr4=IIf(rang==LLV(rang,4),shapeDigit4,shapeNone);
+   PlotShapes(nr4,colorRed,0,L);
+}
+
+if (NRx=="NR7" OR NRx=="All")
+{
+   nr7=IIf(rang==LLV(rang,7),shapeDigit7+shapePositionAbove,shapeNone);
+   PlotShapes(nr7,colorGreen,0,H);
+
+}
+
+InsideBar = Inside() OR (Ref(H, -1)==H AND Ref(L, -1)<L) OR (Ref(H, -1)>H AND Ref(L, -1)==L);
+nr1=IIf(InsideBar, shapeDigit1,shapeNone);
+
+PlotShapes(nr1,colorBrown,0,(L+H)/2);
+GraphXSpace = 5;

@@ -1,0 +1,51 @@
+/*http://www.ewef.net/
+*/
+_SECTION_BEGIN("humoudALmutairi");
+ 
+Buy =
+Ref((ValueWhen(ADX(14)!=Ref(ADX(14),-1),ADX(14),2)<ADX(14) AND ADX(14)>=15 
+AND MACD()<EMA(MACD(),9)
+AND MA(C,5)<MA(C,20) ) ,-1)
+
+AND
+
+((
+ValueWhen(ADX(14)!=Ref(ADX(14),-1),ADX(14),2)<ADX(14) AND ADX(14)>=15  
+AND MACD()<EMA(MACD(),9)
+AND MA(C,5)<MA(C,20)) OR ((ValueWhen(ADX(14)!=Ref(ADX(14),-1),ADX(14),2)<ADX(14) AND ADX(14)>=15  AND MACD()>EMA(MACD(),9)
+AND MA(C,5)>MA(C,20) ) ))!=1 ;
+
+
+ 
+
+Sell=
+Ref((ValueWhen(ADX(14)!=Ref(ADX(14),-1),ADX(14),2)<ADX(14) AND ADX(14)>=15 
+AND MACD()>EMA(MACD(),9)
+AND MA(C,5)>MA(C,20) ) ,-1)
+
+AND
+
+((
+ValueWhen(ADX(14)!=Ref(ADX(14),-1),ADX(14),2)<ADX(14) AND ADX(14)>=15  
+AND MACD()<EMA(MACD(),9)
+AND MA(C,5)<MA(C,20)) OR ((ValueWhen(ADX(14)!=Ref(ADX(14),-1),ADX(14),2)<ADX(14) AND ADX(14)>=15  
+AND MACD()>EMA(MACD(),9)
+AND MA(C,5)>MA(C,20) ) ))!=1 ;
+
+
+  
+
+dist = 1.8*ATR(10); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "EndDown" , i, L[ i ]-dist[i], colorGreen ); 
+if( Sell[i] ) PlotText( "EndUp" , i, H[ i ]+dist[i], colorRed ); 
+} 
+
+PlotShapes( Buy * shapeUpArrow + Sell * shapeDownArrow, IIf( Buy, colorGreen, colorRed ) ); 
+_SECTION_END();
+_SECTION_BEGIN("Price");
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+SetChartBkColor(ParamColor("Panel color ",colorLightBlue));
+_SECTION_END();

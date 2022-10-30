@@ -1,0 +1,470 @@
+/*					Multiple Signals.afl - Bill Barnard, 2/9/06
+	This file is to be used as an include file for    SIGNAL STUDY.afl .
+	Read the discussion (the first parameter) in SIGNAL STUDY.afl 	*/
+
+if (sigSelect=="Multiple Signals") 	{
+
+//	the following text provides notes or instructions upon click of ParamTrigger
+
+instruction1	= EncodeColor(-1)+
+//	vvvvvvvvvvvvvvvvvvvvv  start page 1 instructions  (in quotes, '+' at end)  vvvvvvvvvvvvvvvvvvvvvvvv
+
+//"\n\n                                     Multiple Signals.afl - Bill Barnard, 2/9/06"+nl(3)+
+
+//"INTRODUCTION"+nl(1)+
+//"This code allows the combining of named signals from FastTrack or the AmiBroker database with"+nl(1)+
+//"'AND' logic. Separate lists of signals can be entered for Buys and for Sells. "+nl(3)+
+
+//"SIGNAL PARAMETERS"+nl(1)+
+//"As many as 10 signals can be entered into each of the Buy and Sell signal lists. Each name should be "+nl(1)+
+//"separated by a comma. After entering the names, click the 'Reset all' button, and the parameter areas"+nl(1)+
+//"just below the lists will be populated with parameter 'buttons', one for each signal in the list. Each of "+nl(1)+
+//"buttons can be clicked to turn on or turn off the named signal. When a signal is turned off, it is not used"+nl(1)+
+//"in the calculation of the resultant Buy or Sell signal. The signal 'buttons' are listed in order of the "+nl(1)+
+//"average holding period of the signal, with the signals that trade least frequently being at the top."+nl(3)+
+
+//"THE PLOT IN THE INDICATOR AREA"+nl(1)+
+//"There are two groups of signal bands, separated by a wide band of the background color. The uppermost "+nl(1)+
+//"group represents the Buy signals, and the lower, the Sell signals. Each band is made up of alternate "+nl(1)+
+//"light and dark sections, the light ones representing the 'on' state. Thus, for a band in the Buy rules area, "+nl(1)+
+//"the light areas show buy states, and for the bands in the Sell rules area, the light areas show sell states. "+nl(2)+
+
+// "For signals which are 'turned off' as a result of their button having been clicked, their name in the title"+nl(1)+
+//"just above or below the signal bands will be greyed out. Also their band will be the same color as the "+nl(1)+
+//"background."+nl(3)+
+
+
+//"                                         Click the parameter button to show Page 2";
+
+//	^^^^^^^^^^^^^^^^^^^^ end page 1 instructions  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+instruction2	= EncodeColor(-1)+
+//	vvvvvvvvvvvvvvvvvvvvv start page 2 instructions  (in quotes, ';' at end)  vvvvvvvvvvvvvvvvvvvvvvvv
+
+// "\n\n                                                                  Page 2"+nl(3)+
+
+// "INTERPRETING THE SIGNAL BANDS"+nl(1)+
+//"The group of signals in the Buy rules area yields a Buy signal on the first day that all of the "+nl(1)+
+// "contiguous bands (except any 'turned off' bands) are light-colored.  For the bands in the Sell rules "+nl(1)+
+// "area, the same is true with the word 'Sell' replacing the word 'Buy' in the above sentence."+nl(2)+
+
+// "The conditions described above are indicated by vertical red and green lines marking the days of "+nl(1)+
+// "the final Buy and Sell signals, "+nl(3)+
+
+// "OTHER PARAMETERS"+nl(1)+
+// "Just below the areas for the signal lists are several parameters to control the appearance of the "+nl(1)+
+// "signal bands. The first one adjusts the space between the title lines above and below the signal "+nl(1)+
+// "bands. The Buy signals line postion is determined by the 'Indicator Title Spacing Lines' parameter  "+nl(1)+
+// "near the bottom of the Parameter window, and the first one in the 'SIGNAL BANDS APPEARANCE' "+nl(1)+
+ //"section is used to set the space between the Buy signals title and the Sell signals title. The next "+nl(1)+
+ //"one sets the freespace above the bands, and this is used to make the bands fit between the title "+nl(1)+
+ //"lines. These adjustments are useful if you are fitting the chart into a different size window or  "+nl(1)+
+ //"making the indicator area fill a larger part of the window for better viewing. "+nl(2)+
+
+// "The next parameter sets the background color for the signal bands area , and should be set to match "+nl(1)+
+// "the background of the whole chart. "+nl(2)+
+
+//"The next three parameters set up a comparison plot which can be overlayed on the signal bands. "+nl(3)+
+ 
+
+// "                                                     Click to return to the Plots";
+
+////	^^^^^^^^^^^^^^^^^^^^ end page 2 instructions  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+//	initialize
+showInstruction1 = showInstruction2 = 0;
+
+if (showButtons)	{
+_SECTION_BEGIN("DISCUSSION OF MULTIPLE SIGNALS MODULE");
+showInstruction1	= ParamTrigger("Show Multiple Signals Discussion, page 1", "Click for Multiple Signals Discussion, page 1");
+showInstruction2	= ParamTrigger("Show Multiple Signals Discussion, page 2", "Click for Multiple Signals Discussion, page 2");
+_SECTION_END();	}
+
+if 		(showInstruction1)	Title = instruction1;
+else if (showInstruction2)	Title = instruction2;
+
+else
+{
+//	vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv  start code  vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+
+//	retrieve stored param information
+MSParamsList			= "";
+MSParamsFileName	= "ConfigFiles\\MSParams"+GetChartID()+".bf";
+
+fh 						= fopen( MSParamsFileName, "r");
+if( fh )
+{
+   	while( ! feof( fh ) )
+   	{
+      	MSParamsList = fgets( fh );
+   	}
+	fclose( fh );
+}
+
+q0		= WriteIf(MSParamsList !="", 				  StrExtract(MSParamsList,   0	), 	"RUTTR"	);//	BuySigList
+q1		=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  1	)), 1	 		);//	BSig1
+q2		=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  2	)), 1	 		);//	BSig2
+q3		=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  3	)), 1	 		);//	BSig3
+q4		=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  4	)), 1	 		);//	BSig4
+q5		=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  5	)), 1	 		);//	BSig5
+q6		=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  6	)), 1	 		);//	BSig6
+q7		=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  7	)), 1	 		);//	BSig7
+q8		=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  8	)), 1	 		);//	BSig8
+q9		=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  9	)), 1	 		);//	BSig9
+q10	=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  10	)), 1	 		);//	BSig10
+q11	= WriteIf(MSParamsList !="", 				  StrExtract(MSParamsList,   11	), 	"RUTTR"	);//	SellSigList
+q12	=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  12	)), 1	 		);//	BSig1
+q13	=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  13	)), 1	 		);//	BSig2
+q14	=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  14	)), 1	 		);//	BSig3
+q15	=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  15	)), 1	 		);//	BSig4
+q16	=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  16	)), 1	 		);//	BSig5
+q17	=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  17	)), 1	 		);//	BSig6
+q18	=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  18	)), 1	 		);//	BSig7
+q19	=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  19	)), 1	 		);//	BSig8
+q20	=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  20	)), 1	 		);//	BSig9
+q21	=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  21	)), 1	 		);//	BSig10
+q22	=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  22	)), 9	 		);//	SRTitleSpace
+q23	=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  23	)), 73			);//	SBUpPerc
+q24	=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  24	)), 0	 		);//	BCol
+q25	= WriteIf(MSParamsList !="", 				  StrExtract(MSParamsList,  25	), 	"RUT-I"	);//	RefSym
+q26	=		IIf(MSParamsList !="", 	StrToNum(StrExtract(MSParamsList,  26	)), 6	 		);//	Percnt
+
+
+_SECTION_BEGIN("BUY SIGNALS LIST");
+BuySigList	= StrToUpper(ParamStr("Comma-Separated List of up to 10 Buy Signals", StrReplace(q0, "#", ",")));
+_SECTION_END();
+
+//	go through all the Buy signals, determining their buy states and their average signal periods
+extraTitle1 	= ec(-1)+"Buy:  ";
+bands			= 0;
+BuyCond		= Close - Close + 1;
+
+for( i = 0; StrExtract( BuySigList, i ) != ""; i++ )
+{
+	sig			= removeSpaces(StrExtract( BuySigList, i ));
+	sigS		= sig;
+	// 	get signal from AmiBroker, if it exists
+	signl			= Foreign(sig, "Close");
+	sigPresent	= LastValue( Highest(signl));
+	if (sigPresent)
+	{
+		BC		= signl;
+		SC		= NOT BC;
+		Buy	= ExRem(BC, SC);
+		Sell 	= ExRem(SC, BC);
+	}
+	else		//	get signal from FT
+	{
+		script     	= GetScriptObject();
+		signl        	= script.FTGetSig(FTDrive, sig, DNum);
+	}
+	BCond		= Flip(Buy, Sell);
+	Len		= LastValue(Cum(NOT IsEmpty(Buy)));
+	numBuys	= LastValue(Cum(Buy));
+	BuyLen	= Len / numBuys;
+	StaticVarSetText("BSigName"+i, sig);
+	VarSet("BuyLen"+i, BuyLen );
+	VarSet("BuyCond"+i,	BCond);
+}
+
+// go through Buy signals to put them in order of average signal period
+bSigCount	= i - 1;
+bands 		= IIf(i !=0, bands + i + 1, bands);
+for(n = 0; n < i; n++)
+{
+	iter	= n + 1;
+	ident	= 0;
+	BLen	= 0;
+	for(m = 0; m < i; m++)
+	{
+		ident	= IIf(VarGet("BuyLen"+m) > BLen, m, ident);
+		BLen	= Max(BLen, VarGet("BuyLen"+m) );
+	}
+	VarSet("BuyLen"+ident, 0);
+	VarSet("BuyState"+iter, VarGet("BuyCond"+ident) );
+	StaticVarSetText("BSNam"+iter, StaticVarGetText("BSigName"+ident) );
+	StaticVarSetText("BSName"+iter, StaticVarGetText("BSigName"+ident) );	 StaticVarRemove("BSigName"+ident);
+}
+
+
+//	set up signal on/off param switches
+_SECTION_BEGIN("BUY SIGNALS SWITCHES");
+j = 1;	bsn1 = StaticVarGetText("BSName"+j);	StaticVarRemove("BSName"+j);
+if (bsn1 !="")	{	bs1 = bsn1+pad(bsn1);		StaticVarSet("BSig1", ParamToggle("Use Buy Signal 1?",
+	bs1+"OFF      Click to Change,"+bs1+"ON      Click to Change", q1));		q1 = StaticVarGet("BSig1");	}
+j = 2;	bsn2 = StaticVarGetText("BSName"+j);	StaticVarRemove("BSName"+j);
+if (bsn2 !="")	{	bs2 = bsn2+pad(bsn2);		StaticVarSet("BSig2", ParamToggle("Use Buy Signal 2?",
+	bs2+"OFF      Click to Change,"+bs2+"ON      Click to Change", q2));		q2 = StaticVarGet("BSig2");	}
+j = 3;	bsn3 = StaticVarGetText("BSName"+j);	StaticVarRemove("BSName"+j);
+if (bsn3 !="")	{	bs3 = bsn3+pad(bsn3);		StaticVarSet("BSig3", ParamToggle("Use Buy Signal 3?",
+	bs3+"OFF      Click to Change,"+bs3+"ON      Click to Change", q3));		q3 = StaticVarGet("BSig3");	}
+j = 4;	bsn4 = StaticVarGetText("BSName"+j);	StaticVarRemove("BSName"+j);
+if (bsn4 !="")	{	bs4 = bsn4+pad(bsn4);		StaticVarSet("BSig4", ParamToggle("Use Buy Signal 4?",
+	bs4+"OFF      Click to Change,"+bs4+"ON      Click to Change", q4));		q4 = StaticVarGet("BSig4");	}
+j = 5;	bsn5 = StaticVarGetText("BSName"+j);	StaticVarRemove("BSName"+j);
+if (bsn5 !="")	{	bs5 = bsn5+pad(bsn5);		StaticVarSet("BSig5", ParamToggle("Use Buy Signal 5?",
+	bs5+"OFF      Click to Change,"+bs5+"ON      Click to Change", q5));		q5 = StaticVarGet("BSig5");	}
+j = 6;	bsn6 = StaticVarGetText("BSName"+j);	StaticVarRemove("BSName"+j);
+if (bsn6 !="")	{	bs6 = bsn6+pad(bsn6);		StaticVarSet("BSig6", ParamToggle("Use Buy Signal 6?",
+	bs6+"OFF      Click to Change,"+bs6+"ON      Click to Change", q6));		q6 = StaticVarGet("BSig6");	}
+j = 7;	bsn7 = StaticVarGetText("BSName"+j);	StaticVarRemove("BSName"+j);
+if (bsn7 !="")	{	bs7 = bsn7+pad(bsn7);		StaticVarSet("BSig7", ParamToggle("Use Buy Signal 7?",
+	bs7+"OFF      Click to Change,"+bs7+"ON      Click to Change", q7));		q7 = StaticVarGet("BSig7");	}
+j = 8;	bsn8 = StaticVarGetText("BSName"+j);	StaticVarRemove("BSName"+j);
+if (bsn8 !="")	{	bs8 = bsn8+pad(bsn8);		StaticVarSet("BSig8", ParamToggle("Use Buy Signal 8?",
+	bs8+"OFF      Click to Change,"+bs8+"ON      Click to Change", q8));		q8 = StaticVarGet("BSig8");	}
+j = 9;	bsn9 = StaticVarGetText("BSName"+j);	StaticVarRemove("BSName"+j);
+if (bsn9 !="")	{	bs9 = bsn9+pad(bsn9);		StaticVarSet("BSig9", ParamToggle("Use Buy Signal 9?",
+	bs9+"OFF      Click to Change,"+bs9+"ON      Click to Change", q9));		q9 = StaticVarGet("BSig9");	}
+j = 10;	bsn10 = StaticVarGetText("BSName"+j);	StaticVarRemove("BSName"+j);
+if (bsn10 !="")	{	bs10 = bsn10+pad(bsn10);		StaticVarSet("BSig10", ParamToggle("Use Buy Signal 10?",
+	bs10+"OFF      Click to Change,"+bs10+"ON      Click to Change", q10));		q10 = StaticVarGet("BSig10");	}
+_SECTION_END();
+
+
+//	combine the buy states of the active buy signals
+for(n = 0; n < i; n++)
+{
+	iter	= n+1;
+	BuyCond	= BuyCond AND IIf(StaticVarGet("BSig"+iter), VarGet("BuyState"+iter), 1);
+	extraTitle1 	= extraTitle1+WriteIf(StaticVarGet("BSig"+iter),
+							ec(-1), ec(39))+StaticVarGetText("BSNam"+iter) +sp(2);
+}
+SC			= NOT BuyCond;
+FinalBuy	= ExRem(BuyCond, SC);
+
+
+_SECTION_BEGIN("SELL SIGNALS LIST");
+SellSigList	= StrToUpper(ParamStr("Comma-Separated List of up to 10 Sell Signals", StrReplace(q11, "#", ",")));
+_SECTION_END();
+
+//	go through all the Sell signals, determining their buy states and their average signal periods
+extraTitle2 	= ec(-1)+"Sell:  ";
+Buybands	= bands;
+Sellcond		= Close - Close + 1;
+for( i = 0; StrExtract( SellSigList, i ) != ""; i++ )
+{
+	sig			= removeSpaces(StrExtract( SellSigList, i ));
+	sigS		= sig;
+	// 	get signal from AmiBroker, if it exists
+	signl			= Foreign(sig, "Close");
+	sigPresent	= LastValue( Highest(signl));
+	if (sigPresent)
+	{
+		BC		= signl;
+		SC		= NOT BC;
+		Buy	= ExRem(BC, SC);
+		Sell 	= ExRem(SC, BC);
+	}
+	else		//	get signal from FT
+	{
+		script     	= GetScriptObject();
+		signl        	= script.FTGetSig(FTDrive, sig, DNum);
+	}
+	SCond		= Flip(Sell, Buy);
+	Len		= LastValue(Cum(NOT IsEmpty(Sell)));
+	numSells	= LastValue(Cum(Sell));
+	SellLen	= Len / numSells;
+	StaticVarSetText("SSigName"+i, sig);
+	VarSet("SellLen"+i, SellLen );
+	VarSet("SellCond"+i,	SCond);
+}
+
+// go through Sell signals to put them in order of average signal period
+sSigCount	= i - 1;
+bands 		= IIf(i !=0, bands + i + 1, bands);
+for(n = 0; n < i; n++)
+{
+	iter	= n + 1;
+	ident	= 0;
+	SLen	= 0;
+	for(m = 0; m < i; m++)
+	{
+		ident	= IIf(VarGet("SellLen"+m) > SLen, m, ident);
+		SLen	= Max(SLen, VarGet("SellLen"+m) );
+	}
+	VarSet("SellLen"+ident, 0);
+	VarSet("SellState"+iter, VarGet("SellCond"+ident) );
+	StaticVarSetText("SSNam"+iter, StaticVarGetText("SSigName"+ident) );
+	StaticVarSetText("SSName"+iter, StaticVarGetText("SSigName"+ident) );	 StaticVarRemove("SSigName"+ident);
+}
+
+//	set up signal on/off param switches
+_SECTION_BEGIN("SELL SIGNALS SWITCHES");
+j = 1;	ssn1 = StaticVarGetText("SSName"+j);	StaticVarRemove("SSName"+j);
+if (ssn1 !="")	{	ss1 = ssn1+pad(ssn1);		StaticVarSet("SSig1", ParamToggle("Use Sell Signal 1?",
+	ss1+"OFF      Click to Change,"+ss1+"ON      Click to Change", q12));		q12 = StaticVarGet("SSig1");	}
+j = 2;	ssn2 = StaticVarGetText("SSName"+j);	StaticVarRemove("SSName"+j);
+if (ssn2 !="")	{	ss2 = ssn2+pad(ssn2);		StaticVarSet("SSig2", ParamToggle("Use Sell Signal 2?",
+	ss2+"OFF      Click to Change,"+ss2+"ON      Click to Change", q13));		q13 = StaticVarGet("SSig2");	}
+j = 3;	ssn3 = StaticVarGetText("SSName"+j);	StaticVarRemove("SSName"+j);
+if (ssn3 !="")	{	ss3 = ssn3+pad(ssn3);		StaticVarSet("SSig3", ParamToggle("Use Sell Signal 3?",
+	ss3+"OFF      Click to Change,"+ss3+"ON      Click to Change", q14));		q14 = StaticVarGet("SSig3");	}
+j = 4;	ssn4 = StaticVarGetText("SSName"+j);	StaticVarRemove("SSName"+j);
+if (ssn4 !="")	{	ss4 = ssn4+pad(ssn4);		StaticVarSet("SSig4", ParamToggle("Use Sell Signal 4?",
+	ss4+"OFF      Click to Change,"+ss4+"ON      Click to Change", q15));		q15 = StaticVarGet("SSig4");	}
+j = 5;	ssn5 = StaticVarGetText("SSName"+j);	StaticVarRemove("SSName"+j);
+if (ssn5 !="")	{	ss5 = ssn5+pad(ssn5);		StaticVarSet("SSig5", ParamToggle("Use Sell Signal 5?",
+	ss5+"OFF      Click to Change,"+ss5+"ON      Click to Change", q16));		q16 = StaticVarGet("SSig5");	}
+j = 6;	ssn6 = StaticVarGetText("SSName"+j);	StaticVarRemove("SSName"+j);
+if (ssn6 !="")	{	ss6 = ssn6+pad(ssn6);		StaticVarSet("SSig6", ParamToggle("Use Sell Signal 6?",
+	ss6+"OFF      Click to Change,"+ss6+"ON      Click to Change", q17));		q17 = StaticVarGet("SSig6");	}
+j = 7;	ssn7 = StaticVarGetText("SSName"+j);	StaticVarRemove("SSName"+j);
+if (ssn7 !="")	{	ss7 = ssn7+pad(ssn7);		StaticVarSet("SSig7", ParamToggle("Use Sell Signal 7?",
+	ss7+"OFF      Click to Change,"+ss7+"ON      Click to Change", q18));		q18 = StaticVarGet("SSig7");	}
+j = 8;	ssn8 = StaticVarGetText("SSName"+j);	StaticVarRemove("SSName"+j);
+if (ssn8 !="")	{	ss8 = ssn8+pad(ssn8);		StaticVarSet("SSig8", ParamToggle("Use Sell Signal 8?",
+	ss8+"OFF      Click to Change,"+ss8+"ON      Click to Change", q19));		q19 = StaticVarGet("SSig8");	}
+j = 9;	ssn9 = StaticVarGetText("SSName"+j);	StaticVarRemove("SSName"+j);
+if (ssn9 !="")	{	ss9 = ssn9+pad(ssn9);		StaticVarSet("SSig9", ParamToggle("Use Sell Signal 9?",
+	ss9+"OFF      Click to Change,"+ss9+"ON      Click to Change", q20));		q20 = StaticVarGet("SSig9");	}
+j = 10;	ssn10 = StaticVarGetText("SSName"+j);	StaticVarRemove("SSName"+j);
+if (ssn10 !="")	{	ss10 = ssn10+pad(ssn10);		StaticVarSet("SSig10", ParamToggle("Use Sell Signal 10?",
+	ss10+"OFF      Click to Change,"+ss10+"ON      Click to Change", q21));		q21 = StaticVarGet("SSig10");	}
+_SECTION_END();
+
+//	combine the sell states of the active sell signals
+for(n = 0; n < i; n++)
+{
+	iter	= n+1;
+	SellCond	= SellCond AND IIf(StaticVarGet("SSig"+iter), VarGet("SellState"+iter), 1);
+	extraTitle2 	= extraTitle2+WriteIf(StaticVarGet("SSig"+iter),
+							ec(-1), ec(39))+StaticVarGetText("SSNam"+iter) +sp(2);
+}
+BC			= NOT SellCond;
+FinalSell	= ExRem(SellCond, BC);
+
+FinalSell	= ExRem(FinalSell, FinalBuy);
+FinalBuy	= ExRem(FinalBuy, FinalSell);
+
+
+_SECTION_BEGIN("SIGNAL BANDS APPEARANCE");
+SRTitleSpace	= Param("Sell Rules Title Spacing Lines", q22, 5, 25, 1);
+SBUpPerc		= Param("Signal Bands Upper Frespace %",  q23, 1, 99, 0.5);
+BackColor		= ParamList("Select the Background Color to set Band Colors","Black Background for Signal Bands,"+
+									"Light Grey Background for Signal Bands, White Background for Signal Bands", q24);
+BCol				= IIf(BackColor=="Black Background for Signal Bands", 0, 
+									IIf(BackColor=="Light Grey Background for Signal Bands", 1, 2));
+RefString		= ParamStr("Reference Symbol for plot on Signal Bands", "Reference Symbol---"+q25);
+RefSym			= StrMid(StrToUpper(RefString), 19, 5) ;
+RefError			= IIf(IsNull(Foreign(RefSym, "Close")), 1, 0);
+RefSym			= WriteIf(RefError, "", RefSym);
+dummy			= ParamStr(". . .", "( number below is the Zig % for the Reference plot )");
+percnt			= Param("Zig Percent for Reference Symbol", q26, 0, 20, 1);
+_SECTION_END();
+
+
+//	establish the scaling for the plots
+bandSpace	= bands*(BarIndex()%2);	//	this varies between 0 and bands, establishing the min and max for the plot
+bdsp			= LastValue(Highest(bandSpace));
+SBLoPerc	= 	8;
+ULX			= 	U1(bandSpace, SBLoPerc, SBUpPerc);
+LLX			= 	L1(bandSpace, SBLoPerc, SBUpPerc);
+
+spacerColor	= IIf(BCol==0, colorBlack, IIf(BCol==1, colorLightGrey, colorWhite));
+
+//	plot zigzag of reference symbol
+zz				= Zig(Foreign(RefSym, "Close"), Percnt);
+Plot(zz, "", ColorRGB(100, 100, 254), styleNoLabel|styleOwnScale, L1(zz, SBLoPerc, SBUpPerc), U1(zz, SBLoPerc, SBUpPerc));
+
+//	plot vertical lines showing sell signals
+Plot((bands - Buybands - 1)*FinalSell,  "", colorLime, styleHistogram|styleThick|styleNoLabel|styleOwnScale, LLX, ULX);
+
+//	plot line to delineate the bottom of the lowest signal band
+band	= 0;
+LineCol	= IIf(BCol==0, colorWhite, IIf(BCol==1, colorBlack, colorBlack));
+Plot(band,	"", LineCol, 		styleNoLabel|styleOwnScale, LLX, ULX);
+
+
+//	go through the Sell signals again for plotting (these will be lowest on chart, so must be done first)
+for (n = sSigCount; n > -1; n--)
+{
+	iter	= n + 1;
+	SCond	= VarGet("SellState"+iter);
+	BCond	= NOT SCond;
+	band	= band + (BCond + SCond);
+	Color	= 	IIf(StaticVarGet("SSig"+iter), IIf(BCol==1, IIf(SCond,  colorWhite, colorGrey40), IIf(SCond,  colorLightGrey, colorGrey40) ),
+						IIf(BCol==0, colorBlack, IIf(BCol==1, colorLightGrey, colorWhite)));
+	Plot(band,	"", LineCol, 		styleNoLabel|styleOwnScale, LLX, ULX);
+	Plot(band,	"", Color, 		styleArea|styleNoLabel|styleOwnScale, LLX, ULX);
+}
+
+
+//	plot line to delineate the top of the highest sell signal band
+band 	= band + 2;
+Plot(band,	"", LineCol, 		styleNoLabel|styleOwnScale, LLX, ULX);
+
+//	plot extra black band to separate Buy and Sell areas
+Plot(band,  "", spacerColor, 	styleArea|styleNoLabel | styleOwnScale, LLX, ULX);
+
+//	plot vertical lines showing Buy signals
+Plot((bdsp)*FinalBuy,  "", colorRed, styleHistogram|styleThick|styleNoLabel|styleOwnScale, LLX, ULX);
+
+
+//	go through the Buy signals again for plotting
+for (n = bSigCount; n > -1; n--)
+{
+	iter	= n + 1;
+	BCond	= VarGet("BuyState"+iter);
+	SCond	= NOT BCond;
+	band	= band + (BCond + SCond);
+	Color	= 	IIf(StaticVarGet("BSig"+iter), IIf(BCol==1, IIf(BCond,  colorWhite, colorGrey40), IIf(BCond,  colorLightGrey, colorGrey40) ),
+						IIf(BCol==0, colorBlack, IIf(BCol==1, colorLightGrey, colorWhite)));
+	Plot(band,	"", LineCol, 		styleNoLabel|styleOwnScale, LLX, ULX);
+	Plot(band,	"", Color, 		styleArea|styleNoLabel|styleOwnScale, LLX, ULX);
+}
+
+Buy						= FinalBuy;
+Sell						= FinalSell;
+
+showCompareSignal	= 0;
+showIndicator 			= 0;
+ExtraTitle1				= ExtraTitle1+ sp(6)+ec(ColorRGB(100,100,254))+wi(percnt > 0 AND RefSym != "", ""+percnt+"% Zig of ")+RefSym+"    ";
+
+showExtraTitles 		= 1;
+sig							= sigS	= "";
+nam						= "MS";
+
+
+//	make an initiation file to store params
+MSParamsList = ""+
+	StrReplace(BuySigList, "," ,"#")	+","+
+	q1			  								+","+
+	q2			 								+","+
+	q3			 								+","+
+	q4			 								+","+
+	q5			 								+","+
+	q6			 								+","+
+	q7			 								+","+
+	q8			 								+","+
+	q9			 								+","+
+	q10										+","+
+	StrReplace(SellSigList, "," ,"#")	+","+
+	q12			  							+","+
+	q13			 							+","+
+	q14			 							+","+
+	q15			 							+","+
+	q16			 							+","+
+	q17			 							+","+
+	q18			 							+","+
+	q19			 							+","+
+	q20			 							+","+
+	q21										+","+
+	SRTitleSpace							+","+
+	SBUpPerc								+","+
+	BCol										+","+
+	RefSym									+","+
+	Percnt									+","+
+	"";
+
+
+fh 	= fopen( MSParamsFileName, "w");
+if( fh )
+{
+   	fputs(MSParamsList, fh);
+	fclose( fh );
+}
+}
+}

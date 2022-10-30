@@ -1,0 +1,8 @@
+#include <T3_include.afl>;
+ti3 = T3(C,3);
+ti5 = T3(C,5);
+ti8 = t3(C,8);
+x = (ti3-ti5) + (ti5-ti8);
+
+Plot(x, "", 4);
+PlotGrid(0, colorLightGrey);

@@ -1,0 +1,39 @@
+//================================================== ============================================
+ SetChartBkGradientFill(colorWhite,colorLightGrey,colorWhite);
+ Period= ParamList("Base","Monthly|Weekly|Daily|Hourly|15Mi nute|5Minute|1Minute",0);
+
+ if(Period=="Monthly"){
+ TimeFrameSet(inMonthly);
+ PlotOHLC(Open, High, Low, Close, "Monthly Price Chart", colorBlack, style = styleCandle | styleOwnScale);
+ Plot(V,"Volume",colorWhite, styleHistogram);
+ }
+ if(Period=="Weekly"){
+ TimeFrameSet(inWeekly);
+ PlotOHLC(Open, High, Low, Close, "weekly Price Chart", colorBlack, style = styleCandle | styleOwnScale);
+ Plot(V,"Volume",colorWhite, styleHistogram);
+ }
+ if(Period=="Daily"){
+ TimeFrameSet(inDaily);
+ PlotOHLC(Open, High, Low, Close, "Daily Price Chart", colorBlack, style = styleCandle | styleOwnScale);
+ Plot(V,"Volume",colorWhite, styleHistogram);
+ }
+ if(Period=="Hourly"){
+ TimeFrameSet(inHourly);
+ PlotOHLC(Open, High, Low, Close, "Hourly Price Chart", colorBlack, style = styleCandle | styleOwnScale);
+ Plot(V,"Volume",colorWhite, styleHistogram);
+ }
+ if(Period=="15Minute"){
+ TimeFrameSet(in15Minute);
+ PlotOHLC(Open, High, Low, Close, "15Minute Price Chart", colorBlack, style = styleCandle | styleOwnScale);
+ Plot(V,"Volume",colorWhite, styleHistogram);
+ }
+ if(Period=="5Minute"){
+ TimeFrameSet(in5Minute);
+ PlotOHLC(Open, High, Low, Close, "5Minute Price Chart", colorBlack, style = styleCandle | styleOwnScale);
+ Plot(V,"Volume",colorWhite, styleHistogram);
+ }
+ if(Period=="1Minute"){
+ TimeFrameSet(in1Minute);
+ PlotOHLC(Open, High, Low, Close, "1Minute Price Chart", colorBlack, style = styleCandle | styleOwnScale);
+ Plot(V,"Volume",colorWhite, styleHistogram);
+ }

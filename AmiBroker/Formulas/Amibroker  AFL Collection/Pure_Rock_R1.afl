@@ -1,0 +1,30 @@
+PlotOHLC( Open,  High,  Low,  Close, "", colorBlack, styleCandle | styleThick  );
+//regular things
+P = ParamField( "Price field" );
+k1 = Param("Minor Rock", 1, 1, 200, 1 );
+a1 = ROC(P,k1);
+k2 = Param("Medium Rock", 4, 1, 200, 1 );
+a4= ROC( P, k2);
+k3 = Param("Major Rock", 10, 1, 200, 1 );
+a10= ROC( P, k3);
+k4 = Param("Power Rock", 24, 1, 200, 1 );
+a24= ROC( P, k4);
+
+
+// Pattern Conditions
+// Bearish1 => Rock4>param(2.10)+Rock1<param1 and bullish vice versa
+//Bearish 2 => Rock10> 1.75 + Rock 4 <param0.5 
+//bearish 3=> Rock 24>1.25 and Rock1<Rock4<rock10<rock24 and Rock1<0
+bearish1 = a4>=Param("Rock 4_1",3.05,0.1,100,0.05,0) AND a1<=Param("Rock 1",0.5,-10,2,0.05,0);
+bearish2 = a10>=Param("Rock 10",5,0.1,100,0.05,0) AND a4<=Param("Rock 4_10",0.5,-10,10,0.05,0);
+bearish3 = a24>=Param("Rock 24_10_4_1",1.1,-10,10,0.05,0) AND a10<a24 AND a4<a10 AND a1<=Param("Rock 1_4_10",-1.05,-10,10,0.05,0);
+PlotShapes( shapeStar*bearish1,colorOrange, 0,H,10);
+PlotShapes( shapeHollowSquare*bearish2,colorOrange, 0,H,20);
+PlotShapes( shapeSquare*bearish3,colorPink, 0,H,30);
+//Now reverse bullish
+bullish1 = a4<=Param("NRock 4_1",-3.05,-100,100,0.05,0) AND a1>=Param("NRock 1",-0.5,10,-2,0.05,0);
+bullish2 = a10<=Param("NRock 10",-5,-100,1.0,0.05,0) AND a4>=Param("NRock 4_10",-0.5,-10,10,0.05,0);
+bullish3 = a24<=Param("NRock 24_10_4_1",-1.1,-10,10,0.05,0) AND a10>a24 AND a4>a10 AND a1>=Param("NRock 1_4_10",1.05,-10,10,0.05,0);
+PlotShapes( shapeStar*bullish1,colorBlue, 0,L,-10);
+PlotShapes( shapeHollowSquare*bullish2,colorBlue, 0,L,-20);
+PlotShapes( shapeSquare*bullish3,colorLightBlue, 0,L,-30);

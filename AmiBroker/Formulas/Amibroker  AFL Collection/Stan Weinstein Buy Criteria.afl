@@ -1,0 +1,52 @@
+/* Stan Weinstein Buy Criteria - Afl implementation by Geoff Mulhall
+18/4/2001 */
+
+dollars = 5000;
+
+maLong = 150;
+maShort = 13;
+maRelStr = 2;
+
+/* sufficient liquidity ie share purchased less than 2% of weekly volume*/
+
+cond1 = dollars/Close < 0.02 * Sum(Volume,maLong)/(maLong/5);
+
+/* Stage 2 stock - Uncomment for buy criteria */
+
+/* cond2 = close > ma(close,maLong); */
+
+/*close above MA and a Stage 4 stock - Un comment for watch criteria */
+
+cond2 = Close > MA(Close,maShort) AND Close < MA(Close,maLong);
+
+/* one white soldier detected */
+
+cond3 = Close > Ref(Close,-1) AND Ref(Close,-1) > Ref(Close,-2) AND
+Close > Open;
+
+/* Moving Average is rising or flat */
+
+/* cond3 = ma(close,maShort) >= ref(ma(close,maShort),-1); */
+
+/* beginning to trend over the last 2 days */
+
+cond4 = Low > Ref(Low,-1) AND Ref(Low,-1) >= Ref(Low,-2) AND High >
+Ref(High,-1) AND Ref(High,-1) > Ref(High,-2);
+
+/* gradient of the relative strength is increasing compared to its index */
+
+cond5 = MA(RelStrength("spy"), maRelStr) >=
+Ref(MA(RelStrength("spy"),maRelStr), -1 * maRelStr);
+
+/* relative strength of the stocks index is increasing compared to XAO*/
+
+indexStr = RelStrength("spy")/RelStrength("spy");
+
+cond6 = MA(indexStr,maRelStr) >= Ref(MA(indexStr, maRelStr), -1 * maRelStr);
+
+Buy = cond1 AND cond2 AND cond3 AND cond4 AND cond5 AND cond6;
+
+Sell = 0;
+
+/* buy = exrem(buy,sell); */
+/* sell = exrem(sell,buy); */

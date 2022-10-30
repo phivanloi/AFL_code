@@ -1,0 +1,38 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+//_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", colorWhite, styleLine ); 
+entry_long = EMA(High,50);
+entry_short = EMA(Low,50);
+exit_long = EMA(Low,20);
+exit_short = EMA(High,20);
+
+Plot (entry_long,"long entry at",colorBlue,styleThick);
+Plot (entry_short,"Short entry at",colorBlue,styleThick);
+Plot (exit_long,"Stoploss for long",colorRed,styleThick);
+Plot (exit_short,"Stoploss for short",colorRed,styleThick);
+
+Buy = Close > entry_long;
+Short = Close < entry_short;
+Sell = Close < exit_long;
+Cover = Close > exit_short;
+
+Buy = ExRem(Buy,Short);
+Short = ExRem(Short,Buy);
+Sell = ExRem(Sell,Cover);
+Cover  = ExRem(Cover,Sell);
+dist = 1.5*ATR(10); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+//if( Buy[i] ) PlotText( "Buy\n@" + C[ i ]+"\n sl :"+ValueWhen( supbase==Base, LLV(L,HHVperiod) ) , i, L[ i ]-dist[i], colorBlack,colorGreen ); 
+//if( Short[i] ) PlotText( "Sell\n@" + C[ i ]+"\n sl :"+ ValueWhen( ResBase==Base, HHV(H,HHVperiod) ), i, H[ i ]+dist[i], colorBlack, colorRed ); 
+if( Buy[i] ) PlotText( "Buy\n@" + C[ i ] , i, L[ i ]-dist[i], colorBlack,colorGreen ); 
+if( Short[i] ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorBlack, colorRed ); 
+if( Sell[i] ) PlotText( "exit long\n@" + C[ i ], i, H[ i ]+dist[i], colorBlack, colorWhite ); 
+if( Cover[i] ) PlotText( "exit short\n@" + C[ i ], i, L[ i ]+dist[i], colorBlack, colorWhite ); 
+
+
+} 
+
+PlotShapes( Buy * shapeUpTriangle + Sell * shapeDownTriangle, IIf( Buy, colorYellow, colorYellow ) );

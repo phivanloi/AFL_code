@@ -1,0 +1,9 @@
+/*STOCHD OSI OBI*/
+s1=StochD(14);
+os=s1<=30;
+ob=s1>70;
+values11 = os>0;
+values12= ob>0;
+AddToComposite(Values11,"~stochdosi","V");
+AddToComposite(Values12,"~stochdobi","V");
+Buy=0;

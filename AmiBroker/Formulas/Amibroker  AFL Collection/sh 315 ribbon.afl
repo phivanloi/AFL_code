@@ -1,0 +1,11 @@
+_SECTION_BEGIN("Daily_SH315_Ribbon");
+TimeFrameSet( inDaily);
+EMA3_Daily = EMA( C, 3 ); 
+EMA15_Daily = EMA( C, 15 );
+Daily_Long_Mode =  EMA3_Daily > EMA15_Daily;
+Daily_Short_Mode =  EMA3_Daily < EMA15_Daily;
+TimeFrameRestore(); // restore time frame to original 
+
+Plot(10, "", IIf(TimeFrameExpand(Daily_Long_Mode,inDaily), colorBlue, IIf(TimeFrameExpand(Daily_Short_Mode,inDaily), colorRed, colorDarkGrey)), styleNoLabel | styleOwnScale | styleArea, -1,11);
+
+_SECTION_END();

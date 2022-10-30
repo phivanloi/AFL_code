@@ -1,0 +1,3 @@
+/* The Volume Weighted Moving Average calculates the sum of the volume times the data field for each day in the average, then divides this value by the sum of the volumes in that period. */
+
+Graph0 = Sum((Volume*Close),10)/Sum (Volume,10);

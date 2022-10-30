@@ -1,0 +1,66 @@
+_SECTION_BEGIN("GSMA");
+SetBarsRequired(100000,0);
+PI = 3.1415926;
+T1 = Param("Momentum Period",5,0,100,1);
+
+A=C-Ref(C,-T1);
+a[0]=C[0];
+function IIR2( input, f0, f1, f2 ) 
+{ 
+    result[ 0 ] = input[ 0 ]; 
+    result[ 1 ] = input[ 1 ]; 
+
+    for( i = 10; i < BarCount; i++ ) 
+    { 
+       result[ i ] = f0 * input[ i ] + 
+                     f1 * result[ i - 1 ] + 
+                     f2 * result[ i - 2 ]; 
+    } 
+
+   return result; 
+} 
+
+function GSMA( input, Period )
+{
+  N = 0;
+  an = 2 * PI / Period;
+  c0 = b0 = 1;
+  c1 = b1 = b2 = a1 = a2 = gamma1 = 0;
+  beta1 = 2.415 * ( 1- cos( an ) );
+  alpha = -beta1 + sqrt( beta1 ^ 2 + 2 * beta1 );
+  alpha1 = ( cos( an ) + sin( an ) - 1 )/cos( an );
+   {
+    fo = alpha ^ 2;
+    f1 = 2 * ( 1- alpha ); f2 = -( 1 - alpha )*( 1 - alpha );
+  }
+  
+
+  return IIR2( input, fo,f1,f2);
+}
+period=Param("period",15,1,40,1);
+
+H1=gsma(H,period);
+L1=gsma(L,period);
+p = Param("adx+d-d",10,1,100,1);
+
+PDM=IIf(H1>Ref(H1,-1) AND L1>=Ref(L1,-1), H1-Ref(H1,-1),IIf(H1 >Ref(H1,-1) AND L1<Ref(L1,-1) 
+AND H1-Ref(H1,-1)> Ref(L1,-1)-L1, H1-Ref(H1,-1),0)); 
+
+MDM=IIf(L1<Ref(L1,-1) AND H1<=Ref(H1,-1), Ref(L1,-1)-L1,IIf(H1>Ref(H1,-1) AND L1<Ref(L1,-1) 
+AND H1-Ref(H1,-1)<Ref(L1,-1)-L1, Ref(L1,-1)-L1,0)); 
+
+PlDI=100*Wilders(PDM,P)/ATR(P); 
+MIDI=100*Wilders(MDM,P)/ATR(P) ; 
+
+
+DIDif=(PLDI-MiDI); 
+DISum=PlDI+MiDI; 
+ADXF=100*Wilders(abs(DIDif)/DISum,P); 
+ADXF2=100*Wilders((DIDif)/DISum,P); 
+
+
+
+//Plot( PlDI , "+DI" , IIf(PlDI>Ref(PlDI,-1),colorBrightGreen,colorGreen), 4 |styleOwnScale); 
+Plot( PlDI , "+DI" , IIf(PDI(p)>MDI(p),colorBrightGreen,colorGreen), 4 |styleOwnScale); 
+Plot( MIDI , "-DI" , IIf(MDI(p)>PDI(p),colorRed,colorDarkRed), 4|styleOwnScale ); 
+Plot( ADXF, "KADX"+"(" +WriteVal( p,1.0 )+")" , IIf(ADX(p)>Ref(ADX(p),-1),colorBlue,colorViolet) , 4 |styleThick|styleOwnScale) ; 

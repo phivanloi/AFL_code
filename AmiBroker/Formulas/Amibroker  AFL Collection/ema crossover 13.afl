@@ -1,0 +1,54 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("ema");
+
+fast = Optimize("fast ema", 2,2,15,1);
+med = Optimize("med ema", 19,5,35,1);
+Long = Optimize("long ema", 26,15,89,1);
+
+Plot( MA( Close, fast ),"fast ema", colorYellow, styleThick ); 
+Plot( EMA( Close, med ),"med ema", colorRed, styleThick ); 
+Plot( EMA( Close, Long ),"long ema", colorBlue, styleThick ); 
+
+Buy = Cross (MA( Close, fast ), EMA( Close, Long )) OR Cross (MA( Close, fast ), EMA( Close, med )) ;
+Short=Cross (EMA( Close, Long ), MA( Close, fast )) OR Cross (EMA( Close, med ), MA( Close, fast ));
+Sell = Cross (MA( Close, med ), EMA( Close, fast ));
+Cover = Cross (MA( Close, fast ), EMA( Close, med )); 
+  
+PlotShapes (Buy*shapeUpTriangle,colorGreen);
+PlotShapes (Short*shapeDownTriangle,colorRed);
+
+_SECTION_BEGIN("Fibo for all bars");
+
+TimeFrameSet( in15Minute*2 ); 
+DH=Ref(H,-1); 
+DL=Ref(L,-1);
+DC=Ref(C,-1);
+
+
+pd = ( DH+ DL + DC )/3;
+sd1 = (2*pd)-DH;
+sd2 = pd -(DH - DL);
+sd3 = Sd1 - (DH-DL); 
+rd1 = (2*pd)-DL;
+rd2 = pd +(DH -DL);
+rd3 = rd1 +(DH-DL);
+
+
+
+Plot (pd,"Pivot",colorBlue,styleThick+styleDots);
+Plot (rd1," R1 ",35,8+16);
+Plot (rd2," R2 ",35,8+16);
+Plot (rd3," R3 ",35,8+16);
+
+Plot (sd1," S1 ",4,8+16);
+Plot (Sd2," S2 ",4,8+16);
+Plot (Sd3," S3 ",4,8+16);
+
+style = IIf(ParamList("Chart style", "styleCandle|styleBar")=="styleCandle",64,128+4);
+//Plot (C,Date ()+" close",1,style); //ENABLE THIS TO HAVE CANDLES AS WELL
+_SECTION_END();

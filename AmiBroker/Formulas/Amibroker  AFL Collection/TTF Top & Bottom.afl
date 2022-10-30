@@ -1,0 +1,4 @@
+ttfbot = IIf(O<(0.33*(H-L)+L) AND C<(0.33*(H-L))+L, -1, 0);
+ttftop = IIf(O>(0.66*(H-L)+L) AND C>(0.66*(H-L))+L, 1, 0);
+Plot(ttfbot, "", 4);
+Plot(ttftop, "",5);

@@ -1,0 +1,21 @@
+//--- Begin of Script ---
+UseOption = ParamToggle("Use Option", "MAV10days|PrevDayVol");
+
+if (UseOption==0)
+{
+s = "MAV10days";
+AvgV = MA(V, 10);
+}
+else
+{
+s = "PrevDayVol";
+AvgV =Ref(V, -1); 
+
+}
+VolInc = V/Ref(V, -1);
+Filter = VolInc >= 0.2 AND VolInc<=0.3;
+AddTextColumn(FullName(), "Security");
+AddColumn(AvgV, s);
+AddColumn(V, "Vol");
+AddColumn(VolInc, "VolInc(%)");
+//--- End of Script ----

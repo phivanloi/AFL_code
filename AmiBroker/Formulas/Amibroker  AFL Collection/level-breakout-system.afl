@@ -1,0 +1,26 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("R&S Channel");
+
+a1=  LastValue(StDev(abs(C-Ref(C,-1))/Ref(C,-1)*100,50)); 
+
+a1 = Param( "R&S Period",1,1,5);
+Peak(H,a1,1);
+Trough(L,a1,1);
+
+Plot(Peak(H,a1,1), "Resistance Level", colorGreen, styleLine, Null, Null, 10 );
+
+Plot(Trough(L,a1,1), "Support Level", colorRed, styleLine, Null, Null, 10 );
+
+_SECTION_END();
+
+Buy = Cross( C, Peak(H,a1,1) ) ;
+Sell =Cross( Trough(L,a1,1), C ) ;
+
+
+PlotShapes(IIf(Buy, shapeUpArrow , shapeNone), colorGreen);
+PlotShapes(IIf(Sell, shapeDownArrow , shapeNone), colorRed);

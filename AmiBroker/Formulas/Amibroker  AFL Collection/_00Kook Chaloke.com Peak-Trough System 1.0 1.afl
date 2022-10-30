@@ -1,0 +1,15 @@
+_SECTION_BEGIN("_00Kook Chaloke.com Peak");
+///// Chaloke.com Peak-Trough System 1.0 ///// 
+
+Sens=Param("Sens",1,0.25,5,0.25); 
+PK=Peak(Close,Sens,1); 
+TGH=Trough(Close,Sens,1); 
+Color=IIf(BarsSince(Cross(C,Ref(PK,-1)))<BarsSince(Cross(Ref(TGH,-1),C)),colorBrightGreen,colorRed); 
+Plot(Zig(C,Sens),"",colorWhite);
+Plot(C,"Chaloke.com Peak-Trough System",Color,styleCandle); 
+PlotShapes( Cross(C,Ref(PK,-1)) *shapeUpArrow,colorRed,0,L,Offset=-20); 
+PlotShapes( Cross(Ref(TGH,-1),C) *shapeDownArrow,11,0,H,Offset=-20); 
+
+ Title=EncodeColor(colorBrightGreen)+Date()+"    " +Name() +"  Chaloke.com Peak-Trough System 1.0 " + EncodeColor(10)+"   O="+O+"   H="+H+"   L="+L+EncodeColor(colorPink)+"   C="+C+"  ("+NumToStr((C-Ref(C,-1))/Ref(C,-1)*100,1.2)+" %)    "
+;
+_SECTION_END();

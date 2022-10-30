@@ -1,0 +1,20 @@
+_SECTION_BEGIN("Dynamic Traders Index");
+ PlotGrid(30, colorLightBlue);
+ PlotGrid(50, colorLightBlue);
+ PlotGrid(70, colorLightBlue);
+ a = DEMA(RSI(13),2);
+ b = MA(a,7);
+ bh = DEMA(a,34)+2*(StDev(a,34));
+ bl = DEMA(a,34)-2*(StDev(a,34));
+ bm = (bh+bl)/2;
+
+ Plot(a, "TDI", colorGreen, styleThick); 
+ Plot(b, "TSL", colorRed,styleThick);
+
+ Plot( bh , "", colorBlue);
+ Plot( bl , "", colorBlack);
+ Plot(bm,"", colorDarkYellow);
+
+
+
+ _SECTION_END();

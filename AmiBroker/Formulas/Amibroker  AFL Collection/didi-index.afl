@@ -1,0 +1,40 @@
+_SECTION_BEGIN("Background");
+SetChartBkGradientFill(ParamColor("Top", colorTeal), ParamColor("Bottom", colorLightGrey), ParamColor("Title", colorTeal));
+SetChartBkColor(ParamColor("Chart Background", colorWhite));
+_SECTION_END();
+
+_SECTION_BEGIN("Didi Index Indicator");
+function DidiIndex( Curta, Media, Longa )
+{
+ global DidiLonga, DidiCurta;
+ DidiLonga = MA( Close, Longa ) - MA( Close, Media );
+ DidiCurta = MA( Close, Curta ) - MA( Close, Media );
+ 
+ return IIf(DidiCurta > 0 AND DidiLonga < 0, 1,IIf(DidiCurta<0 AND DidiLonga>0, -1,0));
+}
+
+MAFast = Optimize("Curta",Param("MA Curta",3,1,5 ),1,5,1);
+MAMid  = Optimize("Media",Param("MA Media",8,6,12),6,12,1);
+MASlow = Optimize("Longa",Param("MA Longa",20,15,34),15,34,1);
+
+Trend = DidiIndex(MAFast, MAMid, MASlow);
+Buy = Cross(Trend,0) AND ADX()>MDI();
+Sell = Cross(0,Trend);
+Buy = ExRem(Buy,Sell); Sell = ExRem(Sell,Buy);
+
+TrendColor = IIf(DidiCurta>0,colorLime,colorRed);
+
+Plot( DidiCurta, _DEFAULT_NAME(), TrendColor, ParamStyle("Histogram style", styleThick | styleHistogram | styleNoLabel, maskHistogram ));
+Plot(0,"", colorBrown ,styleLine);
+
+Plot(DidiLonga,"",IIf(DidiLonga<0,colorGreen,colorRed),styleLine | styleThick);
+
+Plot(DidiCurta,"",IIf(DidiCurta>0,colorGreen,colorRed),styleLine | styleThick);
+
+//Normal Buy and Sell Signal
+PlotShapes(Buy*shapeUpTriangle,colorBlue,0,-0.5);
+PlotShapes(Sell*shapeDownTriangle,colorPink,0,0.5);
+
+// The Best Signal: Didi Needleful
+PlotShapes((Cross(DidiCurta,0) AND Cross(0,DidiLonga)) * shapeHollowCircle, colorYellow,0,0.25);
+_SECTION_END();

@@ -1,0 +1,30 @@
+/* my entry is very simple(daily data for trading)
+
+kpl system for entry only & exit as follow:
+
+1 st exit at x % from entry price only 1/3 quantity.(ie 1st profit target)
+2 nd exit when exit Signal comes from kpl sys remaining 1/3 quantity.
+3. scale-in to initial quantity if new kpl Buy Signal comes.
+re-do above scaling-out & scaling-in till filal exit.
+4. final exit all quantity when Close below 21 Day EMA.
+
+kpl system code bellow :
+*/
+//AFL by Kamalesh Langote. Email:kpl@...
+no=Param( "Swing", 2, 1, 55 );
+tsl_col=ParamColor( "Color", colorCycle );
+
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+tsl=IIf(avn==1,sup,res);
+Buy=Cross(C,tsl) ;
+Sell= Cross(tsl,C) ;
+
+Plot(tsl, _DEFAULT_NAME(), tsl_col, styleStaircase);
+shape=Buy*shapeUpArrow + Sell*shapeDownArrow;
+PlotShapes(shape,IIf(Buy,tsl_col,tsl_col),0,IIf(Buy,Low,High));
+SetPositionSize(300,spsShares);
+ApplyStop(0,1,10,1);
+

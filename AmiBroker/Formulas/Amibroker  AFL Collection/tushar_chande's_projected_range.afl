@@ -1,0 +1,16 @@
+/*Tushar Chande's Range Projection */
+
+/* AFL Code by Prakash Shenoi */
+
+Av=MA(abs(C-Ref(C,-1)),10);
+r1=(C+Av);
+r2=(C+(2*Av));
+s1=(C-Av);
+s2=(C-(2*Av));
+Plot (Close,"",3,128);
+Plot (r1,"",24,16+8);
+Plot (r2,"",24,16+8);
+Plot (s1,"",26,16+8);
+Plot (s2,"",26,16+8);
+GraphXSpace=5;
+Title=Name ()+ "  Tushar Chande's Projected Range "+"\n"+ "RES =" + WriteVal  (r1,1.2) + ", "+ WriteVal  (r2,1.2) + "  " + " SUPP= "+ WriteVal (s1,1.2)+ ", " + WriteVal(s2,1.2) ;

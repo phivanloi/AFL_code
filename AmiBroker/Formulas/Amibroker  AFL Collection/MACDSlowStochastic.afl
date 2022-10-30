@@ -1,0 +1,29 @@
+_SECTION_BEGIN("DENNIS");
+
+periods = Param( "Periods", 15, 1, 200, 1 );
+
+Ksmooth = Param( "%K avg", 3, 1, 200, 1 );
+
+Dsmooth = Param( "%D avg", 3, 1, 200, 1 );
+
+Plot( StochD( periods , Ksmooth, DSmooth ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+
+ 
+
+r1 = Param( "Fast avg", 12, 2, 200, 1 );
+
+r2 = Param( "Slow avg", 26, 2, 200, 1 );
+
+r3 = Param( "Signal avg", 9, 2, 200, 1 );
+
+ml = MACD(r1, r2);
+
+sl = Signal(r1,r2,r3);
+
+//Plot( m1, StrFormat(_SECTION_NAME()+"(%g,%g)", r1, r2), ParamColor("MACD color", colorRed ), ParamStyle("MACD style") ); 
+
+//Plot( s1, "Signal" + _PARAM_VALUES(), ParamColor("Signal color", colorBlue ), ParamStyle("Signal style") ); 
+
+Plot( ml-sl, "MACD Histogram", ParamColor("Histogram color", colorBlack ), styleNoTitle | ParamStyle("Histogram style", styleHistogram | styleNoLabel, maskHistogram ) );
+
+_SECTION_END();

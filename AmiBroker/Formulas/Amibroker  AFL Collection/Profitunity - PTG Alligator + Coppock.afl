@@ -1,0 +1,76 @@
+GraphXSpace = 5;
+_SECTION_BEGIN( "Price" );
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );
+_N( Title = StrFormat( "{{NAME}} - " + SectorID( 1 ) + " - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", colorRose, styleCandle | styleNoTitle | ParamStyle( "Style" ) | GetPriceStyle() );
+
+if ( ParamToggle( "Tooltip shows", "All Values|Only Prices" ) )
+{
+    ToolTip = StrFormat( "Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: " + NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 ) ) );
+}
+_SECTION_END();
+
+
+_SECTION_BEGIN( "Alligator" );
+mid = (H+L)/2;
+
+Lips = Ref(EMA(mid,9),-3);
+teeth = Ref(EMA(mid,15),-5);
+jaw = Ref(EMA(mid,25),-8);
+
+Plot(lips, "Lips", colorLime);
+Plot(teeth, "Teeth", colorRed);
+Plot(jaw, "Jaw", colorLightBlue, styleThick);
+_SECTION_END();
+
+_SECTION_BEGIN( "Fractals" );
+F1 = ValueWhen(H<Ref(H,-2) AND Ref(H,-1)<Ref(H,-2) AND Ref(H,-3)<Ref(H,-2) AND Ref(H,-4)<Ref(H,-2),Ref(H,-2),1);
+F2 = ValueWhen(L>Ref(L,-2) AND Ref(L,-1)>Ref(L,-2) AND Ref(L,-3)>Ref(L,-2) AND Ref(L,-4)>Ref(L,-2),Ref(L,-2),1);
+
+a = Cross(H,F1);
+b = Cross(F2,L);
+
+state = IIf(BarsSince(a)<BarsSince(b),1,0);
+
+Longs=state==1;
+shorts=state==0;
+
+up = state>Ref(state,-1);
+dn = state<Ref(state,-1);
+
+PlotShapes( IIf(up, shapeUpArrow,0) , colorLime,0,L,-15);
+PlotShapes( IIf(dn, shapeDownArrow,0) , colorYellow,0,H,-15);
+
+//
+
+PK = (ROC(Close,14)*10 + ROC(Close,11)*10 +
+ROC(Ref(Close,-1),14)*9 + ROC(Ref(Close,-1),11)*9 +
+ROC(Ref(Close,-2),14)*8 + ROC(Ref(Close,-2),11)*8 +
+ROC(Ref(Close,-3),14)*7 + ROC(Ref(Close,-3),11)*7 +
+ROC(Ref(Close,-4),14)*6 + ROC(Ref(Close,-4),11)*6 +
+ROC(Ref(Close,-5),14)*5 + ROC(Ref(Close,-5),11)*5 +
+ROC(Ref(Close,-6),14)*4 + ROC(Ref(Close,-6),11)*4 +
+ROC(Ref(Close,-7),14)*3 + ROC(Ref(Close,-7),11)*3 +
+ROC(Ref(Close,-8),14)*2 + ROC(Ref(Close,-8),11)*2 +
+ROC(Ref(Close,-9),14) + ROC(Ref(Close,-9),11))/2;
+/*Per1 = 30;
+MN = MA(Pk,Per1);
+SD = StDev(Pk,Per1);
+Val1 = IIf(MN+(1.33*SD)>2.08,MN+(1.33*SD),2.08);
+Val2 = IIf(MN-(1.33*SD)<-1.92,MN-(1.33*SD),-1.92);
+lin = IIf(Ref(Pk,-1)>=0 AND Pk>0,Val1,IIf(Ref(Pk,-1)<=0 AND Pk<0,Val2,0));
+*/
+a = PK>Ref(PK,-1);
+b = PK<Ref(PK,-1);
+
+st=IIf(BarsSince(a)<BarsSince(b),1,0);
+
+Long=st==1;
+Short=st==0;
+
+Buy = Cross(a,b);
+Sell = Cross(b,a);
+
+PlotShapes( IIf(Buy, shapeSmallCircle,0) , colorLime,0,L,-10);
+PlotShapes( IIf(Sell, shapeSmallCircle,0) , colorOrange,0,H,10);
+_SECTION_END();

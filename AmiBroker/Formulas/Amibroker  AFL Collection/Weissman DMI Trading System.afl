@@ -1,0 +1,36 @@
+_SECTION_BEGIN("ADX");
+range = Param("Periods", 14, 2, 200, 1 );
+//Plot( ADX(range), _DEFAULT_NAME(), ParamColor( "ADX color", colorBlue ), ParamStyle("ADX style", styleThick ) );
+Plot( PDI(range), "+DI", ParamColor( "+DI color", colorGreen ), ParamStyle("+DI style") );
+//Plot( MDI(range), "-DI", ParamColor( "-DI color", colorRed ), ParamStyle("-DI style") );
+Plot( 20,"", 1, styleNoLabel);
+Plot( 40,"", 1, styleNoLabel);
+
+"UpTrend:";
+".. ADX > 30 the higher the better";
+".. +DI > -DI";
+"";
+"DownTrend:";
+".. ADX > 30 the higher the better";
+".. -DI > +DI";
+_SECTION_END();
+
+Buy= Cross (Ref(PDI(10), -1), (20));
+PlotShapes(shapeUpArrow*Buy,colorGreen);
+Sell = Cross (Ref(PDI(10), -1), (0));
+PlotShapes(shapeDownArrow*Sell,colorRed);
+
+
+Filter = Buy OR Sell;
+
+AddColumn( Buy, "Buy", 1);
+AddColumn(Sell, "Sell", 1);
+AddColumn(Close,"Close",1.2);
+AddColumn(Volume,"Volume",1.0);
+AddColumn( RSI(), "RSI", 1.2 );
+AddColumn( ROC( Close, 15 ), "ROC(15)", 1.2 );
+AddColumn( MFI(), "MFI", 1.2 );
+AddColumn( OBV(), "OBV", 1.2 );
+AddColumn( CCI(), "CCI", 1.2 );
+AddColumn( Ultimate(), "Ultimate", 1.4 );
+_SECTION_END();

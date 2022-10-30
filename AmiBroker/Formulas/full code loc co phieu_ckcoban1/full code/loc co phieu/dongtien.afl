@@ -1,0 +1,8 @@
+DK2 = MA(V,10)>100000;
+//DK5=MA(V,20)>1.1*MA(Ref(V,-20),20);// tuan dep
+DK7=MA(V,10)>1.1*MA(Ref(V,-10),10);
+DK6=C>MA(C,20);
+DK9=MA(C,5)>MA(C,20);
+Buy = DK2 AND DK7 AND DK6 AND DK9;
+Filter = Buy;
+//Plot signals

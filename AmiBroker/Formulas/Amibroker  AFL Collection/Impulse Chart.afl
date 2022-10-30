@@ -1,0 +1,95 @@
+_SECTION_BEGIN("Trend Bars");
+x = MA(C,4); //4-day MA
+y = MA(C,9); //9-day MA
+z = MA(C,18); // 18-day MA
+
+sideways = IIf(y > z AND x < y,1,0); 
+sideways1 = IIf(y < z AND x > y,1,0);
+upt = IIf(x > y AND y > z,1,0);
+dnt = IIf(x < y AND y < z,1,0);
+
+
+Plot( 1, "", IIf(sideways OR sideways1, colorDarkBlue, IIf(upt, colorDarkGreen, IIf(dnt, colorDarkRed,0))), styleOwnScale|styleArea|styleNoLabel, -0.1, 50 );
+
+Color = IIf(C > O, colorGreen, colorRed);
+
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );
+_N( Title = StrFormat( "{{NAME}} - " + SectorID( 1 ) + " - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", colorRose, styleCandle | styleNoTitle | ParamStyle( "Style" ) | GetPriceStyle() );
+
+if ( ParamToggle( "Tooltip shows", "All Values|Only Prices" ) )
+{
+    ToolTip = StrFormat( "Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: " + NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 ) ) );
+}
+
+Plot(EMA(C,9), "EMA(9)", colorRed);
+Plot(EMA(C,18), "EMA(18)", colorGreen);
+_SECTION_END();
+
+_SECTION_BEGIN("Elders Impulse");
+macShort = Param("MACD Short MA",12,1,100,1);
+macLong = Param("MACD Long MA",26,1,100,1);
+macSmooth = Param("MACD Smoothing Period",9,1,100,1);
+EMAp = Param("Short EMA",13,1,40,1);
+macTime = Param("Time Ratio",1,22,1);
+macShort = macShort*macTime;
+macLong = macLong*macTime;
+macSmooth = macSmooth*macTime;
+EMAvg = EMAp*MacTime;
+//{ do long impulse next }
+mac = EMA(C,macShort)-EMA(C,macLong);
+MacSig = EMA(mac,macSmooth);
+macplot = (mac-MacSig);
+impulse = IIf(macplot >= Ref(macplot,-macTime), 1,0)+IIf(Close > EMA(Close,EMAp),1,0)-1;
+
+//Plot(impulse, "", colorRed);
+//PlotGrid(0, colorLightGrey);
+
+a = IIf(impulse>0,1,0);  //{ Buy OK}
+b = IIf(impulse<0,1,0);  //{ Sell OK}
+state=IIf(BarsSince(a)<BarsSince(b),1,0);
+
+Longs=state==1;
+shorts=state==0;
+
+
+Buy = state>Ref(state,-1);
+Sell = state<Ref(state,-1);
+
+PlotShapes( IIf(Buy, shapeSmallCircle,0) , colorLime,0,L,-10);
+PlotShapes( IIf(Sell, shapeSmallCircle,0) , colorOrange,0,H,10);
+_SECTION_END();
+
+
+GraphXSpace = 5;
+
+_SECTION_BEGIN("Commentary");
+printf ( "=========================" +"\n");
+printf ( "PRICE ANALYSIS" +"\n");
+printf ( "=========================" +"\n");
+printf ( Name() + " - " +Interval(2) +  "  - " + Date() +" - " +"\n\n"+"Open= "+O+"\n"+"High= "+H+"\n"+"Low= "+L+"\n"+"Close= "+C+"\n"+
+"Last Close= "+  WriteVal(Ref(C,-1), formate = 1.2)+ "\n"+ 
+"Change= "+  WriteVal(C - Ref(C,-1), formate = 1.2)+ "\n\n"+
+"Range= "+ WriteVal(H-L, formate = 1.2)+"\n"+"O/C Diff= "+  WriteVal(C - O, formate = 1.2)+ "\n\n"+
+"Volume= "+ WriteVal(V, formate = 1.0)+"\n"+ 
+"Avg. Vol= "+ WriteVal(MA(MA(MA(V,20),20),20), formate = 1.0)+"\n");
+_SECTION_END();
+
+
+//=====================================================================
+//background stock name (works only on Amibroker version 5.00 onwards.
+//=====================================================================
+_SECTION_BEGIN("Name");
+GfxSetOverlayMode(1);
+GfxSelectFont("Tahoma", Status("pxheight")/6 );
+GfxSetTextAlign( 6 );// center alignment
+//GfxSetTextColor( ColorRGB( 200, 200, 200 ) );
+GfxSetTextColor( ColorHSB( 42, 42, 42 ) );
+GfxSetBkMode(0); // transparent
+GfxTextOut( Name(), Status("pxwidth")/2, Status("pxheight")/12 );
+GfxSelectFont("Tahoma", Status("pxheight")/12 );
+GfxTextOut( "MAV'S CHART", Status("pxwidth")/2, Status("pxheight")/3 );
+GfxSelectFont("Tahoma", Status("pxheight")/36 );
+GfxTextOut( "mavirk@gmail.com", Status("pxwidth")/2, Status("pxheight")/2 );
+_SECTION_END();
+//======================================================================================

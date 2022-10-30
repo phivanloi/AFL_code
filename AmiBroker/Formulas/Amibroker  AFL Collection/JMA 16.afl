@@ -1,0 +1,21 @@
+_SECTION_BEGIN("JMA");
+Length=Param( "Length ", 34, 0, 50,1);
+Phase=0;
+lp = Param("CCI period",10,2,50,1);
+sp = Param("TCCI period",14,2,100,1); 
+CCI_j = CCIa(JurikJMA( Close, Length, Phase),Lp);
+//Plot(CCI_j,"",IIf(CCI_j > Ref(CCI_j,-1),colorBrightGreen,colorRed), styleThick);
+Plot(CCIa(JurikJMA( Close, Lp, 0),14),"",colorRed);
+Plot(CCIa(JurikJMA( Close, sp, 0),14),"",colorBlue);
+
+Buy = CCI_j > -100 AND CCI_j > Ref(CCI_j,-1);
+Short = CCI_j < 100 AND CCI_j < Ref(CCI_j,-1);
+Sell = CCI_j < Ref(CCI_j,-1);
+Cover = CCI_j > Ref(CCI_j,-1);
+
+Buy = ExRem(Buy,Short);
+Short = ExRem(Short,Buy);
+Plot(100,"",colorDarkGrey,styleNoLabel);Plot(-100,"",colorDarkGrey,styleNoLabel);Plot(0,"",colorGrey40,styleNoLabel);
+
+
+_SECTION_END();

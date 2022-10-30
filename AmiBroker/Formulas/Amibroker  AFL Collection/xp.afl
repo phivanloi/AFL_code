@@ -1,0 +1,491 @@
+/////GoldPivot// 
+//by mike_05// 
+SetChartBkColor(ParamColor("Panel color ",colorPaleBlue)); 
+
+SetChartOptions(0,chartShowArrows|chartShowDates); 
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) )); 
+// -- what will be our lookback range for the hh and ll? 
+SetBarsRequired(120,-1 ); 
+nBars = Param("bars look backwards", 19, 5, 40,1); 
+//nBars= Optimize("nBars", 20, 11, 27, 1); 
+// -- Title. 
+//Title = Name() + " (" + StrLeft(FullName(), 15) + ") O: " + Open + ", 
+//H: " + High + ", L: " + Low + ", C: " + Close; 
+
+// -- Plot basic candle chart 
+PlotOHLC(Open, High, Low, Close, 
+"BIdx = " + BarIndex() + 
+"" + "O = " + O + ""+"H = "+ H + ""+"L = " + L 
++ ""+"C " , 
+colorBlack, styleCandle); 
+GraphXSpace=22; 
+
+
+_SECTION_BEGIN("AA - Fibonacci Retracements and Goals"); 
+/////////////////////////////////////////////////// 
+// **************** Parameters ******************** 
+// 
+Period = Param("Period", 1, 1, 50); 
+ShowExt = ParamToggle("Show Extension ?", "No|Yes"); 
+/////////////////////////////////////////////////// 
+// **************** Calculations ***************** 
+// 
+Period = Period*(13*.618); 
+
+Hhb = LastValue(Ref(HHVBars(H, Period), -1))+1; 
+Llb = LastValue(Ref(LLVBars(L, Period), -1))+1; 
+Hv = LastValue(Ref(HHV(H, Period), -1)); 
+Lv = LastValue(Ref(LLV(L, Period), -1)); 
+
+Range = (Hv - Lv); 
+LText = "0 %, 21.4 %, 38.2 %, 50 %, 61.8 %, 78.6 %, 100 %, 1.618 %, 1.72 %, 200 
+%"; 
+if(Hhb > Llb) 
+{ 
+Levels[0] = Lv; 
+Levels[1]= (Range *.214)+Levels[0]; 
+Levels[2]= (Range *.382)+Levels[0]; 
+Levels[3]= (Range *.5)+Levels[0]; 
+Levels[4]= (Range *.618)+Levels[0]; 
+Levels[5]= (Range *.786)+Levels[0]; 
+Levels[6]= Hv; 
+Levels[7]= (Range *.618)+Levels[6]; 
+Levels[8]= (Range *.72)+Levels[6]; 
+Levels[9]= (Range )+Levels[6]; 
+x0 = BarCount - 1 - Llb; 
+x1 = BarCount - 1 - Hhb; 
+} 
+else 
+{ 
+Levels[0]= Hv; 
+Levels[1]= Levels[0]- (Range *.214); 
+Levels[2]= Levels[0]- (Range *.382); 
+Levels[3]= Levels[0]- (Range *.5); 
+Levels[4]= Levels[0]- (Range *.618); 
+Levels[5]= Levels[0]- (Range *.786); 
+Levels[6]= Lv; 
+Levels[7]= Levels[6]- (Range *.618); 
+Levels[8]= Levels[6]- (Range *.72); 
+Levels[9]= Levels[6]- (Range ); 
+x0 = BarCount - 1 - Hhb; 
+x1 = BarCount - 1 - Llb; 
+} 
+
+////////////////////////////////////////////////////////////////////////////////////// 
+/// **************************** Plotting Area******************************** 
+// 
+Plot(C, "", IIf(C > O, colorBrightGreen, colorRed), ParamStyle("Price Style", 
+styleBar, maskPrice)); 
+for(i=0; i<10; i++) 
+{ 
+if(i!=6) 
+x = x0; 
+else 
+x = x1; 
+if(i<7 OR ShowExt) 
+{ 
+Plot(LineArray(x, Levels[i], BarCount, Levels[i]), "", i+2, styleLine|styleDashed); 
+PlotText(StrExtract(LText, i), BarCount, Levels[i], i+2); 
+} 
+} 
+Title = FullName()+" - "+Name()+"\nO:"+O+", H:"+H+", L:"+L+", C:"+C; 
+_SECTION_END(); 
+
+
+
+
+//_____________ 
+
+RSIperiod = 10; // Param("RSI p",3,14,30,1); 
+Percent = 10; // Param("ZIG %",8,9,15,1); 
+EMAperiod = 10; //Param("EMA p",4,5,10,1); 
+HHVperiod = 10; //Param("HHV p",3,5,10,1); 
+NumLine = 1; //Param("Num Lines",3,1,20,1); 
+
+Base = DEMA(RSI(RSIperiod),EMAperiod); 
+for( i = 1; i <= numline; i++ ) 
+{ 
+ResBase = LastValue(Peak(Base,Percent,i)); 
+SupBase = LastValue(Trough(Base,Percent,i)); 
+Plot(ValueWhen( ResBase==Base, HHV(H,HHVperiod) ), "Resist Level", colorDarkRed, styleLine|styleDots); 
+Plot(ValueWhen( supbase==Base, LLV(L,HHVperiod) ), "Support Level", colorDarkGreen, styleLine|styleDots); 
+} 
+
+
+//___________________ 
+wb1[ 0 ] = 50; 
+for( i = 1; i < BarCount; i++ ) 
+{ 
+  if( Close [i] >Close[ i-1 ] ) 
+   { 
+    wb1[ i ] = ((100 - wb1 [i-1])*(Close [i]-Close[i-1]) /Close [i])+wb1[i-1]; 
+
+   } 
+  if( Close [i] <=Close[ i-1 ] ) 
+   { 
+   wb1[ i ] = wb1 [i-1]*(Close [i]/Close[i-1]); 
+   } 
+} 
+sr=wb1==50; 
+Color=IIf(wb1>50,colorBlue,colorWhite); 
+Plot( wb1, "Snake Oscillator", color, styleOwnScale|styleLeftAxisScale ); 
+//Plot(sr, "",color,styleOwnScale|styleLeftAxisScale); 
+
+
+
+_SECTION_BEGIN("SAR"); 
+acc = Param("Acceleration", 0.02, 0, 1, 0.001 ); 
+accm = Param("Max. acceleration", 0.2, 0, 1, 0.001 ); 
+Plot( SAR( acc, accm ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style", styleDots | styleNoLine, maskDefault | styleDots | styleNoLine ) ); 
+_SECTION_END(); 
+
+
+//kana³ 27 
+Plot(WMA(H,27),"góra",  colorDarkRed,  styleLine); 
+Plot(WMA(L,27),"dó³",  colorDarkRed,  styleLine); 
+
+
+
+
+// -- Create 0-initialized arrays the size of barcount 
+aHPivs = H - H; 
+aLPivs = L - L; 
+// -- More for future use, not necessary for basic plotting 
+aHPivHighs = H - H; 
+aLPivLows = L - L; 
+aHPivIdxs = H - H; 
+aLPivIdxs = L - L; 
+nHPivs = 0; 
+nLPivs = 0; 
+lastHPIdx = 0; 
+lastLPIdx = 0; 
+lastHPH = 0; 
+lastLPL = 0; 
+curPivBarIdx = 0; 
+
+// -- looking back from the current bar, how many bars 
+// back were the hhv and llv values of the previous 
+// n bars, etc.? 
+aHHVBars = HHVBars(H, nBars); 
+aLLVBars = LLVBars(L, nBars); 
+aHHV = HHV(H, nBars); 
+aLLV = LLV(L, nBars); 
+// -- Would like to set this up so pivots are calculated back from 
+// last visible bar to make it easy to "go back" and see the pivots 
+// this code would find. However, the first instance of 
+// _Trace output will show a value of 0 
+aVisBars = Status("barvisible"); 
+nLastVisBar = LastValue(Highest(IIf(aVisBars, BarIndex(), 0))); 
+_TRACE("Last visible bar: " + nLastVisBar); 
+// -- Initialize value of curTrend 
+curBar = (BarCount-1); 
+curTrend = ""; 
+if (aLLVBars[curBar] < 
+aHHVBars[curBar]) { 
+curTrend = "D"; 
+} 
+else { 
+curTrend = "U"; 
+} 
+// -- Loop through bars. Search for 
+// entirely array-based approach 
+// in future version 
+
+if( BarCount > 120 ) 
+{ 
+   //tu formula 
+nBarsBack=Param("nBarsBack",120,20,1200,10); 
+
+} 
+else 
+{ 
+   //tu przypisujemy wartosci dla walorow o krotkiej historii 
+
+nBarsBack=60; 
+
+} 
+
+
+
+
+
+for (i=0; i<nBarsBack; i++) { 
+curBar = (BarCount - 1) - i; 
+// -- Have we identified a pivot? If trend is down... 
+if (aLLVBars[curBar] < aHHVBars[curBar]) { 
+// ... and had been up, this is a trend change 
+if (curTrend == "U") { 
+curTrend = "D"; 
+// -- Capture pivot information 
+curPivBarIdx = curBar - aLLVBars[curBar]; 
+aLPivs[curPivBarIdx] = 1; 
+aLPivLows[nLPivs] = L[curPivBarIdx]; 
+aLPivIdxs[nLPivs] = curPivBarIdx; 
+nLPivs++; 
+} 
+// -- or current trend is up 
+} else { 
+if (curTrend == "D") { 
+curTrend = "U"; 
+curPivBarIdx = curBar - aHHVBars[curBar]; 
+aHPivs[curPivBarIdx] = 1; 
+aHPivHighs[nHPivs] = H[curPivBarIdx]; 
+aHPivIdxs[nHPivs] = curPivBarIdx; 
+nHPivs++; 
+} 
+// -- If curTrend is up...else... 
+} 
+// -- loop through bars 
+} 
+// -- Basic attempt to add a pivot this logic may have missed 
+// -- OK, now I want to look at last two pivots. If the most 
+// recent low pivot is after the last high, I could 
+// still have a high pivot that I didn't catch 
+// -- Start at last bar 
+curBar = (BarCount-1); 
+candIdx = 0; 
+candPrc = 0; 
+lastLPIdx = aLPivIdxs[0]; 
+lastLPL = aLPivLows[0]; 
+lastHPIdx = aHPivIdxs[0]; 
+lastHPH = aHPivHighs[0]; 
+if (lastLPIdx > lastHPIdx) { 
+// -- Bar and price info for candidate pivot 
+candIdx = curBar - aHHVBars[curBar]; 
+candPrc = aHHV[curBar]; 
+if ( 
+lastHPH < candPrc AND 
+candIdx > lastLPIdx AND 
+candIdx < curBar) { 
+// -- OK, we'll add this as a pivot... 
+aHPivs[candIdx] = 1; 
+// ...and then rearrange elements in the 
+// pivot information arrays 
+for (j=0; j<nHPivs; j++) { 
+aHPivHighs[nHPivs-j] = aHPivHighs[nHPivs- 
+(j+1)]; 
+aHPivIdxs[nHPivs-j] = aHPivIdxs[nHPivs-(j+1)]; 
+} 
+aHPivHighs[0] = candPrc ; 
+aHPivIdxs[0] = candIdx; 
+nHPivs++; 
+} 
+} else { 
+
+// -- Bar and price info for candidate pivot 
+candIdx = curBar - aLLVBars[curBar]; 
+candPrc = aLLV[curBar]; 
+if ( 
+lastLPL > candPrc AND 
+candIdx > lastHPIdx AND 
+candIdx < curBar) { 
+
+// -- OK, we'll add this as a pivot... 
+aLPivs[candIdx] = 1; 
+// ...and then rearrange elements in the 
+// pivot information arrays 
+for (j=0; j<nLPivs; j++) { 
+aLPivLows[nLPivs-j] = aLPivLows[nLPivs-(j+1)]; 
+aLPivIdxs[nLPivs-j] = aLPivIdxs[nLPivs-(j+1)]; 
+} 
+aLPivLows[0] = candPrc; 
+aLPivIdxs[0] = candIdx; 
+nLPivs++; 
+} 
+} 
+// -- Dump inventory of high pivots for debugging 
+//// 
+for (k=0; k<nHPivs; k++) { 
+_TRACE("High pivot no. " + k 
++ " at barindex: " + aHPivIdxs[k] + ", " 
++ WriteVal(ValueWhen(BarIndex()==aHPivIdxs[k], 
+DateTime(), 1), formatDateTime) 
++ ", " + aHPivHighs[k]); 
+} 
+//// 
+TrashFilter =C > 0.01 * Param("OutPrice x 0,01", 10, 4, 50, 1); //anti trash actions 
+
+// -- OK, let's plot the pivots using arrows 
+PlotShapes( IIf(aHPivs==1, shapeHollowDownArrow, shapeNone), colorViolet, 0, High, Offset=-20); 
+PlotShapes( IIf(aLPivs==1, shapeHollowUpArrow , shapeNone), colorIndigo, 0, Low, Offset=-20); 
+PositionSize = -1 * Param("PositionSize %",40, 2, 100, 2); 
+//PositionSize=-1 * Optimize("PostionSize", 80, 20, 100, 10); 
+
+
+_SECTION_BEGIN("Volume"); 
+Plot( Volume, _DEFAULT_NAME(), ParamColor("Color", colorWhite), ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick, maskHistogram  ), 2 ); 
+_SECTION_END(); 
+
+
+Mid = MA( (H+L+C)/3,20); //The 20-period Moving Average 
+Hi = Mid + MA((H-L),20); //Upper Keltner Band 
+//TimeFrameSet(inWeekly); 
+Lo =(TimeFrameExpand((L/H), inWeekly))*Hi;//,164; 
+//TimeFrameRestore(); 
+Lo1 = Mid - MA((H-L),20); //Lower Keltner Band 
+
+Plot(Mid,"Mid",colorYellow,styleLine); 
+Plot(Hi,"Hi",colorBlack,styleLine); 
+Plot(Lo,"lo",colorAqua,styleLine); 
+Plot(Lo1,"lo",colorWhite,styleLine); 
+TimeFrameSet(inWeekly); 
+PlotOHLC(Hi,Hi,Lo,Lo, "Snake`s Risk",( IIf(Hi>Lo, colorLightOrange , colorYellow)), styleCloud|styleNoLabel); 
+TimeFrameRestore(); 
+PlotOHLC(Hi,Hi,Lo1,Lo1, "Keltner", colorAqua, styleCloud|styleNoLabel); 
+
+    "Aktualna sytuacja rynkowa dla "+ Name() + " ("+Interval(2)+")"+" jest "; 
+
+    avgcond1 = ( C > EMA( Close, 200) ) + 0.1 * ( Close > EMA( Close, 90) ) + 0.1 * ( Close > EMA( Close , 30 ) ); 
+    avgcond2 = -( C < EMA( Close, 200) ) - 0.1 * ( Close < EMA( Close, 90) ) - 0.1 * ( Close < EMA( Close , 30 ) ); 
+
+    WriteIf( avgcond1 == 1.2, 
+    "silnie zwy¿kuj¹ca.\n", 
+    WriteIf( avgcond1 == 1.1, 
+    "zwy¿kuj¹ca.\n", 
+    WriteIf( avgcond1 == 1.0, 
+    "œrednio zwy¿kuj¹ca.\n", "") ) ) + 
+
+    WriteIf( avgcond2 == -1.2, 
+    "silnie zni¿kuj¹ca.\n", 
+    WriteIf( avgcond2 == -1.1, 
+    "zni¿kuj¹ca", 
+    WriteIf( avgcond2 == -1.0, 
+    "œrednio zni¿kuj¹ca.\n", "") ) ); 
+
+//////////// 
+//_SECTION_BEGIN("ADX"); 
+// ADX/DMI Indicator 
+range = Param("Periods", 14, 2, 200, 1 ); 
+//range=Optimize("Periods",14, 10, 27,1); 
+Plot( ad = ADX(range), _DEFAULT_NAME(), ParamColor( "ADX color", colorBlue ), ParamStyle("ADX style", styleThick |styleNoDraw|styleNoLabel |styleOwnScale) ); 
+Plot( pd = PDI(range), "+DI", ParamColor( "+DI color", colorGreen ), ParamStyle("+DI style",styleNoDraw |styleNoLabel|styleOwnScale) ); 
+Plot( md = MDI(range), "-DI", ParamColor( "-DI color", colorRed ), ParamStyle("-DI style", styleNoDraw|styleNoLabel |styleOwnScale) ); 
+
+if( Status("action") == actionCommentary ) 
+{ 
+ep = IIf( pd > md, 
+          ValueWhen( Cross( pd, md ), High ), 
+          ValueWhen( Cross( md, pd ), Low ) ); 
+
+good = IIf( pd > md, 
+            High > ep, 
+            Low < ep ); 
+
+bs = IIf( pd > md, 
+          BarsSince( Cross( pd, md ) ), 
+          BarsSince( Cross( md, pd ) ) ); 
+
+printf("Kierunek ruchu:\n"); 
+printf("\nDodatni indeks kierunkowej linii  ruchu (+DI) jest aktualnie "+ 
+WriteIf( pd > md,"powy¿ej", "poni¿ej")+ 
+" ujemnego indeksu kierunkowej linii ruchu (-DI)"); 
+
+printf("\nIch przeciêcie "+ 
+WriteIf( pd > md, "powy¿ej", "poni¿ej" ) 
++ " " + 
+WriteVal( bs, 1.0 ) + " œwieczek wstecz.\n"); 
+
+
+printf("\nWelles Wilder (autor 'Directional Movement Indicator') sugeruje kupno, kiedy +DI roœnie ponad -DI oraz sprzedaz, kiedy +DI spada ponizej -DI."); 
+
+printf("\n" + WriteIf( bs < 4, 
+"\nPoniewa¿ przeciêcie powsta³o niedawno, to moze byc dobry moment zajêcia " + 
+WriteIf( pd > md, "d³ugiej" , "krótkiej" ) + 
+" pozycji (lub zamkniêcie, je¿eli juz otwarta) "+ 
+WriteIf( pd > md, "krótkiej", "d³ugiej")+ 
+" pozycji (je¿eli jest mo¿liwa)\n", 
+"\nPrzeciecie nast¹pi³o wiêcej, niz 3 œwieczki temu, wiec jest za póŸno zaj¹æ pozycjê wg tego sygna³u.\n")+ 
+
+WriteIf( bs < 4, 
+"Wilder jednak¿e sugeruje, by zakwalifikowaæ proste skrzy¿owanie +DI/-DI jako 'ekstremelny punkt regu³y'. Kiedy +DI roœnie ponad -DI,ekstremalna cena jest najwy¿sza cen¹ dnia przeciêcia. Kiedy +DI spada poni¿ej -DI, ekstremalna cena jest najni¿sza cen¹ dnia przeciêcia. Ekstremalne punkty mog¹ byæ u¿yte, jako wskazanie dla przeprowadzenia transakcji.\n","")+ 
+WriteIf( bs < 4, "Aktualny ekstremalny punkt (wartoœæ) wynosi " + 
+WriteVal( ep ) + "." + 
+WriteIf( good, " Od dzisiaj " + 
+WriteIf( pd > md, 
+"H ("+WriteVal( High ) +") jest wy¿szy", 
+"L ("+WriteVal(Low)+") jest ni¿ej" ) + 
+" ni¿ ekstremalny punkt, wiêc regu³a siê spe³nia oraz sygna³  " + 
+WriteIf( pd > md, "kupna","sprzeda¿y")+ 
+" jest potwierdzony.\n", 
+"Dotychczas ta regu³a jest nie spe³niona, wiêc to sugeruje, by zaczekaæ na potwierdzenie .\n"),"")); 
+
+falling = ROC( Ad, 2 ) < 0; 
+
+strength = IIf( Ad < 15 OR ( Ad < 25 AND falling ), 0, 
+           IIf( Ad < 25 OR ( Ad < 35 AND falling ), 1, 
+                2 ) ); 
+
+printf("\nSi³a trendu:\n"); 
+
+printf("\nWartoœc ADX wynosi obecnie " + WriteVal( Ad ) + " i " 
++WriteIf( falling, "spada.", "roœnie." )); 
+
+printf("\nTo sugeruje, ¿e trend jest "+ 
+WriteIf( strength == 0, 
+"raczej s³aby albo bardzo s³aby. Wa¿ne: kiedy trend jest s³aby, system ruchu wygenerowuje sygna³y zbyt czêsto i 'efekt pi³y' mo¿e 'zjeœæ' wszystkie twoje dochody.", 
+WriteIf( strength == 2, 
+"doœæ silny.", 
+"œrednio silny."))); 
+
+printf("\n\nTen komentarz nie jest rekomendacj¹ podjêcia jakiejkolwiek decyzji inwestycyjnej. U¿ywasz jej na w³asne ryzyko."); 
+} 
+Ad = ADX(range); 
+falling = ROC( Ad, 2 ) < 0; 
+
+strength = IIf( Ad < 15 OR ( Ad < 25 AND falling ), 0, 
+           IIf( Ad < 25 OR ( Ad < 35 AND falling ), 1, 
+                2 ) ); 
+VolAvg = MA( V, 21 ); 
+VolumeIdx = V / VolAvg; 
+
+signalB=(aLPivs==1); 
+signalS=(aHPivs==1); 
+i=Param("RSI", 20,20,28,1); 
+//i=Optimize("RSI",21,11,35,1); 
+VIdx=Param("VolIdx", 1.6, 1, 4, 0.1); 
+//VIdx=Optimize("VolIdx", 0.4, 1, 4, 0.2); 
+Filter = Volume > Percentile( Volume, 100, 70 ); 
+
+Buy=BarsSince( signalB)==2   AND TrashFilter  AND VolumeIdx>=VIdx AND Filter;// AND strength==2;// 
+Sell=BarsSince( signalS)==1 ; 
+//Short=Sell; 
+//Cover=Buy; 
+Buy = ExRem( Buy, Sell ); //Eliminacja powtórnych sygna³ów Buy przed nastepnym Sell 
+Sell = ExRem( Sell, Buy ); //Eliminacja powtórnych sygna³ów Sell przed nastepnym Buy 
+
+//fibo 
+ff=EMA(Close,21); 
+
+for(i=0; i<BarCount; i++) 
+{ 
+if(Buy[i]) Plot(ValueWhen( Buy,  ff*1.144, 1), "F1", colorBlack, styleLine|styleNoLabel); 
+if(Buy[i]) Plot(ValueWhen(Buy, ff*1.233, 1), "F2", colorYellow, styleLine|styleNoLabel); 
+if(Buy[i]) Plot(ValueWhen(Buy, ff*1.377, 1), "F2", colorRed, styleLine|styleNoLabel); 
+if(Sell[i]) Plot(ValueWhen(Sell, ff*0.856, 1), "-F1", colorBlack, styleLine|styleNoLabel); 
+if(Sell[i]) Plot(ValueWhen(Sell, ff*0.767, 1), "-F2", colorYellow, styleLine|styleNoLabel); 
+if(Sell[i]) Plot(ValueWhen(Sell, ff*0.623, 1), "-F3", colorRed, styleLine|styleNoLabel); 
+} 
+
+
+
+dist = 1.5*ATR(10); 
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "Buy\n@" + C[ i ], i+2, L[ i ]-dist[i], colorBlack, colorGreen ); 
+if( Sell[i] ) PlotText( "Sell\n@" + C[ i ], i+2, H[ i ]+dist[i], colorBlack, colorRed ); 
+//if( Short[i] ) PlotText( "Short\n" , i-2, H[ i ]+dist[i], colorBlack, colorWhite ); 
+//if( Cover[i] ) PlotText( "Cover\n" , i-2, L[ i ]-dist[i], colorBlack, colorGreen ); 
+
+} 
+
+Plot( Flip( Buy , Sell  ), "Trade", colorPaleGreen, styleArea|styleOwnScale, 0, 1 ); 
+//Cover=Buy; 
+//Short=Sell; 
+
+AlertIf( Buy, "SOUND C:\\Windows\Media\chord.wav", "Audio alert",1 ); 
+
+AlertIf( Sell, "SOUND C:\\Windows\Media\Ding.wav", "Audio alert", 2 ); 
+// list only symbols which volume is greater than 
+// median Volume from past 50 days 
+Filter1 = Volume > Median( Volume, 21 ); 
+AddColumn( V, "Volume" );

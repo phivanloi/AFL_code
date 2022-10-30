@@ -1,0 +1,104 @@
+_SECTION_BEGIN("COLOR SAMPLER");
+// COLOR SAMPLER by Steve Dugas ( sjdugas@comcast.net ) - 6/24/05
+
+BarVisible      = Status( "barvisible" );
+BarsVisible     = LastValue( Cum( BarVisible ) ); 
+BarsPerColor    = Max( int( BarsVisible / 56 ), 1 );
+Color           = int( Cum( 1 / BarsPerColor ) % 56 );
+FirstBarVisible = BarVisible AND NOT Ref( BarVisible, -1 );
+BarNumber       = BarIndex() + 1;
+FirstColorBar   = ValueWhen( FirstBarVisible, BarNumber + 1 );
+ShiftedColor    = Ref( Color, -FirstColorBar );
+LastColorBar    = ( FirstColorBar + BarsPerColor - 1 ) + ( BarsPerColor * 55 );
+PaletteHeight   = IIf( BarNumber >= FirstColorBar AND BarNumber <= LastColorBar, Param( "Palette Height", 10, 0, 100, 1 ), Null );
+PaletteStyle    = ParamStyle("Palette Style", styleArea|styleOwnScale|styleNoLabel, maskAll );
+SelectedBar     = SelectedValue( BarNumber );
+Ind             = ParamToggle( "Sample Indicaor", "EMA|Zig" );
+EMAPds          = Param( "EMA Periods", 3, 1, 100, 1 );
+ZigPct          = Param( "Zig Percent", 3, 0, 20.01, 0.2 );
+Sample          = IIf( Ind, Zig( Low, ZigPct ), EMA( Low, EMAPds ) );
+Plot( PaletteHeight, "Palette Height", ShiftedColor, PaletteStyle, 1, 100 );
+Title = EncodeColor( colorRed ) + "Click a color on the palette to see sample styles in that color.  Right-click to select Parameters.";
+if ( SelectedBar >= LastValue( FirstColorBar ) AND SelectedBar <= LastValue( LastColorBar ) )
+{
+	ColorNum  = SelectedValue( ShiftedColor );
+	ColorName = WriteIf( ColorNum == 0,  "Custom1",
+               WriteIf( ColorNum == 1,  "Custom2",
+               WriteIf( ColorNum == 2,  "Custom3",
+               WriteIf( ColorNum == 3,  "Custom4",
+               WriteIf( ColorNum == 4,  "Custom5",
+               WriteIf( ColorNum == 5,  "Custom6",
+               WriteIf( ColorNum == 6,  "Custom7",
+               WriteIf( ColorNum == 7,  "Custom8",
+               WriteIf( ColorNum == 8,  "Custom9",
+               WriteIf( ColorNum == 9,  "Custom10",
+               WriteIf( ColorNum == 10, "Custom11",
+               WriteIf( ColorNum == 11, "Custom12",
+               WriteIf( ColorNum == 12, "Custom13",
+               WriteIf( ColorNum == 13, "Custom14",
+               WriteIf( ColorNum == 14, "Custom15",
+               WriteIf( ColorNum == 15, "Custom16",
+               WriteIf( ColorNum == 16, "Black",
+               WriteIf( ColorNum == 17, "Brown",
+               WriteIf( ColorNum == 18, "DarkOliveGreen",
+               WriteIf( ColorNum == 19, "DarkGreen",
+               WriteIf( ColorNum == 20, "DarkTeal",
+               WriteIf( ColorNum == 21, "DarkBlue",
+               WriteIf( ColorNum == 22, "Indigo",
+               WriteIf( ColorNum == 23, "DarkGrey",
+               WriteIf( ColorNum == 24, "DarkRed",
+               WriteIf( ColorNum == 25, "Orange",
+               WriteIf( ColorNum == 26, "DarkYellow",
+               WriteIf( ColorNum == 27, "Green",
+               WriteIf( ColorNum == 28, "Teal",
+               WriteIf( ColorNum == 29, "Blue",
+               WriteIf( ColorNum == 30, "BlueGrey",
+               WriteIf( ColorNum == 31, "Grey40",
+               WriteIf( ColorNum == 32, "Red",
+               WriteIf( ColorNum == 33, "LightOrange",
+               WriteIf( ColorNum == 34, "Lime",
+               WriteIf( ColorNum == 35, "SeaGreen",
+               WriteIf( ColorNum == 36, "Aqua",
+               WriteIf( ColorNum == 37, "LightBlue",
+               WriteIf( ColorNum == 38, "Violet",
+               WriteIf( ColorNum == 39, "Grey50",
+               WriteIf( ColorNum == 40, "Pink",
+               WriteIf( ColorNum == 41, "Gold",
+               WriteIf( ColorNum == 42, "Yellow",
+               WriteIf( ColorNum == 43, "BrightGreen",
+               WriteIf( ColorNum == 44, "Turquoise",
+               WriteIf( ColorNum == 45, "SkyBlue",
+               WriteIf( ColorNum == 46, "Plum",
+               WriteIf( ColorNum == 47, "LightGrey",
+               WriteIf( ColorNum == 48, "Rose",
+               WriteIf( ColorNum == 49, "Tan",
+               WriteIf( ColorNum == 50, "LightYellow",
+               WriteIf( ColorNum == 51, "PaleGreen",
+               WriteIf( ColorNum == 52, "PaleTurquoise",
+               WriteIf( ColorNum == 53, "PaleBlue",
+               WriteIf( ColorNum == 54, "Lavender",
+               WriteIf( ColorNum == 55, "White", "" ))))))))))))))))))))))))))))))))))))))))))))))))))))))));
+	Plot( Sample * 1.00, "Line",            ColorNum, styleLeftAxisScale|styleNoLabel|styleLine );
+	Plot( Sample * 0.98, "Line|Thick",      ColorNum, styleLeftAxisScale|styleNoLabel|styleLine|styleThick );
+	Plot( Sample * 0.96, "Dashed",          ColorNum, styleLeftAxisScale|styleNoLabel|styleDashed );
+	Plot( Sample * 0.94, "Dashed|Thick",    ColorNum, styleLeftAxisScale|styleNoLabel|styleDashed|styleThick );
+	Plot( Sample * 0.92, "Dots",            ColorNum, styleLeftAxisScale|styleNoLabel|styleDots );
+	Plot( Sample * 0.90, "Dots|NoLine",     ColorNum, styleLeftAxisScale|styleNoLabel|styleDots|styleNoLine );
+	Plot( Sample * 0.88, "Staircase",       ColorNum, styleLeftAxisScale|styleNoLabel|styleStaircase );
+	Plot( Sample * 0.86, "Histogram",       ColorNum, styleLeftAxisScale|styleNoLabel|styleHistogram );
+	Plot( Sample * 0.84, "Histogram|Thick", ColorNum, styleLeftAxisScale|styleNoLabel|styleHistogram|styleThick );
+	Plot( Sample * 0.82, "Area",            ColorNum, styleLeftAxisScale|styleNoLabel|styleArea );
+	Title = EncodeColor( ColorNum ) + "color" + ColorName + " ( # " + ColorNum + " )"
+         + "\n"
+         + "\n" + "   *    1)  Line   "
+         + "\n" + "         2)  Line|Thick   "
+         + "\n" + "   S   3)  Dashed   "
+         + "\n" + "   T   4)  Dashed|Thick   "
+         + "\n" + "   Y   5)  Dots   "
+         + "\n" + "   L   6)  Dots|NoLine   "
+         + "\n" + "   E   7)  Staircase   "
+         + "\n" + "   S   8)  Histogram   "
+         + "\n" + "         9)  Histogram|Thick   "
+         + "\n" + "   *  10)  Area   ";
+}
+_SECTION_END();

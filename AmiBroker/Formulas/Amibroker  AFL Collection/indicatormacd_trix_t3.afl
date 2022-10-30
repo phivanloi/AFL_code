@@ -1,0 +1,63 @@
+_SECTION_BEGIN("MACD + TRIX + T3"); 
+// Written by Barry Scarborough 2/15/05
+
+// macd 
+// Param allows changing parameters without changing the code, the default are the standard defaults for MACD
+r1 = Param( "Macd Fast avg", 9, 2, 200, 1 );
+r2 = Param( "Macd Slow avg", 20, 2, 200, 1 );
+r3 = Param( "Macd Signal avg", 4, 2, 200, 1 ); 
+upMacd = IIf(MACD(r1,r2) > Signal(r1,r2,r3), 1, 0); // up and down signal
+
+// Tillson T3
+function T3(price,periods) //AMA-based
+{
+s = 0.84;
+periods = 2/(periods+1);
+e1=AMA(price,periods);
+e2=AMA(e1,Periods);
+e3=AMA(e2,Periods);
+e4=AMA(e3,Periods);
+e5=AMA(e4,Periods);
+e6=AMA(e5,Periods);
+c1=-s*s*s;
+c2=3*s*s+3*s*s*s;
+c3=-6*s*s-3*s-3*s*s*s;
+c4=1+3*s+s*s*s+3*s*s;
+Ti3=c1*e6+c2*e5+c3*e4+c4*e3;
+return ti3;
+}
+t3fast = Param("T3 fast", 3, 1, 50);		
+t3med = Param("T3 medium", 5, 1, 50);
+t3long = Param("T3 long", 8, 1,50);				
+aT3 = T3(C,t3fast );		// aT3 = T3(C,3);
+bT3 = T3(C,t3med );		// bT3 = T3(C,5);
+cT3 = T3(C,t3long );		// cT3 = T3(C,8);
+
+upT3 = aT3 > bT3;
+
+// TRIX
+periods = Param("Trix Period", 10, 2, 100, 1 ); // default is 10
+sig = Param("Trix Signal", 5, 2, 100, 1);  // default is 5
+pTrix = Trix(periods) ;
+sTrix = Trix(sig);
+upTrix = sTrix > pTrix;
+
+// signal conditions
+myBuy = upT3  AND upMacd AND upTrix;
+myShort = !upT3  AND !upMacd AND !upTrix; 
+
+Buy = Cover = ExRem(myBuy, myShort);	// this removes additional signals between the first buy up to the short signal
+Short = Sell = ExRem(myShort, myBuy);
+
+Plot( Buy * C, "MACD(" + NumToStr(r1,1.0) + "," + NumToStr(r2,1.0) + "," + NumToStr(r3,1.0) +  
+	") TRIX(" + NumToStr(periods,1.0) + 
+	") T3(" + NumToStr(t3fast,1.0) + "," + NumToStr(t3med,1.0) + "," + NumToStr(t3long,1.0) + 
+	") - myBuy ",  colorGreen); // a positive spike that indicates a buy or cover trade.
+Plot( -Short * C , "myShort ", colorBlue); // a negative signal that indicates a short or sell signal
+
+// explore varables
+Filter = Buy OR Short; 
+AddColumn(Close, "Close", 1.2);
+AddColumn(Buy, "Buy/Cover", 1.0);
+AddColumn(Short, "Sell/Short",1.0);
+_SECTION_END();

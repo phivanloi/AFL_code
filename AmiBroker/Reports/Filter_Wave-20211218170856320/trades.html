@@ -1,0 +1,41 @@
+<HTML><HEAD>
+<TITLE>Filter_Wave - Backtest Report</TITLE><STYLE>
+<!--
+BODY { font-family:"Tahoma,Arial,Helvetica,Sans Serif"; font-size:8pt; }
+TD {  font-size:8pt; text-align: right; white-space: nowrap; }
+TH {  font-size:8pt; text-align: left; font-weight: normal; }
+.CH { text-align: right; font-weight:bold; }
+.CHL { text-align: left; font-weight:bold; }
+.BIG { font-size:10pt; font-weight:bold; text-align: center; }
+.TAB { font-size:10pt;  text-align: center; text-color:#CCCCCC; }
+.SELTAB { font-size:10pt; font-weight:bold; text-align: center; text-color:#000000; }
+.good { color:#006600; }
+.bad { color:#880000; }
+.neut { color:#000088; }
+a:active { background-color:#DDDDFF; }
+-->
+</STYLE>
+<SCRIPT>
+var curPart = 0;
+function showPart( i )
+{
+	 document.getElementById("part" + curPart ).style.display = "none";
+	 document.getElementById("part" + i ).style.display = "";
+	 curPart = i;
+}
+</SCRIPT>
+</HEAD>
+<BODY>
+<DIV ALIGN=CENTER><FONT class='TAB'><a href='stats.html'>Statistics</a> | <a href='charts.html'>Charts</a> | <a href='trades.html'><FONT class='SELTAB'>Trades</FONT></a> | <a href='formula.html'>Formula</a> | <a href='settings.html'>Settings</a> | <a href='symbols.html'>Symbols</a> | <a href='montecarlo.html'>Monte Carlo</a></FONT></DIV><br>
+<TABLE CELLSPACING=0 CELLPADDING=2 WIDTH=100%>
+<TR bgcolor="#DDDDDD"><TH COLSPAN=5 CLASS="BIG" >Trades</TH></TR>
+</TABLE><P><FONT class='BIG'>Trade list</FONT><DIV ID='partnavigation'></DIV>
+<TABLE width='800' CELLSPACING=3>
+<TR><TH class='CH'>Ticker</TH><TH class='CH'>Trade</TH><TH class='CH'>Entry</TH><TH class='CH'>Exit</TH><TH class='CH'>% change</TH><TH class='CH'>Profit</TH><TH class='CH'>Shares</TH><TH class='CH'>Pos. value</TH><TH class='CH'>Cum. profit</TH><TH class='CH'># bars</TH><TH class='CH'>Profit/bar</TH><TH class='CH'>MAE/MFE</TH><TH class='CH'>Scale In/Out</TH></TR><TBODY id='part0'><TR><TD>BSG</TD><TD>Long</TD><TD>9/1/2021 9:00:01 AM<BR>10</TD><TD>9/20/2021 9:00:07 AM<BR>10.5</TD><TD>5.00%</TD><TD>140.00<BR>5.00%</TD><TD>280</TD><TD>2800.00</TD><TD>140.00</TD><TD>6401</TD><TD>0.02</TD><TD>-19.00%<BR>19.00%</TD><TD>0/0</TD></TR>
+<TR><TD>HBS</TD><TD>Long</TD><TD>9/20/2021 9:00:07 AM<BR>12.8</TD><TD>9/27/2021 9:27:31 AM<BR>10.7</TD><TD>-16.41%</TD><TD>-1663.59<BR>-16.41%</TD><TD>792.1875</TD><TD>10140.00</TD><TD>-1523.59</TD><TD>3244</TD><TD>-0.51</TD><TD>-16.41%<BR>7.81%</TD><TD>0/0</TD></TR>
+<TR><TD>NDC</TD><TD>Long</TD><TD>9/27/2021 9:29:30 AM<BR>119</TD><TD>10/5/2021 10:13:30 AM<BR>105</TD><TD>-11.76%</TD><TD>-997.22<BR>-11.76%</TD><TD>71.2303</TD><TD>8476.41</TD><TD>-2520.82</TD><TD>3712</TD><TD>-0.27</TD><TD>-20.17%<BR>4.20%</TD><TD>0/0</TD></TR>
+<TR><TD>SBH</TD><TD>Long</TD><TD>10/5/2021 10:15:17 AM<BR>42</TD><TD>10/7/2021 10:10:26 AM<BR>41.5</TD><TD>-1.19%</TD><TD>-10.00<BR>-1.19%</TD><TD>20</TD><TD>840.00</TD><TD>-2530.82</TD><TD>1193</TD><TD>-0.01</TD><TD>-2.38%<BR>0.00%</TD><TD>0/0</TD></TR>
+<TR><TD>LLM</TD><TD>Long</TD><TD>10/7/2021 10:22:46 AM<BR>13</TD><TD>10/11/2021 10:16:04 AM<BR>12.8</TD><TD>-1.54%</TD><TD>-114.91<BR>-1.54%</TD><TD>574.5525</TD><TD>7469.18</TD><TD>-2645.73</TD><TD>1237</TD><TD>-0.09</TD><TD>-1.54%<BR>1.54%</TD><TD>0/0</TD></TR>
+<TR><TD>DTP</TD><TD>Long</TD><TD>10/11/2021 10:19:16 AM<BR>79</TD><TD>10/25/2021 9:34:54 AM<BR>84</TD><TD>6.33%</TD><TD>465.46<BR>6.33%</TD><TD>93.09204</TD><TD>7354.27</TD><TD>-2180.27</TD><TD>6035</TD><TD>0.08</TD><TD>-3.54%<BR>16.46%</TD><TD>0/0</TD></TR>
+<TR><TD>CTX</TD><TD>Open Long</TD><TD>10/25/2021 9:35:24 AM<BR>8.2</TD><TD>12/17/2021 2:59:51 PM<BR>11.8</TD><TD>43.90%</TD><TD>3433.05<BR>43.90%</TD><TD>953.6259</TD><TD>7819.73</TD><TD>1252.78</TD><TD>24900</TD><TD>0.14</TD><TD>-10.98%<BR>45.12%</TD><TD>0/0</TD></TR>
+</TABLE></TBODY></TABLE><SCRIPT>document.getElementById('partnavigation').innerHTML="<P>Pages: <a href='javascript:void(0)' onclick='showPart(0)'>1</a> | </P>";</SCRIPT></BODY></HTML>

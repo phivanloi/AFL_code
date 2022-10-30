@@ -1,0 +1,103 @@
+//------------------------------------------------------------------------------
+//  Formula Name	:      ZIG ZAG INDICATOR WITH VALID ENTRY AND EXIT POINTS for Amibroker AFL by pipschart
+//  Author	:      KrT group
+//  Uploader	:      www.pipschart.com
+//  E-mail		:      info@pipschart.com
+//  Amibroker Blog	:      www.pipschart.com/amibroker
+//  Origin		:      Modified & Collected from different sources.
+//------------------------------------------------------------------------------
+
+_SECTION_BEGIN("KrT group");
+GfxSetBkMode(1);
+X=750;
+Y=1;
+Font=10;
+GfxSelectFont("Impact",Font*2.2, 550);GfxSetTextColor(colorRed);GfxTextOut("KrT group",x,y);
+GfxSelectFont("Impact",Font*2.2, 550);GfxSetTextColor(colorGreen);GfxTextOut("RESEARCH",x+120,Y);
+
+_SECTION_END();
+
+//------------------------------------------------------------------------------
+
+_SECTION_BEGIN("ZZ");
+ 
+PercentChange = 6;
+mystartbar = SelectedValue(BarIndex());  // FOR GRAPHING
+
+mystartbardate = LastValue(ValueWhen(mystartbar == BarIndex(), DateNum(),1));
+
+InitialValue = LastValue(ValueWhen(mystartbardate == DateNum(), C , 1 ) ) ;
+Temp1 = IIf(BarIndex() >= mystartbar, InitialValue, Null) ;
+Plot(Temp1, " ", colorBlack,styleLine);
+Plot((1+(LastValue(PercentChange)/100))*(Temp1), " ", colorGreen, styleLine) ;
+Plot((1-(LastValue(PercentChange)/100))*(Temp1), " ", colorRed, styleLine) ;
+
+ZZ = Zig(C,LastValue(PercentChange)) ; 
+PivotLow = Ref(IIf(Ref(ROC(ZZ,1),-1) < 0 AND ROC(ZZ,1) > 0, 1, Null),1);
+PivotHigh = Ref(IIf(Ref(ROC(ZZ,1),-1) > 0 AND ROC(ZZ,1) < 0, 1, Null),1);
+
+PlotShapes( shapeCircle*PivotLow, colorGreen,0, L, -20) ; 
+PlotShapes( shapeCircle*PivotHigh,colorRed,0,H, 20) ;
+
+Buy_Valid = IIf(C>(1+(LastValue(PercentChange)/100))*(ValueWhen(PivotLow, C, 1))
+AND ROC(ZZ,1) > 0,1,0); 
+Sell_Valid = IIf(C<(1-(LastValue(PercentChange)/100))*(ValueWhen(PivotHigh, C, 1))
+AND ROC(ZZ,1) < 0,1,0); 
+
+Buy_Valid = ExRem(Buy_Valid,Sell_Valid);
+Sell_Valid = ExRem(Sell_Valid,Buy_Valid);
+
+PlotShapes( shapeUpArrow*Buy_Valid, colorGreen,0, L, -20); 
+PlotShapes( shapeDownArrow*Sell_Valid, colorRed,0,H, -20) ;
+
+BarColors = 
+IIf(BarsSince(Buy_Valid) < BarsSince(Sell_Valid) 
+AND BarsSince(Buy_Valid)!=0, colorGreen,
+IIf(BarsSince(Sell_Valid) < BarsSince(Buy_Valid)
+AND BarsSince(Sell_Valid)!=0,  colorRed, colorBlue));
+
+Plot(C, " ", BarColors,  styleBar ) ; 
+Plot(ZZ," ", colorLightGrey,styleLine|styleThick);
+Plot(ZZ," ", BarColors,styleDots|styleNoLine);
+
+Title = Name() + " " + Date() + WriteIf(PivotLow, " Up Pivot ","")+WriteIf(PivotHigh," Down Pivot ","")+ WriteIf(Buy_Valid, " Buy Point ", "") + WriteIf(Sell_Valid, " Sell Point ", "") ;
+_SECTION_END();
+
+
+_SECTION_BEGIN("Fundamental data");
+Titleshow=Param("show title?1 for yes,0 for no",1,0,1);
+FaceValue=GetFnData("BookValuePerShare");
+facevalue=GetFnData("sharesshort");
+EPS=GetFnData("EPS");
+PE=(Close/EPS);
+TotalShares=GetFnData("SharesOut");
+public=GetFnData("sharesfloat");
+Director=GetFnData("INSIDERHOLDPERCENT");
+Lot=GetFnData("SharesShortPrevMonth" );
+LotPrice=(Lot*Close);
+institute=GetFnData("InstitutionHoldPercent" );
+Hyeps=GetFnData("EPSEstCurrentYear" );
+
+if(Titleshow==1)
+{
+Title = StrFormat("\\c02 {{NAME}} | {{DATE}} | Open : %g | High : %g | Low : %g | Close : %g | Change = %.1f%% | Volume = " +WriteVal( V, 1.0 ) +" {{VALUES}}",O, H, L, C, SelectedValue( ROC( C, 1 )) )
+
++"\n"
++"\n"+EncodeColor(colorWhite)+"--------- "
++"\n"+EncodeColor(colorBrightGreen)+"Face value @ " + facevalue
++"\n"+EncodeColor(colorOrange)+"Market lot @ " + Lot
++"\n"+EncodeColor(colorAqua)+"Current Lot Price @ " + LotPrice
++"\n"+EncodeColor(colorWhite)+"--------- "
++"\n"+EncodeColor(colorCustom8)+"EPS @ " + EPS
++"\n"+EncodeColor(colorBrightGreen)+"HY EPS @ " + Hyeps
++"\n"+EncodeColor(colorCustom15)+"PE Ratio @ " + PE
++"\n"+EncodeColor(colorOrange)+"TotalShare in million @ " + TotalShares/100000
++"\n"+EncodeColor(colorWhite)+"--------- "
++"\n"+EncodeColor(colorBrightGreen)+"public =  "+public+"%"
++"\n"+EncodeColor(colorOrange)+"Director= "+Director+"%"
++"\n"+EncodeColor(colorAqua)+"Institute= "+institute+"%"
++"\n"+EncodeColor(colorWhite)+"--------- "
++"\n"+EncodeColor(colorYellow)+"This Chart & Data On Courtesy Of"
++"\n"+".....IB......";
+}
+_SECTION_END();

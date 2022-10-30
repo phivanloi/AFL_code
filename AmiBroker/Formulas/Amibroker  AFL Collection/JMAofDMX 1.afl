@@ -1,0 +1,6 @@
+_SECTION_BEGIN("JMAofDMX");
+Length=Param( "Length ", 14, 0, 100);
+j= JurikDMX( Length);
+Plot( JurikDMX( Length), _DEFAULT_NAME(), IIf(j > Ref(j,-1),colorGreen,colorRed), ParamStyle("Style") );
+
+_SECTION_END();

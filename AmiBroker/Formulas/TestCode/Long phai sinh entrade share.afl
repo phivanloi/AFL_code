@@ -1,0 +1,418 @@
+
+_SECTION_BEGIN("graph");
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+SetBarsRequired(sbrAll,sbrAll);
+gxs=Param("GRAPH spaceing",10,5,50,5);
+
+GraphXSpace = gxs;
+SetChartBkGradientFill(ParamColor("Top", colorTeal), ParamColor("Bottom", colorLightGrey), ParamColor("Title", colorDarkOliveGreen));
+SetChartBkColor(colorTeal);
+_SECTION_BEGIN("Hien thi gia");
+fse=Param("Font Sizee",35,11,100,1);
+GfxSelectFont("Times New Roman", fse, 700, True ); 
+GfxSetBkMode( colorGold );  
+GfxSetTextColor( ParamColor("Color",colorGold) ); 
+Hora=Param("Horizontal Positiona",1200,1,1500,1);
+Vera=Param("Vertical Positiona",17,1,830,1);
+YCa=TimeFrameGetPrice("C",inDaily,-1);
+Cchange=Prec(((C-yca)/yca)*100,2); 
+GfxTextOut(""+C, Hora , Vera );
+GfxSelectFont("Times New Roman", 15, 5, True ); 
+GfxTextOut("("+Cchange+"%)", Hora+120, Vera+25);
+
+GfxSelectFont("Times New Roman", 15, 5, True ); 
+GfxTextOut("H:"+H+ "   L:"+L, Hora-20, Vera +40);
+GfxSelectFont("Times New Roman", 20, 5, True ); 
+GfxTextOut(""+Date(), Hora-60, Vera +60);
+PlotOHLC(O,H,L,C,"Close",colorDefault,styleCandle|styleNoTitle);
+//
+BatEntrade = ParamToggle("Entrade", "No|Yes", 0);
+HUYLENH = ParamTrigger("Huy lenh cho","OKE");
+Batmuaban = ParamToggle("Bang mua ban", "No|Yes", 0);
+if (HUYLENH)
+{
+ih1 = InternetOpenURL("http://localhost:6868/api/cancelOrders?clientId=1" ); 
+InternetClose(ih1);
+}
+HUYLENHACTIVE = ParamTrigger("Huy lenh Active","OKE");
+if (HUYLENHACTIVE)
+{
+ih2 = InternetOpenURL("http://localhost:6868/api/closeActiveDeals?clientId=1" ); 
+InternetClose(ih2);
+}
+_SECTION_BEGIN("Dat lenh thu cong");
+
+Bane1 = ParamTrigger("Mua","OKE");
+if (Bane1)
+{
+ihe = InternetOpenURL("http://localhost:6868/api/trade?symbol=VN30F1M&side=NB&clientId=1" ); 
+InternetClose(ihe);
+}
+Bane = ParamTrigger("Ban","OKE");
+if (Bane)
+{
+ihe2 = InternetOpenURL("http://localhost:6868/api/trade?symbol=VN30F1M&side=NS&clientId=1" ); 
+InternetClose(ihe2);
+}
+_SECTION_END();
+
+
+ _SECTION_BEGIN("Telegram Alerts - Modern Method");
+BatTelegram = ParamToggle("Telegram", "No|Yes", 0);
+TelegramAPI_ID = ParamStr("Telegram Bot API Key","api key");  //Get the Bot API key via BotFather in Telgram
+TelgramCHAT_ID = ParamStr("Telegram Channel ID","@tengroup tele");  //Channel ID example : @marketcalls_in
+
+_SECTION_END();
+_SECTION_END();
+
+_SECTION_BEGIN("NMA ");
+
+k = Optimize("K",Param("K",7.5,1,8,0.05),1,8,0.1);
+
+Per=Optimize("atr",Param("atr",9.1,1,50,1),1,50,0.1);
+
+j=(O+H+L+C)/4;
+
+nm= (H-L);
+
+rfsctor = WMA(nm, PER);
+
+revers = K * rfsctor;
+
+Trend = 1;
+
+NW[0] = 0;
+
+for(i = 1; i < BarCount; i++)
+
+{
+
+if(Trend[i-1] == 1)
+
+{
+
+if(j[i] < NW[i-1])
+
+{
+
+Trend[i] = -1;
+
+NW[i] = j[i] + Revers[i];
+
+}
+
+else
+
+{
+
+Trend[i] = 1;
+
+if((j[i] - Revers[i]) > NW[i-1])
+
+{
+
+NW[i] = j[i] - Revers[i];
+
+}
+
+else
+
+{
+
+NW[i] = NW[i-1];
+
+}
+
+}
+
+}
+
+if(Trend[i-1] == -1)
+
+{
+
+if(j[i] > NW[i-1])
+
+{
+
+Trend[i] = 1;
+
+NW[i] = j[i] - Revers[i];
+
+}
+
+else
+
+{
+
+Trend[i] = -1;
+
+if((j[i] + Revers[i]) < NW[i-1])
+
+{
+
+NW[i] = j[i] + Revers[i];
+
+}
+
+else
+
+{
+
+NW[i] = NW[i-1];
+
+}
+
+}
+
+}
+
+}
+
+Plot(NW, "", IIf(Trend == 1, 6, 4), 4);
+
+//---------------trading -------------
+Buy=Cover=j>nw ;
+Sell=Short=j<nw ;
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+Short=ExRem(Short,Cover);
+Cover=ExRem(Cover,Short);
+BuyPrice = ValueWhen(Buy,C,1);
+SellPrice = ValueWhen(Sell,C,1);
+ShortPrice = ValueWhen(Short,C,1);
+CoverPrice = ValueWhen(Cover,C,1);
+StoplossPrice = NW;
+Open_Long = Flip( Buy, Sell ); 
+Open_Short = Flip( Sell, Buy ); 
+Buy_Price = ValueWhen( Buy, BuyPrice, 1 ); 
+Short_Price = ValueWhen( Short, ShortPrice, 1 );
+Sell_Price = IIf( Sell, ValueWhen( Sell, SellPrice, 1 ), Short_Price ); 
+Cover_Price = IIf( Cover, ValueWhen( Cover, CoverPrice, 1 ), Buy_Price ); 
+Last_Profit = IIf( Ref( Open_Long, -1 ) == 1 AND Open_Long != 1, ( Sell_Price - Buy_Price ), IIf( Ref( Open_Short, -1 ) == 1 AND Open_Short != 1, ( Short_Price - Cover_Price ), 0 ) ); 
+Cum_Profit[0] = Last_Profit[0]; 
+PreviousProfit = ValueWhen(Last_Profit!=0,Last_Profit,1); 
+//
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorSkyblue, 0,Low,-15);
+
+PlotShapes(IIf(Sell, shapeHollowDownArrow, shapeNone),colorLightYellow, 0,High,-15);
+
+
+PlotShapes(IIf(Short, shapeDownArrow, shapeNone),colorGold, 0,High,-15);
+
+//-----------end--------------
+MessageMua =  Date() +", "+ Name()+"\n"+" Mua: "+BuyPrice + ", " + "Stoploss "+ StoplossPrice + ". Loi nhuan truoc: " + PreviousProfit + "Bot DOG: H.Long 0366.883.936" ;
+MessageBan = Date()+", "+Name()+"\n"+" Ban: "+SellPrice + ", " + "Stoploss "+ StoplossPrice + ". Loi nhuan truoc: " + PreviousProfit + "Bot DOG: H.Long 0366.883.936" ;
+//
+
+    if ( LastValue(Buy)==1 )
+    {	
+  if (BatTelegram)
+{
+       ih5 = InternetOpenURL("https://api.telegram.org/bot"+TelegramAPI_ID+"/sendMessage?chat_id="+TelgramCHAT_ID+"&text="+MessageMua );
+		 if ( ih5 )
+		 {
+		InternetClose(ih5);
+		}
+		}
+		}
+		
+	
+    if ( LastValue(Sell)==1 )
+    {	
+  if (BatTelegram)
+{
+        ih6 = InternetOpenURL("https://api.telegram.org/bot"+TelegramAPI_ID+"/sendMessage?chat_id="+TelgramCHAT_ID+"&text="+ MessageBan);
+		if ( ih6 )
+		 {
+		InternetClose(ih6);
+		}
+		}
+		}
+		
+		
+	
+
+    if ( Buy[BarCount-1]==1 )
+    	
+  if (BatEntrade)
+{
+       ih3 = InternetOpenURL( "http://localhost:6868/api/trade?symbol=VN30F1M&side=NB&clientId=1" );
+		 if ( ih3 )
+		 {
+		InternetClose(ih3);
+		}
+		}
+
+    if ( Sell[BarCount-1]==1 )
+    {	
+  if (BatEntrade)
+{
+        ih4 = InternetOpenURL("http://localhost:6868/api/trade?symbol=VN30F1M&side=NS&clientId=1");
+		if ( ih4 )
+		 {
+		InternetClose(ih4);
+		}
+		}
+		}
+		
+
+dist = 1.1 * ATR( 15 );
+LastClose= Ref(C,-1);
+for (i = 1; i <BarCount; i++)
+{
+    if ( Buy[i-1]==1 )
+    {	 
+       PlotText( "Mua@" + O[ i ], i, L[ i ] - dist[i], colorWhite, colorGreen,Offset=-35);
+    
+     }
+   if ( Sell[i-1]==1 )
+	{
+        PlotText( "Ban@" + O[ i ], i, H[ i ] + dist[i], colorWhite, colorRed,Offset=30);	
+        }      
+}
+
+//
+Long=Flip(Buy,Sell OR Cover);
+
+Shrt=Flip(Sell,Buy OR Cover);
+
+NOTrade= NOT (Long OR shrt);
+
+
+Chg=Ref(C,-1);
+Title = EncodeColor(colorYellow)+  Title = Name() + "    " + EncodeColor(2) + Date() +EncodeColor(11)+ "  ~Hoang Long 0366.883.936~    " + EncodeColor(colorWhite) + "{{INTERVAL}}  " +
+   EncodeColor(55)+ "   Open:  "+ EncodeColor(colorWhite)+ WriteVal(O,format=1.2) + 
+   EncodeColor(55)+ "   High:  "+ EncodeColor(colorWhite) + WriteVal(H,format=1.2) +
+   EncodeColor(55)+ "   Low:  "+ EncodeColor(colorWhite)+ WriteVal(L,format=1.2) + 
+   EncodeColor(55)+ "   Close:  "+ WriteIf(C> Chg,EncodeColor(colorBrightGreen),EncodeColor(colorRed))+ WriteVal(C,format=1.2)+  
+   EncodeColor(55)+ "   Change:  "+ WriteIf(C> Chg,EncodeColor(colorBrightGreen),EncodeColor(colorRed))+ WriteVal(ROC(C,1),format=1.2)+ "%"+
+   EncodeColor(55)+ "   Volume: "+ EncodeColor(colorWhite)+ WriteVal(V,1)  +EncodeColor(colorYellow);
+
+_SECTION_END();
+
+Open_Long = Flip( Buy, Sell ); 
+Open_Short = Flip( Sell, Buy ); 
+Buy_Price = ValueWhen( Buy, BuyPrice, 1 ); 
+Short_Price = ValueWhen( Short, ShortPrice, 1 ); 
+Sell_Price = IIf( Sell, ValueWhen( Sell, SellPrice, 1 ), Short_Price ); 
+Cover_Price = IIf( Cover, ValueWhen( Cover, CoverPrice, 1 ), Buy_Price ); 
+Profit = IIf( Open_Long, ( Close - Buy_Price ), IIf( Open_Short, ( Short_Price - Close ), 0 ) ); 
+Last_Profit = IIf( Ref( Open_Long, -1 ) == 1 AND Open_Long != 1, ( Sell_Price - Buy_Price ), IIf( Ref( Open_Short, -1 ) == 1 AND Open_Short != 1, ( Short_Price - Cover_Price ), 0 ) ); 
+Cum_Profit[0] = Last_Profit[0]; 
+PreviousProfit = ValueWhen(Last_Profit!=0,Last_Profit,1); 
+for ( i = 1;i < BarCount;i++ ) 
+{ 
+ Cum_Profit[i] = Cum_Profit[i-1] + Last_Profit[i]; 
+} 
+Trade[0] = 0; 
+for ( i = 1;i < BarCount;i++ ) 
+{ 
+ if ( Buy[i] == 1 OR Short[i] == 1 ) 
+ { 
+ Trade[i] = Trade[i-1] + 1; 
+ } 
+ else 
+ { 
+ Trade[i] = Trade[i-1]; 
+ } 
+} 
+// Trade Report // 
+TR = ParamToggle( "Trade Report", "Show|Hide", 1 ); 
+ 
+if ( TR == 1 ) 
+{ 
+ GfxSelectFont( "Verdana", 10, 100 ); 
+ GfxSetBkMode( 1 ); 
+ GfxSetTextColor( colorWhite ); 
+ y = Status( "pxchartheight" );
+ 
+ GfxTextOut( ( "Total Trades : " + WriteVal( Trade, 3.0 ) ), 13, y - 125 ); 
+ GfxTextOut( ( "Total Profit : " + WriteVal( Cum_Profit, 4.2 ) ), 13, y - 100 ); 
+ GfxTextOut( ( "Previous Profit : " + WriteVal( PreviousProfit, 2.2 ) ), 13, y - 50 ); 
+ GfxTextOut( ( "Price : " + WriteVal( Close, 2.2 ) ), 13, y - 75 ); 
+ GfxTextOut( ( "Current Profit : " + WriteVal( Profit, 2.2 ) ), 13, y - 25 ); 
+ GfxTextOut( ( "STOP LOSS: " + WriteVal( nw )), 1300, 100); 
+} 
+//
+// Calculate Equity Curve
+
+eq = Equity( 1, 0 ); 
+
+//////////////////////////////////////////////////
+// Calculate the Last Five Trades Profit/Losses //
+//////////////////////////////////////////////////
+
+tradesback = 5; 
+Signum = Cum( Buy ) + Cum( Short ); 
+Signumstart1 = LastValue( SigNum ) - ( tradesback - 1 ); 
+Signumstart2 = LastValue( SigNum ) - ( tradesback - 2 ); 
+Signumstart3 = LastValue( SigNum ) - ( tradesback - 3 ); 
+Signumstart4 = LastValue( SigNum ) - ( tradesback - 4 ); 
+Signumstart5 = LastValue( SigNum ) - ( tradesback - 5 ); 
+
+bi = BarIndex(); 
+bistart = ValueWhen( signum == signumstart1, bi ); 
+bicond = bi >= bistart AND bi <= LastValue( bi ); 
+
+
+SellPL = IIf( Sell AND bicond, C-buyprice, 0 ); 
+CovPL = IIf( Cover AND bicond, ShortPrice - C,0 ); 
+
+cumPL = SellPL + CovPL;
+
+//Plot (SellPL,"Sell",colorGreen,styleHistogram,maskhistogram);
+///Plot (CovPL,"Cover", colorRed,styleHistogram,maskhistogram);
+
+lsince = lowestSince(Sell OR Cover, cumPL, 0);	
+hsince = highestSince(Sell OR cover, CumPL, 0);
+
+
+vs= IIf(lsince==0,hsince,lsince);
+
+
+PL1 = ValueWhen( signum == signumstart1 , vs,1 );
+PL2 = ValueWhen( signum == signumstart2 , vs,1 ); 
+PL3 = ValueWhen( signum == signumstart3 , vs,1 );  
+PL4 = ValueWhen( signum == signumstart4 , vs,1 ); 
+PL5 = ValueWhen( signum == signumstart5,  vs ,1 ); 
+
+//////////////////////////////////////////////////
+//   Plot the Last Five Trades Profit/Losses    //
+//////////////////////////////////////////////////
+TR2 = ParamToggle( "Last 5 Trades", "Show|Hide", 1 ); 
+ 
+if ( TR2 == 1 ) 
+{ 
+ GfxSelectFont( "Verdana", 10, 100 ); 
+ GfxSetBkMode( 1 ); 
+ GfxSetTextColor( colorWhite ); 
+ y = Status( "pxchartheight" );
+  GfxTextOut(  "Last 5 trades results"  , 13, y - 275 );
+ GfxTextOut( ( "Trade1: " + WriteVal( PL1, 3.0 ) ), 13, y - 250 );
+ GfxTextOut( ( "Trade2: " + WriteVal( PL2, 3.0 ) ), 13, y - 225 ); 
+ GfxTextOut( ( "Trade3: " + WriteVal( PL3, 3.0 ) ), 13, y - 200 ); 
+ GfxTextOut( ( "Trade4: " + WriteVal( PL4, 3.0 ) ), 13, y - 175 ); 
+ GfxTextOut( ( "Trade5: " + WriteVal( PL5, 3.0 ) ), 13, y - 150 ); 
+
+} 
+
+
+//
+
+/*_SECTION_BEGIN("EMA CROSS");
+LongEMA = Param("Long EMA", 9, 1, 100, 1);
+ShortEMA = Param("Short EMA", 4, 1, 100, 1);
+LongMA = EMA(C, LongEMA);
+ShortMA = EMA(C, ShortEMA);
+LastHigh = HHV(H, LongEMA);
+Plot(LongMA, " EMA(C, " + WriteVal(LongEMA, 1) + ")", colorDarkBlue, styleLine);
+Plot(ShortMA, " EMA(C, " + WriteVal(ShortEMA, 1) + ")", colorRed, styleLine);
+Buy1= shortma>longma AND C>ShortEMA;
+Sell1 = SHORTMA<LONGMA AND C<LongMA;
+Sell1=ExRem(Sell1,Buy1); 
+Buy1=ExRem(Buy1,Sell1);
+PlotShapes(shapeUpArrow * Buy1, colorBrightGreen, 0, L, - 10);
+PlotShapes(shapeDownArrow * Sell1, colorRed, 0, H, - 10);
+_SECTION_END();

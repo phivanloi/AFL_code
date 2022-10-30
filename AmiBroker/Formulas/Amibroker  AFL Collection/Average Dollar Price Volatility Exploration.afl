@@ -1,0 +1,94 @@
+/*
+Amibroker AFL Code 
+7th Feb 20008
+Aviator33
+http://www.aussiestockforums.com/forums/showthread.php?t=9805
+
+Simple exploration showing the Average Dollar Price Volatility (ADPV) of selected stocks. Calculations are only based
+on high/low relationships so is mostly suited for intraday trading. For swing or position trading a similar exploration using ATR
+or similar volatility indicator should be used as it will then encompass overnight/weekend gaps.
+
+Code is developed for the Australian ASX market. Adjust the "myTickerMax" paramater for use in markets with longer ticker symbols (eg NASDAQ).
+
+Based on concepts discussed in "Snapshot Trading" by Daryl Guppy.
+
+*/
+
+//=========PARAMETERS====================
+
+myVol=Param("Min Volume (Million)", 0,0,10,0.5);			// Filter out stocks below certain Volume (average over sampled periods). Default 0 (not filtered)
+myVol = myVol * 1000000;										// Volume * million multiplier
+myMaxPrice = Param("Price Max",200,0.0001,200,1);			// Filter for stocks below certain price. Default 0 (not filtered)
+myMinPrice = Param("Price Min",0,0.0001,199,1);				// Filter for stocks above certain price. Default 0 (not filtered)
+myPercentMin = Param("Min ADPV %",0,0,30,0.5);				// Filter  for minimum Average Dollar Price Volatility %. Default 0 (not filtered)
+myMinPriceSteps = Param("Min Price Steps",0,0,500,1); 		// Filter for minimum ticks in ADPV (eg H=0.005, L=0.002, price steps=3)
+																	//	Default 0 (not filtered)
+myPeriods = Param("No. Of Days To Sample",20,2,90,1);
+myPeriods = IIf(myPeriods>BarCount,BarCount,myPeriods);	// Just in case there are less data bars than the number of periods wanted
+myTickerMax = ParamList("Stocks only?","Yes|No");			// Filter to exclude options/warrants. Default "Yes" (stocks only)
+myTickerMax = IIf(myTickerMax == "Yes", 3,10);				// Ticker max length. 3 for stocks only.
+
+//==========================================
+
+
+//================MAIN CODE=================
+
+MedianPrice = (H-L)/2+L;							// Median price of current quotation
+ADPV  = H-L;											// Average Dollar Price Volatility of current quotation (ie today's H to L range)
+ADPVpercent = (ADPV  / MedianPrice ) * 100;		// ADPV as percent of median price
+
+// Calculate the same for the last x days, keep a running total for averaging
+for( i = 1; i < myPeriods; i++ ) 
+{
+	x = i * -1; // negate counter to enable count back
+	MedianPrice =MedianPrice + Ref(H-L,x)/2 + Ref(L,x);
+	ADPV  = ADPV  + Ref(H-L,x);
+	ADPVpercent = ADPVpercent + ((ADPV  / MedianPrice ) * 100);
+}
+
+
+
+MedianPrice = MedianPrice / myPeriods;		// Average median price over x days
+ADPV  = ADPV  / myPeriods;						// Average ADPV over x days
+ADPVpercent = ADPVpercent / myPeriods;		// ADPV percentage over x days
+
+
+
+minTickSize=IIf(C>=2,0.01, IIf(C>=0.1,.005,0.001));			// NOTE: Ticker size relevant to ASX market only. Adjust for other markets.
+PriceSteps = ADPV / minTickSize;								// Number of price steps in average range. Usefull to work out stops
+
+//=======================================
+
+
+
+// ===========FILTER======================
+
+Filter=
+C>0 AND 
+C<=myMaxPrice AND 
+C>=myMinPrice AND 
+MA(V,myPeriods)>=myVol AND 
+ADPVpercent > myPercentMin AND 
+PriceSteps>myMinPriceSteps AND 
+StrLen( Name() ) <= myTickerMax  ;
+
+//=======================================
+
+
+
+// ==============OUTPUT==================
+
+// Tidy up output
+txtADPVpercent=NumToStr(ADPVpercent,10.2 );
+txtADPVpercent=txtADPVpercent + " %";
+txtADPV = NumToStr(ADPV,3.3);
+txtADPV = "$" + txtADPV ;
+
+
+AddColumn( Close, "Close",8.3 );
+AddColumn( MA(V,myPeriods), "Avg Daily Vol",20.0 );
+AddTextColumn( txtADPV  , "$Avg Range",10.3 );
+AddTextColumn( txtADPVpercent, "Av % Range",10.2 );
+// AddColumn( PriceSteps , "Price Steps",8.0 );			// Remove comment tags to display price steps
+
+// ====================================  END CODE ====================================================

@@ -1,0 +1,18 @@
+/* ICHIMOKU CHART */
+
+/* AFL code by Prakash Shenoi */
+//Plot function modified Misha Nathani
+
+SL=(HHV(H,26)+LLV(L,26))/2;
+TL=(HHV(H,9)+LLV(L,9))/2;
+DL=Ref(C,25);
+Sp1=Ref((SL+TL)/2,-25);
+Sp2=Ref((HHV(H,52)+LLV(L,52))/2,-25);
+
+//Plot(C,"Bars",colorBrightGreen,styleCandle);
+
+Plot (SL,"Standard",colorBlue,styleThick);
+Plot (TL,"Turning",colorGreen,styleThick);
+//Plot (C,"Close",colorAqua,styleThick);
+Plot (DL,"Delayed",colorBlack,styleThick);
+PlotOHLC (Sp1,Sp1,Sp2,Sp2,"Cloud",IIf(Sp1>Sp2,colorBrightGreen,colorRed),styleCloud);

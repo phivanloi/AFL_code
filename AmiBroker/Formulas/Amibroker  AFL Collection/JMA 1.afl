@@ -1,0 +1,12 @@
+_SECTION_BEGIN("JMA");
+Length=Param( "Length ", 10, 0, 500); 
+Phase=Param( "Phase", 0, -100, 100);
+
+Plot( JurikJMA( Close, 3, Phase), _DEFAULT_NAME(), colorWhite, styleThick );
+Plot( JurikJMA( Close, 5, Phase), _DEFAULT_NAME(), colorBlue, styleThick );
+Plot( JurikJMA( Close, 8, Phase), _DEFAULT_NAME(), colorBlue, styleThick );
+Plot( JurikJMA( Close, 10, Phase), _DEFAULT_NAME(), colorBlue, styleThick );
+Plot( JurikJMA( Close, 12, Phase), _DEFAULT_NAME(), colorBlue, styleThick );
+Plot( JurikJMA( Close, 15, Phase), _DEFAULT_NAME(), colorYellow, styleThick );
+
+_SECTION_END();

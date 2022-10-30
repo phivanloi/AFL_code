@@ -1,0 +1,8 @@
+mtOpen = LinearReg( Open, 20 ); // calculate moving trend from open
+mtHigh = LinearReg( High, 20 ); // calculate moving trend from open
+mtLow = LinearReg( Low, 20 ); // calculate moving trend from open
+mtClose = LinearReg( Close, 20 ); // calculate moving trend from open
+// plot surrogate chart
+PlotOHLC( mtOpen, mtHigh, mtLow, mtClose, "Surrogate", colorBlack, styleCandle );
+
+

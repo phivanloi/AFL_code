@@ -1,0 +1,57 @@
+function T3( Price, T3Periods, s )
+	{
+	e1	= AMA( Price, 2 / (T3Periods+1)); 
+	e2	= AMA( e1, 2 / (T3Periods+1)); 
+	e3	= AMA( e2, 2 / (T3Periods+1)); 
+	e4	= AMA( e3, 2 / (T3Periods+1)); 
+	e5	= AMA( e4, 2 / (T3Periods+1)); 
+	e6	= AMA( e5, 2 / (T3Periods+1)); 
+	C1 = -s^3;
+	C2 = 3*s^2*(1+s);
+	C3 = -3*s*(s+1)^2;
+
+	C4 = (1+s)^3;
+	T3Result= c1*e6+c2*e5+c3*e4+c4*e3;
+	return T3Result;
+	}
+
+function T3r( C, T3Sensitivity, T3Periods, ResetReference )
+	{
+	global NewDay;
+	CPrice 		= IIf(NewDay, ResetReference, C );
+	T3Periods = Min( T3Periods, BarsSince(Newday));
+	T3Periods 	= IIf(NewDay,1, T3Periods );
+	s	= T3Sensitivity;
+	e1	= AMA( CPrice, 2 / (T3Periods+1)); 
+	e2	= AMA( e1, 2 / (T3Periods+1)); 
+	e3	= AMA( e2, 2 / (T3Periods+1)); 
+	e4	= AMA( e3, 2 / (T3Periods+1)); 
+	e5	= AMA( e4, 2 / (T3Periods+1)); 
+	e6	= AMA( e5, 2 / (T3Periods+1)); 
+	C1 = -s^3;
+	C2 = 3*s^2*(1+s);
+	C3 = -3*s*(s+1)^2;
+	C4 = (1+s)^3;
+	T3Result= c1*e6+c2*e5+c3*e4+c4*e3;
+	return T3Result;
+	}
+
+T3Sensitivity	= Param("T3 Sensitivity",1,0.1,5,0.01);
+T3Periods 		= Param("T3 Periods",3,1,10,1);
+NewDay			= DateNum()  != Ref(DateNum(),-1);
+ResetReference	= (O+C)/2;
+AC5 = T3r( C, T3Sensitivity, T3Periods, ResetReference );
+Plot(C,"",2,128);
+Plot(AC5,"",4,1);
+Plot(T3( C, T3Periods, T3Sensitivity),"",6,1); 
+Plot(NewDay,"",7,styleArea|styleOwnScale|styleNoLabel,0,1);
+
+_SECTION_BEGIN("HULLMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 200, 1, 10 );
+Delay = Param("Delay", 0, 0, 10, 1 );
+X = 2 * WMA(P,round(Periods/2)) - WMA(P,Periods);
+HullMA = WMA(X,round(sqrt(Periods)));
+HullMA = Ref(HullMA,-Delay);
+Plot( HullMA, _DEFAULT_NAME(), ParamColor( "Color", colorYellow ), ParamStyle("Style") );
+_SECTION_END();

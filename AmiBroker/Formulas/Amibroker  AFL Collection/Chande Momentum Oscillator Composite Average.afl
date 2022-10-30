@@ -1,0 +1,30 @@
+P = ParamField("Price field",-1);
+//((CMO(C,5))+(CMO(C,10))+(CMO(C,20)))/3)
+UpDay = Sum((P-Ref(P,-1))*(P>Ref(P,-1)),5);
+DownDay = Sum((Ref(P,-1)-P)*(P<Ref(P,-1)),5);
+ChMomOcs = 100 * ((UpDay-DownDay)/(UpDay+DownDay));
+
+UpDay1 = Sum((P-Ref(P,-1))*(P>Ref(P,-1)),10);
+DownDay1 = Sum((Ref(P,-1)-P)*(P<Ref(P,-1)),10);
+ChMomOcs1 = 100 * ((UpDay-DownDay)/(UpDay+DownDay));
+
+UpDay2 = Sum((P-Ref(P,-1))*(P>Ref(P,-1)),20);
+DownDay2 = Sum((Ref(P,-1)-P)*(P<Ref(P,-1)),20);
+ChMomOcs2 = 100 * ((UpDay-DownDay)/(UpDay+DownDay));
+
+CMOCA = (ChMomOcs+ChMomOcs1+ChMomOcs2)/3;
+
+
+
+
+Plot(CMOCA,"CMO Composite Average", ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+Plot(EMA( CMOCA,9),"", colorLightBlue);
+PlotGrid(50, colorLightGrey);
+PlotGrid(0, colorLightGrey);
+PlotGrid(-50, colorLightGrey);
+
+"Overbought/oversold Conditions:"; 
+"As a general rule an overbought level is at +50 and the oversold level at -50. At +50, up-day momentum is three times the down-day momentum; At -50, down-day momentum is three times the up-Day momentum.";
+""; 
+"Trendiness:"; 
+"Higher CMO values correspond to betting trendiness while lower values of CMO indicate a possible trading range.";

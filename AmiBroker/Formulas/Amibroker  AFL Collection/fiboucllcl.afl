@@ -1,0 +1,17 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+_SECTION_END();
+TimeFrameSet(inDaily);
+ph=Ref(H,-1);
+pl=Ref(L,-1);
+ucl=(ph-pl)*1.38;
+Lcl=(ph-pl)*0.62;
+Plot( ucl, _DEFAULT_NAME(), ParamColor("Color", colorCycle ), ParamStyle("Style") );
+Plot( Lcl, _DEFAULT_NAME(), ParamColor("Color", colorCycle ), ParamStyle("Style") );
+
+_SECTION_BEGIN("Price1");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

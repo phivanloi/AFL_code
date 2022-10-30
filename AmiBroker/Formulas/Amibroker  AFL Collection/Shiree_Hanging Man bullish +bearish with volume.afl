@@ -1,0 +1,22 @@
+_SECTION_BEGIN("Shiree_Hanging Man bullish +bearish with volume");
+
+BT = BBandTop( C, 20, 2 ); 
+BB = BBandBot( C, 20, 2 );
+X=(BT-BB);
+
+RBuy=EMA(C,3)<EMA(C,10) AND C<EMA(C,3) AND ((O+C)/2)>L+0.7*(H-L) AND abs(O-C)<0.4*(H-L) AND V>MA(V,10) AND (H-L)>=0.8*MA((H-L),10) AND X>1.2*MA(X,10);
+Rsell=EMA(C,3)>EMA(C,10) AND C>EMA(C,3) AND ((O+C)/2)<H-0.7*(H-L) AND abs(O-C)<0.4*(H-L) AND V>MA(V,10) AND (H-L)>=0.8*MA((H-L),10) AND X>1.2*MA(X,10);
+
+
+PlotShapes(Rsell*shapeDownTriangle,colorCustom12, 0, High, Offset =-40);
+PlotShapes(Rsell*shapeDigit5,colorCustom12, 0, High, Offset =55);
+
+PlotShapes(RBuy*shapeDigit5,colorYellow, 0, High, Offset =-70);
+PlotShapes(RBuy*shapeUpTriangle,colorYellow, 0, Low, Offset =-10);
+
+
+Filter =Rbuy OR Rsell;
+
+AddColumn( IIf(RBuy,1,IIf(Rsell,-1,Null)) ,"RBS",1.0,colorWhite,IIf(RBuy,colorDarkGreen,IIf( Rsell,colorRed,Null)));
+
+_SECTION_END();

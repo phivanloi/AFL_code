@@ -1,0 +1,39 @@
+
+
+_SECTION_BEGIN("WaveTrend");
+
+GraphXSpace = 8;
+
+OBline = Param("Over Bought Line",60,0,100,1);
+OSline = Param("Over Sold Line",-60,-100,0,1);
+
+Color1  = ParamColor("OverBought Color", colorPink);
+Color2  = ParamColor("OverSold Color",colorPink);
+
+WAVETRIGGER = Param("WaveTrend Trigger",-50,-80,-10,1);
+
+WaveTrend  = MyEric();
+WaveTrend2 = MA(WaveTrend,4);
+
+myColor = 
+IIf (WaveTrend > WaveTrend2, ParamColor("Wavetrend color", ColorRGB(132,119,247)),
+IIf (WaveTrend2 > WaveTrend, colorRed ,colorLightYellow));
+
+Plot(WaveTrend,"WaveTrend  ",myColor,styleDots | styleThick);
+
+//Plot(WaveTrend2,"WaveTrend2",colorLightYellow,styleDashed);  
+Plot(WaveTrend2,"WaveTrend2",ParamColor("Signal Line color", colorPaleBlue),styleDots);  
+
+          
+
+Buy = Cross(WaveTrend,WaveTrend2);
+Sell = Cross(WaveTrend2,WaveTrend);
+
+PlotShapes(IIf(Buy AND WaveTrend<WAVETRIGGER,shapeCircle,shapeNone),colorBrightGreen,0,Graph0,0);
+PlotShapes(IIf(Buy AND WaveTrend > -50 AND WaveTrend <-38,shapeHollowCircle,shapeNone),colorBrightGreen,0,Graph0,-1);
+
+PlotShapes(IIf(Sell AND WaveTrend>53,shapeCircle,shapeNone),colorYellow,0,Graph1,0);
+
+
+
+_SECTION_END();

@@ -1,0 +1,145 @@
+_SECTION_BEGIN("PriceBars");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+
+
+//Colorbar=IIf(C>O,colorGreen,colorRed);
+//Plot( C, "Close", colorBlack, styleNoTitle| styleThick | styleLine ); 
+_SECTION_END();
+
+_SECTION_BEGIN("TURTLE wisestock");
+// Turtle minor and major trading signals - for AmiBroker - Use at your own risk 
+// CAUTION: Thrtles was originally designed to trade futures. Using it with stocks might pose many problems.  
+// Be sure to back test and optimize this with any stock you might use it with AND back test again. 
+  
+// NOTE: This is a rudimentary implementation as it does not include the following: 
+// volitality share sizing  
+// stops  
+// Trade selection which only trades following a theoretical  
+  
+// Two default periods are used 20/10 for short term trading and 65/30 for long term trading 
+// Try to optomize these valuess but be careful not curve fit. It must work across many stocks, etc. OR it is curve fitted. 
+  
+// constants account = 5000.00; // set this to whatever you want to use per trade 
+tradeCount = 0; 
+price = 0.0; 
+  
+PeriodSys1Buy = Param("Short bar entry", 20, 1, 100, 1);  
+// number of bars back to look for a short term buy breakvaout 
+PeriodSys1Sel1 = Param("Short bar exit", 10, 1, 100, 1);  
+// number of bars back to look for a sell  
+PeriodSys2Buy = Param("Long bar entry", 65, 1, 100, 1); // number of bars back to look for a long Buy breakvaout 
+PeriodSys2Sel1 = Param("Long bar exit", 30, 1, 100, 1); // number of bars back to look for a Sell 
+  
+buyRangeSys1 = HHV(H, PeriodSys1Buy ); // buy or Short range for system 1 
+sellRangeSys1 = LLV(L, PeriodSys1Sel1 ); // Sell OR Cover range for system 1 
+shortRangeSys1 = LLV(L, Periodsys1Buy ); // Buy OR Short range for system 2 
+coverRangeSys1 = HHV(H, PeriodSys1Sel1 ); // Sell OR Cover range for system 2 
+  
+// ##################### 
+// System 1 rules 
+// ##################### 
+  
+// if the market sets a new system 1 day high then buy 
+myBuySys1 = IIf(C > Ref(buyRangeSys1, -1), 1, 0); // if todays Close is >= that the Highest value set Buy Signal 
+mySellSys1 = IIf(C < Ref(sellRangeSys1, -1), 1, 0); // if todays Close is <= that the Lowest value set Sell Signal 
+Sys1Buy = ExRem(myBuySys1 ,mySellSys1 ); // remove all the other buy signals from buy to Sell - only take one position 
+Sys1Sell = ExRem(mySellSys1 ,myBuySys1 ); // remove all the other Sell signals from Sell to Buy - only take one position 
+  
+// short 
+myShortSys1 = IIf(C < Ref(shortRangeSys1, -1), 1, 0); // if todays Close is >= that the Highest value set Buy Signal 
+myCoverSys1 = IIf(C > Ref(coverRangeSys1, -1), 1, 0); // if todays Close is <= that the Lowest value set Sell Signal 
+Sys1Short = ExRem(myShortSys1 ,myCoverSys1 ); // remove all the other short signals from buy to Sell -only take one position 
+Sys1Cover = ExRem(myCoverSys1 ,myShortSys1 ); // remove all the other Cover signals from Sell to Buy -only take one position 
+  
+// ##################### 
+// System 2 rules 
+// ##################### 
+  
+buyRangeSys2 = HHV(H, PeriodSys2Buy ); // buy or Short range for system 1 
+sellRangeSys2 = LLV(L, PeriodSys2Sel1 ); // Sell OR Cover range for system 1 
+shortRangeSys2 = LLV(L, PeriodSys2Buy ); // Buy OR Short range for system 2 
+coverRangeSys2 = HHV(H, PeriodSys2Sel1 ); // Sell OR Cover range for system 2 
+  
+// if the market sets a new system 1 day high then buy 
+myBuySys2 = IIf(C > Ref(buyRangeSys2, -1), 1, 0);  
+// if todays close is >= that the highest value set buy Signal  
+mySellSys2 = IIf(C < Ref(sellRangeSys2, -1), 1, 0); // if todays Close is <= that the Lowest value set Sell Signal 
+Sys2Buy = ExRem(myBuySys2 ,mySellSys2 ); // remove all the other buy signals from buy to Sell - only take one position 
+Sys2Sell = ExRem(mySellSys2 ,myBuySys2 ); // remove all the other sell signals from sell to Buy - only take one position 
+  
+// short 
+myShortSys2 = IIf(C < Ref(shortRangeSys2, -1), 1, 0); // if todays Close is >= that the Highest value set Buy Signal 
+myCoverSys2 = IIf(C > Ref(coverRangeSys2, -1), 1, 0); // if todays Close is <= that the Lowest value set Sell Signal 
+Sys2Short = ExRem(myShortSys2 ,myCoverSys2 ); // remove all the other short signals from buy to sell - only take one position 
+Sys2Cover = ExRem(myCoverSys2 ,myShortSys2 ); // remove all the other Cover signals from Sell to Buy - only take one position 
+  
+// ##################### 
+// Combining the rules 
+// ##################### 
+  
+Buy = Sys1Buy OR Sys2Buy; 
+Sell = Sys1Sell OR Sys2Sell; 
+Short = Sys1Short OR Sys2Short; 
+Cover = Sys1Cover OR Sys2Cover; 
+  
+// ##################### 
+// Plotting the results 
+// ##################### 
+  
+// System 1 trades 
+//Plot(Sys1Buy * C / 2, "Turtles - Sys1 Green = Buy", colorGreen); 
+//Plot(-Sys1Sell * C / 2, "Blue = Sys1 Sell", colorBlue); 
+//Plot(-Sys1Short * C / 2, "Red = Sys1 Short", colorRed); 
+//Plot(Sys1Cover * C / 2, "Black = Sys1 Cover", colorBlack); 
+  
+// System 2 trades 
+//Plot(Sys2Buy * C, "\n Sys 2 - Green = Buy", colorGreen,styleDashed ); 
+//Plot(-Sys2Sell * C, "Sys 2 Blue = Sell", colorBlue, styleDashed ); 
+//Plot(-Sys2Short * C, "Sys 2 Red = Short", colorRed, styleDashed ); 
+//Plot(Sys2Cover * C, "Sys 2 Black = Cover", colorBlack, styleDashed ); 
+
+/////////////////////////////////// signal on price ////////////////////////////////////////////////
+
+PlotShapes(Buy * shapeSmallUpTriangle, colorBrightGreen,0,Low);
+PlotShapes(Sell * shapeSmallDownTriangle, colorRed,0,High);
+
+PlotShapes(Cover* shapeUpArrow, colorBrightGreen,0,Low);
+PlotShapes(Short* shapeDownArrow, colorRed,0,High);
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
+  
+Filter = Sys1Buy OR Sys1Sell OR Sys1Short OR Sys1Cover OR Sys2Buy OR 
+Sys2Sell OR Sys2Short OR Sys2Cover ; // used for scan function 
+AddColumn(Sys1Buy , "Sys 1 Buy"); 
+AddColumn(Sys1Sell , "Sys 1 Sell"); 
+AddColumn(Sys1Short , "Sys 1 Short"); 
+AddColumn(Sys1Cover , "Sys 1 Cover"); 
+  
+AddColumn(Sys2Buy , "Sys 2 Buy"); 
+AddColumn(Sys2Sell , "Sys 2 Sell"); 
+AddColumn(Sys2Short , "Sys 2 Short"); 
+AddColumn(Sys2Cover , "Sys 2 Cover");
+ 
+/////////////////////////////////9.15 to 9.45 Candlw white//////////////////////////////////////////////////////////////////
+//myBarMark = IIf( TimeNum() == 92959, colorWhite, colorBlack); 
+//Plot( Close, "Close", myBarMark , styleCandle);
+
+x=094500;
+breakoutime =x; 
+NORMAL=IIf(C>O,ColorRGB(50,150,100),ColorRGB(150,50,100));
+myBarMark = IIf( TimeNum()<94500, colorWhite,IIf(Buy ,colorBrightGreen,IIf(Cover,colorYellow,IIf(Sell,colorOrange,IIf(Short,colorCustom12,NORMAL))))); 
+Plot( Close, "Close", myBarMark , styleCandle);
+
+
+//MASK= ParamStyle("MASK",styleBar, maskPrice |styleThick);
+//NORMAL=IIf(C>O,ColorRGB(50,150,100),ColorRGB(150,50,100));
+//barcolor = IIf(Buy ,colorBrightGreen,IIf(Cover,colorYellow,IIf(Sell,colorOrange,IIf(Short,colorCustom12,NORMAL))));
+//Plot( C, "Close", barcolor,MASK|styleThick);
+//barcolor2 = IIf(Buy ,colorBrightGreen,IIf(Cover,colorYellow,IIf(Sell,colorOrange,IIf(Short,colorCustom13,styleHidden))));
+//MASK2= ParamStyle("MASK2",styleCandle, maskPrice |styleThick);
+//Plot( C, "Close", barcolor2,MASK2);
+
+_SECTION_END();

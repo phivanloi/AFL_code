@@ -1,0 +1,6 @@
+_SECTION_BEGIN("JMA");
+Plot( JurikJMA( Close, 3, 0),"3", colorWhite, styleThick );
+Plot( JurikJMA( Close, 13, 0),"13", colorRed, styleThick );
+Plot( JurikJMA( Close, 34, 0),"34", colorBlue, styleThick );
+
+_SECTION_END();

@@ -1,0 +1,11 @@
+/* Historical ZigZag Explorer.
+   *Use the Parameters Popup to "Look Back" in history
+    & watch the Zig adapt as you progress through.
+   (Hit "CTRL-R" to bring up the Parameters Dialog.)
+	OzFalcon.
+*/
+adjz = Param("Zig",10,0,15.0,.1);
+adjc = Param("Back",0,0,BarCount,1);
+CAdj = Ref(Close,-adjc);
+Graph1 = CAdj;
+Graph0 = Zig( CAdj, adjz );

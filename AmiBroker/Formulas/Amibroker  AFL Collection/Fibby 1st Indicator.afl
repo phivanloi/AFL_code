@@ -1,0 +1,28 @@
+//1st Indicator
+//By Fred Tonetti posted 7/28/06 Ft-talk
+
+GraphXSpace = 20;
+
+st1 = AMA(C,(2/(3+1)));
+st2 = AMA(C,(2/(5+1)));
+st3 = AMA(C,(2/(8+1)));
+st4 = AMA(C,(2/(13+1)));
+
+xxx = AMA(C,(2/(21+1)));
+
+lt1 = AMA(C,(2/(34+1)));
+lt2 = AMA(C,(2/(55+1)));
+lt3 = AMA(C,(2/(89+1)));
+lt4 = AMA(C,(2/(144+1)));
+
+Plot(st1, "3", ColorRGB(000,000,255), styleThick);
+Plot(st2, "5", ColorRGB(096,096,255), styleThick);
+Plot(st3, "8", ColorRGB(144,144,255), styleThick);
+Plot(st4, "13", ColorRGB(192,192,255), styleThick);
+
+Plot(xxx, "21", ColorRGB(000,255,000), styleThick);
+
+Plot(lt1, "34", ColorRGB(255,192,192), styleThick);
+Plot(lt2, "55", ColorRGB(255,144,144), styleThick);
+Plot(lt3, "89", ColorRGB(255,096,096), styleThick);
+Plot(lt4, "144", ColorRGB(255,000,000), styleThick); 

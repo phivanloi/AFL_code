@@ -1,0 +1,22 @@
+//CCI +100/-100 Peaks with stops ***Optimized***
+
+//Enters short/long on peaks and troughs above/below the signal line. Exit when the oscillator goes back over the signal line.
+
+//Note: Run Optimization first, insert optimized figure in ( pds= ) statement, then ( // ) out optimization line, click on backtest.
+
+pds=14;
+pds=Optimize("pds",14,8,23,3);
+
+
+Buy=Ref(CCI(pds),-1) < -100 AND MA(CCI(pds),2) <= CCI(pds);
+Sell=Ref(CCI(pds),-1) > -100 AND CCI(pds) < -100 OR Ref(CCI(pds),-1) > 100 AND MA(CCI(pds),2) >= CCI(pds);
+Short=Ref(CCI(pds),-1) > 100 AND MA(CCI(pds),2) >= CCI(pds);
+Cover=Ref(CCI(pds),-1) < 100 AND CCI(pds) > 100 OR Ref(CCI(pds),-1) < -100 AND MA(CCI(pds),2) <= CCI(pds);
+
+Filter=Buy OR Sell OR Short OR Cover;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); Short=ExRem(Short,Cover); Cover=ExRem(Cover,Short);
+
+AddColumn(Buy,"Buy");
+AddColumn(Sell,"sell");
+AddColumn(Short,"short");
+AddColumn(Cover,"cover");

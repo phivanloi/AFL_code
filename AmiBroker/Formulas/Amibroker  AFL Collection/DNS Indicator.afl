@@ -1,0 +1,44 @@
+/*Dave Evans:
+What I tried to do with DNS is put together most of the indicators I look at in one place so I could Buy directly from the scan results. I have come very Close BUT I still look at the charts before I Buy..
+I want ALL the indicators to give a Buy Signal because I am buying momentum.. I am looking for the big move AND the big move can NOT come unless all these indicators are positive.
+if you look at any stock AND pinpoint it's break away you will see that ALL the DNS indicators were positive within a week of the move. DNS will NOT guarantee that each of it's candidates will make a big move BUT it will guarantee that the big move will NOT be made without a DNS Signal...
+Now on to the parameters.... Parabolic SAR is a very good indicator to tell you when a move is starting. It is NOT very good by itself but when you use it as part of a system it works fine. for a stock to move parabolic SAR must be positive OR the move is False...
+Dahl's Primary AND On Balance Volume above it's 40 MA are two of the best indicators around. I ALWAYS look at them before I Buy. When we talk about Parabolic SAR we are talking Short term. When we talk about Dahl AND OBV above it's 40 MA we are talking longer term. I like to mix the times together to eliminate some of the whipsaws.
+ROC, MACD AND the Volume indicators are there to make sure the trend is real. I want Volume building AND in my favor. The parameters for MACD were taken out of one of the books I was reading at the time AND they seem to work.
+The whole idea of DNS is twofold. Find a big move AND stay away from whipsaws. That's why I've mixed price AND Volume AND long term AND Short term. for every big move I've looked at ALL of these indicators were positive so why NOT put them together AND scan for them??? The mix was the results of a lot of chart watching AND substitution until I found the 8 indicators I liked the best. Some of them are NOT as reliable alone but as a unit they work well..
+
+Ejr39:
+Use DNS to scan your basic stock list (one that includes your personal limitations). Put the DNS 7+ stocks into a bulleted WatchList. The stocks in the bulleted WatchList are then scanned each Day with your choice of criteria from InSync AND the StocRSI's.
+*/
+//PCF 1: if (5 Day simple mov Avg is greater than the 13 Day simple mov Avg), assign value of 1 +...
+pcf1 = IIf(MA(C,5) > MA(C,13),1,-1);
+
+//PCF 2: if (13 Day simple mov Avg is greater than the 40 Day simple mov Avg), assign value of 1 +...
+pcf2 = IIf(MA(C,13) > MA(C,40),1,-1);
+
+//PCF 3: if (8 Day simple mov Avg - 17 Day simple mov Avg) is greater than the 9 Day simple mov Avg of (8 Day simple mov Avg - 17 Day simple mov Avg) assign value of 1 +...
+pcf3 = IIf((MA(C,8) - MA(C,17)) > (MA(MA(C,8) - MA(C,17),9)),1,-1);
+
+
+//PCF 4: if (55 Day simple mov Avg of the Close - 55 Day simple mov Avg of the Close 15 DAYS AGO is greater than 0), assign a value of 1 +...
+pcf4 = IIf(MA(C,55) - Ref(MA(C,55),-15),1,-1);
+
+
+//PCF 5: if (12 period percent rate of change is greater than 0), assign a value of 1 +...
+pcf5 = IIf(((C / Ref(C,-13)) * 100) > 0,1,-1);
+
+
+//PCF 6: if (Volume is greater than the 120 Day simple mov Avg of Volume), assign a value of 1+
+pcf6 = IIf(V > MA(V,120),1,-1);
+
+/*PCF 7: Work with a bulleted WatchList i.e. a target list - IBD's YFR OR an EasyScan that fulfills your personal criteria OR use the "Smart Scan" PCF (aka Richard's Buy, Buy, Buy Scan). 
+I have put this scan right into the EasyScan. You can use it to create a separate Watchlist if you like AND then scan it with the DNS PCF's.
+(AVGV126 > 1000) AND (C > (MAXC252.1) * .85) AND (V >= AVGV63) AND (C > (MINC5) * 1.05)*/
+
+dns = (pcf1+pcf2+pcf3+pcf4+pcf5+pcf6)/6;
+
+Plot(dns, "", 4);
+Plot(TEMA(dns,20), "", 5);
+PlotGrid(0.50,colorLightGrey);
+PlotGrid(0.0,colorLightGrey);
+PlotGrid(1.0,colorLightGrey);

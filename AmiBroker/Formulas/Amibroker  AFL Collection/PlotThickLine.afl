@@ -1,0 +1,35 @@
+function PlotThickLine(Startpoint, DrawColor)
+{
+Thickness =Param("Thickness",1,1,10,0.1);
+//Offset =Param("Offset",0.01,0.01,0.5,0.01);
+// set your desired thickness here
+ST = Name();
+Offset = 0.25;  // default offset for arbitrary symbol, e.g. stocks
+
+//  Specific offsets for defined symbols
+if (ST == "ER"){Offset = .001;}
+if (ST == "YM"){Offset = .3;}
+if ((ST == "EU") OR ST == "FG" OR ST == "AU" OR ST == "GB"){Offset = .000001;}
+
+//   Draw the exact plot
+Plot(Startpoint, "", DrawColor, 5);
+//  Draw multiple extra plots to create thickness effect
+for( idx = 1; idx < Thickness; idx++ ){
+ Plot(Startpoint + (idx * Offset), "", DrawColor, 5+4096); 
+//   plot just above
+Plot(Startpoint - (idx * Offset), "", DrawColor, 5+4096); 
+//   plot just below
+}
+}
+
+
+
+Plot( C, "Close", colorLightGrey,styleCandle );
+
+_SECTION_BEGIN("MA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 200, 1, 10 );
+PlotThickLine( MA( P, Periods ), colorGreen);
+_SECTION_END();
+
+  

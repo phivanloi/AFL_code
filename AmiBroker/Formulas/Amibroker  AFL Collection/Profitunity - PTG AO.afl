@@ -1,0 +1,9 @@
+rd = IIf((MA(((H+L)/2),5)-MA(((H+L)/2),34))<(Ref(MA(((H+L)/2),5),-1)-
+Ref(MA(((H+L)/2),34),-1)),(MA(((H+L)/2),5)-MA(((H+L)/2),34)),0);
+
+Plot(rd, "AO Red", colorRed, styleHistogram| styleThick);
+
+gr = IIf((MA(((H+L)/2),5)-MA(((H+L)/2),34))>(Ref(MA(((H+L)/2),5),-1)-
+Ref(MA(((H+L)/2),34),-1)),(MA(((H+L)/2),5)-MA(((H+L)/2),34)),0);
+
+Plot(gr, "AO Green", colorLime, styleHistogram| styleThick);

@@ -1,0 +1,40 @@
+_SECTION_BEGIN("ABKPTriggOsc");
+/*  ABKPTriggOsc
+	Detrend KPTriggerLine AND Plot it
+*/ 
+parmTrigStyle = ParamStyle("TriggOsc style",styleLine, maskAll);
+parmTrigUpColor = ParamColor("TriggOsc up color", colorBlue);
+parmTrigDnColor = ParamColor("TriggOsc dn color", colorRed);
+parmDspTrigStyle = ParamStyle("Displaced TriggOsc style", styleLine, maskAll);
+parmDspTrigColor = ParamColor("Displaced TriggOsc color", colorWhite);
+parmPlotDspTrig = ParamToggle("Plot Displaced TriggOsc", "No|Yes", 1);
+parmZeroLineStyle = ParamStyle("Zero line style", styleLine, maskAll);
+parmZeroLineColor = ParamColor("Zero line color", colorDarkGreen);
+parmDspTrigOffSet = Param("Displaced TriggOsc offset", 5, 1, 10,1);
+parmDetrendPeriod = Param("Detrend period", 8, 1, 20, 1);
+parmPlotRibbon = ParamToggle("Plot as ribbon", "No|Yes", 0);
+parmRibbonSize = Param("Ribbon size", 1, 0.5, 10, 0.5);
+SetBarsRequired(350, -1);
+
+//KP indicators
+sw = E_TSKPUPSELL(Open,High,Low,Close,Volume);
+KPTriggerLine = tskp_triggerline;
+// calculations
+//Detrend = KPTriggerLine - MA(KPTriggerLine, parmDetrendPeriod);	//Detrend KPTriggerLine
+Detrend = KPTriggerLine - Ref( MA( KPTriggerLine, parmDetrendPeriod ), -( 1 + parmDetrendPeriod/2 ) );
+
+//plots
+if(parmPlotRibbon == 0)
+	{
+		Plot(Detrend,"TriggOsc", IIf(Detrend >= 0, parmTrigUpColor, parmTrigDnColor), parmTrigStyle);
+		if(parmPlotDspTrig == 1)
+		{
+			Plot(Ref(Detrend, - parmDspTrigOffSet), "TriggOsc dsp", parmDspTrigColor, parmDspTrigStyle);
+		}
+		Plot(0, "", parmZeroLineColor,  parmZeroLineStyle);
+	}
+else
+	{
+	Plot( parmRibbonSize, StrFormat("TriggOsc(%g%)", SelectedValue(Detrend) ), IIf(Detrend >= 0, parmTrigUpColor, parmTrigDnColor) , styleArea |  styleNoLabel | styleOwnScale , 0, 10);
+	}
+_SECTION_END();

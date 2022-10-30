@@ -1,0 +1,98 @@
+// find stocks with the narroest range
+DayH = TimeFrameGetPrice("H", inDaily);  
+DayL = TimeFrameGetPrice("L", inDaily); 
+Day0range = DayH-DayL;
+
+DayH1 = TimeFrameGetPrice("H1", inDaily, -1); 
+DayL1 = TimeFrameGetPrice("L1", inDaily, -1); 
+Day1range = DayH1 - DayL1;
+
+DayH2 = TimeFrameGetPrice("H2", inDaily, -2); 
+DayL2 = TimeFrameGetPrice("L2", inDaily, -2); 
+Day2range = DayH2 - DayL2;
+
+DayH3 = TimeFrameGetPrice("H3", inDaily, -3); 
+DayL3 = TimeFrameGetPrice("L3", inDaily, -3); 
+Day3range = DayH3 - DayL3;
+
+DayH4 = TimeFrameGetPrice("H4", inDaily, -4); 
+DayL4 = TimeFrameGetPrice("L4", inDaily, -4); 
+Day4range = DayH4 - DayL4;
+
+
+DayH5 = TimeFrameGetPrice("H5", inDaily, -5); 
+DayL5 = TimeFrameGetPrice("L5", inDaily, -5); 
+Day5range = DayH5 - DayL5;
+
+
+DayH6 = TimeFrameGetPrice("H6", inDaily, -6); 
+DayL6 = TimeFrameGetPrice("L6", inDaily, -6); 
+Day6range = DayH6 - DayL6;
+
+DayC = TimeFrameGetPrice("C", inDaily );//close 
+
+Filter =  Day0range < Day1range AND Day0range < Day2range AND Day0range < Day3range AND Day0range < Day4range AND Day0range < Day5range AND Day0range < Day6range;
+AddColumn(Open,"open");
+AddColumn(High,"High");
+AddColumn(Low,"low");   
+AddColumn(Close,"close");
+AddColumn (Day0range,"range today");
+AddColumn (Day1range,"day -1");
+AddColumn (Day2range,"day -2");
+AddColumn (Day3range,"day -3");
+AddColumn (Day4range,"day -4");
+AddColumn (Day5range,"day -5");
+AddColumn (Day6range,"day -6");
+/*
+TimeFrameSet( inDaily );
+
+R6 = (DayH / DayL) * DayC * 1.002;
+R5 = (DayH / DayL) * DayC;
+R4 = (((DayH / DayL) + 0.83) / 1.83) * DayC;
+R3 = ( ( (DayH / DayL) + 2.66) / 3.66) * DayC;
+R2 = ( ( (DayH / DayL) + 4.5) / 5.5) * DayC;
+R1 = ( ( (DayH / DayL) + 10) / 11) * DayC;
+ 
+S1 = (2- ( ( (DayH / DayL) + 10) / 11)) * DayC;
+S2 = (2-( (DayH / DayL) + 4.5) / 5.5) * DayC;
+S3 = (2-(( DayH / DayL) + 2.66) / 3.66) * DayC;
+S4 = (2-( (DayH / DayL) + 0.83) / 1.83) * DayC;
+S5 = (2-( DayH / DayL)) * DayC;
+S6 = (2-( DayH / DayL)) * DayC * 0.998;
+TimeFrameRestore();
+*/
+
+
+Prev_Close = TimeFrameGetPrice( "C", inDaily ) ;
+Prev_Low = TimeFrameGetPrice( "L", inDaily) ;
+Prev_High = TimeFrameGetPrice( "H", inDaily) ;
+Today = LastValue(Day( ) );
+
+
+//////////////////////////////30 MT STRATEGY /////////////////////////////////////////////////////////////
+BS=(Prev_High-Prev_Low)/3;
+
+
+Y=R30=Prev_Close+BS;
+X=S30=Prev_Close-BS;
+tgt_up = y*1.01;
+tgt_dn = x*0.99;
+AddColumn (y,"Buy above");
+AddColumn (X,"Stoploss");
+AddColumn (tgt_up,"target");
+AddColumn (x,"Sell below");
+AddColumn (y,"Stoploss");
+AddColumn (tgt_dn,"target");
+
+/*
+AddColumn (R4,"Buy above");
+AddColumn (R3,"Stoploss");
+AddColumn (R5,"target");
+AddColumn (s4,"Sell below");
+AddColumn (s3,"Stoploss");
+AddColumn (s5,"target");
+
+*/
+
+Plot (C,"",colorWhite);
+_SECTION_END();

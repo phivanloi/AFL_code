@@ -1,0 +1,5 @@
+/* Chaikin Volume Accumulation */
+
+cv = 25; 
+Graph0 = ((( Close-LLV( Close,cv )) - (HHV(Close,cv)-Close)) / (HHV(Close,cv) - LLV(Close,cv))) * Volume;
+ 

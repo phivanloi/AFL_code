@@ -1,0 +1,24 @@
+_SECTION_BEGIN("MACD");
+
+SetChartBkColor( colorBlack ) ;
+f = Param("fast ema",9,1,50,1);
+s = Param("Slow ema",34,2,100,1); 
+a1 = JurikJMA( Close, f, 0)-JurikJMA( Close, s, 0);
+//A1=EMA(C,f)-EMA(C,s); 
+BBtop=BBandTop(A1,5,.5); 
+BBbot=BBandBot(A1,5,.5);
+Color=IIf(a1 > BBtop, colorBrightGreen,IIf(a1 < bbbot,colorRed,colorDarkGrey));
+//Color = IIf(A1 > Ref(a1,-1), colorBrightGreen, IIf(a1 < Ref(a1,-1),colorRed,colorYellow));
+Plot(a1,"J MACD",color,styleDots+styleLine);
+//Plot(BBtop,"",colorYellow,styleDashed);
+//Plot(BBbot,"",colorYellow,styleDashed);
+Plot(0,"",31,styleNoLabel);
+_SECTION_END();
+
+Plot( EMA( a1, 9 ), "", colorBlue, styleThick ); 
+thick = Param("thickness",0.25,0.1,5,0.1);
+//Plot(6, "", Color, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+//PlotOHLC(0,thick,-thick,0,"",Color,styleCloud+styleNoLabel);
+
+
+_SECTION_END();

@@ -1,0 +1,29 @@
+//|------------------------------------------------------------------
+//|Tradingbasis.com - ~Composites update with RS
+//|Version:1.3   30-April-2006
+//|Copyright © 2005, Tradingbasis.com
+//|http://www.tradingbasis.com
+//|e-mail: support@tradingbasis.com
+//|------------------------------------------------------------------
+
+Version(4.65);
+//TAIO-Indicator
+Taio = 100*tbTysc()/tbTysf(tbTyse(abs(tbTysd())));
+
+Var1 = RelStrength(ParamStr("Relative strength symbol","^DJI"));
+Var2 = TAIO>0;
+
+//~SICO sector industry indicator
+//Ticker-counter
+AddToComposite(1,"~Tickers_in_DB","V",1+2);
+AddToComposite(1,"~i"+WriteVal(IndustryID(),1.0)+" - "+IndustryID(1),"V",1+2);
+AddToComposite(1,"~s"+WriteVal(SectorID(),1.0)+" - "+SectorID(1),"V",1+2);
+Buy=0;
+
+//Relative strength
+AddToComposite(Var1,"~i"+WriteVal(IndustryID(),1.0)+" - "+IndustryID(1),"L",1+2);
+AddToComposite(Var1,"~s"+WriteVal(SectorID(),1.0)+" - "+SectorID(1),"L",1+2);
+//Sector-industry-trend
+AddToComposite(Var2,"~i"+WriteVal(IndustryID(),1.0)+" - "+IndustryID(1),"H",1+2);
+AddToComposite(Var2,"~s"+WriteVal(SectorID(),1.0)+" - "+SectorID(1),"H",1+2);
+//////////////////////////////////

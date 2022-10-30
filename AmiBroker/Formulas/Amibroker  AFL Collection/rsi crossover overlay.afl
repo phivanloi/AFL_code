@@ -1,0 +1,21 @@
+//===========================================RSI cross------------------
+
+
+periodRSI = Param( "Periods", 15, 1, 200, 1 );
+P= Param("which ema of rsi", 39, 2, 300, 1, 10 );
+
+RS = RSI (periodRSI);
+emRS= EMA(RSI(periodRSI),p);
+
+RSIEMABuy =Cross(rs, emrs)
+AND Trix( 9 ) > Ref( Trix( 9 ) , -1 );
+
+
+RSIEMAShort = Cross(emRS,RS)
+AND Trix( 9 ) < Ref( Trix( 9 ) , -1 );
+
+
+PlotShapes(shapeUpArrow * RSIEMABuy, colorGreen,0, L,-20);
+PlotShapes(shapeDownArrow * RSIEMAShort, colorRed,0, H, -20);
+
+//=================================================================

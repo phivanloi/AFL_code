@@ -1,0 +1,136 @@
+_SECTION_BEGIN("Chart Settings");
+ SetChartOptions(0,chartShowArrows|chartShowDates);
+ SetChartBkColor(ParamColor("Outer Panel",colorPaleBlue)); 
+ SetChartBkGradientFill(ParamColor("Upper Chart",colorBlack),ParamColor("Lower Chart",colorBlack)); 
+ _SECTION_END(); 
+
+
+ _SECTION_BEGIN("Katsayi Optimizeli 6.nci Dereceden Polynom'un WMA()'si Alinmis Deklem");
+
+ Derece3 = ParamToggle("3.ncü Derece Polynom ","hide|show",0);
+ Derece4 = ParamToggle("4.ncü Derece Polynom ","hide|show",0);
+ Derece5 = ParamToggle("5.nci Derece Polynom ","hide|show",0);
+ Derece6 = ParamToggle("6.nci Derece Polynom ","hide|show",0);
+
+ x3=Param("Period-3",1,1,200,1); 
+ x4=Param("Period-4",1,1,200,1); 
+ x5=Param("Period-5",1,1,200,1); 
+ x6=Param("Period-6",1,1,200,1); 
+ ACID=Param("Süper Ince Ayar",1,1,180,0.001);
+
+
+ Katsayi43=(Param("3.Katsayi1",0,-2,30,0.001));
+ Katsayi53=Param("3.Katsayi2",0,-2,30,0.001);
+ Katsayi63=Param("3.Katsayi3",0,-2,30,0.001);
+
+ Katsayi34=Param("4.Katsayi1",0,-30,30,0.001);
+ Katsayi44=Param("4.Katsayi2",0,-30,30,0.001);
+ Katsayi54=Param("4.Katsayi3",0,-30,30,0.001);
+ Katsayi64=Param("4.Katsayi4",0,-30,30,0.001);
+
+ Katsayi25=Param("5.Katsayi1",0,-30,30,0.001);
+ Katsayi35=Param("5.Katsayi2",0,-30,30,0.001);
+ Katsayi45=Param("5.Katsayi3",0,-30,30,0.001);
+ Katsayi55=Param("5.Katsayi4",0,-30,30,0.001);
+ Katsayi65=Param("5.Katsayi5",0,-30,30,0.001);
+
+ Katsayi16=Param("6.Katsayi1",0,-30,30,0.001);
+ Katsayi26=Param("6.Katsayi2",0,-30,30,0.001);
+ Katsayi36=Param("6.Katsayi3",0,-30,30,0.001);
+ Katsayi46=Param("6.Katsayi4",0,-30,30,0.001);
+ Katsayi56=Param("6.Katsayi5",0,-30,30,0.001);
+ Katsayi66=Param("6.Katsayi6",0,-30,30,0.001);
+
+
+ PlotOHLC(O, H, L, C, "Data", colorWhite, styleBar | styleThick); 
+
+
+ _SECTION_BEGIN("3.Dereceden Polinom");
+
+ pi=22/7;
+ Rtd = 180 / Pi;
+ Dtr = 1 / Rtd;
+ data=(O+H+L+C)/4;
+
+ if(Derece3)
+ {
+ Katsayi43=Katsayi43*(ACID*DTR);
+ Katsayi53=Katsayi53*(ACID*DTR);
+ Katsayi63=Katsayi63*(ACID*DTR);
+ y3=Katsayi43*x3*exp(3) + Katsayi53*x3*exp(2) + Katsayi63*x3;
+ y3m=WMA(data,y3);
+
+ Plot(y3m,"",IIf(y3m>Ref(y3m,-1),colorRed,colorRed),styleLine|styleThick);
+ }
+
+ _SECTION_END();
+
+
+ _SECTION_BEGIN("4.Dereceden Polinom");
+
+ pi=22/7;
+ Rtd = 180 / Pi;
+ Dtr = 1 / Rtd;
+ data=(O+H+L+C)/4;
+
+ if(Derece4)
+ {
+ Katsayi34=Katsayi34*(ACID*DTR);
+ Katsayi44=Katsayi44*(ACID*DTR);
+ Katsayi54=Katsayi54*(ACID*DTR);
+ Katsayi64=Katsayi64*(ACID*DTR);
+
+ y4=Katsayi34*x4*exp(4) +Katsayi44*x4*exp(3) + Katsayi54*x4*exp(2) + Katsayi64*x4;
+ y4m=WMA(data,y4);
+
+ Plot(y4m,"",IIf(y4m>Ref(y4m,-1),colorLime,colorLime),styleLine|styleThick);
+ }
+ _SECTION_END();
+
+
+ _SECTION_BEGIN("5.Dereceden Polinom");
+
+ pi=22/7;
+ Rtd = 180 / Pi;
+ Dtr = 1 / Rtd;
+ data=(O+H+L+C)/4;
+
+ if(Derece5)
+ {
+ Katsayi25=Katsayi25*(ACID*DTR);
+ Katsayi35=Katsayi35*(ACID*DTR);
+ Katsayi45=Katsayi45*(ACID*DTR);
+ Katsayi55=Katsayi55*(ACID*DTR);
+ Katsayi65=Katsayi65*(ACID*DTR);
+
+ y5=Katsayi25*x5*exp(5) + Katsayi35*x5*exp(4) +Katsayi45*x5*exp(3) + Katsayi55*x5*exp(2) + Katsayi65*x5; 
+ y5m=WMA(data,y5);
+
+ Plot(y5m,"",IIf(y5m>Ref(y5m,-1),colorAqua,colorAqua),styleLine|styleThick);
+ }
+ _SECTION_END();
+
+
+ _SECTION_BEGIN("6.Dereceden Polinom");
+
+ pi=22/7;
+ Rtd = 180 / Pi;
+ Dtr = 1 / Rtd;
+ data=(O+H+L+C)/4;
+
+ if(Derece6)
+ {
+ Katsayi16=Katsayi16*(ACID*DTR);
+ Katsayi26=Katsayi26*(ACID*DTR);
+ Katsayi36=Katsayi36*(ACID*DTR);
+ Katsayi46=Katsayi46*(ACID*DTR);
+ Katsayi56=Katsayi56*(ACID*DTR);
+ Katsayi66=Katsayi66*(ACID*DTR);
+
+ y6 =Katsayi16*x6*exp(6)+Katsayi26*x6*exp(5) +Katsayi36*x6*exp(4) + Katsayi46*x6*exp(3) + Katsayi56*x6*exp(2) + Katsayi66*x6; 
+ y6m=WMA(data,y6);
+
+ Plot(y6m,"",IIf(y6m>Ref(y6m,-1),colorYellow,colorYellow),styleLine|styleThick);
+ }
+
+ _SECTION_END();

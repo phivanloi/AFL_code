@@ -1,0 +1,67 @@
+//------------------------------------------------------------------------------
+//  Formula Name	:      Coral Trend Indicator for Amibroker AFL by pipschart
+//  Author	:      UPTREND.VN
+//  Uploader	:      www.UPTREND.VN
+//  E-mail		:      phamduy6886@gmail.com
+//------------------------------------------------------------------------------
+
+_SECTION_BEGIN("Uptrend.vn");
+GfxSetBkMode(1);
+X=50;
+Y=50;
+Font=15;
+
+GfxSelectFont("Segoe UI",Font*2.2, 700);GfxSetTextColor( ColorRGB(146, 187, 86));GfxTextOut("Uptrend.vn",x,y);
+GfxSelectFont("Segoe UI",Font*2.2, 700);GfxSetTextColor( ColorRGB(146, 187, 86));GfxTextOut("",x+120,Y);
+
+
+_SECTION_END();
+
+//------------------------------------------------------------------------------
+
+
+_SECTION_BEGIN("Coral Trend Indicator");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+
+
+sm = Param("Smoothing Period",21,2,40,1);
+cd = Param("Constant D",0.4,0.1,2,0.1);
+
+di = (sm - 1.0) / 2.0 + 1.0;
+c1 = 2 / (di + 1.0);
+c2 = 1 - c1;
+c3 = 3.0 * (cd * cd + cd * cd * cd);
+c4 = -3.0 * (2.0 * cd * cd + cd + cd * cd * cd);
+c5 = 3.0 * cd + 1.0 + cd * cd * cd + 3.0 * cd * cd;
+
+src = Close;
+i1=0;
+i2=0;
+i3=0;
+i4=0;
+i5=0;
+i6=0;
+
+
+for(i=1;i<BarCount;i++)
+{
+
+i1[i] = c1[i]*src[i] + c2[i]*i1[i-1];
+i2[i] = c1[i]*i1[i] + c2[i]*i2[i-1];
+i3[i] = c1[i]*i2[i] + c2[i]*i3[i-1];
+i4[i] = c1[i]*i3[i] + c2[i]*i4[i-1];
+i5[i] = c1[i]*i4[i] + c2[i]*i5[i-1];
+i6[i] = c1[i]*i5[i] + c2[i]*i6[i-1];
+
+}
+
+bfr = -cd*cd*cd*i6 + c3*(i5) + c4*(i4) + c5*(i3);
+
+color = IIf(bfr>Ref(bfr,-1),colorGreen,colorRed);
+
+Plot(bfr,"Coral Trend Indicator", color,styleDots|styleNoLine|styleThick);
+
+
+_SECTION_END();

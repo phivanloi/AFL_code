@@ -1,0 +1,1 @@
+Plot( E_TSKPAUTOSTOP(High,Low,Close) , _DEFAULT_NAME(), ParamColor( "Color", colorYellow ), ParamStyle("Style",style=styleNoLabel, mask=maskDefault)); 

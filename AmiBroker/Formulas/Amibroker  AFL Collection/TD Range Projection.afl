@@ -1,0 +1,22 @@
+TPH1 = (H+C+2*L)/2-L;
+TPH2 = (2*H+L+C)/2-L;
+TPH3 = (H+L+2*C)/2-L;
+TPL1 = (H+C+2*L)/2-H;
+TPL2 = (2*H+L+C)/2-H;
+TPL3 = (H+L+2*C)/2-H;
+PH = IIf((C<O),TPH1,IIf((C>O),TPH2,IIf((C==O),TPH3,0)));
+PL = IIf((C<O),TPL1,IIf((C>O),TPL2,IIf((C==O),TPL3,0)));
+
+Daysback = 10;
+LastBar = BarCount-1;
+FirstBar = LastBar - DaysBack;
+BI = BarIndex();
+BIX = IIf(BI >= Firstbar,1,0);
+Y = LastValue(PH);
+YY = IIf(BIX>0, y, Null); // plot only from days back to last bar
+
+Plot(yy,"LastClose",colorRed,styleThick);
+
+
+Plot(PH, "", colorLime);
+//Plot(PL, "", colorRed);

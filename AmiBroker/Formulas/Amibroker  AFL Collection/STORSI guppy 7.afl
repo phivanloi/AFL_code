@@ -1,0 +1,34 @@
+_SECTION_BEGIN("Linkon's RSI");
+
+period = 14;
+StoRSI =EMA(100*( ( RSI( period ) - LLV( RSI( period ) , period ) ) / ( ( HHV( RSI( period ) , period ) ) - LLV(RSI( period ), period ) ) ),3);
+PlotOHLC(StoRSI,StoRSI+.5,StoRSI-.5,StoRSI,"stoRSI",colorWhite,styleCloud);
+Plot(80,"",colorGrey40);
+Plot(20,"",colorGrey40);
+Plot(50,"",colorGrey40); 
+
+bbtop = BBandTop(storsi,5,0.5);
+bbbot = BBandBot(storsi,5,0.5);
+Plot( EMA(StoRSI,8) , "", IIf(EMA(StoRSI,8) > Ref(EMA(StoRSI,8),-1),colorGreen,colorRed),styleThick+styleNoLabel);
+
+/*
+Plot( EMA(StoRSI,2) , "", colorBlue,styleNoLabel);
+Plot( EMA(StoRSI,3) , "", colorBlue,styleNoLabel);
+Plot( EMA(StoRSI,4) , "", colorBlue,styleNoLabel);
+Plot( EMA(StoRSI,5) , "", colorBlue,styleNoLabel);
+
+Plot( EMA(StoRSI,8) , "", colorYellow,styleNoLabel);
+Plot( EMA(StoRSI,9) , "", colorRed,styleNoLabel);
+Plot( EMA(StoRSI,10) , "", colorRed,styleNoLabel);
+Plot( EMA(StoRSI,11) , "", colorRed,styleNoLabel);
+Plot( EMA(StoRSI,12) , "", colorRed,styleNoLabel);
+Plot( EMA(StoRSI,13) , "", colorRed,styleNoLabel);
+Plot( EMA(StoRSI,14) , "", colorRed,styleNoLabel);
+Plot( EMA(StoRSI,15) , "", colorRed,styleNoLabel);
+Plot( EMA(StoRSI,16) , "", colorRed,styleNoLabel);
+Plot( EMA(StoRSI,17) , "", colorRed,styleNoLabel);
+Plot( EMA(StoRSI,18) , "", colorRed,styleNoLabel);
+Plot( EMA(StoRSI,19) , "", colorRed,styleNoLabel);
+Plot( EMA(StoRSI,20) , "", colorRed,styleNoLabel);
+*/
+_SECTION_END();

@@ -1,0 +1,19 @@
+_SECTION_BEGIN("Keltner Bands"); 
+piv = C;
+CenterLine = EMA(C,34);
+KTop   = CenterLine + 2 * ATR( 15 );
+KBot = CenterLine - 2 * ATR( 15 );
+Plot(Centerline,"center",IIf(ktop > Ref(ktop,-1) AND kbot > Ref(kbot,-1),colorBlue,IIf(ktop < Ref(ktop,-1) AND kbot < Ref(kbot,-1),colorRed,colorYellow)),styleThick);
+Plot( KTop, "KBTop" + _PARAM_VALUES(), IIf(ktop > Ref(ktop,-1) AND kbot > Ref(kbot,-1),colorBlue,IIf(ktop < Ref(ktop,-1) AND kbot < Ref(kbot,-1),colorRed,colorYellow)), styleThick ); 
+Plot( KBot, "KBBot" + _PARAM_VALUES(), IIf(ktop > Ref(ktop,-1) AND kbot > Ref(kbot,-1),colorBlue,IIf(ktop < Ref(ktop,-1) AND kbot < Ref(kbot,-1),colorRed,colorYellow)), styleThick ); 
+//Plot( BBandTop( piv, 15, 1 ), "BBTop" + _PARAM_VALUES(), colorYellow, styleDashed ); 
+//Plot( BBandBot( Piv, 15, 1 ), "BBBot" + _PARAM_VALUES(), colorYellow, styleDashed ); 
+
+_SECTION_END();
+CenterLine1 = JurikJMA( Close, 4, 0);
+KTop1   = CenterLine1 + 0.5 * ATR( 5 );
+KBot1 = CenterLine1 - 0.5 * ATR( 5 );
+Plot( KTop1, "KBTop1" + _PARAM_VALUES(), colorWhite, styleDashed ); 
+Plot( KBot1, "KBBot1" + _PARAM_VALUES(), colorWhite, styleDashed ); 
+Col= IIf(ktop1 < kbot, colorCustom12, IIf(kbot1 > ktop,colorBlue,IIf(CCI(14) >Ref(CCI(14),-1),colorBrightGreen,colorRed))); 
+Plot(C,"",col,styleBar+styleThick);

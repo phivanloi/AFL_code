@@ -1,0 +1,73 @@
+// Previous Day High & Low, BreakOut and BreakDown Signals
+// The program provides early entry before the previous days high & Intraday High or previous days low & Intraday low are broken
+// Stop Loss and exits are placed using Pivots
+
+
+LClose = Close;
+
+// Calculations for Buy and Sell Signals
+
+LastDayHigh=SelectedValue(TimeFrameGetPrice( "H", inDaily, -1 ));
+LastDayLow =SelectedValue(TimeFrameGetPrice( "L", inDaily, -1 ));
+TodayHigh = SelectedValue(TimeFrameGetPrice( "H", inDaily, 0 ));
+TodayLow = SelectedValue(TimeFrameGetPrice( "L", inDaily, 0 ));
+TwoDayHigh = IIf(LastDayHigh > TodayHigh, LastDayHigh, TodayHigh);
+TwoDayLow = IIf(LastDayLow < TodayLow, LastDayLow, ToDayLow);
+
+Plot_Range1 = (TimeNum() >= 095500 AND TimeNum()<= 170000) AND (DateNum()==LastValue(DateNum()));
+
+mf = Param("Percentage",1,0.1,5,0.1);
+ORhigh = LastDayHigh;
+ORlow = LastDayLow;
+ORhigh = ORhigh*(1-mf/100);
+ORlow = ORlow*(1+mf/100);
+
+BreakOut = IIf(LClose>=ORhigh, LClose, 0);
+breakDown = IIf(LClose<=ORlow, LClose, 0);
+
+// Calculation of Stop Loss and Exit points using pivots
+
+H1=SelectedValue( TimeFrameGetPrice( "H", inDaily, -1 ));
+L1=SelectedValue(TimeFrameGetPrice( "L", inDaily, -1 ));
+C1=SelectedValue(TimeFrameGetPrice( "C", inDaily, -1 ));
+
+p = ( H1+ L1 + C1 )/3;
+s1 = (2*p)-H1;
+r1 = (2*p)-L1;
+s2 = p -(H1 - L1);
+s3 = S1 - (H1-L1);
+r2 = p +(H1 - L1);
+r3 = R1 +(H1-L1);
+
+
+Buy = (LClose >= ORHigh) AND (LClose<=LastDayHigh) AND (LClose>=p) AND (Now(format=4)-TimeNum()<500) ;
+Sell = (LClose <= ORLow) AND (LClose>=LastDayLow) AND (LClose<=p) AND (Now(format=4)-TimeNum()<500) ;
+
+BTarget1 = IIf(Buy,IIf(r1 > LastDayHigh, r1, IIf(r2 > LastDayHigh, r2, IIf(r3 > LastDayHigh, r3, 0))),0);
+BTarget2 = IIf(Buy,IIf(r1 = BTarget1, r2, IIf(r2 = BTarget1, r3, 0)),0);
+BTarget3 = IIf(Buy,IIf(r2 = BTarget2, r3, 0),0);
+STarget1 = IIf(Sell,IIf(s1 < LastDayLow, s1, IIf(s2 < LastDayLow, s2, IIf(s3 < LastDayLow, s3, 0))),0);
+STarget2 = IIf(Sell,IIf(s1 = STarget1, s2, IIf(s2 = STarget1, s3, 0)),0);
+STarget3 = IIf(Sell,IIf(s2 = STarget2, s3, 0),0);
+
+// Output of Exploration results and Alert of Buy and Sell Signals and Plotting of breakout and breakdown levels
+
+Filter=Buy OR Sell ;
+
+AddColumn(LClose,"CMP");
+AddColumn(TwoDayHigh,"New High",1.2,colorDefault,colorDefault,90);
+AddColumn(TwoDayLow,"New Low",1.2,colorDefault,colorDefault,90);
+AddColumn(TodayHigh,"Today High",1.2,colorDefault,colorDefault,90);
+AddColumn(TodayLow,"Today Low",1.2,colorDefault,colorDefault,90);
+AddColumn(P,"Pivot",1.2,colorDefault,colorDefault,90);
+AddColumn(ORHigh,"OR High",1.2,colorDefault,colorDefault,90);
+AddColumn(ORLow,"OR Low",1.2,colorDefault,colorDefault,90);
+AddColumn(Now(format=4),"Time Now",1.2,colorDefault,colorDefault,90);
+AddColumn(TimeNum(),"Time Then",1.2,colorDefault,colorDefault,90);
+AddColumn(Now(format=4)-TimeNum(),"Diff",1.2,colorDefault,colorDefault,90);
+AddColumn(IIf(Buy,66,IIf(Sell,83,32)),"New Trade Bar", formatChar, colorWhite, bkcolor =IIf(Buy, colorGreen,IIf(Sell,colorRed,colorDefault)));
+Plot(LastDayHigh,"High Breakout", ParamColor("Hi Color",colorBlue));
+Plot(LastDayLow,"Low Breakout", ParamColor("Low Color",colorRed));
+
+AlertIf(Buy,"","Buy " + Name() + " above " + LastDayHigh + ", CMP: " + C + ", SL " + Prec(P,2) + ", Targets " + Prec(BTarget1,2) +","+Prec(BTarget2,2) + "," +Prec(BTarget3,2), 1);
+AlertIf(Sell,"","Sell " + Name() + " below " + LastDayLow + ", CMP: " + C + ", SL " + Prec(P,2) + ", Targets " + Prec(STarget1,2) +","+Prec(STarget2,2) + "," +Prec(STarget3,2), 2);

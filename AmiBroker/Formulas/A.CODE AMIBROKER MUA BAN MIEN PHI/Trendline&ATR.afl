@@ -1,0 +1,118 @@
+// Supertrend - Translated from Kolier MQ4
+// see: http://kolier.li/indicator/kolier-supertrend-indi
+// translation in Amibroker AFL code by E.M.Pottasch, 2011
+  
+procedure calcTrend_proc(ATR_Period,tr,ATR_Multiplier,TrendMode,CalcPrice)
+{
+global buffer_line_down;
+global buffer_line_up;
+buffer_line_down = Null;
+buffer_line_up = Null;
+  
+PHASE_NONE = 0;
+PHASE_BUY = 1;
+PHASE_SELL = -1;
+  
+phase=PHASE_NONE;
+band_upper = 0;band_lower = 0;
+    
+for(i = ATR_Period + 1; i < BarCount; i++)
+{
+    band_upper = CalcPrice[i] + ATR_Multiplier * tr[i];
+    band_lower = CalcPrice[i] - ATR_Multiplier * tr[i];
+      
+    if(phase==PHASE_NONE)
+    {
+        buffer_line_up[i] = CalcPrice[i];
+        buffer_line_down[i] = CalcPrice[i];
+    }
+    if(phase!=PHASE_BUY && Close[i]>buffer_line_down[i-1] && !IsEmpty(buffer_line_down[i-1])) 
+    {
+        phase = PHASE_BUY;
+        buffer_line_up[i] = band_lower;
+        buffer_line_up[i-1] = buffer_line_down[i-1];
+    }
+    if(phase!=PHASE_SELL && Close[i]<buffer_line_up[i-1] && !IsEmpty(buffer_line_up[i-1]))
+    {
+        phase = PHASE_SELL;
+        buffer_line_down[i] = band_upper;
+        buffer_line_down[i-1] = buffer_line_up[i-1];
+    }   
+    if(phase==PHASE_BUY && ((TrendMode==0 && !IsEmpty(buffer_line_up[i-2])) || TrendMode==1) )
+    {
+        if(band_lower>buffer_line_up[i-1]) 
+        {
+            buffer_line_up[i] = band_lower;
+        }
+        else
+        {
+            buffer_line_up[i] = buffer_line_up[i-1];
+        }
+    }
+    if(phase==PHASE_SELL && ((TrendMode==0 && !IsEmpty(buffer_line_down[i-2])) || TrendMode==1) )
+    {
+        if(band_upper<buffer_line_down[i-1])
+        {
+            buffer_line_down[i] = band_upper;
+        }
+        else
+        {
+            buffer_line_down[i] = buffer_line_down[i-1];
+        }
+    }
+}
+}
+  
+SetBarsRequired(sbrAll,sbrAll);
+  
+TrendMode = ParamToggle("TrendMode","Off|On",1);
+ATR_Multiplier = Param("ATR_Multiplier",2,0.1,10,0.1);
+ATR_Period = Param( "ATR_Period",5,1,20,1);
+tr = ATR(ATR_Period);
+  
+CalcPrice = (H+L)/2;
+calcTrend_proc(ATR_Period,tr,ATR_Multiplier,TrendMode,CalcPrice);
+  
+SetChartOptions(0,chartShowDates);
+Plot(C,"C",colorWhite,64);
+Plot(buffer_line_up,"\ntu",ColorRGB(28,134,238),styleThick);
+Plot(buffer_line_down,"\ntd",ColorRGB(205,51,51),styleThick);
+  
+Plot( 2,"",IIf(buffer_line_up,colorGreen,colorBlack),styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+Plot( 4,"",IIf(buffer_line_down,colorRed,colorBlack),styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+_SECTION_BEGIN("Advanced Elliot Wave ");
+//Elliot Wave Metastock to AFL
+//-- Script Start -------
+_N(Title = "{{NAME}} - {{INTERVAL}} {{DATE}}: "+_DEFAULT_NAME()+" : {{VALUES}} "
+);
+  
+Option = ParamToggle("Insert To", "Price Chart|Indicator");
+pr=Param("Elliot Wave minimum % move",0.5, 0.25,3,0.25);
+//{ Beginner Elliot Wave stuff }
+EWpk=PeakBars(H,pr)==0;
+EWtr=TroughBars(L,pr)==0;
+//{ Intermediate Elliot Wave stuff }
+zz=Zig(C,pr);
+zzHi=Zig(H,pr);
+zzLo=Zig(L,pr);
+Avg=(zzHi+zzLo)/2;
+//{ Advanced Elliot Wave stuff }
+RetroSuccessSecret=IIf(EWpk,zzHi,
+IIf(EWtr,zzLo,IIf(Avg>Ref(Avg,-1),H,L)));
+EW=Zig(RetroSuccessSecret,pr);
+//{ Plot on price chart }
+if (Option==0)
+Plot(EW, "EW", ParamColor("Color", colorBrown), ParamStyle("Style", styleNoLabel|styleThick));
+else
+{
+//{ Plot on own window }
+Plot(EWbuy-EWsell, "EW2", ParamColor("Color", colorRed), ParamStyle("Style", styleNoLabel|styleThick));
+}
+//{ Buy/Sell Elliot Wave stuff }
+EWbuy=TroughBars(EW,pr)==1;
+EWsell=PeakBars(EW,pr)==1;
+Plot(C,"",47,128+4);
+PlotShapes(EWbuy*shapeUpArrow,5,0,L,-5);
+PlotShapes(EWsell*shapeDownArrow,4,0,H,-5);
+//-- Script End -------
+_SECTION_END();

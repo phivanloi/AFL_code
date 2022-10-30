@@ -1,0 +1,23 @@
+_SECTION_BEGIN("Price Line");
+
+PriceLineColor=ParamColor("PriceLineColor",ColorRGB(82,82,82));
+PriceLevel = ParamField("PriceField", field = 3 ); 
+
+Daysback    = Param("Bars Back",100,10,500,1); 
+FirstBar    = BarCount - DaysBack; 
+YY          = IIf(BarIndex() >= Firstbar,EndValue(PriceLevel),Null); 
+
+Plot(YY,"Current Price",PriceLineColor,ParamStyle("LineStyle",styleLine|styleDashed|styleNoTitle|styleNoLabel|styleThick,maskAll)); 
+
+
+side = Param("side",1,0,1000,1);
+
+dist = 0; 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+ if(i+side== BarCount) PlotText( "\n    " + PriceLevel[ i ], i, YY[ i ]-dist[i], colorLightBlue ); 
+} 
+
+
+_SECTION_END();

@@ -1,0 +1,174 @@
+/*
+_ Canh bao Vung Khang Cu / Ho Tro (HHV, LLV)
+_ Canh bao cac moc Pivot Daily 
+_ Canh bao Volume va Spread tang dot bien
+_ Canh bao chi so VN30, luc cung cau 
+_ Canh bao Oscilator qua cao, qua thap 
+*/
+
+TimeFrameRestore();
+
+//////////////////////////////////////////////
+_SECTION_BEGIN("RSI_Alert");
+RSI_alert = ParamToggle("RSi_Alert", "No|Yes",0);
+period = Param("period", 10, 1,100,1);
+r = RSI(period);
+Buy = Cross(r, 20);
+Sell = Cross(r, 80); 
+
+TelegramAlerts = ParamTrigger("Telegram Alert","Send Alert");
+TelegramAPI_ID = ParamStr("Telegram Bot API Key","1200942736:AAEG8y9qyJ7aHefUm4vt_xKqkNBxfKd3qCc");
+TelgramCHAT_ID = ParamStr("Telegram Channel ID","@Victor_AlgoTrading");  
+
+Message = numtostr(C) + " Spead = " + NumToStr(H - L) + " Volume =   " + NumToStr(V) + "   " + WriteVal(ROC(V, 1), 1.2) + ROC(V, 1) + " " 
++ " \n" + TimeNum() + "    " + Interval() + "  " + "RSI_Alert, " + " rsi = " + numtostr(r) ;
+
+// for( i = 0, i < BarCount, i++)
+//{if(Buy[i] =1  }
+
+if(Buy[BarCount - 1] == 1 OR Sell[BarCount - 1] == 1 OR TelegramAlerts)
+{
+	if(RSI_alert)
+//if (TelegramAlerts)
+	{
+	ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message ); 
+	InternetClose(ih);
+	}
+}
+// AlertIf(Buy,"EXEC https://api.telegram.org/bot"+TelegramAPI_ID+"/sendMessage?chat_id="+TelgramGroupCHAT_ID+"&text=+"+message,"",1,4+8);
+_SECTION_END();
+
+_SECTION_BEGIN("Multi_Timeframe_Alert"
+Mul = ParamToggle("Multi_time", "No|Yes", 0)
+TimeFrameSet(inHourly):
+
+
+
+_SECTION_END();
+
+_SECTION_BEGIN("Cutloss")
+TimeFrameSet(in15Minute);
+e10 = EMA(C, 10);
+sl = EMA(C, 10) - 2;
+e5 = EMA(C, 5); 
+con1 = IFF(C > e(C,10))  
+a = Cross(C, EMA(C,10)) 
+Plot(a, "Cross",   
+TimeFrameRestore();
+
+
+_SECTION_END();
+
+//////////////////////////////////////////////
+_SECTION_BEGIN("MACD");
+MACD_Alert = ParamToggle("MACD", "No|Yes", 0);
+m = MACD(12.26); 
+s = Signal(12,26,9);
+b1 = Cross(s,m);
+s1 = Cross(m,s);
+
+Message_buy = "Buy" + "  "  + numtostr(C) + " Spead = " + NumToStr(H - L) + " Volume =   " + NumToStr(V) + "   " + WriteVal(ROC(V, 1), 1.2) + ROC(V, 1) + " " 
++ " \n" + TimeNum() + "    " + Interval() + "  " + "MACD = " + numtostr(m) ;
+Message_sell = "Sell" + "  "  + numtostr(C) + " Spead = " + NumToStr(H - L) + " Volume =   " + NumToStr(V) + "   " + WriteVal(ROC(V, 1), 1.2) + ROC(V, 1) + " " 
++ " \n" + TimeNum() + "    " + Interval() + "  " +  "MACD = " + numtostr(m) ;
+
+if(b1[BarCount -1] == 1)
+	{if(MACD_alert)
+	{ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message_buy); 
+	InternetClose(ih);
+	};
+	}
+if(s1[BarCount -1]== 1)
+	{if(MACD_alert)
+	{ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message_sell); 
+	InternetClose(ih);
+	};
+	}
+_SECTION_END();
+
+
+//////////////////////////////////////
+_SECTION_BEGIN("Manual_expectation_zone");
+zone = ParamToggle("zone", "No|Yes", 0);
+Low_zone = Param("Chan_duoi", 1400 ,1000, 1800, 1,0);
+High_zone = Param("Chan_tren", 1480 ,1000, 1800, 1,0);
+b2 = Cross(L, Low_zone);
+s2 = Cross(H, High_zone);
+Message_buy = "Buy" + "  "  + numtostr(C) + " Spead = " + NumToStr(H - L) + " Volume =   " + NumToStr(V) + "   " + WriteVal(ROC(V, 1), 1.2) + ROC(V, 1) + " " 
++ " \n" + TimeNum() + "    " + Interval() + "  " + "RSI_Alert, " + " rsi = " + numtostr(r) ;
+Message_sell = "Sell" + "  "  + numtostr(C) + " Spead = " + NumToStr(H - L) + " Volume =   " + NumToStr(V) + "   " + WriteVal(ROC(V, 1), 1.2) + ROC(V, 1) + " " 
++ " \n" + TimeNum() + "    " + Interval() + "  " + "RSI_Alert, " + " rsi = " + numtostr(r) ;
+/*
+if(b2[BarCount-1]==1)
+	{if(zone)
+	{ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message_buy); 
+	InternetClose(ih);}
+	}break;}
+if(s2[BarCount-1]==1)
+	{if(zone)
+	{ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message_sell); 
+	InternetClose(ih);
+	};
+	}
+}
+*/
+_SECTION_END();
+
+////////////////////////////////
+_SECTION_BEGIN("EMA");
+period = Param("period", 10, 1,100,1);
+uptrend_strong = IIF(EMA(C,5) > EMA(C,10) > EMA(C,20) > EMA(C,34) > EMA(C,55) > EMA(C,89) > EMA(C,144) > MA(C,200), 1,0);
+downtrend_strong = IIF(EMA(C,5)< EMA(C,10) < EMA(C,20) < EMA(C,34) < EMA(C,55) < EMA(C,89) < EMA(C,144) < MA(C,200), 1,0);
+Plot( EMA( C, period ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("VN30");
+VN30_alert = ParamToggle("Vn30", "No|Yes",0);
+index =  "VN30F1M,VN30INDEX,VNINDEX"; 
+vn30 = "VHM,VIC,REE,VJC,BVH,PDR,VRE,VCB,HDB,VNM,NVL,TCH,BID,KDH,MBB,SSI,POW,MWG,PLX,TPB,CTG,HPG,MSN,TCB,FPT,STB,GAS,SBT,PNJ,VPB";
+SetOption("NoDefaultColumns",True);
+// Filter = Status("LastBarInTest");
+// Filter = (Name() == "VN30F1M" OR Name() == "VN30INDEX" OR Name() == "VNINDEX");
+// SetSortColumns( 1 );
+// AddTextColumn(Name(),"Correlation",1.0);
+// Name() == "VN30F1M" OR Name() == "VN30INDEX" OR Name() == "VNINDEX";
+// Ticker1 = Name();
+for( Col=0; (Ticker2=StrExtract(vn30, Col))!= ""; Col++)
+{
+var = Foreign(Ticker2,"C");
+var1 = Foreign(Ticker2,"L");
+var2 = Foreign(Ticker2,"H");
+var3 = Foreign(Ticker2,"V");
+con1 = IIF(EMA(var,5) > EMA(var,10) > EMA(var,20), 1,IIf(EMA(var,5) < EMA(var,10) < EMA(var,20),-1,0));
+con2 = IIF(var3 > Percentile(var3, 15, 75) OR var3 <= Percentile(var3, 15, 25),1,0);
+con3 = IIf(var > HHV(var2,20) OR var < LLV(var1, 20), 1,0);
+Message1 = Ticker2 + " " + "Trend Alert " + " Close = "  + numtostr(var) + " Spead = " + NumToStr(var2 - var1) + " Volume =   " + NumToStr(var3) + "   " + WriteVal(ROC(var3, 1), 1.2) + ROC(var3, 1) + " " 
++ " \n" + "Time = " +  TimeNum() + " Interval =   " + Interval();
+Message2 = Ticker2 + " " + "Volume Alert " + " Close = "  + numtostr(var) + " Spead = " + NumToStr(var2 - var1) + " Volume =   " + NumToStr(var3) + "   " + WriteVal(ROC(var3, 1), 1.2) + ROC(var3, 1) + " " 
++ " \n" + "Time = " +  TimeNum() + " Interval =   " + Interval();
+Message3 = Ticker2 + " " + "HHV_LLV_Alert" + " Close = "  + numtostr(var) + " Spead = " + NumToStr(var2 - var1) + " Volume =   " + NumToStr(var3) + "   " + WriteVal(ROC(var3, 1), 1.2) + ROC(var3, 1) + " " 
++ " \n" + "Time = " +  TimeNum() + " Interval =   " + Interval();
+
+if(con1[BarCount -1] ==1 OR con1[BarCount -1] == -1)
+{if(VN30_alert)
+	{ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message1); 
+	InternetClose(ih);
+	}
+}
+if(con2[BarCount -1] ==1)
+{if(VN30_alert)
+	{ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message2); 
+	InternetClose(ih);
+	}
+}
+if(con3[BarCount -1] ==1)
+{if(VN30_alert)
+	{ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message3); 
+	InternetClose(ih);
+	}
+}
+}
+_SECTION_END();
+	

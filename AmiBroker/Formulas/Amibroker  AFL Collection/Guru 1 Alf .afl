@@ -1,0 +1,191 @@
+/*This Exploration is a scan for 10 different Buy OR Sell signals.
+
+The aim of the exploration is to find days when many bullish OR bearish signs
+are triggered at the same time. if 5 indicators give a Buy advice, it is more
+reliable than one.
+I request everybody to add your own systems to these ones, to improve the
+reliability. AND expert technical analysts could give advices to avoid
+the trap of using several different indicators all working off the same input
+data.
+
+Vol Index: this column is the ratio of today's Volume to the 14-Day average
+Volume.
+This column should be sorted Descending. The best signals are occur when
+VolIndex is at least 2 OR higher.
+
+
+TDREI[up] & [dn]: Tom DeMark's Range Expansion Index 
+KUP[up] & [dn]: Keltner Bands -DIMITRIS TSOKAKIS
+RSI[up] & [dn]: Relative Strength Index 14 periods
+MFI[up] & [dn]: Money Flow Index
+ST2[up] & [dn]: Stochastic Slow - Donald Dalley
+DIV[up] & [dn]: % R Divergence -DIMITRIS TSOKAKIS
+KST[up] & [dn]: MARTIN PRING'S KST MOMENTUM SYSTEM -TJ
+COP[up]: Coppock Curve TJ
+SMH[up] & [dn]: smash Day pattern. DIMA
+CHK[up] & [dn]: Chaikin Money Flow. Thierry Huitel
+
+A "1" in the column signifies True, a "0" indicates no Signal.
+------------------------------------------------------------------*/
+
+
+/* Minimum Price and 14 day Avg Volume Values for Filter */
+minPrice = 3; //change as needed
+minVol = 10000; //change as needed
+
+VolAvg = MA( V, 14 );
+VolumeIdx = V / VolAvg;
+AvgRange = Sum( abs(O-C),15 )/15;
+
+/* Stochastics 14-3 */
+
+ss = MA(StochK(14),3);
+StochBuy = IIf(ss<=20, 1, 0);
+StochSell = IIf(ss>=80, 1, 0);
+
+/* TDREI */
+HighMom = H - Ref( H, -2 );
+LowMom = L - Ref( L, -2 );
+Cond1 = ( H >= Ref( L,-5) OR H >= Ref( L, -6 ) ); 
+Cond2 = ( Ref( H, -2 ) >= Ref( C, -7 ) OR Ref( H, -2 ) >= Ref( C, -8 ) ); 
+Cond3 = ( L <= Ref( H, -5 ) OR L <= Ref( H, -6) ); 
+Cond4 = ( Ref( L, -2 ) <= Ref( C, -7 ) OR Ref( L, -2 ) <= Ref( C, -8 ) );
+Cond = ( Cond1 OR Cond2 ) AND ( Cond3 OR Cond4 );
+Num = IIf( Cond, HighMom + LowMom, 0 );
+Den = abs( HighMom ) + abs( LowMom );
+TDREI = 100 * Sum( Num, 5 )/Sum( Den, 5 ) ;
+tdreiBuy = IIf(TDREI<=-95, 1, 0);
+tdreiSell = IIf(TDREI>=95, 1, 0);
+
+/* KUP */
+KUP=EMA((H+L+C)/3,10)+EMA(H-L,10);
+KDOWN=EMA((H+L+C)/3,10)-EMA(H-L,10);
+kupBuy = IIf(Cross(C,KDOWN), 1, 0);
+kupSell = IIf(Cross(KUP,C), 1, 0);
+
+/*RSI*/
+vrsi= RSI(14);
+rsiBuy = IIf(Cross(vrsi,30), 1, 0);
+rsiSell = IIf(Cross(70,vrsi), 1, 0);
+
+/*MFI*/
+mfiBuy = IIf(Cross(MFI(),30), 1, 0);
+mfiSell = IIf(Cross(70,MFI()), 1, 0);
+
+/*STO2*/
+lookback = 14;
+buyrange = 20;
+sellrange = 80;
+stochKworkaround = StochK(14);
+stochDworkaround = EMA( StochK(14), 3);
+sto2Buy = IIf(StochK(14) < buyrange AND Cross(stochKworkaround,
+stochDworkaround), 1, 0);
+sto2Sell = IIf(StochK(14) > sellrange AND Cross(stochDworkaround,
+stochKworkaround), 1, 0);
+
+/*MACD SIGNAL CROSS*/
+macdBuy = Cross(MACD(), EMA(MACD(),9)); 
+macdSell = Cross(EMA(MACD(),9), MACD());
+
+
+/* %R, ema 9 and divergences */
+
+R=-100*((HHV(High,14)-Close))/(HHV(High,14)-LLV(Low,14));
+DIVR=(R-Ref(R,-1))*(C-Ref(C,-1));
+DIVB=IIf((DIVR<0) AND (R-Ref(R,-1))>0 AND (Ref(R,-1)<-90),-100,0);
+DIVB1=IIf((DIVR<0) AND (R-Ref(R,-1))>0 AND (Ref(R,-1)<-90),-80,0);
+DIVS=IIf((DIVR<0) AND (R-Ref(R,-1))<0 AND (Ref(R,-1)>-10),-20,0);
+divBuy = IIf(DIVB==-100, 1, 0);
+divSell = IIf(DIVS==-20, 1, 0);
+
+/*KST*/
+
+KST = (MA(ROC(Close,10),10) * 1) +
+(MA(ROC(Close,15),10) * 2) +
+(MA(ROC(Close,20),10) * 3) +
+(MA(ROC(Close,30),15) * 4);
+kstBuy = IIf(Cross(KST , MA(KST, 109)), 1, 0);
+kstSell = IIf(Cross(MA(KST , 120), KST), 1, 0);
+
+/*COP*/
+copBuy = IIf((EMA( ROC( MA( C, 22 ), 250 ), 150 ) / 100) < 0, 1, 0);
+
+/*SMASH*/
+numDays = 3; // Consider smash Day if closed above/below previous numDays highs/lows
+closeInDayRangePct = 0.25; // Smash day close should be in the high/low %% of the Day range
+smashDayDown = Close < LLV (Ref (Low, -1), numDays) AND Close < Open AND Close
+< (Low + closeInDayRangePct * (High - Low));
+smashDayUp = Close > HHV (Ref (High, -1), numDays) AND Close > Open AND Close >
+(High - closeInDayRangePct * (High - Low));
+// Enter in the direction opposite to the smash day if the very next day price moves opposite the smash Day.
+smashBuy = IIf(Ref (smashDayDown, -1) AND High > Ref (High, -1), 1, 0);
+smashSell = IIf(Ref (smashDayUp, -1) AND Low < Ref (Low, -1), 1, 0);
+
+/*CHAIKIN MONEY FLOW*/
+ICH = Sum(((( C-L )-( H-C )) / ( H-L ))*V, 21 ) / Sum(V,21); 
+LCH = LLV( ICH, 255 );
+top = (LCH/2);
+chkBuy = Cross (ICH, top);
+chkSell = Cross (0, ICH);
+
+/*number of buy signals.*/
+somme=  tdreiBuy + kupBuy + rsiBuy + (2*mfibuy) + sto2Buy
++ (2*divBuy) + kstBuy + copBuy + (2*smashBuy) + chkBuy;
+
+/*number of sell signals. */
+somme2 =  tdreiSell + kupSell + rsiSell + mfiSell + sto2Sell +
+divSell + kstSell + smashSell + chkSell;
+
+
+/* Buy / sell thresholds */
+BuyThreshold = Param( "BuyThreshold",6,0,10,1);
+//BuyThreshold = Optimize( "BuyThreshold",6,0,10,1);
+//BuyThreshold = 6;
+
+SellThreshold = Param( "SellThreshold",5,0,10,1);
+//SellThreshold = Optimize( "SellThreshold",5,0,10,1);
+//SellThreshold = 5;
+
+/* Exploration Columns for Sorting */
+AddColumn(V,"Volume",1.0);
+AddColumn(VolumeIdx,"Vol Idx",1.1);
+AddColumn(somme,"Buy sign",1.2,colorDefault,IIf(somme < BuyThreshold,colorDefault,colorGreen) );
+AddColumn(somme2,"Sell sign",1.2,colorDefault,IIf(somme2 < SellThreshold,colorDefault,colorRed) );
+AddColumn( IIf(tdreiBuy, 66, IIf(tdreiSell, 83,01 )), "TDREI", formatChar, IIf(tdreisell,colorRed,colorGreen) );
+AddColumn( IIf(kupbuy, 66, IIf(kupSell, 83,01 )), "Keltner", formatChar, IIf(kupsell,colorRed,colorGreen) );
+AddColumn( IIf(rsiBuy, 66, IIf(rsiSell, 83,01 )), "RSI", formatChar, IIf(rsisell,colorRed,colorGreen) );
+AddColumn( IIf(mfiBuy, 66, IIf(mfiSell, 83,01 )), "MFI", formatChar, IIf(mfisell,colorRed,colorGreen) );
+AddColumn( IIf(sto2Buy, 66, IIf(sto2Sell, 83,01 )), "Stoc", formatChar, IIf(sto2sell,colorRed,colorGreen) );
+AddColumn( IIf(divBuy, 66, IIf(divSell, 83,01 )), "%R", formatChar, IIf(divsell,colorRed,colorGreen) );
+AddColumn( IIf(kstBuy, 66, IIf(kstSell, 83,01 )), "KST", formatChar, IIf(kstsell,colorRed,colorGreen) );
+AddColumn( IIf(Copbuy, 66,01 ),"Coppock",formatChar, colorGreen );
+AddColumn( IIf(smashBuy, 66,IIf(smashSell, 83,01 )), "Smash day", formatChar, IIf(smashsell,colorRed,colorGreen) );
+AddColumn( IIf(chkBuy, 66, IIf(chkSell, 83,01 )), "Chaikin Money", formatChar, IIf(chksell,colorRed,colorGreen) );
+AddColumn( IIf(macdBuy, 66, IIf(macdSell, 83,01 )), "MACD", formatChar, IIf(macdsell,colorRed,colorGreen) );
+
+
+
+/* Filter */
+/*the highest % for somme gives the most reliable buy signal*/
+Filter = (somme >= BuyThreshold AND VolumeIdx>=2) OR (somme2 >= SellThreshold AND VolumeIdx>=2) ;
+/*Filter = ((C > minPrice) AND (VolAvg >= minVol)) AND (StochBuy AND (PL or MDS
+or BLE or HAM)) OR (StochSell AND (BRE or DCC or EDS));*/
+
+
+/* Buy and Sell */
+Buy = somme>=BuyThreshold; //3
+Sell = somme2>=SellThreshold; //3
+WriteVal (somme);
+"MR KARTHIK R  comments  for " + Name() +" for date "+Date();
+
+
+
+/*Guru comment*/
+"Weighted buy indicator: " + WriteVal (somme) ;
+"Weighted sell indicator: " + WriteVal (somme2) ;
+"";
+"Buy indicators triggered:\n"  + WriteIf(tdreiBuy==1,"DeMark's Range Expansion Index\n","") + WriteIf(kupBuy==1,"Keltner Bands\n","") + WriteIf(rsiBuy==1,"RSI\n","") + WriteIf(mfiBuy==1,"Money Flow Index\n","") + WriteIf(sto2Buy==1,"Stochastic Slow\n","") + WriteIf(divBuy==1,"% R Divergence\n","") + WriteIf(kstBuy==1,"Pring's KST momentum\n","") + WriteIf(copBuy==1,"Coppock Curve\n","") + WriteIf(smashBuy==1,"Smash Day pattern\n","") + WriteIf(chkBuy==1,"Chaikin Money Flow\n","") + WriteIf(macdBuy==1,"MACD Signal Cross\n","")+WriteIf(somme==0,"None\n","");
+"Sell indicators triggered:\n"  + WriteIf(tdreiSell==1,"DeMark's Range Expansion Index\n","") + WriteIf(kupSell==1,"Keltner Bands\n","") + WriteIf(rsiSell==1,"RSI\n","") + WriteIf(mfiSell==1,"Money Flow Index\n","") + WriteIf(sto2Sell==1,"Stochastic Slow\n","") + WriteIf(divSell==1,"% R Divergence\n","") + WriteIf(kstSell==1,"Pring's KST momentum\n","") + WriteIf(smashSell==1,"Smash Day pattern\n","") + WriteIf(chkSell==1,"Chaikin Money Flow\n","") + WriteIf(macdSell==1,"MACD Signal Cross\n","")+WriteIf(somme2==0,"None\n","");
+"";
+"";
+"";

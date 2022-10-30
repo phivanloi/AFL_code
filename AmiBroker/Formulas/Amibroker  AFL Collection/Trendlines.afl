@@ -1,0 +1,73 @@
+_SECTION_BEGIN("Trend Line");
+
+function GetXSupport(lLow, Percentage, Back)
+{
+ return ((BarCount - 1) - LastValue(TroughBars(lLow, Percentage,Back)));
+}
+function GetYSupport(lLow, Percentage, Back)
+{
+ return (LastValue(Trough(lLow, Percentage, back)));
+}
+
+function GetXResistance(hHigh, Percentage, Back)
+{
+ return ((BarCount - 1) -LastValue(PeakBars(hHigh, Percentage, Back)));
+}
+function GetYResistance(hHigh, Percentage, Back)
+{
+ return (LastValue(Peak(hHigh, Percentage, Back)));
+}
+////////////////////////////////////////////////////////////////////////
+//Parameters
+Percentage = Param("Percentage", 0.01, 0.01, 100. ,0.01);
+Back = Param("How many lines?", 1, 1, BarCount-2);
+DrawR = ParamToggle("Draw Resistance", "No|Yes", 1);
+DrawS = ParamToggle("Draw Support", "No|Yes", 1);
+Extend = ParamToggle("Extend Lines?", "No|Yes", 1);
+DrawAllLines = ParamToggle("Draw All Lines?", "No|Yes", 1);
+Main = C;
+lLow = L;
+hHigh = H;
+////////////////////////////////////////////////////////////////////////
+//Plotting Area
+Plot(Main, "", colorGreen, styleCandle);
+if(DrawAllLines)
+for(i = 2; i<=Back+1; i++)
+{
+if(DrawS){
+x0 = GetXSupport(lLow, Percentage, i);
+x1 = GetXSupport(lLow, Percentage, i-1);
+y0 = GetYSupport(lLow, Percentage, i);
+y1 = GetYSupport(lLow, Percentage, i-1);
+x = LineArray(x0, y0, x1, y1, Extend);
+Plot(x, "Support", colorBlack, styleLine|styleDots);
+}
+if(DrawR){
+x0 = GetXResistance(hHigh , Percentage, i);
+x1 = GetXResistance(hHigh , Percentage, i-1);
+y0 = GetYResistance(hHigh , Percentage, i);
+y1 = GetYResistance(hHigh , Percentage, i-1);
+x = LineArray(x0, y0, x1, y1, Extend);
+Plot(x, "Resistance", colorBlack , styleLine|styleDots);
+}
+}
+else
+{
+if(DrawS){
+x0 = GetXSupport(lLow, Percentage, Back+1);
+x1 = GetXSupport(lLow, Percentage, Back);
+y0 = GetYSupport(lLow, Percentage, Back+1);
+y1 = GetYSupport(lLow, Percentage, Back);
+x = LineArray(x0, y0, x1, y1, Extend);
+Plot(x, "Support", colorBlack, styleLine|styleDots);
+}
+if(DrawR){
+x0 = GetXResistance(hHigh , Percentage, Back+1);
+x1 = GetXResistance(hHigh , Percentage, Back);
+y0 = GetYResistance(hHigh , Percentage, Back+1);
+y1 = GetYResistance(hHigh , Percentage, Back);
+x = LineArray(x0, y0, x1, y1, Extend);
+Plot(x, "Resistance", colorBlack , styleLine|styleDots);
+}
+}
+_SECTION_END();

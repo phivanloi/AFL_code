@@ -1,0 +1,5 @@
+//tskp_fast2val1, tskp_fast2val2
+dummy = E_TSKPFAST2(Open,High,Low,Close,Volume);
+
+Plot( tskp_fast2val1 , "Fast2_1", ParamColor( "ColorUp", colorBlue ), ParamStyle("Style",style=styleHistogram+styleNoLabel, mask=maskDefault) ); 
+Plot( tskp_fast2val2 , "Fast2_2", ParamColor( "ColorDwn", colorRed ), ParamStyle("Style",style=styleHistogram+styleNoLabel, mask=maskDefault) ); 

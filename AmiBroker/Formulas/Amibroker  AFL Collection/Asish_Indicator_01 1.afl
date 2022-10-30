@@ -1,0 +1,38 @@
+_SECTION_BEGIN("Asish_Indicator_01"); 
+
+a = Param("Angle",30,15,45,1);
+pd = Param("Period",5,4,6,1);
+P = ParamField("Price field",3);
+
+a= (22/7)*(a/180);
+Num = 0;
+Den = 0;
+
+for(i=1; i<=pd; i++)
+{
+if(pd%2==0 AND i > pd/2) X = sin((i-1)*a);
+else X = sin(i*a);
+
+Num = Num + X*Ref(P,1-i);
+Den = Den + X;
+}
+
+if (den!=0) j1 = Num / Den;
+
+Plot(j1,"j1",IIf(j1 > Ref(j1,-1),colorGreen,colorRed),styleThick);
+
+Buy = Close > j1;
+Sell = Close < j1;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); 
+PlotShapes( shapeHollowUpArrow* Buy , colorBlue ,0);
+PlotShapes( shapeHollowDownArrow* Sell, colorYellow ,0);
+//Plot(0,"",colorDarkBlue,styleLine);
+
+Filter = Buy OR Sell;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); 
+AddTextColumn(FullName(),"Name");
+AddColumn( Buy, "BUY" );
+AddColumn( Sell, "SELL" );
+
+
+_SECTION_END();

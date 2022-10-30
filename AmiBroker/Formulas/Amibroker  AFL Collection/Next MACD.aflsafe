@@ -1,0 +1,46 @@
+//An MACD, Signal Cross is, in general, a bullish Signal. 
+//Since it comes with a significant delay, it would be important to anticipate this Cross. 
+//Some days before the Cross, we often see an MACD turning point. 
+//It is interesting to investigate the related conditions AND use them before the end of the session. 
+//The following AFL code will give the necessary next ROC for a higher MACD value.
+
+// Daily Estimate for the next  MACD, by D. Tsokakis, Feb 2005
+SetBarsRequired(10000,0);
+function EMAn ( Cnext , p)
+{
+return ( 2 * Cnext + ( P - 1 ) * EMA ( C , P ) ) / ( P + 1 ) ;
+}
+function MACDn ( Cnext , p1 , p2 )
+{
+return EMAn ( Cnext ,p1 ) - EMAn ( Cnext , p2 ) ;
+}
+det = 500 ;
+perc = 25/100 ;
+Clast = SelectedValue ( C ) ;
+Plot ( MACD() , "" , 1 , 8 ) ; Plot (Signal() , "" , 4 , 1 ) ;
+MACDlast = SelectedValue ( MACD() ) ; 
+Title = Name() + ", " + Date() + ", MACD=" + WriteVal( MACDlast ) + "\nThe nextMACD will be higher if the next ROC will be > " ;
+Cnextmin = ( 1 - perc ) * Clast ;
+Cnextmax = ( 1 + perc ) * Clast ;
+step = ( Cnextmax - Cnextmin ) / det ;
+nextROC1 = -100 * perc ;
+for ( Cnext = Cnextmin ; Cnext <= Cnextmax ; Cnext = Cnext + step )
+{
+MACDnext = SelectedValue ( MACDn( Cnext , 12 , 26 ) );
+NextROC = 100 * ( -1 + Cnext / Clast ) ;
+if ( MACDnext < MACDlast )
+{
+NextROC1 = NextROC ;
+}
+else
+{ Cnext = Cnextmax ; }
+}
+Title = Title + WriteIf( NextRoc >= 0.1 , "+" , "" ) + WriteVal( NextROC1 , 1.2 ) + "%" ;
+
+//The principle of the code is simple : We suppose that the next ROC changes from -25% to +25% AND we calculate the necessary ROC for a higher MACD.
+
+//Example1 : On Oct29 [point P1] AMZN would have a higher MACD if the next ROC would be more than +1.30%. 
+//The next Day, Nov1, AMZN closed at +2.80% AND the MACD was higher indeed.  
+//It was known [AND almost safe] before the end of the Nov1 session, that AMZN was gaining more than +1.30%.
+//Example2 : On Jan4 [point P2] the ^NDX needed a +2.70% to change the MACD downtrend. The most probable was to see lower MACD values...
+

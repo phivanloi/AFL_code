@@ -1,0 +1,22 @@
+_SECTION_BEGIN("ATAN V2");
+
+Per1 =19; //Optimize("P1", 19, 10,22,1 );
+Per2 = Optimize("P2", 1,1,4,1 );
+Per3 = Optimize("P3", 2,1,5,1 );
+
+MA1=TEMA(C, Per1 );
+MA2=C;
+BB1=((atan((MA1 - Ref(MA1,-per3))) * 3.1416) * 10);
+BB2=((atan((MA2 - Ref(MA2,-per3))) * 3.1416) * 10);
+
+ACH= BB2>per2 AND BB1>per2;
+VTE= BB2<=per2 AND BB1<=per2;
+LLV3=LLV(L,3); 
+HHV3=HHV(H,3); 
+BP11=IIf( Flip(ACH,VTE),LLV3, HHV3);
+Buy=Cross(C,BP11);
+Sell=Cross(BP11,C);
+barcolor2=IIf( C>bp11, 8, 4);
+Plot(BP11,"trend",barcolor2,styleStaircase);
+Plot( C, "close", IIf( Flip(Buy,Sell), colorBlue,  colorRose), styleBar);
+

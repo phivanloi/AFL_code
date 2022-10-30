@@ -1,0 +1,13 @@
+Pivot = ( Ref(High,0) + Ref(Close,0) + Ref(Low,0) )/3;
+Resistance3 = Ref(High,0)+ 2 * (Pivot - Ref(Low,0));
+Resistance1 = 2 * Pivot - Ref(Low,0);
+Support1 = 2 * Pivot - Ref(High,0);
+Resistance2 = Pivot + (Resistance1 - Support1);
+Support2 = Pivot - (Resistance1 - Support1);
+Support3 = Ref(Low,0)- 2 * (Ref(High,0) - Pivot);
+Plot(Resistance1,"R1",colorRed);
+Plot(Resistance2,"R2",colorRed);
+Plot(Resistance3,"R3",colorRed);
+Plot(Support1,"S1",colorGreen);
+Plot(Support2,"S2",colorGreen);
+Plot(Support3,"S3",colorGreen);

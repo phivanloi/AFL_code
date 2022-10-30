@@ -1,0 +1,8 @@
+_SECTION_BEGIN("JMA");
+SetBarsRequired( 200, 0);
+JMAarray = JurikJMA(Close, 5,  0);
+Plot( JMAarray, "JMA", colorWhite, styleThick );
+SetBarsRequired( 200, 0);
+JMAarray = JurikJMA(Close, 10, 0);
+Plot( JMAarray, "JMA", colorYellow, styleThick );
+_SECTION_END();

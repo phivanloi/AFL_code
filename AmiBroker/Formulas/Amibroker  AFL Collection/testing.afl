@@ -1,0 +1,397 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - O %g, H %g, L %g, C %g {{DATE}} {{VALUES}} {{INTERVAL}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+_SECTION_END();
+
+
+_SECTION_BEGIN("Volume Price Analysis - V.1.2");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+SetChartOptions(2, chartWrapTitle );
+//================================================== =====================================
+DTL=Param("Linear regression period",60,10,100,10);
+wbf=Param("WRB factor",1.5,1.3,2.5,.1);
+nbf=Param("NRB factor",0.7,0.3,0.9,0.1);
+TL=LinRegSlope(MA(C, DTL),2);
+Vlp=Param("Volume lookback period",30,20,300,10);
+Vrg=MA(V,Vlp);
+St = StDev(Vrg,Vlp);
+Vp3 = Vrg + 3*st;
+Vp2 = Vrg + 2*st;;
+Vp1 = Vrg + 1*st;;
+Vn1 = Vrg -1*st;
+Vn2 = Vrg -2*st;
+rg=(H-L);
+arg=Wilders(rg,30);
+wrb=rg>(wbf*arg);
+nrb=rg<(nbf*arg);
+Vl=V<Ref(V,-1) AND V<Ref(V,-2);
+upbar=C>Ref(C,-1);
+dnbar=C<Ref(C,-1);
+Vh=V>Ref(V,-1) AND Ref(V,-1)>Ref(V,-2);
+Cloc=C-L;
+x=rg/Cloc;
+x1=IIf(Cloc==0,arg,x);
+Vb=V>Vrg OR V>Ref(V,-1);
+ucls=x1<2;
+dcls=x1>2;
+mcls=x1<2.2 AND x1>1.8 ;
+Vlcls=x1>4;
+Vhcls=x1<1.35;
+j=MA(C,5);
+TLL=LinRegSlope(j,40) ;
+Tlm=LinRegSlope(j,15) ;
+tls=LinRegSlope(j,5);
+mp=(H+L)/2;
+_SECTION_END();
+//================================================== ========================================
+
+//================================================== ================================================== ===================
+
+//================================================== ================================================== ========================
+// commentary
+
+_SECTION_BEGIN( "KBrain" );
+//========================Initiation================ ========
+bts = ParamToggle( "BrainTrend1 signal", "No|Yes" , 1 );
+btst = ParamToggle( "BrainTrend1 stop", "No|Yes" , 1 );
+btsl = ParamToggle( "BrainTrend1 stop line", "No|Yes" , 1 );
+period = Param( "Period", 14, 6, 20, 1 );
+x1 = 53;
+x2 = 47;
+d = 2.3;
+f = 7;
+s = 1.5;
+range = ATR( f );
+Range1 = ATR( f ) / d;
+Range2 = ( ATR( f ) * s ) / 4;
+range3 = ATR( 10 );
+R = ( ( HHV( H, period ) - C ) / ( HHV ( H, period ) - LLV ( L, period ) ) ) * -100;
+EMA1 = EMA( R, Period );
+EMA2 = EMA( EMA1, 5 );
+Difference = EMA1 - EMA2;
+ZeroLagEMA = EMA1 + Difference;
+value2 = abs( ZeroLagEMA );
+
+
+function PercentR( periods )
+{
+return -100 * ( HHV( H, periods ) - C ) / ( HHV( H, periods ) - LLV( L, periods ) );
+}
+
+
+for ( i = 1; i < Period - 1; i++ )
+{
+
+
+tm = 1;
+bstop = 1;
+sstop = 1;
+p = 1;
+}
+
+for ( i = period + 10; i < BarCount; i++ )
+{
+C[0] = 0;
+Value2[0] = 0;
+p[0] = 0;
+Plot1[0] = 0;
+Plot2[0] = 0;
+Val1 = 0;
+Val2 = 0;
+temp[0] = 0;
+Value3[0] = 0;
+tm[0] = 0;
+p1[i] = 0;
+bt1[0] = 0;
+bt2[0] = 0;
+r[0] = 0;
+bt1a[0] = 0;
+bt2a[0] = 0;
+istop[0] = Val1[0];
+stop[i] = Val1[0];
+bstop[0] = 0;
+sstop[i] = 0;
+//==================================Indicators====== ======================
+{
+if ( value2[i] < x2 AND abs( Close[i] - Close[i-2] ) > range1[i] )
+p[i] = 1 ;
+else
+{
+if ( value2[i] > x1 AND abs( Close[i] - Close[i-2] ) > Range1[i] )
+p[i] = 2 ;
+
+else
+
+p[i] = 0;
+}
+}
+
+if ( ( value2[i] < x2 AND p[i] == 1 ) OR ( value2[i] < x2 AND p[i] == 0 ) )
+
+{
+if ( abs( Close[i] - Close[i-2] ) > Range1[i] )
+{
+Plot1[i] = H[i];
+Plot2[i] = L[i];
+}
+else
+{
+Plot1[i] = Plot1[i-1];
+Plot2[i] = Plot2[i-1];
+}
+}
+else
+{
+if ( ( value2[i] > x1 AND p[i] == 2 ) OR ( value2[i] > x1 AND p[i] == 0 ) )
+
+{
+Plot1[i] = L[i];
+Plot2[i] = H[i];
+}
+else
+{
+Plot1[i] = Plot1[i-1];
+Plot2[i] = Plot2[i-1];
+}
+}
+
+//==================KBrain Signal ====================================
+{
+if ( value2[i] < x2 AND ( abs( Close[i] - Close[i-2] ) > Range1[i] ) )
+{
+if ( p[i] == 1 OR p[i] == 0 )
+Value3[i] = L[i] - range3[i];
+
+val1[i] = Value3[i];
+
+p[i] = 1;
+
+temp[i] = 1;
+}
+else
+{
+temp[i] = temp[i-1];
+}
+
+{
+if ( value2[i] > x1 AND ( abs( Close[i] - Close[i-2] ) > Range1[i] ) )
+{
+if ( p[i] == 2 OR p[i] == 0 )
+Value3[i] = H[i] + range3[i];
+
+val2[i] = Value3[i];
+
+p[i] = 2;
+
+temp[i] = 2;;
+}
+
+}
+}
+
+{
+
+if ( temp[i] == 1 AND Plot1[i] > 0 AND tm[i] != 1 )
+tm[i] = 1;
+
+if ( temp[i] == 2 AND Plot2[i] > 0 AND tm[i] != 2 )
+tm[i] = 2;
+
+}
+
+//===============================stop=============== =========================
+{
+if ( value2[i] < x2 AND ( abs( Close[i] - Close[i-2] ) > Range1[i] )AND p[i] != 2 )
+
+{
+value3[i] = L[i] - range3[i];
+va1[i] = Value3[i];
+p1[i] = 2;
+r[i] = Va1[i];
+bstop[i] = Va1[i];
+bt2[i] = bt2[i-1];
+}
+
+if ( value2[i] > x1 AND ( abs( Close[i] - Close[i-2] ) > Range1[i] )AND p[i] != 1 )
+
+{
+Value3[i] = H[i] + range3[i];
+va2[i] = Value3[i];
+p1[i] = 1;
+
+r[i] = Va2[i];
+sstop[i] = Value3[i];
+bt1[i] = bt1[i-1];
+}
+
+}
+
+
+
+if ( val1[i] == 0 AND val2[i] == 0 AND p[i] == 0 )
+{
+bstop[i] = bstop[i-1];
+sstop[i] = sstop[i-1];
+}
+
+
+if ( bstop[i] < bstop[i-1] AND tm[i] == 1 AND tm[i-1] == 1 )
+bstop[i] = bstop[i-1];
+
+if ( sstop[i] > sstop[i-1] AND tm[i] == 2 AND tm[i-1] == 2 )
+sstop[i] = sstop[i-1];
+
+}
+
+//=============================SYSTEM=============== =======================
+Mycolor = IIf( p == 1, colorLime, IIf( p == 2, colorRed, colorBlue ) );
+
+PlotShapes( IIf( btst AND p == 1, shapeSmallCircle, Null ), colorWhite, 0, bstop, 0 );
+
+Plot( IIf( btsl AND tm == 1, bstop, Null ), "", colorWhite, 1 );
+
+PlotShapes( IIf( btst AND p == 2, shapeSmallCircle, Null ), colorWhite, 0, sstop, 0 );
+
+Plot( IIf( btsl AND tm == 2, sstop, Null ), "", colorWhite, 1 );
+
+PlotShapes( shapeUpArrow* ( bts AND tm == 1 AND Ref( tm, -1 ) == 2 ), colorGreen, 0, bstop, 0 );
+
+PlotShapes( shapeDownArrow* ( bts AND tm == 2 AND Ref( tm, -1 ) == 1 ), colorRed, 0, sstop, 0 );
+
+
+Buy = Cover = ( bts AND tm == 1 AND Ref( tm, -1 ) == 2 );
+
+Sell = Short = ( bts AND tm == 2 AND Ref( tm, -1 ) == 1 );
+
+SellPrice = ValueWhen( Sell, C, 1 );
+
+BuyPrice = ValueWhen( Buy, C, 1 );
+
+Long = Flip( Buy, Sell );
+
+Shrt = Flip( Sell, Buy );
+
+_SECTION_END();
+
+////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+
+// The current bar should be more than previous bar value + 5 points for buy in uptrend
+BuyV = Buy;
+// the current bar should be less than previous bar value - 5 points for sell in downtrend
+SellV = Sell ;
+
+// Bars since previous buy or sell signal.
+BuySB = BarsSince(Ref(BuyV,-1));
+SellSB= BarsSince(Ref(SellV,-1));
+
+// Ignore the previous day bar
+Datefine = IIf(Ref(DateNum(),1) == Ref(DateNum(),-1),1,1);
+//Datefine = 1;
+
+
+// Check if it is time to close the postions.
+EOD = IIf(TimeNum() < 153000, 0, 1);
+noEOD = IIf(TimeNum() < 153000, 1, 0);
+
+// We can signal buy only if previous signal was a sell.
+Buy = BuyV AND BuySB > SellSB AND Datefine AND noEOD;
+// We can signal sell only if previous signal was a buy.
+Short = SellV AND BuySB < SellSB AND Datefine AND noEOD;
+Cover = EOD AND BuySB > SellSB;
+Sell = EOD AND BuySB < SellSB;
+
+
+
+messageboard = ParamToggle("Message Board","Show|Hide",0);
+
+
+Buy = BuyV AND BuySB > SellSB AND Datefine AND noEOD;
+Sell = EOD AND BuySB < SellSB;
+Short = SellV AND BuySB < SellSB AND Datefine AND noEOD;
+Cover = EOD AND BuySB > SellSB;
+AlertIf( Buy, "", "BUY @ " + C, 1 );
+AlertIf( Sell, "", "SELL @ " + C, 2 );
+
+for(i=BarCount-1;i>1;i--)
+{
+if(Buy[i] == 1)
+{
+entry = C[i];
+sig = "BUY";
+
+tar1 = entry + (entry * .0089);
+tar2 = entry + (entry * .0178);
+tar3 = entry + (entry * .0216);
+
+bars = i;
+i = 0;
+}
+if(Short[i] == 1)
+{
+sig = "SELL";
+entry = C[i];
+
+tar1 = entry - (entry * .0099);
+tar2 = entry - (entry * .0175);
+tar3 = entry - (entry * .0216);
+
+
+bars = i;
+i = 0;
+}
+}
+Offset = 20;
+Clr = IIf(sig == "BUY", colorLime, colorRed);
+
+Plot(LineArray(bars-Offset, entry, BarCount, entry,1), "", colorGreen, styleLine|styleLine, Null, Null, Offset);
+
+for (i=bars; i <BarCount;i++)
+{
+PlotText(""+sig+"@"+entry, BarCount+1,entry,Null,colorBlue);
+
+
+}
+
+
+printf("Last " + sig + " Signal came " + (BarCount-bars) + " bars ago");
+printf("\nCurrent P/L : " + WriteVal(IIf(sig == "BUY",(C-entry),(entry-C)),2.2));
+
+if (messageboard == 0 )
+{
+GfxSelectFont( "Tahoma", 13, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorWhite );
+
+if ( sig =="BUY")
+{
+GfxSelectSolidBrush( colorBlue ); // this is the box background color
+}
+else
+{
+GfxSelectSolidBrush( colorRed ); // this is the box background color
+}
+pxHeight = Status( "pxchartheight" ) ;
+xx = Status( "pxchartwidth");
+Left = 1100;
+width = 310;
+x = 5;
+x2 = 290;
+
+y = pxHeight;
+
+GfxSelectPen( colorGreen, 1); // broader color
+GfxRoundRect( x, y - 70, x2, y , 7, 7 ) ;
+GfxTextOut( ( " NK intraday "),88,y-71);
+GfxTextOut( (" "),27,y-160);
+GfxTextOut( ("Last " + sig + " Signal came " + (BarCount-bars-1) * Interval()/60 + " mins ago"), 13, y-46) ; // The text format location
+GfxTextOut( ("" + WriteIf(sig =="BUY",sig + " @ ",sig + " @") + " : " + entry), 13, y-21);
+GfxTextOut( (" P/L : " + WriteVal(IIf(sig == "BUY",(IIf(TimeNum() < 153000, 0, (C-entry))),IIf(TimeNum() < 153000, 0, (entry-C))),2.2)), 170, y-21);;
+
+}
+
+//Alerts
+AlertIf( Buy, "SOUND C:\\Windows\\Media\\tada.wav", "Buy",1);
+AlertIf( Short, "SOUND C:\\Windows\\Media\\notify.wav", "Short", 1); 

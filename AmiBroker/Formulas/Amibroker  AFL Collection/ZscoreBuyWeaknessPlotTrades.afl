@@ -1,0 +1,29 @@
+// zScoreBuyWeaknessPlotTrades.afl
+//
+//	Plots the trades and the MFE
+//
+//	Buys an downward fall through a z-score level
+//
+//	Run as an Exploration for a single symbol
+//	or a portfolio
+//
+Filter = 1;
+
+// Set the z-score for this pass
+zscoreLevel = -2.0;
+// Compute the price for that level
+zscorePrice = MA( C, 20 ) + zscoreLevel * StDev( C, 20 );
+// Compute the maximum favorable excursion
+// within the next 5 days
+MFEBuy = ( Ref( HHV( H, 5 ), 5 ) - zscorePrice ) / zscorePrice;
+
+Plot ( C, "C", colorBlack, styleCandle );
+Plot ( zscorePrice, "zscorePrice", colorBlue, styleLine );
+
+// Identify drop through level
+Drop = ( Ref( L, -1 ) > Ref( zscorePrice, -1 ) ) AND ( L < zscorePrice );
+PlotShapes( shapeStar*drop, colorRed, 0, Low );
+
+MaxFE = ( Ref( HHV( H, 5 ), 5 ) );
+Plot( IIf( drop, MaxFE, Null ), "MaxFE", colorGreen,
+      styleThick | styleDots, 0, 0, 5 );

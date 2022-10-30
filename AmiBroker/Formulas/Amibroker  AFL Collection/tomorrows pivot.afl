@@ -1,0 +1,27 @@
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +"
+{{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+
+H1=SelectedValue( TimeFrameGetPrice( "H", inDaily, -1 ));
+L1=SelectedValue(TimeFrameGetPrice( "L", inDaily, -1 ));
+C1=SelectedValue(TimeFrameGetPrice( "C", inDaily, -1 ));
+
+/*PIVOT Calculation*/
+p = ( H1+ L1 + C1 )/3;
+s1 = (2*p)-H1;
+r1 = (2*p)-L1;
+s2 = p -(H1 - L1);
+s3 = S1 - (H1-L1);
+r2 = p +(H1 - L1);
+r3 = R1 +(H1-L1);
+
+Plot (p,"Pivot",25,1);
+Plot (r1,"R1",12,1);
+Plot (r2,"R2",12,1);
+Plot (r3,"R3",12,1);
+Plot (s1,"S1",3,1);
+Plot (s2,"S2",3,1);
+Plot (s3,"S3",3,1);
+

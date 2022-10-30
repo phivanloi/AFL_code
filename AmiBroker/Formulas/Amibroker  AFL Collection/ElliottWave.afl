@@ -1,0 +1,67 @@
+/*********************************************************************
+		Plotting Elliott Wave
+
+Variables:
+--Variable 'array' holds the values to be plotted
+  as waves.
+-- H1, L1 are high and low of previous day
+-- H2, L2 are high and low of current day
+
+Method:
+array =
+1. High: When H2>H1 and L2>L1, ie higher high and higher low.
+2. Low: When L2<L1 and H1<H2, ie lower high and lower low.
+3. This case arises when either of the bar falls within the range
+of the other bar. This is where the confusion arises. I wasn't 
+able to find the best one. 
+In this scenario, we take High or Low according to the "direction"
+of the median price, (H+L)/2, of those two bars.
+
+Line chart of High and Low of each day is also plotted, so that 
+we can overcome the inefficiency occured due to step 3 above. 
+ie we may refer them whenever we have confusion or confirmation
+is needed.
+
+************************************************************************/
+
+_SECTION_BEGIN("ElliottWave");
+
+// Initial settings
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+
+// Calculate the waves
+for(i = 1; i < BarCount; i++)
+{
+//1. High: When H2>H1 and L2>L1, ie higher high and higher low.
+if(H[i] > H[i-1] AND L[i] > L[i-1])
+array[i] = H[i];
+
+//2. Low: When L2<L1 AND H1<H2, ie lower High AND lower Low.
+else if(L[i] < L[i-1] AND H[i] < H[i-1])
+array[i] = L[i];
+
+//3.This case arises when either of the bar falls within the range of the other bar.
+else
+{
+Avg1 = (H[i]+L[i])/2;
+Avg2 = (H[i-1]+L[i-1])/2;
+if(Avg1 > Avg2)
+array[i] = H[i];
+else if(Avg1 < Avg2)
+array[i] = L[i];
+else
+array[i] = array[i-1];
+
+}
+}
+
+// Plot the waves
+Plot(array,"ElliottWave", ParamColor("ElliottWave", colorWhite), styleLine);
+// Plot high
+Plot(H, "High", ParamColor("HighColor", colorGreen ), ParamStyle("HighStyle")); 
+// Plot low
+Plot(L, "Low", ParamColor("LowColor", colorRed ), ParamStyle("LowStyle")); 
+
+_SECTION_END();
+

@@ -1,0 +1,28 @@
+SetBarsRequired( 200, 0 );
+// General - purpose Inverse Fisher Transform function
+function InvFisherTfm( array )
+{
+  e2y = exp( 2 * array );
+  return ( e2y - 1 )/( e2y + 1 );
+}
+function CyberCycle( array, alpha )
+{
+  smooth = ( array + 2 * Ref( array, -1 ) +
+             2 * Ref( array, -2 ) + Ref( array, -3 ) ) / 6;
+  // init value
+  Cycle = ( array[ 2 ] - 2 * array[ 1 ] + array[ 0 ] )/4;
+  for( i = 6; i < BarCount; i++ )
+  {
+     Cycle[ i ] = ( ( 1 - 0.5 * alpha) ^ 2 ) *
+                  ( smooth[ i ] - 2 * smooth[ i - 1 ] + smooth[ i - 2] ) +
+                  2 * ( 1 - alpha ) * Cycle[ i - 1 ] -
+                  ( ( 1 - alpha) ^ 2 ) * Cycle[ i - 2 ];
+  }
+  return Cycle;
+}
+Cycle = CyberCycle( (H+L)/2, 0.07 );
+ICycle = InvFisherTfm( Cycle );
+//Plot( Cycle, "CyberCycle", colorBlue );
+Plot( ICycle, "ICyberCycle", colorRed, styleThick );
+PlotGrid( 0.5 );
+PlotGrid(-0.5 );

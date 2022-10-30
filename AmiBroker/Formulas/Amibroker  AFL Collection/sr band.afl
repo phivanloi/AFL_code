@@ -1,0 +1,23 @@
+dn = DateTime(); 
+ sd = SelectedValue( dn ); 
+
+ start = dn == sd; 
+
+ mp = (H+L)/2; 
+
+ PV = mp * V; 
+ CV = Cum( V ); 
+ VSS = CV - ValueWhen( start, CV ); 
+
+ denom = IIf( VSS == 0, 1, VSS ); 
+ num = Cum( PV ) - ValueWhen( start, Cum( PV ) ); 
+
+ M = IIf( BarsSince( start ), num/denom, mp ); 
+
+ Q1 = Param("Percentage Upper", 1, 0, 10, 0.01 ); 
+ Q2 = Param("Percentage Lower", 1, 0, 10, 0.01 ); 
+
+ Plot( C, Date() + " Close", colorBlack, styleBar ); 
+ Plot( M, "M" + _PARAM_VALUES(), colorBlue ); 
+ Plot( M * ( 1 + Q1 * 0.01 ), "Upper", colorGreen ); 
+ Plot( M * ( 1 - Q2 * 0.01 ),"Lower", colorRed );

@@ -1,0 +1,2 @@
+Buy=Cross( MACD(), Signal() );
+Sell=Cross( Signal(), MACD() );

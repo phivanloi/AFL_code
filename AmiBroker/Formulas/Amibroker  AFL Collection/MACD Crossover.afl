@@ -1,0 +1,177 @@
+/*							MACD Crossover.afl - Bill Barnard, 2/11/06
+	This is to be used as an include file for SIGNAL STUDY.afl or the entire contents are to be
+	pasted into SIGNAL OPTIMIZE.afl. Read discussion (first parameter) in SIGNAL STUDY.afl 	*/
+
+AA		=  (Status("action")==3 OR Status("action")==4 OR Status("action")==5);	//	= 1 in AA
+if (AA)	sigSelect = "MACD Crossover";
+if (sigSelect=="MACD Crossover")	{
+
+if (AA)	//	if this code is being used in AA
+{
+  	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	Current		= ParamToggle("Use Current Symbol?", "Using Symbol named just below for Indicator,Using Current Symbol for Indicator");
+	indicSym		= ParamStr("Indicator Symbol", "RUT-I");
+	param1		= Optimize("long",  30, 18, 50, 4);
+	param2		= Optimize("short", 20, 8, 40, 4);
+	param2		= Min(Param1 - 1, Param2);
+	param3		= 40;//Optimize("trig", 	10, 1, 31, 2);
+	param6		= 1;//Optimize("AveTyp",  1, 0, 5, 1);
+	param5		= ParamToggle("Use Normalized System?", "Using Standard System (not normalized),Using Normalized System");
+	param7		= ParamToggle("Standard number series or Fibonacci?",
+								"Using standard number series|Using Fibonacci series");
+	param8		= ParamToggle("Include Foreign Arrays for Buy/Sell Calculation?", "Using only MACD for B / S - click to change,"+
+								"Including Foreign Arrays for B / S- click to change", 0);
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+}
+
+//	if this code is being used for an indicator, retrieve stored param information
+if (Status("action")==1)
+{
+	MCParamsList			= "";
+	MCParamsFileName	= "ConfigFiles\\MCParams"+GetChartID()+".bf";
+
+	fh 						= fopen( MCParamsFileName, "r");
+	if( fh )
+	{
+		while( ! feof( fh ) )
+		{
+			MCParamsList = fgets( fh );
+		}
+		fclose( fh );
+	}
+
+	q0		=		IIf(MCParamsList !="", 	StrToNum(StrExtract(MCParamsList,  0	)), 0	 		);//	Current
+	q1		= WriteIf(MCParamsList !="", 				  StrExtract(MCParamsList,   1	), 	"RUT-I"	);//	indicSym
+	q2		=		IIf(MCParamsList !="", 	StrToNum(StrExtract(MCParamsList,  2	)), 90	 		);//	param1
+	q3		=		IIf(MCParamsList !="", 	StrToNum(StrExtract(MCParamsList,  3	)), 45			);//	param2
+	q4		=		IIf(MCParamsList !="", 	StrToNum(StrExtract(MCParamsList,  4	)), 8	 		);//	param3
+	q5		=		IIf(MCParamsList !="", 	StrToNum(StrExtract(MCParamsList,  5	)), 0	 		);//	param4
+	q6		=		IIf(MCParamsList !="", 	StrToNum(StrExtract(MCParamsList,  6	)), 0			);//	param5
+	q7		=		IIf(MCParamsList !="", 	StrToNum(StrExtract(MCParamsList,  7	)), 1	 		);//	param6
+	q8		=		IIf(MCParamsList !="", 	StrToNum(StrExtract(MCParamsList,  8	)), 0			);//	param7
+	q9		=		IIf(MCParamsList !="", 	StrToNum(StrExtract(MCParamsList,  9	)), 0	 		);//	param8
+
+
+	_SECTION_BEGIN("INDICATOR PARAMETERS");
+	Current		= ParamToggle("MACD Crossover -                Use Current Symbol?", 
+						"Symbol below makes Indicator - click to change,Current Symbol makes Indicator - click to change", q0);
+	IndicString	= ParamStr("MACD Crossover -                       Indicator Symbol", "Indicator Symbol---"+q1);
+	indicSym		= StrMid(StrToUpper(IndicString), 19, 5) ;
+	param1		= Param("MACD Crossover -                Long Average Period",  q2, 1, 250, 1);
+	param2		= Param("MACD Crossover -                Short Average Period", q3, 1, 199, 1);
+	param2		= Min(Param1 - 1, Param2);
+	param3		= Param("MACD Crossover -                     Signal Line Period",  q4, 0, 50, 1);
+	param4		= q5;
+	param5		= ParamToggle("Use Normalized System?", "Using Standard MACD - click to change,"+
+											"Using Normalized MACD - click to change", q6);
+	param6		= ParamList("MACD Crossover -                           Average Type", "Simple Moving Average,"+
+								"Exponential Moving Average,Double Moving Average,Triple Moving Average,"+
+								"Weighted Moving Average,Till3 Moving Average", q7);
+	param6		= 	IIf(param6=="Simple Moving Average", 0, IIf(param6=="Exponential Moving Average", 1,
+						IIf(param6=="Double Moving Average", 2, IIf(param6=="Triple Moving Average", 3,
+						IIf(param6=="Weighted Moving Average", 4, 5)))));
+	param7		= ParamToggle("MACD Cr -  Standard number series or Fibonacci?",
+								"Using standard number series - click to change|Using Fibonacci series - click to change", q8);
+	param8		= ParamToggle("Include Foreign Arrays for Buy/Sell Calculation?", "Using only MACD for B / S - click to change,"+
+								"Including Foreign Arrays for B / S- click to change", q9);
+	_SECTION_END();
+}
+
+//	Buy/Sell rules start here
+aveStr		= "MA,EMA,DEMA,TEMA,WMA,Till3";
+aveType 		= StrExtract(aveStr, Param6);
+
+tmp1		= Param1;	tmp2		= Param2;	tmp3		= Param3;
+if (Param7)
+{
+	Param1	= Min(Param1, 15);
+	Param2	= Min(Param2, 14);
+	Param3	= Min(Param3, 14);
+	Param1 	= fib(Param1);
+	Param2	= fib(Param2);
+	Param3	= fib(Param3);
+}
+
+ind1		= IIf(current, Close, Foreign(indicSym, "Close"));
+Nam		= WriteIf(current, Name(), indicSym);	Name1	= Nam+"  "+aveType+"  MACD "+V0(param1)+","+V0(param2)+","+V0(param3);
+indError	= IIf(IsNull(ind1), 1, 0);
+indicSym	= WriteIf(indError, "", indicSym);
+indstart	= param1 + Param3;
+slow		= MovAve(aveType, ind1, param1);
+fast		= MovAve(aveType, ind1, param2);
+diff		= IIf(param5==0, 1*(fast - slow), 1000*(fast - slow) / slow);
+trigger 	= MovAve(aveType, diff, param3);
+histo 		= diff - trigger;
+
+xplot1	= ind1;	ind1		= Null;	// were done with it and don't want to plot it
+xplot2	= slow;
+xplot3	= fast;
+
+ind2		= diff;				Name2	= sp(5)+WriteIf(param5, "10*Diff %", "Diff")+w2(ind2);
+ind5		= trigger;		Name5	= "Trigger"+w2(ind5);
+ind6		= Histo;			Name6	= "Histogram"+w2(ind6)+wi(Param5, ec(colorRed)+"    Normalized MACD");
+								Name7	= "\nSlow"+w2(slow);
+								Name8	= "Fast"+w2(fast);
+
+Param1	= tmp1;
+Param2	= tmp2;
+Param3	= tmp3;
+
+BuyCond	= IIf(BarIndex() > indstart, histo >= 0, 0);
+SellCond	= IIf(BarIndex() > indstart, histo < 0, 0);
+
+BS1 = SS1 = BS2 = SS2 = BS3 = SS3 = BS4 = SS4 = BC = SC = 1;
+
+if (Param8) 
+{
+	BS1		= Foreign("RSXBC", "Close");
+	SS1		= Foreign("RSXSC", "Close");
+	//BS2		= Foreign("RMXBC", "Close");
+	//SS2		= Foreign("RMXSC", "Close");
+	BS3		= Foreign("RRSBC", "Close");
+	SS3		= Foreign("RRSSC", "Close");
+	//BS4		= Foreign("RRCBC", "Close");
+	SS4		= Foreign("RRCSC", "Close");
+
+	BC			= BS1 AND BS2 AND BS3 AND BS4;
+	SC			= SS1 AND SS2 AND SS3 AND SS4;
+	Name8	= Name8 + ec(colorRed) + "      Incl. Foreign";
+}
+
+BuyCond	= BC AND BuyCond;
+SellCond	= SC AND SellCond;
+
+Buy		= ExRem(BuyCond, SellCond);
+Sell		= ExRem(SellCond, BuyCond);
+
+if (Status("action")==1)	// if this code is being used for an indicator
+{
+	//	make an initiation file to store params
+	MCParamsList = ""+
+		Current		+","+
+		indicSym		+","+
+		param1		+","+
+		param2		+","+
+		param3		+","+
+		param4		+","+
+		param5		+","+
+		param6		+","+
+		param7		+","+
+		param8		+","+
+		"";
+
+	fh 	= fopen( MCParamsFileName, "w");
+	if( fh )
+	{
+		fputs(MCParamsList, fh);
+		fclose( fh );
+	}
+}
+
+showExtraPlots		= 1;
+
+}

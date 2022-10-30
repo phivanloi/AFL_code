@@ -1,0 +1,204 @@
+_SECTION_BEGIN("SmoothHeikin MA Swing");
+SetBarsRequired(200,0);
+GraphXSpace = 5;
+SetChartOptions(0,chartShowArrows|chartShowDates);
+k = Param("K", 1.5, 1, 5, 0.1);
+Per = Param("ATR", 3, 1, 30, 0.50);
+k1 = Optimize("K", 1, 0.1, 5, 0.1);
+Per1 = Optimize("ATR", 3, 1, 30, 0.50);
+HACLOSE=(O+H+L+C)/4;
+HaOpen = AMA( Ref( HaClose,  -1 ),  0.5 );
+HaHigh = Max( H,  Max( HaClose,  HaOpen ) );
+HaLow = Min( L,  Min( HaClose,  HaOpen ) );
+PlotOHLC( HaOpen, HaHigh, HaLow, HaClose, "" + Name(), colorBlack, styleCandle | styleNoLabel );
+j=Haclose;
+//=======================================================================================================================
+//=========================Indicator==============================================================================================
+f=ATR(14);
+
+rfsctor = WMA(H-L, Per);
+
+revers = k * rfsctor;
+
+Trend = 1;  
+NW[0] = 0;  
+
+
+for(i = 1; i < BarCount; i++)
+{
+ if(Trend[i-1] == 1)                
+ {
+  if(j[i] < NW[i-1])                 
+  {
+   Trend[i] = -1;                   
+   NW[i] = j[i] + Revers[i];        
+  }
+  else                              
+  {
+   Trend[i] = 1;
+   if((j[i] - Revers[i]) > NW[i-1])
+   {
+    NW[i] = j[i] - Revers[i]; 
+   }
+   else
+   {
+    NW[i] = NW[i-1];
+   }
+  } 
+ }
+ if(Trend[i-1] == -1)               
+ {
+  if(j[i] > NW[i-1])                
+  {
+   Trend[i] = 1;                    
+   NW[i] = j[i] - Revers[i];        
+  }
+  else                              
+  {
+   Trend[i] = -1;
+   if((j[i] + Revers[i]) < NW[i-1]) 
+   {
+    NW[i] = j[i] + Revers[i]; 
+   }
+   else
+   {
+    NW[i] = NW[i-1];
+   }
+  }
+ }
+}
+
+//===============system================
+
+Plot(NW, "", IIf(Trend == 1, 27, 4), 4);
+Buy=Cover=Cross(j,nw);
+Sell=Short=Cross(nw,j);
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ), 0, IIf( Buy, Low-f, High+f)); 
+_SECTION_END();
+
+//=================TITLE================================================================================================
+_SECTION_BEGIN("Title");
+if( Status("action") == actionIndicator ) 
+(
+Title = EncodeColor(colorPink)+ "NMA Swing System" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorPink) +
+ "  - " + Date() +" - " +EncodeColor(colorPink)+
+WriteIf (Buy, " GO LONG / Reverse Signal at "+C+"  ","  ")+EncodeColor(colorGold)+ 
+WriteIf (Sell, " EXIT LONG / Reverse Signal at "+C+"  ","  ")+EncodeColor(colorRed));
+_SECTION_END();
+
+_SECTION_BEGIN("FiBGeo Pivot");
+// Background color
+SetChartBkColor(ParamColor("Panel color ",colorWhite)); 
+
+TicDiv= 1; 
+Titledisplay= ParamToggle("Display pivot stats","No|Yes",1); 
+
+
+//---- pivot points 
+DayH = TimeFrameGetPrice("H", inDaily, -1);// yesterdays high 
+DayL = TimeFrameGetPrice("L", inDaily, -1);//low 
+DayC = TimeFrameGetPrice("C", inDaily, -1);//close 
+DayO = TimeFrameGetPrice("O", inDaily);// current day open 
+HiDay = TimeFrameGetPrice("H", inDaily); 
+LoDay = TimeFrameGetPrice("L", inDaily); 
+R = DayH - DayL;	  // range
+PP = (DayH + DayL + DayO + DayO) / 4 ;
+R1 = PP + (R * 0.38);
+R2 = PP + (R * 0.62);
+S1 = PP - (R * 0.38);
+S2 = PP - (R * 0.62);
+R3 = PP + (R * 0.786);  //experimental
+S3 = PP - (R * 0.786);  //experimental
+R4 = PP + (R * 1);  //experimental
+S4 = PP - (R * 1);
+R5 = PP + (R * 1.618);  //experimental
+S5 = PP - (R * 1.618);
+style = styleBar | styleNoRescale; 
+rcolor = colorLime; 
+scolor = colorCustom10; 
+pcolor = colorPink; 
+Plot(R1, "R1",rcolor,style); 
+Plot(S1, "S1",scolor,style); 
+Plot(R2, "R2",rcolor,style); 
+Plot(S2, "S2",scolor,style); 
+Plot(PP, "PP",pcolor,style); 
+Plot(s3, "S3", scolor, style); 
+Plot(R3, "R3", rcolor, style);
+Plot(s4, "S3", scolor, style); 
+Plot(R4, "R3", rcolor, style);
+Plot(s5, "S3", scolor, style); 
+Plot(R5, "R3", rcolor, style);
+ 
+RangeTitle = EncodeColor(colorBlack) + "Day Range= " + EncodeColor(colorBlack) + StrToNum(NumToStr(round((HiDay - LoDay)/ticdiv), 4.4));
+
+// High/Low of the Day plotting. 
+Hodcolorsheme=colorBrown;
+LodColorscheme=colorTurquoise;
+tempnum = TimeNum(); 
+temphi[0] = H[0]; 
+temphiColor[0] = Hodcolorsheme; 
+templo[0] = L[0]; 
+temploColor[0] = LodColorscheme; 
+for( i = 1; i < BarCount; i++ ) 
+{ 
+if(tempnum[i] - tempnum[i-1] > Interval()) 
+{ 
+if(H[i] > temphi[i-1]) 
+{ 
+temphi[i] = H[i]; 
+
+temphiColor[i] = Hodcolorsheme; 
+} 
+else 
+{ 
+temphi[i] = temphi[i-1]; 
+
+temphiColor[i] = Hodcolorsheme; 
+} 
+if(L[i] < templo[i-1]) 
+{ 
+templo[i] = L[i]; 
+
+temploColor[i] = LodColorscheme; 
+} 
+else 
+{ 
+templo[i] = templo[i-1]; 
+
+temploColor[i] = LodColorscheme; 
+} 
+} 
+else 
+{ 
+temphi[i] = H[i]; 
+
+temphiColor[i] = Hodcolorsheme; 
+
+templo[i] = L[i]; 
+
+temploColor[i] = LodColorscheme; 
+} 
+} 
+Plot(temphi,"", temphiColor,styleBar); 
+Plot(templo,"", temploColor,styleBar);
+
+Titledisplaycode = "\n"+"" +  EncodeColor(colorBlack)   + 
+ 
+EncodeColor(rcolor) + "R5= " + EncodeColor(colorBlack) + R5 + "\n" +
+EncodeColor(rcolor) + "R4= " + EncodeColor(colorBlack) + R4 + "\n" +
+EncodeColor(rcolor) + "R3= " + EncodeColor(colorBlack) + R3 + "\n" +
+EncodeColor(rcolor) + "R2= " + EncodeColor(colorBlack) + R2 + "\n" +
+EncodeColor(rcolor) + "R1= " + EncodeColor(colorBlack) + R1 + "\n" +
+EncodeColor(pcolor) + "PP= " + EncodeColor(colorBlack) + PP + "\n" +
+EncodeColor(scolor) + "S1= " + EncodeColor(colorBlack) + S1 + "\n" +
+EncodeColor(scolor) + "S2= " + EncodeColor(colorBlack) + S2+ "\n" +
+EncodeColor(scolor) + "S3= " + EncodeColor(colorBlack) + S3 + "\n" +
+EncodeColor(scolor) + "S4= " + EncodeColor(colorBlack) + S4+ "\n" +
+EncodeColor(scolor) + "S5= " + EncodeColor(colorBlack) + S5 + "\n" +
+EncodeColor(Hodcolorsheme) + "HOD= " + EncodeColor(colorBlack) + Hiday + "\n" +
+EncodeColor(LodColorscheme) + "LOD= " + EncodeColor(colorBlack) + Loday + "\n" + RangeTitle;
+
+Title=WriteIf(Titledisplay==1,Titledisplaycode,"");
+
+_SECTION_END();

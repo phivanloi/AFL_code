@@ -1,0 +1,25 @@
+_SECTION_BEGIN("Chaloke System 2");
+//////Chaloke System 2 (1st edition)///////// 
+
+Length=15; 
+Smooth=3; 
+FixV=5; 
+Factor=1; 
+//Chande oscillator 
+cmopds=Length; 
+CMO_1=Sum( IIf( C > Ref( C, -1 ) , ( C - Ref( C ,-1 ) ) ,0 ) ,cmopds ) ; 
+CMO_2=Sum( IIf( C < Ref( C ,-1 ) , ( Ref( C ,-1 ) - C ) ,0 ) ,cmopds ); 
+CMO=100 * (( CMO_1 -CMO_2) /( CMO_1+CMO_2)); 
+AbsCMO=( abs(CMO) )/100; 
+SC=2/(Smooth+1); 
+
+Chaloke=AMA( C, SC*AbsCMO ); 
+Sys2Up=Chaloke+(Factor*StDev(Chaloke,FixV)); 
+Sys2Dn=Chaloke-(Factor*StDev(Chaloke,FixV)); 
+Chaloke_Color=IIf(C > sys2up ,colorBrightGreen,IIf(C < sys2dn ,colorRed,colorBlack)); 
+
+Plot(Chaloke,"Chaloke System2",colorBlack,styleLine); 
+Plot(Sys2Up,"Sys2Up",colorBlue,styleLine); 
+Plot(sys2Dn,"Sys2Dn",colorRed,styleLine); 
+Plot(C,"Close",Chaloke_Color,64); 
+_SECTION_END();

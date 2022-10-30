@@ -1,0 +1,20 @@
+_SECTION_BEGIN("MACD");
+
+r1 = Param( "Fast avg", 15, 2, 200, 1 );
+r2 = Param( "Slow avg", 30, 2, 200, 1 );
+r3 = Param( "Signal avg", 15, 2, 200, 1 );
+Plot( ml = MACD(r1, r2), StrFormat(_SECTION_NAME()+"(%g,%g)", r1, r2), ParamColor("MACD color", colorBlack ), ParamStyle("MACD style") );
+Plot( sl = Signal(r1,r2,r3), "Signal" + _PARAM_VALUES(), ParamColor("Signal color", colorRed ), ParamStyle("Signal style") );
+Plot( ml-sl, "MACD Histogram", ParamColor("Histogram color", colorBlack ), styleNoTitle | ParamStyle("Histogram style", styleHistogram | styleNoLabel, maskHistogram ) );
+
+Buy = MACD(r1,r2)>Ref(MACD(r1,r2),-1);
+
+Sell = Ref(MACD(r1,r2),-1)>MACD(r1,r2);
+
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+PlotShapes(IIf(Buy, shapeSmallCircle, shapeNone),colorBrightGreen, 0, ml, Offset=-5);
+PlotShapes(IIf(Sell, shapeSmallCircle, shapeNone),colorRed, 0, ml, Offset=5);
+SetChartBkColor(ParamColor("Panel color ",colorPaleBlue)); 
+_SECTION_END();

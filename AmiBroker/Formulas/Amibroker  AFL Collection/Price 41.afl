@@ -1,0 +1,13 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+//_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", colorWhite, styleLine ); 
+entry_long = EMA(High,50);
+entry_short = EMA(Low,50);
+exit_long = EMA(Low,20);
+exit_short = EMA(High,20);
+
+Plot (entry_long,"long entry at",colorBlue,styleThick);
+Plot (entry_short,"Short entry at",colorBlue,styleThick);
+Plot (exit_long,"Stoploss for long",colorRed,styleThick);
+Plot (exit_short,"Stoploss for short",colorRed,styleThick);

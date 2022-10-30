@@ -1,0 +1,137 @@
+Plot( EMA( Close, 3 ), "", IIf(EMA( Close, 3 ) > Ref(EMA( Close, 3 ),-1),colorGreen,colorRed),styleThick+styleNoLabel ); 
+
+_SECTION_BEGIN("Stochastic_45-4-2_833"); 
+periods = Param( "Periods", 20, 1, 200, 1 ); 
+K1smooth = Param( "%K1 avg", 4, 1, 200, 1 );  
+//Plot( StochK( periods , K1smooth), _DEFAULT_NAME(), colorCustom3, styleNoLabel  | styleThick | styleDots);
+
+
+periods = Param( "Periods", 20, 1, 200, 1 );
+K1smooth = Param( "%K1 avg", 4, 1, 200, 1 );
+D1smooth = Param( "%D1 avg", 2, 1, 200, 1 );
+//Plot( StochD( periods , K1smooth, D1Smooth ), _DEFAULT_NAME(), colorCustom3, styleNoLabel  | styleThick | styleDots);
+
+
+
+A = StochK( periods , K1smooth); 
+B = StochD( periods , K1smooth, D1Smooth );
+
+
+//Plot (20, "", colorTan, styleNoLabel);
+//Plot (50, "", colorLavender, styleNoLabel);
+//Plot (80, "", colorTan, styleNoLabel);
+
+//PlotOHLC( 100, 100 , 95 , 95 , "", IIf( a < 20 OR a > 80,colorBlack,IIf(A>B ,colorBrightGreen,colorRed)), styleCloud | styleNoLabel);
+//PlotOHLC( 5, 5 , 0 , 0 , "", IIf( a < 20 OR a > 80,colorBlack,IIf(A<B ,colorRed,colorBrightGreen)), styleCloud | styleNoLabel);
+
+periods = Param( "Periods", 8, 1, 200, 1 );
+K1smooth = Param( "%K1 avg", 3, 1, 200, 1 );
+
+
+
+periods = Param( "Periods", 8, 1, 200, 1 );
+K2smooth = Param( "%K1 avg", 3, 1, 200, 1 );
+D2smooth = Param( "%D1 avg", 3, 1, 200, 1 );
+
+M = StochK( periods , K2smooth);
+N = StochD( periods , K2smooth, D2Smooth );
+
+ColorK=IIf(A>B,colorBrightGreen,colorRed);
+
+//Plot( M,"StoK", ColorK, styleNoLabel|styleThick);
+//Plot( N,"StoD", colorDarkYellow, styleNoLabel|styleDashed);
+
+style = Param("candle = yes",1,0,1,1);
+Plot(Close,"",IIf(A > B ,colorBrightGreen,colorRed),IIf(style==1,styleCandle,styleLine));
+//PlotOHLC( O, H , L , C , "Cloud", IIf(A > B ,colorDarkGreen,colorDarkRed), styleCloud | styleNoLabel);
+
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("Fibo for all bars");
+
+TimeFrameSet( inDaily ); 
+DH=Ref(H,-1); 
+DL=Ref(L,-1);
+DC=Ref(C,-1);
+
+
+pd = (O+ DH+ DL + DC )/4;
+sd1 = (2*pd)-DH;
+sd2 = pd -(DH - DL);
+sd3 = Sd1 - (DH-DL); 
+rd1 = (2*pd)-DL;
+rd2 = pd +(DH -DL);
+rd3 = rd1 +(DH-DL);
+
+H4 =  (dH - dL) * 1.1 / 2 + dC;
+H3 = (dH - dL) * 1.1 / 4 + dC;
+h2 = (dH - dL) * 1.1 / 6 + dC;
+H1 = (dH - dL) * 1.1 / 12 + dC;
+L1 = dC - (dH - dL) * 1.1 / 12;
+L2 = dC - (dH - dL) * 1.1 / 6;
+L3 = dC - (dH - dL) * 1.1 / 4;
+L4 = dC - (dH - dL) * 1.1 / 2 ;
+
+
+
+//Plot (pd,"Pivot",colorBlue,styleDots);
+//Plot (rd1," R1 ",35,styleDots);
+//Plot (rd2," R2 ",35,styleDots);
+//Plot (rd3," R3 ",35,styleDots);
+
+//Plot (sd1," S1 ",4,styleDots);
+//Plot (Sd2," S2 ",4,styleDots);
+//Plot (Sd3," S3 ",4,8+16);
+/*
+style = IIf(ParamList("Chart style", "styleCandle|styleBar")=="styleCandle",64,128+4);
+Plot (C,Date ()+" close",1,style); //ENABLE THIS TO HAVE CANDLES AS WELL
+*/
+TimeFrameRestore();
+
+tgt_up = H4*5/1000 + H4;
+tgt_up2 = H4*10/1000 + H4;
+tgt_dn = L4-L4*5/1000;
+tgt_dn2 = L4-L4*10/1000;
+
+Title = EncodeColor(colorWhite)+ "LINKON'S PIVOT TRADING SYSTEM" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "
+//+ WriteIf(Col_action==colorGreen, EncodeColor(colorGreen)+"stay LONG","")+ WriteIf(Col_action==colorRed, EncodeColor(colorRed)+"stay SHORT","")+  WriteIf(Col_action==colorBlack, EncodeColor(colorYellow)+"No Trend","")+"\n"
++ "Vol= "+ WriteVal(V) +WriteIf ( V > MA(V,26) ,EncodeColor(colorGreen)+"  UP "+ (V/MA(V,26))*100 + " %", EncodeColor(colorRed)+"  DOWN "+ (V/MA(V,26))*100 + " %")
++ EncodeColor(colorGreen)+   "\n H4 : "+ EncodeColor(colorWhite)+H4+ EncodeColor(colorGreen)+   "    tgt : "+ EncodeColor(colorWhite)+tgt_up +EncodeColor(colorGreen)+   "    tgt2 : "+ EncodeColor(colorWhite)+tgt_up2 
++ EncodeColor(colorGreen)+   "\n H3 : "+ EncodeColor(colorWhite)+H3 
++ EncodeColor(colorGreen)+   "\n H2 : "+ EncodeColor(colorWhite)+H2 
++ EncodeColor(colorGreen)+   "\n H1 : "+ EncodeColor(colorWhite)+H1+ EncodeColor(colorGreen)+   "`            Hi: "+ EncodeColor(colorWhite)+H
++ EncodeColor(colorBlue)+   "\n Pivot : "+ EncodeColor(colorWhite)+pd + EncodeColor(colorYellow)+   "`   Op: "+ EncodeColor(colorWhite)+O+ EncodeColor(colorAqua)+   "Cl: "+ EncodeColor(colorBrightGreen)+C
++ EncodeColor(colorRed)+   "\n L1 : "+ EncodeColor(colorWhite)+L1+ EncodeColor(colorRed)+   "`            Lo: "+ EncodeColor(colorWhite)+L
++ EncodeColor(colorRed)+   "\n L2 : "+ EncodeColor(colorWhite)+L2
++ EncodeColor(colorRed)+   "\n L3 : "+ EncodeColor(colorWhite)+L3
++ EncodeColor(colorRed)+   "\n L4 : "+ EncodeColor(colorWhite)+L4+ EncodeColor(colorRed)+      "     tgt : "+ EncodeColor(colorWhite)+tgt_dn + EncodeColor(colorRed)+      "     tgt2 : "+ EncodeColor(colorWhite)+tgt_dn2
+;
+
+_SECTION_END();
+
+//Plot(6, "", IIf(PDI(7) > MDI(7) AND PDI(7) > 30,colorGreen,IIf (MDI(7) > PDI(7) AND MDI(7) > 30,colorRed,colorYellow)), styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+
+_SECTION_BEGIN("EMA");
+Plot( EMA( High, 20 ), "", IIf(EMA( Close, 34 ) > Ref(EMA( Close, 34 ),-1),colorGreen,colorRed),styleThick ); 
+Plot( EMA( Low, 20 ), "", IIf(EMA( Close, 34 ) > Ref(EMA( Close, 34 ),-1),colorGreen,colorRed),styleThick ); 
+Buy = Cross(EMA(Close,3) , EMA(High,34));
+Sell =Cross(EMA(Low,34),EMA(Close,3)  ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Price");
+Buy=ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+dist = 1.5*ATR(10); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "Buy\n@" + C[ i ] , i, L[ i ]-dist[i], colorBlack,colorGreen ); 
+if( Sell[i] ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorBlack, colorRed ); 
+
+} 
+
+PlotShapes( Buy * shapeUpTriangle + Sell * shapeDownTriangle, IIf( Buy, colorYellow, colorYellow ) );
+_SECTION_END();

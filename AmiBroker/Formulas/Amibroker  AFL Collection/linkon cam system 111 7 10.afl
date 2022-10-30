@@ -1,0 +1,30 @@
+
+_SECTION_BEGIN("Support & Resistance"); 
+
+RSIperiod	= 5;	// Param("RSI p",3,14,30,1);
+Percent 		= 5;	//	Param("ZIG %",8,9,15,1);
+EMAperiod 	= 5;	//Param("EMA p",4,5,10,1);
+HHVperiod 	= 5;	//Param("HHV p",3,5,10,1);
+NumLine 		= 1;	//Param("Num Lines",3,1,20,1);
+
+Base = DEMA(RSI(RSIperiod),EMAperiod);
+
+//GraphXSpace=0.5;
+
+for( i = 1; i <= numline; i++ )
+{
+ResBase = LastValue(Peak(Base,Percent,i));
+SupBase = LastValue(Trough(Base,Percent,i));
+Plot(ValueWhen( ResBase==Base, HHV(H,HHVperiod) ), "Resist Level", colorRed, styleLine);
+Plot(ValueWhen( supbase==Base, LLV(L,HHVperiod) ), "Support Level", colorGreen, styleLine);
+}
+//Title = Name() + "; " + Date() + ": Support & Resistance Levels using RSI: " + /*EncodeColor(colorGreen)+ "Support Levels are Green; "+EncodeColor(colorRed)+ "Resistance Levels are Red: "+EncodeColor(colorBlack)+*/ "Num lines ="+WriteVal(numline,1) ; 
+_SECTION_END();
+
+SL = ( HHV( H, 26 ) + LLV( L, 26) )/2;
+TL = ( HHV( H, 9 ) + LLV( L, 9 ) )/2;
+Plot (sl,"kijun",colorWhite,styleThick);
+Plot (TL,"9 ichi", colorYellow,styleThick);
+Color_buy = IIf (Close > sl AND Close > TL, colorBlue, IIf (Close < sl AND Close < TL,colorRed,colorYellow));
+
+Plot(C,"",color_buy,styleCandle);

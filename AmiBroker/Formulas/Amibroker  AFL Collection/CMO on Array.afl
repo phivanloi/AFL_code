@@ -1,0 +1,12 @@
+P = ParamField("Price field",-1);
+PL = Param("Periods",14,4,45,1);
+
+UpDay = Sum((P-Ref(P,-1))*(P>Ref(P,-1)),PL);
+DownDay = Sum((Ref(P,-1)-P)*(P<Ref(P,-1)),PL);
+ChMomOcs = 100 * ((UpDay-DownDay)/(UpDay+DownDay));
+
+Plot(ChMomOcs,"CMO("+PL+")", ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+Plot(EMA( ChMomOcs,9),"", colorLightBlue);
+PlotGrid(50, colorLightGrey);
+PlotGrid(0, colorLightGrey);
+PlotGrid(-50, colorLightGrey);

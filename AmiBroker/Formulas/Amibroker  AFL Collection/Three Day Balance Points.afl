@@ -1,0 +1,51 @@
+/*****************************************************************************
+Name		:	Three Day Balance Points
+Coded	By	:	Lal
+Note		:	This is a simple idea - using the range of 
+			the last three days, find the mid-point.  Price above
+			this mid-point is bullish and price below, bearish.
+
+			You can optionally mark bars to show whether they
+			are above or below the balance point.  Also included is
+			an explorer to highlight stocks with a new close 
+			above/below the balance point.
+*****************************************************************************/
+
+
+
+Bal_Days	=	Param("Days for Balance Point", 3, 2, 10, 1);
+Mark_Bars	=	ParamToggle("Mark Bars?", "No|Yes", 0);
+Plottype 	=	ParamList("Price Plotstyle ", "Stylebar|StyleCandle");
+
+SetChartBkGradientFill(ParamColor("Top", colorTeal), ParamColor("Bottom", colorLightGrey), ParamColor("Title", colorTeal));
+SetChartBkColor(ParamColor("Chart Background", colorWhite));
+
+// Find the High and Low of said period
+Period_High =	HHV(H, Bal_Days);
+Period_Low	=	LLV(L, Bal_Days);
+
+Balance_Point=	Period_High - (Period_High - Period_Low)/Bal_Days;
+Current_BP	=	Ref(Balance_Point, -1);	// For the current day, we need the BP as worked out at close yesterday!
+
+Price_Style	=	IIf(Plottype == "Stylebar", styleBar, styleCandle);
+Plot(C, "Close", ParamColor("Bar Color", colorBlack), Price_Style|styleThick);
+Plot(Current_BP, "Current BP", ParamColor("BP Color", colorRed), styleStaircase);
+Plot(Balance_Point, "Next Day's BP", colorBrown, styleNoDraw);
+
+// Optional Visual Marking of bars above/below the Balance Point
+if(Mark_Bars)
+{
+PlotShapes(shapeSmallCircle * (C < Current_BP), colorRed, 0, H, 12);
+PlotShapes(shapeSmallCircle * (C > Current_BP), colorBlue, 0, L, -12);
+}
+
+//Explorer section
+Close_Up		=	C > Current_BP;
+New_Close_UP	=	Close_Up AND NOT Ref(Close_Up, -1);
+
+Close_Dn		=	C < Current_BP;
+New_Close_DN	=	Close_Dn AND NOT Ref(Close_DN, -1);
+
+AddColumn(New_Close_Up, "New_Close_Up", 1, colorWhite, IIf(New_Close_Up, colorGreen, colorWhite));
+AddColumn(New_Close_Dn, "New_Close_Dn", 1, colorWhite, IIf(New_Close_Dn, colorRed, colorWhite));
+Filter = New_Close_Up OR New_Close_Dn;

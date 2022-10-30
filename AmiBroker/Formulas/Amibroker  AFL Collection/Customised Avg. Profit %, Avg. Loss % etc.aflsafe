@@ -1,0 +1,48 @@
+SetCustomBacktestProc("");  
+if( Status("action") == actionPortfolio ) 
+{ 
+	bo = GetBacktesterObject();
+	bo.Backtest();
+	PosSumProfit = 0;
+	NegSumProfit = 0;
+	PosTradePos = 0;
+	NegTradePos = 0;
+	// iterate through closed trades first 
+	for( trade = bo.GetFirstTrade(); trade; trade = bo.GetNextTrade() ) 
+	{ 
+		profit = trade.GetProfit(); 
+		if(profit >= 0)
+		{
+			PosSumProfit = PosSumProfit + profit;
+			PosTradePos = PosTradePos + trade.GetPositionValue();
+		}
+		else
+		{
+			NegSumProfit = NegSumProfit + profit;
+			NegTradePos = NegTradePos + trade.GetPositionValue();
+		}			  
+	} 
+	// iterate through eventually still open positions 
+	for( trade = bo.GetFirstOpenPos(); trade; trade = bo.GetNextOpenPos() ) 
+	{ 
+		profit = trade.GetProfit(); 
+		if(profit >= 0)
+		{
+			PosSumProfit = PosSumProfit + profit;
+			PosTradePos = PosTradePos + trade.GetPositionValue();
+		}
+		else
+		{
+			NegSumProfit = NegSumProfit + profit;
+			NegTradePos = NegTradePos + trade.GetPositionValue();
+		}	
+   } 
+	bo.AddCustomMetric(" Avg Profit/Loss %", 100 * (PosSumProfit + NegSumProfit)/(PosTradePos + NegTradePos));
+	bo.AddCustomMetric(" Avg Profit %", 100 * PosSumProfit/PosTradePos);
+	bo.AddCustomMetric(" Avg Loss %", 100 * NegSumProfit/NegTradePos);
+//	bo.ListTrades();
+}
+// Your system codes starts here
+Sell = Cross(MACD(), Signal());
+Buy = Cross(Signal(), MACD());
+SetPositionSize(10 ,spsPercentOfEquity);

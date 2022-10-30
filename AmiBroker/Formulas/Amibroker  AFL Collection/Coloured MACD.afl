@@ -1,0 +1,47 @@
+_SECTION_BEGIN("MACD"); 
+r1 = Param( "Fast avg", 12, 2, 200, 1 ); 
+r2 = Param( "Slow avg", 26, 2, 200, 1 ); 
+r3 = Param( "Signal avg", 9, 2, 200, 1 ); 
+
+MACDstyle = ParamStyle("MACD style"); 
+Signalstyle = ParamStyle("Signal style"); 
+Histstyle = ParamStyle("Histogram style", styleHistogram | styleThick | styleNoLabel, maskHistogram ); 
+
+MACDcolor = ParamColor( "Macd One Color", colorRed ); 
+Signalcolor = ParamColor( "Signal Color", colorBlue ); 
+Histcolor = ParamColor( "Histogram One Color", colorRed ); 
+
+TitleText = StrFormat("MACD " + "(%g,%g)", r1, r2); 
+PlotGrid( 0 ); 
+_SECTION_END(); _SECTION_END (); 
+
+_SECTION_BEGIN("MACD Color"); 
+dyncolorswitch = ParamToggle("Macd Color","On,Off"); 
+dynamic_color = IIf( MACD(r1, r2) > Ref(MACD(r1, r2),-1), ParamColor("Macd Up Color", colorGreen ), ParamColor("Macd Down Color", colorRed )); 
+Plot( ml = MACD(r1, r2), TitleText, IIf(dyncolorswitch, MACDcolor , dynamic_color), MACDstyle ); 
+Plot( sl = Signal(r1,r2,r3), "Signal" + _PARAM_VALUES(), Signalcolor, Signalstyle ); 
+_SECTION_END(); _SECTION_END (); 
+
+_SECTION_BEGIN("Histogram Color"); 
+Histogramswitch = ParamToggle("Histogram Color","On,Off"); 
+Histogram_color = IIf( ml-sl > Ref(ml-sl,-1), ParamColor("Hist Up Color", colorGreen ), ParamColor("Hist Down Color", colorRed )); 
+Plot( ml-sl, "MACD Histogram", IIf(Histogramswitch, Histcolor , Histogram_color), styleNoTitle | Histstyle ); 
+_SECTION_END(); _SECTION_END (); 
+
+_SECTION_BEGIN("Buy Sell Arrows"); 
+shapesSignalswitch = ParamToggle("Cross Signal Arrows","On,Off"); 
+UPcolor = ParamColor( "UP Color", colorGreen ); 
+DOWNcolor = ParamColor( "Down Color", colorRed ); 
+Buy=Cross( MACD(), Signal() ); 
+Sell=Cross( Signal(), MACD() ); 
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow; 
+PlotShapes( IIf(shapesSignalswitch,-1e10,shape), IIf( Buy, UPcolor, DOWNcolor )); 
+_SECTION_END(); 
+
+_SECTION_BEGIN("Fill Color"); 
+m = MACD(r1, r2); 
+s = Signal(r1,r2,r3); 
+Cloudswitch = ParamToggle("Fill Color","On,Off"); 
+dynamic_color = IIf( m > s, ParamColor("Down Color", colorSeaGreen ), ParamColor("Up Color", colorOrange )); 
+PlotOHLC( IIf(Cloudswitch,-1e10,m),IIf(Cloudswitch,-1e10,m),IIf(Cloudswitch,-1e10,s),IIf(Cloudswitch,-1e10,m), "", dynamic_color, styleNoLabel | styleCloud ); 
+_SECTION_END(); _SECTION_END (); 

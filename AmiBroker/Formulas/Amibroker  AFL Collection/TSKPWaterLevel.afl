@@ -1,0 +1,1 @@
+Plot(E_TSKPWATERLEVEL(Open,High,Low,Close,Volume) , _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style",style=styleNoLabel, mask=maskDefault) ); 

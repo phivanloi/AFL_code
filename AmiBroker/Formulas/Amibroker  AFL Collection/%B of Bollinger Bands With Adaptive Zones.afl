@@ -1,0 +1,10 @@
+p=20;
+x=((C+2*StDev(C,p)-MA(C,p))/(4*StDev(C,p)))*100;
+Plot(x,"Osc",6,5);
+b=50;
+k=60;
+n=0.95;
+r=HHV(x,k);e=LLV(x,k);
+Plot(e+(r-e*n),"O/B",4,5);
+Plot(r-(r-e*n),"O/S",5,5);
+Plot(IIf(x>e+(r-e*n),100,IIf(x<r-(r-e*n),0,50)),"BL",7,5);

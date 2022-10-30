@@ -1,0 +1,12 @@
+_SECTION_BEGIN("AO");
+
+ A = (H+L)/2;
+ AO=MA(A,5)-MA(A,34);
+ AOcolor=IIf(AO>Ref(AO,-1),colorBrightGreen,colorPink);
+
+ Plot(AO,"AO",AOcolor,styleHistogram|styleThick);
+
+ Plot(0,"",colorWhite,styleLine);
+AOcolor2=IIf(AO>Ref(AO,-1),colorDarkGreen,colorDarkRed);
+PlotOHLC(AO,AO,0,0,"",AOcolor2,styleCloud);
+ _SECTION_END();

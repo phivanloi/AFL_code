@@ -1,0 +1,6 @@
+Plot(Max(H-Ref(H,-1),Ref(L,-1)-L), "",3);
+
+MarketTemp = IIf(H<Ref(H,-1) AND L>Ref(L,-1),0,IIf(H-Ref(H,-1)>Ref(L,-1)-L,H-Ref(H,-1),Ref(L,-1)-L));
+AvgMarketTemp = EMA(MarketTemp, 21);
+Plot(MarketTemp, "",4);
+Plot(AvgMarketTemp, "",5);

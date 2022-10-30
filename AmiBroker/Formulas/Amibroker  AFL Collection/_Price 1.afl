@@ -1,0 +1,27 @@
+_SECTION_BEGIN("MACD HIst");
+
+SetChartBkColor( colorBlack ) ;
+f = Param("fast ema",12,1,50,1);
+s = Param("Slow ema",26,2,100,1);
+t = Param ("signal",9,1,50,1);
+A1=EMA(C,f)-EMA(C,s);
+a2 = EMA(a1,t);
+Hist = a1-a2;
+em = EMA(Hist,2);
+col_hist= IIf(Hist > BBandTop( Hist, 5, 0.5 ),colorDarkGreen,IIf(Hist < BBandBot( Hist, 5, 0.5 ),colorDarkRed,colorYellow));
+Plot (Hist,"Histogram",IIf(hist> Ref(hist,-1),colorBrightGreen,colorRed), styleLine+styleThick);
+Plot (Hist,"",col_hist, styleHistogram+styleNoLabel);
+Plot (EM,"",colorWhite, styleLine+styleNoLabel);
+Plot(0,"",31,styleNoLabel);
+_SECTION_END();
+
+Buy=(L<Ref(L,-1) & Hist>Ref(Hist,-1));
+Short=(H>Ref(H,-1) & Hist<Ref(Hist,-1));
+ShortPrice=ValueWhen(Short,C,1);
+BuyPrice=ValueWhen(Buy,C,1);
+
+PlotShapes(IIf(Buy,shapeUpArrow,Null),colorGreen,0 ,Min(0,0),-10);
+PlotShapes(IIf(Short,shapeDownArrow,Null),colorRed ,0,Min(0,0),-10);
+Filter=Buy|Short;
+AddColumn( IIf(Buy, 66 , IIf(Short, 83,01 )), "KBrn ENTRY", formatChar, colorWhite, bkcolor= IIf(Short,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy, BuyPrice , IIf(Short, ShortPrice,01 )), "KBrn PRICE", 1.2, colorWhite, bkcolor= IIf(Short,colorDarkRed,colorDarkGreen) );

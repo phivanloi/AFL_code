@@ -1,0 +1,501 @@
+/*******************************************************
+Candlestick Commentary
+Load this file into the Commentary Option of the Analysis tab. Green arrows
+indicate bullish candles.
+Red arrows indicate bearish candles. Scroll down the commentary for comments. 
+This is a work in progress. Thanks to all on this forum whose code I may have
+incorporated into this file. Comments are from Steve Nison "Japanese
+Candlestick Charting Techniques" and the LitWick web site.
+**********************************************************/
+
+/*Body Colors*/
+whiteBody=C>=O;
+blackBody=O>C;
+
+/*Body Size*/
+smallBodyMaximum=0.0025;//less than 0.25%
+LargeBodyMinimum=0.01;//greater than 1.0%
+smallBody=(O>=C*(1-smallBodyMaximum) AND whiteBody) 
+         OR (C>=O*(1-smallBodyMaximum) AND blackBody);
+largeBody=(C>=O*(1+largeBodyMinimum) AND whiteBody) 
+         OR C<=O*(1-largeBodyMinimum) AND blackBody;
+mediumBody=NOT LargeBody AND NOT smallBody;
+identicalBodies=abs(abs(Ref(O,-1)-Ref(C,-1))-abs(O-C)) < 
+          abs(O-C)*smallBodyMaximum;
+realBodySize=abs(O-C);
+
+
+/*Shadows*/
+smallUpperShadow=(whiteBody AND H<=C*(1+smallBodyMaximum))
+               OR (blackBody AND H<=O*(1+smallBodyMaximum));
+smallLowerShadow=(whiteBody AND L>=O*(1-smallBodyMaximum)) 
+               OR (blackBody AND L>=C*(1-smallBodyMaximum));
+largeUpperShadow=(whiteBody AND H>=C*(1+largeBodyMinimum)) 
+               OR (blackBody AND H>=O*(1+largeBodyMinimum));
+largeLowerShadow=(whiteBody AND L<=O*(1-largeBodyMinimum)) 
+              OR (blackBody AND L<=C*(1-largeBodyMinimum));
+
+/*Gaps*/
+upGap=  IIf(Ref(blackBody,-1)AND whiteBody AND O>Ref(O,-1),1,
+        IIf(Ref(blackbody,-1) AND blackBody AND C>Ref(O,-1),1,
+        IIf(Ref(whiteBody,-1) AND whiteBody AND O>Ref(C,-1),1,
+        IIf(Ref(whiteBody,-1) AND blackBody AND C>Ref(C,-1),1,0))));
+
+downGap=IIf(Ref(blackBody,-1)AND whiteBody AND C<Ref(C,-1),1,
+        IIf(Ref(blackbody,-1) AND blackBody AND O<Ref(C,-1),1,
+        IIf(Ref(whiteBody,-1) AND whiteBody AND C<Ref(O,-1),1,
+        IIf(Ref(whiteBody,-1) AND blackBody AND O<Ref(O,-1),1,0))));
+/*Candle Definitions*/
+spinningTop=mediumBody;
+doji=CdDoji(threshold=0.05);/*abs(C-O) <= (C*smallBodyMaximum) OR
+(abs(O-C)<=((H-L)*0.1));*/
+dojiStar=doji AND (upgap OR downgap)AND Ref(LargeBody,-1);
+marabuzu=LargeBody AND smallUpperShadow AND smallLowerShadow;
+
+
+shootingStar=/*(NOT largeBody AND smallLowerShadow AND LargeUpperShadow) OR*/
+    smallLowerShadow AND NOT doji AND
+   ((blackBody AND abs(O-H)>2*realBodySize) OR
+   (whiteBody AND abs(H-C)>2*realBodySize));
+Hammer = (((H-L)>3*(O-C)) AND ((C-L)/(0.001+H-L)>0.6) AND ((O-L)/(0.001+H-L)>0.6));   
+InvertedHammer = (((H-L)>3*(O-C)) AND ((H-C)/(0.001+H-L)>0.6) AND ((H-O)/(0.001+H-L)>0.6)); 
+//Hammer=smallUpperShadow AND NOT doji AND
+ //  ((blackBody AND abs(C-L)>2*realBodySize) OR
+//   (whiteBody AND abs(L-O)>2*realBodySize));
+
+tweezerTop=abs(H-Ref(H,-1))<=H*0.0025;
+tweezerBottom=abs(L-Ref(L,-1))<=L*0.0025;
+engulfing=
+   IIf(blackBody AND Ref(blackbody,-1) AND C<Ref(C,-1) AND O>Ref(O,-1),1,
+   IIf(blackBody AND Ref(whiteBody,-1) AND O>Ref(C,-1) AND C<Ref(O,-1),1,
+   IIf(whitebody AND Ref(whitebody,-1) AND C>Ref(C,-1) AND O<Ref(O,-1),1,
+   IIf(whiteBody AND Ref(blackBody,-1) AND C>Ref(O,-1)AND O<Ref(C,-1),1,0))));
+BullishHarami=
+   IIf(blackbody AND Ref(blackBody,-1) AND O<Ref(O,-1) AND C>Ref(L,-1),1,
+   IIf(blackBody AND Ref(whiteBody,-1) AND C>Ref(L,-1) AND O<Ref(C,-1),1,
+   IIf(whiteBody AND Ref(whiteBody,-1) AND C<Ref(C,-1) AND O>Ref(L,-1),1,
+   IIf(whiteBody AND Ref(blackBody,-1) AND O>Ref(L,-1) AND
+C<Ref(O,-1),1,0))));
+BearishHarami=
+IIf(blackbody AND Ref(blackBody,-1) AND O<Ref(H,-1) AND C>Ref(C,-1),1,
+   IIf(blackBody AND Ref(whiteBody,-1) AND C>Ref(O,-1) AND O<Ref(H,-1),1,
+   IIf(whiteBody AND Ref(whiteBody,-1) AND C<Ref(H,-1) AND O>Ref(O,-1),1,
+   IIf(whiteBody AND Ref(blackBody,-1) AND O>Ref(C,-1) AND
+C<Ref(H,-1),1,0))));
+
+/*Maximum High Today - (MHT)
+Today is the maximum High in the last 5 days*/
+MHT=  HHV(H,5)==H;
+
+/*Maximum High Yesterday - (MHY)
+Yesterday is the maximum High in the last 5 days*/
+MHY=   HHV(H,5)==Ref ( H, -1);
+
+/*Minimum Low Today - (MLT)
+Today is the minimum Low in the last 5 days*/
+MLT=   LLV(L,5)==L;
+
+/*Minimum Low Yesterday - (MLY)
+Yesterday is the minimum Low in the last 5 days*/
+MLY=   LLV(L,5)==Ref(L,-1);
+
+/*DOJI definitions*/
+
+/*Doji Today - (DT)*/
+DT = abs(C-O) <= (C*smallBodyMaximum) OR
+(abs(O-C)<=((H-L)*0.1));
+
+/* Doji Yesterday - (DY)*/
+DY = abs(Ref ( C, -1)-Ref(O,-1)) <= Ref ( C, -1) *smallBodyMaximum OR
+abs (Ref ( O, -1)-Ref(C,-1)) <= (Ref ( H, -1 ) - Ref ( L, -1 ) )*0.1;
+//mine//
+O1 = Ref(O,-1);O2 = Ref(O,-2);  
+H1 = Ref(H,-1);H2 = Ref(H,-2);  
+L1 = Ref(L,-1);L2 = Ref(L,-2);  
+C1 = Ref(C,-1);C2 = Ref(C,-2);
+ 
+HammerSpecial=(Hammer AND BullishHarami);// OR (ShootingStar AND Harami);
+InvertedHammerSpecial= (InvertedHammer AND BearishHarami); 
+x1=HammerSpecial;
+GetreadyBuy=Ref(x1, -1) AND Close > Ref( High , -1 ) OR Ref(x1, -2) AND Close > Ref( High , -2 )OR Ref(x1, -3) AND Close > Ref( High , -3 );
+GetreadyBuy1=((NOT Ref(GetreadyBuy,-1)) AND (NOT Ref(GetreadyBuy,-2)));
+GetreadyBuy3=GetreadyBuy1 AND GetReadyBuy;
+Buy=Ref(GetreadyBuy, -1) AND C>Ref(L,-1);
+Buy1=(NOT Ref(Buy,-1));
+Buy3=Buy1 AND Buy;
+BuyStop=Ref(GetreadyBuy,-1) AND (Ref(L,-1));
+x2=InvertedHammerSpecial;
+GetreadySell=Ref(x2, -1) AND Close < Ref( Low , -1 ) OR Ref(x2, -2) AND Close < Ref( Low , -2 )OR Ref(x2, -3) AND Close < Ref( Low , -3 );
+GetreadySell1=((NOT Ref(GetreadySell,-1)) AND (NOT Ref(GetreadySell,-2)));
+GetreadySell3=GetreadySell1 AND GetReadySell;
+
+Short=Ref(GetreadySell, -1) AND C<Ref(H,-1);
+ShortStop=Ref(GetreadySell,-1) AND (Ref(H,-1));
+Short1=(NOT Ref(Short,-1));
+Short3=Short1 AND Short;
+
+ShortPrice=ValueWhen(Short,C,1);
+BuyPrice=ValueWhen(Buy,C,1);
+
+
+Sell=C<Ref(L,-2);
+Cover= C>Ref(L,-2);
+
+
+
+Sell1=((NOT Ref(Sell,-1)) AND (NOT Ref(Sell,-2)));
+Sell2=Sell1 AND Sell;
+
+Cover1=((NOT Ref(Cover,-1)) AND (NOT Ref(Cover,-2)));
+Cover2=Cover1 AND Cover;
+
+
+
+
+_SECTION_BEGIN("Title");
+if( Status("action") == actionIndicator ) 
+(
+Title = EncodeColor(colorYellow)+ "Winston system - 1-hammer, 2-getready, up/down arrow=Enter position, Orange colour short and white colour long, white dot trailing profit exit long and orange dot trailing profit exit short, triangles are pivot markers" + " - " +  Name() + " - " + EncodeColor(colorYellow)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"\n" +EncodeColor(colorYellow) + "Vol= "+ WriteVal(V)+"\n"+ EncodeColor(colorYellow)+
+WriteIf(x1, "1-Hammer Special"+C+"  ","")+
+WriteIf(GetreadyBuy3, "2-Get Ready to Buy"+C+"  ","")+
+WriteIf(Buy3, "BUY AT "+C+"  ","")+
+WriteIf(BuyStop, "BUYSTOP AT"+Ref(L,-2)+"  ","")+
+WriteIf(Sell2, "Exit Buy at "+C+"  ","")+
+
+
+
+
+WriteIf(x2, "1-Inverted Hammer Special"+C+"  ","")+
+WriteIf(GetreadySell3, "2-Get Ready to Short"+C+"  ","")+
+WriteIf(Short3, " SHORT AT "+C+"  ","")+
+WriteIf(ShortStop, "SHORTSTOP AT "+Ref(H,-2)+"  ","")+
+WriteIf(Cover2, "Exit short at "+C+"  ",""));
+
+
+Plot(C,"Close",colorWhite,64);
+PlotShapes(x1*shapeDigit1,colorWhite,0,L); 
+PlotShapes(GetreadyBuy3*shapeDigit2,colorWhite,0,L);
+PlotShapes(Buy3*shapeUpArrow,colorWhite,0,L,Offset=-45);
+PlotShapes(Sell2*shapeSmallCircle,colorWhite,0,H,Offset=45);
+
+PlotShapes(x2*shapeDigit1,colorOrange,0,H,Offset=25); 
+PlotShapes(GetreadySell3*shapeDigit2,colorOrange,0,H,Offset=25);
+PlotShapes(Short3*shapeDownArrow,colorOrange,0,H,Offset=-45);
+PlotShapes(Cover2*shapeSmallCircle,colorOrange,0,L,Offset=-45);
+
+AlertIf( Ref(GetreadyBuy3, -1), "SOUND C:\\Windows\\Media\\Ringin.wav", "Get Ready To Buy", 2 );
+AlertIf( Ref(Buy3, -1), "SOUND C:\\Windows\\Media\\Ringin.wav", "Buy Now", 2 );
+AlertIf( Ref(GetreadySell3, -1), "SOUND C:\\Windows\\Media\\Ringin.wav", "Get Ready To Short", 2 );
+AlertIf( Ref(Short3, -1), "SOUND C:\\Windows\\Media\\Ringin.wav", "Short Now", 2 );
+
+RSIperiod	= 14;	// Param("RSI p",3,14,30,1);
+Percent 		= 5;	//	Param("ZIG %",8,9,15,1);
+EMAperiod 	= 9;	//Param("EMA p",4,5,10,1);
+HHVperiod 	= 8;	//Param("HHV p",3,5,10,1);
+NumLine 		= 2;	//Param("Num Lines",3,1,20,1);
+
+Base = DEMA(RSI(RSIperiod),EMAperiod);
+
+
+for( i = 1; i <= numline; i++ )
+{
+ResBase = LastValue(Peak(Base,Percent,i));
+SupBase = LastValue(Trough(Base,Percent,i));
+Plot(ValueWhen( ResBase==Base, HHV(H,HHVperiod) ), "Resist Level", colorDarkRed, styleLine);
+Plot(ValueWhen( supbase==Base, LLV(L,HHVperiod) ), "Support Level", colorDarkGreen, styleLine);
+}
+
+
+
+
+//Code to automatically identify pivots
+
+//********************************** */
+
+// -- what will be our lookback range for the hh and ll?
+farback=Param("How Far back to go",100,50,5000,10);
+nBars = Param("Number of bars", 12, 5, 40);
+
+
+// -- Create 0-initialized arrays the size of barcount
+
+aHPivs = H - H;
+
+aLPivs = L - L;
+
+// -- More for future use, not necessary for basic plotting
+
+aHPivHighs = H - H;
+
+aLPivLows = L - L;
+
+aHPivIdxs = H - H;
+
+aLPivIdxs = L - L;
+
+nHPivs = 0;
+
+nLPivs = 0;
+
+lastHPIdx = 0;
+
+lastLPIdx = 0;
+
+lastHPH = 0;
+
+lastLPL = 0;
+
+curPivBarIdx = 0;
+
+// -- looking back from the current bar, how many bars 
+
+// back were the hhv and llv values of the previous 
+
+// n bars, etc.?
+
+aHHVBars = HHVBars(H, nBars);
+
+aLLVBars = LLVBars(L, nBars);
+
+aHHV = HHV(H, nBars);
+
+aLLV = LLV(L, nBars);
+
+// -- Would like to set this up so pivots are calculated back from
+
+// last visible bar to make it easy to "go back" and see the pivots
+
+// this code would find. However, the first instance of 
+
+// _Trace output will show a value of 0
+
+aVisBars = Status("barvisible");
+
+nLastVisBar = LastValue(Highest(IIf(aVisBars, BarIndex(), 0)));
+
+_TRACE("Last visible bar: " + nLastVisBar);
+
+// -- Initialize value of curTrend
+
+curBar = (BarCount-1);
+
+curTrend = "";
+
+if (aLLVBars[curBar] < 
+
+aHHVBars[curBar]) {
+
+curTrend = "D";
+
+}
+
+else {
+
+curTrend = "U";
+
+}
+
+// -- Loop through bars. Search for 
+
+// entirely array-based approach
+
+// in future version
+
+for (i=0; i<farback; i++) {
+
+curBar = (BarCount - 1) - i;
+
+// -- Have we identified a pivot? If trend is down...
+
+if (aLLVBars[curBar] < aHHVBars[curBar]) {
+
+// ... and had been up, this is a trend change
+
+if (curTrend == "U") {
+
+curTrend = "D";
+
+// -- Capture pivot information
+
+curPivBarIdx = curBar - aLLVBars[curBar];
+
+aLPivs[curPivBarIdx] = 1;
+
+aLPivLows[nLPivs] = L[curPivBarIdx];
+
+aLPivIdxs[nLPivs] = curPivBarIdx;
+
+nLPivs++;
+
+}
+
+// -- or current trend is up
+
+} else {
+
+if (curTrend == "D") {
+
+curTrend = "U";
+
+curPivBarIdx = curBar - aHHVBars[curBar];
+
+aHPivs[curPivBarIdx] = 1;
+
+aHPivHighs[nHPivs] = H[curPivBarIdx];
+
+aHPivIdxs[nHPivs] = curPivBarIdx;
+
+nHPivs++;
+
+}
+
+// -- If curTrend is up...else...
+
+} 
+
+// -- loop through bars
+
+} 
+
+// -- Basic attempt to add a pivot this logic may have missed
+
+// -- OK, now I want to look at last two pivots. If the most 
+
+// recent low pivot is after the last high, I could
+
+// still have a high pivot that I didn't catch
+
+// -- Start at last bar
+
+curBar = (BarCount-1);
+
+candIdx = 0;
+
+candPrc = 0;
+
+lastLPIdx = aLPivIdxs[0];
+
+lastLPL = aLPivLows[0];
+
+lastHPIdx = aHPivIdxs[0];
+
+lastHPH = aHPivHighs[0];
+
+if (lastLPIdx > lastHPIdx) {
+
+// -- Bar and price info for candidate pivot
+
+candIdx = curBar - aHHVBars[curBar];
+
+candPrc = aHHV[curBar]; 
+
+if (
+
+lastHPH < candPrc AND
+
+candIdx > lastLPIdx AND
+
+candIdx < curBar) {
+
+
+// -- OK, we'll add this as a pivot...
+
+aHPivs[candIdx] = 1;
+
+// ...and then rearrange elements in the 
+
+// pivot information arrays
+
+for (j=0; j<nHPivs; j++) {
+
+aHPivHighs[nHPivs-j] = aHPivHighs[nHPivs-
+
+(j+1)];
+
+aHPivIdxs[nHPivs-j] = aHPivIdxs[nHPivs-(j+1)];
+
+}
+
+aHPivHighs[0] = candPrc ;
+
+aHPivIdxs[0] = candIdx;
+
+nHPivs++;
+
+} 
+
+} else {
+
+
+// -- Bar and price info for candidate pivot
+
+candIdx = curBar - aLLVBars[curBar];
+
+candPrc = aLLV[curBar]; 
+
+if (
+
+lastLPL > candPrc AND
+
+candIdx > lastHPIdx AND
+
+candIdx < curBar) {
+
+
+// -- OK, we'll add this as a pivot...
+
+aLPivs[candIdx] = 1;
+
+// ...and then rearrange elements in the 
+
+// pivot information arrays
+
+for (j=0; j<nLPivs; j++) {
+
+aLPivLows[nLPivs-j] = aLPivLows[nLPivs-(j+1)];
+
+aLPivIdxs[nLPivs-j] = aLPivIdxs[nLPivs-(j+1)];
+
+}
+
+aLPivLows[0] = candPrc;
+
+aLPivIdxs[0] = candIdx;
+
+nLPivs++;
+
+}
+
+}
+
+// -- Dump inventory of high pivots for debugging
+
+/*
+
+for (k=0; k<nHPivs; k++) {
+
+_TRACE("High pivot no. " + k
+
++ " at barindex: " + aHPivIdxs[k] + ", " 
+
++ WriteVal(ValueWhen(BarIndex()==aHPivIdxs[k], 
+
+DateTime(), 1), formatDateTime)
+
++ ", " + aHPivHighs[k]);
+
+}
+
+*/
+
+// -- OK, let's plot the pivots using arrows
+
+PlotShapes(IIf(aHPivs==1, shapeSmallDownTriangle, shapeNone), colorRed, 0,High, Offset=-15);
+
+PlotShapes(IIf(aLPivs==1, shapeSmallUpTriangle , shapeNone), colorGreen, 0, Low, Offset=-15);
+//dist = 1.5*ATR(10); 
+//Plot( (aHPivs==1),"HIGH Line ",colorGreen,styleLine,Null,Null,10|styleNoRescale); 
+//Plot( (aLPivs==1),"LOW Line ",colorBrightGreen,styleLine, styleThick |styleOwnScale);
+
+

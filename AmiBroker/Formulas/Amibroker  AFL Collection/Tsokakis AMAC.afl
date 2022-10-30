@@ -1,0 +1,176 @@
+ShowMe:  Tsokakis AMAC ShowMe
+inputs:
+    p( 20 ),
+    k( 30 ) ;
+variables:
+    MAp( 0 ),
+    MAk( 0 ),
+    kLess1( 0 ),
+    MAkLess1( 0 ),
+    pLess1( 0 ),
+    MApLess1( 0 ),
+    TC( 0 ) ;
+MAp = Average( Close, p ) ;
+MAk = Average( Close, k ) ;
+kLess1 = k - 1 ;
+MAkLess1 = Average( Close, kLess1 ) ;
+pLess1 = p - 1 ;
+MApLess1 = Average( Close, pLess1 ) ;
+TC = ( p * kLess1 * MAkLess1 - k * pLess1 * MApLess1 ) /
+ ( k - p ) ;
+if TC crosses over Close then
+    Plot1( Close, "TCxOver" )
+else if TC crosses under Close then
+    Plot2( Close, "TCxUnder" ) ;
+if MAp crosses over MAk then
+    Plot3( Close, "MApxOver" )
+else if MAp crosses under MAk then
+    Plot4( Close, "MApxUnder" ) ;
+Indicator: Tsokakis AMAC
+inputs:
+    p( 20 ),
+    k( 30 ) ;
+variables:
+    kLess1( 0 ),
+    MAkLess1( 0 ),
+    pLess1( 0 ),
+    MApLess1( 0 ),
+    TC( 0 ) ;
+kLess1 = k - 1 ;
+MAkLess1 = Average( Close, kLess1 ) ;
+pLess1 = p - 1 ;
+MApLess1 = Average( Close, pLess1 ) ;
+TC = ( p * kLess1 * MAkLess1 - k * pLess1 * MApLess1 ) /
+ ( k - p ) ;
+Plot1( Close, "Close" ) ;
+Plot2( TC, "TC" ) ;
+Indicator: Tsokakis AMAC log
+inputs:
+    p( 20 ),
+    k( 30 ) ;
+variables:
+    MAp( 0 ),
+    MAk( 0 ),
+    kLess1( 0 ),
+    MAkLess1( 0 ),
+    pLess1( 0 ),
+    MApLess1( 0 ),
+    TC( 0 ),
+    AscCrossPred( False ),
+     DescCrossPred( False ),
+     ConfirmedDesc( False ),
+    ConfirmedAsc( False ),
+    DescTotalPred( 0 ),
+    Acc0DescPred( 0 ),
+    Acc1DescPred( 0 ),
+    Acc2DescPred( 0 ),
+    UselessDescPred( 0 ),
+    AscTotalPred( 0 ),
+    Acc0AscPred( 0 ),
+    Acc1AscPred( 0 ),
+    Acc2AscPred( 0 ),
+    UselessAscPred( 0 ),
+    Desc0( 0 ),
+    Desc1( 0 ),
+    Desc2( 0 ),
+    UselessDesc( 0 ),
+    FalseDesc( 0 ),
+    Asc0( 0 ),
+    Asc1( 0 ),
+    Asc2( 0 ),
+    UselessAsc( 0 ),
+    FalseAsc( 0 ) ;
+MAp = Average( Close, p ) ;
+MAk = Average( Close, k ) ;
+kLess1 = k - 1 ;
+MAkLess1 = Average( Close, kLess1 ) ;
+pLess1 = p - 1 ;
+MApLess1 = Average( Close, pLess1 ) ;
+TC = ( p * kLess1 * MAkLess1 - k * pLess1 * MApLess1 ) /
+ ( k - p ) ;
+if TC crosses under Close then
+    begin
+    AscCrossPred = False ;
+    DescCrossPred  = True ;
+    end
+else if TC crosses over Close then
+    begin
+    AscCrossPred = True ;
+    DescCrossPred  = False ;
+    end
+else
+    begin
+    AscCrossPred = False ;
+    DescCrossPred  = False ;
+    end ;
+if MAk crosses under MAp then
+    begin
+    ConfirmedAsc = False ;
+    ConfirmedDesc = True ;
+    end
+else if MAk crosses over MAp then
+    begin
+    ConfirmedAsc = True ;
+    ConfirmedDesc = False ;
+    end
+else
+    begin
+    ConfirmedAsc = False ;
+    ConfirmedDesc = False ;
+    end ;
+if DescCrossPred then
+    DescTotalPred = DescTotalPred + 1 ;
+if ConfirmedDesc AND DescCrossPred[1] then
+    Acc0DescPred = Acc0DescPred + 1 ;
+if ConfirmedDesc AND DescCrossPred[2] then
+    Acc1DescPred = Acc1DescPred + 1 ;
+if ConfirmedDesc AND DescCrossPred[3] then
+    Acc2DescPred = Acc2DescPred + 1 ;
+if ConfirmedDesc AND DescCrossPred then
+    UselessDescPred = UselessDescPred + 1 ;
+if AscCrossPred then
+    AscTotalPred = AscTotalPred + 1 ;
+if ConfirmedAsc AND AscCrossPred[1] then
+    Acc0AscPred = Acc0AscPred + 1 ;
+if ConfirmedAsc AND AscCrossPred[2] then
+    Acc1AscPred = Acc1AscPred + 1 ;
+if ConfirmedAsc AND AscCrossPred[3] then
+    Acc2AscPred = Acc2AscPred + 1 ;
+if ConfirmedAsc AND AscCrossPred then
+    UselessAscPred = UselessAscPred + 1 ;
+if DescTotalPred <> 0 then
+    begin
+    Desc0 = 100 * Acc0DescPred / DescTotalPred ;
+    Desc1 = 100 * Acc1DescPred / DescTotalPred ;
+    Desc2 = 100 * Acc2DescPred / DescTotalPred ;
+    UselessDesc = 100 * UselessDescPred /
+     DescTotalPred ;
+    end ;
+FalseDesc = 100 - Desc0 - Desc1 - Desc2 - UselessDesc ;
+if AscTotalPred <> 0 then
+    begin
+    Asc0 = 100 * Acc0AscPred / AscTotalPred ;
+    Asc1 = 100 * Acc1AscPred / AscTotalPred ;
+    Asc2 = 100 * Acc2AscPred / AscTotalPred ;
+    UselessAsc = 100 * UselessAscPred / AscTotalPred ;
+    end ;
+FalseAsc = 100 - Asc0 - Asc1 - Asc2 - UselessAsc ;
+ 
+Plot1( Close, "Close" ) ;
+Plot2( TC, "TC" ) ;
+if LastBarOnChart AND GetAppInfo( aiApplicationType ) =
+ 2 { indicator is applied to RadarScreen } then
+    begin
+    Plot3( DescTotalPred, "TotalPred" ) ;
+    Plot4( Desc0, "Desc0" ) ;
+    Plot5( Desc1, "Desc1" ) ;
+    Plot6( Desc2, "Desc2" ) ;
+    Plot7( UselessDesc, "UselessDesc" ) ;
+    Plot8( FalseDesc, "FalseDesc" ) ;
+    Plot9( AscTotalPred, "TotalAscPred" ) ;
+    Plot10( Asc0, "Asc0" ) ;
+    Plot11( Asc1, "Asc1" ) ;
+    Plot12( Asc2, "Asc2" ) ;
+    Plot13( UselessAsc, "UselessAsc" ) ;
+    Plot14( FalseAsc, "FalseAsc" ) ;
+    end ;

@@ -1,0 +1,40 @@
+// See http://trader.online.pl/MSZ/e-ex-Historical_Volatility_System_Connors_Raschkes.html
+//
+// Note http://www.amibroker.com/library/detail.php?id=115 has a mistake
+//     Connors/Raschke say buy based on "either an inside day or an NR4 day"
+//        but formula 115 uses AND instead of OR.
+logRocc = log(C/Ref(C,-1));
+HistVol = StDev(logRocc,5) / StDev(logRocc,99);
+
+H_L = H-L;
+NR4 = H_L == LLV(H_L,4);
+
+
+Plot(HistVol, "HistVol", ParamColor("Color", colorCycle), styleLine);
+
+Plot(0.5,"",colorBlack, styleDashed);
+
+Plot(IIf(HistVol>0.5, 3, IIf(NR4,6, IIf(Inside(), 9, 3))),
+	"NR4 or Inside", 
+	IIf(HistVol>0.5, colorLightGrey, IIf(NR4,colorLime, IIf(Inside(), colorBlue, colorLightGrey))), 
+	styleOwnScale|styleArea|styleNoLabel, -0.5, 50);
+
+
+NumColumns = 5;
+Column0 = HistVol;
+Column0Name = "HistVol";
+
+Column1 = NR4;
+Column1Name = "NR4Day";
+
+Column2 = Inside();
+Column2Name = "Inside";
+
+Column3 = High+0.125;
+Column3Name = "Buy Stop";
+
+Column4 = Low-0.125;
+Column4Name = "Sell Stop";
+
+Filter = HistVol < 0.5 AND (NR4 OR Inside());
+Buy = Filter;

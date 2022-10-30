@@ -1,0 +1,57 @@
+_SECTION_BEGIN("MABIUTS");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+
+_SECTION_BEGIN("Trend Check");
+P1 = Param("Short Period",7,0,100,1);
+P2 = Param("Long Period",65,0,100,1);
+L1=Param("Threshold",4,2,10,1);
+U= MA(C,P1)-MA(C,P2);
+R=100*U/MA(C,P2);
+ap=Param("ADX Period",20,5,30,1);
+MyADX=ADX(ap);
+Len=Param("Length",10,1,30,1);
+dp=Param("Diff Period",20,5,50,1);
+Vs=ParamToggle("Select Indicator","Ravi,ADX",0);
+if(Vs)
+	{
+	ta = MyADX;
+		}
+else
+	{
+	ta=R;
+	}
+EmaIndex=IIf(Len>0,2/(1+Len),0.20);
+Diff=HHV(ta,dp)-LLV(ta,dp);
+Myconst=IIf(Diff>0,(ta-LLV(ta,dp))/Diff,EMAIndex);
+Newconst=IIf( MyConst > EmaIndex , EmaIndex, MyConst); 
+y=AMA(C,Newconst);
+Plot(y,"Trend Check",colorWhite);
+_SECTION_END();
+// this section only for finding expectancy, can be skipped
+SetCustomBacktestProc(""); 
+
+if( Status("action") == actionPortfolio ) 
+{ 
+    bo = GetBacktesterObject(); 
+
+    bo.Backtest(); 
+
+    st = bo.GetPerformanceStats(0); 
+       expectancy = st.GetValue("WinnersAvgProfit")*st.GetValue("WinnersPercent")/100 + 
+                st.GetValue("LosersAvgLoss")*st.GetValue("LosersPercent")/100; 
+
+        bo.AddCustomMetric( "Expectancy ($)", expectancy ); 
+} 
+
+// end of expectancy calculation
+
+
+PositionScore=100/C;
+PositionSize = - 20;
+SetBarsRequired(10000, 10000);
+SetFormulaName("MABIUTS System");
+
+Buy=y>EMA(y,6) AND  Cross (C,Peak(C,5,1));
+Sell=Cross (EMA(EMA(C,13),6),EMA(C,13));
+

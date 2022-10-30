@@ -1,0 +1,14 @@
+
+_SECTION_BEGIN("DEMA");
+Plot( DEMA( Close, 5 ),"",IIf(DEMA( Close, 5 ) > Ref(DEMA( Close, 5 ),-1),colorBrightGreen,colorRed) , styleThick ); 
+//Plot( DEMA( Close, 7 ),"", colorBlue, styleThick ); 
+//Plot( DEMA( Close, 9 ),"", colorGreen, styleThick );
+//Plot( DEMA( Close, 13 ),"", IIf(DEMA( Close, 13 ) > Ref(DEMA( Close, 13 ),-1),colorBrightGreen,colorRed), styleThick );  
+Plot( DEMA( Close, 18 ),"", IIf(DEMA( Close, 18 ) > Ref(DEMA( Close, 18 ),-1),colorBlue,colorOrange), styleThick );  
+
+_SECTION_END();
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", colorWhite, styleBar ); 
+_SECTION_END();

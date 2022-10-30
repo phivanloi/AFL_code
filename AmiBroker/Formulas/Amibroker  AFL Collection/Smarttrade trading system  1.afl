@@ -1,0 +1,25 @@
+x = Ref(H,-1);
+Y = Ref(L,-1);
+a=x+5;
+b=y-5;
+uptrend=StochK(39,3) > StochD(39,3,3);
+downtrend=StochK(39,3) < StochD(39,3,3);
+Buy = Cover = H > a AND uptrend;
+Sell = Short = L < b AND downtrend;
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorBrightGreen,0,L,-15);
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed,0,H,-15);
+_SECTION_BEGIN("Price");
+Graph0 = Close;
+Graph0Style = 128;
+barcolor = IIf( downtrend, 4, IIf( uptrend, 5, 1 ) );
+Graph0BarColor = ValueWhen( barcolor != 0, barcolor );
+SetBarFillColor( IIf( Close > Open, colorBlack, colorBlack ) ); 
+SetChartBkGradientFill( ParamColor("BgTop", colorBlack),ParamColor("BgBottom", colorBlack),ParamColor("Titleblock",colorLightGrey)); 
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g,
+Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle |
+ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

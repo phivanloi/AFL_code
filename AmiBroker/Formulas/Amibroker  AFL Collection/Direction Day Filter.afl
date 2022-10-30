@@ -1,0 +1,153 @@
+MaxGraph=5;
+GraphXSpace = 1;
+
+// Start of variables used to calculate custom formulas
+
+// Defines market hours
+MarketOpen = 93000;
+MarketClose = 161500;
+MarketHours = deFlagTimeRange(MarketOpen, MarketClose);
+FirstBarOfDay = deFlagFirstBarOfDay(MarketOpen);
+LastBarOfDay = deFlagLastBarOfDay(MarketClose);
+enumMarketHours = BarsSince(FirstBarOfDay);
+
+// First 5 minutes of Opening Range
+OR5High = deTimeRangeHHV(H,MarketOpen,93500);
+OR5Low = deTimeRangeLLV(L,MarketOpen,93500);
+OR5Median = (OR5High+OR5Low)/2;
+
+// First 15 minutes of Opening Range
+OR15High = deTimeRangeHHV(H,MarketOpen,94500);
+OR15Low = deTimeRangeLLV(L,MarketOpen,94500);
+
+// First 60 minutes of Opening Range
+OR60High = deTimeRangeHHV(H,MarketOpen,103000);
+OR60Low = deTimeRangeLLV(L,MarketOpen,103000);
+
+// Yesterdays Daily values. Note: By adjusting Daysback to a greatervalue, all the calculations below will go back a number ofcorresponding days (ie: Daysback = 5 means 5 days ago)
+DaysBack = 1;
+
+YesterdaysHigh = ValueWhen(Ref(deFlagLastBarOfDay(MarketClose),-
+1),deTimeRangeHHV(H,MarketOpen,MarketClose),DaysBack);
+YesterdaysLow = ValueWhen(Ref(deFlagLastBarOfDay(MarketClose),-
+1),deTimeRangeLLV(L,MarketOpen,MarketClose),DaysBack);
+YesterdaysOpen = ValueWhen(deFlagLastBarOfDay
+(MarketOpen),O,DaysBack);
+YesterdaysClose = ValueWhen(Ref(deFlagLastBarOfDay(MarketClose),-
+1),C,DaysBack);
+Yesterdays2HrHigh = ValueWhen(Ref(LastBarOfDay,-1),deTimeRangeHHV
+(H,141500,161500),DaysBack);
+Yesterdays2HrLow = ValueWhen(Ref(LastBarOfDay,-1),deTimeRangeLLV
+(L,141500,161500),DaysBack);
+
+// Start of custom calculations & formulas
+DailyPivot = (YesterdaysHigh+YesterdaysLow+YesterdaysClose)/3;
+DailyMedian = (YesterdaysHigh+YesterdaysLow)/2;
+DailyPivotHigh = DailyPivot + abs(DailyPivot - DailyMedian);
+DailyPivotLow = DailyPivot - abs(DailyPivot - DailyMedian);
+R1 = ((2 * DailyPivot) - YesterdaysLow);
+S1 = ((2 * DailyPivot) - YesterdaysHigh);
+//R2 = ((DailyPivot - S1) + R1);
+//S2 = (DailyPivot - (R1 - S1));
+//R3 = (R2 + (YesterdaysHigh - YesterdaysLow));
+//S3 = (S2 - (YesterdaysHigh - YesterdaysLow));
+
+DayFilter = deValueWhenTime((Sum(C>OR5Median,enumMarketHours)+Sum
+(O>OR5Median,enumMarketHours)+Sum(H>OR5Median,enumMarketHours)+Sum
+(L>OR5Median,enumMarketHours))/4,103000);
+ACDHighOffset = 2;
+ACDLowOffset = 2;
+ACDHigh = OR15High + ACDHighOffset;
+ACDLow = OR15Low - ACDLowOffset;
+
+// Same variables as above, but plotting during after hours issuppressed
+YestHighClean = IIf(MarketHours,YesterdaysHigh,Null);
+YestLowClean = IIf(MarketHours,YesterdaysLow,Null);
+YestCloseClean = IIf(MarketHours,YesterdaysOpen,Null);
+YestCloseClean = IIf(MarketHours,YesterdaysClose,Null);
+Y2HrHighClean = IIf(MarketHours,Yesterdays2HrHigh,Null);
+Y2HrLowClean = IIf(MarketHours,Yesterdays2HrLow,Null);
+DailyPivotClean = IIf(MarketHours,DailyPivot,Null);
+DailyPivotHighClean = IIf(MarketHours,DailyPivotHigh,Null);
+DailyPivotLowClean = IIf(MarketHours,DailyPivotlow,Null);
+ACDHighClean = IIf(MarketHours,ACDHigh,Null);
+ACDLowClean = IIf(MarketHours,ACDLow,Null);
+OR5MedianClean = IIf(MarketHours,OR5Median,Null);
+R1Clean = IIf(MarketHours,R1,Null);
+S1Clean = IIf(MarketHours,S1,Null);
+//R2Clean = IIf(MarketHours,R2,Null);
+//S2Clean = IIf(MarketHours,S2,Null);
+
+
+// Start of variables used to control color of bars/indicators
+BullishBar = H > Ref(H,-1) AND L > Ref(L,-1);
+BearishBar = H < Ref(H,-1) AND L < Ref(L,-1);
+PriceColor = IIf(deFlagTimeRange(MarketOpen,93500),colorWhite,IIf
+(deFlagTimeRange(93500,94500),colorLightBlue,IIf
+(MarketHours==False,colorDarkBlue,IIf(BullishBar,colorGreen,IIf
+(BearishBar,colorRed,colorLightGrey)))));
+ORBarColor = IIf(deFlagTimeRange
+(93000,94500),colorLightBlue,colorOrange);
+
+// Start of Plot() functions to display calculated series
+Plot
+(C,"C",PriceColor,styleBar+styleThick);
+// Close
+Plot(EMA((O+H+L+C)/4,7),"EMA7",colorGreen,styleLine);
+Plot(EMA((O+H+L+C)/4,15),"EMA15",colorBlue,styleLine);
+Plot
+(OR5MedianClean,"5M",colorBlue,styleLine);
+// Clayburg 5 Minute Mid Line
+Plot
+(ACDHighClean,"ACDH",ORbarcolor,styleLine+styleThick);
+// ACD High Threshold
+Plot
+(ACDLowClean,"ACDL",ORbarcolor,styleLine+styleThick);
+// ACD Low Threshold
+Plot
+(YestHighClean,"YH",colorLightGrey,styleLine+styleThick);
+// Yesterdays High
+Plot
+(YestLowClean,"YL",colorLightGrey,styleLine+styleThick);
+// Yesterdays Low
+Plot
+(DailyPivotClean,"PP",colorLightBlue,styleLine+styleThick);
+// Pivot
+Plot
+(DailyPivotHighClean,"PH",colorPink,styleLine+styleThick);
+// Pivot High
+Plot
+(DailyPivotLowClean,"PL",colorPink,styleLine+styleThick);
+// Pivot Low
+Plot
+(R1Clean,"R1",colorRed,styleLine+styleThick);
+// R1 Pivot
+Plot
+(S1Clean,"S1",colorRed,styleLine+styleThick);
+// S1 Pivot
+Plot
+(Y2HrHighClean,"Y2H",colorBrightGreen,styleLine+styleThick);
+// Yesterdays 2Hr High
+Plot
+(Y2HrLowClean,"Y2L",colorBrightGreen,styleLine+styleThick);
+// Yesterdays 2Hr Low
+//Plot(R2Clean,"R2",colorRed,styleLine+styleThick);
+// R2 Pivot
+//Plot(S2Clean,"S2",colorRed,styleLine+styleThick);
+// S2 Pivot
+
+// Plot color bands
+Plot(ACDLowClean,"ACDL",colorBlack,styleArea); //ACD Low Threshold
+Plot(ACDHighClean,"ACDH",IIf(TimeNum()>=94500 AND TimeNum() <=
+MarketClose,colorDarkGreen,colorBlack),styleArea); //ACD High Threshold
+
+
+
+AUp = MarketHours AND Cross(C,ACDHigh);
+ADn = MarketHours AND Cross(ACDLow,C);
+
+PlotShapes(shapeSmallUpTriangle * AUp,colorYellow,0,C-2);
+PlotShapes(shapeSmallDownTriangle * ADn,colorYellow,0,C+2);
+
+//--Indicator-End--
+"Direction Day Filter Value: " + WriteVal((DayFilter/60)*100) +"%";

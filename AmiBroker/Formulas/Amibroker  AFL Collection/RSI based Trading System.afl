@@ -1,0 +1,20 @@
+_SECTION_BEGIN("RSI");
+Plot (RSI(9), "RSI-9", colorRed);
+Plot (RSI(45), "Signal", colorBlue);
+Plot (30, "", colorDarkGreen,  styleNoLabel);
+Plot (70, "", colorDarkGreen,  styleNoLabel);
+
+Buy=Cross( RSI(9), RSI(45));
+Sell=Cross( RSI(45), RSI(9));
+
+Filter = EMA (V, 45) >= 100000;
+
+AddColumn(Close,"Close",1.2);
+AddColumn(Volume,"Volume",1.0);
+AddColumn( RSI(), "RSI", 1.2 );
+AddColumn( ROC( Close, 15 ), "ROC(15)", 1.2 );
+AddColumn( MFI(), "MFI", 1.2 );
+AddColumn( OBV(), "OBV", 1.2 );
+AddColumn( CCI(), "CCI", 1.2 );
+AddColumn( Ultimate(), "Ultimate", 1.4 );
+_SECTION_END();

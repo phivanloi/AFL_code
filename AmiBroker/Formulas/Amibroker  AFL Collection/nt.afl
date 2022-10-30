@@ -1,0 +1,29 @@
+//Use all bars 
+SetBarsRequired(99999, 99999); 
+//Use the adaptive learning algorithm 
+SetLearningAlgorithm(1); 
+
+//Set our inputs 
+i1 = C; 
+i2 = Ref(C, -1); 
+i3 = Ref(C, -2); 
+i4 = Ref(C, -3); 
+i5 = Ref(C, -4); 
+i6 = Ref(C, -5); 
+i7 = Ref(C, -6); 
+i8 = Ref(C, -7); 
+//Set our desired output (One bar into the future) 
+O1 = Ref(C, 1); 
+
+//Train and compute an adaptive neural network 
+res = NeuralNetworkIndicator9(i1, i2, i3, i4, i5, i6, i7, i8, O1, FullName(), 100, 1); 
+Plot(res, _DEFAULT_NAME(), colorRed, styleLine); 
+
+//Calculate accuracy for the recent 100 bars 
+Title = "Accuracy: " + (Sum(IIf((Ref(C, 1) > C) == (res > Ref(res, -1)), 1, 0), 100)); 
+
+//Clean up 
+EnableProgress(); 
+RestoreDefaults(); 
+ClearNeuralNetworkInputs();
+

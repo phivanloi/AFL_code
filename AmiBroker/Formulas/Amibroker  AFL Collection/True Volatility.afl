@@ -1,0 +1,24 @@
+/*THE TRUTH ABOUT VOLATILITY - Feb2005 S&C
+
+In "The Truth About Volatility," Jim Berg presents how to use several well-known volatility measures 
+such as average True range (ATR) to calculate entry, trailing stop, AND profit-taking levels. 
+Implementing techniques presented in the article is very simple using the AmiBroker Formula Language (Afl), 
+AND takes just a few lines of code.
+
+Listing 1 shows the formula that the plots color-coded price chart, trailing stop, AND profit-taking lines, 
+as well as a colored ribbon showing volatility-based entry AND exit signals. The relative strength 
+index (RSI) used by Berg is a built-in indicator in AmiBroker, so no additional code is necessary.
+
+*/
+EntrySignal = C > ( LLV( L, 20 ) + 2 * ATR( 10 ) );
+ExitSignal = C < ( HHV( H, 20 ) - 2 * ATR( 10 ) );
+Color = IIf( EntrySignal, colorBlue, IIf( ExitSignal, colorOrange, colorGrey50 ));
+TrailStop = HHV( C - 2 * ATR(10), 15 );
+ProfitTaker = EMA( H, 13 ) + 2 * ATR(10);
+/* plot price chart and stops */
+Plot( TrailStop, "Trailing stop", colorBrown, styleThick | styleLine );
+Plot( ProfitTaker, "Profit taker", colorLime, styleThick );
+Plot( C, "Price", Color, styleBar | styleThick );
+
+/* plot color ribbon */
+Plot( 1, "", Color, styleArea | styleOwnScale | styleNoLabel, -0.1, 50 );

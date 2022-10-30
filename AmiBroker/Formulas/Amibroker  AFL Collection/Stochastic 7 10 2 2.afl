@@ -1,0 +1,135 @@
+riskAmount=Param("Risk Amount",50,10,10000,5);
+
+
+//previous Hour calcs
+TimeFrameSet(inDaily);
+//////////////////REGRESION LINEAL ///////////////////////////////////
+
+LookBack=Param("Lookback (RegressionChannel)",72,1,300);
+PlotOHLC(Open,High,Low,Close,"",colorWhite,styleCandle);
+
+NH = LastValue(HHVBars(High,LookBack)); // lookback period - can be set by the user if necessary
+NL = LastValue(LLVBars(Low ,LookBack)); // lookback period - can be set by the user if necessary
+
+N=0;
+if(NL>NH) { N=NL; } else { N=NH; }
+
+Start = 1;
+
+X = Cum(Start); // Set up the x cordinate array of the Linear Regression Line
+Y = Close; // Set the y co-ordinate of the Linear Regression line
+
+/* Calculate the slope (bconst) and the y intercept (aconst) of the line */
+
+SUMX = LastValue(Sum(X,N));
+SUMY = LastValue(Sum(Y,N));
+SUMXY = LastValue(Sum(X*Y,N));
+SUMXSqd = LastValue(Sum(X*X,N));
+SUMSqdX = LastValue(SUMX * SUMX);
+
+bconst = (N * SUMXY - SUMX * SUMY)/(N * SUMXSqd - SUMSqdX);
+aconst = (SUMY - bconst * (SUMX))/N;
+
+/* Force the x value to be very negative so the graph does not apear before
+the
+lookback period */
+
+Domain = IIf ( X > LastValue(X) - N, 1 , -1e10);
+Xvar = X * Domain;
+
+/* Linear Regression Line */
+
+Yvar = aconst + bconst * Xvar;
+tre=(Yvar + LastValue(HHV(High - Yvar,N)));
+tren=(Yvar - LastValue(HHV(Yvar - Low ,N)));
+Plot(Yvar + LastValue(HHV(High - Yvar,N)),"Upper
+Channel",colorWhite,styleLine|styleNoLabel);
+Plot(Yvar,"Middle Channel",colorWhite,styleLine|styleNoLabel);
+Plot(Yvar - LastValue(HHV(Yvar - Low ,N)),"Lower
+Channel",colorWhite,styleLine|styleNoLabel);
+
+//buy-sell variables
+Buy=tre>Ref(tre,-1) && Ref(tre,-1)>Ref(tre,-2) && Ref(tre,-2)>Ref(tre,-3) && Ref(tre,-3)>Ref(tre,-4) && Ref(tre,-4)>Ref(tre,-5) && C<Ref(C,-1) && C<Ref(C,-2) && C<Ref(C,-3) ;
+Short=tre<Ref(tre,-1) && Ref(tre,-1)<Ref(tre,-2) && Ref(tre,-2)<Ref(tre,-3) && Ref(tre,-3)<Ref(tre,-4) && Ref(tre,-4)<Ref(tre,-5) && C>Ref(C,-1) && C>Ref(C,-2) && C>Ref(C,-3) ;
+BuyPriceH=IIf(Buy,((C)+Ref(C,-1)+Ref(C,-2))/3,0);
+BuyPriceL=IIf(Buy,(C),0);
+BuyTarget1=IIf(Buy,((H)+Ref(H,-1)+Ref(H,-2))/3,0);
+BuyTarget2=IIf(Buy,HHV(H,3),0);
+ShortPriceH=IIf(Short,((C)+Ref(C,-1)+Ref(C,-2))/3,0);
+ShortPriceL=IIf(Short,(C),0);
+ShortTarget1=IIf(Short,((L)+Ref(L,-1)+Ref(L,-2))/3,0);
+ShortTarget2=IIf(Short,LLV(L,3),0);
+BuyPrice=IIf(BuyPriceH>BuyPriceL,(round(BuyPriceH*10))/10,(round(BuyPriceL*10))/10);
+ShortPrice=IIf(ShortPriceL<ShortPriceH,(round(ShortPriceL*10))/10,(round(ShortPriceH*10))/10);
+Buystop=(round((BuyPrice-(BuyPrice*0.5/100))*10))/10;
+shortstop=(round((ShortPrice+(ShortPrice*0.5/100))*10))/10;
+
+TimeFrameRestore();
+//commentary
+
+if( Status("action") == actionIndicator ) 
+(
+Title = EncodeColor(colorYellow)+ "'EOD Scan' - Developed & conceived by, & property of Vinod K. Iyer - for Research purpose only - Trading the system may result in serious financial Loss AND the author cannot be held resposible for such occurance - Don't Do AnyThing I would'nt Do" + "\n" +  Name() + " - " + EncodeColor(colorYellow)+ Interval(2) + EncodeColor(colorWhite) +
+"  - " + Date() +" - " +EncodeColor(colorYellow) + "    TurnOver=    Rs.  "+ WriteVal((((V*C)/100000)),1.2)+"   Lakhs"+ "\n" +//WriteVal(LastValue(Buy))+ "\n"+WriteVal((LastValue(Short)))+//)+WriteVal((Sell))+ WriteVal((Cover))+
+
+EncodeColor(colorBrightGreen)+
+WriteIf(BuyPriceL, "Buy between: "+(BuyPriceL)+"  ","")+
+WriteIf(BuyPriceH, "  &  "+(BuyPriceH)+"  ","")+"\n"+
+WriteIf(BuyTarget1, "Buy Target 1:   "+(BuyTarget1)+"  ","")+"\n"+
+WriteIf(BuyTarget2, "Buy Target 2:   "+(BuyTarget2)+"  ","")+"\n"+"\n"+
+EncodeColor(colorRed)+
+WriteIf(shortPriceL, "Short between: "+(shortPriceL)+"  ","")+
+WriteIf(shortPriceH, "  &  "+(shortPriceH)+"  ","")+"\n"+
+WriteIf(shortTarget1, "Short Target 1:   "+(shortTarget1)+"  ","")+"\n"+
+WriteIf(shortTarget2, "Short Target 2:   "+(shortTarget2)+"  ",""));
+
+//money management
+lotSizeb = round((riskAmount/(BuyPrice-BuyStop)));
+lotSizes = round((riskAmount/(ShortStop-ShortPrice)));
+
+//exploration
+AddColumn( IIf(Buy, 66, IIf(Short, 83,01 )), "GO", formatChar, colorWhite, bkcolor= IIf(Short,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy, BuyPriceL, IIf(Short, ShortPriceL,01 )), "Entry Price Min", 1.2, colorWhite, bkcolor= IIf(Short,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy, BuyPriceH, IIf(Short, ShortPriceH,01 )), "Entry Price Max", 1.2, colorWhite, bkcolor= IIf(Short,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy, BuyTarget1, IIf(Short, ShortTarget1,01 )), "Target 1", 1.2, colorWhite, bkcolor= IIf(Short,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy, BuyTarget2, IIf(Short, ShortTarget2,01 )), "Target 2", 1.2, colorWhite, bkcolor= IIf(Short,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy , Lotsizeb, IIf(Short, Lotsizes,01 )), "QTY", 1.0, colorWhite, bkcolor= IIf(Short,colorDarkRed,colorDarkGreen) );
+
+
+
+/*
+Export intraday AND EOD data to TXT files 
+In the first line insert the directory you want to save them to, make sure the
+directory exists
+Select the timeframe period you want to save as using the AA "Settings"
+*/
+if (IsEmpty(StaticVarGet("SendSignal"+Name())))
+{
+StaticVarSet("SendSignal"+Name(), 1);
+}
+
+if ((StaticVarGet("SendSignal"+Name()) == 1) && SelectedValue( Buy) ) {
+fh = fopen("C:\\BTT_Exe\\config\\order"+".SAV", "a"); 
+if( fh) 
+{ 
+fputs("NSECM|Buy|CLI|xxxx|"+Name()+"|"+BuyPrice+"|"+Lotsizeb+"|"+"LO|"+"-"+"|"+"-|-|NL|Margin|08067|N|Day|Long at|-|-|-|-|-|"+"\n", fh);
+
+StaticVarSet("SendSignal"+Name() , 0);
+fclose( fh );
+}
+}
+if (IsEmpty(StaticVarGet("SendSignal1"+Name())))
+{
+StaticVarSet("SendSignal1"+Name(), 1);
+}
+
+if ((StaticVarGet("SendSignal1"+Name()) == 1) && SelectedValue( Short) ) {
+
+fh = fopen("C:\\BTT_Exe\\config\\order"+".SAV", "a"); 
+if( fh ){ 
+fputs("NSECM|Short Sell|CLI|xxxx|"+Name()+"|"+ShortPrice+"|"+Lotsizes+"|"+"LO|"+"-"+"|"+"-|-|NL|Margin|08067|N|DAY|Short at|-|-|-|-|-|"+"\n", fh);
+StaticVarSet("SendSignal1"+Name() , 0);
+fclose( fh );
+}
+}
+Filter = Buy || Short;

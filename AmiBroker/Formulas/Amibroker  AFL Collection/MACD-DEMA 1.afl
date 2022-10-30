@@ -1,0 +1,23 @@
+_SECTION_BEGIN("MACD");
+
+SetChartBkColor( colorBlack ) ;
+f = Param("fast Dema",12,1,50,1); 
+s = Param("Slow Dema",26,2,100,1); 
+A1=DEMA(C,f)-DEMA(C,s);  
+BBtop=BBandTop(A1,5,.5); 
+BBbot=BBandBot(A1,5,.5);
+//Color=IIf(a1<0 AND a1>Ref(a1,-1), colorBrightGreen,IIf(a1>0 AND a1>Ref(a1,-1),colorBrightGreen,IIf(a1>0 AND a1<Ref(a1,-1),colorRed,colorRed)));
+Color = IIf(A1 > bbtop, colorBrightGreen, IIf(a1 < bbbot,colorRed,colorYellow));
+Plot(a1,"MACD",color,styleDots+styleLine);
+//Plot(BBtop,"",colorYellow,styleDashed);
+//Plot(BBbot,"",colorYellow,styleDashed);
+Plot(0,"",31,styleNoLabel);
+
+Plot( EMA( a1, 9 ), "", colorBlue, styleThick ); 
+a2 = round(a1*10)/10;
+diff = round((a1 - Ref(a1,-1))*10)/10;
+Title = 
+WriteIf(a2 > 0, EncodeColor(colorBrightGreen)+"MACD-DEMA :"+A2, EncodeColor(colorRed)+"MACD-DEMA :"+A2)
++WriteIf(diff > 0, EncodeColor(colorBrightGreen)+"  Diff : "+ diff,EncodeColor(colorRed)+"  Diff : "+ diff)
+;
+_SECTION_END();

@@ -1,0 +1,33 @@
+/*Statistics for Fibonaccian levels*/
+n=Param("n",3,3,20,1);// Calibrate the Zig percentage
+Var1=C;
+z=Zig(Var1,n);
+PeakCondition=PeakBars(Var1,n)==0;
+p1=ValueWhen(PeakCondition,Var1,1);
+p2=ValueWhen(PeakCondition,Var1,2);
+TroughCondition=TroughBars(Var1,n)==0;
+t1=ValueWhen(TroughCondition,Var1,1);
+t2=ValueWhen(TroughCondition,Var1,2);
+d=IIf(BarsSince(PeakCondition)<BarsSince(TroughCondition),(p1-t1)/(p2-t1),(p1-t1)/(p1-t2));
+Plot(d,"d",colorWhite,1);
+d0=2/(sqrt(5)+1);
+n0=2;
+for(i=d0^(-n0);i>=d0^n0;i=i*d0)
+{
+fib=i;
+Plot(fib,"",colorBlue,1);
+}
+Plot(0.5,"",colorBlue,1);
+Plot(Var1,"Var1",1,8+styleLeftAxisScale);
+Plot(z,"",colorYellow,styleLeftAxisScale);
+tp=Cum(Peakcondition);
+tt=Cum(Troughcondition);
+vd=d!=Ref(d,-1);
+tvd=Cum(Vd);
+ap=0.05;//calibrate the tolerance of Fib numbers
+Cond=Vd AND (abs(d-0.318)<ap*0.318 OR abs(d-0.5)<ap*0.5 OR abs(d-0.618)<ap*0.618 OR abs(d-1)<ap*1 OR abs(d-1.618)<ap*1.618 OR abs(d-2.618)<ap*2.618);
+tCond=Cum(Cond);
+F=100*tcond/tvd;
+Title=/*"tp = "+WriteVal(tp,1.0)+" , tt = "+WriteVal(tt,1.0)+"\n"+*/Name()+"\nn = "+WriteVal(n,1.0)+" % "+"\nTotal levels = "+WriteVal(tvd,1.0)+" , Fibonaccian levels = "+WriteVal(tCond,1.0)+"\nF = "+WriteVal(F,1.0) +" % ";
+Filter=1;//Explore for the n=1 last quotations
+AddColumn(F,"n="+WriteVal(n,1.0)+"%",1.0);

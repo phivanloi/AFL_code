@@ -1,0 +1,9 @@
+P = AccDist();
+Periods = Param("Periods", 17, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+ 
+indBBW = BBandTop(P, 20, 2) - BBandBot(P, 20, 2); 
+Plot(indBBW, "BandWidth_Acc/Dist("+Periods+", "+Width+")", ParamColor("color", colorCycle ), ParamStyle("Style") );
+
+PlotGrid(80, colorLightGrey);
+PlotGrid(20, colorLightGrey);

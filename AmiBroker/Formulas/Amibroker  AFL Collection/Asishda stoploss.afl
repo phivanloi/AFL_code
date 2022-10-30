@@ -1,0 +1,12 @@
+_SECTION_BEGIN("Stop Loss");
+a=.0174532;
+S1=sin(1*a)*C;
+S2=sin(2*a)*Ref(C,-1);
+S3=sin(3*a)*Ref(C,-2);
+S4=sin(4*a)*Ref(C,-3);
+S5=sin(5*a)*Ref(C,-4);
+Num=S1+S2+S3+S4+S5;
+Den=sin(a)+sin(2*a)+sin(3*a)+sin(4*a)+sin(5*a);
+j1= Num/Den;
+Plot(j1,"Stop Loss",ParamColor( "Color",13 ), styleLine | styleThick );
+_SECTION_END();

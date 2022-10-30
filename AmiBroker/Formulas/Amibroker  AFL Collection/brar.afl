@@ -1,0 +1,21 @@
+DuoTou = H - Ref(C, -1);
+KongTou = Ref(C, -1) - L;
+for(i=0;i<BarCount-1;i++){
+	if(DuoTou[i] <= 0 AND KongTou[i] <= 0){
+		DuoTou[i] = 0;
+		KongTou[i] = 0;
+	}
+}
+DuoTouTatol = Sum(DuoTou, 26);
+KongTouTatol = Sum(KongTou, 26);
+BR = (DuoTouTatol / KongTouTatol) * 100;
+
+up = H - O;
+down = O - L;
+upTotal = Sum(up,26);
+downTotal = Sum(down, 26);
+AR = (upTotal / downTotal) * 100;
+
+Plot(BR, "BR", colorGreen);
+Plot(AR, "AR", colorRed);
+Plot(100, "", colorBlue);

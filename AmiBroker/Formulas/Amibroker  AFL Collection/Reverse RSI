@@ -1,0 +1,40 @@
+WildPer = Param("1 Wilder Time Periods", 7, 1, 100, 1 );
+Value = 50;
+Field =  Param("Price Field (0-close, 1-high, 2-low)", 0, 0, 2, 1 );
+Mode = Param("0 Mode (0-RSI, 1-ReverseRSI)", 1, 0, 1, 1 );
+iper = Param("2 iper", 20, 0, 50, 1 );
+function RevRSI( value, array, periods )
+{
+   AU = Wilders( Max( array - Ref( array, -1 ), 0 ), periods );
+   AD = Wilders( Max( Ref( array, -1 ) - array, 0 ), periods );
+   x = ( periods - 1 ) * ( AD * value / (100 - value) - AU);
+   return IIf( x >= 0, array+x, array + x * (100 - value)/value );
+}
+array = IIf( Field == 0, Close, IIf( Field == 1, High, Low ) );
+aname = WriteIf( Field == 0, "Close", WriteIf( Field == 1, "High", "Low" ) );
+
+RSO1=RevRSI( value, array, 1 )-RevRSI( value, array, WildPer ) ;
+
+RSO70=-RevRSI( value, array, WildPer )+RevRSI( 50+iper, array, WildPer ) ;
+RSO30=-RevRSI( value, array, WildPer )+RevRSI( 50-iper, array, WildPer ) ;
+
+
+if( Mode == 0 ) /* RSI */
+{
+ 	Plot(RSO70,"",colorRed,4);
+	Plot(RSO30,"",colorRed,4);
+  Plot( RSO1, "RSI( " + aname + ", " + WildPer + ")", colorBlue,4 );
+Plot(0,"",16,1);
+	
+	
+}
+else
+{
+	
+   Plot( EMA(array,1), aname, colorWhite,64 );
+   Plot( RevRSI( value, array, WildPer ) , "ReverseRSI( " + aname + ", " + WildPer + ")", colorBlue, styleThick );
+   Plot( RevRSI( 50-iper, array, WildPer ), "oversold( " + aname + ", " + (50-iper) +")", colorRed, styleThick );
+   Plot( RevRSI( 50+iper, array, WildPer ), "overbought( " + aname + ", " + (50+iper) +")", colorGreen, styleThick );
+
+	
+}   

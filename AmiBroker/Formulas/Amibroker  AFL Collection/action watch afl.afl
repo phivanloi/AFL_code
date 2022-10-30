@@ -1,0 +1,12 @@
+ Vol_para=(100+Param("VP",20,10,300,5))/100;
+ C1=C>=.99*H; 
+ c2=C<=.99*L ;
+ p=Param("ema period",20,10,500,5);
+ C3= V>vol_para*EMA(V,p);
+ Filter=C1 OR C2 OR C3;
+ AddColumn(C,"close",1.2);
+ AddColumn(H,"high value",1.2,
+ IIf(C1,colorOrange,colorDarkGrey));
+ AddColumn(L,"Low Value",1.2,IIf(C2,colorOrange,colorDarkGrey));
+ AddColumn(V,"volume",1.2,IIf(C3,colorOrange,colorDarkGrey));
+ AddColumn(EMA(V,p)," average volume",1.20);

@@ -1,0 +1,92 @@
+//////////// ///////// ///////// // FOR EXPLORE
+
+ 
+
+entryPrice = ValueWhen(Ref(Buy,-1),O); //Figure out the BuyPrice
+
+gain = IIf(Sell,(exitPrice - entryPrice) / entryPrice * 100 - 0.4,0); //Account for 2 way commissions at .2% each
+
+//>>>>>>>>>>>>>>>>>>>>>>>>>> future reference - Just for marking Next Day Buy in Explore
+
+bdate = IIf(Sell,ValueWhen(Ref(Buy,-1),DateTime()),DateTime());
+
+ 
+
+ 
+
+//////////// ///////// ///////// // BEGIN EXPLORATION
+
+ 
+
+_N(seeBS = ParamList("Show Buys, Sells, Both or Daily signals?","Both|Buys|Sells| BSSC|Daily",0));
+
+if (seeBS == "Both") Filter = Buy OR Sell;
+
+else if (seeBS == "Buys") Filter = Buy;
+
+else if (seeBS == "Sells") Filter = Sell;
+
+else if (seeBS == "BSSC") Filter = Buy OR Sell OR Short OR Cover;
+
+else Filter = 1; //Show every single day for every selected symbol - BE CAREFUL, you don't really want this unless you click "current symbol".
+
+ 
+
+AddColumn(bdate,"Buy Date",formatDateTime,IIf(Buy,colorWhite,colorRed),IIf(Buy,colorGreen,colorWhite));
+
+AddColumn(IIf(Buy AND MarketOK,tradeLot,0),"Shares to Buy",1.0,IIf(NOT Buy,colorGrey50,IIf(Buy AND dollarMax < 2/3 * tradeAmount,colorOrange,IIf(Buy AND dollarMax < tradeAmount,colorYellow,colorWhite))),IIf(Buy,colorGreen,colorGrey50),85);
+
+AddColumn(C,"Close",1.2,IIf(Buy,colorWhite,IIf(Sell AND gain > 0,colorGreen,colorWhite)),IIf(Buy,colorGreen,IIf(Sell AND gain > 0,colorPaleGreen,IIf(Sell,colorRed,colorGold))),50);
+
+AddColumn(IIf(Buy AND NOT MarketOK,-1000,IIf(Buy,PositionScore,-999)),"PScore",1.0,IIf(Buy AND PositionScore >= ps_min,colorRed,IIf(Buy AND PositionScore < ps_min,colorBlack,colorGrey50)),IIf(Buy,colorBrightGreen,colorGrey50),50);
+
+AddTextColumn(IndustryID(1),"Industry ID",1.0,IIf(StrLeft(IndustryID(1),7) == "Biotech",colorDarkBlue,colorLightBlue),IIf(StrLeft(IndustryID(1),7) == "Biotech",colorLightBlue,colorDarkBlue),150);
+
+AddColumn(IIf(Buy,0000,entryPrice) ,"Entry$",1.2,IIf(Buy,colorGreen,IIf(Sell AND gain > 0,colorGreen,colorWhite)),IIf(Buy,colorGreen,IIf(Sell AND gain > 0,colorPaleGreen,colorRed)));
+
+AddColumn(IIf(Buy,9999,IIf(Sell,gain,0)),"Profit%",1.2,IIf(Buy,colorGreen,IIf(Sell AND gain > 0,colorGreen,colorWhite)),IIf(Buy,colorGreen,IIf(Sell AND gain > 0,colorPaleGreen,colorRed)),50);
+
+AddColumn(IIf(Buy AND MarketOK,tradeLot * C,0),"Position $ize",1.0,IIf(Buy,colorWhite,colorGrey50),IIf(Buy,colorDarkBlue,colorGrey50),85);
+
+AddColumn(dollarMax,NumToStr(VolMax*100,1.2) + "% Limit $$",1.0,IIf(NOT Buy,colorGrey50,IIf(Buy AND dollarMax < 2/3 * tradeAmount,colorOrange,IIf(Buy AND dollarMax < tradeAmount,colorYellow,colorBrightGreen))),IIf(Buy,colorGreen,colorGrey50),85);
+
+AddColumn(dollarVolNOW,"$Vol traded today",1.0,IIf(dollarVolNOW > dollarVolMA,colorAqua,colorLightGrey),colorBlack,100);
+
+AddColumn(dollarVolMA,"MA $Volume",1.0,IIf(dollarVolNOW < dollarVolMA,colorAqua,colorLightGrey),colorBlack,100);
+
+ 
+
+if (seeBS == "Daily")
+
+{
+
+    AddColumn(newBuy,"newBuy",1.0);
+
+    AddColumn(Buy,"Buy",1.0);
+
+    AddColumn(OnBuy,"OnBuy",1.0);
+
+    AddColumn(newSell,"newSell",1.0);
+
+    AddColumn(Sell,"Sell",1.0);
+
+    AddColumn(newShort,"newShort",1.0);
+
+    AddColumn(Short,"Short",1.0);
+
+    AddColumn(OnShort,"OnShort",1.0);
+
+    AddColumn(newCover,"newCover",1.0);
+
+    AddColumn(Cover,"Cover",1.0);
+
+    AddColumn(entry,"entry",1.0);
+
+    AddColumn(myBars - Ref(entry,-1),"Max Days Exit",1.0);
+
+    AddColumn(MaxDaysIn,"MaxDaysIn",1.0);
+
+ 
+
+}/////////// ///////// ///////// ////// END
+

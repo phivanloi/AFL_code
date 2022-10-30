@@ -1,0 +1,24 @@
+Filter = 
+
+HHV(C,25)< 1.1*  LLV(C,25)  AND HHV(C,10) <1.07* LLV(C,10) 
+AND C * V >= 300000 
+AND C*V < 500000000
+
+
+AND MA(V,30)>=50000
+AND Ref(V,-5)>=50000
+AND Ref(V,-10)>=50000
+AND Ref(V,-20)>=50000
+AND C>MA(C,15)
+
+ ;
+
+
+
+AddColumn((HHV(C,5) - LLV(C,5))/LLV(C,5)*100 ,"% Bien dong gia 5 ngay ");
+AddColumn((HHV(C,20) - LLV(C,20))/LLV(C,20)*100 ,"% Bien dong gia 20 ngay ");
+AddColumn(C*V,"Gia tri GD ");
+AddColumn(C,"Gia today");
+
+AddSummaryRows(16, 1.2,5);
+SetSortColumns( 3 ) ;

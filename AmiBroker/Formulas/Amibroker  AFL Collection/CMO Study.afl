@@ -1,0 +1,32 @@
+P = ParamField("Price field",-1);
+PL = Param("Periods",20,4,45,1);
+
+UpDay = Sum((P-Ref(P,-1))*(P>Ref(P,-1)),PL);
+DownDay = Sum((Ref(P,-1)-P)*(P<Ref(P,-1)),PL);
+Cmo = 100 * ((UpDay-DownDay)/(UpDay+DownDay));
+
+/*Plot(CmO,"CMO("+PL+")", ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+Plot(EMA( CmO,9),"", colorLightBlue);
+PlotGrid(50, colorLightGrey);
+PlotGrid(0, colorLightGrey);
+PlotGrid(-50, colorLightGrey);
+*/
+
+Buy1 = Cross(BarsSince(Cross(-50, CMO)),BarsSince(Cross(CMO, EMA( CMO, 9 )) ));
+Sell1 = Cross(BarsSince( Cross( CMO, 50 ) ), BarsSince( Cross( EMA( CMO, 9), CMO ) ) );
+Buy2 = (Cum(BarsSince( Cross( CMO, EMA( CMO, 9 ))))==0 AND BarsSince( Cross( -50, CMO ))>0);
+Sell2 = (Cum(BarsSince( Cross(  EMA( CMO, 9),CMO)))==0 AND BarsSince( Cross( CMO, 50 ))>0);
+
+PlotShapes( IIf(Buy1 OR Buy2, shapeSmallCircle,0) , colorLime,0,L,-10);
+PlotShapes( IIf(Sell1 OR Sell2, shapeSmallCircle,0) , colorOrange,0,H,10);
+
+Color = IIf((Cmo > 50), colorRed, IIf((Cmo < -50), colorGreen, IIf ((Cmo >= -50 AND Cmo <=50), colorLightBlue, 0))); 
+
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );
+_N( Title = StrFormat( "{{NAME}} - " + SectorID( 1 ) + " - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", color, styleBar | styleNoTitle | ParamStyle( "Style" ) | GetPriceStyle() );
+
+if ( ParamToggle( "Tooltip shows", "All Values|Only Prices" ) )
+{
+    ToolTip = StrFormat( "Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: " + NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 ) ) );
+}

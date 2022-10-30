@@ -1,0 +1,33 @@
+function GetSecondNum(Time)
+{
+Seconds = int(Time%100);
+Minutes = int(Time/100%100);
+Hours = int(Time/10000%100);
+SecondNum= int(Hours*60*60+Minutes*60+Seconds);
+return SecondNum;
+}
+
+z = CCI(14);
+LSMA = LinearReg(C, 25 );
+EMA34 = EMA(C,34);
+Slope = Prec(LinRegSlope(EMA34,2),4);
+StopPoint = ceil(ATR(2));
+
+//Plot(Slope,"",colorLightBlue, styleNoLine);
+
+LastBarTime = GetSecondNum( StrToNum( NumToStr(Ref(TimeNum(),1)) ) );
+//last printed bar time in seconds
+current = GetSecondNum( Now(4) ); //current time in seconds
+sofar = current - LastBarTime; //seconds elapsed since last printed bar
+SecondstoGo = Interval() -
+( sofar/Interval() - floor(sofar/Interval())
+)*Interval(); //seconds left for printing next interval bar
+
+TimeColor = IIf ( SecondstoGo > 24, colorLime,
+IIf ( SecondstoGo < 19, colorRed, colorBlack) );
+
+Title = Interval(2) +  ", " + ", "
++ EncodeColor(colorWhite) + "Sec=" + EncodeColor(TimeColor) +
+int(SecondstoGo) + ", "
++ EncodeColor(colorPink) + "\nPrice=" + H + ", " + L + ", " + C
++ EncodeColor(colorWhite) + " " + Date();

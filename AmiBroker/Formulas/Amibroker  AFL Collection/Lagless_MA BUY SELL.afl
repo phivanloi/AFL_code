@@ -1,0 +1,9 @@
+_SECTION_BEGIN("Lagless_MA");
+prd=Param("Periods",21,1,250,1);
+x=2*EMA(C,prd)-EMA(EMA(C,prd),prd);
+Plot(x,"Lagless MA",colorWhite,styleThick,1);
+Plot(Close, "Close", colorYellow , styleThick);
+Buy=Cover= Cross(C,X);
+Sell=Short=Cross(X,C);
+PlotShapes( shapeUpArrow* Buy, colorDarkGreen, 0, L,-5 );
+PlotShapes( shapeDownArrow* Sell, colorDarkRed, 0, H,-5 );

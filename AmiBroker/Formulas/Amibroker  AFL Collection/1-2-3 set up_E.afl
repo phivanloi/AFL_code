@@ -1,0 +1,37 @@
+//  By Boufalo 16/11/2010 .....for  http://bit.ly/9XEYMD
+// formula of swing pull back, known as 1-2-3 set up
+// long 
+var1=(ADX(14)>30) AND (PDI(14)>MDI(14)) AND ((L<Ref(L,-1) AND Ref(L,-1)<Ref(L,-2) AND Ref(L,-2)<Ref(L,-3)) OR ((L<Ref(L,-1) AND Ref(L,-1)<Ref(L,-2) AND Ref(H,-2)<Ref(H,-3)
+AND Ref(L,-2)>Ref(L,-3)) OR (L<Ref(L,-1) AND
+Ref(L,-2)<Ref(L,-3) AND Ref(H,-1)<Ref(H,-2) AND
+Ref(L,-1)>Ref(L,-2)) OR (Ref(L,-1)<Ref(L,-2) AND Ref(L,-2)<Ref(L,-3) AND H<Ref(H,-1) AND
+L>Ref(L,-1))));
+// short
+var3=(ADX(14)>30) AND (PDI(14)<MDI(14)) AND ((H>Ref(H,-1) AND Ref(H,-1)>Ref(H,-2) AND Ref(H,-2)>Ref(H,-3)) OR ((H>Ref(H,-1) AND Ref(H,-1)>Ref(H,-2) AND Ref(H,-2)<Ref(H,-3)
+AND Ref(L,-2)>Ref(L,-3)) OR (H>Ref(H,-1) AND
+Ref(H,-2)>Ref(H,-3) AND Ref(H,-1)<Ref(H,-2) AND
+Ref(L,-1)>Ref(L,-2)) OR (Ref(H,-1)>Ref(H,-2) AND Ref(H,-2)>Ref(H,-3) AND H<Ref(H,-1) AND
+L>Ref(L,-1))));
+
+
+
+// exploration
+Buy=Cross(var1,var3);
+Sell=Cross(var3, var1);
+Filter=1;
+AddColumn(Var1,"long",1,colorBlack,colorGreen);
+AddColumn(Var3,"Short",1,colorBlack,colorRed);
+
+/* Explanation of SET UP:
+
+Long
+1) ADX(14)>30
+2)+DMI>-DMI
+3) PRICE MAKES 3 LOWER LOWS OF 2LOWER LOWS AND ONE Inside Day ANY COMBINATION.
+4) ON Day 4 Buy ABOVE THE High OF Day 3 KEEPING SL AT Low OF Day 3.
+
+for Short:
+1) ADX(14)>30
+2) -DMI>+DMI
+3) PRICE EITHER MAKE 3 HIGHER HIGHS OR 2 HIGHER HIGHS AND ONE Inside Day ANY COMBINATION.
+4) ON Day 4 Short BELOW THE Low OF Day 3 KEEPING SL AT Day 3 High. */

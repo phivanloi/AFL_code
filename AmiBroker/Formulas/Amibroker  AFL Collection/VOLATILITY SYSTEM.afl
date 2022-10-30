@@ -1,0 +1,13 @@
+EntrySignal = C > ( LLV( L, 20 ) + 2 * ATR( 10 ) ); 
+ExitSignal = C < ( HHV( H, 20 ) - 2 * ATR( 10 ) ); 
+Color = IIf( EntrySignal, colorBlue, IIf( ExitSignal, colorOrange, colorGrey50 )); 
+TrailStop = HHV( C - 2 * ATR(10), 15 ); 
+ProfitTaker = EMA( H, 13 ) + 2 * ATR(10); 
+/* plot price chart and stops */ 
+Plot( TrailStop, "Trailing stop", colorBrown, styleThick | styleLine ); 
+Plot( ProfitTaker, "Profit taker", colorLime, styleThick ); 
+Plot( C, "Price", Color, styleBar | styleThick ); 
+
+/* plot color ribbon */ 
+Plot( 1, "", Color, styleArea | styleOwnScale | styleNoLabel, -0.1, 50 ); 
+

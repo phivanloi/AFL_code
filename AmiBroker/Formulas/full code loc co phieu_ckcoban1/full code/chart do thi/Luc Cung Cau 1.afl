@@ -1,0 +1,24 @@
+_SECTION_BEGIN("Luc Cung Cau");
+mav5=MA(V,5);
+mav10=MA(V,10);
+mua = IIf(C>=O, 1,0);
+ban= IIf(C<O, 1,0);
+LucCau=mua*V;
+LucCung=ban*V;
+period=Param("chu ky",5,3,10,1);
+LucCau10 = MA(LucCau,period);
+LucCau5=MA(LucCau,5);
+LucCung10 = MA(LucCung,period);
+LucCungCau10=(LucCau10-LucCung10);
+//Plot( Cau, _DEFAULT_NAME(), ParamColor("Color", colorGreen ), ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick, maskHistogram  ) );
+//Plot( LucCau, _DEFAULT_NAME(), ParamColor("Color", colorBlue), ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick, maskHistogram  ) );
+//Plot( LucCung, _DEFAULT_NAME(), ParamColor("Color1", colorRed), ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick, maskHistogram  ) );
+Plot( LucCungCau10, _DEFAULT_NAME(), IIf(LucCungCau10>0, colorBrightGreen, colorRed), ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick, maskHistogram  ) );
+
+//Plot( LucCau10, "", ParamColor("Color2", colorBrightGreen ), styleThick );
+//Plot( LucCung10, "", ParamColor("Color3", colorBlueGrey ), styleThick );
+Plot( LucCungCau10, "", ParamColor("Color4", colorAqua ), styleThick );
+//Plot( LucCung10, "", ParamColor("Color5", colorRed ), styleThick );
+
+_SECTION_END();
+

@@ -1,0 +1,60 @@
+// Triangular Formation Exploration
+// Use in Automatic Analysis -> Explore
+//
+// you can modify PercentThreshold below
+PercentThreshold = 20;
+///
+function RSquared( array, periods )
+{
+   return Correlation( Cum(1), array, periods ) ^ 2;
+}
+// 20% zig-zag
+zz = Zig(C, PercentThreshold );
+x = Min( BarsSince( zz > Ref(zz,-1) AND Ref( zz, -1 ) < Ref( zz, -2 ) ),
+         BarsSince( zz < Ref(zz,-1) AND Ref( zz, -1 ) > Ref( zz, -2 ) ) );
+I = LastValue( x )+1;
+xM = LastValue( I / 2 );
+A = LastValue( LinRegSlope( C ,I ) );
+// Regression line
+reg = A*x + LastValue( LinearReg( C, I ) ) - A*(I-1);
+// Up AND Down Indicators
+day1    = LastValue( ValueWhen( x == 0, Day() ) );
+Month1   = LastValue( ValueWhen( x == 0, Month() ) );
+year1  = LastValue( ValueWhen( x == 0, Year() ) );
+OK = BarsSince( day1 == Day() AND month1 == Month() AND year1 == Year() ) >= 0;
+downm = Min( C-reg, 0 );
+down = IIf( NOT OK, 0, ValueWhen( downm != 0, downm ) );
+upm = Max( C-reg, 0 );
+up = IIf( NOT OK, 0, ValueWhen( upm !=0, upm ) );
+// Slope of up AND down indicators
+Id = LastValue( Cum( Hold( OK AND C<reg, I ) ) );
+Iu = LastValue( Cum( Hold( OK AND C>reg, I ) ) );
+downSlope = Sum( ( x - xM ) *
+( down - LastValue( Sum( down, Id )/ Id ) ) ,Id) /
+            Sum( ( x - xM ) * ( x - xM ), Id );
+upSlope = Sum( ( x - xM ) * ( up - LastValue( Sum( up, Iu )/Iu ) ), Iu ) /
+          Sum(( x- xM )^2, Iu );
+// Short Term Swings
+SS = Sum( Cross( MA( C, 5 ), reg) + Cross( reg, MA( C, 5 ) ), I - 1);
+// Max Retracement
+retr = Max( abs( C-HHV(C,I+1)), abs(C-LLV(C,I+1)) ) /
+       abs( ValueWhen( x==0, C, 2 )- ValueWhen( x==0, C, 1 ) ) *100;
+// Volume slope
+VolSlope =Sum( ( x - xM )*( V - LastValue( Sum( V, I )/I ) ), I )/
+Sum( ( x - xM )^2, I);
+//TPR Formula
+TPR = IIf( I >= 10 AND I <= 60 AND downSlope > 0 AND upSlope < 0 AND retr < 50 AND SS >= 3,
+// Time
+IIf(I >= 15 AND I < 30, 2, 0 ) +
+IIf(I >= 30 AND I <= 55, 1, 0 ) +
+//r^2
+IIf( RSquared( C, I) < 0.2, 2, 0) +
+IIf( RSquared( C, I) >= 0.2 AND RSquared(C,I) < 0.5, 1, 0 ) +
+//Max retracement
+IIf( retr < 20, 4, 0 ) +
+IIf( retr >= 20 AND retr < 38, 3, 0 ) +
+//Volume
+IIf( VolSlope < 0, 4, 0 ) + 1,
+/*otherwise*/ 0);
+Filter = TPR > 0;
+AddColumn( TPR, "TPR" );

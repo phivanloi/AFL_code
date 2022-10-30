@@ -1,0 +1,31 @@
+_SECTION_BEGIN("FORCE INDEX OSCILLATOR with Spread-Tuned");
+SetBarsRequired(sbrAll);
+SetChartBkColor(colorBlack);
+K=H-L;
+K1=EMA(K,7);
+K2=EMA(K,21);
+K3=K1/K2;
+A1=(C-Ref(C,-1))*V*K3;
+A2=EMA(A1,13);
+A3=EMA(EMA(EMA(A2,3),3),3);
+ifish=EMA(EMA(EMA(EMA(A3,3),3),3),3);
+Color=IIf(ifish>0,IIf(ifish>Ref(ifish,-1),colorGreen,colorYellow),IIf(ifish>Ref(ifish,-1),colorBlue,colorRed));
+Plot(ifish,"FORCE INDEX OSCILLATOR with Spread",Color,styleHistogram | styleThick, maskHistogram);
+_SECTION_END();
+
+_SECTION_BEGIN("Vortex Indicator Line");
+
+// Vortex Indicator
+
+period = Param("Period", 21, 2 );
+VMP = Sum( abs( H - Ref( L, -1 ) ), period );
+VMM = Sum( abs( L - Ref( H, -1 ) ), period );
+STR = Sum( ATR( 10 ), period );
+VIP = VMP / STR;
+VIM = VMM / STR;
+K1=VIP-VIM;
+K2=TEMA(K1,7);
+K=EMA(EMA(EMA(EMA(K2,3),3),3),3);
+Plot(0,"", IIf(K>0,IIf(K>Ref(K,-1),colorGreen,colorYellow),IIf(K<0,IIf(K<Ref(K,-1),colorRed,colorBlue),styleLine|styleThick)));
+ 
+_SECTION_END();

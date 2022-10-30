@@ -1,0 +1,102 @@
+/******************************************************************
+ * TD Moving Average II:
+ * Enter long: if "tdmaentry" is greater than 0
+ * Enter short: if "tdmaentry" is less than 0
+ * Exit long: if "tdmastop" is 1
+ * Exit short: if "tdmastop" is -1
+ *
+ * Improvements: Regression testing on the best combination of
+ * moving averages.
+ *******************************************************************/
+TDPlotStyle = ParamStyle("Plot Style", styleLine );
+TDSHortPeriods = Param("Short Periods", 3, 1, 100, 1);
+TDLongPeriods = Param("Long Periods", 34, 1, 100, 1);
+shortma = MA( C,TDSHortPeriods);
+longma = MA( C,TDLongPeriods);
+shortroc = ROC( shortma, TDSHortPeriods-1);
+longroc = ROC(longma, 1 );
+tdma2longtrigger = Cross( shortma, longma);
+tdma2shorttrigger = Cross( longma, shortma );
+tdma2long = shortma > longma;
+tdma2short = longma > shortma;
+tdma2green = shortroc > 0 AND longroc > 0;
+tdma2red = shortroc < 0 AND longroc < 0;
+tdmastop[0] = 0;
+tdmaentry[0] = 0;
+bTrend = 0;
+nEntryAt = 0;
+nShortEntryAt = 0;
+nLongEntryAt = 0;
+for( x=0; x < BarCount; x++ )
+	{//loop to figure out the trends and correponding stops
+	tdmastop[x] = 0;
+	tdmaentry[x] = 0;
+	if( tdma2longtrigger[x] == 1 )
+		{//we have a cross to the upside
+		if( bTrend < 0 )
+			tdmastop[x] = 0-1; //if we were in a short, exit here
+
+		bTrend = 1;//start the up trend
+		}
+	else if( tdma2shorttrigger[x] == 1 )
+		{//we have a cross to the downside
+		if( bTrend > 0 )
+			tdmastop[x] = 1;//if we were in a long, exit here.
+
+		bTrend = 0-1; //start the down trend
+		}
+
+	if( tdma2long[x] == 1 AND tdma2green[x] == 1 )
+		{//TD says that you enter only after the cross AND
+		 //the ROCs for both MAs are positive.
+		if( bTrend == 1 )
+			{//OK. let's go long
+			tdmaentry[x] = 1;//OK, we enter at the close here. This could also be the open for next day.
+			bTrend++; //set the flag that we're now long
+			nLongEntryAt = x; //save the bar's index for later. This is our 'trigger' day
+			}
+		}
+		
+	if( tdma2short[x] == 1 AND tdma2red[x] == 1 )
+		if( bTrend == 0-1 )
+			{//we do the same here but in the opposite direction (short trade)
+			tdmaentry[x] = 0-1;
+			bTrend--;
+			nShortEntryAt = x;
+			}
+			
+	if( bTrend > 1 )
+		{//OK. We are in a long trade. See if our stop was hit.
+		if ( L[x] <= (tdma2long[nLongEntryAt]-0.50) ) //NOTE: I use 50 cents below the MA for my stop.
+			{
+			if( x < nLongEntryAt ) //make sure that we don't exit on the "trigger" day
+				{
+				bTrend = 0; //no trend
+				tdmastop[x] = 1; //long exit
+				}
+			}
+		}
+
+	if( bTrend < 0-1 )
+		{//OK. We are in a short trade. See if our stop was hit.
+		if ( H[x] >= (tdma2long[nShortEntryAt]+0.50) )
+			if( x < nShortEntryAt )
+				{
+				bTrend = 0; //no trend
+				tdmastop[x] = 0-1; //short exit
+				}
+		}
+	}
+
+Plot( shortma, "TDMA-2S", IIf( shortroc > 0, colorGreen, colorRed ),	TDPlotStyle);
+Plot( longma, "TDMA-2L", IIf( longroc > 0, colorGreen, colorRed ),TDPlotStyle);
+
+entryshape = IIf( tdmaentry == 1, shapeUpArrow,	IIf( tdmaentry < 0, shapeDownArrow, shapeNone )	);
+//I use a hollow circle (red or green) to indicate an exit
+exitshape =  IIf( tdmastop == 1, shapeHollowCircle,	IIf( tdmastop < 0, shapeHollowCircle, shapeNone ));
+
+PlotShapes( entryshape,	IIf( tdmaentry==1, colorGreen,	IIf(tdmaentry < 0, colorRed, colorGreen)), 0, 
+IIf( tdmaentry==1, Low, IIf(tdmaentry<0, High, C)), IIf( tdmaentry==1, -10, IIf(tdmaentry<0, 5, -10))	);
+
+PlotShapes( exitshape, IIf( tdmastop==1, colorGreen,IIf(tdmastop < 0, colorRed, colorGreen)), 0,
+IIf( tdmastop==1, Low, IIf(tdmastop<0, High, C)), IIf( tdmastop==1, -13,IIf(tdmastop<0, 13, -15)));

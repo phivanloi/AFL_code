@@ -1,0 +1,3 @@
+LB:= Input("Enter lookback period",15,30,20);
+PERIOD:= Input("ENTER % STOPLOSS",2,10,7);
+HHV(C ,LB)-(HHV(C,LB)*(PERIOD/100))

@@ -1,0 +1,157 @@
+_SECTION_BEGIN("Title");
+ SetChartOptions(0,chartShowArrows|chartShowDates,colorRed);
+
+
+ Plot(C,"Price",IIf(C>O,colorBrightGreen,colorBrown ),styleCandle);
+
+ _N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L,C, SelectedValue( ROC( C, 1 )) ));
+
+
+ _SECTION_END(); 
+
+
+
+
+ _SECTION_BEGIN("GaNN Square of Nine");
+
+ BarsToday = 1 + BarsSince( Day() != Ref(Day(), -1));
+
+ StartBar = ValueWhen(TimeNum() == 091500, BarIndex());
+
+ TodayVolume = Sum(V,BarsToday);
+
+ VWAP = (Sum (((C+O+H+L)/4) * V, BarsToday ) / TodayVolume);
+ Plot (VWAP,"VWAP",colorBlue, styleStaircase = 512);
+
+
+ RefVWAP = ValueWhen(TimeNum() == 092900, Vwap,1);
+
+
+ BaseNum = (int(sqrt(RefVWAP))-1);
+ sBelow = BaseNum + BaseNum;
+ sBelowI = 1;
+
+
+ //Calculate levels for GANN Square of Nine
+
+ for( i = 1; i < 50; i++ ) 
+ { 
+ VarSet( "GANN"+i, (BaseNum * BaseNum) ); 
+ BaseNum = BaseNum + 0.125;
+ sBelowI = IIf( VarGet("GANN"+i)< RefVWAP, i, sBelowI);
+ bAboveI = sBelowI + 1;
+ sBelow = round(VarGet("GANN"+sBelowI));
+ bAbove = round(VarGet("GANN"+bAboveI));
+ }
+
+ // Resistance Levels (or Targets for Buy trade)
+ BTgt1 = round(0.9995 * VarGet("Gann"+(bAboveI+1)));
+ BTgt2 = round(0.9995 * VarGet("Gann"+(bAboveI+2)));
+ BTgt3 = round(0.9995 * VarGet("Gann"+(bAboveI+3)));
+ BTgt4 = round(0.9995 * VarGet("Gann"+(baboveI+4)));
+ BTgt5 = round(0.9995 * VarGet("Gann"+(bAboveI+5)));
+ BTgt6 = round(0.9995 * VarGet("Gann"+(baboveI+6)));
+ // Support Levels (or Targets for Short trade)
+ STgt1 = round(1.0005 * VarGet("Gann"+(sBelowI-1)));
+ STgt2 = round(1.0005 * VarGet("Gann"+(sBelowI-2)));
+ STgt3 = round(1.0005 * VarGet("Gann"+(sBelowI-3)));
+ STgt4 = round(1.0005 * VarGet("Gann"+(sbelowI-4)));
+ STgt5 = round(1.0005 * VarGet("Gann"+(sBelowI-5)));
+ STgt6 = round(1.0005 * VarGet("Gann"+(sBelowI-6)));
+
+ Sstop= round(babove-((babove-sbelow)/3)) ;
+ Bstop= round(sbelow+((babove-sbelow)/3)) ;
+
+ BuySignal = TimeNum()>092900 AND (Cross(H,babove)OR Cross(C,babove) OR (H>babove AND L<=babove)) AND VWAP<babove ;
+ ShortSignal = TimeNum()>092900 AND (Cross(Sbelow,L) OR Cross(Sbelow,C) OR (H>=sbelow AND L<sbelow))AND VWAP>sbelow ;
+
+ BuySignal = ExRem(BuySignal,ShortSignal);
+ ShortSignal = ExRem(ShortSignal,BuySignal);
+
+ ShortProfitStop= (STgt1 AND L<=Stgt1 AND C>Stgt1) OR (STgt2 AND L<=Stgt2 AND C>Stgt2) OR (STgt3 AND L<=Stgt3 AND C>Stgt3) OR (STgt4 AND L<=Stgt4 AND C>Stgt4) OR (STgt5 AND L<=Stgt5 AND C>Stgt5) OR (STgt6 AND L<=Stgt6 AND C>Stgt6);
+
+ BuyProfitStop= (Btgt1 AND H>=btgt1 AND C<Btgt1) OR (Btgt2 AND H>=Btgt2 AND C<btgt2) OR (Btgt3 AND H>=Btgt3 AND C<btgt3) OR (Btgt4 AND H>=Btgt4 AND C<btgt4) OR (Btgt5 AND H>=Btgt5 AND C<btgt5) OR (Btgt6 AND H>=Btgt6 AND C<btgt6);
+
+ SetOption("MaxOpenPositions", 1 ); 
+ SetPositionSize(100,spsShares);
+
+ Buy = BuySignal;
+ Sell = C<Bstop OR BuyProfitStop;
+ Short = ShortSignal;
+ Cover = C>SStop OR ShortProfitStop;
+
+ Buy = ExRem(Buy,Sell);
+ Sell = ExRem(Sell,Buy);
+ Short = ExRem(Short,Cover);
+ Cover = ExRem(Cover,Short);
+
+
+
+ Sstop= round(babove-((babove-sbelow)/3)) ;
+ Bstop= round(sbelow+((babove-sbelow)/3)) ;
+
+ GfxSetBkMode( 1 );
+ GfxSelectFont("Courier New", 11, 700 ); 
+ GfxSetTextColor( colorBrightGreen );
+ GfxSelectPen( colorBlack, 1, 0) ;
+ GfxSelectSolidBrush( colorWhite ); 
+
+ BTgtext = "Buy Targets : " + NumToStr(btgt1,1.2,False) + " - " + NumToStr(btgt2,1.2,False) + " - " + NumToStr(btgt3,1.2,False);
+ STgtext = "Short Targets : " + NumToStr(stgt1,1.2,False) + " - " + NumToStr(stgt2,1.2) + " - " + NumToStr(stgt3,1.2,False);
+
+ GfxTextOut("Current time : " + TimeNum(), 225, 25);
+
+ GfxTextOut("Buy Above : " + WriteIf(TimeNum()>092900, NumToStr(bAbove,1.2,False) + " SL : " + NumToStr(sBelow,1.2,False),"Waiting for Signal"), 225, 45);
+ GfxTextOut(WriteIf(TimeNum()>092900,BTgtext,""), 225, 55);
+
+ GfxSetBkMode( 1 );
+ GfxSelectFont("courier new", 11, 700 ); 
+ GfxSetTextColor( colorRed );
+ GfxSelectPen( colorBlack, 1, 0) ;
+ GfxSelectSolidBrush( colorWhite ); 
+
+ GfxTextOut("Short Below : " + WriteIf(TimeNum()>092900, NumToStr(sBelow,1.2,False) + " SL : " + NumToStr(bAbove,1.2,False),"Waiting for Signal"), 225, 75);
+ GfxTextOut(WriteIf(TimeNum()>092900,STgtext,""), 225, 85);
+
+ AddColumn(Close,"Close",1.4);
+ AddColumn(Buysignal,"buysignal",1.2);
+
+
+ _SECTION_BEGIN("BBands");
+ Plot(BBandTop(C,20,2),"",colorLightGrey,style=styleLine|styleNoRescale|styleNoLabel);
+ Plot(BBandBot(C,20,2),"",colorLightGrey,style=styleLine|styleNoLabel);
+ _SECTION_END();
+
+ Plot(sstop,"",colorGreen,styleDots=8|styleNoLabel) ;
+ Plot(bstop,"",colorRed,styleDots=8|styleNoLabel);
+ PlotOHLC( babove, sbelow, babove,sbelow, "", colorYellow, styleCloud); 
+ PlotOHLC( sbelow, babove, sbelow,babove, "", colorYellow, styleCloud); 
+
+
+
+
+ PlotShapes(IIf(Buysignal, shapeSquare, shapeNone),colorBlue, 0, L, Offset=-20);
+ PlotShapes(IIf(Buysignal, shapeSquare, shapeNone),colorBlue, 0,L, Offset=-30); 
+ PlotShapes(IIf(Buysignal, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-25); 
+
+ PlotShapes(IIf(Shortsignal, shapeSquare, shapeNone),colorRed, 0, H, Offset=20);
+ PlotShapes(IIf(Shortsignal, shapeSquare, shapeNone),colorOrange, 0,H, Offset=30); 
+ PlotShapes(IIf(Shortsignal, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-25);
+
+ Plot(BTgt1,"",colorGreen,styleStaircase|styleSwingDots|styleNoRescale);
+ Plot(BTgt2,"",colorGreen,styleStaircase|styleSwingDots|styleNoRescale);
+ Plot(BTgt3,"",colorGreen,styleStaircase|styleSwingDots|styleNoRescale);
+ Plot(BTgt4,"",colorGreen,styleStaircase|styleSwingDots|styleNoRescale);
+ Plot(BTgt5,"",colorGreen,styleStaircase|styleSwingDots|styleNoRescale);
+ Plot(BTgt6,"",colorGreen,styleStaircase|styleSwingDots|styleNoRescale);
+
+ Plot(STgt1,"",colorRed,styleStaircase|styleSwingDots|styleNoRescale);
+ Plot(STgt2,"",colorRed,styleStaircase|styleSwingDots|styleNoRescale);
+ Plot(STgt3,"",colorRed,styleStaircase|styleSwingDots|styleNoRescale);
+ Plot(STgt4,"",colorRed,styleStaircase|styleSwingDots|styleNoRescale);
+ Plot(STgt5,"",colorRed,styleStaircase|styleSwingDots|styleNoRescale);
+ Plot(STgt6,"",colorRed,styleStaircase|styleSwingDots|styleNoRescale);
+
+
+ PlotShapes(IIf(Cover, shapeHollowUpArrow,shapeNone),colorGreen, 0, Low, Offset=-20);
+ PlotShapes(IIf(Sell, shapeHollowDownArrow,shapeNone),colorRed, 0, High, Offset=-20);

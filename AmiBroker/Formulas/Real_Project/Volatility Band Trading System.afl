@@ -1,0 +1,45 @@
+//Strategy Coded by Rajandran R - Author of Marketcalls
+//Date : 12 - Oct - 2013
+
+_SECTION_BEGIN("Volatility Band Long Only Reversal Trading System");
+average = Param("Band average", 8, 1 );
+Volperiod = Param("VolPeriod", 13, 1 );
+devfactor = Param("Devfactor", 3.55, 0, 10, 0.01 );
+Lowbandadjust = Param("Low band adj.", 0.9, 0, 5, 0.01 );
+
+Typical = ( High + Low + Close )/3;
+
+AdjTyp = IIf( Typical > Ref( Typical, -1 ),
+              Typical - Ref( Low, -1 ),
+              Ref( Typical, -1 ) - Low );
+
+Deviation = Sum( AdjTyp , VolPeriod )/ VolPeriod * devfactor;
+
+DevHigh = EMA( deviation, average );
+DevLow = EMA( deviation, average ) * Lowbandadjust;
+
+Medianaverage = EMA( Typical, average );
+
+up = EMA( Medianaverage, average ) + DevHigh;
+down = EMA( Medianaverage, average ) - DevLow;
+
+
+
+Plot( C, "VolatilityBand Reversal System" + _PARAM_VALUES() + " Price", colorDefault, styleCandle );
+
+Plot( EMA( Medianaverage, average ) + DevHigh, "Upper", colorViolet );
+Plot( EMA( Medianaverage, average ) - DevLow, "Lower", colorViolet );
+Plot( MA( Medianaverage, average ), "Median", colorBlue );
+
+Buy = Ref(C,-2) < Ref(down,-2) AND Ref(C,-1)>Ref(down,-1) AND C>Ref(C,-1);
+Sell = 0;
+//Sell = Ref(C,-2) > Ref(up,-2) AND Ref(C,-1)<Ref(up,-1) AND C<Ref(C,-1);
+
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+//PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+//PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+//PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+
+_SECTION_END();

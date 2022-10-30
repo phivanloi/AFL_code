@@ -1,0 +1,53 @@
+//------------------------------------------------------------------------------
+//
+//  Formula Name:    lastNDaysBeforeDate
+//  Author/Uploader: DiscusLorraine - Zorglum.Glouton [at] free.fr
+//  E-mail:          
+//  Date/Time Added: 2006-11-18 10:48:58
+//  Origin:          
+//  Keywords:        Time, Date, Intraday
+//  Level:           basic
+//  Flags:           showemail,function
+//  Formula URL:     http://www.amibroker.com/library/formula.php?id=762
+//  Details URL:     http://www.amibroker.com/library/detail.php?id=762
+//
+//------------------------------------------------------------------------------
+//
+//  Function that returns the closing prices of the bars belonging the n
+//  previous trading days before a given date (expressed in DateNum() format).
+//
+//  The resulting array contains Null cells everywhere except for the bars
+//  within the chosen interval. I find it useful with intraday data to retrieve
+//  the prices of the few previous days.
+//
+//------------------------------------------------------------------------------
+
+// Return the closing prices of the bars during the n previous 
+// trading days before a given Date (expressed in DateNum() format). 
+// The resulting array contains  Null cells everywhere except for the 
+// bars within the chosen interval. I find it useful with 
+// intraday data to get the prices of the few previous days.
+
+function lastNDaysBeforeDate(arg_N, arg_Date)
+{
+	local i, stop, CurrentDay,DatesBeforeDate;
+	// get all dates before 'arg_date'
+	DatesBeforeDate  = IIf(DateNum()<arg_Date, DateNum(), Null);
+	// some initializations
+	stop = arg_N; CurrentDay = 10E-10; RESULT = Null;
+	// scan from the back of the array
+	for (i=BarCount-1;(i>=0)AND(stop>=0);i--) {
+		// only interesting when non-empty values
+		if (!IsEmpty(DatesBeforeDate[i])) { 
+			// count the number of changes of the value of CurrentDay			
+			// to know where to stop
+			if (CurrentDay!=DatesBeforeDate[i]) {
+				CurrentDay = DatesBeforeDate[i];
+				// _TRACE("Day " + NumToStr(CurrentDay,1.0));
+				stop--;
+			}
+		    if (stop>=0) RESULT[i]=Close[i];
+		}
+	}
+   return RESULT;
+}

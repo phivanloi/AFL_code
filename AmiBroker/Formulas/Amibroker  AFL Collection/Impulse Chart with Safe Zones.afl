@@ -1,0 +1,81 @@
+_SECTION_BEGIN("Elder Impulse");
+macShort = Param("MACD Short MA",12,1,100,1);
+macLong = Param("MACD Long MA",26,1,100,1);
+macSmooth = Param("MACD Smoothing Period",9,1,100,1);
+EMAp = Param("Short EMA",13,1,40,1);
+macTime = Param("Time Ratio",1,22,1);
+macShort = macShort*macTime;
+macLong = macLong*macTime;
+macSmooth = macSmooth*macTime;
+EMAvg = EMAp*MacTime;
+//{ do long impulse next }
+mac = EMA(C,macShort)-EMA(C,macLong);
+MacSig = EMA(mac,macSmooth);
+macplot = (mac-MacSig);
+impulse = IIf(macplot >= Ref(macplot,-macTime), 1,0)+IIf(Close > EMA(Close,EMAp),1,0)-1;
+
+//Plot(impulse, "", colorRed);
+//PlotGrid(0, colorLightGrey);
+
+Color = IIf(impulse == 0, colorLightBlue, IIf(impulse < 0, colorRed, IIf(impulse > 0, colorLime, 0)));
+
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );
+_N( Title = StrFormat( "{{NAME}} - " + SectorID( 1 ) + " - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", color, styleBar | styleNoTitle | ParamStyle( "Style" ) | GetPriceStyle() );
+
+if ( ParamToggle( "Tooltip shows", "All Values|Only Prices" ) )
+{
+    ToolTip = StrFormat( "Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: " + NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 ) ) );
+}
+
+Plot(EMA(C,13), "EMA-13", colorOrange, styleThick);
+
+a = IIf(impulse>0,1,0);  //{ Buy OK}
+b = IIf(impulse<0,1,0);  //{ Sell OK}
+state=IIf(BarsSince(a)<BarsSince(b),1,0);
+
+Longs=state==1;
+shorts=state==0;
+
+
+Buy = state>Ref(state,-1);
+Sell = state<Ref(state,-1);
+
+PlotShapes( IIf(Buy, shapeSmallCircle,0) , colorLime,0,L,-10);
+PlotShapes( IIf(Sell, shapeSmallCircle,0) , colorOrange,0,H,10);
+
+//phase
+RCP = C > MA(C,50) AND MA(C,50) < MA(C,200); // Recovery
+ACP = C > MA(C,50) AND C > MA(C,200) AND MA(C,50) < MA(C,200); // Accumulation
+BLP = C > MA(C,50) AND C > MA(C,200) AND MA(C,50) > MA(C,200); // Bullish
+WRP = C < MA(C,50) AND MA(C,50) > MA(C,200); // Warning
+DSP = C < MA(C,50) AND C < MA(C,200) AND MA(C,50) > MA(C,200); // Distribution
+BRP = C < MA(C,50) AND C < MA(C,200) AND MA(C,50) < MA(C,200); // Bearish
+
+Plot( 1, "", IIf(RCP, colorBlue, IIf(ACP, colorSeaGreen, IIf(BLP, colorDarkGreen, IIf(WRP, colorOrange, IIf(DSP, colorRed, IIf(BRP, colorDarkRed, 0)))))), styleOwnScale|styleArea|styleNoLabel, -0.1, 50 );
+"";
+"PHASE:";
+Phase = WriteIf(RCP, "Recovery",
+WriteIf(ACP, "Accumulation",
+WriteIf(BLP, "Bullish",
+WriteIf(WRP, "Warning",
+WriteIf(DSP, "Distribution",
+WriteIf(BRP, "Bearish",
+""))))));
+_SECTION_END();
+
+_SECTION_BEGIN("Elder Safe Zones");
+factor = Param("SafeZone Factor",2.0,0.0,20.0,0.1); 
+lookback=Param("LookBack Period",99,10,300,1);
+Lowtot = Cum(IIf(Low<Ref(Low,-1),Ref(Low,-1)-Low,0));
+LowCount= Cum(Low<Ref(Low,-1));
+Count= LowCount - Ref(LowCount,-lookback);
+Safe=IIf(count>0,(Lowtot-Ref(Lowtot,-lookback))/count,0);
+SZLE = Low-factor*safe;
+
+Plot( SZLE, "SZ-LE", colorLime);
+
+SZSE = High+factor*safe;
+
+Plot( SZSE, "SZ-SE",colorRed);
+_SECTION_END();

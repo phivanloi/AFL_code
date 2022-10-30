@@ -1,0 +1,61 @@
+/* Elliott Oscillator Indicator*/
+var0=MA(A,5)-MA(A,34);
+Graph0=var0;
+Graph0Style=6;
+Graph1=0;
+Graph1Color=5;
+
+
+Fivelow= ( Ref(L,-3)<Ref(L,-4) AND Ref(L,-4)<Ref(L,-5) AND Ref(L,-2)<Ref(L,-3))AND (Ref(L,-1)<Ref(L,-2)) AND (L<Ref(L,-1));
+
+var1=
+((MA(var0,5)>0 
+AND 
+MA(C,3)<MA(C,10))
+AND
+ LinRegSlope(C, 38)>.25) 
+AND
+
+(Fivelow
+ OR
+ (Ref(C,-2)==Inside() AND Ref(L,-1)<Ref(L,-2)AND L<Ref(L,-1))
+OR
+ (Ref(L,-3)<Ref(L,-4)AND Ref(C,-1)==Inside()AND L<Ref(L,-1))
+OR
+(Ref(L,-2)<Ref(L,-3))AND (Ref(L,-1)<Ref(L,-2)AND Inside()));
+
+Buy=var1;
+Sell=0;
+
+Filter=Buy;
+
+
+Filter= (Buy==1)  ;
+NumColumns = 7;
+Column0 =Ref(C+0.065,-1);
+Column0Format = 1.2;
+Column0Name = "Trigger Price";
+Column1 = C;
+Column1Name = "Close       ";
+Column1Format = 1.2;
+Column2 = MA(V,17);
+Column2Name = "17 Ma Vol   ";
+Column2Format = 1.0;
+Column3 = MA(C,17)/MA(C,50);
+Column3Name = "% 17/50 ";
+Column3Format = 1.2;
+Column3Format = 1.2;
+Column4= MA(C,17);
+Column4Name="17 C ma";
+Column4Format = 1.2;
+Column4= MA(C,50);
+Column4Name="50 C ma";
+Column4Format = 1.2;
+Column5=var0;
+Column5Name="Elliott Ocs";
+Column5Format=1.2;
+Column6=LinRegSlope(var0,5);
+Column6Name="LRS Elliott";
+Column6Format=1.2;
+
+/*  End of Exploration Code. */

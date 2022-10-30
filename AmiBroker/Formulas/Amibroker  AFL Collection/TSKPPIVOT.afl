@@ -1,0 +1,126 @@
+CHiPr = 0;
+CLoPr = 9999999;
+blsLong = 0;
+PrevCOBar = 0;
+NumBars = 0;
+PrePP = 0;
+PrevLowVal = 9999999;
+BuySig = 0;
+blsShort = 0;
+PrevHiVal = 0;
+blsNewCO = 0;
+BarDif   = 0;
+
+KPA900Val = E_TSKPA900(Close);
+KPAutoStopVal = E_TSKPAUTOSTOP(High,Low,Close);
+
+// -- Create 0-initialized arrays the size of barcount
+aHPivs = H - H;
+aLPivs = L - L;
+aHiVal = H - H;
+aLoVal = L - L;
+
+
+Ctmpl = E_TSKPCOLORTMPL(Open,High,Low,Close,Volume);
+sctotal = 0;
+sctotal = sctotal  + IIf(tskp_colortmplcnd0 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd1 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd2 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd3 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd4 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd5 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd6 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd7 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd8 > 0, 1, -1); 
+
+
+for (curBar=0; curBar < BarCount-1; curBar++)
+{
+
+	if ( curBar == 0 )
+	{
+		CHiPr = High[curBar];
+		CHiBar = curBar;
+		CLoPr = Low[curBar];
+		CLoBar = curBar;
+		blsLong = 0;
+		blsShort = 0;
+		blsNewCO = 0;
+		PrePP = 0;
+		PrevCOBar = 0;
+		PrevHiVal = High[curBar];
+		PrevLowVal = Low[curBar];
+		BuySig = 0;
+		SellSig = 0;
+		blsLL  = 0;
+	}
+
+	if (High[CurBar] >= CHiPr) {
+		CHiPr = High[CurBar];
+		ChiBar = CurBar;
+	}
+
+	if (Low[CurBar] <= CLoPr) {
+		CLoPr = Low[CurBar];
+		CLoBar = CurBar;
+	}
+
+	if ( (KPA900Val[curBar] >= KPAutoStopVal[curbar]) AND (PrePP != -1) AND (blsLong != 1) ){
+		BarDif = CurBar - PrevCOBar;
+		if (BarDif >= NumBars) {
+			blsLong = 1;
+			blsShort = 0;
+			blsNewCO = 1;
+			PrevCOBar = CurBar;
+		}
+	}
+
+	if ( (KPA900Val[curBar] <= KPAutoStopVal[curbar]) AND (PrePP != 1) AND (blsShort != 1) ){
+		BarDif = CurBar - PrevCOBar;
+		if (BarDif >= NumBars) {
+			blsLong = 0;
+			blsShort = 1;
+			blsNewCO = 1;
+			PrevCOBar = CurBar;
+		}
+	}
+
+	if ( (blsNewCO == 1) AND (sctotal[CurBar] >= 5) AND (blsLong == 1) ) {
+		LVal = CurBar - CLoBar;
+		for (j= CLoBar-1; j <= CLoBar+1; j++)
+		{
+			if (j >=0) {
+				aLPivs[j] = 1;
+				aLoVal[j] = CLoPr;
+			}
+		}
+		PrePP = -1;
+		blsNewCO = 0;
+		CHiPr = High[CurBar];
+		CHiBar = CurBar;
+		CLoPr = Low[Curbar];
+		CLoBar = CurBar;
+		} 
+		else if ((blsNewCO == 1) AND (sctotal[CurBar] <= -5) AND (blsShort == 1) ) {
+		HVal = CurBar - CHiBar;
+		for (j= CHiBar-1; j <= CHiBar+1; j++)
+		{		
+			if (j >=0) {
+				aHPivs[j] = 1;
+				aHiVal[j] = CHiPr;
+			}
+		}
+		PrePP = 1;
+		blsNewCO = 0;
+		CHiPr = High[CurBar];
+		CHiBar = CurBar;
+		CLoPr = Low[Curbar];
+		CLoBar = CurBar;
+		} 
+}
+
+PlotShapes(
+IIf(aHPivs == 1, shapeSmallCircle,shapeNone), colorDarkGreen,0, aHiVal+0.05, Offset = 10);
+
+PlotShapes(
+IIf(aLPivs == 1, shapeSmallCircle,shapeNone), colorDarkGreen,0, aLoVal-0.05, Offset = -10);

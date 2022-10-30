@@ -1,0 +1,7 @@
+P = ParamField( "Price field" );
+periods = Param("Periods", 21, 1, 200, 1 );
+y = TEMA(ROC( P, periods),20);
+
+Plot(y, "ROC Smooth(21)", colorRed);
+Plot(Ref(y,-2), "", colorLightBlue);
+PlotGrid(0, colorLightGrey);

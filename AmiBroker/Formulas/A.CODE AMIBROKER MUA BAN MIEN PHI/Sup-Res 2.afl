@@ -1,0 +1,113 @@
+SetBarFillColor(IIf(O>C,colorRed,colorGreen));
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle |  GetPriceStyle() );
+
+lbk= Param("Lookback",1000,50,5000,10);
+nbz= Param("Swing Bars",12,1,150,1);
+LineStyle = ParamStyle("LineStyle", styleStaircase);
+ColorS= ParamColor("Support",colorGreen);
+ColorR= ParamColor("Resistance",colorRed);
+psh= ParamToggle("Pivot Shapes","Off|On",1);
+plb= ParamToggle("Pivot Labels","Off|On",1);
+snd= ParamToggle("Sound Alerts","Off|On",1);
+tht= Param("Hi Label Adjust",0.65,0.10,5,0.05)*ATR(5);
+lbk= Min(BarCount-1,Lbk);
+bc=BarCount-1;
+//================
+xH=H-H;   xL=L-L;   yH=H-H;   yL=L-L;   xR=H-H;   xS=L-L;
+xrb=0;    xSb=0;    yR0=0;    yS0=0;    xR0=0;    xS0=0;   xx=0;
+xHH= HHVBars(H,nbz);  xLL= LLVBars(L,nbz);
+yHH= HHV(H,nbz);      yLL= LLV(L,nbz);
+viz= Status("BarVisible");
+vbz= LastValue(Highest(IIf(viz,BarIndex(),0)));
+_TRACE("Last visible bar: "+ vbz);
+bct= (BarCount-1);  dir = "";
+
+_SECTION_BEGIN("HL Pivots");
+   	if(xLL[bc]<xHH[bc])
+	{
+		dir="D";
+	}
+	else
+	{ 
+		dir="U"; 
+	}
+   
+ 
+	for(i=0; i<lbk; i++)  
+	{
+		bc=bct-i;
+     	if(xLL[bc]<xHH[bc])
+		{
+			if(dir=="U")
+			{
+				dir="D";
+      			xx=bc-xLL[bc];  xL[xx]=1;  
+      			yL[xSb]=L[xx];  xS[xSb]=xx; xSb++;
+			}
+	   }
+		else
+		{ 
+			if(dir=="D")
+			{
+				dir = "U";
+        		xx=bc-xHH[bc];  xH[xx]=1;  yH[xrb]=H[xx];  xR[xrb]=xx;xrb++; 
+			}
+		}
+	}
+ 
+	xP= 0;  yP= 0;  xS0= xS[0];  yS0=yL[0];  xR0= xR[0];  yR0= yH[0];
+   
+  	if(xS0>xR0)
+	{
+		xP=bc-xHH[bc];  yP= yHH[bc];
+      	if(yR0<yP AND xP>xS0 AND xP<bc)
+		{
+			xH[xP]=1;
+       	for(j=0; j<xrb; j++)
+			{
+				yH[xrb-j]= yH[xrb-(j+1)];
+        		xR[xrb-j]= xR[xrb-(j+1)];
+			}
+        	yH[0]= yP;  xR[0]= xP;  xrb++;
+		}
+	}
+	else
+	{
+		xP= bc-xLL[bc]; yP= yLL[bc];
+       if(yS0>yP AND xP>xR0 AND xP<bc) 
+		{
+			xL[xP]=1;
+          for(j=0; j<xSb; j++)
+			{
+				yL[xSb-j]= yL[xSb-(j+1)];  xS[xSb-j]= xS[xSb-(j+1)];
+			}
+         	yL[0]=yP;  xS[0]=xP;  xSb++;
+		}
+	}
+
+   ushp=shapeHollowUpArrow;   dshp=shapeHollowDownArrow;
+
+	if(psh)
+	{
+		PlotShapes(xH*dshp,24,0,H,-8);  PlotShapes(xL*ushp,19,0,L,-8);
+
+	}
+
+   	
+	Buy=(xL);  Sell=(xH);  Cover=(xL);  Short=(xH); Long=Flip(Buy,Sell);  Shrt=Flip(Sell,Buy);
+   SellPrice=ValueWhen(Sell,H,1);  BuyPrice= ValueWhen(Buy,L,1);
+   
+	if(plb)
+	{
+   		for(i=0; i<BarCount; i++)
+		{ 
+     		if(Buy[i])	PlotText("\n\n"+ StrRight(NumToStr(L[i],5),6),i-1,L[i],colorS, 55);
+				
+     		if(Sell[i])PlotText(StrRight(NumToStr(H[i],5),6),i-1,H[i]+tht[i], colorR, 55);
+		}
+	}
+
+
+_SECTION_END();

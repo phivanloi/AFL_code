@@ -1,0 +1,19 @@
+_SECTION_BEGIN("ROC");
+//Plot(EMA( ROC( High, 15),5), "", colorYellow, styleDashed  );
+tim = Param("roc period",10,1,50,1);
+em = Param("roc ema",5,1,50,1);
+
+Plot(EMA( ROC( Close, tim),em), "", colorRed, styleThick  );
+
+//Plot( EMA( ROC( Low, 15),5), "", colorYellow, styleDashed  );
+_SECTION_END();
+
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), Color, Style ); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), Color, Style ); 
+_SECTION_END();

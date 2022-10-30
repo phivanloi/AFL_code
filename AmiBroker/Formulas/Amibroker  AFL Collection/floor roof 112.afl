@@ -1,0 +1,46 @@
+_SECTION_BEGIN("Floor Top");
+
+hcl=(O+H+L+C)/4;
+Ho=AMA(Ref(hcl,-1),0.5);
+HH=Max(H,Max(hcl,Ho));
+HL=Min(L,Min(hcl,Ho));
+
+trader = (hcl-Ho);
+VarRedLine = WMA(trader,5); 
+VarBlueLine = MA(trader,8);
+Per = Param("MA Periods",15,3,50,1);
+//Plot(trader,"trader",colorDarkRed);
+thick=Param("thickness",0.5,0.01,5,0.01);
+thick1=Param("ribbon thickness",0.5,0.01,50,0.01);
+
+//P = ParamField("Price field",-1);
+HDCPeriods = per;
+//Width = Param("Width", 2, 0, 10, 0.05 );
+//Color = ParamColor("Color", colorCycle );
+//Style = ParamStyle("Style");
+bbbot = BBandBot( trader, HDCPeriods, 2 );
+bbtop = BBandTop( trader, HDCPeriods, 2 );
+Plot( bbtop, "Roof" , colorWhite, styleThick ); 
+Plot( bbbot, "Floor" , colorWhite, styleThick ); 
+
+VarAMA = Param("varAMA",0.1,0,2,0.01);
+hcl2=(H+L+C)/3;
+Ho2=AMA(Ref(hcl2,-1),VarAMA);
+HH2=Max(H,Max(hcl2,Ho2));
+HL2=Min(L,Min(hcl2,Ho2));
+trader2 = hcl2-Ho2;
+
+Plot(trader2,"trader2",colorGrey40);
+Plot(EMA(trader2,4),"ema",IIf(EMA(trader2,4) > Ref(EMA(trader2,4),-1),colorBrightGreen,colorRed),styleThick);
+
+//PlotOHLC(trader2,trader2+thick,trader2-thick,trader2,"trader",colorBlue,styleCloud);
+//PlotOHLC(trader,trader+thick,trader-thick,trader,"investor",colorRed,styleCloud);
+
+//PlotOHLC(bbbot, bbbot ,IIf(bbbot < trader2,bbbot,trader2),bbbot,"",colorRed,styleCloud);
+//PlotOHLC(bbtop, IIf(bbtop > trader2,bbtop,trader2),bbtop,bbtop,"",colorBrightGreen,styleCloud);
+
+Plot(0,"0",colorDarkGrey,styleLine);
+Color_rib = IIf(trader2 > bbtop, colorDarkGrey, IIf(trader2 < bbbot, colorDarkGrey,IIf(trader2 > Ref(trader2,-1), colorBrightGreen,colorDarkRed)));
+//PlotOHLC(0,thick1,-thick1,0,"",color_rib,styleCloud);
+
+_SECTION_END();

@@ -1,0 +1,26 @@
+_SECTION_BEGIN("RSI");
+
+SetChartBkColor(16);
+
+SetChartOptions(0,0,chartGrid30|chartGrid70);
+periods = Param( "Periods", 21, 1, 200, 1 );
+Plot( RSI( periods), _DEFAULT_NAME(), ParamColor( "Color", colorBlue), ParamStyle("Style") );
+_SECTION_END();
+
+_SECTION_BEGIN("RSI1");
+SetChartOptions(0,0,chartGrid30|chartGrid70);
+periods = Param( "Periods", 13, 1, 200, 1 );
+Plot( RSI( periods), _DEFAULT_NAME(), ParamColor( "Color", colorGreen ), ParamStyle("Style") );
+_SECTION_END();
+
+_SECTION_BEGIN("RSI2");
+SetChartOptions(0,0,chartGrid30|chartGrid70);
+periods = Param( "Periods",8, 1, 200, 1 );
+Plot( RSI( periods), _DEFAULT_NAME(), ParamColor( "Color", colorRed), ParamStyle("Style") );
+_SECTION_END();
+
+_SECTION_BEGIN("EMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 8, 2, 200, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorOrange ), ParamStyle("Style") );
+_SECTION_END();

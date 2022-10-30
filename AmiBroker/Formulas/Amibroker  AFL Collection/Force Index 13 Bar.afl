@@ -1,0 +1,6 @@
+periods = Param("Periods",13,1,100,1);
+findex = (C - Ref(C, -1))*V;
+FI = EMA(findex,Periods);
+
+Plot( FI, "Elder - Force Index("+periods+")", ParamColor("color", colorCycle ), ParamStyle("Style") );
+PlotGrid(0, colorLightGrey);

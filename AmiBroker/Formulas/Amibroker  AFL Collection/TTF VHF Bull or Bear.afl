@@ -1,0 +1,13 @@
+pds=23; 
+hcp=HHV(C,pds);
+lcp=LLV(C,pds);
+mcp=C-Ref(C,-1);
+sav=Sum(abs(mcp),pds);  
+
+Vhf=(Hcp-Lcp)/sav;
+
+vhfbull = IIf(VHF>Ref(VHF,-1) AND Ref(VHF,-1)>Ref(VHF,-2) AND Ref(VHF,-2)>Ref(VHF,-3),1,-1);
+//vhfbear = IIf(VHF<Ref(VHF,-1) AND Ref(VHF,-1)<Ref(VHF,-2) AND Ref(VHF,-2)<Ref(VHF,-3),1,0);
+
+Plot(Vhfbull, "",5);
+//Plot(Vhfbear, "",4);

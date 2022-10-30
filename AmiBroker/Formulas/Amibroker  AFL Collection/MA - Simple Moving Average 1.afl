@@ -1,0 +1,7 @@
+_SECTION_BEGIN("MA");
+Periods = Param("Periods", 14, 2, 300, 1, 10 );
+pv = (H+L+C)/3;
+MA_pv = MA( pv, Periods );
+new_cci = pv-MA_pv ;
+Plot( new_cci, "CCI", colorRed, styleThick ); 
+_SECTION_END();

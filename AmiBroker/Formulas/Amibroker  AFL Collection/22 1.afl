@@ -1,0 +1,17 @@
+_SECTION_BEGIN("Bollinger Band cloud");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 20, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorDarkGreen | styleNoLabel);
+
+Plot( bbt = BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), colorGrey50, styleDashed | styleNoLabel ); 
+Plot( bbb = BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), colorGrey50, styleDashed | styleNoLabel ); 
+
+_SECTION_END();
+
+_SECTION_BEGIN("BB Signals");
+Sell=Cross(P,BBandTop( P, Periods, Width ));
+Buy=Cross(P,BBandBot( P, Periods, Width ));
+PlotShapes(IIf(Sell, shapeHollowStar , shapeNone), colorRed, 0, High, Offset=20);
+PlotShapes(IIf(Buy, shapeHollowStar , shapeNone), colorBrightGreen, 0, Low, Offset=-20);
+_SECTION_END();

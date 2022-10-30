@@ -1,0 +1,15 @@
+Len_r = Param( "TSI period 'Length':", 25, 1, 100, 1 );
+Len_s = Param( "TSI period 'Smoothing':", 13, 1, 100, 1 );
+Len_sig = Param( "Signal period:", 7, 1, 100, 1 );
+ 
+cmtm = C - O;
+AbscMtm = abs ( cMtm );
+Num_T = EMA ( EMA ( cMtm, Len_r ), Len_s );
+Den_T = EMA ( EMA ( AbscMtm, Len_r ), Len_s );
+
+TSI = 100 * Nz ( Num_T / Den_T );
+Plot( TSI, "CMI("+Len_r+","+Len_s+")", ParamColor( "Color", colorRed ), ParamStyle("Style") );
+Plot(EMA(TSI,Len_sig), "", colorLightBlue);
+PlotGrid(0, colorLightGrey);
+PlotGrid(25, colorLightGrey);
+PlotGrid(-25, colorLightGrey);

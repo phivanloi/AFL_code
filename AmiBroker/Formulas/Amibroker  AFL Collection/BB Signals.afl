@@ -1,0 +1,6 @@
+_SECTION_BEGIN("BB Signals");
+Sell=Cross(P,BBandTop( P, Periods, Width ));
+Buy=Cross(P,BBandBot( P, Periods, Width ));
+PlotShapes(IIf(Sell, shapeHollowStar , shapeNone), colorRed, 0, High, Offset=20);
+PlotShapes(IIf(Buy, shapeHollowStar , shapeNone), colorBrightGreen, 0, Low, Offset=-20);
+_SECTION_END();

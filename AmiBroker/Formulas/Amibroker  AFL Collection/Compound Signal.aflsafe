@@ -1,0 +1,571 @@
+/*					Compound Signal.afl - Bill Barnard, 2/9/06
+	This file is to be used as an include file for    SIGNAL STUDY.afl .
+	Read the discussion (the first parameter) in SIGNAL STUDY.afl 	*/
+
+
+if (sigSelect=="Compound Signal") 	{
+
+//	the following text provides notes or instructions upon click of ParamTrigger
+
+instruction1	= EncodeColor(-1)+
+//	vvvvvvvvvvvvvvvvvvvvv  start page 1 instructions  (in quotes, '+' at end)  vvvvvvvvvvvvvvvvvvvvvvvv
+
+"\n\n                                     Compound Signal.afl - Bill Barnard, 2/9/06"+nl(3)+
+
+"INTRODUCTION"+nl(1)+
+"This code allows the combining of named signals from FastTrack or the AmiBroker database with"+nl(1)+
+"'AND' and 'OR' logic. Separate lists of signals can be entered for Buys and for Sells. "+nl(3)+
+
+"SIGNAL PARAMETERS"+nl(1)+
+"Both the 'BUY SIGNALS' section of the Parameter window and the 'SELL SIGNALS' section have, "+nl(1)+
+"as their last parameter, a slider which determines the mode in which the signal lists above them "+nl(1)+
+"are processed. If the slider is set to its default value of 0, each of the comma-separated signals in "+nl(1)+
+"a line above will be combined with 'AND' logic, and the resultant of each non-empty line will be "+nl(1)+
+"combined with the others with 'OR logic to determine the final Buy or Sell signals."+nl(2)+
+
+"If the slider is set for a number larger than 0, that number will determine the line of signals above it "+nl(1)+
+"which is combined with 'AND' logic, and the resultant of that line alone will determine the final Buy"+nl(1)+
+"or Sell signals. "+nl(3)+
+
+
+"THE PLOT IN THE INDICATOR AREA"+nl(1)+
+"There are two groups of signal bands, separated by a wide band of the background color. The uppermost "+nl(1)+
+"group represents the Buy signals, and the lower, the Sell signals. 'ANDed' signals are shown as a group"+nl(1)+
+"of contiguous bands, and 'ORed' groups are separated by a narrow band of the background color. Each "+nl(1)+
+"band is made up of alternate light and dark sections, the light ones representing the 'on' state. Thus, for a "+nl(1)+
+"band in the 'Buy rules' area, the light areas show buy states, and for the bands in the 'Sell rules' area, the "+nl(1)+
+"light areas are the sell states ."+nl(3)+
+
+
+"                                         Click the parameter button to show Page 2";
+
+//	^^^^^^^^^^^^^^^^^^^^ end page 1 instructions  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+instruction2	= EncodeColor(-1)+
+//	vvvvvvvvvvvvvvvvvvvvv start page 2 instructions  (in quotes, ';' at end)  vvvvvvvvvvvvvvvvvvvvvvvv
+
+ "\n\n                                                                  Page 2"+nl(3)+
+
+ "INTERPRETING THE SIGNAL BANDS"+nl(1)+
+"A group of 'ANDed' signals in the 'Buy rules' area yields a Buy signal on the first day that all of the "+nl(1)+
+ "contiguous bands are light-colored. If there is more than one group of 'ANDed' signals in the 'Buy"+nl(1)+
+ "rules' area, a Buy signal occurs on the first day that all the contiguous bands in ANY of the groups"+nl(1)+
+ "are light-colored. For the bands in the 'Sell rules' area, the same is true with the word 'Sell' "+nl(1)+
+ "replacing the word 'Buy' in the above sentences."+nl(2)+
+
+ "The conditions described above are indicated by vertical red and green lines marking the days of "+nl(1)+
+ "the final Buy and Sell signals"+nl(3)+
+
+
+ "OTHER PARAMETERS"+nl(1)+
+ "Just below the areas for the signal lists are several parameters to control the appearance of the "+nl(1)+
+ "signal bands. The first one adjusts the space between the title lines above and below the signal "+nl(1)+
+ "bands. The 'Buy rules' line postion is determined by the 'Indicator Title Spacing Lines' parameter  "+nl(1)+
+ "near the bottom of the Parameter window, and the first one in the 'SIGNAL BANDS APPEARANCE' "+nl(1)+
+ "section is used to set the space between the 'Buy rules' line and the 'Sell rules' line. The next one"+nl(1)+
+ "sets the freespace above the bands, and this is used to make the bands fit between the title lines. "+nl(1)+
+ "These adjustments are useful if you are fitting the chart into a different size window or making "+nl(1)+
+ "the indicator area fill a larger part of the window for better viewing. "+nl(2)+
+
+ "The next parameter sets the background color for the signal bands area , and should be set to match "+nl(1)+
+ "the background of the whole chart. "+nl(2)+
+
+"The next three parameters set up a comparison plot which can be overlayed on the signal bands. "+nl(3)+
+ 
+
+ "                                                     Click to return to the Plots";
+
+//	^^^^^^^^^^^^^^^^^^^^ end page 2 instructions  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+//	initialize
+showInstruction1 = showInstruction2 = 0;
+
+if (showButtons)	{
+_SECTION_BEGIN("DISCUSSION OF COMPOUND SIGNAL MODULE");
+showInstruction1	= ParamTrigger("Show Compound Signal Discussion, page 1", "Click for Compound Signal Discussion, page 1");
+showInstruction2	= ParamTrigger("Show Compound Signal Discussion, page 2", "Click for Compound Signal Discussion, page 2");
+_SECTION_END();	}
+
+if 		(showInstruction1)	Title = instruction1;
+else if (showInstruction2)	Title = instruction2;
+
+else
+{
+//	vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv  start code  vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+//	retrieve stored param information
+CSParamsList			= "";
+CSParamsFileName	= "ConfigFiles\\CSParams"+GetChartID()+".bf";
+
+fh 						= fopen( CSParamsFileName, "r");
+if( fh )
+{
+   	while( ! feof( fh ) )
+   	{
+      	CSParamsList = fgets( fh );
+   	}
+	fclose( fh );
+}
+
+q0		= WriteIf(CSParamsList !="", 				  StrExtract(CSParamsList,   0	), 	"RUTTR"	);//	StaticVarGetText("andListB1")
+q1		= WriteIf(CSParamsList !="", 				  StrExtract(CSParamsList,   1	), 	""			);//	StaticVarGetText("andListB2")
+q2		= WriteIf(CSParamsList !="", 				  StrExtract(CSParamsList,   2	), 	""			);//	StaticVarGetText("andListB3")
+q3		= WriteIf(CSParamsList !="", 				  StrExtract(CSParamsList,   3	), 	""			);//	StaticVarGetText("andListB4")
+q4		=		IIf(CSParamsList !="", 	StrToNum(StrExtract(CSParamsList,  4	)), 0	 		);//	BuySel
+q5		= WriteIf(CSParamsList !="", 				  StrExtract(CSParamsList,   5	), 	"RUTTR"	);//	StaticVarGetText("andListS1")
+q6		= WriteIf(CSParamsList !="", 				  StrExtract(CSParamsList,   6	), 	""			);//	StaticVarGetText("andListS2")
+q7		= WriteIf(CSParamsList !="", 				  StrExtract(CSParamsList,   7	), 	""			);//	StaticVarGetText("andListS3")
+q8		= WriteIf(CSParamsList !="", 				  StrExtract(CSParamsList,   8	), 	""			);//	StaticVarGetText("andListS4")
+q9		=		IIf(CSParamsList !="", 	StrToNum(StrExtract(CSParamsList,  9	)), 0	 		);//	SelSel
+q10	=		IIf(CSParamsList !="", 	StrToNum(StrExtract(CSParamsList,  10	)), 9	 		);//	SRTitleSpace
+q11	=		IIf(CSParamsList !="", 	StrToNum(StrExtract(CSParamsList,  11	)), 78.5		);//	SBUpPerc
+q12	=		IIf(CSParamsList !="", 	StrToNum(StrExtract(CSParamsList,  12	)), 0	 		);//	BCol
+q13	= WriteIf(CSParamsList !="", 				  StrExtract(CSParamsList,  13	), 	"RUT-I"	);//	RefSym
+q14	=		IIf(CSParamsList !="", 	StrToNum(StrExtract(CSParamsList,  14	)), 4	 		);//	Percnt
+
+
+
+_SECTION_BEGIN("BUY SIGNALS");
+Buyexplan	=	ParamStr("Explanation of the Lists Below", "Signals in each list are 'AND'ed. Results are 'OR'ed");
+StaticVarSetText("andListB1", StrToUpper(ParamStr("               First Signal List - Buy on All True", StrReplace(q0, "#", ","))));
+StaticVarSetText("andListB2", StrToUpper(ParamStr("OR    Second Signal List - Buy on All True", StrReplace(q1, "#", ","))));
+StaticVarSetText("andListB3", StrToUpper(ParamStr("OR         Third Signal List - Buy on All True", StrReplace(q2, "#", ","))));
+StaticVarSetText("andListB4", StrToUpper(ParamStr("OR       Fourth Signal List - Buy on All True", StrReplace(q3, "#", ","))));
+BuySel			= Param("Select the line above to use for Buys ( 0 means all )", q4, 0, 4, 1);
+_SECTION_END();
+
+_SECTION_BEGIN("SELL SIGNALS");
+Sellexplan	=	ParamStr("Explanation of the Lists Below", "Signals in each list are 'AND'ed. Results are 'OR'ed");
+StaticVarSetText("andListS1", StrToUpper(ParamStr("               First Signal List - Sell on All True", StrReplace(q5, "#", ","))));
+StaticVarSetText("andListS2", StrToUpper(ParamStr("OR    Second Signal List - Sell on All True", StrReplace(q6, "#", ","))));
+StaticVarSetText("andListS3", StrToUpper(ParamStr("OR         Third Signal List - Sell on All True", StrReplace(q7, "#", ","))));
+StaticVarSetText("andListS4", StrToUpper(ParamStr("OR       Fourth Signal List - Sell on All True", StrReplace(q8, "#", ","))));
+SelSel			= Param("Select the line above to use for Sells ( 0 means all )", q9, 0, 5, 1);
+SellSel			= SelSel;//Min(SelSel, BuySel);
+_SECTION_END();
+
+_SECTION_BEGIN("SIGNAL BANDS APPEARANCE");
+SRTitleSpace	= Param("Sell Rules Title Spacing Lines", q10, 5, 25, 1);
+SBUpPerc		= Param("Signal Bands Upper Frespace %",  q11, 1, 99, 0.5);
+BackColor		= ParamList("Select the Background Color to set Band Colors","Black Background for Signal Bands,"+
+									"Light Grey Background for Signal Bands, White Background for Signal Bands", q12);
+BCol				= IIf(BackColor=="Black Background for Signal Bands", 0, 
+									IIf(BackColor=="Light Grey Background for Signal Bands", 1, 2));
+RefString		= ParamStr("Reference Symbol for plot on Signal Bands", "Reference Symbol---"+q13);
+RefSym			= StrMid(StrToUpper(RefString), 19, 5) ;
+RefError			= IIf(IsNull(Foreign(RefSym, "Close")), 1, 0);
+RefSym			= WriteIf(RefError, "", RefSym);
+dummy			= ParamStr(". . .", "( number below is the Zig % for the Reference plot )");
+//RefSym			= StrToUpper(ParamStr("Reference Symbol for plot on Signal Bands", q10));
+percnt			= Param("Zig Percent for Reference Symbol", q14, 0, 10, 1);
+_SECTION_END();
+
+
+//	go through all the Buy signals, applying the AND and OR logic to establish resultant Buy array
+// 	This needs to be done first so the signals can be plotted over the signal bands (graphZorder)
+extraTitle1 	= "Buy rules:  ";
+Counter		= 0;
+bands			= 0;
+BuyCond		= Close - Close;
+VarSet("BuyCond1", Close - Close +1);
+VarSet("BuyCond2", Close - Close +1);
+VarSet("BuyCond3", Close - Close +1);
+VarSet("BuyCond4", Close - Close +1);
+if (BuySel !=0) 	
+{
+k	= BuySel;
+{
+	Titlefrag	= "";
+	for( i = 0; StrExtract( StaticVarGetText("andListB"+k), i ) != ""; i++ ) 	{	;	}
+
+	bands = IIf(i !=0, bands + i + 1, bands);
+	Counter	= IIf(i > 0, Counter + 1, Counter);
+	for (n =0; n < i; n++)
+	{
+		sig		= removeSpaces(StrExtract(StaticVarGetText("andListB"+k), n));
+		Titlefrag = Titlefrag+WriteIf(n==0, WriteIf(i > 1, "( ", ""), "  AND  ")+StrToLower(sig)+WriteIf(n > 0 AND n==i - 1, " )", "");
+		sigS	= sig;
+		// 	get signal from AmiBroker, if it exists
+		signl			= Foreign(sig, "Close");
+		sigPresent	= LastValue( Highest(signl));
+		if (sigPresent)
+		{
+			BC		= signl;
+			SC		= NOT BC;
+			Buy	= ExRem(BC, SC);
+			Sell 	= ExRem(SC, BC);
+		}
+		else		//	get signal from FT
+		{
+			script     	= GetScriptObject();
+			signl        	= script.FTGetSig(FTDrive, sig, DNum);
+		}		
+		BCond			= Flip(Buy, Sell);
+		SCond			= NOT BCond;
+		VarSet("BuyCond"+k,	VarGet("BuyCond"+k) AND BCond);
+	}
+
+	VarSet("BuyCond"+k, IIf(i==0, Close - Close, VarGet("BuyCond"+k)));
+	extraTitle1 = extraTitle1+WriteIf(Counter > 1 AND Titlefrag !="", "  OR  ", "")+Titlefrag;
+	BuyCond	= BuyCond OR VarGet("BuyCond"+k);
+	SC			= NOT BuyCond;
+	FinalBuy	= ExRem(BuyCond, SC);
+}	}
+else	{
+for (k = 1; k < 5; k++)
+{
+	Titlefrag	= "";
+	for( i = 0; StrExtract( StaticVarGetText("andListB"+k), i ) != ""; i++ ) 	{	;	}
+
+	bands = IIf(i !=0, bands + i + 1, bands);
+	Counter	= IIf(i > 0, Counter + 1, Counter);
+	for (n =0; n < i; n++)
+	{
+		sig		= removeSpaces(StrExtract(StaticVarGetText("andListB"+k), n));
+		Titlefrag = Titlefrag+WriteIf(n==0, WriteIf(i > 1, "( ", ""), "  AND  ")+StrToLower(sig)+WriteIf(n > 0 AND n==i - 1, " )", "");
+		sigS	= sig;
+		// 	get signal from AmiBroker, if it exists
+		signl			= Foreign(sig, "Close");
+		sigPresent	= LastValue( Highest(signl));
+		if (sigPresent)
+		{
+			BC		= signl;
+			SC		= NOT BC;
+			Buy	= ExRem(BC, SC);
+			Sell 	= ExRem(SC, BC);
+		}
+		else		//	get signal from FT
+		{
+			script     	= GetScriptObject();
+			signl        	= script.FTGetSig(FTDrive, sig, DNum);
+		}
+		BCond			= Flip(Buy, Sell);
+		SCond			= NOT BCond;
+		VarSet("BuyCond"+k,	VarGet("BuyCond"+k) AND BCond);
+	}
+
+	VarSet("BuyCond"+k, IIf(i==0, Close - Close, VarGet("BuyCond"+k)));
+	extraTitle1 = extraTitle1+WriteIf(Counter > 1 AND Titlefrag !="", "  OR  ", "")+Titlefrag;
+	BuyCond	= BuyCond OR VarGet("BuyCond"+k);
+	SC			= NOT BuyCond;
+	FinalBuy	= ExRem(BuyCond, SC);
+}	}
+extraTitle1 = extraTitle1+ sp(8)+ec(colorBlue)+wi(percnt > 0 AND RefSym != "", ""+percnt+"% Zig of ")+RefSym+"    ";
+
+//	go through all the Sell signals, applying the AND and OR logic to establish resultant Sell array
+// 	This needs to be done first so the signals can be plotted over the signal bands (graphZorder)
+extraTitle2 	= "Sell rules:  ";
+Counter		= 0;
+Buybands	= bands;
+Sellcond		= Close - Close;
+VarSet("SellCond1", Close - Close +1);
+VarSet("SellCond2", Close - Close +1);
+VarSet("SellCond3", Close - Close +1);
+VarSet("SellCond4", Close - Close +1);
+if (SellSel !=0) 	
+{
+k	= SellSel;
+{
+	Titlefrag	= "";
+	for( i = 0; StrExtract( StaticVarGetText("andListS"+k), i ) != ""; i++ ) 	{	;	}
+
+	bands = IIf(i !=0, bands + i + 1, bands);
+	Counter	= IIf(i > 0, Counter + 1, Counter);
+	for (n =0; n < i; n++)
+	{
+		sig		= removeSpaces(StrExtract(StaticVarGetText("andListS"+k), n));
+		Titlefrag = Titlefrag+WriteIf(n==0, WriteIf(i > 1, "( ", ""), "  AND  ")+StrToLower(sig)+WriteIf(n > 0 AND n==i - 1, " )", "");
+		sigS	= sig;
+		// 	get signal from AmiBroker, if it exists
+		signl			= Foreign(sig, "Close");
+		sigPresent	= LastValue( Highest(signl));
+		if (sigPresent)
+		{
+			BC		= signl;
+			SC		= NOT BC;
+			Buy	= ExRem(BC, SC);
+			Sell 	= ExRem(SC, BC);
+		}
+		else		//	get signal from FT
+		{
+			script     	= GetScriptObject();
+			signl        	= script.FTGetSig(FTDrive, sig, DNum);
+		}
+		BCond			= Flip(Buy, Sell);
+		SCond			= NOT BCond;
+		VarSet("SellCond"+k,	VarGet("SellCond"+k) AND SCond);
+	}
+
+	VarSet("SellCond"+k, IIf(i==0, Close - Close, VarGet("SellCond"+k)));
+	extraTitle2 = extraTitle2+WriteIf(Counter > 1 AND Titlefrag !="", "  OR  ", "")+Titlefrag;
+	SellCond	= SellCond OR VarGet("SellCond"+k);
+	BC			= NOT SellCond;
+	FinalSell	= ExRem(SellCond, BC);
+}	}
+else	{
+for (k = 1; k < 5; k++)
+{
+	Titlefrag	= "";
+	for( i = 0; StrExtract( StaticVarGetText("andListS"+k), i ) != ""; i++ ) 	{	;	}
+
+	bands = IIf(i !=0, bands + i + 1, bands);
+	Counter	= IIf(i > 0, Counter + 1, Counter);
+	for (n =0; n < i; n++)
+	{
+		sig		= removeSpaces(StrExtract(StaticVarGetText("andListS"+k), n));
+		Titlefrag = Titlefrag+WriteIf(n==0, WriteIf(i > 1, "( ", ""), "  AND  ")+StrToLower(sig)+WriteIf(n > 0 AND n==i - 1, " )", "");
+		sigS	= sig;
+		// 	get signal from AmiBroker, if it exists
+		signl			= Foreign(sig, "Close");
+		sigPresent	= LastValue( Highest(signl));
+		if (sigPresent)
+		{
+			BC		= signl;
+			SC		= NOT BC;
+			Buy	= ExRem(BC, SC);
+			Sell 	= ExRem(SC, BC);
+		}
+		else		//	get signal from FT
+		{
+			script     	= GetScriptObject();
+			signl        	= script.FTGetSig(FTDrive, sig, DNum);
+		}
+		BCond			= Flip(Buy, Sell);
+		SCond			= NOT BCond;
+		VarSet("SellCond"+k,	VarGet("SellCond"+k) AND SCond);
+	}
+
+	VarSet("SellCond"+k, IIf(i==0, Close - Close, VarGet("SellCond"+k)));
+	extraTitle2 = extraTitle2+WriteIf(Counter > 1 AND Titlefrag !="", "  OR  ", "")+Titlefrag;
+	SellCond	= SellCond OR VarGet("SellCond"+k);
+	BC			= NOT SellCond;
+	FinalSell	= ExRem(SellCond, BC);
+}	}
+
+FinalBuy		= ExRem(FinalBuy, FinalSell);
+FinalSell		= ExRem(FinalSell, FinalBuy);
+
+//	establish the scaling for the plots
+bandSpace	= bands*(BarIndex()%2);	//	this varies between 0 and bands, establishing the min and max for the plot
+bdsp			= LastValue(Highest(bandSpace));
+SBLoPerc	= 	8;
+ULX			= 	U1(bandSpace, SBLoPerc, SBUpPerc);
+LLX			= 	L1(bandSpace, SBLoPerc, SBUpPerc);
+
+spacerColor	= IIf(BCol==0, colorBlack, IIf(BCol==1, colorLightGrey, colorWhite));
+
+//	plot zigzag of reference symbol
+zz				= Zig(Foreign(RefSym, "Close"), Percnt);
+Plot(zz, "", colorBlue, styleNoLabel|styleOwnScale, L1(zz, SBLoPerc, SBUpPerc), U1(zz, SBLoPerc, SBUpPerc));
+
+//	plot vertical lines showing sell signals
+Plot((bands - Buybands - 1)*FinalSell,  "", colorLime, styleHistogram|styleThick|styleNoLabel|styleOwnScale, LLX, ULX);
+
+//	go through the Sell signals again for plotting (these will be lowest on chart, so must be done first)
+band	= 0;
+if (SellSel !=0)
+{
+k	= SellSel;
+{
+	for( i = 0; StrExtract( StaticVarGetText("andListS"+k), i ) != ""; i++ ) 	{	;	}
+
+	for (n = i - 1; n> -1; n--)
+	{
+		sig		= removeSpaces(StrExtract(StaticVarGetText("andListS"+k), n));
+		sigS	= sig;
+		// 	get signal from AmiBroker, if it exists
+		signl			= Foreign(sig, "Close");
+		sigPresent	= LastValue( Highest(signl));
+		if (sigPresent)
+		{
+			BC		= signl;
+			SC		= NOT BC;
+			Buy	= ExRem(BC, SC);
+			Sell 	= ExRem(SC, BC);
+		}
+		else		//	get signal from FT
+		{
+			script     	= GetScriptObject();
+			signl        	= script.FTGetSig(FTDrive, sig, DNum);
+		}
+
+		BCond	= Flip(Buy, Sell);
+		SCond	= NOT BCond;
+
+		band	= band + (BCond + SCond);
+		Color	= 	IIf(BCol==1, IIf(SCond,  colorWhite, colorGrey40), IIf(SCond,  colorLightGrey, colorGrey40) );
+		Plot(band,	"", 	Color, 		styleArea|styleNoLabel|styleOwnScale, LLX, ULX);
+	}
+
+	if(i !=0)
+	{
+	band 	= band + 1;
+	Plot(band,  "", spacerColor, styleArea|styleNoLabel | styleOwnScale, LLX, ULX);
+	}
+}	}
+else	{
+for (k = 4; k > 0; k--)
+{
+	for( i = 0; StrExtract( StaticVarGetText("andListS"+k), i ) != ""; i++ ) 	{	;	}
+
+	for (n = i - 1; n> -1; n--)
+	{
+		sig		= removeSpaces(StrExtract(StaticVarGetText("andListS"+k), n));
+		sigS	= sig;
+		// 	get signal from AmiBroker, if it exists
+		signl			= Foreign(sig, "Close");
+		sigPresent	= LastValue( Highest(signl));
+		if (sigPresent)
+		{
+			BC		= signl;
+			SC		= NOT BC;
+			Buy	= ExRem(BC, SC);
+			Sell 	= ExRem(SC, BC);
+		}
+		else		//	get signal from FT
+		{
+			script     	= GetScriptObject();
+			signl        	= script.FTGetSig(FTDrive, sig, DNum);
+		}
+
+		BCond	= Flip(Buy, Sell);
+		SCond	= NOT BCond;
+
+		band	= band + (BCond + SCond);
+		Color	= 	IIf(BCol==1, IIf(SCond,  colorWhite, colorGrey40), IIf(SCond,  colorLightGrey, colorGrey40) );
+		Plot(band,	"", 	Color, 		styleArea|styleNoLabel|styleOwnScale, LLX, ULX);
+	}
+
+	if(i !=0)
+	{
+	band 	= band + 1;
+	Plot(band,  "", spacerColor, styleArea|styleNoLabel | styleOwnScale, LLX, ULX);
+	}
+}	}
+
+band 	= band + 1;
+
+//	plot extra black band to separate Buy and Sell areas
+Plot(band,  "", spacerColor, 	styleArea|styleNoLabel | styleOwnScale, LLX, ULX);
+
+//	plot vertical lines showing Buy signals
+Plot((bdsp)*FinalBuy,  "", colorRed, styleHistogram|styleThick|styleNoLabel|styleOwnScale, LLX, ULX);
+
+//	go through the Buy signals again for plotting
+if (BuySel !=0) 	
+{
+k	= BuySel;
+{
+	for( i = 0; StrExtract( StaticVarGetText("andListB"+k), i ) != ""; i++ ) 	{	;	}
+
+	for (n = i - 1; n> -1; n--)
+	{
+		sig		= removeSpaces(StrExtract(StaticVarGetText("andListB"+k), n));
+		sigS	= sig;
+		// 	get signal from AmiBroker, if it exists
+		signl			= Foreign(sig, "Close");
+		sigPresent	= LastValue( Highest(signl));
+		if (sigPresent)
+		{
+			BC		= signl;
+			SC		= NOT BC;
+			Buy	= ExRem(BC, SC);
+			Sell 	= ExRem(SC, BC);
+		}
+		else		//	get signal from FT
+		{
+			script     	= GetScriptObject();
+			signl        	= script.FTGetSig(FTDrive, sig, DNum);
+		}
+
+		BCond	= Flip(Buy, Sell);
+		SCond	= NOT BCond;
+
+		band	= band + (BCond + SCond);
+		Color	= 	IIf(BCol==1, IIf(BCond,  colorWhite, colorGrey40), IIf(BCond,  colorLightGrey, colorGrey40) );
+		Plot(band,	"", 	Color, 		styleArea|styleNoLabel|styleOwnScale, LLX, ULX);
+	}
+
+	if(i !=0 AND LastValue(Highest(band)) < bdsp)
+	{
+	band 	= band + 1;
+	Plot(band,  "", spacerColor, styleArea|styleNoLabel | styleNoLabel|styleOwnScale, LLX, ULX);
+	}
+}	}
+else	{
+
+for (k = 4; k > 0; k--)
+{
+	for( i = 0; StrExtract( StaticVarGetText("andListB"+k), i ) != ""; i++ ) 	{	;	}
+
+	for (n = i - 1; n> -1; n--)
+	{
+		sig		= removeSpaces(StrExtract(StaticVarGetText("andListB"+k), n));
+		sigS	= sig;
+		// 	get signal from AmiBroker, if it exists
+		signl			= Foreign(sig, "Close");
+		sigPresent	= LastValue( Highest(signl));
+		if (sigPresent)
+		{
+			BC		= signl;
+			SC		= NOT BC;
+			Buy	= ExRem(BC, SC);
+			Sell 	= ExRem(SC, BC);
+		}
+		else		//	get signal from FT
+		{
+			script     	= GetScriptObject();
+			signl        	= script.FTGetSig(FTDrive, sig, DNum);
+		}
+
+		BCond	= Flip(Buy, Sell);
+		SCond	= NOT BCond;
+		band	= band + (BCond + SCond);
+		Color	= 	IIf(BCol==1, IIf(BCond,  colorWhite, colorGrey40), IIf(BCond,  colorLightGrey, colorGrey40) );
+		Plot(band,	"", 	Color, 		styleArea|styleNoLabel|styleOwnScale, LLX, ULX);
+	}
+
+	if(i !=0 AND LastValue(Highest(band)) < bdsp)
+	{
+	band 	= band + 1;
+	Plot(band,  "", spacerColor, styleArea|styleNoLabel | styleNoLabel|styleOwnScale, LLX, ULX);
+	}
+}	}
+
+Buy						= FinalBuy;
+Sell						= FinalSell;
+
+showCompareSignal	= 0;
+showIndicator 			= 0;
+showExtraTitles 		= 1;
+sig							=	sigS	= "";
+
+
+//	make an initiation file to store params
+CSParamsList = ""+
+	StrReplace(StaticVarGetText("andListB1"), "," ,"#")	+","+
+	StrReplace(StaticVarGetText("andListB2"), "," ,"#")	+","+
+	StrReplace(StaticVarGetText("andListB3"), "," ,"#")	+","+
+	StrReplace(StaticVarGetText("andListB4"), "," ,"#")	+","+
+	BuySel															+","+
+	StrReplace(StaticVarGetText("andListS1"), "," ,"#")	+","+
+	StrReplace(StaticVarGetText("andListS2"), "," ,"#")	+","+
+	StrReplace(StaticVarGetText("andListS3"), "," ,"#")	+","+
+	StrReplace(StaticVarGetText("andListS4"), "," ,"#")	+","+
+	SelSel															+","+
+	SRTitleSpace													+","+
+	SBUpPerc														+","+
+	BCol																+","+
+	RefSym															+","+
+	Percnt															+","+
+	"";
+
+fh 	= fopen( CSParamsFileName, "w");
+if( fh )
+{
+   	fputs(CSParamsList, fh);
+	fclose( fh );
+}
+}
+}

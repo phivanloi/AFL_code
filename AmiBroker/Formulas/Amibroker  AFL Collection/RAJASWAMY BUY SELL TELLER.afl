@@ -1,0 +1,2 @@
+PopupWindow("Buy : " + FullName(),"Alert", 5, 640*mtRandom(), 480*mtRandom());
+PopupWindow("Sell : " + FullName(),"Alert", 5, 640*mtRandom(), 480*mtRandom());

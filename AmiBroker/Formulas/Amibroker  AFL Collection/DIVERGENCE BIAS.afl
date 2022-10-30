@@ -1,0 +1,15 @@
+// N-bar momentum 
+function Mom( n ) 
+{ 
+   return C - Ref( C, -n ); 
+} 
+// N-bar fractional momentum 
+function fracMom( n ) 
+{ 
+      return C / Ref( C, -n ); 
+} 
+// S, L- bar fractional MACD 
+function fracMACD( s, L ) 
+{ 
+    return EMA( C, s ) / EMA( C, L ); 
+}

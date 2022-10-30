@@ -1,0 +1,29 @@
+_SECTION_BEGIN("ADX"); 
+range = Param("ADX Periods", 14, 2, 200, 1 );
+Col_adx = IIf(ADX(range) > Ref(ADX(range),-1) AND ADX(range) > 20,colorBlue, colorGrey40);
+Col_pdi = IIf(PDI(range) > MDI(range) AND ADX(range) > Ref(ADX(range),-1),colorBrightGreen,colorDarkGreen);
+Col_Mdi = IIf(MDI(range) > PDI(range) AND ADX(range) > Ref(ADX(range),-1),colorRed,colorDarkRed);
+p = EMA(PDI(range),5);
+m = EMA(MDI(range),5); 
+
+Plot( ADX(range), _DEFAULT_NAME(), Col_adx , ParamStyle("ADX style", styleThick ) );
+Plot( p, "+DI", colorBrightGreen, styleDots );
+Plot( M, "-DI", colorRed, styleDots );
+
+Buy = P > M  ;
+Sell =M > P;
+Col_bar = IIf(p > m AND p > Ref(p,-1), colorGreen,IIf(p < m AND m > Ref(m,-1),colorRed, colorYellow)); ;
+Buy_sell = IIf(Buy,colorBrightGreen,IIf(Sell,colorRed,colorBlack)); 
+trend = IIf(col_pdi==colorBrightGreen,colorBrightGreen,IIf(col_mdi==colorRed,colorRed,IIf(PDI(range) > MDI(range),colorDarkGreen,colorDarkRed)));
+Plot(5, "", Col_bar, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Bollinger Bands");
+
+Plot( BBandTop( P, 5, 0.5 ), "" , colorDarkGreen, styleDashed ); 
+Plot( BBandBot( P, 5, 0.5 ), "" , colorDarkGreen, styleDashed ); 
+Plot( BBandTop( m, 5, 0.5 ), "" , colorDarkRed, styleDashed ); 
+Plot( BBandBot( m, 5, 0.5 ), "" , colorDarkRed, styleDashed ); 
+
+_SECTION_END();

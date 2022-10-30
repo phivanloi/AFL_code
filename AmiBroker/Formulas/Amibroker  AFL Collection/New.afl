@@ -1,0 +1,16 @@
+YlyGrowth= (Ref(C,-1)-Ref(LLV(C,260),-1))/Ref(LLV(C,260),-1)*100;
+MlyGain= (Ref(C,-1)-Ref(C,-22))/Ref(C,-22)*100;
+FlyGain= (Ref(C,-1)-Ref(C,-11))/Ref(C,-11)*100;
+DayGain= (C-Ref(C,-1))/Ref(C,-1)*100;
+VolGain=(V-Ref(MA(V,20),-1))/Ref(MA(V,20),-1)*100;
+YrHiInd= (HHV(C,260)-C)/HHV(C,260)*100;
+
+
+Filter= Close > 10 AND Volume > Ref(V,-1) AND Volume > 50000 AND YlyGrowth > 100 AND YrHiInd <= 15 AND DayGain >=4 AND(MlyGain < 10 OR FlyGain < 10); 
+AddColumn(Close,"Close");
+AddColumn(YlyGrowth,"YrGrowth",1.0);
+AddColumn(MlyGain,"MlyGain",1.0,IIf( MlyGain < 10, colorGreen, colorBlack ));
+AddColumn(FlyGain,"FlyGain",1.0,IIf( FlyGain <10 , colorGreen, colorBlack ));
+AddColumn(YrHiInd,"%fromYH",1.0);
+AddColumn(DayGain,"DayGain",1.2,IIf(DayGain >=4,colorGreen,colorRed) );
+AddColumn(VolGain,"VolGain",1.0,IIf(VolGain > 100,colorGreen,colorBlack));

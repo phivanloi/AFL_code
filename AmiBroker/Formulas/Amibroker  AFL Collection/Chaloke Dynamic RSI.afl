@@ -1,0 +1,10 @@
+///// Chaloke Dynamic RSI //// 
+
+prd=14; sm1=21; sm2=5; sm3=5; 
+x=50-(MA(RSI(prd),sm1)-RSI(prd)); 
+y=MA(x,sm2); 
+z=MA(y,sm3); 
+Plot(Y,"Chaloke Dynamic RSI",4,4); 
+Plot(Z,"Signal",colorBlue,1); 
+PlotGrid(40); 
+PlotGrid(60);

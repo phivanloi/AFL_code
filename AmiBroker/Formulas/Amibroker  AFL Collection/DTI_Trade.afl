@@ -1,0 +1,28 @@
+r = Param( "Length", 25, 1, 100, 1 );
+s = Param( "Smoothing", 13, 1, 100, 1 );
+
+x = H - Ref(H,-1);
+
+HMU = x > 0;
+LMD = x < 0;
+
+HLM = HMU - LMD;
+
+//Plot(HLM, "", colorRed);
+
+a = EMA(EMA(HLM,r),s);
+b = EMA(EMA(abs(HLM),r),s);
+
+DTI = 100 * (a/b);
+
+Value1 = a;
+Value2 = b;
+
+Value3 = IIf(Value2 != 0, Value1/Value2,0);
+Value4 = IIf(Value3 - Ref(Value3,-1) > 0 AND Value3 > 0, Value3,0);
+Value5 = IIf(Value3 - Ref(Value3,-1) < 0 AND Value3 < 0, Value3,0);
+DTI_Trade = Value4 + Value5;
+
+Plot(DTI_Trade, "DTI_Trade", colorOrange, styleThick);
+//Plot(Value3, "", colorRed, styleHistogram);
+//Plot(Value4, "", colorLime, styleHistogram);

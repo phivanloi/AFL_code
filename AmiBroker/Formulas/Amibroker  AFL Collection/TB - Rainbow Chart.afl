@@ -1,0 +1,91 @@
+//|------------------------------------------------------------------
+//|Tradingbasis.com - Rainbow Chart								
+//|Version:1.6   26-May-2006
+//|Copyright © 2005, Tradingbasis.com
+//|http://www.tradingbasis.com
+//|e-mail: support@tradingbasis.com
+//|------------------------------------------------------------------
+SetChartOptions(0,chartShowDates|chartShowArrows|chartLogarithmic|chartWrapTitle);
+#pragma nocache
+#include  <\TBInc\Tradingbasis_f0.afl> 
+
+AddAlertParam(0,0,0);
+
+_SECTION_BEGIN("Main Parameters");
+AddparamUsefromChart(1);
+side = 1;
+AddAvgTypeParam(1);
+if(InChart) StaticVarSet("B4G8C8",AvgType);if(inAA AND Usefromchart) AvgType = StaticVarGet("B4G8C8");
+PF = ParamField("Price Field");
+//PF parameter from chart not available automatically in AA. It has to be selected in AA if not close is used.
+increment = Param("Increment",2, 1, 10, 1 );
+if(InChart) StaticVarSet("F6P4C8",increment);if(inAA AND Usefromchart) increment = StaticVarGet("F6P4C8");
+StartAvg = Param("Fastest Average (Period)",3, 1, 20, 1 );
+if(InChart) StaticVarSet("W6O4D1",StartAvg);if(inAA AND Usefromchart) StartAvg = StaticVarGet("W6O4D1");
+LastAvg = Param("Slowest Average (Max.Period)",20, 1, 100, 1 );
+if(InChart) StaticVarSet("G4C0A6",LastAvg);if(inAA AND Usefromchart) LastAvg = StaticVarGet("G4C0A6");
+_SECTION_END();
+_SECTION_BEGIN("Styles");
+Effect = ParamToggle("3D Effect", "No|Yes",0);
+DisplayType = ParamToggle("Plot Style","Lines,Shadows",0);
+LineStyle = ParamStyle("Lines",styleThick,maskDefault);
+Shapes = ParamToggle("Plot Shapes","Off,On",1);
+Buyshape = Param("Buy Shape Typ",1,0,50,1);
+SellShape = Param("Sell Shape Typ",2,0,50,1);
+_SECTION_END();
+
+Count = 0;
+for( i = StartAvg; i < LastAvg; i = i + increment )
+{
+_SECTION_BEGIN("Colors");
+Hue = Param("Hue",15,1,50,1)*i;
+Saturation =Param("Saturation", 150, 0, 255 );
+Brightness = side * Param("Brightness", 200, 0, 255);
+Buyshapecolor = ParamColor("Buy Shape Color",colorBrightGreen);
+Sellshapecolor = ParamColor("Sell Shape Color",colorRed);
+_SECTION_END();
+
+	up = Average( Pf, i,AvgType );
+	down = Average( Pf, i + increment,AvgType );
+
+   if(Effect)
+    side = IIf(up<=down AND Ref( up<=down, 1 ), 0.6, 1 );
+	a = 0; Count = Count+1;
+
+	if(DisplayType)
+	{
+	PlotOHLC( up,up,down,down, "Average"+i,ColorHSB(Hue,Saturation,Brightness), styleCloud | styleNoLabel|styleNoTitle );
+	}
+	else
+	{
+	Plot( up, "Average"+i,ColorHSB(Hue,Saturation,Brightness), LineStyle | styleNoLabel|styleNoTitle );
+	}
+}
+
+Fastest = Average(Pf, StartAvg,AvgType );
+SlowestPds = StartAVG+(Count-1)*Increment;
+Slowest = Average(Pf,SlowestPds,AvgType );
+
+Buy = Cross(fastest,slowest);
+Sell = Cross(slowest,fastest);
+
+PlotShapes(Buy*Buyshape*Shapes,Buyshapecolor,0,L,-15);
+PlotShapes(Sell*Sellshape*Shapes,Sellshapecolor,0,H,-15);
+
+AddAlert(Buy,Audio,Email,"Fastest Average crossed slowest Average"+DefaultAlertText,1,BarComplete);
+AddAlert(Sell,Audio,Email,"Slowest Average crossed Fastest Average"+DefaultAlertText,2,BarComplete);
+
+
+Filter = NOT GroupID()==253;
+Filter = Filter AND (Buy OR Sell);
+
+Adddefaultcolumns(2,1);
+//AddColumn(Buy,"Rising wave start",1.0,colorBlack,IIf(Buy,colorPaleGreen,colorWhite),100);
+//AddColumn(Buy,"Falling wave start",1.0,colorBlack,IIf(Sell,colorRose,colorWhite),100);
+AddTextColumn(FullName(),"Full name");
+
+Title = "Tradingbasis.com - Rainbow Chart "+Avgtext;
+#include  <\TBInc\Tradingbasis_1.afl> 
+Title = Title + default_title+" ";
+
+//Title = "count = " + Count+"   SlowestPds "+SlowestPds ;

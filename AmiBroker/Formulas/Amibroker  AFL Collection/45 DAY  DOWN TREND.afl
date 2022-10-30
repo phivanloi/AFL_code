@@ -1,0 +1,58 @@
+/* Create date: 12 Apr 2011
+The Close Price of 15 bars ago is greater than the Simple MA (Short) of 15 bars ago */
+
+Filter = 
+    Ref( Close, -44 ) < Ref( MA( Close, 45 ), -44 )
+AND Ref( Close, -43 ) < Ref( MA( Close, 45 ), -43 )
+AND Ref( Close, -42 ) < Ref( MA( Close, 45 ), -42 )
+AND Ref( Close, -41 ) < Ref( MA( Close, 45 ), -41 )
+AND Ref( Close, -40 ) < Ref( MA( Close, 45 ), -40 )
+AND Ref( Close, -39 ) < Ref( MA( Close, 45 ), -39 )
+AND Ref( Close, -38 ) < Ref( MA( Close, 45 ), -38 )
+AND Ref( Close, -37 ) < Ref( MA( Close, 45 ), -37 )
+AND Ref( Close, -36 ) < Ref( MA( Close, 45 ), -36 )
+AND Ref( Close, -35 ) < Ref( MA( Close, 45 ), -35 )
+AND Ref( Close, -34 ) < Ref( MA( Close, 45 ), -34 )
+AND Ref( Close, -33 ) < Ref( MA( Close, 45 ), -33 )
+AND Ref( Close, -32 ) < Ref( MA( Close, 45 ), -32 )
+AND Ref( Close, -31 ) < Ref( MA( Close, 45 ), -31 )
+AND Ref( Close, -30 ) < Ref( MA( Close, 45 ), -30 )
+AND Ref( Close, -29 ) < Ref( MA( Close, 45 ), -29 )
+AND Ref( Close, -28 ) < Ref( MA( Close, 45 ), -28 )
+AND Ref( Close, -27 ) < Ref( MA( Close, 45 ), -27 )
+AND Ref( Close, -26 ) < Ref( MA( Close, 45 ), -26 )
+AND Ref( Close, -25 ) < Ref( MA( Close, 45 ), -25 )
+AND Ref( Close, -24 ) < Ref( MA( Close, 45 ), -24 )
+AND Ref( Close, -23 ) < Ref( MA( Close, 45 ), -23 )
+AND Ref( Close, -22 ) < Ref( MA( Close, 45 ), -22 )
+AND Ref( Close, -21 ) < Ref( MA( Close, 45 ), -21 )
+AND Ref( Close, -20 ) < Ref( MA( Close, 45 ), -20 )
+AND Ref( Close, -19 ) < Ref( MA( Close, 45 ), -19 )
+AND Ref( Close, -18 ) < Ref( MA( Close, 45 ), -18 )
+AND Ref( Close, -17 ) < Ref( MA( Close, 45 ), -17 )
+AND Ref( Close, -16 ) < Ref( MA( Close, 45 ), -16 )
+AND Ref( Close, -15 ) < Ref( MA( Close, 45 ), -15 )
+AND Ref( Close, -14 ) < Ref( MA( Close, 45 ), -14 )
+AND Ref( Close, -13 ) < Ref( MA( Close, 45 ), -13 )
+AND Ref( Close, -12 ) < Ref( MA( Close, 15 ), -12 )
+AND Ref( Close, -11 ) < Ref( MA( Close, 45 ), -11 )
+AND Ref( Close, -10 ) < Ref( MA( Close, 45 ), -10 )
+AND Ref( Close, -9 ) < Ref( MA( Close, 45 ), -9 )
+AND Ref( Close, -8 ) < Ref( MA( Close, 45 ), -8 )
+AND Ref( Close, -7 ) < Ref( MA( Close, 45 ), -7 )
+AND Ref( Close, -6 ) < Ref( MA( Close, 45 ), -6 )
+AND Ref( Close, -5 ) < Ref( MA( Close, 45 ), -5 )
+AND Ref( Close, -4 ) < Ref( MA( Close, 45 ), -4 )
+AND Ref( Close, -3 ) < Ref( MA( Close, 45 ), -3 )
+AND Ref( Close, -2 ) < Ref( MA( Close, 45 ), -2 )
+AND Ref( Close, -1 ) < Ref( MA( Close, 45 ), -1 )
+AND Close < MA( Close, 45 );
+
+
+         
+
+AddColumn( Close, "Close  " );
+AddColumn( Open, "Open  " );
+AddColumn( High, "High  " );
+AddColumn( Low, "Low  " );
+AddColumn( Volume, "Volume      " );

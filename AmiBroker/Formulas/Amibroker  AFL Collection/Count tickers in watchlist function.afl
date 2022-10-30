@@ -1,0 +1,27 @@
+//Count tickers in watchlist function
+//Anthony Faragasso
+//July 4, 2003
+
+//Single watchlist output
+
+WatchlistNumber=0;//enter watchlist number
+
+function CountTickersInWatchList( Listnum )
+{
+// retrive comma-separated list of symbols in watch list
+list = GetCategorySymbols( categoryWatchlist, listnum );
+
+
+for( i = 0; ( sym = StrExtract( list, i ) ) != ""; i++ )
+{
+
+if( i == 0 ) i = 0;
+else i = i ;
+}
+
+return i; 
+}
+
+
+Filter=1;
+AddColumn(CountTickersInWatchList( WatchlistNumber),"Watchlist #"+WriteVal(watchlistnumber,1),1);

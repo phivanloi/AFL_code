@@ -1,0 +1,5 @@
+/*Island Reversals Automatic Analysis
+by Larry Lovrencic*/
+
+Buy=Ref(L,-2)>Ref(H,-1) AND L>Ref(H,-1); 
+Sell=Ref(H,-2)<Ref(L,-1) AND H<Ref(L,-1);

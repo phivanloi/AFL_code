@@ -1,0 +1,8 @@
+function LinearRegReversal( array, period )
+{
+  Lr = LinearReg( array, period );
+    return IIf( Lr >= Ref( Lr, -1 ), 1, -1 );
+}
+Plot( LinearRegReversal( C, 5 ), "LR Reversal", colorBlue);
+PlotGrid(1);
+PlotGrid(-1);

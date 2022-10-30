@@ -1,0 +1,78 @@
+// Define label bar (x) position location
+blankRightBars = 5; //insert actual blank right bars specified in Preferences 
+barsInView = Status("lastvisiblebarindex") - Status("firstvisiblebarindex") - blankRightBars;
+Offset = Param("Offset Bar", .99, 0, 1, .01);
+textOffset = BarCount - (Offset * barsInView);
+
+
+
+_SECTION_BEGIN("RSI Color Bar");
+RSIColor = IIf( RSI(14) > 70, colorRed, IIf( RSI(14) < 30, colorGreen, colorYellow));
+rs=RSI(14);
+r1=HHV(rs,200)-LLV(rs,200);
+r2=rs-LLV(rs,200);
+rn=255-((r2/r1)*255);
+rd=(r2/r1)*255;
+
+Plot( 10, "", ColorRGB(rn,rd,0), styleArea|styleOwnScale|styleNoLabel, 0, 100);
+Plot( 11,"",colorBlack,styleOwnScale|styleArea|styleNoLabel,0, 100 );
+PlotText("RSI-14", textoffset, 41.00, colorBlack);
+printf("\nRSI(14) =" + WriteVal(RSI(14)) );
+_SECTION_END();
+
+
+_SECTION_BEGIN("MACD Color Bar");
+m = MACD(); 
+s = Signal();
+//MACDColor = IIf( m > s, colorGreen, colorRed);
+xx=m-s;
+Hv= HHV(xx,400);
+Lv=LLV(xx,400);
+rng=Hv-Lv;
+Cr=(xx)-Lv;
+m2=255-((Cr/rng)*255);
+m1=(Cr/rng)*255;
+Plot( 20, "", ColorRGB(m2,m1,0), styleArea|styleOwnScale|styleNoLabel, 0, 100);
+Plot( 21,"",colorBlack,styleOwnScale|styleArea|styleNoLabel,0, 100 );
+
+//Plot( 20, "", MACDColor, styleArea|styleOwnScale|styleNoLabel, 0, 100);
+//Plot( 21,"",colorBlack,styleOwnScale|styleArea|styleNoLabel,0, 100 );
+PlotText("MACD", textoffset, 41.05, colorBlack);
+printf("\n ");
+printf("\nMACD(12,26) =" + WriteVal(m) );
+printf("\nMACD sig =" + WriteVal(s) );
+_SECTION_END();
+
+_SECTION_BEGIN("21 Day Range Color Bar");
+H21 = HHV(H,21);																						// Highest High over last 21 days
+L21 = LLV(Low,21);																					// Lowest Low over last 21 days
+P21DR = ( (Close - L21) / (H21 - L21) ) * 100;													// Calculate where the close is in relation to this 21 day range
+R21 = (255 - ( (P21DR/100)*255 ) );																// Red Color component
+G21 = (P21DR/100)*255;																				// Green Color component
+Plot( 30, "", ColorRGB(R21,G21,0), styleArea|styleOwnScale|styleNoLabel, 0, 100);
+Plot( 31,"",colorBlack,styleOwnScale|styleArea|styleNoLabel,0, 100 );
+PlotText("21Day Range", textoffset, 41.09, colorBlack);
+printf("\n ");
+printf("\nHHV 21 days =" + WriteVal(H21) );
+printf("\nLLV 21 days =" + WriteVal(L21) );
+printf("\n% Range =" + WriteVal(P21DR) );
+_SECTION_END();
+
+
+_SECTION_BEGIN("250 Day Range Color Bar");
+sk = StochK(5,3)	;																				// Highest High over last 250 days
+skr = HHV(sk,200)-LLV(sk,200);
+s1=sk-LLV(sk,200);
+sn=255-((s1/skr)*255);
+sd=255*(s1/skr);																					// Lowest Low over last 250 days
+																	// Green Color component
+Plot( 40, "", ColorRGB(sn,sd,0), styleArea|styleOwnScale|styleNoLabel, 0, 100);
+Plot( 41,"",colorBlack,styleOwnScale|styleArea|styleNoLabel,0, 100 );
+PlotText("Stochastic K", textoffset, 41.1325, colorBlack);
+printf("\n ");
+//printf("\nHHV 250 days =" + WriteVal(HH250) );
+//printf("\nLLV 250 days =" + WriteVal(LL250) );
+//printf("\n% Range =" + WriteVal(P250DR) );
+_SECTION_END();
+
+Title = "Multi Ribbon Indicator - " + "RSI(14) =" + WriteVal(RSI(14)) + ",   MACD(12,26) =" + WriteVal(m) + ", 21 Day % Range =" + WriteVal(P21DR) + ",   250 Day % Range =" + WriteVal(sk);

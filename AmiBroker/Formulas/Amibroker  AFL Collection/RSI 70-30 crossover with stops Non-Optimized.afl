@@ -1,0 +1,22 @@
+// RSI 70/30 crossover with stops ***Non-Optimized***
+
+//Enters long/short when the wilder's RSI oscillator crosses the 30/70 signal lines. reversal stops are employed.
+
+
+pds=14;
+p1=RSI(pds);
+
+Buy=Ref(RSI(pds),-1) < 30 AND RSI(pds) >= 30;
+Sell=RSI(pds) < 30 OR Ref(RSI(pds),-1) > 70 AND RSI(pds) <= 70;
+Short=Ref(RSI(pds),-1) > 70 AND RSI(pds) <= 70;
+Cover=RSI(pds) > 70 OR Ref(RSI(pds),-1) < 30 AND RSI(pds) >= 30;
+
+
+
+Filter=Buy OR Sell OR Short OR Cover;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); Short=ExRem(Short,Cover); Cover=ExRem(Cover,Short);
+
+AddColumn(Buy,"Buy");
+AddColumn(Sell,"sell");
+AddColumn(Short,"short");
+AddColumn(Cover,"cover");

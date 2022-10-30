@@ -1,0 +1,78 @@
+//|------------------------------------------------------------------
+//|Tradingbasis.com - Ichimoku Chart								
+//|Version:1.0   04-April-2005
+//|Copyright © 2005, Tradingbasis.com
+//|http://www.tradingbasis.com
+//|e-mail: support@tradingbasis.com
+//|------------------------------------------------------------------
+SetChartOptions(0,chartShowDates|chartShowArrows|chartLogarithmic|chartWrapTitle);
+#pragma nocache
+#include  <\TBInc\Tradingbasis_f0.afl> 
+
+AddAlertParam(0,0,0);
+
+_SECTION_BEGIN("Main Parameters");
+p1 = Param("Turning Line",9,5,20,1);//also known as Kijun Sen
+p2 = Param("Standard Line",26,5,40,1);//also known as Tenkan Sen
+p3 = Param("Delayed Line",26,5,40,1);//also known as Chikou Span
+
+_SECTION_END();
+_SECTION_BEGIN("Styles");
+TLstyle = ParamStyle("Turning Line",styleThick);
+SLstyle = ParamStyle("Standard Line",styleThick);
+DLstyle = ParamStyle("Delayed Line",styleThick|styleNoTitle);
+_SECTION_END();
+GraphZOrder = 0;
+AddICHIMOKU(p1,p2,p3);
+
+HSB = 0;
+
+if(HSB)
+{
+_SECTION_BEGIN("Cloud 1");
+Hue = Param("Hue",90,0,255,1);
+Saturation = Param("Saturation",255,0,255,1);
+Brightness = Param("Brightness",60,0,255,1);
+Cloud1color = ColorHSB(Hue,Saturation,Brightness);
+_SECTION_END();
+
+_SECTION_BEGIN("Cloud 2");
+Hue = Param("Hue",0,0,255,1);
+Saturation = Param("Saturation",180,0,255,1);
+Brightness = Param("Brightness",125,0,255,1);
+Cloud2color = ColorHSB(Hue,Saturation,Brightness);
+_SECTION_END();
+}
+else
+{
+_SECTION_BEGIN("Colors");
+TLcolor = ParamColor("Turning Line",colorYellow);
+SLcolor = ParamColor("Standard Line",colorWhite);
+DLcolor = ParamColor("Delayed Line",colorGrey50);
+Cloud1color = ParamColor("Cloud 1",colorSeaGreen);
+Cloud2color = ParamColor("Cloud 2",colorBlue);
+}
+#include  <\TBInc\Tradingbasis_1.afl> 
+GraphZOrder = 0;
+
+Buy = Cross(SL,TL);
+Sell = Cross(TL,SL);
+
+AddAlert(Buy,Audio,Email,"Tenken crossed Kijun-Sen"+DefaultAlertText,1,BarComplete);
+AddAlert(Sell,Audio,Email,"Kijun-Sen crossed Tenkan"+DefaultAlertText,2,BarComplete);
+
+
+_SECTION_BEGIN("Lines");
+Plot(TL, "SL", TLcolor,TLstyle); 
+Plot(SL, "TL", SLcolor,SLstyle); 
+Plot(DL, "DL", DLcolor,DLstyle); 
+PlotOHLC( 0, span1, span2, span2, "Cloud", IIf(span1>span2,Cloud1color,Cloud2color), styleCloud+styleNoTitle+styleNoLabel );
+_SECTION_END();
+
+Filter = NOT GroupID()==253;
+Filter = Filter AND (Buy OR Sell);
+Adddefaultcolumns(2,1);
+AddTextColumn(FullName(),"Full name");
+
+
+Title = "Tradingbasis.com - Ichimoku Chart" + default_title + " ";

@@ -1,0 +1,9 @@
+_SECTION_BEGIN("ABV");
+P1 = Param("Short Period",7,0,100,1);
+P2 = Param("Long Period",60,0,100,1);
+L1=Param("Threshold",4,2,10,1);
+U= MA(C,P1)-MA(C,P2);
+R=100*U/MA(C,P2);
+MyColor=IIf(R>L1, colorGreen,colorRed);
+Plot( R,"ABV",Mycolor, styleLine);
+_SECTION_END();

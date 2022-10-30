@@ -1,0 +1,4 @@
+Buy  = C>=HHV(C,50);
+Sell  = C<=LLV(C,50);
+AlertIf(Buy,   "", "",1,1 );
+AlertIf(Sell,  "", "",2,1 );

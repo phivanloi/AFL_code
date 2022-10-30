@@ -1,0 +1,126 @@
+_SECTION_BEGIN("Linkon's Day Trading System");
+
+
+icol = IIf ( MA (Close,25) > Ref (MA (Close,25),-1),colorGreen,colorRed);
+
+//Plot( MA( High, 25 ),"", icol, styleThick);
+//Plot( MA( Low, 25 ), "",icol, styleThick);
+w = Param ("filter",2.5,0,10,0.5);
+upper_sl = MA( High, 25 )+ w;
+Lower_sl = MA(Low,25)-w;
+Plot( upper_sl, "", icol, styleThick ); 
+Plot (Lower_sl,"", icol, styleThick);
+Color_buy = IIf(Close > EMA(Close,55) AND Close > EMA(High,25),colorBlue,IIf(Close < EMA(Close,55) AND Close < EMA(Low,25),colorRed,colorYellow));
+
+PlotOHLC( Open, High, Low, Close, "", Color_buy, styleCandle ); 
+_SECTION_END();
+
+  
+_SECTION_BEGIN("EMA fabonachi");
+
+fab5 = EMA(Close,5);
+fab8 = EMA(Close,8);
+fab13 = EMA(Close,13);
+fab21 = EMA(Close,21);
+fab34 = EMA(Close,34);
+fab55 = EMA(Close,55);
+fab89 = EMA(Close,89); 
+
+Color_fab5 = IIf(Close > fab5,ColorRGB(197,254,214),colorPink);
+Color_fab8 = IIf(Close > fab8,ColorRGB(197,254,214),colorPink);
+Color_fab13 = IIf(Close > fab13,ColorRGB(197,254,214),colorPink);
+Color_fab21 = IIf(Close > fab21,ColorRGB(197,254,214),colorPink);
+Color_fab34 = IIf(Close > fab34,ColorRGB(197,254,214),colorPink);
+Color_fab55 = IIf(Close > fab55,ColorRGB(197,254,214),colorPink);
+Color_fab89 = IIf(Close > fab89,ColorRGB(197,254,214),colorPink);
+
+Plot( fab55, "", Color_fab55, styleDashed ); 
+_SECTION_END();
+dist = 0.25*ATR(10); 
+Capital=Param("Total capital",100000,10000,1000000,1000);
+drawdown=Param("Max. loss per trade as % of Capital", 1.0,0.5,25.0,0.1);
+room=Param("Room for S/L as % of Pivot value",0.001,0.001,0.02,0.001);
+
+PH= ValueWhen(
+(Ref(H,-2) > Ref(H, -4)) AND
+(Ref(H,-2) > Ref(H, -3)) AND
+(Ref(H,-2) > Ref(H, -1)) AND
+(Ref(H,-2) > H), Ref(H,-2));
+
+PL= ValueWhen(
+(Ref(L,-2) <= Ref(L, -4)) AND
+(Ref(L,-2) <= Ref(L, -3)) AND
+(Ref(L,-2) <= Ref(L, -1)) AND
+(Ref(L,-2) <= L), Ref(L,-2));
+
+phfilter=PH+(room*PH);
+plfilter=PL-(room*PL);
+
+Plot(Ref(PH,2), "UpPivot", ParamColor("UpPivot Color",colorGreen), styleDashed);
+Plot(Ref(PL,2), "DownPivot",ParamColor("DownPivot Color",colorRed), styleDashed);
+
+/*
+
+for (a=4;a<BarCount;a++)
+{
+if ((H[a-2] >= H[a-4]) AND
+(H[a-2] >= H[a-3]) AND
+(H[a-2] >= H[a-1]) AND
+(H[a-2] >= H[a]))
+PlotText("PH \n"+H[a-2], a-2, H[a-2], colorGreen);
+
+if ((L[a-2] <= L[a-4]) AND
+(L[a-2] <= L[a-3]) AND
+(L[a-2] <= L[a-1]) AND
+(L[a-2] <= L[a]))
+PlotText("PL \n"+L[a-2], a-2, L[a-2]-dist[a-2], colorRed);
+}
+*/
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("fabo cloud");
+
+Lo = IIf (fab55>fab34,fab34,fab55);
+Hi = IIf (fab55<fab34,fab34,fab55);
+PlotOHLC(Lo,Hi,Lo,Hi,"",Color_fab55, styleNoLabel |  styleCloud);
+
+Lo1 = IIf (fab55>fab34,fab34,fab55);
+Hi1 = IIf (fab55<fab34,fab34,fab55);
+PlotOHLC(Lo1,Hi1,Lo1,Hi1,"",Color_fab55, styleNoLabel | styleCloud);
+
+Lo2 = IIf (fab34>fab21,fab21,fab34);
+Hi2 = IIf (fab34<fab21,fab21,fab34);
+PlotOHLC(Lo2,Hi2,Lo2,Hi2,"",Color_fab34, styleNoLabel | styleCloud);
+
+Lo3 = IIf (fab21>fab13,fab13,fab21);
+Hi3 = IIf (fab21<fab13,fab13,fab21);
+PlotOHLC(Lo3,Hi3,Lo3,Hi3,"",Color_fab21, styleNoLabel | styleCloud);
+
+Lo4 = IIf (fab13>fab8,fab8,fab13);
+Hi4 = IIf (fab13<fab8,fab8,fab13);
+PlotOHLC(Lo4,Hi4,Lo4,Hi4,"",Color_fab13, styleNoLabel | styleCloud);
+
+Lo5 = IIf (fab8>fab5,fab5,fab8);
+Hi5 = IIf (fab8<fab5,fab5,fab8);
+PlotOHLC(Lo5,Hi5,Lo5,Hi5,"",Color_fab8, styleNoLabel | styleCloud);
+
+_SECTION_END();
+Buy = Color_buy ==colorBlue;
+Short = Color_buy == colorRed;
+Sell = Cross(Close,upper_sl);
+Cover = Cross(Close,Lower_sl);
+PlotShapes (shapeCircle*Cover,colorRed);
+PlotShapes (shapeCircle*Sell,colorBlue);
+Title = EncodeColor(colorWhite)+ "LINKON'S DAY TRADING SYSTEM" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+ "Cl-"+C+"  "
++ "\n"
++ "Vol= "+ WriteVal(V) +WriteIf ( V > MA(V,26) ,EncodeColor(colorGreen)+"  UP "+ (V/MA(V,26))*100 + " %", EncodeColor(colorRed)+"  DOWN "+ (V/MA(V,26))*100 + " %")
++ EncodeColor(colorGreen)+   "\n Pivot High : "+ EncodeColor(colorWhite)+PH
++EncodeColor(colorGreen)+ "  Place LONG    Trigger at :"
++EncodeColor(colorWhite)+ WriteIf(MA (H, 25) > EMA(C, 55), WriteVal(upper_sl),WriteVal(EMA(C,55))) 
++ EncodeColor(colorGreen)+ "   Trailing SL of :"+ EncodeColor(colorWhite)+EMA(L,25) 
+
++ EncodeColor(colorRed)+ "\n Pivot  Low : "+EncodeColor(colorWhite)+PL+EncodeColor(colorRed)+"  Place SHORT Trigger at :"+ EncodeColor(colorWhite)+WriteIf(MA (L, 25) < EMA(C, 55), WriteVal(Lower_sl),WriteVal(EMA(C,55))) + EncodeColor(colorRed)+"   Training SL of :"+ EncodeColor(colorWhite)+EMA (H,25)
+;

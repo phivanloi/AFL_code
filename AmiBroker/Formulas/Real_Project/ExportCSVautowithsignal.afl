@@ -1,0 +1,168 @@
+tinhieumua = Cross(EMA(C,12),EMA(C,25));
+tinhieuban = Cross(EMA(C,25),EMA(C,12));
+
+//EXPORT TO CSV
+
+Buy_sig = tinhieumua == 1;
+Sell1 = IIf(Tinhieuban,-1,0);
+Sell_sig = Tinhieuban;
+
+Buy_sig = ExRem(Buy_sig, Sell_sig);
+Sell_sig = ExRem(Sell_sig, Buy_sig);
+
+BuyPrice = ValueWhen( Buy_sig, C );
+SellPrice = ValueWhen( Sell_sig, C );
+
+BarsSincebuy = BarsSince( Buy_sig );
+BarsSinceshort = BarsSince( Sell_sig );
+LastSignal = IIf( BarsSincebuy < BarsSinceshort, 1, -1 );
+entry = IIf( LastSignal == 1, BuyPrice, SellPrice );
+
+tinhieuchung = tinhieumua + Sell1;
+
+BuyPrice2 = IIf(Buy_sig,ValueWhen(Buy_sig,entry ),0);
+
+function Codinhgiamua(input1){
+// semi-variable
+result[0] = 0;
+for(i=1;i<BarCount;i++)
+{if(input1[i]> 0)
+{result[i]= input1[i];
+}
+ else
+{result[i] =result[i-1];
+}
+
+}
+return result;
+}
+
+BuyPrice1 =Codinhgiamua(BuyPrice2) ;
+SellPrice1 = IIf(Sell_sig,ValueWhen(Sell_sig,entry),Close);
+Profitpoints = IIf(BuyPrice1==0,0,SellPrice1 - BuyPrice1) ;
+Perfomance = IIf(BuyPrice1==0,0,Profitpoints*100/(BuyPrice1+1e-9));
+
+function demsophien(input1){
+// semi-variable   //DEM SO PHIEN
+result[0] = 0;
+input1[0] =0;
+for(i=1;i<BarCount;i++)
+{if(input1[i]== 1)
+{result[i]= 1;
+}
+ else
+{result[i] = result[i-1]+input1[i];
+}
+
+}
+return result;
+}
+function tongphien(input1){
+// semi-variable
+result[0] = 0;
+input1[0] =0;
+for(i=1;i<BarCount;i++)
+{if(input1[i-1]== 1)
+{result[i]= result[i-1]+1;
+}
+ else
+{result[i] = 0;
+}
+
+}
+return result;
+}
+
+sophien = tongphien(demsophien(tinhieuchung)); //TIN HIEU CHUNG - SO NGAY NAM GIU LENH
+
+//sophien = BarsSince(Buy) - BarsSince(Sell);
+DateTime1 = DateNum();
+CurrrentQuarter = DateTimeAdd(Now(5),0,inQuarterly);
+
+function trungay(input1){
+
+for(i=0;i<BarCount;i++)
+{if(input1[i]== 1)
+{result[i]= -10000+900;
+}
+ else
+{result[i] = -300;
+}
+
+}
+return result;
+}
+sotru = trungay(CurrrentQuarter );
+
+Last_dt_buy  = ValueWhen(Buy_sig, Datetime1, 1);
+Last_dt_sell = ValueWhen(Sell1, Datetime1, 1); 
+
+Lastdtbuy = Codinhgiamua(IIf(tinhieumua==1,19000000+ValueWhen(Buy_sig ,DateTime1,1),0));
+Lastdtsell = IIf(tinhieuban ==-1,19000000+ValueWhen(Sell1,DateTime1,1),0);
+
+
+return1 = (C*0.5+O*0.1+H*0.2+L*0.2);
+thanhkhoan = return1*Volume;
+thanhkhoan1=Ref(thanhkhoan ,-1);
+thanhkhoanbq10=MA(thanhkhoan1 ,10);
+thanhkhoanbq20=MA(thanhkhoan1 ,20)/1000000;
+
+z = ValueWhen(Buy, (DateNum() - 1000000) + 20000000, 1);
+//======== FORMAT FILE CSV =======================
+//fdelete( "C:\\SaveData\\intraday.csv");
+fmkdir( "C:\\SaveData" );
+//Buy = ( (DateNum() >= 1121220) AND (DateNum() <= 1121231) ); // data exported from 20/12/2012 to 31/12/2012
+//if we want to export data for a single Day, we modify the Second line like this
+Buy = ((DateNum() > Now(3)+sotru)AND (DateNum() <= Now(3))) AND (Sell1 OR Buy_sig) AND (Lastdtbuy>0) ;
+if(Status("stocknum")==0)
+{fdelete( "C:\\SaveData\\historicaltrading_HASepa.csv");}
+for( i = 0; i < BarCount; i++ )
+if( Buy[i] )
+//{fdelete( "C:\\SaveData\\intraday.csv");}
+{
+fh = fopen( "C:\\SaveData\\historicaltrading_HASepa.csv", "a");//if we want to export all data in a single file//
+//fh = fopen( "C:\\SaveData\\"+Name()+".csv", "a");// if we want to export data in an individual file//
+
+
+if( fh )
+
+{
+
+y = Year();
+
+m = Month();
+
+d = Day();
+
+r = Hour();
+
+e = Minute();
+
+s= Second();
+
+
+
+
+
+for( i = 0; i < BarCount; i++ )
+
+if( Buy[i] )
+
+{
+
+fputs( Name() + "," , fh );
+
+
+qs = StrFormat("%.0f,%.0f,%.0f,%.2f,%.2f,%.2f,%.2f,%.0f,%.2f\n",
+
+z[i], Lastdtbuy[ i ],Lastdtsell[ i ],BuyPrice1 [i],SellPrice1 [i],Profitpoints [i],Perfomance [i],sophien [i],thanhkhoanbq20[i]);
+
+fputs( qs, fh );
+
+}
+
+fclose( fh );
+
+}
+
+}

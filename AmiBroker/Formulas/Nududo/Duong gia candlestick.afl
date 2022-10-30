@@ -1,0 +1,1 @@
+Plot(C,"",IIf(C>Ref(C,-1),colorCustom9,colorRed),styleCandle);

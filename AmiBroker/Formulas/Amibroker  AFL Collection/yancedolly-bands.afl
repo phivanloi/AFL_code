@@ -1,0 +1,45 @@
+BBLength= Param("BBLength",10,2,30,2);
+StdDv= Param("Stdev",2,0.5,5,0.1);
+K1= Param("EMA Periods?",5,3,50);
+K2= Param("ATR Periods?",10,2,50);
+Mul= Param("ATR Multiplier?",1,0.5,5,0.5);
+CY2 =  Param("Medium Cycle Length?" ,80, 1 ,1000 ,1 )/2;
+Mi=EMA(C, K1);
+Kel= ATR(K2)*Mul;
+UB= Mi + Kel;
+LB= Mi - Kel;
+UpB=BBandTop(H,BBLength,StdDv);
+Mdb=MA(C, BBLength);
+DnB=BBandBot(L,BBLength,StdDv);
+UpY=EMA(C, CY2)+3*ATR(CY2);
+MdY=EMA(C, CY2);
+DnY=EMA(C, CY2)-3*ATR(CY2);
+
+
+//Plot (Close, "close",1,64);
+Plot (Mi,"",6,1);
+Plot (UB,"",6,1);
+Plot (LB,"",6,1);
+Plot(UpB,"",23,1);
+Plot(MdB,"",23,1);
+Plot(DnB,"",23,1);
+Plot(UpY,"",9,1);
+Plot(MdY,"",9,1);
+Plot(DnY,"",9,1);
+//GraphXSpace=4;
+Title=Name()+ EncodeColor (colorViolet )+  "   Yancedolly Bands: "
++"\n"+"RESISTANCE = "+WriteVal(UpB,1.2) + ", " +WriteVal (Ub,1.2) + "   SUPPORT
+= " +WriteVal (Lb,1.2) + ", "+ WriteVal(Dnb,1.2);
+
+
+GraphXSpace = 5;
+_SECTION_BEGIN( "Price" );
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );
+_N( Title = StrFormat( "{{NAME}} - " + SectorID( 1 ) + " - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", IIf(L<LB,colorBrightGreen,IIf(H>UB,colorRed,colorRose)), styleCandle | styleNoTitle | ParamStyle( "Style" ) | GetPriceStyle() );
+ 
+if ( ParamToggle( "Tooltip shows", "All Values|Only Prices" ) )
+{
+    ToolTip = StrFormat( "Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: " + NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 ) ) );
+}
+_SECTION_END();

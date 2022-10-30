@@ -1,0 +1,34 @@
+// SWING Trader//
+
+fi = V * (C - Ref(C, -1));
+
+BuySIG1 = IIf ( ( ( fi - MA( fi, 13 )) >= 0 ), 1, 0 );
+BuySIG2 = IIf ( ( ( fi - MA( fi, 3 )) <= 0 ), 1, 0 );
+
+SellSIG1 = IIf ( ( ( fi - MA( fi, 13 )) <= 0 ), 1, 0 );
+SellSIG2 = IIf ( ( ( fi - MA( fi, 3 )) >= 0 ), 1, 0 );
+
+Buy = Cross((EMA(Close,15)),(EMA(Close,50)))AND Cross( MACD( 12, 26 ),
+Signal( 12, 26, 9 ) )AND Cross(PDI (14), MDI(14)) AND BuySIG1 OR BuySIG2;
+Sell = Cross( Signal(12, 26, 9), MACD(12,26) )AND Cross( Signal(12,
+26, 9), MACD(12,26) ) AND Cross(MDI (14), PDI(14))AND SellSIG1 OR
+SellSIG2;
+Filter = C <10 AND C >2 AND Volume > 100000 AND C> Ref(C,-1)AND (PDI
+(14)>MDI(14));
+
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+Result = WriteIf(Buy,"Buy","Sell");
+AddTextColumn(Result,"Trade",
+formatChar,IIf(Buy,colorDarkGreen,colorRed ),
+IIf(Sell,colorPink,colorLime));
+AddColumn( Close, "Close", 1.2, IIf( ROC(C, 1 ) >= 0,
+colorDarkGreen,colorRed ),50 );
+AddColumn(Ref(Close,-1),"Y-Close",1.2, IIf(
+ROC(Ref(C,-1),1)>=0,colorDarkGreen, colorRed ),50 );
+AddColumn( Volume, "Volume", 10.0, IIf( ROC(V, 1 ) >=
+0,colorDarkGreen, colorRed ) );
+AddColumn( ROC( Close, 1 ), "ROC(1)", 1.2, IIf( ROC(C, 1 ) >=
+0,colorDarkGreen, colorRed));
+AddColumn( fi, "FORCE IDX", 2.0, colorDarkBlue,37 );

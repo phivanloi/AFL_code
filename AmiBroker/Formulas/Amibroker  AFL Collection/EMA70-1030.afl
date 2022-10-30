@@ -1,0 +1,102 @@
+//foreign
+_SECTION_BEGIN ("foreign Index bar graph");
+Vr=ParamList("Index to Synch",List = "^NSEI,^NSEBANK,^CNXIT,^NSMIDCP,RELIANCE.NS,SBIN.NS",0); 
+
+_SECTION_BEGIN("Nifty");
+SetForeign(Vr); 
+"Review " + "\as of " + Date();
+
+X=Interval()/60; 
+P1 = 70/X;
+P2 = 1030/X;
+P3 = 375/X;
+Y=EMA( C, P1 );
+Z=EMA( C, P2 );
+U=EMA( C, P3 );
+
+// Angle variables
+
+PI = atan(1.00) * 4; 
+periods = P1; 
+HighHigh = HHV(H, periods); 
+LowLow = LLV(L, periods); 
+range = P1 / (HighHigh - LowLow) * LowLow;
+
+// bbtop 1 Angle
+
+Yang = Y;
+x1_Yang = 0; 
+x2_Yang = 1; 
+y1_Yang = 0; 
+y2_Yang = (Ref(Yang, -1) - Yang) / Avg * range; 
+c_Yang = sqrt((x2_Yang - x1_Yang)*(x2_Yang - x1_Yang) + (y2_Yang - y1_Yang)*(y2_Yang - y1_Yang)); 
+angle_Yang = round(180 * acos((x2_Yang - x1_Yang)/c_Yang) / PI); 
+angle_Yang = IIf(y2_Yang > 0, - angle_Yang, angle_Yang); 
+
+
+Plot( Y, _DEFAULT_NAME(), ParamColor( "70", colorGreen ), styleLine | styleThick ); 
+Plot( Z, _DEFAULT_NAME(), ParamColor( "1030", colorRed ), styleLine | styleThick ); 
+PlotOHLC(Open,High,Low,Close,"",colorWhite,styleCandle);
+Buy=Cross(Y,Z);
+Short=Cross(Z,Y);
+Cover=angle_Yang>-30 && angle_yang<0;
+
+Sell=angle_Yang<30 && angle_yang>0;
+Sell=ExRem(Sell,Cover);
+Cover=ExRem(Cover,Sell);
+
+//Shapes
+PlotShapes(IIf(Short, shapeDownArrow, Null), colorOrange, 0,H,Offset=-15);
+PlotShapes(IIf(Buy, shapeUpArrow, Null), colorWhite, 0,L,Offset=-15);
+PlotShapes(IIf(Cover,shapeUpTriangle,shapeNone),colorOrange,0,L,-45 );
+PlotShapes(IIf(Sell,shapeDownTriangle,shapeNone),colorWhite,0,H,-45 );
+WriteVal(LastValue(C));
+WriteIf( Buy ,
+"Buy Nifty Now",
+WriteIf( Short ,
+"Short Nifty Now",
+WriteIf(Sell ,
+"Sell Nifty Now",
+WriteIf( Cover,
+"Cover Nifty Now",
+
+WriteIf( Y>Z,
+"Bullish", WriteIf( Z>Y,
+"Bearish","") ) ))));
+Plot( EMA( C, P3 ), _DEFAULT_NAME(), ParamColor( "375", colorYellow ), ParamStyle("Style") ); 
+if( Status("action") == actionIndicator ) 
+(
+Title = EncodeColor(colorYellow)+ "'Addendum to Dr Bob CCI 50 System VINOD' - Developed & conceived by, & property of Vinod K. Iyer - for Research purpose only - Trading the system may result in serious financial Loss AND the author cannot be held resposible for such occurance - Don't Do AnyThing I would'nt Do" + "\n" +  Name() + " - " + EncodeColor(colorYellow)+ Interval(2) + EncodeColor(colorWhite) +
+"  - " + Date() +" - " +EncodeColor(colorYellow) + "    TurnOver=    Rs.  "+ WriteVal((((V*C)/100000)),1.2)+"   Lakhs"+ "\n" +
+WriteIf((angle_Yang), "EMA 70min Angle:  "+( angle_Yang )+"  ",""));
+
+
+//Alerts
+AlertIf( Buy , "SOUND C:\\Windows\\Media\\Windows XP Startup.wav", "Buy",2);
+AlertIf( Short, "SOUND C:\\Windows\\Media\\Windows XP Startup.wav", "Short", 2 );
+AlertIf( Sell, "SOUND C:\\Windows\\Media\\Ringin.wav", "Buy Take Profit", 2 );
+AlertIf( Cover, "SOUND C:\\Windows\\Media\\Ringin.wav", "Buy Take Profit", 2 );
+//AlertIf( (Buy), "Email", "BUY triggered for Nifty " , 1,1+2 );
+//AlertIf( (Short), "Email", "SELL triggered for Nifty" , 2 ,1+2);
+
+isRth =  TimeNum() >= 090000 & TimeNum() <= 090500;
+isdRth =  TimeNum() >= 090000 & TimeNum() <= 160000;
+aRthL = IIf(isRth, L, 1000000);
+aRthH = IIf(isdRth, H, Null);
+aRthLd = IIf(isdRth, L, 1000000);
+DayH = TimeFrameCompress( aRthH, inDaily, compressHigh );
+DayH = TimeFrameExpand( DayH, inDaily, expandFirst );
+DayL = TimeFrameCompress( aRthLd, inDaily, compressLow );
+DayL = TimeFrameExpand( DayL, inDaily, expandFirst );
+Bars       = BarsSince(TimeNum() >= 90000 AND TimeNum() < 090500);//,BarIndex(),1); // AND DateNum()==LastValue(DateNum());
+x0         = BarCount-LastValue(Bars);
+x1         = BarCount-1;
+DayHline=LineArray(x0,LastValue(DayH),x1,LastValue(DayH),0);
+DayLline=LineArray(x0,LastValue(DayL),x1,LastValue(DayL),0);
+Plot(DayHline,"DayH",colorYellow,styleLine|styleNoRescale);
+Plot(DayLline,"DayL",colorYellow,styleLine|styleNoRescale);
+DayC=(round(ValueWhen((TimeNum() == 152500 && (DateNum()==LastValue(DateNum()))),C)*10))/10;
+Filter=Buy || Short || Sell || Cover || DayC;
+RestorePriceArrays();
+
+_SECTION_END();

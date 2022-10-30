@@ -1,0 +1,25 @@
+// --- begin AFL ---
+
+// Dynamic RSI Thresholds -- J. Varney
+ 
+ 
+/* 
+Instead of the traditional fixed RSI = 30 and 70 thresholds to define
+oversold and overbought, this AFL uses standard deviation to determine
+dynamic overbought and oversold theshold lines.
+*/
+
+Period = Param("Period", 14, 2, 30, 1);
+myRSI = RSI(Period);
+Adev = StDev(myRSI, 3*Period);
+Hiline = 50 + 1.8*Adev;
+Loline = 50 - 1.8*Adev;
+Plot(myRSI,"",colorBlue,8);
+Plot(Hiline,"",colorRed,1);
+Plot(Loline,"",colorGreen,1);
+
+Title = " " +Name() +
+" Dynamic RSI Threshold, t = " + 
+WriteVal(period, format=1.0) + " "; 
+
+// --- end AFL ---

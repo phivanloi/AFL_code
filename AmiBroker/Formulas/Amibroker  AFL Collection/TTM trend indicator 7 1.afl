@@ -1,0 +1,177 @@
+_SECTION_BEGIN("Ehlers Instantaneous Trend");   
+//------------------------------------------------------------------------------
+//
+//  Formula Name:    Ehlers Instantaneous Trend  
+//  Author/Uploader: Not Too Swift 
+//  E-mail:          
+//  Date/Time Added: 2005-03-20 00:25:13
+//  Origin:          
+//  Keywords:        
+//  Level:           medium
+//  Flags:           indicator
+//  Formula URL:     http://www.amibroker.com/library/formula.php?id=444
+//  Details URL:     http://www.amibroker.com/library/detail.php?id=444
+//
+//------------------------------------------------------------------------------
+//
+//  This is a zero lag trend indicator with an interesting predictive trigger.
+//
+//------------------------------------------------------------------------------
+
+SetBarsRequired(200, 0);
+
+// Ehlers ITrend
+// from Ehlers, John F. Cybernetic Analysis for Stocks and Futures. Wiley. 2004. 
+// Chapter 3, p. 21. Code on p. 24.
+
+function ITrend(array, alpha)
+{
+  // initialize early array values and declare as array
+  it = array;
+  //it = (array[2] - 2*array[1] + array[0])/4; This initialization takes a long time to converge.
+  for(i = 2; i < BarCount; i++)
+  {
+    it[i] = (alpha - alpha*alpha/4)*array[i] + 
+         .5*alpha*alpha*array[i-1] -
+         (alpha - .75*alpha*alpha)*array[i-2] +
+         2*(1 - alpha)*it[i-1] -
+         (1 - alpha)*(1 - alpha)*it[i-2];
+  }
+  return it;
+} 
+
+function ITrendTrigger(array)
+{
+  trigger = 2*array - Ref(array, -2);
+  return trigger;
+}
+
+Med = (H+L)/2;
+
+// Instantaneous Trend
+//Plot(Med, "", colorBlack, styleLine);
+trend = ITrend(Med, .07);
+Plot(trend, "ITrend", colorBlue, styleLine);
+Plot(ITrendTrigger(trend), "", colorRed, styleLine);
+Buy = Cross(ITrendTrigger(trend),trend);
+Sell = Cross (trend,ITrendTrigger(trend));
+Cover = Buy;
+Short = Sell;
+
+PlotShapes(Buy*shapeUpTriangle,colorYellow);
+PlotShapes(Sell*shapeDownTriangle,colorYellow);
+
+
+_SECTION_END();
+
+Colbar = IIf(trend < ITrendTrigger(trend),colorBlue,colorRed);
+Plot (Close, "", Colbar,styleCandle);
+
+
+ Title = EncodeColor(colorWhite)+ "LINKON'S PIVOT SYSTEM" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+ "Cl-"+C+"  "+ "Vol= "+ WriteVal(V)
+//+ EncodeColor(colorRed)+   "\n Pivot High : "+ EncodeColor(colorWhite)+PH+EncodeColor(colorRed)+ "  Place LONG    Trigger at :"+EncodeColor(colorWhite)+ phfilter + EncodeColor(colorRed)+ "   SL of :"+ EncodeColor(colorWhite)+E_TSKPAUTOSTOP(High,Low,Close)+ EncodeColor(colorRed)+ "    Risk of " + EncodeColor(colorWhite)+risk_long
+//+ EncodeColor(colorYellow)+ "\n Long Target of : "+Long_tgt1 +"  and second target of :" + Long_tgt2   
++ "\n"
+//+ EncodeColor(colorGreen)+ "\n Pivot  Low : "+EncodeColor(colorWhite)+PL+EncodeColor(colorGreen)+"  Place SHORT Trigger at :"+ EncodeColor(colorWhite)+plfilter + EncodeColor(colorGreen)+"   SL of :"+ EncodeColor(colorWhite)+E_TSKPAUTOSTOP(High,Low,Close)+ EncodeColor(colorGreen)+"    Risk of " + EncodeColor(colorWhite)+risk_short
+//+ EncodeColor(colorYellow)+ "\n Short Target of : "+short_tgt1 +"  and second target of :" + short_tgt2   
+;
+
+SL = ( HHV( H, 26 ) + LLV( L, 26) )/2;
+TL = ( HHV( H, 9 ) + LLV( L, 9 ) )/2;
+
+Color_buy = IIf (Close > sl AND Close > TL, colorBlue, IIf (Close < sl AND Close < TL,colorRed,colorYellow));
+
+Plot(6,"icchi",Color_buy,styleOwnScale| styleArea|
+styleNoLabel,-0.5,100);
+
+_SECTION_BEGIN("Gaurav_Signals");
+
+EMARange1=Param( "faster", 5, 1, 50, 1 );
+EMARange2=Param( "slower", 20, 1, 100, 1 );
+EMARange3=Param( "50 EMA", 50, 1, 250, 1 );
+
+ADXRange=Param("ADX Range",14,2,200,1);
+
+RSIRange=Param( "RSIPeriods", 15, 1, 200, 1 );
+
+MACD_r1 = Param( "Fast avg", 12, 2, 200, 1 );
+MACD_r2 = Param( "Slow avg", 26, 2, 200, 1 );
+MACD_r3 = Param( "Signal avg", 9, 2, 200, 1 );
+
+/****************************************************************************/
+//OBV Indicator Check
+//Calculate The slope of OBV for past 5 mins, Buy(helper) if Slope is (+)ve
+
+OBV_5min=Ref(OBV(),-5);
+OBV_curr=OBV();
+rate_change_OBV=(OBV_curr-OBV_5min)/5;
+
+buy_obv=IIf(V==0 OR rate_change_OBV>0,1,0);
+printf("\nVolumne Change " +WriteVal(rate_change_OBV));
+
+/****************************************************************************/
+//ADX Indicator Check
+// Calculate ADX Value Buy: if ADX(14)>20, +DI>-DI, ROC(+DX)>0 and ROC(-DI)<0 
+
+ad=ADX(ADXRange);		 //ADX(14)
+pd=PDI(ADXRange);        //+DI
+md=MDI(ADXRange);		 //-DI
+
+
+ADX_BUY=IIf((ad-Ref(ad,-5))/5>0 AND pd>md AND pd>Ref(pd,-2) AND md<Ref(md,-2) ,1,0);
+ADX_SELL=IIf(pd<md AND pd<Ref(pd,-1) AND md>Ref(md,-2),1,0);
+
+printf("\nADX                     " + WriteVal( ADX_BUY ));
+
+
+/****************************************************************************/
+// Moving Average Crossover Indicator
+
+EMA_buy=IIf(EMA(Close,EMArange1)>EMA(Open,EMArange2),1,0);
+EMA_Sell = IIf(EMA(Open,EMArange2)>EMA(Close,EMArange1),1,0); 
+
+printf("\nMoving Average " + WriteVal( EMA_BUY ));
+
+/****************************************************************************/
+//RSI Indicator Check 
+
+Vrsi=RSI(RSIRange);
+RSI_buy=IIf(Vrsi<70 AND ROC(Vrsi,3)>0,1,0);
+RSI_Sell=IIf(Vrsi>30 AND ROC(Vrsi,3)<0,1,0);
+
+printf("\nRSI Indicator      " + WriteVal( RSI_BUY ));
+
+/****************************************************************************/
+//MACD Indicator Check
+
+ml = MACD(MACD_r1, MACD_r2);
+sl = Signal(MACD_r1,MACD_r2,MACD_r3);
+
+MACD_BUY=IIf(ml>sl,1,0);
+MACD_SELL=IIf(ml<sl,1,0);
+
+printf("\nMACD Indicator  " +WriteVal(MACD_BUY));
+
+/****************************************************************************/
+///////////////////////////Buy/////////////////////////////////
+
+Buy=IIf(buy_obv AND ADX_BUY AND EMA_buy AND MACD_BUY,1,0);
+Sell=IIf(ADX_sell AND EMA_sell,1,0);
+
+//Buy=IIf(EMA_BUY AND ADX_BUY AND MACD_BUY,1,0);
+//Sell= IIf(EMA_sell AND MACD_SELL AND ADX_sell,1,0);
+
+printf("\nBuy Value   " +WriteVal(Buy));
+
+/****************************************************************************/
+
+Buy=ExRem(Buy,Sell); 
+Sell=ExRem(Sell,Buy); 
+//Short=ExRem(Short,Cover); 
+//Cover=ExRem(Cover,Short);
+
+// plot arrows	
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ), 0, IIf( Buy, Low, High ) );
+_SECTION_END();

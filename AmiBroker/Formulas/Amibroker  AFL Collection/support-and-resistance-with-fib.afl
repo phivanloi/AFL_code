@@ -1,0 +1,51 @@
+LB= Param("Look Back Periods",10,1,30,1);
+mh=ValueWhen(Cross(MA(C,LB),C),HHV(H,LB),1);
+ml=ValueWhen(Cross(C,MA(C,LB)),LLV(L,LB),1);
+
+GraphXSpace=4;
+
+b=(mh-ml);
+s38=ml+b*23.6/100;
+s50=ml+b*50/100;
+s61=ml+b*76.4/100;
+s127=mh-b*127.2/100;
+s161=mh-b*161.8/100;
+s261=mh-b*261.8/100;
+r127=ml+b*127.2/100;
+r161=ml+b*161.8/100;
+r261=ml+b*261.8/100;
+Plot(s50,"",2,5);
+Plot(s127,"",5,5);
+Plot(r127,"",4,5);
+
+Buy=Cross( L,r127) ; 
+Sell= Cross( r127,H ); 
+
+dist = 1.5*ATR(10); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "Buy" + H[ i ], i, L[ i ]-dist[i], colorGreen ); 
+if( Sell[i] ) PlotText( "Sell" +L[ i ], i, H[ i ]+dist[i], colorRed, colorYellow ); 
+} 
+
+PlotShapes( Buy * shapeUpArrow + Sell * shapeDownArrow, IIf( Buy, colorGreen, colorRed ) );
+
+Buy=Cross( L,s127) ; 
+Sell= Cross( s127,H ); 
+
+dist = 1.5*ATR(10); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "Buy" + H[ i ], i, L[ i ]-dist[i], colorGreen ); 
+if( Sell[i] ) PlotText( "Sell" +L[ i ], i, H[ i ]+dist[i], colorRed, colorYellow ); 
+} 
+
+PlotShapes( Buy * shapeUpArrow + Sell * shapeDownArrow, IIf( Buy, colorGreen, colorRed ) );
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", colorGreen, styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

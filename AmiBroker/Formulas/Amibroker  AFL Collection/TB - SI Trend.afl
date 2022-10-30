@@ -1,0 +1,124 @@
+//|------------------------------------------------------------------
+//|Tradingbasis.com - Sector industry trend analysis
+//|Version:1.4   10-May-2006
+//|Copyright © 2005, Tradingbasis.com
+//|http://www.tradingbasis.com
+//|e-mail: support@tradingbasis.com
+//|------------------------------------------------------------------
+SetChartOptions(0,chartShowDates|chartWrapTitle);
+Version(4.65);
+EnableTextOutput( False );
+
+_SECTION_BEGIN("Styles");
+SectorPlotStyle = ParamToggle("Sector Plot Style","Mountain,Line with small Shadow",1);
+width = Param("Width",2.5,0,5,0.5);
+_SECTION_END();
+
+_SECTION_BEGIN("Colors");
+Sectorcolor = ParamColor("Sector",ColorRGB(182,182,190));
+IndustryColorUP = ParamColor("Industry Strength up",colorBrightGreen);
+IndustryConsolidation_color  = ParamColor("Industry Consolidation",colorLightBlue);
+IndustryColorDN = ParamColor("Industry Strength dn",colorRed);
+_SECTION_END();
+
+Bulls =  H; Tickers = V;
+if(GroupID()==253 AND StrLeft(Name(),2)=="~i")
+{
+sFBu = Null; sFT   = Null; iFBu = H; iFT   = V;
+}
+else if(GroupID()==253 AND StrLeft(Name(),2)=="~s")
+{
+sFBu = H; sFT = V; iFBu = Null; iFT = Null;
+}
+else
+{
+iFBu = Foreign("~i"+WriteVal(IndustryID(),1.0)+" - "+IndustryID(1),"H");
+iFT   = Foreign("~i"+WriteVal(IndustryID(),1.0)+" - "+IndustryID(1),"V");
+sFBu = Foreign("~s"+WriteVal(SectorID(),1.0)+" - "+SectorID(1),"H");
+sFT   = Foreign("~s"+WriteVal(SectorID(),1.0)+" - "+SectorID(1),"V");
+}
+
+sFBu_p = 100*sFBu/sFT;
+sFBe_p = 100 -sFBu_p;
+iFBu_p = 100*iFBu/iFT;
+iFBe_p = 100 -iFBu_P;
+
+Plot(0,"",0,stylehidden+styleNoLabel);
+Plot(2,"",IIf(ifBu_p>40 &ifBu_p<60,IndustryConsolidation_color,IIf(ifBu_p<=40,IndustryColorDN,IndustryColorUP)),styleArea+styleNoLabel,0,100);
+Plot(iFBu_p,"bullish-%",IndustryColorUP,styleThick);
+Plot(iFBe_p,"bearish-%",IndustryColorDN,styleThick);
+
+if(Version()<4.75)
+{
+Plot(sFBu_p,"",sectorcolor,styleHistogram);
+}
+else if (SectorPlotStyle==1){
+PlotOHLC(sFBu_p-width,sFBu_p+width,sFBu_p-width,sFBu_p,"bearish-%",sectorcolor,styleCloud);
+}
+else if(SectorPlotStyle==0){
+PlotOHLC(0,sFBu_p,0,sFBu_p,"",sectorcolor,styleCloud);
+}
+
+TickersDB = Foreign("~Tickers_in_DB","V");
+missing_quotes_filter = Highest(TickersDB)-TickersDB > 10;
+
+
+Taio = 100*tbTysc()/tbTysf(tbTyse(abs(tbTysd())));
+Longfilter =  iFBu_p>=50 AND sFBu_p>=50 AND C>GMA(C,20);
+Shortfilter = iFBu_p<=50 AND sFBu_p<=50 AND C<GMA(C,20);
+
+SectorBuy = Cross(sFBu_p,50);
+SectorSell = Cross(50,sFBu_p);
+IndustryBuy = Cross(iFBu_p,50);
+IndustrySell = Cross(50,iFBu_p);
+
+SetChartOptions(1,chartShowDates+chartWrapTitle);
+
+if(GroupID()==253)
+{
+sector = "";
+industry = "";
+}
+else
+{
+sector = SectorID(1);
+industry = IndustryID(1);
+}
+
+InAA = Status("Action") >= 3;
+if(inAA){
+_SECTION_BEGIN("Automatic Analysis");
+FilterCond = ParamToggle("Display only Sectors and Industries","No,Yes",0);
+_SECTION_END();
+if(FilterCond==0)
+{
+Filter = 1;
+AddColumn(C,"Close");
+AddColumn(V,"Volume");
+AddColumn(IIf(SectorBuy, 66,IIf(SectorSell, 83,Null )),"Sector",formatChar,IIf(SectorBuy,colorGreen,IIf(SectorSell,colorRed,colorDefault)),colorDefault,width = 50 );
+AddColumn(IIf(IndustryBuy, 66,IIf(IndustrySell, 83,Null )),"Industry",formatChar,IIf(IndustryBuy,colorGreen,IIf(IndustrySell,colorRed,colorDefault)),colorDefault,width = 55);
+AddColumn(sFBu_p,"Sector Strength",1,IIf(sFBu_p>50,colorGreen,colorRed),colorDefault,width = 100);
+AddColumn(iFBu_p,"Industry Strength",1,IIf(iFBu_p>50,colorGreen,colorRed),colorDefault,width = 100);
+AddTextColumn(Sector,"Sector Name" );
+AddTextColumn(Industry,"Industry Name");  
+AddColumn(sFT,"Tickers in Sector",1); 
+AddColumn(iFT,"Tickers in Industry",1); 
+AddTextColumn(FullName(),"Full Name");
+}
+else if (FilterCond==1){
+Filter = GroupID()==253;
+AddColumn(IIf(SectorBuy, 66,IIf(SectorSell, 83,Null )),"Sector",formatChar,IIf(SectorBuy,colorGreen,IIf(SectorSell,colorRed,colorDefault)),colorDefault,width = 50 );
+AddColumn(IIf(IndustryBuy, 66,IIf(IndustrySell, 83,Null )),"Industry",formatChar,IIf(IndustryBuy,colorGreen,IIf(IndustrySell,colorRed,colorDefault)),colorDefault,width = 55);
+AddColumn(sFBu_p,"Sector Strength",1,IIf(sFBu_p>50,colorGreen,colorRed),colorDefault,width = 100);
+AddColumn(iFBu_p,"Industry Strength",1,IIf(iFBu_p>50,colorGreen,colorRed),colorDefault,width = 100);
+AddColumn(sFT,"Tickers in Sector",1); 
+AddColumn(iFT,"Tickers in Industry",1); 
+}
+}
+
+
+
+
+Title = "Tradingbasis.com - Sector Industry Trend Analysis - "+ Name()+" - {{INTERVAL}}"
++EncodeColor(SectorColor)+", Sector "+SectorID(1)+", Strength = "+ WriteVal(sFBu_p,1.0)+" %" +", "+WriteVal(sFT,1.0)+ " Symbols, "
++EncodeColor(IndustryColorUP)+"Industry " +IndustryID(1)+", Strength = "+ WriteVal(iFBu_p,1.0)+" %"+", "+WriteVal(iFT,1.0)+ " Symbols ";

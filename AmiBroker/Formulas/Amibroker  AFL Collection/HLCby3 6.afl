@@ -1,0 +1,29 @@
+_SECTION_BEGIN("HLCby3");
+
+pivot = (H +L+C)/3; 
+piv = EMA (pivot,Optimize("short ema",5,1,20,1));
+piv2 = EMA (pivot,Optimize("fast ema",10,1,50,1));
+Buy = Cross (piv, piv2);
+
+Short = Cross (piv2,piv);
+Sell = Short;
+Cover = Buy;
+pivot_col =  IIf (pivot > Ref(pivot,-1), colorBlue,colorRed);
+piv_col = IIf (piv > Ref(piv,-1), colorBlue,colorRed);
+piv2_col = IIf (piv2 > Ref(piv2,-1),colorBlue, colorRed);
+//Plot (pivot , "pivot", piv_col, styleThick);
+
+bar_col = IIf (MACD( 5, 34 ) > Signal( 5, 34, 14 ), colorBlue, colorRed);
+//Plot (pivot , "pivot", pivot_col, styleThick);
+Plot (piv , "piv", piv_col, styleThick);
+Plot (piv2 , "piv2", piv2_col, styleThick);                
+Col = IIf (H > Ref(H,-1) AND L > Ref(L,-1), colorBlue, IIf (Low < Ref(L,-1) AND High < Ref(H,-1),colorRed, colorYellow));
+Plot( C, "Close", bar_Col, styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+PlotShapes (shapeUpArrow*Buy, colorGreen);
+PlotShapes (shapeDownArrow*Short, colorRed);
+
+pv_col = IIf ( ADX(9) > Ref(ADX(9),-1) AND PDI( 9 ) > MDI( 9 ),colorBlue,IIf (ADX(9) > Ref(ADX(9),-1) AND PDI( 9 ) < MDI( 9 ),colorRed, colorYellow));
+//pv_col = IIf (  piv_col == colorBlue AND piv2_col ==colorBlue,colorBlue,IIf ( piv_col == colorRed AND piv2_col ==colorRed,colorRed,colorYellow));
+
+Plot(3, "", piv_col, styleOwnScale| styleArea|styleNoLabel,-0.5,100); 
+_SECTION_END();

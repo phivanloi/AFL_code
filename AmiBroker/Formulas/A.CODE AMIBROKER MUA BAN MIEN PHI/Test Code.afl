@@ -1,0 +1,63 @@
+_SEction_begin("Alert Sound");
+Filter = 1;
+Plot(C, "",IIf(C > Ref(C , -1), colorCustom9, colorRed), styleCandle);
+Plot(EMA(C, 5), "EMA5", colorCustom12, styleLine|styleThick);
+Plot(EMA(C, 10), "EMA10", colorCustom11, styleLine|styleThick);
+Buy = Cross(EMA(C, 5), EMA(C, 10));
+Sell = Cross(EMA(C,10), EMA(C, 5));
+Short = Sell;
+Cover = Buy;
+PlotShapes(shapeUpArrow * Cover, colorCustom12, 0, Low);
+PlotShapes(shapeDownArrow * Short, colorCustom11, 0, High);
+AlertIf(Buy, "SOUND C:\\Program Files (x86)\\AmiBroker\\Sound\\long.wav", "Audio Alert", 1);
+AlertIf(Sell, "SOUND C:\\Program Files (x86)\\AmiBroker\\Sound\\short.wav", "Audio Alert", 2);
+
+TelegramAlerts = ParamTrigger("Telegram Alert","Send Alert");
+TelegramAPI_ID = ParamStr("Telegram Bot API Key","1200942736:AAEG8y9qyJ7aHefUm4vt_xKqkNBxfKd3qCc");  //Get the Bot API key via BotFather in Telgram
+TelgramCHAT_ID = ParamStr("Telegram Channel ID","@Victorhuynh_bot"); //Channel ID example : @marketcalls_in
+
+//User Defined Function -> Created using VBscript
+EnableScript("VBScript"); 
+
+<% 
+
+Public Sub Telegram(Message_Text)
+
+
+sAPI_ID = AFL.Var("TelegramAPI_ID")
+sChat_ID = AFL.Var("TelgramCHAT_ID")
+sMSG = Message_Text
+
+'URL to open....
+sUrl = "https://api.telegram.org/bot" & sAPI_ID & "/sendMessage"
+'POST Request to send.
+sRequest = "text=" & sMSG & "&chat_id=" & sChat_ID
+
+
+set oHTTP = CreateObject("Microsoft.XMLHTTP")
+oHTTP.open "POST", sUrl,false
+oHTTP.setRequestHeader "Content-Type", "application/x-www-form-urlencoded"
+oHTTP.setRequestHeader "Content-Length", Len(sRequest)
+oHTTP.send sRequest
+HTTPPost = oHTTP.responseText
+
+
+'Store response 
+'msgbox(objXmlHttpMain.responseText)
+'response.Write (objXmlHttpMain.responseText) 
+
+End Sub 
+
+%> 
+
+tg = GetScriptObject(); 
+
+if (TelegramAlerts)
+{
+//code for Telegram alerts to channel
+
+tg.Telegram("This is Telegram Alert from Amibroker");
+
+}//end Telegram alert
+
+_SECTION_END();

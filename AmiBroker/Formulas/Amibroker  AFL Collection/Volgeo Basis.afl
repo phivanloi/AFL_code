@@ -1,0 +1,460 @@
+
+
+_SECTION_BEGIN("Volgeo Basis");
+
+// Background color
+SetChartBkColor(ParamColor("Panel color ",colorTeal)); 
+
+function GetXSupport(Lo, Percentage, Back)
+{
+ return ((BarCount - 1) - LastValue(TroughBars(Lo, Percentage,Back)));
+}
+function GetYSupport(Lo, Percentage, Back)
+{
+ return (LastValue(Trough(Lo, Percentage, back)));
+}
+
+function GetXResistance(Hi, Percentage, Back)
+{
+ return ((BarCount - 1) -LastValue(PeakBars(Hi, Percentage, Back)));
+}
+function GetYResistance(Hi, Percentage, Back)
+{
+ return (LastValue(Peak(Hi, Percentage, Back)));
+}
+
+//////////////////////////////////////////////////////////////////
+pr=Param("H-L zig change amount", 0.768, 0.1,100,0.1);
+
+pk=PeakBars(H,pr)==0;
+tr=TroughBars(L,pr)==0;
+
+zzHi=Zig(H,pr);
+zzLo=Zig(L,pr);
+Avg=(zzHi+zzLo)/2;
+
+x=IIf(pk,zzHi,IIf(tr,zzLo,IIf(Avg>Ref(Avg,-1),H,L)));
+Zighilo=Zig(x,pr);
+
+
+Per = Param("Period for non-H-L", .618, .1, 20, .001);
+Period = Param("Look back", 10, 1, BarCount-1);
+ShowRet = ParamToggle("Show Retracement values", "No|Yes",1);
+Price = ParamList("Price to follow:", "Close|High|Low|H-L", 4);
+if(Price=="Close") ZigP = Zig(C, per);
+else if(Price=="High") ZigP = Zig(H, per);
+else if( Price=="Low") ZigP = Zig(L, per);
+else ZigP = Zighilo;
+
+
+
+
+Plot(ZigP, "Zig", colorGold, styleThick);
+//////////////////////////////////////////////////////////////////
+
+xs1 = GetXSupport(ZigP, .01, 1);
+xr1 = GetXResistance(ZigP, .01, 1);
+ys1 = GetYSupport(ZigP, .01, 1);
+yr1 = GetYResistance(ZigP, .01, 1);
+
+if(xs1 < xr1)
+{
+	x = LineArray(xs1, ys1, BarCount - 1, LastValue(ZigP));
+	Down = (yr1 - LastValue(ZigP)) / (yr1 - ys1);
+	DnBars = BarCount - 1 - xr1;
+	Plot(x, "", colorRed, styleDots);
+	PlotText(StrFormat("%.3f (%.0f)", Down, DnBars), (xs1 + BarCount -1)/2, (ys1+LastValue(ZigP))/2, colorWhite);
+}
+else
+{
+	x = LineArray(xr1, yr1, BarCount - 1, LastValue(ZigP));
+	Up = (LastValue(ZigP) - ys1) / (yr1 - ys1);
+	UpBars = BarCount - 1 - xs1;
+	Plot(x, "", colorRed, styleDots);
+	PlotText(StrFormat("%.3f (%.0f)", Up, UpBars), (xr1 + BarCount -1)/2, (yr1+LastValue(ZigP))/2, colorWhite);
+}
+if(ShowRet)
+for(i=2; i<=Period+1; i++)
+{
+	xs0 = GetXSupport(ZigP, .01, i);
+	xs1 = GetXSupport(ZigP, .01, i-1);
+	ys0 = GetYSupport(ZigP, .01, i);
+	ys1 = GetYSupport(ZigP, .01, i-1);
+
+	xr0 = GetXResistance(ZigP, .01, i);
+	xr1 = GetXResistance(ZigP, .01, i-1);
+	yr0 = GetYResistance(ZigP, .01, i);
+	yr1 = GetYResistance(ZigP, .01, i-1);
+
+	xs = LineArray(xs0, ys0, xs1, ys1, 0);
+	Plot(xs, "", colorLightBlue, styleLine);
+	xr = LineArray(xr0, yr0, xr1, yr1, 0);
+	Plot(xr, "",  colorLightBlue, styleLine);
+	if(xs1 < xr1)
+	{
+		Up = (yr1 - ys1) / (yr0 - ys1);
+		Down = (yr0 - ys1) / (yr0 - ys0);
+		UpBars = xr1 - xs1;
+		DnBars = xs1 - xr0;
+	}
+	else
+	{
+		Up = (yr1 - ys0) / (yr0 - ys0);
+		Down = (yr1 - ys1) / (yr1 - ys0);
+		UpBars = xr1 - xs0;
+		DnBars = xs1 - xr1;
+	}
+	PlotText(StrFormat("%.3f (%.0f)", Up, UpBars), (xr1 + xr0)/2, (yr1+yr0)/2, colorWhite);
+	PlotText(StrFormat("%.3f (%.0f)", Down, DnBars), (xs1 + xs0)/2, (ys1+ys0)/2, colorWhite);
+	
+
+}
+
+str = StrFormat("   (Bars to END=%.0f)\n", BarCount - 1 - BarIndex());
+Title =FullName()+" ("+Name()+") - "+Date()+" - Open: "+O+", Hi: "+H+", Lo: "+L+", Close: "+C+StrFormat(" (%.2f  %.2f%%)", C-Ref(C, -1), SelectedValue(ROC(C, 1)))+str;
+WriteIf(1, "\nNote Fibonacci numbers:\nPrimary numbers: 0.618, 0.786, 1.27 and 1.618","");
+WriteIf(1, "Secondary numbers: 0.382, 0.50, 1.00, 2.00, 2.24, 2.618 and 3.14","");
+
+
+_SECTION_END();
+
+_SECTION_BEGIN("Volatrend");
+period	= Param("Period", 13, 1, 240, 1);
+mult	= Param("Multiplier", 1.1, 0.5, 240, 0.1);
+
+f=ATR(period);
+
+VS[0] = Close[0]; 
+trend[0] = 0;
+HighC[0]=0;
+Lowc[0]=0;
+
+for( i = period+1; i < BarCount; i++ ) 
+{ 
+
+  vs[i]			= vs[i-1];
+  trend[i]	= trend[i-1];
+  highC[i]	= HighC[i-1];
+  lowc[i]		= lowc[i-1];
+
+	if ((trend[i]>=0) && ( C[i] <VS[i] ))
+	{
+			trend[i] =-1;
+			HighC[i] = C[i];
+			lowc[i] = C[i];
+	}
+
+	if ((trend[i]<=0) && (C[i] >VS[i]))
+	{
+			trend[i]=1;
+			HighC[i] = C[i];
+			lowc[i] = C[i];
+	}   
+
+	if (trend[i]==-1) 
+	{
+		if (C[i]<lowc[i]) lowc[i] = C[i];
+     VS[i]= lowc[i]+ (mult*f[i]);
+	}
+
+
+	if (trend[i]==1)  
+	{
+		if (C[i]>HighC[i]) HighC[i] = C[i];
+     VS[i]= HighC[i]-(mult*f[i]);
+	}
+
+} 
+
+
+Buy=Cross(Trend,0);
+Sell=Cross(0, Trend);
+
+EntrySignal =Trend> 0 ; 
+ExitSignal =  0<Trend ; 
+Color = IIf( EntrySignal, colorBlue,  colorOrange);
+
+Plot(Close,"Close",Color,styleCandle | styleThick);
+
+
+
+
+mkol 	= IIf( Trend==1, colorBlue, colorRed);
+Plot(5, "ribbon", mkol, styleOwnScale|styleArea|styleNoLabel, 0, -5);	// 
+
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ), 0, IIf( Buy, Low-f, High+f)); 
+_SECTION_END();
+
+_SECTION_BEGIN("M-W-D Auto-pivots");
+/***************************************/
+
+/*
+ PIVOT POINTS can by used in 2 ways:
+if you choose daily, the pivots are calculated from the previous day,
+this can be used for daily charts.
+the second option is next day for EOD charts.
+for all the options available right click on the chart parameters.
+to utilize all the program features you need amibroker from version 4.80.1 and above.
+enjoy!
+*/
+/*-----------------data------------------*/
+SetChartOptions(0,chartShowArrows|chartShowDates);
+//SetChartBkColor(ParamColor( "BakcgroundColor", colorGrey50 ) ) ;
+k=IIf(ParamList("select type","daily|next day")=="daily",-1,0);
+kw=IIf(ParamList("select typeweek","weekly|next week")=="weekly",-1,0);
+km=IIf(ParamList("select typemonth","monthly|next month")=="monthly",-1,0);
+k1=-1;
+//TimeFrameSet(inDaily);
+/*
+DayH = TimeFrameGetPrice("H", inDaily, -1);// yesterdays high 
+DayL = TimeFrameGetPrice("L", inDaily, -1);//low 
+DayC = TimeFrameGetPrice("C", inDaily, -1);//close 
+DayO = TimeFrameGetPrice("O", inDaily);// current day open 
+HiDay = TimeFrameGetPrice("H", inDaily); 
+LoDay = TimeFrameGetPrice("L", inDaily);
+ */
+day_h=  TimeFrameGetPrice("H", inDaily, k);   //LastValue(Ref(H,K));
+day_l= TimeFrameGetPrice("L", inDaily, k);
+day_c= TimeFrameGetPrice("C", inDaily, k);
+
+
+
+Week_h= TimeFrameGetPrice("H", inWeekly, kw); //LastValue(Ref(H,Kw)); //bylo k1 w kazdym week i month ale zmienilem - next uzywaj jak po danym dniu chcesz znac nastepny
+Week_l= TimeFrameGetPrice("L", inWeekly, kw); // LastValue(Ref(L,Kw));;
+Week_c= TimeFrameGetPrice("C", inWeekly, kw); //LastValue(Ref(C,Kw));;
+
+
+
+month_h= TimeFrameGetPrice("H", inMonthly, km);//LastValue(Ref(H,Km));
+month_l= TimeFrameGetPrice("L", inMonthly, km);//LastValue(Ref(L,Km));
+month_c= TimeFrameGetPrice("C", inMonthly, km);//LastValue(Ref(C,Km));
+
+
+/*--------------------------------------*/
+// day
+DH=Day_h;
+DL=Day_L;
+DC=Day_C;
+
+// DAY PIVOT Calculation
+pd = ( DH+ DL + DC )/3;
+sd1 = (2*pd)-DH;
+sd2 = pd -(DH - DL);
+sd3 = Sd1 - (DH-DL); 
+sd4 = pd - (2*DH - 2*DL); // pd - (DH-DL)*3;  //pd - (2*DH - 2*DL);  another way
+sd5 = 2*pd - (3*DH -2*DL); //pd - (DH-DL)*4;  //2*pd - (3*DH -2*DL);
+
+rd1 = (2*pd)-DL;
+rd2 = pd +(DH -DL);
+rd3 = rd1 +(DH-DL);
+rd4 = pd + (2*DH-2*DL); //pd + (DH-DL)*3;  another way
+rd5 = 2*pd + (2*DH-3*DL);   //pd + (DH-DL)*4;  but wrong
+
+
+// week
+WH=Week_h;
+WL=Week_l;
+WC=Week_c;
+
+// WEEK PIVOT Calculation
+pw = ( WH+ WL + WC )/3;
+sw1 = (2*pw)-WH;
+sw2 = pw -(WH - WL);
+sw3 = Sw1 - (WH-WL);
+sw4 = pw - (2*WH - 2*WL);//sw4 = pw - (WH - WL)*3;
+sw5 = 2*pw - (3*WH -2*WL); //sw5 = pw - (WH -WL)*4;
+ 
+rw1 = (2*pw)-WL;
+rw2 = pw +(WH -WL);
+rw3 = rw1 +(WH-WL);
+rw4 = pw + (2*WH-2*WL); //rw4 = pw + (WH-WL)*3;       
+rw5 = 2*pw + (2*WH-3*WL); //rw5 = pw + (WH-WL)*4;
+  
+// month
+MH=month_h;
+ML=month_l;
+MC=month_c;
+
+// MONTH PIVOT Calculation
+pm = ( MH+ ML + MC )/3;
+sm1 = (2*pm)-MH;
+sm2 = pm -(MH - ML);
+sm3 = Sm1 - (MH-ML); 
+sm4 = pm - (2*MH - 2*ML); // sm4 = pm - (MH - ML)*3;
+sm5 = 2*pm - (3*MH -2*ML); //sm5 = pm - (MH -ML)*4;
+
+rm1 = (2*pm)-ML;
+rm2 = pm +(MH -ML);
+rm3 = rm1 +(MH-ML);
+rm4 = pm + (2*MH-2*ML); //rm4 = pm + (MH-ML)*3;       
+rm5 = 2*pm + (2*MH-3*ML); //rm5 = pm + (MH-ML)*4;  
+
+/*--------------------------------------*/
+// PARAMETERS
+slide =  Param("slide all",33,-1000,1000,1);
+slide1 = Param("slide_day",50,0,1000,1);
+slide2 = Param("slide_week",70,0,1000,1);
+slide3 = Param("slide_month",90,0,1000,1);
+slide_Hight =  Param("slide_Hight",0,-1000,1000,1);
+
+
+SHALD = ParamList("daily Pivots", "all|selected only|hide" );
+SHALW = ParamList("weekly Pivots", "all|selected only|hide" );
+SHALM = ParamList("monthly Pivots", "all|selected only|hide" ); //selected only|all|hide
+
+//day
+PDP = ParamList("DP",   "SHOW|HIDE" ); 
+PDR1 = ParamList("DR1", "SHOW|HIDE" ); 
+PDR2 = ParamList("DR2", "HIDE|SHOW"  ); 
+PDR3 = ParamList("DR3", "HIDE|SHOW" ); 
+PDR4 = ParamList("DR4", "HIDE|SHOW" ); 
+PDR5 = ParamList("DR5", "HIDE|SHOW" ); 
+
+
+PDS1 = ParamList("DS1", "SHOW|HIDE" ); 
+PDS2 = ParamList("DS2", "HIDE|SHOW" ); 
+PDS3 = ParamList("DS3", "HIDE|SHOW" ); 
+PDS4 = ParamList("DS4", "HIDE|SHOW" ); 
+PDS5 = ParamList("DS5", "HIDE|SHOW" ); 
+
+//week
+PWP = ParamList("WP", "SHOW|HIDE" ); 
+PWR1 = ParamList("WR1", "SHOW|HIDE" ); 
+PWR2 = ParamList("WR2", "HIDE|SHOW" ); 
+PWR3 = ParamList("WR3", "HIDE|SHOW" );
+PWR4 = ParamList("WR4", "HIDE|SHOW" );
+PWR5 = ParamList("WR5", "HIDE|SHOW" ); 
+
+PWS1 = ParamList("WS1", "SHOW|HIDE" ); 
+PWS2 = ParamList("WS2", "HIDE|SHOW" ); 
+PWS3 = ParamList("WS3", "HIDE|SHOW" ); 
+PWS4 = ParamList("WS4", "HIDE|SHOW" ); 
+PWS5 = ParamList("WS5", "HIDE|SHOW" ); 
+
+//month
+PMP = ParamList("MP",   "SHOW|HIDE" ); 
+PMR1 = ParamList("MR1", "SHOW|HIDE" ); 
+PMR2 = ParamList("MR2", "HIDE|SHOW"  ); 
+PMR3 = ParamList("MR3", "HIDE|SHOW" ); 
+PMR4 = ParamList("MR4", "HIDE|SHOW" ); 
+PMR5 = ParamList("MR5", "HIDE|SHOW" ); 
+
+PMS1 = ParamList("MS1", "SHOW|HIDE" ); 
+PMS2 = ParamList("MS2", "HIDE|SHOW" ); 
+PMS3 = ParamList("MS3", "HIDE|SHOW" ); 
+PMS4 = ParamList("MS4", "HIDE|SHOW" ); 
+PMS5 = ParamList("MS5", "HIDE|SHOW" ); 
+
+DayCOLOR =ParamColor("day color", 34);
+weekCOLOR =ParamColor("week color",10); 
+monthCOLOR =ParamColor("month color",42);
+/*--------------------------------------*/
+
+
+// LABELS
+for( i = 0; i < BarCount; i++ ) 
+{
+ //day
+ if(i+slide1== BarCount && (PDP=="SHOW" OR SHALD=="all") && SHALD!="hide") PlotText( "d PP  "+pd ,i+slide,LastValue(pd)+slide_Hight ,DayCOLOR);
+ if(i+slide1== BarCount && (PDR1=="SHOW" OR SHALD=="all")&& SHALD!="hide") PlotText( "d R1  "+rd1 ,i+slide,LastValue(rd1)+slide_Hight ,DayCOLOR  ); 
+ if(i+slide1== BarCount && (PDR2=="SHOW" OR SHALD=="all")&& SHALD!="hide") PlotText( "d R2 "+rd2 ,i+slide,LastValue(rd2)+slide_Hight ,DayCOLOR  );
+ if(i+slide1== BarCount && (PDR3=="SHOW" OR SHALD=="all")&& SHALD!="hide") PlotText( "d R3 "+rd3 ,i+slide,LastValue(rd3)+slide_Hight ,DayCOLOR  );
+ if(i+slide1== BarCount && (PDR4=="SHOW" OR SHALD=="all")&& SHALD!="hide") PlotText( "d R4 "+rd4 ,i+slide,LastValue(rd4)+slide_Hight ,DayCOLOR  );
+ if(i+slide1== BarCount && (PDR5=="SHOW" OR SHALD=="all")&& SHALD!="hide") PlotText( "d R5 "+rd5 ,i+slide,LastValue(rd5)+slide_Hight ,DayCOLOR  );
+
+ if(i+slide1== BarCount && (PDS1=="SHOW" OR SHALD=="all")&& SHALD!="hide") PlotText( "d  S1 "+sd1 ,i+slide,LastValue(sd1)+slide_Hight ,DayCOLOR  );
+ if(i+slide1== BarCount && (PDS2=="SHOW" OR SHALD=="all")&& SHALD!="hide") PlotText( "d  S2 "+sd2 ,i+slide,LastValue(sd2)+slide_Hight ,DayCOLOR  );
+ if(i+slide1== BarCount && (PDS3=="SHOW" OR SHALD=="all")&& SHALD!="hide") PlotText( "d  S3 "+sd3 ,i+slide,LastValue(sd3)+slide_Hight ,DayCOLOR  );
+ if(i+slide1== BarCount && (PDS4=="SHOW" OR SHALD=="all")&& SHALD!="hide") PlotText( "d  S4 "+sd4 ,i+slide,LastValue(sd4)+slide_Hight ,DayCOLOR  );
+ if(i+slide1== BarCount && (PDS5=="SHOW" OR SHALD=="all")&& SHALD!="hide") PlotText( "d  S5 "+sd5 ,i+slide,LastValue(sd5)+slide_Hight ,DayCOLOR  );
+
+ //week
+ if(i+slide2== BarCount && (PWP=="SHOW"  OR SHALW=="all")&& SHALW!="hide") PlotText( "w PP  "+pw ,i+slide,LastValue(pw)+slide_Hight ,weekCOLOR );
+ if(i+slide2== BarCount && (PWR1=="SHOW" OR SHALW=="all")&& SHALW!="hide") PlotText( "w R1  "+rw1 ,i+slide,LastValue(rw1)+slide_Hight ,weekCOLOR ); 
+ if(i+slide2== BarCount && (PWR2=="SHOW" OR SHALW=="all")&& SHALW!="hide") PlotText( "w R2 "+rw2 ,i+slide,LastValue(rw2)+slide_Hight ,weekCOLOR );
+ if(i+slide2== BarCount && (PWR3=="SHOW" OR SHALW=="all")&& SHALW!="hide") PlotText( "w R3 "+rw3 ,i+slide,LastValue(rw3)+slide_Hight ,weekCOLOR );
+ if(i+slide2== BarCount && (PWR4=="SHOW" OR SHALW=="all")&& SHALW!="hide") PlotText( "w R4 "+rw4 ,i+slide,LastValue(rw4)+slide_Hight ,weekCOLOR );
+ if(i+slide2== BarCount && (PWR5=="SHOW" OR SHALW=="all")&& SHALW!="hide") PlotText( "w R5 "+rw5 ,i+slide,LastValue(rw5)+slide_Hight ,weekCOLOR );
+
+ if(i+slide2== BarCount && (PWS1=="SHOW" OR SHALW=="all")&& SHALW!="hide") PlotText( "w S1 "+sw1 ,i+slide,LastValue(sw1)+slide_Hight ,weekCOLOR );
+ if(i+slide2== BarCount && (PWS2=="SHOW" OR SHALW=="all")&& SHALW!="hide") PlotText( "w S2 "+sw2 ,i+slide,LastValue(sw2)+slide_Hight ,weekCOLOR );
+ if(i+slide2== BarCount && (PWS3=="SHOW" OR SHALW=="all")&& SHALW!="hide") PlotText( "w S3 "+sw3 ,i+slide,LastValue(sw3)+slide_Hight ,weekCOLOR );
+ if(i+slide2== BarCount && (PWS4=="SHOW" OR SHALW=="all")&& SHALW!="hide") PlotText( "w S4 "+sw4 ,i+slide,LastValue(sw4)+slide_Hight ,weekCOLOR );
+ if(i+slide2== BarCount && (PWS5=="SHOW" OR SHALW=="all")&& SHALW!="hide") PlotText( "w S5 "+sw5 ,i+slide,LastValue(sw5)+slide_Hight ,weekCOLOR );
+
+ //month 
+ if(i+slide3== BarCount && (PMP=="SHOW"  OR SHALM=="all")&& SHALM!="hide") PlotText( "m PP  "+pm ,i+slide,LastValue(Pm)+slide_Hight ,monthCOLOR );
+ if(i+slide3== BarCount && (PMR1=="SHOW" OR SHALM=="all")&& SHALM!="hide") PlotText( "m R1 "+rm1 ,i+slide,LastValue(rm1)+slide_Hight ,monthCOLOR );
+ if(i+slide3== BarCount && (PMR2=="SHOW" OR SHALM=="all")&& SHALM!="hide") PlotText( "m R2 "+rm2 ,i+slide,LastValue(rm2)+slide_Hight ,monthCOLOR );
+ if(i+slide3== BarCount && (PMR3=="SHOW" OR SHALM=="all")&& SHALM!="hide") PlotText( "m R3 "+rm3 ,i+slide,LastValue(rm3)+slide_Hight ,monthCOLOR );
+ if(i+slide3== BarCount && (PMR4=="SHOW" OR SHALM=="all")&& SHALM!="hide") PlotText( "m R4 "+rm4 ,i+slide,LastValue(rm4)+slide_Hight ,monthCOLOR );
+ if(i+slide3== BarCount && (PMR5=="SHOW" OR SHALM=="all")&& SHALM!="hide") PlotText( "my R5 "+rm5 ,i+slide,LastValue(rm5)+slide_Hight ,monthCOLOR );
+
+ if(i+slide3== BarCount && (PMS1=="SHOW" OR SHALM=="all")&& SHALM!="hide")PlotText( "m S1 "+sm1 ,i+slide,LastValue(sm1)+slide_Hight ,monthCOLOR);
+ if(i+slide3== BarCount && (PMS2=="SHOW" OR SHALM=="all")&& SHALM!="hide") PlotText( "m S2 "+sm2 ,i+slide,LastValue(sm2)+slide_Hight ,monthCOLOR );
+ if(i+slide3== BarCount && (PMS3=="SHOW" OR SHALM=="all")&& SHALM!="hide") PlotText( "m S3 "+sm3 ,i+slide,LastValue(sm3)+slide_Hight ,monthCOLOR );
+ if(i+slide3== BarCount && (PMS4=="SHOW" OR SHALM=="all")&& SHALM!="hide") PlotText( "m S4 "+sm4 ,i+slide,LastValue(sm4)+slide_Hight ,monthCOLOR );
+ if(i+slide3== BarCount && (PMS5=="SHOW" OR SHALM=="all")&& SHALM!="hide") PlotText( "m S5 "+sm5 ,i+slide,LastValue(sm5)+slide_Hight ,monthCOLOR );
+
+}
+
+
+/*--------------------------------------*/
+// PLOTS
+
+
+//musza sie miescic w zakresie
+
+
+ //day
+ if ((PDP=="SHOW" OR SHALD=="all")  && SHALD!="hide") Plot (pd,"daily Pivot ",DayCOLOR,styleBar | styleNoRescale);
+ if ((PDR1=="SHOW" OR SHALD=="all") && SHALD!="hide") Plot (rd1,"daily R1 ",DayCOLOR,128 | styleNoRescale );
+ if ((PDR2=="SHOW" OR SHALD=="all") && SHALD!="hide") Plot (rd2,"daily R2 ",DayCOLOR,128 | styleNoRescale);
+ if ((PDR3=="SHOW" OR SHALD=="all") && SHALD!="hide") Plot (rd3,"daily R3 ",DayCOLOR,128 | styleNoRescale);
+ if ((PDR4=="SHOW" OR SHALD=="all") && SHALD!="hide") Plot (rd4,"daily R4 ",DayCOLOR,128 | styleNoRescale);
+ if ((PDR5=="SHOW" OR SHALD=="all") && SHALD!="hide") Plot (rd5,"daily R5 ",DayCOLOR,128 | styleNoRescale);
+
+
+ if ((PDS1=="SHOW" OR SHALD=="all") && SHALD!="hide") Plot (sd1,"daily S1 ",DayCOLOR,128 | styleNoRescale);
+ if ((PDS2=="SHOW" OR SHALD=="all") && SHALD!="hide") Plot (Sd2,"daily S2 ",DayCOLOR,128| styleNoRescale);
+ if ((PDS3=="SHOW" OR SHALD=="all") && SHALD!="hide") Plot (Sd3,"daily S3 ",DayCOLOR,128 |styleNoRescale);
+ if ((PDS4=="SHOW" OR SHALD=="all") && SHALD!="hide") Plot (Sd4,"daily S4 ",DayCOLOR,128| styleNoRescale);
+ if ((PDS5=="SHOW" OR SHALD=="all") && SHALD!="hide") Plot (Sd5,"daily S5 ",DayCOLOR,128| styleNoRescale);
+
+
+//week
+ if ((PWP=="SHOW"  OR SHALW=="all") && SHALW!="hide")    Plot (pW,"weekly Pivot ",weekCOLOR,styleBar| styleNoRescale);
+ if ((PWR1=="SHOW" OR SHALW=="all") && SHALW!="hide") Plot (rw1,"weekly R1 ",weekCOLOR,128 | styleNoRescale);
+ if ((PWR2=="SHOW" OR SHALW=="all") && SHALW!="hide") Plot (rw2,"weekly R2 ",weekCOLOR,128 | styleNoRescale);
+ if ((PWR3=="SHOW" OR SHALW=="all") && SHALW!="hide") Plot (rw3,"weekly R3 ",weekCOLOR,128 | styleNoRescale);
+ if ((PWR4=="SHOW" OR SHALW=="all") && SHALW!="hide") Plot (rw4,"weekly R4 ",weekCOLOR,128 | styleNoRescale);
+ if ((PWR5=="SHOW" OR SHALW=="all") && SHALW!="hide") Plot (rw5,"weekly R5 ",weekCOLOR,128 | styleNoRescale);
+
+
+ if ((PWS1=="SHOW" OR SHALW=="all") && SHALW!="hide") Plot (sw1,"weekly S1 ",weekCOLOR,128 | styleNoRescale);
+ if ((PWS2=="SHOW" OR SHALW=="all") && SHALW!="hide") Plot (Sw2,"weekly S2 ",weekCOLOR,128 | styleNoRescale);
+ if ((PWS3=="SHOW" OR SHALW=="all") && SHALW!="hide") Plot (Sw3,"weekly S3 ",weekCOLOR,128 | styleNoRescale);
+ if ((PWS4=="SHOW" OR SHALW=="all") && SHALW!="hide") Plot (Sw4,"weekly S4 ",weekCOLOR,128 | styleNoRescale);
+ if ((PWS5=="SHOW" OR SHALW=="all") && SHALW!="hide") Plot (Sw5,"weekly S5 ",weekCOLOR,128 | styleNoRescale);
+
+
+ //month
+ if ((PMP=="SHOW"  OR SHALM=="all") && SHALM!="hide") Plot (pm,"monthly Pivot",monthCOLOR ,styleBar| styleNoRescale);
+ if ((PMR1=="SHOW" OR SHALM=="all") && SHALM!="hide") Plot (rm1,"monthly R1",monthCOLOR ,128 | styleNoRescale);
+ if ((PMR2=="SHOW" OR SHALM=="all") && SHALM!="hide") Plot (rm2,"monthly R2",monthCOLOR ,128 | styleNoRescale);
+ if ((PMR3=="SHOW" OR SHALM=="all") && SHALM!="hide") Plot (rm3,"monthly R3",monthCOLOR ,128 | styleNoRescale);
+ if ((PMR4=="SHOW" OR SHALM=="all") && SHALM!="hide") Plot (rm4,"monthly R4",monthCOLOR ,128 | styleNoRescale);
+ if ((PMR5=="SHOW" OR SHALM=="all") && SHALM!="hide") Plot (rm5,"monthly R5",monthCOLOR ,128 | styleNoRescale);
+
+
+ if ((PMS1=="SHOW" OR SHALM=="all") && SHALM!="hide") Plot (sm1,"monthly S1",monthCOLOR ,128 | styleNoRescale);
+ if ((PMS2=="SHOW" OR SHALM=="all") && SHALM!="hide") Plot (sm2,"monthly S2",monthCOLOR ,128 | styleNoRescale);
+ if ((PMS3=="SHOW" OR SHALM=="all") && SHALM!="hide") Plot (sm3,"monthly S3",monthCOLOR ,128 | styleNoRescale);
+ if ((PMS4=="SHOW" OR SHALM=="all") && SHALM!="hide") Plot (sm4,"monthly S4",monthCOLOR ,128 | styleNoRescale);
+ if ((PMS5=="SHOW" OR SHALM=="all") && SHALM!="hide") Plot (sm5,"monthly S5",monthCOLOR ,128| styleNoRescale);
+
+/*--------------------------------------*/
+
+
+_SECTION_END();

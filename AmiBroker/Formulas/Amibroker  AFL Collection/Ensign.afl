@@ -1,0 +1,60 @@
+_SECTION_BEGIN("Ensign Volatility Stop");
+// Ensign Volatility Stop
+// get the multiple of 9 period EMA of ATR_Ensign
+
+k=Param("multiplication factor", 1,0.5,5,0.1);
+period=k*9;
+
+VS_raw = 2.5 * EMA(ATR(1), period);
+
+// for longs, VS line is below price
+
+loline = VS_below_price = HHV(Close, period) - VS_raw;
+
+// for shorts, VS line is above price
+
+hiline = VS_above_price = LLV(Close, period) + VS_raw;
+
+between = IIf (C < hiline AND C > loline, 1, 0);
+
+up = IIf(C > hiline OR (H > Ref(H, -1) AND H > hiline), 1, 0);
+
+dn = IIf(C < loline OR (L < Ref(L, -1) AND L < loline), 1, 0);
+
+upcond = IIf(between AND BarsSince(up) < BarsSince(dn) , 1, 0);
+
+dncond = IIf(between AND BarsSince(dn) < BarsSince(up) , 1, 0);
+
+upline = IIf(up OR upcond, loline, Null);
+
+dnline = IIf(dn OR dncond, hiline, Null);
+
+Plot(C, "", colorLightGrey, styleBar);
+
+Plot(upline, "", colorGreen, styleStaircase) ;
+
+Plot(dnline, "", colorRed, styleStaircase) ;
+Buy=upline;
+Sell=dnline;
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+PlotShapes(Buy*shapeUpArrow,colorGreen);
+PlotShapes(Sell*shapeDownArrow,colorRed);
+
+
+/**** END ****/
+
+_SECTION_BEGIN("Background");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+if( ParamToggle("Tooltip shows", "All Values|Only Prices" ) )
+{
+ToolTip=StrFormat("Open: %g\nHigh: %g\nLow: %g\nClose: %g
+(%.1f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1
+)));
+}
+
+SetChartBkColor(ParamColor("Outer panel color ",colorBlack)); // color of outer border
+SetChartBkGradientFill( ParamColor("Inner panel color upper half",colorDarkTeal),
+ParamColor("Inner panel color lower half",colorBlack)//color of inner panel
+,ParamColor("behind Text Color", colorRed));
+_SECTION_END();

@@ -1,0 +1,42 @@
+/*
+
+Long: "http://localhost:6868/api/trade?symbol=VN30F1M&side=NB&clientId=1"
+
+Short: "http://localhost:6868/api/trade?symbol=VN30F1M&side=NS&clientId=1"
+
+"http://localhost:6868/api/trade?symbol=VN30F1M&side=NB&clientId=1&price=700"
+
+"http://localhost:6868/api/trade?symbol=VN30F1M&side=NS&clientId=1&price=700"
+
+http://localhost:6868/api/trade?symbol=VN30F1M&side=NB&clientId=1&quantity=10
+
+http://localhost:6868/api/cancelOrders?clientId=1
+http://localhost:6868/api/closeActiveDeals?clientId=1
+Ð?t l?nh cho nhi?u tài kho?n cùng lúc: B?n c?n c?u hình thêm các tài kho?n d? Amiphaisinh qu?n lý, và s?a các câu l?nh trên Amibroker v?i clientId=-1 d? g?i t?t c? các tài kho?n cùng lúc. B?n Amiphaisinh 2.0 dã giúp b?n có th? cài d?t nhi?u tài kho?n d? dàng thay vì ph?i s?a file c?u hình th? công nhu tru?c.
+
+
+*/
+
+TimeFrameSet(in5Minute);
+if (Buy[BarCount - 1] == True)
+{
+ih = InternetOpenURL("http://localhost:6868/api/trade?symbol=VN30F1M&side=NB&clientId=1");
+InternetClose(ih);
+}
+
+
+if (Short[BarCount - 1] == True)
+{
+ih = InternetOpenURL("http://localhost:6868/api/trade?symbol=VN30F1M&side=NS&clientId=1");
+InternetClose(ih);
+// In Long trend , take profit Short after 10 points	
+	if (Cross( ValueWhen(BarCount), ValueWhen(Short) * 0.9928) == True)
+	{
+	ih = InternetOpenURL("http://localhost:6868/api/closeActiveDeals?clientId=1");
+	InternetClose(ih);
+	}
+}
+
+
+
+

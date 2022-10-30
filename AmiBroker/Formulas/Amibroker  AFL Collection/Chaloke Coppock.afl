@@ -1,0 +1,6 @@
+///// Chaloke Coppock ///// 
+
+X=WMA((ROC(C,14)+ROC(C,11)),10); 
+Plot(X,"Chaloke Coppock",colorRed,4); 
+Plot(WMA(X,9),"",colorBlue,1); 
+Plot(0,"",10,4);

@@ -1,0 +1,261 @@
+_SECTION_BEGIN("Trade Variables");
+Limit=Param(" Trade Till (Hour)(Min)(Sec)",145900,103000,153000,100);
+riskAmount=Param("Risk Amount",10,10,10000,5);
+
+_SECTION_BEGIN ("Hide/Show");
+pShowMarkers = ParamToggle("Show Markers", "No|Yes", 1);
+pShowtradeLines = ParamToggle("Show Trade Lines", "No|Yes", 0);
+pShowRangeLines = ParamToggle("Show Range Lines", "No|Yes", 0);
+
+_SECTION_BEGIN("Price");
+Plot( C, "Close", ParamColor("Color", colorWhite ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+
+//measure limit
+since=(TimeNum() >= 090000 AND TimeNum()<= Limit) AND (DateNum()==LastValue(DateNum()));
+
+//Find number of bars in 60 minutes 
+Num_Bars   = 3600 / Interval(1);  
+
+TimeFrameSet(inDaily);
+TOP_        = Open;
+PDH_        = Ref(High,-1);
+PDL_        = Ref(Low,-1);
+PDO_        = Ref(Open,-1);
+PDC_        = Ref(Close,-1);
+PDM_        = (PDH_+PDL_)/2;
+TimeFrameRestore();
+
+isAll = True;
+isRth =  TimeNum() >= 090000 AND TimeNum() <= 090500;
+isdRth =  TimeNum() >= 090000 AND TimeNum() <= 160000;
+aRthL = IIf(isRth, L, 1000000);
+aRthH = IIf(isdRth, H, Null);
+aRthLd = IIf(isdRth, L, 1000000);
+TOP         = TimeFrameExpand(TOP_,inDaily,expandFirst); 
+PDH         = TimeFrameExpand(PDH_,inDaily,expandFirst); 
+PDL         = TimeFrameExpand(PDL_,inDaily,expandFirst); 
+PDO         = TimeFrameExpand(PDO_,inDaily,expandFirst); 
+PDC         = TimeFrameExpand(PDC_,inDaily,expandFirst); 
+PDM         = TimeFrameExpand(PDM_,inDaily,expandFirst); 
+DayH = TimeFrameCompress( aRthH, inDaily, compressHigh );
+DayH = TimeFrameExpand( DayH, inDaily, expandFirst );
+DayL = TimeFrameCompress( aRthLd, inDaily, compressLow );
+DayL = TimeFrameExpand( DayL, inDaily, expandFirst );
+
+//calculations
+
+H4=(((PDH-PDL)*1.1)/2)+PDC;
+H3=(((PDH-PDL)*1.1)/4)+PDC;
+H2=(((PDH-PDL)*1.1)/6)+PDC;
+H1=(((PDH-PDL)*1.1)/12)+PDC;
+L1=PDC-(((PDH-PDL)*1.1)/12);
+L2=PDC-(((PDH-PDL)*1.1)/6);
+L3=PDC-(((PDH-PDL)*1.1)/4);
+L4=PDC-(((PDH-PDL)*1.1)/2);
+PV=(H1+L1)/2;
+BTGT1=(round((H4+(H4*0.5/100))*10))/10;
+BTGT2=(round((H4+(H4*1/100))*10))/10;
+STGT1=(round((L4-(L4*0.5/100))*10))/10;
+STGT2=(round((L4-(L4*1/100))*10))/10;
+
+//line plot basics
+Bars       = BarsSince(TimeNum() >= 090000 AND TimeNum() < 090500) ;// AND DateNum()==LastValue(DateNum());
+x0         = BarCount-LastValue(Bars);
+x1         = BarCount-1;
+TOP_Line   = LineArray(x0,LastValue(TOP),x1,LastValue(TOP),0);
+PDH_Line   = LineArray(x0,LastValue(PDH),x1,LastValue(PDH),0);
+PDL_Line   = LineArray(x0,LastValue(PDL),x1,LastValue(PDL),0);
+PDC_Line   = LineArray(x0,LastValue(PDC),x1,LastValue(PDC),0);
+PDM_Line   = LineArray(x0,LastValue(PDM),x1,LastValue(PDM),0);
+DayHline=LineArray(x0,LastValue(DayH),x1,LastValue(DayH),0);
+DayLline=LineArray(x0,LastValue(DayL),x1,LastValue(DayL),0);
+R4line=LineArray(x0,LastValue(H4),x1,LastValue(H4),0);
+R3line=LineArray(x0,LastValue(H3),x1,LastValue(H3),0);
+R2line=LineArray(x0,LastValue(H2),x1,LastValue(H2),0);
+R1line=LineArray(x0,LastValue(H1),x1,LastValue(H1),0);
+S1line=LineArray(x0,LastValue(L1),x1,LastValue(L1),0);
+S2line=LineArray(x0,LastValue(L2),x1,LastValue(L2),0);
+S3line=LineArray(x0,LastValue(L3),x1,LastValue(L3),0);
+S4line=LineArray(x0,LastValue(L4),x1,LastValue(L4),0);
+PVline=LineArray(x0,LastValue(PV),x1,LastValue(PV),0);
+
+//PLOT LINES
+Plot(IIf(pShowtradeLines,S4line,Null),"",colorRed,styleDashed|styleNoRescale);
+Plot(IIf(pShowtradeLines,S3line,Null),"",colorRed,styleDashed|styleNoRescale);
+Plot(IIf(pShowtradeLines,S2line,Null),"",colorRed,styleDashed|styleNoRescale);
+Plot(IIf(pShowtradeLines,S1line,Null),"",colorRed,styleDashed|styleNoRescale);
+Plot(IIf(pShowtradeLines,R4line,Null),"",colorBrightGreen,styleDashed|styleNoRescale);
+Plot(IIf(pShowtradeLines,R3line,Null),"",colorBrightGreen,styleDashed|styleNoRescale);
+Plot(IIf(pShowtradeLines,R2line,Null),"",colorBrightGreen,styleDashed|styleNoRescale);
+Plot(IIf(pShowtradeLines,R1line,Null),"",colorBrightGreen,styleDashed|styleNoRescale);
+Plot(IIf(pShowRangeLines,PVline,PVline),"",colorYellow,styleDots|styleNoRescale|styleThick);
+Plot(IIf(pShowRangeLines,DayHline,DayHline),"",colorYellow,styleLine|styleNoRescale);
+Plot(IIf(pShowRangeLines,DayLline,DayLline),"",colorYellow,styleLine|styleNoRescale);
+
+// Angle variables
+
+PI = atan(1.00) * 4; 
+periods = 20; 
+HighHigh = HHV(H, periods); 
+LowLow = LLV(L, periods); 
+range = 20 / (HighHigh - LowLow) * LowLow;
+
+// bbtop 1 Angle
+
+bb201 = BBandTop(C, 20, 1 );
+bb201b = BBandBot(C, 20, 1 );
+x1_bb201 = 0; 
+x2_bb201 = 1; 
+y1_bb201 = 0; 
+y2_bb201 = (Ref(bb201, -1) - bb201) / Avg * range; 
+c_bb201 = sqrt((x2_bb201 - x1_bb201)*(x2_bb201 - x1_bb201) + (y2_bb201 - y1_bb201)*(y2_bb201 - y1_bb201)); 
+angle_bb201 = round(180 * acos((x2_bb201 - x1_bb201)/c_bb201) / PI); 
+angle_bb201 = IIf(y2_bb201 > 0, - angle_bb201, angle_bb201); 
+
+// bbtop 2.25 Angle
+
+bb20225 = BBandTop(C, 20, 2.25 );
+x1_bb20225 = 0; 
+x2_bb20225 = 1; 
+y1_bb20225 = 0; 
+y2_bb20225 = (Ref(bb20225, -1) - bb20225) / Avg * range; 
+c_bb20225 = sqrt((x2_bb20225 - x1_bb20225)*(x2_bb20225 - x1_bb20225) + (y2_bb20225 - y1_bb20225)*(y2_bb20225 - y1_bb20225)); 
+angle_bb20225 = round(180 * acos((x2_bb20225 - x1_bb20225)/c_bb20225) / PI); 
+angle_bb20225 = IIf(y2_bb20225 > 0, - angle_bb20225, angle_bb20225); 
+
+//trade variables
+red=C<O AND since;
+green=C>O AND since;
+Reds=Cum(Red);
+Greens=Cum(Green);
+ml = MACD(12, 26);
+sl = Signal(12,26,9);
+Hist=ml-sl;
+Buy1= (TOP==DayL) && Hist>Ref(Hist,-1) && green && since;
+Buy=Ref(Buy1,-1);
+Buy2=Cum(Buy);
+Short1=(TOP==DayH) && Hist<Ref(Hist,-1) && Red && since;
+Short=Ref(Short1,-1);
+Short2=Cum(Short);
+Sell=IIf(Buy2>1 && angle_bb20225<=5 && C<bb201,1,0);
+Cover=IIf(Short2>1 && angle_bb20225>=(-5) && C>bb201b,1,0);
+Sell=ExRem(Sell,Cover);
+Cover=ExRem(Cover,Sell);
+Buy=ExRem(Buy,Short);
+Short=ExRem(Short,Buy);
+BuyPrice= (round(ValueWhen(Buy,C)*10))/10;
+Buystop=(round(ValueWhen(Buy,Ref(L,-1))*10))/10;
+ShortPrice= (round(ValueWhen(Short,C)*10))/10;
+shortstop=(round(ValueWhen(Short,Ref(H,-1))*10))/10;
+SellPrice=(round(ValueWhen(Sell,C)*10))/10;
+CoverPrice=(round(ValueWhen(Cover,C)*10))/10;
+
+//money management
+lotSizeb = round((riskAmount/(BuyPrice-BuyStop)));
+lotSizes = round((riskAmount/(ShortStop-ShortPrice)));
+
+//commentary
+
+if( Status("action") == actionIndicator ) 
+(
+Title = EncodeColor(colorYellow)+ "'Vinod's Camarilla System' - Developed & conceived by, & property of Vinod K. Iyer - for Research purpose only - Trading the system may result in serious financial Loss AND the author cannot be held resposible for such occurance - Don't Do AnyThing I would'nt Do" + "\n" +  Name() + " - " + EncodeColor(colorYellow)+ Interval(2) + EncodeColor(colorWhite) +
+"  - " + Date() +" - " +EncodeColor(colorYellow) +"\n"+ "TurnOver=    Rs.  "+ 
+WriteVal((((V*C)/100000)),1.2)+"   Lakhs"+"\n"+"\n"+
+WriteIf((angle_bb201), "BB201 ANGLE:  "+( angle_bb201)+"  ","")+"\n"+
+WriteIf((angle_bb20225), "BB20225 ANGLE:  "+( angle_bb20225)+"  ","")+"\n"+
+EncodeColor(colorGreen) +"\n"+ 
+WriteIf((pShowtradeLines && H4), "H4 :  "+( (round(H4*10))/10 )+"  ","")+WriteIf((pShowtradeLines && BTGT1), "- BUY TGT1 :  "+( BTGT1 )+"  ","")+WriteIf((pShowtradeLines && BTGT2), "- BUY TGT2 :  "+( BTGT2 )+"  ","")+"\n"+
+WriteIf((pShowtradeLines && H3), "H3 :  "+( (round(H3*10))/10 )+"  ","")+"\n"+
+WriteIf((pShowtradeLines && H2), "H2 :  "+( (round(H2*10))/10 )+"  ","")+"\n"+
+WriteIf((pShowtradeLines && H1), "H1 :  "+( (round(H1*10))/10 )+"  ","")+"\n"+
+//WriteVal((Dayl))+ "\n"+//WriteVal((Short3))+WriteVal((Sell))+ WriteVal((Cover))+
+EncodeColor(colorYellow) + 
+WriteIf((pShowtradeLines && PV), "PIVOT :  "+( (round(PV*10))/10 )+"  ","")+"\n"+
+EncodeColor(colorRed) + 
+WriteIf((pShowtradeLines && L1), "L1 :  "+( (round(L1*10))/10 )+"  ","")+"\n"+
+WriteIf((pShowtradeLines && L2), "L2 :  "+( (round(L2*10))/10 )+"  ","")+"\n"+
+WriteIf((pShowtradeLines && L3), "L3 :  "+( (round(L3*10))/10 )+"  ","")+"\n"+
+WriteIf((pShowtradeLines && L4), "L4 :  "+( (round(L4*10))/10 )+"  ","")+WriteIf((pShowtradeLines && STGT1), "- SHORT TGT1 :  "+(STGT1 )+"  ","")+WriteIf((pShowtradeLines && STGT2), "- SHORT TGT2 :  "+( STGT2 )+"  ","")+
+EncodeColor(colorYellow) + "\n"+"\n"+
+Comm2=("Trend:      ")+
+WriteIf(Greens>Reds,EncodeColor(colorBrightGreen)+"+Up",
+WriteIf(Reds>Greens,EncodeColor(colorRed)+"-Down",EncodeColor(colorLightYellow)+"< Flat >"))+"\n"+
+EncodeColor(colorRed) +
+WriteIf(Reds, "Reds:  "+(Reds)+"  ","")+"\n"+
+EncodeColor(colorBrightGreen) +
+WriteIf(Greens, "Greens:  "+(Greens)+"  ","")+"\n"+EncodeColor(colorYellow) + 
+Comm2=("ADX:      ")+
+WriteIf(ADX(14)>30,EncodeColor(colorBrightGreen)+"Trending",
+WriteIf(ADX(14)<25,EncodeColor(colorRed)+"Ranged",EncodeColor(colorLightYellow)+"< Flat >"))+"\n"+
+WriteIf((ADX(14)), "ADX :  "+( (round(ADX(14)*10))/10 )+"  ","")+"\n"+
+WriteIf((CCI(14)), "CCI-14 :  "+( (round(CCI(14)*10))/10 )+"  ","")+"\n"+EncodeColor(colorYellow) +
+WriteIf((CCI(50)), "CCI-50 :  "+( (round(CCI(50)*10))/10 )+"  ","")+"\n"+EncodeColor(colorYellow) +
+Comm2=("HISTOGRAM:      ")+
+WriteIf(Hist>=Ref(Hist,-1),EncodeColor(colorBrightGreen)+"+Up",
+WriteIf(Hist<=Ref(Hist,-1),EncodeColor(colorRed)+"-Down",EncodeColor(colorLightYellow)+"< Flat >")));
+
+//shapes
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorBrightGreen,0,L,-25 );
+PlotShapes(IIf(Short,shapeDownArrow,shapeNone),colorRed,0,H,-25 );
+PlotShapes(IIf(Cover,shapeHollowUpArrow,shapeNone),colorRed,0,L,-25 );
+PlotShapes(IIf(Sell,shapeHollowDownArrow,shapeNone),colorBrightGreen,0,H,-25 );
+
+//Explorer
+AddColumn( IIf(Buy, 66, IIf(Short, 83,01 )), "GO", formatChar, colorWhite, bkcolor= IIf(Short,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Sell, 80, IIf(Cover, 80,01 )), "PR", formatChar, colorWhite, bkcolor= IIf(Cover ,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy || Sell, BuyPrice, IIf(Short || Cover, ShortPrice,01 )), "ENTRY@", 1.2, colorWhite, bkcolor= IIf(Short || Cover,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy || Sell, BuyStop, IIf(Short || Cover, ShortStop,01 )), "STPLS@", 1.2, colorWhite, bkcolor= IIf(Short || Cover,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy || Sell, SellPrice, IIf(Short || Cover, CoverPrice,01 )), "PRFT@", 1.2, colorWhite, bkcolor= IIf(Short || Cover,colorDarkRed,colorDarkGreen) );
+
+_SECTION_BEGIN("Bollinger Bands");
+Plot( BBandTop(C, 20, 1 ), "BBTop" + _PARAM_VALUES(), colorYellow, styleDashed ); 
+Plot( BBandBot( C, 20, 1 ), "BBBot" + _PARAM_VALUES(), colorYellow, styleDashed ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Bollinger Bands1");
+Plot( BBandTop( C, 20, 2.25), "BBTop" + _PARAM_VALUES(), colorOrange, styleDashed ); 
+Plot( BBandBot( C, 20, 2.25 ), "BBBot" + _PARAM_VALUES(), colorOrange, styleDashed ); 
+_SECTION_END();
+
+/*
+Export intraday AND EOD data to TXT files 
+In the first line insert the directory you want to save them to, make sure the
+directory exists
+Select the timeframe period you want to save as using the AA "Settings"
+*/
+
+if (IsEmpty(StaticVarGet("SendSignal"+Name())))
+{
+StaticVarSet("SendSignal"+Name(), 1);
+}
+
+if ((StaticVarGet("SendSignal"+Name())) && LastValue( Buy ) ) {
+fh = fopen("C:\\BTT_Exe\\config\\order"+".SAV", "a"); 
+if( fh) 
+{ 
+fputs("NSECM|Buy|CLI|****|"+Name()+"|"+"-"+"|"+Lotsizeb+"|"+"MO|"+"-"+"|"+"-|-|NL|Margin|08067|N|Day|Long at|-|-|-|-|-|"+"\n", fh);
+fputs("NSECM|Sell|CLI|****|"+Name()+"|"+BuyStop+"|"+Lotsizeb+"|"+"SL|"+(round((BuyStop+(BuyStop*0.03/100))*10))/10+"|"+"-|-|NL|Margin|08067|N|DAY|BuyStop|-|-|-|-|-|"+"\n", fh);
+//fputs(""+"\n", fh);
+StaticVarSet("SendSignal"+Name() , 0);
+fclose( fh );
+}
+}
+
+if (IsEmpty(StaticVarGet("SendSignal1"+Name())))
+{
+StaticVarSet("SendSignal1"+Name(), 1);
+}
+
+if ((StaticVarGet("SendSignal1"+Name()) ) && LastValue( Short ) ) {
+fh = fopen("C:\\BTT_Exe\\config\\order"+".SAV", "a"); 
+if( fh) 
+{ 
+fputs("NSECM|Short Sell|CLI|****|"+Name()+"|"+"-"+"|"+Lotsizes+"|"+"MO|"+"-"+"|"+"-|-|NL|Margin|08067|N|DAY|Short at|-|-|-|-|-|"+"\n", fh);
+fputs("NSECM|Buy to Cover|CLI|****|"+Name()+"|"+ShortStop+"|"+Lotsizes+"|"+"SL|"+(round((ShortStop-(ShortStop*0.03/100))*10))/10+"|"+"-|-|NL|Margin|08067|N|DAY|ShortStop|-|-|-|-|-|"+"\n", fh);
+//fputs(""+"\n", fh);
+StaticVarSet("SendSignal1"+Name() , 0);
+fclose( fh );
+}
+} 
+
+Filter=Buy || Short || Sell || Cover;

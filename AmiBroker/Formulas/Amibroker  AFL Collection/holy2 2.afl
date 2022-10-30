@@ -1,0 +1,62 @@
+_SECTION_BEGIN("holy2");
+/* we find a stock that has made 20 bar high 
+
+*/
+
+H1 = Ref(H,-1);
+H2 = Ref(H,-2);
+H3 = Ref(H,-3);
+H4 = Ref(H,-4);
+H5 = Ref(H,-5);
+
+l1 = Ref(L,-1);
+l2 = Ref(L,-2);
+l3 = Ref(L,-3);
+l4 = Ref(L,-4);
+l5 = Ref(L,-5);
+
+Plot(Close,"",colorWhite,styleCandle);
+H20 = HHV(High,20);
+L20 = LLV(Low,20);
+
+uptrend = IIf( H2 == H20 OR H3 == H20 OR H4 == H20 OR H5 == H20,1,0);
+downtrend = IIf( l2 == l20 OR L3 == L20 OR l4 == l20 OR l5 == L20,1,0);
+Plot (H20,"",colorGreen,styleThick);
+Plot (l20,"",colorRed,styleThick);
+Buy = uptrend==1 ;
+Sell = downtrend==1;
+
+
+Title = EncodeColor(colorWhite)+ "Linkon Holy grail System" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"\n" +EncodeColor(colorYellow) +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+ "Cl-"+C+"  "+ "Vol= "+ WriteVal(V)+ "\n"+
+EncodeColor(colorLime)+
+WriteIf (Buy , " GO LONG at "+H1+"  "+"Target of :"+H20+"  SL @ "+L1,"")+
+EncodeColor(colorRed)+
+WriteIf (Sell , " GO short at "+L1+"  "+"Target of :"+L20+"  SL @ "+H1,"")
+;
+
+piv_col = IIf(Buy,colorBlue,IIf(Sell,colorRed,colorYellow));
+Plot(3, "", piv_col, styleOwnScale| styleArea|styleNoLabel,-0.5,100); 
+ 
+
+  
+_SECTION_END();
+
+_SECTION_BEGIN("KPL");
+//AFL by Kamalesh Langote. Email:kpl@vfmdirect.com
+no=Param( "Swing", 2, 1, 55 );
+tsl_col=ParamColor( "Color", colorCycle );
+
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+tsl=IIf(avn==1,sup,res);
+
+Plot(tsl, _DEFAULT_NAME(), tsl_col, styleStaircase);
+
+Buy=Cross(C,tsl);
+Sell=Cross(tsl,C);
+shape=Buy*shapeUpArrow + Sell*shapeDownArrow;
+PlotShapes(shape,IIf(Buy,tsl_col,tsl_col),0,IIf(Buy,Low,High));
+_SECTION_END();

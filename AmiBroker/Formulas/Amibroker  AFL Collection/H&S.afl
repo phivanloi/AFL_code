@@ -1,0 +1,106 @@
+_SECTION_BEGIN("H&S");
+/*for a Short description of Head & Shoulders Pattern you may see at
+http://www.chartpattern.com/head_sholuders.html
+http://www.chartpatterns.com/headandshoulderschartsstocks.htm
+etc.
+Paste the formula in Automatic Analysis AND Explore for n last quotations,
+n=1.
+Paste the same formula in Indicator Builder AND select scaling Automatic.
+H&S points AND respective neckline is painted yellow, inverted H&S is light
+blue.
+H&S is considered as a bearish formation, confirmed after the neckline
+breakout.
+Inverted H&S is considered as a bullish formation, confirmed after the neckline
+breakout.
+Sensitivity is calibrated at the per=5 line. Increasing per makes the formula
+less sensitive.
+The last shoulder should be less than back=50 days ago AND the distance between
+shoulders should be less than inter=100 days. 
+
+Formula:*/
+x = Cum(1);
+per = 15;
+back=50;
+inter=100;
+s11=H;s12=L;
+
+// Volume filter
+VFilter = Param( "Volume MA filter", 1000, 50000, 500000, 100000 );
+Timeframe = Interval(2);
+//Plot(MA(C,3),"MAC",colorYellow);
+// Adjust for weekly if necessary
+if( Timeframe == "5-day" || Timeframe == "Weekly" ) {
+  VFilter  = VFilter * 5;
+}
+Pfilter = 1;
+Vok = MA(V,10)>Vfilter;
+Pok = MA(C,10)>pfilter;
+
+/* H & S */
+pR = PeakBars( s11, per, 1 ) == 0;
+endt1= LastValue(ValueWhen( pR, x, 1 ));
+medt1=LastValue(ValueWhen( pR, x, 2 ));
+startt1=LastValue(ValueWhen( pR, x, 3 ));
+dt1=endt1-startt1;
+C1=x==endt1 OR x==medt1 OR x==startt1;
+endR = LastValue(ValueWhen( pR, s11, 1 ) );
+medR=LastValue(ValueWhen( pR, s11, 2 ) );
+startR = LastValue( ValueWhen( pR, s11, 3  ));
+Filter1=medR>endR AND medR>startR AND abs(startR-endR)<0.02*(startR+endR) AND
+dt1<inter AND endt1>LastValue(x)-back AND V[endt1]<V[medt1] AND
+V[endt1]<V[startt1];
+MaxGraph=10;Graph1=C;Graph1Style=64|styleNoTitle;GraphXSpace=5;
+/*H&S Neck Line*/
+Aper=medt1-startt1;bper=endt1-medt1;
+La=  LastValue(ValueWhen(x==medt1,LLV(L,Aper)));
+Lb=LastValue(ValueWhen(x==-1+endt1,LLV(L,bper)));
+Fa=L==La AND x>startt1 AND x<medt1;
+Fb=L==Lb AND x>medt1 AND x<endt1;
+endt= LastValue(ValueWhen( Fb, x ));
+startt=LastValue(ValueWhen( Fa, x ));
+dtS =endt-startt;endS = Lb;startS = La;
+aS = (endS-startS)/dtS;bS = endS;
+trendlineS = aS * ( x  -endt ) + bS; 
+Graph3 = IIf(Filter1 AND
+x>startt-5,trendlineS,-1e10);Graph3BarColor=7;Graph3Name = "Bearish H&S";
+/*Inverted H & S*/
+tpR = TroughBars( s12, per, 1 ) == 0;
+tendt1=LastValue(ValueWhen(tpr,x,1));
+tmedt1=LastValue(ValueWhen(tpr,x,2));
+tstartt1=LastValue(ValueWhen(tpr,x,3));
+tdt1=tendt1-tstartt1;
+C2=x==tendt1 OR x==tmedt1 OR x==tstartt1;
+tendR = LastValue(ValueWhen( tpR, s12, 1 ) );
+tmedR=LastValue(ValueWhen( tpR, s12, 2 ) );
+tstartR = LastValue( ValueWhen( tpR, s12, 3  ));
+Filter2=tmedR<tendR AND tmedR<tstartR AND
+abs(tstartR-tendR)<0.02*(tstartR+tendR) AND tdt1<inter AND
+tendt1>LastValue(x)-back AND V[endt1]<V[medt1] AND V[endt1]<V[startt1];
+Graph1BarColor=IIf(C1 AND Filter1,7,IIf(C2 AND Filter2,10,1));
+/*Inverted H&S Neck Line*/
+tAper=tmedt1-tstartt1;tbper=tendt1-tmedt1;
+Ha=  LastValue(ValueWhen(x==tmedt1,HHV(H,tAper)));
+Hb=LastValue(ValueWhen(x==-1+tendt1,HHV(H,tbper)));
+tFa=H==Ha AND x>tstartt1 AND x<tmedt1;
+tFb=H==Hb AND x>tmedt1 AND x<tendt1;
+Rendt= LastValue(ValueWhen(tFb, x ));
+Rstartt=LastValue(ValueWhen( tFa, x ));
+Rdt =Rendt-Rstartt;endR = Hb;startR = Ha;
+aR = (endR-startR)/Rdt;bR = endR;
+trendlineR = aR * ( x  -Rendt ) + bR; 
+Graph4 = IIf(Filter2 AND
+x>Rstartt-5,trendlineR,-1e10);Graph4BarColor=10;Graph4Name = "Bullish H&S";
+
+Bear = pok AND vok AND Filter1 AND Cross(TrendlineS, C) ;
+Bull = pok AND vok AND Filter2 AND Cross(C, TrendlineR);
+PlotShapes(Bull*shapeHollowUpArrow,colorBlue, 0, Low, Offset = -12);
+PlotShapes(Bear*shapeHollowDownArrow,colorRed, 0, High, Offset = -12);
+
+Filter = Bull OR Bear;
+NumColumns=2;
+Column0=Filter1;
+Column1=Filter2;
+Column0Format=Column1Format=1.0;
+Column0Name="H&S";
+Column1Name="inv H&S";
+_SECTION_END();

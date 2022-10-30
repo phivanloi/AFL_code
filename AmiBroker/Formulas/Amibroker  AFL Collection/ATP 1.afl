@@ -1,0 +1,15 @@
+SetChartOptions(0,chartShowDates);
+GraphXSpace = 5;
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot(C,"",colorBlack,styleCandle);
+_SECTION_BEGIN("ATP");
+B=Volume;
+A=Avg;
+Value=B*A;
+Barsfromtodaybegin = 1 + BarsSince( Day() != Ref(Day(), -1));
+StartBar = ValueWhen(TimeNum() == 093000, BarIndex());
+Totalvalue=Sum(Value,Barsfromtodaybegin);
+Totalvolume=Sum(V,Barsfromtodaybegin);
+ATP=(Totalvalue/Totalvolume);
+Plot(ATP,"ATP",colorBlue,styleThick);
+_SECTION_END();

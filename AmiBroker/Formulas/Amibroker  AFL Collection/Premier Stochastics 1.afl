@@ -1,0 +1,28 @@
+SetChartBkGradientFill( ParamColor("BgTop", ColorRGB( 172,172,172 )),
+
+ParamColor("BgBottom", ColorRGB( 172,172,172 )),ParamColor("titleblock",ColorRGB( 172,172,172 )));
+_SECTION_BEGIN("Premier Stochastics");
+StochLen = Param("Stoch Len", 8, 3, 30 );
+Period = Param("Smooth Period", 25, 5, 100 );
+SK = StochK( StochLen, 1 );
+Len = sqrt( Period );
+NormStochK = 0.1 * ( SK - 50 );
+SmoothStoch = EMA( EMA( NormStochK, Len ), Len );
+expSS = exp( SmoothStoch );
+Premier = ( expSS - 1 )/( expSS + 1 );
+Plot( Premier, "Premier", colorWhite, styleThick );
+Plot( Premier, "", IIf( Premier < 0, colorRed, colorLime ), styleHistogram );
+Plot( 0.2, "", colorLightBlue );
+Plot( 0.9, "", colorLightBlue );
+Plot( -0.2, "", colorLightBlue );
+Plot( -0.9, "", colorLightBlue );
+Short = Cross( Premier, -0.9 ) OR Cross( Premier, -0.2 );
+Buy = Cross( 0.9, Premier ) OR Cross( 0.2, Premier );
+Sell = Cover = 0;
+ApplyStop( stopTypeLoss, stopModePoint, 8, True ); // 8 big point = $800 Loss
+ApplyStop( stopTypeProfit, stopModePoint, 16, True );
+PointValue = 100; // big point value
+SetPositionSize( 1, spsShares ); // 1 contract per trade
+SetBacktestMode( backtestRegularRawMulti  ); // allow multiple positions
+SetTradeDelays( 1, 1, 1, 1 );
+_SECTION_END();

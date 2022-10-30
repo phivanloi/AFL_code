@@ -1,0 +1,359 @@
+_SECTION_BEGIN("BACK COLR");
+SetChartBkGradientFill( ParamColor("BgTop", ColorRGB( 172,172,172 )),
+
+ParamColor("BgBottom", ColorRGB( 172,172,172 )),ParamColor("titleblock",ColorRGB( 172,172,172 )));
+
+_SECTION_END();
+
+// Two adjustable parameter "Buy sensitivity" and "Buy Finetune" provided to adjust entry points.
+// Two adjustable parameter "Sell sensitivity" and "Sell Finetune" provided to adjust Exit points.
+
+_SECTION_BEGIN("KAMA System 1.0");
+
+
+
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+Title = ("KAMA SYSTEM - " + Name()+" " + Date() +" "+Interval(2) +" "+ EncodeColor(colorLime)+",Open "+Open +" ,High "+H+" ,Low "+L+" ,Close "+C+" "+"{{VALUES}}");
+
+
+//{{VALUES}}"+ O+ H+ L+C);
+
+
+//_N(Title =StrFormat("{{Name}} - {{Interval}} {{Date}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+
+
+// Buy adjustments
+bs=Param("BUY Sensitivity",7,2,20,1);
+bf=Param("BUY Finetune",2,0.1,20,0.1);
+
+///uncommentf for optimization
+//bs=Optimize("BUY Sensitivity",7,2,20,1);
+//bf=Optimize("BUY Finetune",2,0.1,20,0.1);
+// Sell Adjustments
+ss=Param("SELL Sensitivity",5,2,20,1);
+sf=Param("SELL Finetune",1,0.1,20,0.1);
+
+///uncommentf for optimization
+ss=Optimize("SELL Sensitivity",5,2,20,1);
+sf=Optimize("SELL Finetune",1,0.1,20,0.1);
+
+
+//stock selection parameters
+MyCL = Param( "CL", 10, 10, 100, 10 );
+MyVK = Param( "VK", 30, 10, 100, 10 );
+MyTL = Param( "TL", 300, 100, 1000, 100 );
+//stock selection
+//TLM = EMA(C*V/100000,100) ;
+//include = C> MyCL AND V/1000> MyVK AND C*V/100000 > MyTL AND TLM > 0.333 * MyTL ; 
+
+// common
+fast = 2/(2+1);
+slow = 2/(30+1);
+//BUY part
+dirb=abs(Close-Ref(Close,-bs));
+volb=Sum(abs(Close-Ref(Close,-1)),bs);
+ERb=dirb/volb;
+scb =( ERb*(fast-slow)+slow)^2; 
+xb = AMA( C, scb ); 
+flb=bf*StDev(xb-Ref(xb,-1),20);
+j=xb-Ref(xb,-3);
+
+
+//SELL part
+dirs=abs(Close-Ref(Close,-ss));
+vols=Sum(abs(Close-Ref(Close,-1)),ss);
+ERs=dirs/vols;
+scs =( ERs*(fast-slow)+slow)^2; 
+xs = AMA( C, scs ); 
+fls=sf*StDev(xs-Ref(xs,-1),20);
+k=Ref(Xs,-3)-Xs;
+
+Buy=Cross(j,flb) ;
+Sell=Cross(k,fls);
+mycolor=IIf(C>xb,colorLime,colorRed);
+Plot( C, "Close", mycolor,styleNoTitle | styleCandle ); 
+Plot(xb,"KAMA-BUY",colorRed,1);
+Plot(xs,"KAMA-SELL",colorOrange,1);
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+shape = Buy * shapeUpArrow +Sell * shapeDownArrow ;
+
+PlotShapes( shape, IIf( Buy, colorLime, colorRed),0, IIf( Buy, Low, High ) );
+
+GraphXSpace = 5;
+dist = 1.5*ATR(20); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "Buy\n@" + C[ i ], i, L[ i ]-dist[i], colorLime ); 
+if( Sell[i] ) PlotText( "sell\n@" + C[ i ], i, L[ i ]+dist[i], colorRed ); 
+} 
+Filter= Buy OR Sell;
+
+PositionScore=100/C;
+PositionSize = - 20;
+SetBarsRequired(10000, 10000);
+SetFormulaName("KAMA System");
+
+_SECTION_END();
+
+_SECTION_BEGIN("IIR2");
+// IIR2.afl
+//
+// Documentation to describe what the function does.
+// Second order smoother
+// the function statement
+function IIR2( input, f0, f1, f2 )
+// the function body
+{
+result[ 0 ] = input[ 0 ];
+result[ 1 ] = input[ 1 ];
+for( i = 2; i < BarCount; i++ )
+{
+result[i] = f0 * input[i] + f1 * result[i-1] + f2 * result[i-2];
+}
+// the function returns a single value and exits.
+return result;
+}
+// The routine that calls the function.
+SmoothedClose = IIR2(Close, 0.2, 1.4, -0.6 );
+//Plot( Close, "Price", 2, styleCandle );
+Plot( SmoothedClose, "function example", colorRed );
+//Figure 8.1 IIR2
+_SECTION_END();
+
+_SECTION_BEGIN("GSMA");
+SetBarsRequired(100000,0);
+PI = 3.1415926;
+
+function jIIR2( input, f0, f1, f2 ) 
+{ 
+result[ 0 ] = input[ 0 ]; 
+result[ 1 ] = input[ 1 ]; 
+
+for( i = 2; i < BarCount; i++ ) 
+{ 
+result[ i ] = f0 * input[ i ] + 
+f1 * result[ i - 1 ] + 
+f2 * result[ i - 2 ]; 
+} 
+
+return result; 
+} 
+
+function GSMA( input, Period )
+{
+N = 0;
+an = 2 * PI / Period;
+c0 = b0 = 1;
+c1 = b1 = b2 = a1 = a2 = gamma1 = 0;
+beta1 = 2.415 * ( 1- cos( an ) );
+alpha = -beta1 + sqrt( beta1 ^ 2 + 2 * beta1 );
+alpha1 = ( cos( an ) + sin( an ) - 1 )/cos( an );
+{
+fo = alpha ^ 2;
+f1 = 2 * ( 1- alpha ); f2 = -( 1 - alpha )*( 1 - alpha );
+}
+
+
+return jIIR2( input, fo,f1,f2);
+}
+period=Param("period",13,1,40,1);
+
+//Plot( Close, "Price", colorBlack, styleCandle ); 
+Plot( GSMA( C,period), "GSMA", colorLime );
+
+// Linear Regression Line with 2 Standard Deviation Channels Plotted Above and Below 
+// Written by Patrick Hargus, with critical hints from Marcin Gorzynski, Amibroker.com Technical Support 
+// Designed for use with AB 4.63 beta and above, using drag and drop feature. 
+// Permits plotting a linear regression line of any price field available on the chart for a period determined by the user. 
+// 2 Channels, based on a standard deviation each determined by the user, are plotted above and below the linear regression line. 
+// A look back feature is also provided for examining how the indicator would have appeared on a chart X periods in the past. 
+
+
+P = ParamField("Price field",-1);
+Daysback = Param("Period for Liner Regression Line",21,1,240,1);
+shift = Param("Look back period",0,0,240,1); 
+
+
+// =============================== Math Formula ================================================== ===========
+
+x = Cum(1);
+lastx = LastValue( x ) - shift; 
+aa = LastValue( Ref(LinRegIntercept( p, Daysback), -shift) ); 
+bb = LastValue( Ref(LinRegSlope( p, Daysback ), -shift) ); 
+y = Aa + bb * ( x - (Lastx - DaysBack +1 ) ); 
+
+
+// ==================Plot the Linear Regression Line ================================================== ========
+
+
+LRColor = ParamColor("LR Color", colorCycle ); 
+LRStyle = ParamStyle("LR Style");
+
+LRLine = IIf( x > (lastx - Daysback) AND BarIndex() < Lastx, y, Null );
+Plot( LRLine , "LinReg", LRCOLOR, LRSTYLE ); // styleDots ); 
+
+// ========================== Plot 1st SD Channel ================================================== =============
+
+SDP = Param("Standard Deviation", 1.5, 0, 6, 0.1);
+SD = SDP/2;
+
+width = LastValue( Ref(SD*StDev(p, Daysback),-shift) ); // THIS IS WHERE THE WIDTH OF THE CHANELS IS SET 
+SDU = IIf( x > (lastx - Daysback) AND BarIndex() < Lastx, y+width , Null ) ;
+SDL = IIf( x > (lastx - Daysback) AND BarIndex() < Lastx, y-width , Null ) ;
+
+SDColor = ParamColor("SD Color", colorCycle ); 
+SDStyle = ParamStyle("SD Style");
+
+Plot( SDU , "Upper Lin Reg", SDColor,SDStyle ); 
+Plot( SDL , "Lower Lin Reg", SDColor,SDStyle ); 
+
+// ========================== Plot 2d SD Channel ================================================== =============
+
+SDP2 = Param("2d Standard Deviation", 2.0, 0, 6, 0.1);
+SD2 = SDP2/2;
+
+width2 = LastValue( Ref(SD2*StDev(p, Daysback),-shift) ); // THIS IS WHERE THE WIDTH OF THE CHANELS IS SET 
+SDU2 = IIf( x > (lastx - Daysback) AND BarIndex() < Lastx, y+width2 , Null ) ;
+SDL2 = IIf( x > (lastx - Daysback) AND BarIndex() < Lastx, y-width2 , Null ) ;
+
+SDColor2 = ParamColor("2 SD Color", colorCycle ); 
+SDStyle2 = ParamStyle("2 SD Style");
+
+Plot( SDU2 , "Upper Lin Reg", SDColor2,SDStyle2 ); 
+Plot( SDL2 , "Lower Lin Reg", SDColor2,SDStyle2 ); 
+
+// ============================ End Indicator Code ================================================== ============
+
+//Fibonacci cluster
+
+_SECTION_BEGIN("Background");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+SetChartBkColor(ParamColor("Outer panel",colorWhite)); // color of outer border 
+SetChartBkGradientFill( ParamColor("Inner panel upper",colorWhite),ParamColor("Inner panel lower",colorWhite));
+tchoice=Param("Title Selection ",2,1,2,1);
+
+//Plot(C, "", IIf(O>=C, colorOrange, colorGreen), ParamStyle("Price Style",styleCandle,maskPrice));
+//////////////////////////////////////////////////////////////////
+_SECTION_BEGIN("Fib Retracements");
+fibs = ParamToggle("Plot Fibs","Off|On",1);
+pctH = Param ("Pivot Hi %", 0.325,0.001,2.0,0.002);
+HiLB = Param ("Hi LookBack",1,1,BarCount-1,1);
+pctL = Param ("Pivot Lo %", 0.325,0.001,2.0,0.002);
+LoLB = Param ("Lo LookBack",1,1,BarCount-1,1);
+Back = Param ("Extend Left = 2",1,1,500,1);
+Fwd = Param("Plot Forward", 0, 0, 500, 1);
+text = ParamToggle("Plot Text","Off|On",1);
+hts = Param ("Text Shift", -33.5,-50,50,0.10);
+style =ParamStyle("Line Style",styleLine,styleNoLabel);
+x = BarIndex();
+pRp = PeakBars( H, pctH, 1) == 0;
+yRp0 = SelectedValue(ValueWhen( pRp, H, HiLB));
+xRp0 = SelectedValue(ValueWhen( pRp, x, HiLB));
+pSp = TroughBars( L, pctL, 1) == 0;
+ySp0 = SelectedValue(ValueWhen( pSp, L, LoLB));
+xSp0 = SelectedValue(ValueWhen( pSp, x, LoLB));
+Delta = yRp0 - ySp0;
+
+function fib(ret)
+{
+retval = (Delta * ret);
+Fibval = IIf(ret < 1.0 
+AND xSp0 < xRp0, yRp0 - retval, IIf(ret < 1.0 
+AND xSp0 > xRp0, ySp0 + retval,IIf(ret > 1.0 
+AND xSp0 < xRp0, yRp0 - retval, IIf(ret > 1.0 
+AND xSp0 > xRp0, ySp0 + retval, Null)))); 
+return FibVal;
+}
+
+x0 = Min(xSp0,xRp0)-Back;
+x1 = (BarCount -1);
+//////////////////////////////////////////////////////////////////
+r236 = fib(0.236); r236I = LastValue (r236,1);
+r382 = fib(0.382); r382I = LastValue (r382,1);
+r050 = fib(0.50); r050I = LastValue (r050,1);
+r618 = fib(0.618); r618I = LastValue (r618,1);
+r786 = fib(0.786); r786I = LastValue (r786,1);
+e127 = fib(1.27); e127I = LastValue (e127,1);
+e162 = fib(1.62); e162I = LastValue (e162,1);
+e200 = fib(2.00); e200I = LastValue (e200,1);
+e262 = fib(2.62); e262I = LastValue (e262,1);
+e424 = fib(4.24); e424I = LastValue (e424,1);
+//////////////////////////////////////////////////////////////////
+p00 = IIf(xSp0 > xRp0,ySp0,yRp0); p00I = LastValue (p00,1);
+p100 = IIf(xSp0 < xRp0,ySp0,yRp0); p100I = LastValue (p100,1);
+color00 =IIf(xSp0 > xRp0,colorLime,colorRed);
+color100 =IIf(xSp0 < xRp0,colorLime,colorRed);
+//////////////////////////////////////////////////////////////////
+numbars = LastValue(Cum(Status("barvisible")));
+fraction= IIf(StrRight(Name(),3) == "", 3.2, 3.2);
+//////////////////////////////////////////////////////////////////
+if(fibs==1)
+{
+Plot(LineArray(xRp0-Fwd,yRp0,x1,yRp0,Back),"PR",32,8|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(xSp0-Fwd,ySp0,x1,ySp0,Back),"PS",27,8|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,r236,x1,r236,Back),"",45,style|styleNoRescale, Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,r382,x1,r382,Back),"",44,style|styleNoRescale, Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,r050,x1,r050,Back),"",41,style|styleNoRescale, Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,r618,x1,r618,Back),"",43,style|styleNoRescale, Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,r786,x1,r786,Back),"",42,style|styleNoRescale, Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,e127,x1,e127,Back),"e127",47,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,e162,x1,e162,Back),"e162",47,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,e200,x1,e200,Back),"p200",47,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,e262,x1,e262,Back),"p262",47,style|styleNoRescale,Null, Null,Fwd);
+Plot(LineArray(x0-Fwd,e424,x1,e424,Back),"p424",25,style|styleNoRescale,Null, Null,Fwd);
+}
+//////////////////////////////////////////////////////////////////
+if(text==1)
+{ 
+PlotText(" 0% = " + WriteVal(p00,fraction), LastValue(BarIndex())-(numbars/hts), p00I + 0.05, color00);
+PlotText("23% = " + WriteVal(r236,fraction), LastValue(BarIndex())-(numbars/hts), r236I + 0.05, 45);
+PlotText("38% = " + WriteVal(r382,fraction), LastValue(BarIndex())-(numbars/hts), r382I + 0.05, 44);
+PlotText("50% = " + WriteVal(r050,fraction), LastValue(BarIndex())-(numbars/hts), r050I + 0.05, 41);
+PlotText("62% = " + WriteVal(r618,fraction), LastValue(BarIndex())-(numbars/hts), r618I + 0.05, 43);
+PlotText("78% = " + WriteVal(r786,fraction), LastValue(BarIndex())-(numbars/hts), r786I + 0.05, 42);
+PlotText("100% = " + WriteVal(p100,fraction), LastValue(BarIndex())-(numbars/hts),p100I + 0.05, color100);
+PlotText("127% = " + WriteVal(e127,fraction), LastValue(BarIndex())-(numbars/hts),e127I + 0.05, 47);
+PlotText("162% = " + WriteVal(e162,fraction), LastValue(BarIndex())-(numbars/hts),e162I + 0.05, 47);
+PlotText("200% = " + WriteVal(e200,fraction), LastValue(BarIndex())-(numbars/hts),e200I + 0.05, 47);
+PlotText("262% = " + WriteVal(e262,fraction), LastValue(BarIndex())-(numbars/hts),e262I + 0.05, 47);
+PlotText("424% = " + WriteVal(e424,fraction), LastValue(BarIndex())-(numbars/hts),e424I + 0.05, 25);
+}
+_SECTION_END();
+//////////////////////////////////////////////////////////////////
+if (tchoice==1 ) 
+{
+_N(Title = EncodeColor(colorBlack)+StrFormat(" {{NAME}} - {{INTERVAL}} {{DATE}} Open: %g, High: %g, Low: %g, Close: %g {{VALUES}}",O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+}
+//////////////////////////////////////////////////////////////////
+if (tchoice==2 ) 
+{
+Title = EncodeColor(colorBlack)+ Date() + " Tick = " + EncodeColor(5) + Interval()+
+EncodeColor(colorBlack) + " Open = " + EncodeColor(colorBlack) + O + 
+EncodeColor(colorBlack) + " High = " + EncodeColor(5) + H +
+EncodeColor(colorBlack) + " Low = " + EncodeColor(colorRed) + L + 
+EncodeColor(colorBlack) + " Close = " + EncodeColor(colorBlack) + C + "\n" +
+EncodeColor( colorBlack) +"_______________"+"\n"+
+EncodeColor( colorBlack) + "424% = " + EncodeColor(25)+ e424 + " " +"\n"+
+EncodeColor( colorBlack) + "262% = " + EncodeColor(47)+ e262 + " " +"\n"+
+EncodeColor( colorBlack) + "200% = " + EncodeColor(47)+ e200 + " " +"\n"+
+EncodeColor( colorBlack) + "162% = " + EncodeColor(47)+ e162 + " " +"\n"+
+EncodeColor( colorBlack) + "127% = " + EncodeColor(47)+ e127 + " " +"\n"+
+EncodeColor( colorYellow) + " Res = " + EncodeColor(32)+ p100 + " " +"\n"+
+EncodeColor( colorBlack) + " 78% = " + EncodeColor(42)+ r786 + " " +"\n"+
+EncodeColor( colorBlack) + " 62% = " + EncodeColor(43)+ r618 + " " +"\n"+
+EncodeColor( colorBlack) + " 50% = " + EncodeColor(41)+ r050 + " " +"\n"+
+EncodeColor( colorBlack) + " 38% = " + EncodeColor(44)+ r382 + " " +"\n"+
+EncodeColor( colorBlack) + " 23% = " + EncodeColor(45)+ r236+ " " +"\n"+
+EncodeColor( colorYellow) + " Sup = " + EncodeColor(34)+ p00 + " " ;
+}
+GraphXSpace=5;
+
+_SECTION_BEGIN("BACK COLR");
+SetChartBkGradientFill( ParamColor("BgTop", ColorRGB( 172,172,172 )),
+
+ParamColor("BgBottom", ColorRGB( 172,172,172 )),ParamColor("titleblock",ColorRGB( 172,172,172 )));
+_SECTION_END();

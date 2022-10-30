@@ -1,0 +1,53 @@
+Parameter = Param( "parameter", 1.5, 1, 10, 0.1 ); 
+
+FilC = ( log( C ) ); 
+
+eps = 0.0000000001; 
+// basic Definitions 
+semicupperiod = SelectedValue( Max( BarsSince( C >= SelectedValue( C * parameter ) ), 1 ) ) + 1; 
+
+Ptop = SelectedValue( HHV( FilC, Semicupperiod ) ); 
+Pbot = SelectedValue( LLV( FilC, Semicupperiod ) ); 
+boxheight = SelectedValue( abs( Ptop - Pbot ) / 5 ); 
+boxlength = SelectedValue( Max( int( semicupperiod / 5 ), 1 ) ); 
+
+//   Grid Nodes 
+bar = Cum( 1 ); 
+b0 = SelectedValue( bar - semicupperiod + 1 ); 
+b5 = SelectedValue( bar ); 
+b1 = SelectedValue( Min( b0 + boxlength, b5 ) ); 
+b2 = SelectedValue( Min( b1 + boxlength, b5 ) ); 
+b3 = SelectedValue( Min( b2 + boxlength, b5 ) ); 
+b4 = SelectedValue( Min( b3 + boxlength, b5 ) ); 
+L2 = Pbot + 2 * boxheight; 
+L3 = Pbot + 3 * boxheight; 
+
+// Directional Strength 
+Diff = FilC - Ref( FilC, -1 ); 
+UpSum2 = Sum( Max( Diff, 0 ), 2 * boxlength ); 
+DnSum2 = Sum( Max( -Diff, 0 ), 2 * boxlength ); 
+DSX1 = abs( UpSum2 - DnSum2 ) / ( eps + UpSum2 + DnSum2 ) * 100; 
+UpSum3 = Sum( Max( Diff, 0 ), 3 * boxlength ); 
+DnSum3 = Sum( Max( -Diff, 0 ), 3 * boxlength ); 
+DSX2 = abs( UpSum3 - DnSum3 ) / ( eps + UpSum3 + DnSum3 ) * 100; 
+
+// Coditions 
+isSemicup = ( semicupperiod >= 20 ) AND 
+            ( Ref( DSX1, -( b5 - b2 ) ) > 25 ) AND 
+            ( DSX2 < 25 ) AND 
+            ( Cum( IIf( bar >= b2, FilC > L3, 0 ) ) == 0 ) AND 
+            ( Cum( IIf( bar >= b4, FilC > L2, 0 ) ) == 0 ); 
+
+LIS = SelectedValue( isSemicup ); 
+Lastbar = SelectedValue( Cum( bar ) ); 
+
+
+Line = LIS * ( ValueWhen( LIS * bar == b0, 1 ) * 
+       ( ( exp( Ptop ) - exp( Pbot ) ) / 
+         ( bar - b0 + 2 ) * 2 + 0.98 * exp( Pbot ) ) ); 
+
+if( LIS ) Plot( Line , "IsSemiCupPlot", colorRed, styleThick ); 
+Plot( C, Date() + " Close", ParamColor("Color", colorBlack ), styleBar ); 
+
+Filter = isSemicup; 
+AddColumn( semicupperiod, "Semicup period", 1.0 );

@@ -1,0 +1,43 @@
+GraphXSpace = 5;
+_SECTION_BEGIN( "Price" );
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );
+_N( Title = StrFormat( "{{NAME}} - " + SectorID( 1 ) + " - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", colorRose, styleCandle | styleNoTitle | ParamStyle( "Style" ) | GetPriceStyle() );
+
+if ( ParamToggle( "Tooltip shows", "All Values|Only Prices" ) )
+{
+    ToolTip = StrFormat( "Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: " + NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 ) ) );
+}
+_SECTION_END();
+
+
+_SECTION_BEGIN( "Alligator" );
+mid = (H+L)/2;
+
+Lips = Ref(EMA(mid,9),-3);
+teeth = Ref(EMA(mid,15),-5);
+jaw = Ref(EMA(mid,25),-8);
+
+Plot(lips, "Lips", colorLime);
+Plot(teeth, "Teeth", colorRed);
+Plot(jaw, "Jaw", colorLightBlue, styleThick);
+_SECTION_END();
+
+_SECTION_BEGIN( "Fractals" );
+F1 = ValueWhen(H<Ref(H,-2) AND Ref(H,-1)<Ref(H,-2) AND Ref(H,-3)<Ref(H,-2) AND Ref(H,-4)<Ref(H,-2),Ref(H,-2),1);
+F2 = ValueWhen(L>Ref(L,-2) AND Ref(L,-1)>Ref(L,-2) AND Ref(L,-3)>Ref(L,-2) AND Ref(L,-4)>Ref(L,-2),Ref(L,-2),1);
+
+a = Cross(H,F1);
+b = Cross(F2,L);
+
+state = IIf(BarsSince(a)<BarsSince(b),1,0);
+
+Longs=state==1;
+shorts=state==0;
+
+up = state>Ref(state,-1);
+dn = state<Ref(state,-1);
+
+PlotShapes( IIf(up, shapeUpArrow,0) , colorLime,0,L,-15);
+PlotShapes( IIf(dn, shapeDownArrow,0) , colorYellow,0,H,-15);
+_SECTION_END();

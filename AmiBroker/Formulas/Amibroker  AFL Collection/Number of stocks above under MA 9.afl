@@ -1,0 +1,58 @@
+// Number of stocks above/under MA(20)
+
+_SECTION_BEGIN("Average");
+P = ParamField("Field");
+Type = ParamList("Type", "Weighted,Lagless-21,Hull-26,Linear Regression-45,Exponential,Double Exponential,Tripple Exponential,Wilders,Simple");
+Periods = Param("Periods", 9, 2, 100 );
+Displacement = Param("Displacement", 1, -50, 50 );
+m = 0;
+
+if( Type == "Weighted" ) 				m=  WMA( P, Periods );
+if( Type == "Lagless-21"  )				m=  2*EMA(P, Periods)-EMA(EMA(P, Periods), Periods); 
+if( Type == "Hull-26"  )				m=  WMA(2*(WMA(P, Periods/2))-WMA(P, Periods) ,4 );
+if( Type == "Linear Regression-45"  ) m=  LinearReg( P, Periods );
+if( Type == "Exponential" ) 			m = EMA( P, Periods );
+if( Type == "Double Exponential" ) 	m = DEMA( P, Periods );
+if( Type == "Tripple Exponential" ) 	m = TEMA( P, Periods );
+if( Type == "Wilders" ) 				m = Wilders( P, Periods );
+if( Type == "Simple" ) 					m = MA( P, Periods );
+
+
+//Plot( m, _DEFAULT_NAME(), ParamColor("Color", colorWhite), styleThick, 0, 0, Displacement );
+
+
+//Plot Price
+//barcolor = IIf(C > m, ParamColor("Up Color",colorBrightGreen), IIf(C ==m,colorRed, ParamColor("Dn Color",colorRed))); 
+//Plot( C, "Close", barcolor, ParamStyle("Style",styleThick+styleNoLabel) | GetPriceStyle());
+_SECTION_END();
+
+
+_SECTION_BEGIN("Compare with WMA(9)");
+
+// Set Background
+//SetChartBkGradientFill(ParamColor("Bg Top",colorBlack),ParamColor("Bg Bottom",colorBlack));
+
+Buy = Sell = 0;
+Buy = Cross(C, m);
+Sell = Cross(m, C);
+
+
+// dung de tao chi so composite co gia tri la so luong stocks nam tren hay duoi MA(20)
+AddToComposite( C >= m,"~OverWMA","X");
+AddToComposite( C < m,"~BelowWMA","X");
+
+// Thiet lap gia tri cho 2 chi so nay
+Adv = Foreign("~OverWMA","C");
+Dec = Foreign("~BelowWMA","C");
+
+//ve indicator
+Plot(Adv,"No stocks over WMA(9)",colorYellow,styleLine);
+Plot(Dec,"No stocks below WMA(9)",colorRed,styleLine);
+
+Filter =1; 
+AddColumn( Adv ,"Adv WMA(9)",1.1);
+AddColumn( Dec ,"Dec WMA(9)",1.1);
+
+_SECTION_END();
+
+Plot((Adv+Dec)/2,"",colorWhite, styleDashed);

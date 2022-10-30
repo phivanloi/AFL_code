@@ -1,0 +1,4 @@
+
+dummy =  E_TSKPTRENDBIAS(High,Low,Close);
+Plot(tskp_sb, "TB1", ParamColor( "ColorTB1", colorBlack ), ParamStyle("StyleTB1", default=styleLine+styleNoLabel, mask=maskDefault) ); 
+Plot(tskp_tbxavg, "TB2", ParamColor( "ColorTB2", colorBrown ), ParamStyle("StyleTB2", default=styleLine+styleNoLabel, mask=maskDefault) ); 

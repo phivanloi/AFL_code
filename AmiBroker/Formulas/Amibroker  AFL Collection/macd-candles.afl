@@ -1,0 +1,20 @@
+// MACD Candles 
+
+_SECTION_BEGIN( "Standard MACD" );
+ShortPds = Param("Fast period", 12, 1, 50, 1 ); 
+LongPds  = Param("Slow period", 26, 3, 50, 1 ); 
+aperiod  = Param("Signal period", 9, 1, 30, 1 ); 
+
+ml = MACD( ShortPds, LongPds ); 
+sl = Signal(ShortPds, LongPds,aperiod); 
+
+InsideMacd = 	(sl < Ref(sl , -1) AND
+				ml  > Ref(ml, -1)) OR
+				(sl > Ref(sl , -1) AND
+				ml  < Ref(ml, -1)) 
+				;
+ 
+Color = IIf( InsideMacd, ParamColor("Inside bar", colorBlack), IIf(sl > ml, ParamColor("up bar", colorGreen), ParamColor("down bar", colorBlack)));
+PlotOHLC(ml, sl, ml, sl, "", color, styleCandle);
+
+_SECTION_END();

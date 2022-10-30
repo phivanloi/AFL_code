@@ -1,0 +1,11 @@
+FractalUp1 = IIf((L < Ref(L,2) AND L < Ref(L,1) AND L < Ref(L,-1) AND L < Ref(L,-2)),1,0);
+FractalDown1 = IIf((H > Ref(H,2) AND H > Ref(H,1) AND H > Ref(H,-1) AND H > Ref(H,-2)),1,0);
+
+FractalSupport1 = ValueWhen(FractalUP1,L,1);
+FractalResistance1 = ValueWhen(FractalDown1,H,1);
+
+Upp1 = Cross(H,Ref(FractalResistance1,-2));
+Downn1= Cross(Ref(FractalSupport1,-2),L);
+
+Plot(Upp1, "",5);
+Plot(Downn1, "", 4);

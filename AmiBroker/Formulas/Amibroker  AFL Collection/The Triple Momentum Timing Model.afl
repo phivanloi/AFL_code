@@ -1,0 +1,11 @@
+P = ParamField( "Price field" );
+r1 = Param("Len 1", 5, 5, 25, 1 );
+r2 = Param("Len 2", 15, 15, 50, 1 );
+r3 = Param("Len 3", 25, 25, 75, 1 );
+
+x = TEMA(ROC( P, r1) +  ROC( P, r3) +  ROC( P, r3),20);
+Color = IIf((x > Ref(x,-1) AND x > 0), colorGreen, IIf((x > Ref(x,-1) AND x < 0), colorLightBlue, IIf((x < Ref(x,-1) AND x > 0), colorOrange,colorDarkRed)));
+
+PlotOHLC( 0,x,0,0, "ATM", Color, styleCloud);
+PlotGrid(0, colorLightGrey);
+PlotGrid(4, colorLightGrey);

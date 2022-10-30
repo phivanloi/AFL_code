@@ -1,0 +1,56 @@
+//	This is a moving average crossover system.  It buys on the next open when the 9-day simple moving average 
+//	of the Close crosses higher than the 20-day moving average, and sells on the next open when the 9-day 
+//	moving average crosses below the 20-Day moving average.  No stops are used.
+
+//	Set round-trip commissions in "Settings"
+//	Set In-Sample range to 12/31/97 - 12/31/02 for a good mix of bull and bear
+//		(Later, use 12/31/02-current and 12/31/92-12/31/97 for Out-of-Sample tests)
+//	Set filter to all Nasdaq stocks
+
+PositionSize		= 10000;						// no compounding
+
+BuyPrice			= Open;
+SellPrice			= Open; 
+SetTradeDelays		( 1, 1, 1, 1);						// buy, sell, short, cover
+
+SetOption			("InitialEquity", 50000);			SetOption	("MaxOpenPositions", 5);
+//SetOption			("InitialEquity", 20000000);		SetOption	("MaxOpenPositions", 1000);
+
+//  BUY -------------------------------------------------------------- 
+
+Cond1				= Close >= 5;
+         
+CloseTimesVolume	= Close * Volume; 
+Cond2				= MA (CloseTimesVolume, 63) > 1000000; 
+
+//Var3a				= Optimize ("MA Fast", 9, 6, 12, 1);
+//Var3b				= Optimize ("MA Slow", 20, 17, 23, 1);
+
+Cond3				= MA (Close, 9) > MA (Close, 20);
+
+Buy				= Cond1 AND Cond2 AND Cond3;
+
+//  SELL --------------------------------------------------------------  
+
+Cond101			= MA (Close, 9) < MA (Close, 20);
+
+Sell				= Cond101;
+
+Buy				= ExRem (Buy, Sell);
+Sell				= ExRem (Sell, Buy);
+
+//Short				= Sell;
+//Cover				= Buy;
+
+//PositionScore		= 100 + Close;	
+//PositionScore		= 100-Close/LLV(Close,250);				
+ 
+//  SIGNAL GENERATION --- (Last 1 days, Explore) ----------------------------
+ 
+Filter				= (Buy OR Sell); 
+AddColumn 			(Close, "Close", 1.2); 
+AddTextColumn		(WriteIf(Buy==1,"Buy","Sell"),"Buy/Sell",colorDefault, IIf (Buy ==1,colorGreen,colorRed)); 
+Shares				= PositionSize / Close; 
+AddColumn			(Shares, "Shares", 1.0);
+AddColumn			(PositionSize, "PositionSize", 1.0); 
+AddTextColumn		("at tomorrow's Open","When");

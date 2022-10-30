@@ -1,0 +1,18 @@
+_SECTION_BEGIN("Stochastic %K");
+Plot( StochK( 7 , 3), "stocks", color_st = IIf(StochK( 7 , 3) > Ref(StochK( 7 , 3),-1),colorGreen,colorRed), styleDashed );
+Plot( stk = MA( StochK(7,3), 3 ), "av", colorstchk = IIf(stk > Ref(stk,-1),colorGreen,colorRed), styleThick ); 
+Buy = Cross(StochK(7,3), MA(StochK(7,3),3)); 
+Sell = Cross(MA(StochK(7,3),3),StochK(7,3));
+PlotShapes(Buy*shapeHollowSmallUpTriangle, colorWhite);
+PlotShapes(Sell*shapeHollowSmallDownTriangle,colorWhite);
+_SECTION_END();
+
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), Color, Style ); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), Color, Style ); 
+_SECTION_END();

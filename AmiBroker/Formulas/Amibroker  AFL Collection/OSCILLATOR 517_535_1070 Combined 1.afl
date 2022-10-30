@@ -1,0 +1,48 @@
+_SECTION_BEGIN("OSCILLATOR 517_535_1070 Combined");
+A1 = MA(C,5);
+B1 = MA(C,17);
+D1 = A1-B1;
+
+Colorm=IIf(D1>Ref(D1,-1),colorBrightGreen,colorDarkGreen);
+
+Plot( D1, "Short", Colorm, styleHistogram|styleNoLabel );
+
+
+
+PlotOHLC( 0, D1, 0 , 0 , "517",Colorm, styleCloud | styleNoLabel);
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+A2 = MA(C,5);
+B2 = MA(C,35);
+D2 = A2-B2;
+
+
+Colorm=IIf(D2>Ref(D2,-1),colorRed,colorDarkRed);
+Plot( D2, "MED", Colorm, styleHistogram|styleNoLabel );
+
+
+
+PlotOHLC( 0, D2, 0 , 0 , "535",Colorm, styleCloud | styleNoLabel);
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+A3 = MA(C,10);
+B3 = MA(C,70);
+D3 = A3-B3;
+
+
+Colorm=IIf(D3>Ref(D3,-1),colorPaleBlue,colorBlue);
+Plot( D3, "Long", Colorm, styleHistogram|styleNoLabel );
+
+
+
+PlotOHLC( 0, D3, 0 , 0 , "1070",Colorm, styleCloud | styleNoLabel);
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+_SECTION_END();

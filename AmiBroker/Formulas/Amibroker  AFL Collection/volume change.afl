@@ -1,0 +1,4 @@
+Vol= Volume > EMA(Volume,10)*0.2;
+Filter=Vol;
+
+AddColumn(Vol,"vol");

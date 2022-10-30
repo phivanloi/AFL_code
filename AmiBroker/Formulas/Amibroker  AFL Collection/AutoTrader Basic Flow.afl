@@ -1,0 +1,904 @@
+_N(SectionName = "AutoTrader_Basic_Flow_updated_Apr_13,_2009");
+_N(Ver = "Ver1_0"); 
+
+_SECTION_BEGIN(SectionName);  
+EnableTextOutput(False); // prevents incidental text from being displayed in the interpretation
+Filename = StrLeft(_DEFAULT_NAME(),StrLen(_DEFAULT_NAME())-2) + " " + Ver; // the name of the program and is displayed on the title line
+// CAUTION: VarPfx is used to make the static variables unique tp prevent bizarre results if you use multiple versions of the trading program simultaneously. 
+VarPfx = Filename + Ver + Name();  
+
+_N(Title = Filename + StrFormat(" - {{DATE}} \nOpen %g, Hi %g, Lo %g, Close %g Vol %g " + " {{VALUES}}", O, H, L, C, V ));
+RequestTimedRefresh(1);
+SetChartOptions(0, chartShowDates); 
+
+pAutoTrading 		= ParamToggle("AutoTrade", "Off|Running");					// turns auto trading on and off
+Pause				= ParamToggle("Pause trading", "Run|Pause");		// pause trading
+DebugOn 			= ParamToggle("DebugView","Off|Running",0); 		// Dumps trade data to an output window
+closetime			= Param("Close time (hhmmss)", 230000, 0, 245959, 1500);  	// end trading at the time specified
+
+// The chart period below must agree with the chart before AutoTrading will connect to TWS.
+// the following lines define the acceptable periods that auto trading will work with. 
+// To add a period simply add the period to the existiung ParmList separated by a comma AND then add an interval test to the IF statement.
+ChartPeriod		= ParamList("Chart Period", "1,3,5,7,10,15,20,30,Hour,Day", 0);	// chart period must agree with this setting for auto trading to work
+if( ( Interval() == 60    		AND ChartPeriod == "1" )  		OR 
+	( Interval() == 60 * 3   	AND ChartPeriod == "3" ) 		OR
+	( Interval() == 60 * 5   	AND ChartPeriod == "5" ) 		OR
+	( Interval() == 60 * 7   	AND ChartPeriod == "7" ) 		OR
+	( Interval() == 60 * 10		AND ChartPeriod == "10" ) 		OR 
+	( Interval() == 60 * 15   	AND ChartPeriod == "15" ) 		OR
+	( Interval() == 60 * 20   	AND ChartPeriod == "20" ) 		OR
+	( Interval() == 60 * 30   	AND ChartPeriod == "30" ) 		OR
+	( Interval() == inHourly 	AND ChartPeriod == "Hour" ) 	OR  
+	( Interval() == inDaily		AND ChartPeriod == "Day" ) 		)  IntervalOK = True; 
+else IntervalOK = False;
+
+pContracts		= Param("Contracts", 100, 1, 1000000, 1);			// definethe default number of contracts to order
+OrderType		= ParamList("Order type", "STP,LMT,MKT", 2);		// select type of ofder to send
+tick 			= Param("Tick size", 0.01, 0.0, 10.0, 0.1);		// amount from current price the stop order will be set
+tMult			= Param("Tick multiplier", 100, 1, 1000, 1);		// tick * multiplier is used in placeOrder
+tickMult		= tick * tMult;
+
+// The symbol on the chart must agree with the symbol selected from this list before AutoTrading will connect to TWS
+// Note on modifyin this. The symbol must match exactly what is in the AB symbol directory. 
+// You can see below that ZG has spaces and the exact number of spaces is required. 
+// To add a new line just copy a line and replace the things between the "..." with the new symbol.
+// The last line ends with "); and that is required so don't mess it up.
+// To change the ticker list you may remove a line but refer to ParamList if you have trouble. The spacing has to be exactly what the AB database has.
+// The ticker list is a string separated by commas. If you separate them so they fit on another line you must close the string, add a + to indicate
+// the string continues on the next line. The string must be closed with a " and the ParamList must be closed with a );
+
+sTicker	= ParamList("Symbol to trade", "IBM,MSFT,IWM,QQQQ-SMART-STK,GLD-SMART-STK,FXP", 2);
+
+ManualBuy			= ParamTrigger("Manual buy", "Buy");								// allows user to buy the default number of contracts
+ManualSell			= ParamTrigger("Manual Sell", "Sell");							// allows user to sell the default number of contracts
+CancelAll 			= ParamTrigger("Cancel all pending orders", "Cancel all");		// user can cancel all orders that have not been filled
+CloseAll 			= ParamTrigger("Close all", "Close all");							// cancel all pending orders and close all open positions
+
+Reset 				= ParamTrigger("Reset", "Reset");									// resets the auto trading variables 
+
+StaticVarSet(VarPfx + "AutoTrading", pAutoTrading );
+
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+// ###############      Initilization      Initilization       Initilization       Initilization       Initilization     ######################################## 
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+
+sysTime = Now(4);	// time offset from New York
+sysTimeStr = 	NumToStr(SysTime, 1.0, False);
+barTime = TimeNum();
+
+// assign values to the following constants
+// trigger states used by the program
+fNone 		= 0; // no orders are being processed
+mCancel 	= 1; // the user has manually selected cancel all open orders
+mClose 	= 2; // the user has manually selected close all trades
+mBuy 		= 3; // the user has manually placed a buy order
+mSell 		= 4; // theuser has manually placed a sell order
+pBuy 		= 5; // the users system has generated a buy order 
+pSell 		= 6; // the users system has generated a sell order 
+pShort 	= 7; // the users system has generated a short order 
+pCover 	= 8; // the users system has generated a cover order
+
+// order states set by the program
+ordNone 		= 20; 	// there are no open orders being processed
+ordCancelBuy 	= 21;	// an open buy order is being cancelled and is waiting for a "Cancelled" status from TWS 
+ordCancelSell	= 22;	// an open sell order is being cancelled and is waiting for a "Cancelled" status from TWS  
+ordSell 		= 23;	// an open sell order is being processed and is waiting for a "Filled" status from TWS   
+ordBuy 		= 24;	// an open buy order is being processed and is waiting for a "Filled" status from TWS    
+ordCover 		= 25;	// an open cover order is being processed and is waiting for a "Filled" status from TWS    
+ordShort 		= 26;	// an open short order is being processed and is waiting for a "Filled" status from TWS    
+ordCancelAll 	= 27;	// a cancel all order is being processed and is waiting for a "Cancelled" status from TWS    
+ordCloseAll 	= 28; 
+ordManBuy 		= 29;	// a manual buy order is being processed and is waiting for a "Filled" status from TWS    
+ordManSell 	= 30;	// a manual sell order is being processed and is waiting for a "Filled" status from TWS    
+ 
+// initializes the static variables when the program starts and when the user presses Reset.
+if (Reset OR Nz(StaticVarGet(VarPfx + "SystemInitialized"), True)) // init static vars when indicator starts
+ {
+	StaticVarSet(VarPfx + "SystemInitialized", True);
+//	pause = True;	// used to artifically pause the system on init. 
+
+	// initialize auto trading vars
+	StaticVarSet(VarPfx + "OrderState", OrdNone); 				// contains the order state being processed, normal is none
+	StaticVarSetText(VarPfx + "ordID", "");		 		// an active order being processed, blank when no orders are active
+	StaticVarSet(VarPfx + "GetStatus", False);			// a flag informs the program that statis is being requested for an active order
+	StaticVarSet(VarPfx + "WaitForConfirm",  False);	// waiting for the number of contracts to agree with the order that was placed 
+	StaticVarSetText(VarPfx + "EOD", ""); 				// 	used to control order processing at the close of trading hours
+} // end of power up or reset initialize
+
+// make variables available to the system and trading code
+OrderState 		= StaticVarGet(VarPfx + "OrderState"); 		// the current order state
+numPositions 		= Nz(StaticVarGet(VarPfx + "numPositions"));	// the number of positions currently held on TWS
+GetStatus 			= StaticVarGet(VarPfx + "GetStatus");			// the condition of the status flag, true if waiting for status from TWS
+ordID 				= StaticVarGetText(VarPfx + "ordID");			// ID of the order beign processed
+WaitForConfirm 	= StaticVarGet(VarPfx + "WaitForConfirm");	// flag used to tell the program to wait for TWS to update the number of positions
+LastC 				= LastValue(Close); 								// this is the last tick that was received from the broker data feed 
+errorMsg 			= "None";											// used to hold the TWS error message
+
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+// ################################     Functions     Functions     Functions     Functions     Functions     Functions    ######################################
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+
+
+// converts the trade states to displayable text
+function fCvtState(s) // conberts the states to strings for file or trace
+{
+	temp = "";
+	// prog trigger states 
+	if(s==fNone) 					temp = "NoTrigger"; 
+	else if(s==pBuy) 				temp = "ProgBuy"; 
+	else if(s==pSell) 			temp = "ProgSell"; 
+	else if(s==pShort) 			temp = "ProgShort"; 
+	else if(s==pCover) 			temp = "ProgCover"; 
+	// order states
+	else if(s==ordNone) 			temp = "OrdNone"; 
+	else if(s==ordBuy) 			temp = "OrdBuy"; 
+	else if(s==ordSell) 			temp = "OrdSell"; 
+	else if(s==ordShort) 		temp = "OrdShort"; 
+	else if(s==ordCover) 		temp = "OrdCover"; 
+	else if(s==ordCancelBuy) 	temp = "OrdCancelBuy"; 	
+	else if(s==ordCancelSell) 	temp = "OrdCancelSell"; 
+	else if(s==ordCancelAll) 	temp = "OrdCancelAll"; 
+	else if(s==ordCloseAll) 	temp = "OrdCloseAll"; 
+	else if(s==ordManBuy) 		temp = "ordManBuy";
+	else if(s==ordManSell) 		temp = "OrdManSell"; 
+	// manual triggers
+	else if(s==mCancel) 			temp = "Cancel"; 
+	else if(s==mClose) 			temp = "CloseAll"; 
+	else if(s==mBuy) 				temp = "ManBuy"; 
+	else if(s==mSell) 			temp = "ManSell"; 
+	// error state
+	else 
+	{ 
+		temp = "Invalid state"; 
+		if(DebugOn) _TRACE("#, Invalid state=" + NumToStr(s, 1.0)); 
+	}
+	return temp;
+}
+
+// take hhmmss string and convert to hh:mm:ss
+function fFormatTime(time) 
+{
+	tFmt = "";
+	Len = StrLen(time);
+	if(Len == 5) tFmt = StrLeft(time,1) + ":" + StrMid(time,1,2) + ":" + StrRight(time, 2); 
+	else tFmt = StrLeft(time,2) + ":" + StrMid(time,2,2) + ":" + StrRight(time, 2); 
+	return tFmt;
+}
+
+// this handles the errors returned on the GetStatus command. 
+function fErrorProcessor(msg)
+{
+	msgid = "";
+	if(StrLeft(msg, 2) == "ID")
+	{
+		offset1 = StrFind(msg, "Error ");
+		temp = StrMid(msg, offset1 + 5, offset1 + 5);
+		Offset2 = StrFind(temp, ".");
+		msgid = StrLeft(temp, Offset2 - 1); 
+		if(DebugOn) 	_TRACE("#, ErrorMessage = " + msgid);
+	}
+	return msgid;
+}
+
+
+if(DebugOn) 	_TRACE("#, Post Init A, Positions=" + NumToStr(StaticVarGet(VarPfx + "numPositions"), 1.0) + 
+	", GetStatus=" + NumToStr(GetStatus, 1.0) + ", OrderState=" + fCvtState(OrderState) + ", OrderID=" + ordID + 
+	", WaitForConfirm=" + NumToStr(WaitForConfirm, 1.0)); 
+
+_SECTION_END(); 
+
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+// ###################    Trading system indicators      			Trading system indicators      			Trading system indicators         #####################
+// ###################    This section of the code uses AB indicators to define the trade timing.                                           #####################
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+_SECTION_BEGIN("System"); 
+
+// ##############################################################################################################################################################
+// ################  System Parameters
+// ##############################################################################################################################################################
+Buy = Sell = Short = Cover = 0; // make sure all arrays are set empty
+
+// ##############################################################################################################################################################
+// ################  Signal calculations - add your indicator and calculations here
+// ##############################################################################################################################################################
+
+pWMA1 	= Param("WMA 1 period", 6, 1, 20, 1);
+pWMA2 	= Param("WMA 2 period", 7, 1, 20, 1);
+fMA1 	= WMA(C, pWMA1);	// calculate MA 1
+fMA2 	= WMA( (Open + Close)/2, pWMA2);	// original
+
+
+Buy				= fMA1 > fMA2; 
+Short			= fMA2 > fMA1;  
+Sell			= Short;
+Cover 			= Buy; 
+
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+// #####################    PLOT INDICATORS    PLOT INDICATORS    PLOT INDICATORS     PLOT INDICATORS     PLOT INDICATORS      ##################################
+// #####################    	Change the following lines to display your system as you see fit.										##################################
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+
+Plot(C, 	 "", colorBlack, ParamStyle( "Price Style", styleBar, maskPrice ) );
+Plot(fMA1, "\nMA1(" + NumToStr(pWMA1, 1.0) + ")", colorRed);					// plot the MA lines
+Plot(fMA2, "\nMA2(" + NumToStr(pWMA2, 1.0) + ")", colorRed,  styleDashed);	// plot the MA lines
+
+PlotShapes(Buy 	* shapeUpArrow, 			colorGreen, 	0, L, -5 );
+PlotShapes(Sell 	* shapeDownArrow, 		colorRed, 		0, H, -5 );
+PlotShapes(Short * shapeHollowDownArrow,	colorRed, 		0, H, -20 );
+PlotShapes(Cover * shapeHollowUpArrow, 	colorGreen, 	0, L, -20 );
+
+_SECTION_END(); 
+
+_SECTION_BEGIN(SectionName + "AT"); // Dont change anything in this section unless you know exactly what you are doing.
+
+// ##############################################################################################################################################################
+// ################  DO NOT CHANGE THE NEXT 4 LINES -- last values changes the array signal to a binary signal to provide a trigger for the auto trade logic
+// ##############################################################################################################################################################
+
+// displays the signal value in the interpretation window
+printf("\nBuy = " 	+ NumToStr(Buy, 1.0) + 
+		"  Sell = " 	+ NumToStr(Sell,  1.0) + 
+		"  Short = " 	+ NumToStr(Short, 1.0) + 
+		"  Cover = " 	+ NumToStr(Cover, 1.0) + "\n");
+
+BuyInd 	= LastValue(Buy);		// convert the buy signal to a pulse used by the trading logic
+ShortInd  	= LastValue(Short);	// convert the short signal to a pulse used by the trading logic
+SellInd 	= LastValue(Sell);	// convert the sell signal to a pulse used by the trading logic	
+CoverInd	= LastValue(Cover);	// convert the cover signal to a pulse used by the trading logic
+
+if(DebugOn) 	_TRACE("#, Indicators 2, Static, BuyInd = " + NumToStr(BuyInd, 1.0) + 
+			", SellInd = " 	+ NumToStr(SellInd,  1.0) + 
+			", ShortInd = " 	+ NumToStr(ShortInd, 1.0) + 
+			", CoverInd = " 	+ NumToStr(CoverInd, 1.0) );
+
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+// ######################################      MANUAL BUY      MANUAL BUY    MANUAL BUY     MANUAL BUY      MANUAL BUY        ###################################
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+
+function fManBuyPositions(ib, oState, OID, positions)	
+{
+	if(DebugOn) 	_TRACE("#, ManBuy top, positions=" + NumToStr(positions, 1) + ", contracts=" + NumToStr(pContracts, 1));    
+	newState = oState; 
+	// this function closes all open trades
+	orderID = "";
+	orderID = ib.PlaceOrder(sTicker, "Buy", pContracts, "MKT", 0, 0, "GTC", True, tickMult, "outsideRTH");
+	if(orderID != "")
+	{
+		ordType = "ManBuy";
+		newState = ordManBuy; 
+		StaticVarSet(VarPfx + "TargetPositions", positions + pContracts);
+		StaticVarSetText(VarPfx + "ordID", orderID );
+		StaticVarSet(VarPfx + "GetStatus", True);
+		StaticVarSet(VarPfx + "WaitForConfirm",  True); 
+		if(DebugOn) 	_TRACE("#, ManBuy " + ordType + ", " + fFormatTime(sysTimeStr) + ", OrderID" + orderID  + ", OrderState=" + fCvtState(newState) + 
+			", Close=" + NumToStr(LastValue(Close), 1.2));  
+	}
+	return newState; // return the type of order that was made
+}
+
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+// #################################    MANUAL  SELL     MANUAL  SELL     MANUAL  SELL     MANUAL  SELL     MANUAL  SELL      ###################################
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+
+function fManSellPositions(ib, oState, OID, positions) // we are neither long or short
+{
+	if(DebugOn) 	_TRACE("#, ManSel1 top, positions=" + NumToStr(positions, 1) + ", contracts=" + NumToStr(pContracts, 1));    
+	newState = oState; 
+	orderID  = "";
+	orderID  = ib.PlaceOrder(sTicker, "SELL", pContracts, "MKT", 0, 0, "GTC", True, tickMult, "outsideRTH");
+	if(orderID  != "")
+	{
+		ordType = "ManSell";
+		newState = ordManSell; 
+		StaticVarSet(VarPfx + "TargetPositions", positions - pContracts);
+		StaticVarSetText(VarPfx + "ordID", orderID);
+		StaticVarSet(VarPfx + "GetStatus", True);
+		StaticVarSet(VarPfx + "WaitForConfirm",  True); 
+		if(DebugOn) 	_TRACE("#, ManSel1, " + ordType + ", Time=" + fFormatTime(sysTimeStr) + ", OrderID=" + orderID + 
+			", OrderState=" + fCvtState(newState) + ", Close=" + NumToStr(LastValue(Close), 1.2));    
+	}
+	return newState; // return the type of order that was made
+}
+
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+// ######################################    CANCEL   		CANCEL   		CANCEL   		CANCEL   		CANCEL   		CANCEL    ######################################
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+ 
+function fCancelPositions(ib, oState, OID, positions)	 // we are neither long or short
+// trigger - trg defines the type of order
+{
+	newState = oState; 
+	// this if statement prevents making multiple orders - subsequent orders are ignored
+	if( oState == ordSell OR oState == ordShort)
+	{
+		if(OID != "") // used to cancel a sell order that has not been filled  
+		{
+			newState = ordCancelSell;
+			ordType = "CancelSell";
+			ib.CancelOrder(OID); 
+			StaticVarSet(VarPfx + "GetStatus", True);
+			if(DebugOn) 	_TRACE("#, Cancel 1, " + ordType + ", Time=" + fFormatTime(sysTimeStr) + ", OrderState =" + fCvtState(newState) + 
+				", OrderID=" + OID);    
+		}
+	}
+	else if(oState == ordBuy OR oState == ordCover)
+	{
+		if(OID != "") // used to cancel a buy order that has not been filled
+		{
+			newState = ordCancelBuy;
+			ordType = "CancelBuy";
+			ib.CancelOrder(OID); 
+			StaticVarSet(VarPfx + "GetStatus", True);
+			if(DebugOn) 	_TRACE("#, Cancel 2, " + ordType + ", Time=" + fFormatTime(sysTimeStr) + ", OrderState=" + fCvtState(newState) + 
+				", OrderID=" + OID);    
+		}
+	}
+	return newState; // return the type of order that was made
+}
+
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+// ######################################      BUY      BUY      BUY      BUY      BUY      BUY      BUY      ###################################################
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+ 
+function fBuyPositions(ib, oState, OID, positions)	 // we are neither long or short
+// trigger - trg defines the type of order
+{
+	newState = oState; 
+	price = LastC;
+	if(DebugOn) 	_TRACE("#, Buy, OrderType= " + OrderType + ", " + NumToStr(OrderType == "MKT", 1)); 
+	// this if statement prevents making multiple orders - subsequent orders are ignored
+ 	if( oState == ordNone AND OID == "")	// program trade and no open positions or pending order sent
+	{
+		orderID = "";
+		if(OrderType == "MKT") orderID = ib.PlaceOrder(sTicker, "BUY",  pContracts, "MKT", 0, 0, "GTC", True, tickMult, "outsideRTH");
+		else if(OrderType == "STP") orderID = ib.PlaceOrder(sTicker, "BUY",  pContracts, "STP", 0, price, "GTC", True, tickMult, "outsideRTH");
+		else if(OrderType == "LMT") orderID = ib.PlaceOrder(sTicker, "BUY",  pContracts, "LMT", price, 0, "GTC", True, tickMult, "outsideRTH");
+		if(DebugOn) 	_TRACE("#, Buy, OrderType= " + OrderType + ", OID=" + ORderID ); 
+		if(orderID != "")
+		{
+			ordType = "ProgBuy";
+			newState = ordBuy;
+			StaticVarSetText(VarPfx + "ordID", orderID);
+			StaticVarSet(VarPfx + "GetStatus", True);
+			StaticVarSet(VarPfx + "WaitForConfirm",  True); 
+			if(DebugOn) 	_TRACE("#, Buy, " + ordType + ", Time" + fFormatTime(sysTimeStr) + ", OrderState=" + fCvtState(newState) +  
+				", OrderID=" + orderID  + 	", Price=" + NumToStr(LastC, 1.2));  
+		}
+	}
+	return newState; // return the type of order that was made
+}
+      
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+// #################################    SHORT     SHORT     SHORT     SHORT     SHORT    ########################################################################
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+
+function fShortPositions(ib, oState, OID, positions) // we are neither long or short
+{
+	newState = oState; 
+	price = LastC;
+	if(DebugOn) 	_TRACE("#, Short, OrderType= " + OrderType + ", OID=" + OID + ", " + NumToStr(OrderType == "MKT", 1));  
+	if( oState == ordNone AND OID == "") 		// no sell order sent and no position and no current order
+	{
+		orderID = "";
+		if(OrderType == "MKT") orderID = ib.PlaceOrder(sTicker, "SELL", pContracts, "MKT", 0, 0, "GTC", True, tickMult, "outsideRTH");
+		else if(OrderType == "STP") orderID = ib.PlaceOrder(sTicker, "SELL", pContracts, "STP", 0, price, "GTC", True, tickMult, "outsideRTH");
+		else if(OrderType == "LMT") orderID = ib.PlaceOrder(sTicker, "SELL", pContracts, "LMT", price, 0, "GTC", True, tickMult, "outsideRTH");
+		if(DebugOn) 	_TRACE("#, Short, OrderType= " + OrderType + ", OID=" + ORderID ); 
+		if(orderID != "")
+		{
+			ordType = "ProgShort";
+			newState = ordShort;
+			StaticVarSetText(VarPfx + "ordID", orderID);
+			StaticVarSet(VarPfx + "GetStatus", True);
+			StaticVarSet(VarPfx + "WaitForConfirm",  True); 
+			if(DebugOn) 	_TRACE("#, Short, " + ordType + ", Time=" + fFormatTime(sysTimeStr) + ", OrderState=" + fCvtState(newState) + 
+				", OrderID=" + orderID + ", Price=" + NumToStr(price, 1.2));    
+		}
+	}
+	return newState; // return the type of order that was made
+}
+
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+// #################################    SELL     SELL     SELL     SELL     SELL      SELL     SELL     #########################################################
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+
+function fSellPositions(ib, oState, OID, positions) // we are neither long or short
+{
+	newState = oState; 
+	if( oState == ordNone ) // close a long position
+	{
+		// exit the current position with a market order
+		orderID = "";
+		orderID = ib.PlaceOrder(sTicker, "SELL", abs(positions), "MKT", 0, 0, "GTC", True, tickMult, "outsideRTH");
+		ordType = "ProgSell";
+		newState = ordSell;
+		StaticVarSetText(VarPfx + "ordID", orderID);
+		StaticVarSet(VarPfx + "GetStatus", True);
+		StaticVarSet(VarPfx + "WaitForConfirm",  True); 
+		if(DebugOn) 	_TRACE("#, Sell, " + ordType + ", Time=" + fFormatTime(sysTimeStr) + ", OrderState=" + fCvtState(newState) + 	
+			", OrderID=" + orderID + 	", Close=" + NumToStr(LastValue(Close), 1.2));    
+	}
+	return newState; // return the type of order that was made
+}
+
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+// ################################    COVER      COVER      COVER      COVER      COVER      COVER      COVER     ##############################################
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+
+function fCoverPositions(ib, oState, OID, positions)	 // we are neither long or short
+{
+	newState = oState; 
+	if( oState == ordNone ) // program cover and go flat
+	{
+		orderID = "";
+		orderID = ib.PlaceOrder(sTicker, "BUY", abs(positions), "MKT", 0, 0, "GTC", True, tickMult, "outsideRTH");
+		ordType = "progCover";
+		newState = ordCover;
+		StaticVarSetText(VarPfx + "ordID", orderID); 
+		StaticVarSet(VarPfx + "GetStatus", True);
+		StaticVarSet(VarPfx + "WaitForConfirm",  True); 
+		if(DebugOn) 	_TRACE("#, Cover, " + ordType + ", Time=" + fFormatTime(sysTimeStr) + ", OrderState=" + fCvtState(newState) + 	
+			", OrderID=" + orderID + 	", Close=" + NumToStr(LastValue(Close), 1.2));    
+	}
+	return newState; // return the type of order that was made
+}
+ 
+
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+// ############	 Order Precessing Loop	 Order Precessing Loop	 Order Precessing Loop	 Order Precessing Loop	 Order Precessing Loop   #######################
+// ##############################################################################################################################################################
+// ##############################################################################################################################################################
+
+if( StaticVarGet(VarPfx + "AutoTrading") == True AND // auto trading parameter is set on
+	IntervalOK AND 		// chart is the same interval as the Chart period selected 
+	sTicker == Name() ) 	// the chart symbol is the same as the ticker parameter
+{
+	ibc = GetTradingInterface("IB");
+	if(ibc)
+	{
+		ConnectedStatus = ibc.IsConnected();	// get the connection status, 2 is OK
+
+		// the foloowing code closes trades at the end of the day.
+		// it does this in steps. 1) cancels all open orders. 2) Closes all positions. 3) resets the control var EOD
+		EodVar = StaticVarGetText(VarPfx + "EOD"); 
+		if(sysTime == closeTime + 1 AND EodVar == "") // this is the close time parameter + 1 seconds 
+		{
+			ibc.CancelAllPendingOrders(sTicker); 
+			StaticVarSetText(VarPfx + "EOD", "Cancel");
+			_TRACE("#, #####  CancelAll end of day  #####"); 		
+		}
+
+		if(sysTime == closeTime + 5 AND EodVar == "Cancel") // this is the close time parameter + 5 seconds 
+		{
+			ibc.CloseAllOpenPositions(sTicker);
+			StaticVarSetText(VarPfx + "EOD", "Close");
+			_TRACE("#, #####  CloseAll end of day  #####"); 		
+		}
+
+		if(sysTime == closeTime + 8 AND EodVar == "Close") // this is the close time parameter + 8 seconds 
+		{
+			ibc.CloseAllOpenPositions(sTicker);
+			StaticVarSetText(VarPfx + "EOD", "");
+			_TRACE("#, *****  Reset EOD static var  *****"); 		
+		}
+		// end of close trades at ene of day
+
+		// this is where the trade processing is done
+		if( sysTime < closeTime AND (ConnectedStatus == 2 OR ConnectedStatus == 3) ) // connected to TWS with no error messages
+		{
+			if(StaticVarGet(VarPfx + "SystemInitialized") ==  True)
+			{
+				StaticVarSet(VarPfx + "SystemInitialized", False);  
+				ibc.CancelAllPendingOrders(); // cancel any open orders on start or reset
+			}
+
+			// retrieve static variables
+			numPositions  = ibc.GetPositionSize(sTicker); 
+			StaticVarSet(VarPfx + "numPositions", numPositions);
+
+			if(DebugOn) 	_TRACE("#, SysLoop 0, Positions=" + NumToStr(StaticVarGet(VarPfx + "numPositions"), 1.0) + 
+				", GetStatus=" + NumToStr(GetStatus, 1.0) + ", OrderState=" + fCvtState(OrderState) + ", OrderID=" + ordID + 
+				", WaitForConfirm=" + NumToStr(WaitForConfirm, 1.0) + "\n" ); 
+
+			// GetStaus = false indicates TWS has completed processing the order
+			// Wait for the trade to be confirmed by a change in the number of positions before resetting the order state and waitforconfirm flag
+			// this is used to prevent placing an order if the signal is still active after a filled status from TWS
+			if(WaitForConfirm AND !GetStatus)
+			{
+				if(DebugOn) 	_TRACE("#, WaitForConfirm, OrderState = " + fCvtState(OrderState) + "\n"); 
+				// note: WaitForConfirm set false if order cancelled, see GetStatus Cancelled logic
+				if(	(OrderState == OrdBuy 	AND numPositions > 0) 	OR 
+					(OrderState == OrdShort AND numPositions < 0) 	OR
+					(OrderState == OrdCover AND numPositions == 0) 	OR 
+					(OrderState == OrdSell 	AND numPositions == 0) 	)
+				{		
+					if(DebugOn) 	_TRACE("#, Program trade WaitForConfirm complete"); 
+					OrderState = ordNone; StaticVarSet(VarPfx + "OrderState", OrderState);
+					WaitForConfirm = False; StaticVarSet(VarPfx + "WaitForConfirm",  False); 
+				}
+				// user made a manual order so wait for the number of positions to indicate the purchase before resetting order state and waitforconfirm flags
+				else if(OrderState == ordManBuy OR OrderState == ordManSell)
+				{
+					if(DebugOn) 	_TRACE("#, Manual trade processed, target positions=" + NumToStr(StaticVarGet(VarPfx + "TargetPositions"), 1.0)); 
+					if( numPositions  == StaticVarGet(VarPfx + "TargetPositions"))	
+					{
+						OrderState = ordNone; StaticVarSet(VarPfx + "OrderState", OrderState);
+						StaticVarSet(VarPfx + "WaitForConfirm",  False); 
+						StaticVarSet(VarPfx + "TargetPositions", 0);
+					}
+				}
+				// user requested close all positions so wait for the number of positions to indicate all positions are closed before resetting 
+				// order state AND waitforconfirm flags
+				else if(OrderState == ordCloseAll ) 
+				{
+					if(numPositions  == 0) 
+					{
+						if(DebugOn) 	_TRACE("#, Close all processed"); 
+						OrderState		= ordNone; 	StaticVarSet(VarPfx + "OrderState", OrderState);
+						ordID = ""; StaticVarSetText(VarPfx + "ordID", "");
+						StaticVarSet(VarPfx + "GetStatus", False); 
+						StaticVarSet(VarPfx + "WaitForConfirm",  False); 
+					}
+				}	// end close all
+			}
+		
+			// ##############################################################################################################################################################
+			// ###################    Trigger Control    Trigger Control    Trigger Control    Trigger Control    Trigger Control    Trigger Control   ######################
+			// ###################    This section takes the indicator timing and converts it to one shot triggers required for orders.                ######################
+			// ##############################################################################################################################################################
+
+			// waitforconfirm and getstatus flags are used to prevent multiple orders while a current order is being processed
+			// orders are onluy allowed if the waitforconfirm and getstatus flags are false
+
+			BuyTrigger = SellTrigger = ShortTrigger = CoverTrigger = False;
+			if(DebugOn) 	_TRACE("#, AllowInd 0, Indicator, Buy=" + NumToStr(BuyInd, 1.0) + ", Sell=" + NumToStr(SellInd, 1.0) + 
+				", Short=" + NumToStr(ShortInd, 1.0) + ", Cover=" + NumToStr(CoverInd, 1.0));
+			if(!WaitForConfirm AND !GetStatus  ) // allow indicators to pass unless a trade to being processed
+			{
+				// This is sequence sensitive. cover and sell should close positions before new positions are taken.
+				// **********  CAUTION *****************
+				// but note that if your system does not generate the sell and cover signals the order process can hang and not allow trades
+				// Pause parameter blocks all programmed trading 
+				if( numPositions > 0 AND SellInd AND !Pause) // sell is only allowed when there are a positive number of positions
+				{
+					SellTrigger = True; 
+					if(DebugOn) 	_TRACE("#, AllowInd 1 Sell trigger"); 
+				}
+				else if( numPositions < 0 AND CoverInd AND !Pause) // cover is only allowed when there are a negative number of positions
+				{
+					CoverTrigger = True;  
+					if(DebugOn) 	_TRACE("#, AllowInd 2 Cover trigger"); 
+				}
+				else if( !Pause AND numPositions == 0 ) // buy and short is only allowed when there are no positions
+				{
+					if(BuyInd ) 
+					{
+						BuyTrigger = True; 
+						if(DebugOn) 	_TRACE("#, AllowInd 3, Buy trigger"); 
+					}
+					else if(ShortInd ) 
+					{
+						ShortTrigger = True; 
+						if(DebugOn) 	_TRACE("#, AllowInd 4, Short trigger"); 
+					}
+				}
+			} // end allowIndicators 
+
+			// signal reversal and we have open an order and the trend changes direction
+			else if ( WaitForConfirm AND numPositions == 0) // Reversal signal with an open order
+			{
+				if(DebugOn) 	_TRACE("#, Reversal Cancel 0");
+				if( (OrderState == ordBuy OR OrderState == ordCover ) AND SellInd) 
+				{
+					SellTrigger   = True; 
+					OrderState == OrdNone;  StaticVarSet(VarPfx + "OrderState",  OrdNone); 
+					WaitForConfirm = False; StaticVarSet(VarPfx + "WaitForConfirm",  False); 
+					if(DebugOn) 	_TRACE("#, Reversal Cancel 1, SellTrigger=" + NumToStr(SellTrigger, 1.0));
+				}
+				else if( (OrderState == ordShort OR OrderState == ordSell ) AND CoverInd ) 
+				{
+					CoverTrigger  = True; 
+					OrderState == OrdNone;  StaticVarSet(VarPfx + "OrderState",  OrdNone); 
+					WaitForConfirm = False; StaticVarSet(VarPfx + "WaitForConfirm",  False); 
+						if(DebugOn) 	_TRACE("#, Reversal Cancel 2, CoverTrigger=" + NumToStr(CoverTrigger, 1.0));
+				}
+			}
+			if(DebugOn) 	_TRACE("#, AllowInd End, Buy=" + NumToStr(BuyTrigger, 1.0) + ", Sell=" + NumToStr(SellTrigger, 1.0) + 
+					", Short=" + NumToStr(ShortTrigger, 1.0) + ", Cover=" + NumToStr(CoverTrigger, 1.0));
+
+			// #################################################################################################################################################
+			// ########    Stateless processes      Stateless processes      Stateless processes      Stateless processes    Stateless processes    ############
+			// #################################################################################################################################################
+			if(CancelAll)
+			{
+				ibc.CancelAllPendingOrders(sTicker); 
+				OrderState = ordNone; StaticVarSet(VarPfx + "OrderState", OrderState);
+				ordType = "CancelAll";
+				StaticVarSet(VarPfx + "WaitForConfirm",  False); 
+				StaticVarSet(VarPfx + "GetStatus",  False); 
+				if(DebugOn) 	_TRACE("#, Trigger CancelAll, OrderState=" + fCvtState(OrderState) + ", OrderID=" + ordID); 
+				ordID = ""; StaticVarSetText(VarPfx + "ordID", "");
+			}
+			else if(CloseAll )
+			{
+				// close all positions
+				ibc.CancelAllPendingOrders(sTicker); 
+				ibc.CloseAllOpenPositions(sTicker);
+				OrderState = ordCloseAll; StaticVarSet(VarPfx + "OrderState", OrderState );
+				ordType = "CloseAll";
+				StaticVarSet(VarPfx + "GetStatus",  True); 
+				StaticVarSet(VarPfx + "WaitForConfirm",  True); 
+				if(DebugOn) 	_TRACE("#, *****  Trigger CloseAll " + ordID + ", OrderState=" + fCvtState(OrderState) + 
+					", SysTime =" + NumToStr(SysTime, 1.0, False) + "  ****"); 
+			}
+			else if(!GetStatus AND ManualBuy)	// manual  buy the number of contracts defined in pContracts			
+			{ 
+				state = fManBuyPositions(ibc, OrderState, ordID, numPositions); 	
+				StaticVarSet(VarPfx + "OrderState", state); 
+			}
+			else if(!GetStatus AND ManualSell)	// manual sell number of contracts defined in pContracts
+			{ 
+				state = fManSellPositions(ibc, OrderState, ordID, numPositions); 	
+				StaticVarSet(VarPfx + "OrderState", state); 
+			}
+
+			// #################################################################################################################################################
+			// #################################################################################################################################################
+			// ##########      Program Trading         Program Trading       Program Trading        Program Trading       Program Trading      #################
+			// ##########      Note that the order is sequence sensitive as sell and cover should be processed before buy and short.		    #################
+			// #################################################################################################################################################
+			// #################################################################################################################################################
+			else if(!WaitForConfirm ) // not waiting for a trade to settle
+			{
+				if( SellTrigger AND numPositions > 0) // sell to go flat
+				{
+					state = fSellPositions(ibc, OrderState, ordID, numPositions); 	
+					OrderState = state; StaticVarSet(VarPfx + "OrderState", state); 
+					if(DebugOn) 	_TRACE("#, Trigger ordSell, OrderState=" + fCvtState(state)); 
+				}
+				else if( CoverTrigger AND numPositions < 0) // buy to go flat
+				{
+					state = fCoverPositions(ibc, OrderState, ordID, numPositions); 	
+					OrderState = state; StaticVarSet(VarPfx + "OrderState", state); 
+					if(DebugOn) 	_TRACE("#, Trigger ordCover, OrderState=" + fCvtState(state)); 
+				}
+				else if( BuyTrigger )
+				{
+					state = OrderState;
+					if(numPositions == 0)	// buy n contracts
+						state = fBuyPositions(ibc, OrderState, ordID, numPositions); 	
+					else if(numPositions < 0) // close short position first then go long after filled 
+						state = fCoverPositions(ibc, OrderState, ordID, numPositions); 
+					OrderState = state; StaticVarSet(VarPfx + "OrderState", state); 
+					if(DebugOn) 	_TRACE("#, Trigger ordBuy, OrderState=" + fCvtState(state)); 
+				}
+				else if( ShortTrigger )
+				{
+					state = OrderState;
+					if(numPositions == 0)	// sell n contracts
+						state = fShortPositions(ibc, OrderState, ordID, numPositions); 	
+					else if(numPositions > 0) // close long first then go short after filled
+						state = fSellPositions(ibc, OrderState, ordID, numPositions); 	
+					OrderState = state; StaticVarSet(VarPfx + "OrderState", state); 
+					if(DebugOn) 	_TRACE("#, Trigger ordShort, OrderState=" + fCvtState(state)); 
+				}
+			}
+
+			// #################################################################################################################################################
+			// #################################################################################################################################################
+			// ##########      Order Status Processing     Order Status Processing     Order Status Processing     Order Status Processing     #################
+			// #################################################################################################################################################
+			// ###  order states 	ordNone = 20; ordCancelBuy = 21; ordCancelSell = 22; ordSell = 23; ordBuy = 24; ordCover = 25; ordShort = 26; 
+			// ###  					ordCancelAll = 27; ordCloseAll = 28; ordManBuy = 29; ordManSell = 30;
+			// #################################################################################################################################################
+			// #################################################################################################################################################
+			ordID = StaticVarGet(VarPfx + "ordID");
+			if(DebugOn) 	_TRACE("#, OrdState 0, GetStatus=" + NumToStr(GetStatus, 1.0) + ", Positions=" + NumToStr(numPositions, 1.0) + 
+				", OrderState=" + fCvtState(OrderState) + ", OrderID=" + ordID + ", Time=" + fFormatTime(sysTimeStr)); 
+			// process the status messages after an order has been sent or cancelled
+			tempStatus = "None";
+			if(GetStatus)
+			{
+				tempStatus = ibc.GetStatus( ordID, True ); 	// get order status 
+				if(tempStatus == "Filled")
+				{
+					// make sure the numPositions is true for the operation being conducted
+					// this prevents another order as soon as this one is filled
+					StaticVarSet(VarPfx + "GetStatus", False); 
+					if( OrderState == ordCancelSell OR OrderState == ordCancelBuy )
+					{
+						OrderState = ordNone; 
+						StaticVarSet(VarPfx + "OrderState", OrderState ); 
+					}	
+					if(DebugOn) 	_TRACE("#, OrdState 1 Filled, OrderState=" + fCvtState(OrderState) + ", OrderID=" + ordID);
+					ordID = ""; StaticVarSetText(VarPfx + "ordID", "");
+				}	// end filled
+				else if(tempStatus == "PreSubmitted" 	OR 
+						 tempStatus == "PendingSubmit" OR 
+						 tempStatus == "Pending" 		OR 
+						 tempStatus == "ApiPending" 	OR 
+						 tempStatus == "Submitted"		)
+				{
+					if( numPositions != 0 AND (OrderState == ordCancelSell OR OrderState == ordCancelBuy ))
+					{
+						OrderState = ordNone; 
+						StaticVarSet(VarPfx + "OrderState", OrderState ); 
+						StaticVarSet(VarPfx + "GetStatus", False); 
+					}	
+					if(CoverTrigger AND (OrderState == ordShort OR OrderState == ordSell))
+					{
+						// call Cancel to cancel the sell order and set up to reverse
+						state = fCancelPositions(ibc, OrderState, ordID, numPositions); 	
+						OrderState = state; StaticVarSet(VarPfx + "OrderState", state); 
+						if(DebugOn) 	_TRACE("#, OrdState 2a, CancelSell, OrderState=" + fCvtState(state)); 
+					}
+					else if(SellTrigger AND (OrderState == ordBuy OR OrderState == ordCover))
+					{
+						// call Cancel to cancel the buy order and set up to reverse
+						state = fCancelPositions(ibc, OrderState, ordID, numPositions); 	
+						OrderState = state; StaticVarSet(VarPfx + "OrderState", state); 
+						if(DebugOn) 	_TRACE("#, OrdState 2c, CancelBuy , OrderState=" + fCvtState(state)); 
+					}
+				}	// end status preSubmitted or Pending
+				else if(tempStatus == "Cancelled")
+				{ 
+					StaticVarSet(VarPfx + "GetStatus", False); 
+					StaticVarSet(VarPfx + "WaitForConfirm",  False); 
+					OrderState = ordNone;   StaticVarSet(VarPfx + "OrderState", ordNone);
+					if(DebugOn) 	_TRACE("#, OrdState 3 Cancel, OrderState=" + fCvtState(OrderState) + 
+							", OrderID=" + ordID + ", Positions=" + NumToStr(numPositions , 1.0) + "\n"); 
+			 		ordID = ""; StaticVarSetText(VarPfx + "ordID", "");  
+				}	
+				else if(tempStatus == "Error")
+				{
+					msg = ibc.GetLastError(0); 
+					error = fErrorProcessor(msg); 
+					if(DebugOn) 	_TRACE("#, OrdState 4, Error code=" + error );   
+					StaticVarSet(VarPfx + "SetErrorState", True);		
+					// NOTE: For error not listed below look at the message notes at the end of the program to see how or if they were handled.
+					if(error == "135" OR error == "2106" OR error == "2109") // out of normal trading hours
+					{
+						StaticVarSet(VarPfx + "GetStatus", False); 
+						OrderState = ordNone;   StaticVarSet(VarPfx + "OrderState", ordNone);
+				 		ordID = ""; StaticVarSetText(VarPfx + "ordID", "");  
+					}
+					else if(error == "201")
+					{
+						if(OrderState == ordShort OR OrderState == ordSell)
+						{
+							// call Cancel to cancel the sell order and set up to reverse
+							state = fCancelPositions(ibc, OrderState, ordID, numPositions); 	
+							OrderState = state; StaticVarSet(VarPfx + "OrderState", state); 
+						}
+						else if(OrderState == ordBuy OR OrderState == ordCover)
+						{
+							// call Cancel to cancel the buy order and set up to reverse
+							state = fCancelPositions(ibc, OrderState, ordID, numPositions); 	
+							OrderState = state; StaticVarSet(VarPfx + "OrderState", state); 
+						}
+					}
+					else 
+					{ 
+						if(DebugOn) 	_TRACE("#, OrdState 10 Unexpected status=" + tempstatus + ", OrderState=" + fCvtState(OrderState) + 
+							", OrderID=" + ordID); 
+					}
+				}	// end status error
+				else 
+				{ 
+					if(DebugOn) 	_TRACE("#, OrdState 11 Unexpected status=" + tempstatus + ", OrderState=" + fCvtState(OrderState) + 
+						", OrderID=" + ordID); 
+				}
+			}	// end get status		
+
+			if(	StaticVarGet(VarPfx + "SetErrorState") == True) 
+			{
+				errorMsg = ibc.GetLastError(ordID); 	
+				if(errorMsg == "None" OR errorMsg == "")
+					StaticVarSet(VarPfx + "SetErrorState", False); 
+				else
+				{
+					SetChartBkColor( colorTan); 
+					VisibleBars = Status( "LastVisibleBar" ) - Status( "FirstVisibleBar" );	
+					instructions = "\n  Determine what the error is. Use trace if necessary.\n  Cancel or close all orders on TWS.\n  Press Reset to continue.";		
+					PlotText( "Error " + errorMsg + instructions, BarCount - VisibleBars / 2, 
+						LastValue( ( HHV(H, VisibleBars) + LLV(L, VisibleBars)) / 2), colorWhite, colorBlack);
+					if(DebugOn) 	_TRACE("#, Unexpected error msg=" + errorMsg + ", OrderState=" + fCvtState(OrderState) + ", OrdID=" + OrdID);
+				}	
+			}
+		
+			else if (Pause )
+			{
+				SetChartBkColor( colorLightGrey); 
+				VisibleBars = Status( "LastVisibleBar" ) - Status( "FirstVisibleBar" );	
+				PlotText( "######\nTrading\nPaused\n######", BarCount - VisibleBars / 2, 
+					LastValue( ( HHV(H, VisibleBars) + LLV(L, VisibleBars)) / 2), colorWhite, colorBlack);
+			}
+			if(ConnectedStatus == 2) stat = "Connected."; else if(ConnectedStatus == 3) stat = "Connected with warnings.";
+			if(StaticVarGet(VarPfx + "ConnectOK") == False) 
+				StaticVarSet(VarPfx + "ConnectOK", True); 
+			printf("\nStatus:" + 
+				"\n  Symbol = " + sTicker + 
+				"\n  TWS " + stat + 
+				"\n  Last TWS message = " + errorMsg + 
+				"\n  Order ID = " + WriteIf(ordID != "", OrdId, "None") + 
+				"\n  OrderState = " + fCvtState(OrderState) + 
+				"\n  Order status = " + tempStatus +
+				"\n  Positions = " + NumToStr(Nz(numPositions), 1.0, False) );
+		} // end is connected
+		else if( ConnectedStatus == 0 OR ConnectedStatus == 1) // lost connection
+		{
+			// handle commection errors 
+			if(ConnectedStatus == 0) stat = "Not Connected."; else if(ConnectedStatus == 1) stat = "Lost Connection.";
+			SetChartBkColor( colorYellow);		
+			VisibleBars = Status( "LastVisibleBar" ) - Status( "FirstVisibleBar" );	
+			PlotText( "TWS not connected. Some reasons are:\nTWS error message: " + errorMsg + "\nIncoming connection has not been accepted.", BarCount - VisibleBars / 2, LastValue(HHV(H, VisibleBars)), colorWhite, colorBlack);
+			printf("\nTWS Status: " + stat + "\n"); 
+		} // end connection error	 
+		else if (sysTime > closeTime)
+		{
+			VisibleBars = Status( "LastVisibleBar" ) - Status( "FirstVisibleBar" );	
+			PlotText( "###########\nMarket closed\n###########", BarCount - VisibleBars / 2, LastValue(HHV(H, VisibleBars)), colorWhite, colorBlack);
+		}
+	} // end if ibc
+} // end order processing loop
+
+	// #################################################################################################################################################
+	// #################################################################################################################################################
+	// ##########      Commentary		Commentary		Commentary		Commentary		Commentary		Commentary		Commentary		Commentary		 ################
+	// #################################################################################################################################################
+	// #################################################################################################################################################
+
+else // autotrade is off due to an error or trading is turned off
+{
+	// if error state, display state in title bar
+	// feedback key info into title bar
+	SetChartBkColor( colorPink);
+	text = "\nStatus: \nAutoTrading is off. Some of the reasons are:\n" +
+	" 1. Autotrading is turned off\n" +
+	" 2. TWS has not been started or isn't functioning.\n" + 
+	" 3. Set chart to " + sTicker + ".\n" + 
+	" 4. Chart period mismatch.\n"; // end text
+
+	printf(text);
+	VisibleBars = Status( "LastVisibleBar" ) - Status( "FirstVisibleBar" );	
+	PlotText(text, BarCount - VisibleBars / 2, LastValue(HHV(H, VisibleBars)), colorWhite, colorBlack);
+
+}
+_SECTION_END(); 
+
+// #################################################################################################################################################
+// #################################################################################################################################################
+// ##########       Setup and WARNINGS      Setup and WARNINGS      Setup and WARNINGS      Setup and WARNINGS         ##############
+// #################################################################################################################################################
+// #################################################################################################################################################
+
+// Before Auto trading will trade orders and have them filled automatically you must register your copy of IB Controller. See File>Enter unlock code.
+// if it is NOT registered the order will be sent but a T will appear on TWS and the order will not be transmitted to the market. 
+// Once IBC is registered AND the code is entered orders will be processed automatically.
+
+// This release level requires TWS 888.3 or above, IB.DLL of 1.8.2 or above, and BrokerIB.exe ( IB Controller) of 1.2.1 or above.
+// These are required to handle after hours trading and back filling. This program will not work correctly unless these releases are installed.
+// TWS may also require an update to JAVA. Check their site for recommendations.

@@ -1,0 +1,3 @@
+A=EMA(C,3)-EMA(C,8);
+b=EMA(a,21);
+Plot(b,"Chart",styleLine);

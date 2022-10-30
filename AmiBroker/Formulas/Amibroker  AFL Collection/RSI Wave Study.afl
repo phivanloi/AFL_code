@@ -1,0 +1,23 @@
+RSIHLC = ((RSIa(L,14))+(RSIa(H,14))+(2*(RSI(14)))/4);
+
+x1 = MA(RSIHLC,2);
+x2 = MA(RSIHLC,5);
+x3 = MA(RSIHLC,9);
+x4 = MA(RSIHLC,13);
+
+Plot(x1, "", colorRed);
+Plot(x2, "", colorLime);
+Plot(x3, "", colorLightBlue);
+Plot(x4, "", colorTan);
+
+Buy = Cross(x1,x2) OR Cross(x1,x3) OR Cross(x2,x3);
+Sell = Cross(x2,x1) OR Cross(x3,x1) OR Cross(x3, x2);
+
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell, Buy);
+
+Filter=Buy OR Sell;
+SetOption ( "NoDefaultColumns", True);
+AddColumn ( DateTime(), "Date " , formatDateTime);
+AddColumn ( IIf ( Buy , 66 , 83 ) , "Signal " , formatChar);
+

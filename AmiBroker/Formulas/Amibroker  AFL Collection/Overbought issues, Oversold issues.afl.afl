@@ -1,0 +1,9 @@
+/*RSI OBI-OSI*/
+s1=RSI(14);
+os=s1<=35;
+ob=s1>65;
+values7 = os>0;
+values8 = ob>0;
+AddToComposite(Values7,"~rsiosi","V");
+AddToComposite(Values8,"~rsiobi","V");
+Buy=0;

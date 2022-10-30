@@ -1,0 +1,25 @@
+//  Guppy MMA Oscillator   7/26/2006
+SetChartOptions(2,chartShowDates);
+GraphXSpace = 15;
+
+st3	= EMA(C,3);
+st5	= EMA(C,5);
+st8	= EMA(C,8);
+st10	= EMA(C,10);
+st12	= EMA(C,12);
+st15	= EMA(C,15);
+Lt23	= EMA(C,23);
+Lt30	= EMA(C,30);
+Lt35	= EMA(C,35);
+Lt40	= EMA(C,30);
+Lt50	= EMA(C,50);
+STosc = ((st3+st5+st8+st10+st12+st15)-(Lt30+Lt35+Lt40+Lt50))*10;
+Trig = EMA(STosc,13);
+
+Plot(STOsc,FullName()+" Guppy Oscilator",6,1);
+Plot(Trig,"Guppy Oscilator Trigger",4,1);
+
+Up = Cross(STosc,Trig);
+Dn = Cross(Trig,Stosc);
+PlotShapes(Up*shapeUpArrow,colorGreen);
+PlotShapes(Dn*shapeDownArrow,colorRed);

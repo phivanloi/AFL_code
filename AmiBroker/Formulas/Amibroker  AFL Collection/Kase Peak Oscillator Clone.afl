@@ -1,0 +1,35 @@
+GraphXSpace= 5;
+GraphZOrder= 1;
+
+truHi= IIf(H > Ref(C,-1),H,Ref(C,-1));
+truLo= IIf(L < Ref(C,-1),L,Ref(C,-1));
+
+truRange= truHi - truLo;
+
+Pd= Param("max length",13,5,100,1);
+RWH= (truHi-Ref(truLo,-Pd))/(ATR(Pd)*sqrt(Pd));
+RWL= (Ref(truHi,-Pd)-truLo)/(ATR(Pd)*sqrt(Pd));
+Pk= WMA((RWH-RWL),3);
+
+MN= MA(Pk,Pd);
+SD= StDev(Pk,Pd);
+
+Val1= IIf(MN+(1.33*SD) > 2.08, MN+(1.33*SD), 2.08);
+Val2= IIf(MN-(1.33*SD) < -1.92, MN-(1.33*SD), -1.92);
+
+Line= IIf(Ref(Pk,-1) >= 0 AND Pk > 0,Val1, IIf(Ref(Pk,-1) <= 0 AND Pk < 0, Val2, 0));
+
+Red= IIf(Ref(Pk,-1) > Pk, Pk, 0);
+Yellow= IIf(Pk > Ref(Pk,-1), Pk, 0);
+
+Plot(Red,"Red",32,2+4);
+Plot(Yellow,"Yellow",42,2+4);
+Plot(Line,"Line",34,1);
+PlotGrid(0,55);
+
+Title= "Kase Peak Oscillator " + Name()+
+"   Peak Osc Red="+WriteVal(Red,1.2)+
+"   Peak Osc Yellow="+WriteVal(Yellow,1.2)+
+WriteIf(Ref(Pk,-1) > Pk,"   L-Stick is"+EncodeColor(32)+"RED",WriteIf(Pk > Ref(Pk,-1),"   L-Stick is"+EncodeColor(42)+" YELLOW", 
+"   L-Stick is"+EncodeColor(47)+" NEUTRAL"));
+_SECTION_END();

@@ -1,0 +1,40 @@
+_SECTION_BEGIN("Commodity Channel Index.afl");
+/* Project:       AmiBroker
+** File:          cci.afl
+** Title:         CCI Guru Commentary Example (English)
+** Requirements:  AFL 1.1 (AmiBroker 3.0) or above
+** Date:          Feb 9th, 1999
+** Written by:    Tomasz Janeczko
+*/ 
+
+Buy=Cross( CCI(), -100 );
+Sell = Cross( 100, CCI() );
+
+"Review of " + FullName() + " (" + Name() + ")" + "\nas of " + Date();
+
+
+"\nCurrent Statistics\n";
+"Close:    " + WriteVal(Close);
+"Change:   " + WriteVal(Close - Ref( Close, -1 ) ) ;
+"CCI Value:" + WriteVal(CCI());
+
+"\nCCI is now in "+
+WriteIf( CCI() < -100, "oversold", 
+WriteIf( CCI() > 100,  "overbought", "neutral" )) +
+" range";
+
+bsbuy  = BarsSince( Buy );
+bssell = BarsSince( Sell );
+
+"\nCCI has generated "+
+WriteIf( bsbuy > 5 AND bssell > 5, "no signals during last 5 periods.",
+WriteIf( bsbuy < bssell, "buy signal " + WriteVal( bsbuy, 3.0  ),
+"sell signal " + WriteVal( bssell, 3.0) ) + " periods ago.");
+
+ 
+
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ),0, IIf( Buy, Low, High ) );
+
+
+_SECTION_END();

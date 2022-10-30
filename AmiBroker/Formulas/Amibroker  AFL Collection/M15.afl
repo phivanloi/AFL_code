@@ -1,0 +1,83 @@
+// property copyright "90%Success Rate M15"
+// property link      "90%Success Rate M15"
+
+_d0 = "90%Success Rate M15";
+MagicNumber = 8625;
+Slippage = 3;
+EmailTrades = False;
+gi_96 = 85;
+gi_100 = 30;
+gi_104 = 15;
+Lots = 0.1;
+_d3 = "Money Managment Risk (0 = off... Raising it will multiply the lot size)";
+Risk = 0.1;
+gs_unused_132 = "Starategy Parameters";
+EMA_period_140 = 10;
+EMA_period_144 = 25;
+EMA_period_148 = 40;
+gi_152 = 4;
+SAR_accel = 0.02;
+SAR_max = 0.2;
+gi_236 = -1;
+g_time_240 = 0;
+g_time_244 = 0;
+
+EMA_140 = EMA( C, EMA_period_140 );
+EMA_144 = EMA( C, EMA_period_144 );
+EMA_148 = EMA( C, EMA_period_148 );
+SAR_VALUE = Ref(SAR(SAR_accel, SAR_max),-1);
+
+function EMACross(InVal) 
+{
+	Condn11 = IIf( ( Ref( EMA_140, -1 ) * InVal ) >= ( Ref( EMA_144, -1 ) * InVal ) AND ( Ref( EMA_140, -2 ) * InVal ) <= ( Ref( EMA_144, -2 ) * InVal ), 1, 0 );
+	for ( l_index_4 = 1; l_index_4 < gi_152; l_index_4++)
+		{
+			Condn12 = 0 ;
+			Condn1Var = IIf ( ( Ref( EMA_140, -l_index_4 ) * InVal ) >= ( Ref( EMA_148, -l_index_4 ) * InVal ) AND 
+					( Ref( EMA_140, -(l_index_4 + 1) ) * InVal ) <= ( Ref( EMA_148, -(l_index_4 + 1) ) * InVal ), 1, 0 ) ;
+			Condn12 = Condn12 + Condn1Var ; 
+		}
+	Condn21 =	IIf ( ( Ref( EMA_140, -1 ) * InVal ) >= ( Ref( EMA_148, -1 ) * InVal ) AND ( Ref( EMA_140, -2 ) * InVal ) <= ( Ref( EMA_148, -2 ) * InVal ), 1, 0 ) ;
+	for ( l_index_4 = 1; l_index_4 < gi_152; l_index_4++ )
+		{
+			Condn22 = 0 ;
+			Condn2Var = IIf ( ( Ref( EMA_140, -l_index_4 ) * InVal ) >= ( Ref( EMA_144, -l_index_4 ) * InVal ) AND 
+					( Ref( EMA_140, -(l_index_4 + 1) ) * InVal ) <= ( Ref( EMA_144, -(l_index_4 + 1) ) * InVal ), 1, 0 ) ;
+			Condn22 = Condn22 + Condn2Var ; 
+		}
+	return IIf( ( Condn11 AND COndn12 ) OR ( Condn21 AND Condn22) , 1, 0 );
+}
+
+openBuyRule=IIf( SAR_VALUE < C AND EMACross(1), 1, 0 );
+
+openSellRule=IIf( SAR_VALUE > C AND EMACross(-1), 1, 0 );
+
+closeBuyRule=IIf( C < EMA_140[0] AND C < EMA_144[0] AND C < EMA_148[0], 1, 0 );
+
+closeSellRule=IIf( C > EMA_140[0] AND C > EMA_144[0] AND C > EMA_148[0], 1, 0 );
+
+MoreBars = IIf( BarCount > 100, 1, 0);
+
+Buy = openBuyRule AND MoreBars;
+Sell = closeBuyRule AND MoreBars;
+Short = openSellRule AND MoreBars;
+Cover = closeSellRule AND MoreBars;
+
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes(shape, IIf(Buy,colorBrightGreen,colorRed), 0, IIf(Buy,Low,High));
+
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = "90%Success Rate M15 || " + StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+Plot(EMA_140, "EMA ("+EMA_period_140+")", colorDarkRed, styleLine| styleOwnScale);
+Plot(EMA_144, "EMA ("+EMA_period_144+")", colorDarkBlue, styleLine| styleOwnScale);
+Plot(EMA_148, "EMA ("+EMA_period_148+")", colorDarkGreen, styleLine| styleOwnScale);
+if( ParamToggle("Tooltip shows", "All Values|Only Prices" ) )
+{
+ ToolTip=StrFormat("Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 )));
+}
+_SECTION_END();
+_SECTION_BEGIN("EMA_140");
+_SECTION_END();

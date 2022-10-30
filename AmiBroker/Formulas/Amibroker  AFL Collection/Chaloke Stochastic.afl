@@ -1,0 +1,8 @@
+ //Chaloke Stochastic/// 
+
+x1= StochK(14 ,7 ) ; 
+x2= TEMA(x1 ,5 ) ; 
+x3= EMA(x2 ,5 ) ; 
+
+Plot(x2, "Chaloke Stochastic" ,colorBlue,4); 
+Plot(x3,"",colorRed,1);

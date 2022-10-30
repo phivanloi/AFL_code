@@ -1,0 +1,6 @@
+_SECTION_BEGIN("stochk cloud");
+SetChartOptions(0,0,ChartGrid30 | ChartGrid70 ); 
+r = StochK(14); 
+Plot( r, "StochK", colorRed ); 
+PlotOHLC( r,r,50,r, "", IIf( r > 50, colorGreen, colorRed ), styleCloud | styleClipMinMax, 45, 55 ); 
+_SECTION_END();

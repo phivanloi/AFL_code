@@ -1,0 +1,11 @@
+Buy = 	ADX( 14 ) > Ref( ADX( 14 ) , -1 )
+	AND Ref( ADX( 14 ) , -1 ) > Ref( ADX( 14 ) , -2 )
+	AND Ref( ADX( 14 ) , -2 ) > Ref( ADX( 14 ) , -3 )
+	AND Close > Ref( Close , -1 )
+	AND Ref( Close , -1 ) > Ref( Close , -2 );
+
+Sell = 	ADX( 14 ) > Ref( ADX( 14 ) , -1 )
+	AND Ref( ADX( 14 ) , -1 ) > Ref( ADX( 14 ) , -2 )
+	AND Ref( ADX( 14 ) , -2 ) > Ref( ADX( 14 ) , -3 )
+	AND Close < Ref( Close , -1 )
+	AND Ref( Close , -1 ) < Ref( Close , -2 );

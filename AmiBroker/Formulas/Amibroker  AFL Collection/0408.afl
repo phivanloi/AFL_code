@@ -1,0 +1,50 @@
+    // RSI Bands use a variation of the RSI calculations to figure 
+    // out what price level a stock should be at to be considered
+    // overbought/oversold.
+    //
+    // This sample code was built off the "BuiltInRSIEquivalent"
+    // sample RSI calculation code found on the AmiBroker website.
+    function BuiltInRSIEquivalent_RSI_Band_Version( period, TargetRSILevel )
+    {
+        P = N = 0;
+        result = Null;
+        for( i = 1; i < BarCount; i++ )
+        {
+            // Standard RSI code
+            diff = C[ i ] - C[ i - 1 ];
+            W = S = 0;
+            if( diff > 0 ) W = diff;
+            if( diff < 0 ) S = -diff;
+     
+    // Compute the hypothetical price close to reach the
+    // target RSI level based on yesterday's RSI and close
+    // Depending on whether we would need the price to
+    // or decrease, we use a different formula
+            if(result[i-1] > C[i-1])
+                HypotheticalCloseToMatchRSITarget = C[i-1]+P-P*period-((N*period)-N)
+                                                    *TargetRSILevel/(TargetRSILevel -100);
+            else
+                HypotheticalCloseToMatchRSITarget = C[i-1]-N-P+N*period+P*period+(100*P)
+                                                    /TargetRSILevel-(100*P*period)/TargetRSILevel ;
+            // Optional clamping code
+            // Uncomment this section if parameters used cause
+            // too much volatility (generally caused by using a very
+            // short period) This will keep the RSI Bands within
+            // roughly 10% of the price
+            // if( (HypotheticalCloseToMatchRSITarget - C[i]) > 0.1*C[i])
+            // HypotheticalCloseToMatchRSITarget = C[i]*1.1;
+            // if( (HypotheticalCloseToMatchRSITarget - C[i]) < - 0.1*C[i])
+            // HypotheticalCloseToMatchRSITarget = C[i]*0.9;
+            // Resume standard RSI code to update the
+            // running P and N averages
+            P = ( ( period -1 ) * P + W ) / period;
+            N = ( ( period -1 ) * N + S ) / period;
+            // Store result
+            if( i >= period )
+                result[ i ] = HypotheticalCloseToMatchRSITarget ;
+        }
+        return result;
+    }
+    Plot( BuiltInRSIEquivalent_RSI_Band_Version(14,70), "RSIB70", colorBlue );
+    Plot( BuiltInRSIEquivalent_RSI_Band_Version(14,30), "RSIB30", colorBlue );
+Plot(C,"",colorGrey40,styleCandle);

@@ -1,0 +1,20 @@
+_SECTION_BEGIN("_smooth rsi");
+SetChartOptions(0,0,chartGrid20 |chartGrid50 |chartGrid80);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} open %g  high %g  low %g  close %g  (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+SetChartBkColor(ParamColor("Outer panel color ",colorWhite)); // color of outer border 
+SetChartBkGradientFill( ParamColor("Inner panel color upper half",colorWhite),
+ParamColor("Inner panel color lower half",colorWhite)//color of inner panel
+,ParamColor("behind Text Color", colorWhite));
+GraphXSpace=5;
+
+Hc=(O+H+L+C)/4;
+
+Ho = AMA( Ref( Hc, -1 ), 0.5 );
+
+pds = Optimize("pds ",Param("pds ",5,1,15,1),5,5,1);
+myArray = (RSI( pds )+ RSIa( Ho,pds ) + Ref(RSIa(Ho,pds),-3))/3 ; 
+Plot( myArray , " RSI ", IIf( myArray >Ref(myArray ,-1), colorGreen, colorRed ));
+Plot(80,"RESISTENCE",colorRed, styleLine|styleDashed | styleThick);
+Plot(50,"",colorBlack, styleLine|styleDashed | styleThick);
+Plot(20,"SUPPORT",colorGreen, styleLine|styleDashed | styleThick);
+_SECTION_END();

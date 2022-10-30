@@ -1,0 +1,52 @@
+Length=Param( "Length ", 10, 0, 500);   
+Phase=Param( "Phase", 0, -100, 100);
+Cc= Param("CCI period",14,5,100,1);
+Col_trix = IIf(EMA(Trix(3),3) > Ref(EMA(Trix(3),3),-1),colorBrightGreen,colorRed);
+Col_cci = IIf(CCI(Cc) > 100, colorBrightGreen, IIf(CCI(Cc) < -100, colorRed, IIf(CCI(Cc) > Ref(CCI(Cc),-1),colorDarkGreen,colorDarkRed)));
+j = JurikJMA( Close, 15, Phase);
+
+//Plot( j, "", Col_cci, styleThick+styleDots );
+Plot(Close,"close",col_trix,styleBar+styleThick);
+PlotOHLC(j,j+1,j-1,j,"",Col_cci,styleCloud);
+
+_SECTION_BEGIN("JMA");
+Plot( JurikJMA( Close, 3, Phase), "", colorDarkGrey, styleThick );
+Plot( JurikJMA( Close, 5, Phase), "", colorDarkGrey, styleThick+styleNoLabel );
+Plot( JurikJMA( Close, 8, Phase), "", colorDarkGrey, styleThick+styleNoLabel );
+Plot( JurikJMA( Close, 10, Phase), "", colorDarkGrey, styleThick+styleNoLabel );
+Plot( JurikJMA( Close, 12, Phase), "", colorDarkGrey, styleThick+styleNoLabel );
+
+
+_SECTION_END();
+Buy = Col_cci==colorBrightGreen;
+Sell = Col_cci==colorRed;
+
+_SECTION_BEGIN("Price");
+//Buy=ExRem(Buy,Sell);
+//Sell = ExRem(Sell,Buy);
+dist = 1.5*ATR(10); 
+
+/*
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "Buy\n@" + C[ i ] , i, L[ i ]-dist[i], colorBlack,colorGreen ); 
+if( Sell[i] ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorBlack, colorRed ); 
+
+} 
+*/
+//PlotShapes( Buy * shapeHollowSmallUpTriangle + Sell * shapeHollowSmallDownTriangle, IIf( Buy, colorGreen, colorRed ) );
+
+a = round (JurikJMA( Close, 15, Phase)*100)/100;
+a1 = Ref(a,-1);
+diff1 = round((a - a1)*10)/10;
+diff2 = round((a1 - Ref(a,-2))*10)/10;
+
+Title =
+EncodeColor(colorYellow)+"JMA                 : "+ WriteIf(C > a,  EncodeColor(colorGreen)+a,EncodeColor(colorRed)+a)
++ WriteIf(diff1 > 0, EncodeColor(colorGreen)+"  Up by "+diff1,EncodeColor(colorRed)+"  Dn by "+diff1)
++"\n"
++EncodeColor(colorYellow)+ "One bar ago  : "+ WriteIf(a1 > 0, EncodeColor(colorGreen)+a1,EncodeColor(colorRed)+a1)
++ WriteIf(diff2 > 0, EncodeColor(colorGreen)+"  Up by "+diff2,EncodeColor(colorRed)+"  Dn by "+diff2)
+;
+ 
+_SECTION_END();

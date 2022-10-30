@@ -1,0 +1,111 @@
+ 
+_SECTION_BEGIN("Guppy Countback Line");
+
+/* Stephane Carrasset's Countback Line (CBL) popularized by Daryl Guppy
+
+Refer to amibroker posting 30th December 2004 */
+
+nR=2;
+
+Cbl[nR]=Null;
+
+bCBL=False;
+
+for( i=nR; i < BarCount; i++)
+
+{
+
+if( (Low[i-2]<Low[i-1]) && (Low[i-1]<Low[i]) )
+
+{
+
+Cbl[i] = Low[i-2];
+
+bCBL = True;
+
+}
+
+else if (bCBL)
+
+{
+
+if (Low[i] < Cbl[i-1])
+
+{
+
+Cbl[i] = Cbl[i-1];
+
+bCBL = False;
+
+}
+
+else
+
+{
+
+n = nR;
+
+minval[i] = Low[i];
+
+breakloop= False;
+
+for (j = 1; NOT(breakloop) && j <= i; j++)
+
+{
+
+if (Low[i-j] < minval[i])
+
+{
+
+if (n>1)
+
+{
+
+minval[i] = Low[i-j];
+
+n--;
+
+}
+
+else
+
+{
+
+Cbl[i] = Low[i-j];
+
+breakloop=True;
+
+}
+
+}
+
+}
+
+if (Cbl[i] < Cbl[i-1])
+
+Cbl[i] = Cbl[i-1];
+
+}
+
+}
+
+else
+
+{
+
+Cbl[i] = Cbl[i-1];
+
+}
+
+if (Cbl[i]==0)
+
+Cbl[i] = Cbl[i-1];
+
+}
+
+Plot(Cbl,"",colorGreen,1);
+
+Plot(C,"",-1,64);
+
+_SECTION_END();
+

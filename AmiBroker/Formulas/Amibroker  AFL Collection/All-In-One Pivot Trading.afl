@@ -1,0 +1,224 @@
+
+/*
+Pivot Trading All-In-One. Suryo Pivot, FB Pivot, dan Gado-gado pivot
+dalam satu formula. Ketiganya bisa dienable/disable di parameter.
+Formula ini diciptakan khusus untuk para pengguna pivot trading yang 
+pusing karena kebanyakan chart. Mudah mudahan gak pusing lagi :)
+Saran dan usul dipersilahkan. 
+Rev 2. Speculative Buy, Buy dan Sell Arrow bisa di-disable
+rev 3. Tampilkan Posisi C antara SRP
+*/
+
+_SECTION_BEGIN("Main");
+
+pivotCalc	=	ParamList("Pivot Calculation", "Suryo|FB", 0);
+rulesSuryo=ParamList("Suryo Rules","Enable|Disable",0);
+rulesFB=ParamList("FB Rules","Enable|Disable",1);
+rulesGado2=ParamList("Gado-Gado Rules","Enable|Disable",1);
+speculativeBuyArrow=ParamList("Speculative Buy Arrow","Enable|Disable",1);
+buyArrow=ParamList("Buy Arrow","Enable|Disable",0);
+sellArrow=ParamList("Sell Arrow","Enable|Disable",0);
+nPivot = Param("Jumlah Tangga Merah", 1, 1, 20);
+pivotUpColor=ParamColor("Pivot Up Color", colorGreen );
+pivotDownColor=ParamColor("Pivot Down Color", colorRed );
+arrowSuryoColor=ParamColor("Arrow Suryo Color", colorRed );
+arrowFBColor=ParamColor("Arrow FB Color", colorBlue );
+arrowGado2Color=ParamColor("Arrow Gado-Gado Color", colorGreen );
+
+_SECTION_END();
+
+Plot(C,"C",colorBlack,styleCandle); //Plot bar harga
+
+if(pivotCalc == "Suryo")//Kalau Pivot Calculation: Suryo
+{
+// tentukan Pivot berdasarkan data kemarin
+P = (H+L+C) / 3;
+}
+else //Kalau Pivot Calculation: FB
+{
+// tentukan Pivot berdasarkan data kemarin
+// asumsi C=O, define P
+P =(H+L+2*C)/4;
+// if  C>O define new P, otherwise use P above
+P = IIf(C>O,(2*H+L+C)/4, P);
+// if  C<O define new P, otherwise use P above
+P = IIf(C<O,(H+2*L+C)/4, P);
+};//end PivotCalc
+
+//berapa tangga merah sebelum boleh ada sinyal beli?
+tanggaMerah=1;
+for( i = 0; i < nPivot; i++ ) 
+{ 
+tanggaMerah= Ref(P,-1*i-1) <Ref(P,-1*i-2) AND tanggaMerah;
+} ;//end berapa tangga merah sebelum boleh ada sinyal beli
+
+//Hitung S dan R
+R1= (P * 2) - L;
+S1= (P * 2) - H;
+R2 = P + (R1 - S1); // P + (H - L)
+S2 = P - (R1 - S1); // P - (H - L)
+R3 = H + 2*(P - L);
+S3 = L - 2*(H - P);
+
+//Plot SRP
+Displace=1;
+Plot(R3,"R3",colorRed,styleDots|styleNoLine,0,0,Displace);
+Plot(R2,"R2",colorRed,styleDots|styleNoLine,0,0,Displace);
+Plot(R1,"R1",colorRed,styleDots|styleNoLine,0,0,Displace);
+Plot(P,"P",IIf( Ref(p,0)>Ref(p,-1), pivotUpColor, pivotDownColor ), styleStaircase,0,0,Displace);
+Plot(S1,"S1",colorGreen,styleDots|styleNoLine,0,0,Displace);
+Plot(S2,"S2",colorGreen,styleDots|styleNoLine,0,0,Displace);
+Plot(S3,"S3",colorGreen,styleDots|styleNoLine,0,0,Displace);
+
+if (rulesSuryo=="Enable") //Suryo Rules
+{
+// SPECULATIVE BUY Suryo jika:
+// 1. Pivot hari ini lebih kecil dari pivot kemarin (pivot merah)
+// 2. Low hari ini lebih besar dari Pivot hari ini (harga sampai close selalu bergerak di atas pivot)
+// 3. Low hari ini lebih besar atau sama dengan dari Low kemarin
+// tambahan untuk STRONG BUY Suryo:
+// 4. High hari ini lebih besar dari High kemarin
+// 5. Close hari ini lebih besar dari Close kemarin
+// SELL Suryo jika:
+// 1. Pivot hari ini lebih besar dari Pivot kemarin (pivot hijau)
+// 2. High hari ini lebih kecil dari Pivot hari ini(harga sampai close selalu bergerak di bawah pivot)
+// 3. Low hari ini lebih rendah dari Low kemarin
+
+specBuySuryo= tanggaMerah AND L>Ref(P,-1) AND L>=Ref(L,-1);
+BuySuryo=  specBuySuryo AND H>Ref(H,-1) AND C>Ref(C,-1);
+SellSuryo= Ref(P,-1)>Ref(P,-2) AND H<Ref(P,-1) AND L<Ref(L,-1);
+//Lets plot buy sell signal
+if (speculativeBuyArrow=="Enable") PlotShapes(IIf(specBuySuryo, shapeHollowUpArrow , shapeNone), arrowSuryoColor, 0, Low, Offset=-50);
+if (buyArrow=="Enable") PlotShapes(IIf(BuySuryo, shapeUpArrow , shapeNone), arrowSuryoColor, 0, Low, Offset=-50);
+if (sellArrow=="Enable") PlotShapes(IIf(SellSuryo, shapeDownArrow, shapeNone), arrowSuryoColor, 0,High, Offset=-50);
+};//end Suryo Rules
+
+if (rulesFB=="Enable") //Rules FB
+{
+// SPECULATIVE BUY FB jika:
+// 1. Pivot hari ini lebih kecil dari pivot kemarin (pivot merah)
+// 2. Close hari ini lebih besar dari Pivot hari ini 
+// 3. Low hari ini lebih besar atau sama dengan Low kemarin
+// tambahan untuk STRONG BUY FB:
+// 4. High hari ini lebih besar dari High kemarin
+// 5. Close hari ini lebih besar dari Close kemarin
+// SELL FB jika:
+// 1. Pivot hari ini lebih besar dari Pivot kemarin (pivot hijau)
+// 2. Close hari ini lebih kecil dari Pivot hari ini
+// 3. Low hari ini lebih rendah dari Low kemarin
+specBuyFB= tanggaMerah AND C>Ref(P,-1) AND L>=Ref(L,-1);
+BuyFB=  specBuyFB AND H>Ref(H,-1) AND C>Ref(C,-1);
+SellFB= Ref(P,-1)>Ref(P,-2) AND C<Ref(P,-1) AND L<Ref(L,-1);
+//Lets plot buy sell signal
+if (speculativeBuyArrow=="Enable") PlotShapes(IIf(specBuyFB, shapeHollowUpArrow , shapeNone), arrowFBColor, 0, Low, Offset=-60);
+if (buyArrow=="Enable") PlotShapes(IIf(BuyFB, shapeUpArrow , shapeNone), arrowFBColor, 0, Low, Offset=-60);
+if (sellArrow=="Enable") PlotShapes(IIf(SellFB, shapeDownArrow, shapeNone), arrowFBColor, 0,High, Offset=-60);
+};//end Rules FB
+
+if (rulesGado2=="Enable") //Rules Gado-Gado
+{
+//SPECULATIVE BUY GADO-GADO jika:
+//1. kemarin tangga merah 
+//2. close kemarin <=pivot kemarin 
+//3. Low hari ini >=low kemarin (sama dengan suryo pivot trading)
+//4. Close hari ini > Pivot hari ini (sama dengan FB Pivot Trading)
+//5. Hari ini white candle (Open < Close)
+specBuyGado2=	Ref(tanggaMerah,-1) AND Ref(C,-1)<=Ref(P,-2) AND L>=Ref(L,-1) AND C>=Ref(P,-1) AND O<C;
+BuyGado2=  specBuyGado2 AND H>Ref(H,-1) AND C>Ref(C,-1);
+SellGado2= Ref(P,-1)>Ref(P,-2) AND H<Ref(P,-1) AND L<Ref(L,-1);
+//Lets plot buy sell signal
+if (speculativeBuyArrow=="Enable") PlotShapes(IIf(specBuyGado2, shapeHollowUpArrow , shapeNone), arrowGado2Color, 0, Low, Offset=-70);
+if (buyArrow=="Enable")PlotShapes(IIf(BuyGado2, shapeUpArrow , shapeNone), arrowGado2Color, 0, Low, Offset=-70);
+if (sellArrow=="Enable") PlotShapes(IIf(SellGado2, shapeDownArrow, shapeNone), arrowGado2Color, 0,High, Offset=-70);
+};//end Rules Gado-Gado
+
+
+function selip(besar,kecil,tengah,text) //untuk menyelipkan nilai array antara PSR dan akan ditulis bersama Title
+{ 
+   result=WriteIf (tengah<Ref(besar,-1) AND tengah>Ref(kecil,-1), EncodeColor(colorBlack) + "\n" + text +"   = " + tengah , "");
+   return result; 
+} ;//end function
+
+
+function sama(Value1,Value2,text) //untuk nilai array yang sama dengan PSR dan akan ditulis bersama title
+{ 
+   result=WriteIf (Value2==Ref(Value1,-1), EncodeColor(colorBlack) + " = " +text,"");
+   return result; 
+} //end function
+
+//Tulis title vertical
+
+HR3=selip(1000000,R3,C,"C");
+R3R2 = selip(R3,R2,C,"C");
+R2R1 = selip(R2,R1,C,"C");
+R1P= selip(R1,P,C,"C");
+PS1 = selip(P,S1,C,"C");
+S1S2 = selip(S1,S2,C,"C");
+S2S3 = selip(S2,S3,C,"C");
+S3L=selip(S3,0,C,"C");
+
+R3C = sama(R3,C,"C");
+R2C = sama(R2,C,"C");
+R1C = sama(R1,C,"C");
+PC = sama(P,C,"C");
+S3C = sama(S3,C,"C");
+S2C = sama(S2,C,"C");
+S1C = sama(S1,C,"C");
+
+/*
+R3O = sama(R3,O,"O");
+R2O = sama(R2,O,"O");
+R1O = sama(R1,O,"O");
+PO = sama(P,O,"O");
+S3O = sama(S3,O,"O");
+S2O = sama(S2,O,"O");
+S1O = sama(S1,O,"O");
+
+R3H = sama(R3,H,"H");
+R2H = sama(R2,H,"H");
+R1H = sama(R1,H,"H");
+PH = sama(P,H,"H");
+S3H = sama(S3,H,"H");
+S2H = sama(S2,H,"H");
+S1H = sama(S1,H,"H");
+
+R3L = sama(R3,L,"L");
+R2L = sama(R2,L,"L");
+R1L = sama(R1,L,"L");
+PL = sama(P,L,"L");
+S3L = sama(S3,L,"L");
+S2L = sama(S2,L,"L");
+S1L = sama(S1,L,"L");
+*/
+
+Title = 
+"All-In-One Pivot Trading\n\n"+
+Date()+
+"   "+Name()+
+EncodeColor(colorBlue)+"   O "+EncodeColor(colorBlack)+"= "+O+
+EncodeColor(colorBlue)+"   H "+EncodeColor(colorBlack)+"= "+H+
+EncodeColor(colorBlue)+"   L "+EncodeColor(colorBlack)+"= "+L+
+EncodeColor(colorBlue)+"   C "+EncodeColor(colorBlack)+"= "+C+
+EncodeColor(colorBlue)+"   V "+EncodeColor(colorBlack)+"= "+ WriteVal(Volume/500,0)+ " lot"+
+"\n"+
+HR3+"\n"+ EncodeColor(colorRed)+"R3 = "+Ref(R3,-1)+ R3C+ 
+R3R2+
+EncodeColor(colorRed)+"\nR2 = "+ Ref(R2,-1)+R2C+ 
+R2R1 +
+EncodeColor(colorRed)+"\nR1 = "+Ref(R1,-1) +R1C+ 
+R1P+
+EncodeColor(colorViolet)+"\nP    = "+ Ref(P,-1)+PC+
+PS1+
+EncodeColor(colorGreen)+"\nS1 = "+ Ref(S1,-1)+S1C+
+S1S2+
+EncodeColor(colorGreen)+"\nS2 = "+ Ref(S2,-1)+S2C+ 
+S2S3+
+EncodeColor(colorGreen)+"\nS3 = "+ Ref(S3,-1)+S3C+S3L+
+"\n\n"+
+EncodeColor(colorRed)+"R3 besok = "+ R3 +
+EncodeColor(colorRed)+"\nR2 besok = "+ R2 +
+EncodeColor(colorRed)+"\nR1 besok = "+ R1 +
+EncodeColor(colorViolet)+"\nP besok   = "+ P+ 
+EncodeColor(colorGreen)+"\nS1 besok = "+ S1 +
+EncodeColor(colorGreen)+"\nS2 besok = "+ S2 +
+EncodeColor(colorGreen)+"\nS3 besok = "+ S3;

@@ -1,0 +1,6 @@
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 20, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+BBW = BBandTop(Close, 20, 2) - BBandBot(Close, 20, 2); 
+
+Plot(BBW, "Bollinger Bandwidth("+Periods+", "+Width+")", ParamColor("color", colorCycle ), ParamStyle("Style") );

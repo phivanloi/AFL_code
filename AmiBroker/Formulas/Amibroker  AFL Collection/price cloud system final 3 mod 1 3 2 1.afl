@@ -1,0 +1,57 @@
+_SECTION_BEGIN("MA1"); 
+// parameter of the MA to use as trigger
+PMA = Param("ma OF",25,1,100,1);
+icol = IIf ( MA (Close,pma) > Ref (MA (Close,pma),-1),colorGreen,colorRed); // icol is for colour band..if its' rising then green and if its down, then red
+ 
+Plot( MA( High, pma ),"", icol);
+Plot( MA( Low, pma ), "",icol);
+_SECTION_END();
+
+_SECTION_BEGIN("price");
+//============================================candle sticks=======================
+ 
+Color_buy = IIf(Close > EMA(Close,55) AND Close > MA(High,pma),colorBlue,IIf(Close < EMA(Close,55) AND Close < MA(Low,pma),colorRed,colorYellow));
+PlotOHLC( Open, High, Low, Close, "", Color_buy, styleCandle ); 
+
+
+upper_band = IIf (MA( High, pma )> EMA(Close,55),MA( High, pma ), EMA(Close,55));
+Lower_band = IIf (MA( Low, pma )< EMA(Close,55),MA( Low, pma ), EMA(Close,55));
+
+EMA55 = EMA(Close,55);
+
+
+
+
+//=======================
+
+_SECTION_END();
+
+//Col_band = IIf(MA(Close,34)>Ref(MA(Close,34),-1),colorBlue,colorRed);
+
+_SECTION_BEGIN("EMA fabonachi");
+
+fab5 = EMA(Close,5);
+fab8 = EMA(Close,8);
+fab13 = EMA(Close,13);
+fab21 = EMA(Close,21);
+fab34 = EMA(Close,34);
+fab55 = EMA(Close,55);
+fab89 = EMA(Close,89); 
+
+Color_fab5 = IIf(Close > fab5,ColorRGB(197,254,214),colorPink);
+Color_fab8 = IIf(Close > fab8,ColorRGB(197,254,214),colorPink);
+Color_fab13 = IIf(Close > fab13,ColorRGB(197,254,214),colorPink);
+Color_fab21 = IIf(Close > fab21,ColorRGB(197,254,214),colorPink);
+Color_fab34 = IIf(Close > fab34,ColorRGB(197,254,214),colorPink);
+Color_fab55 = IIf(Close > fab55,ColorRGB(197,254,214),colorPink);
+Color_fab89 = IIf(Close > fab89,ColorRGB(197,254,214),colorPink);
+
+Plot( fab5, "", Color_fab5, styleDashed+styleNoLabel ); 
+Plot( fab55, "", Color_fab55, styleDashed ); 
+_SECTION_END();
+
+//Buy = Color_buy ==colorBlue AND KPAutoStop < C;
+//Sell = Color_buy ==colorRed AND KPAutoStop > C;
+
+//PlotShapes (Buy*shapeHollowSmallUpTriangle, colorBlue);
+//PlotShapes (Sell*shapeHollowSmallDownTriangle, colorRed);

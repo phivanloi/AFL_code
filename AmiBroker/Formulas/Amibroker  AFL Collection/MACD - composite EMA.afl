@@ -1,0 +1,76 @@
+//----- Try This 
+/*
+====================
+MACD - composite EMA
+====================
+-----------------------------------------------
+
+{ MACD OR Histogram based on multiple EMA's }
+{ Incorporating automatic overbought/oversold
+levels }
+{ ©Copyright 2005 Jose Silva }
+{ http://www.metastocktools.com }
+
+Here is how to use the formula:-
+1. Buy when MACD crosses upper most line.
+2. To add to investment when:-
+a. MACD violates signal line and crosses back/again and still both the lines remains above the uppermost line.
+3. To sell when MACD comes below 2nd line.
+4. To short when MACD comes below lower most line.
+5. To add to short when:-
+a. MACD crosses signal line in upwards direction and crosses back and still both the line remains below lower most lines.
+
+*/
+
+function IsDefined(arry)
+{
+return NOT IsEmpty(arry);
+}
+
+//{ User inputs }
+plot1=ParamToggle("Choose MACD OR Histogram", "MACD|Histogram");
+plot2=ParamToggle("Choose MACD/Hist OR Normalized","MACD/Hist|Normalized");
+pds=Param("Signal/Histogram EMA periods",21, 2, 260);
+
+//{ Composite-EMA MACD/Histogram }
+ema1= EMA(C,3)+ EMA(C,5)+EMA(C,8)+EMA(C,11)+EMA(C,14)+EMA(C,17);
+ema2= EMA(C,30)+EMA(C,35)+EMA(C,40)+EMA(C,45)+EMA(C,50)+ EMA(C,56);
+emaComp=ema1-ema2;
+sig=EMA(emaComp,pds);
+hist=emaComp-sig;
+
+//{ Choose MACD OR Histogram }
+MacdH=IIf(plot1==0,emaComp,hist);
+
+//{ Normalized MACD/Histogram }
+normMod=Highest(MacdH)-Lowest(MacdH);
+normMod=IIf(normMod==0, 0.000001,normMod);
+MacdHnorm=
+((MacdH-Lowest(MacdH))/normMod-.5)*200;
+
+//{ Choose standard/normalized }
+MacdComp=IIf(plot2==0,MacdH,MacdHnorm);
+sig=EMA(MacdComp,pds);
+
+//{ MACD/Hist average }
+Avgs=Cum(MacdComp)/Cum(IsDefined(MacdComp));
+
+//{ MACD/Hist auto boundaries }
+pk=Ref(MacdComp,-1)>MacdComp
+AND Ref(MacdComp,-1)>Ref(MacdComp,-2)
+AND Ref(MacdComp,-1)>Avgs;
+pkVal=ValueWhen(pk,Ref(MacdComp,-1));
+tr=Ref(MacdComp,-1)<MacdComp
+AND Ref(MacdComp,-1)<Ref(MacdComp,-2)
+AND Ref(MacdComp,-1)<Avgs;
+trVal=ValueWhen(tr,Ref(MacdComp,-1));
+Obought=Cum(pkVal)/Cum(IsDefined(pkVal));
+Osold=Cum(trVal)/Cum(IsDefined(trVal));
+
+//{ Plot in own window }
+Plot(Obought, "OB", colorRed); //{ Red }
+Plot(Avgs, "Avg", colorDarkGrey); //{ Grey }
+Plot(Osold, "OS", colorBlue); //{ Blue }
+Plot( IIf(plot1==0,Sig,Avgs), "Plot1", colorGreen); //{ Green }
+Plot(MacdComp, "MACDComp", colorBlack);// { Black }
+//---- End ----

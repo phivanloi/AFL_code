@@ -1,0 +1,10 @@
+_SECTION_BEGIN("Hull Moving Average");
+ // Hull Moving Average
+ P = ParamField("Price field",-1);
+ period = Param("Periodo",16,0,512);
+ sqrtperiod = sqrt(period);
+ Hull = WMA(2*WMA(P,period/2)-WMA(P,period),LastValue(sqrtperiod));
+ Colore = IIf(Hull >= Ref(Hull,-1),ParamColor("Colore Up",colorWhite),ParamColor("Colore Down",colorViolet));
+ Plot(Hull,"Hull",Colore,ParamStyle("Style")+styleNoTitle);
+ Plot(Close,"Close",IIf(C>=O,colorGreen,colorRed),styleCandle,styleThick);
+ _SECTION_END();

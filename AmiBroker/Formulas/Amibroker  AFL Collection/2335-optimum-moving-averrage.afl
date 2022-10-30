@@ -1,0 +1,16 @@
+price = ParamField("field");
+n = Param("periods",35);
+SA=MA(Price,n);
+v1=(StDev(Price,n))^2;
+
+Ca=Null;
+Ca[n]=sa[n];
+
+for(i=n+1; i<BarCount;i++){
+v2[i]=(CA[i-1]-SA[i])^2;
+k[i]=IIf(V2[i]<V1[i],0,1-V1[i]/V2[i]);
+CA[i]=CA[i-1]+K[i]*(SA[i-1]-CA[i-1]);
+}
+Plot(Ca,"OMA("+WriteVal(n,1.0)+")",colorBlue,styleThick);
+Col = IIf(BarsSince(Ref(Ca,-1)>Ca)>BarsSince(Ref(Ca,-1)<Ca),colorBrightGreen,colorRed);
+Plot(C,"",Col,styleBar);

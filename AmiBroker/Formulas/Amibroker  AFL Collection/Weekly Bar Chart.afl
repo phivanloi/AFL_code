@@ -1,0 +1,17 @@
+// Weekly Bar Chart
+_SECTION_BEGIN("Weekly Graph");
+TimeFrameSet( inWeekly );
+wo = O;
+wh = H;
+wl = L;
+wc = C;
+TimeFrameRestore(); 
+PlotOHLC( wo, wh, wl, wc, "Weekly Close", colorRed, styleBar );
+_SECTION_END();
+
+//_SECTION_BEGIN("EMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 22, 1, 200);
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorYellow ),
+ParamStyle("Style") ); 
+//_SECTION_END();

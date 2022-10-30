@@ -1,0 +1,148 @@
+<expert>
+Review of <Name> (<symbol>)
+as of <Date>
+  
+           
+ Open    WriteVal(Open, 8.4) 
+ High    WriteVal(High, 8.4) 
+ Low     WriteVal(Low,  8.4) 
+ Close   WriteVal(Close, 8.4)
+ Change  WriteIf((Close-Ref(Close,-1))<0,"WriteVal(Close-ref(Close,-1),8.4) (WriteVal(((c-ref(c,-1))/Div(ref(c,-1),100)), 0.2)%)")WriteIf((Close-Ref(Close,-1))>0,"WriteVal(Close-ref(Close,-1),8.4) (WriteVal(((c-ref(c,-1))/Div(ref(c,-1),100)), 0.2)%)")
+
+Volume Today: WriteVal(Mul(Volume,100),0.0) shares.
+
+Aroon
+
+WriteIf(Cross(AroonUp(14), AroonDown(14)) AND LinRegSlope(C,144)>0 AND 
+LinRegSlope(LinRegSlope(C,144),5)>0 AND C>Mov(C,200,E)=1,"An Aroon Buy signal was generated today.","writeif(Cross( AroonDown(14),AroonUp(14))  and LinRegSlope(C,144)<0 AND
+LinRegSlope( LinRegSlope(C,144),5)<0 AND LinRegSlope(C,144)<0 AND C<Mov(C,200,E)=1,"An Aroon Sell signal was generated today.","There were no Aroon signals generated today.")")\
+\
+WriteIf((Cross(AroonUp(14),AroonDown(14)) AND LinRegSlope(C,144)>0 AND
+ LinRegSlope( LinRegSlope(C,144),5)>0 AND C>Mov(C,200,E)) + (Cross( AroonDown(14),AroonUp(14))  AND LinRegSlope(C,144)<0 AND LinRegSlope( LinRegSlope(C,144),5)<0 AND
+ LinRegSlope(C,144)<0 AND C<Mov(C,200,E))=0,"\
+\
+WriteIf( BarsSince(Cross(AroonUp(14), AroonDown(14)) AND 
+LinRegSlope(C,144)>0 AND
+ LinRegSlope( LinRegSlope(C,144),5)>0 AND
+C>Mov(C,200,E)) < BarsSince(Cross( AroonDown(14),AroonUp(14))  AND
+LinRegSlope(C,144)<0 AND
+LinRegSlope( LinRegSlope(C,144),5)<0 AND
+ C<Mov(C,200,E)), "  The last signal was a Buy WriteVal(barssince(Cross(AroonUp(14), AroonDown(14)) AND 
+LinRegSlope(C,144)>0 AND
+ LinRegSlope( LinRegSlope(C,144),5)>0 AND
+C>Mov(C,200,E)),0.0) period(s) ago.")\
+\
+WriteIf( BarsSince(Cross(AroonUp(14), AroonDown(14)) AND 
+LinRegSlope(C,144)>0 AND
+ LinRegSlope( LinRegSlope(C,144),5)>0 AND
+C>Mov(C,200,E)) > BarsSince(Cross( AroonDown(14),AroonUp(14))  AND
+LinRegSlope(C,144)<0 AND
+LinRegSlope( LinRegSlope(C,144),5)<0 AND
+C<Mov(C,200,E)), "  The last signal was a Sell WriteVal(BarsSince(Cross( AroonDown(14),AroonUp(14))  AND
+LinRegSlope(C,144)<0 AND
+LinRegSlope( LinRegSlope(C,144),5)<0 AND
+C<Mov(C,200,E)),0.0) period(s) ago.")")\
+
+
+Directional Indicator
+
+WriteIf(Cross(PDI(14)-MDI(14),0) AND ADXR(14)>25 AND LinRegSlope(C,144)>0 AND
+LinRegSlope( LinRegSlope(C,144),5)>0 AND C>Mov(C,200,E)=1,"A Directional Indicator Buy signal was generated today.","writeif(Cross(0, PDI(14)-MDI(14)) and ADXR(14)>25 and LinRegSlope(C,144)<0 and LinRegSlope( LinRegSlope(C,144),5)<0 and
+LinRegSlope(C,144)<0 AND C<Mov(C,200,E)=1,"A Directional Indicator Sell signal was generated today.","There were no Directional Indicator signals generated today.")")\
+\
+WriteIf((Cross( PDI(14)-MDI(14) ,0) AND ADXR(14)>25 AND LinRegSlope(C,144)>0 AND
+LinRegSlope( LinRegSlope(C,144),5)>0 AND C>Mov(C,200,E))+(Cross(0, PDI(14)-MDI(14)) AND ADXR(14)>25 AND LinRegSlope(C,144)<0 AND 
+LinRegSlope( LinRegSlope(C,144),5)<0 AND LinRegSlope(C,144)<0 AND
+C<Mov(C,200,E))=0,
+
+"WriteIf( BarsSince(Cross( PDI(14)-MDI(14) ,0) and ADXR(14)>25 AND 
+LinRegSlope(C,144)>0 AND LinRegSlope( LinRegSlope(C,144),5)>0 AND
+C>Mov(C,200,E)) < BarsSince(Cross(0, PDI(14)-MDI(14)) AND ADXR(14)>25 AND
+LinRegSlope(C,144)<0 AND LinRegSlope( LinRegSlope(C,144),5)<0 AND
+LinRegSlope(C,144)<0 AND C<Mov(C,200,E)), "  The last signal was a Buy WriteVal(BarsSince(Cross( PDI(14)-MDI(14) ,0) and ADXR(14)>25 and LinRegSlope(C,144)>0 and LinRegSlope( LinRegSlope(C,144),5)>0 and
+C>Mov(C,200,E)),0.0) period(s) Ago.")\
+\
+WriteIf( BarsSince(Cross( PDI(14)-MDI(14) ,0) AND ADXR(14)>25 AND LinRegSlope(C,144)>0 AND LinRegSlope( LinRegSlope(C,144),5)>0 AND C>Mov(C,200,E)) > BarsSince(Cross(0, PDI(14)-MDI(14)) AND ADXR(14)>25 AND LinRegSlope(C,144)<0 AND
+LinRegSlope(LinRegSlope(C,144),5)<0 AND LinRegSlope(C,144)<0 AND C<Mov(C,200,E)), "  The last signal was a Sell WriteVal(BarsSince(Cross(0, PDI(14)-MDI(14)) and ADXR(14)>25 and
+LinRegSlope(C,144)<0 AND LinRegSlope( LinRegSlope(C,144),5)<0 AND LinRegSlope(C,144)<0 AND C<Mov(C,200,E)),0.0) period(s) Ago.")")
+
+MACD
+
+WriteIf(Cross(MACD(),Mov(MACD(),9,E)) AND LinRegSlope(C,144)>0 AND LinRegSlope( LinRegSlope(C,144),5)>0 AND C>Mov(C,200,E) =1,"A MACD Buy signal was generated today.","writeif(Cross(Mov(MACD(),9,E),MACD()) and
+LinRegSlope(C,144)<0 AND LinRegSlope( LinRegSlope(C,144),5)<0 AND LinRegSlope(C,144)<0 AND C<Mov(C,200,E) =1,"A MACD Sell signal was generated today.","There were no MACD signals generated today.")")\
+\
+WriteIf((Cross(MACD(),Mov(MACD(),9,E)) AND LinRegSlope(C,144)>0 AND LinRegSlope( LinRegSlope(C,144),5)>0 AND C>Mov(C,200,E))+(Cross(Mov(MACD(),9,E),MACD()) AND 
+LinRegSlope(C,144)<0 AND LinRegSlope( LinRegSlope(C,144),5)<0 AND
+LinRegSlope(C,144)<0 AND C<Mov(C,200,E))=0,"\
+\
+WriteIf( BarsSince(Cross(MACD(),Mov(MACD(),9,E))AND 
+LinRegSlope(C,144)>0 AND
+ LinRegSlope( LinRegSlope(C,144),5)>0 AND
+C>Mov(C,200,E)) < BarsSince(Cross(Mov(MACD(),9,E),MACD())   AND
+LinRegSlope(C,144)<0 AND
+LinRegSlope( LinRegSlope(C,144),5)<0 AND
+ LinRegSlope(C,144)<0 AND
+C<Mov(C,200,E)), "  The last signal was a Buy WriteVal(BarsSince(Cross(MACD(),Mov(MACD(),9,E))AND 
+LinRegSlope(C,144)>0 AND
+ LinRegSlope( LinRegSlope(C,144),5)>0 AND
+C>Mov(C,200,E)),0.0) period(s) Ago.")\
+\
+WriteIf( BarsSince(Cross(MACD(),Mov(MACD(),9,E))AND 
+LinRegSlope(C,144)>0 AND
+ LinRegSlope( LinRegSlope(C,144),5)>0 AND
+C>Mov(C,200,E)) > BarsSince(Cross(Mov(MACD(),9,E),MACD())   AND
+LinRegSlope(C,144)<0 AND
+LinRegSlope( LinRegSlope(C,144),5)<0 AND
+ LinRegSlope(C,144)<0 AND
+C<Mov(C,200,E)), "  The last signal was a Sell WriteVal(BarsSince(Cross(Mov(MACD(),9,E),MACD())   AND
+LinRegSlope(C,144)<0 AND
+LinRegSlope( LinRegSlope(C,144),5)<0 AND
+ LinRegSlope(C,144)<0 AND
+C<Mov(C,200,E)),0.0) period(s) Ago.")")
+
+Stop AND Reverse (SAR)
+
+WriteIf(Cross(C,SAR(.02,.2)) =1,"An SAR Buy signal was generated today. If you are short, this might be a good place to exit. ","writeif(Cross(SAR(.02,.2),C) =1,"An SAR Sell Signal was generated today. if you are long, this might be a good place to exit.","There were no SAR signals generated today.")")\
+\
+WriteIf(Cross(C,SAR(.02,.2))+Cross(SAR(.02,.2),C)=0,"WriteIf( BarsSince(Cross(C,SAR(.02,.2)) 
+) < BarsSince(Cross(SAR(.02,.2),C) ), "  The last signal was a Buy WriteVal(BarsSince(Cross(C,SAR(.02,.2))),0.0)  period(s) Ago.")\
+\
+WriteIf( BarsSince(Cross(C,SAR(.02,.2)) 
+) > BarsSince(Cross(SAR(.02,.2),C) ), "  The last signal was a Sell WriteVal(BarsSince(Cross(SAR(.02,.2),C)),0.0) period(s) Ago.")")
+
+Summary
+
+The current market condition for <Name> is:
+
+       WriteIf( Sum(if(C>mov(C,200,e),1,0) +if(C>mov(C,90,e),.1,0) +if(C>mov(C,30,e),.1,0),1) =1.2,
+      "Very Bullish","writeif(sum(if(c>mov(c,200,e),1,0) +if(c>mov(c,90,e),.1,0) +if(c>mov(c,30,e),.1,0),1) =1.1,
+      "Bullish","writeif(sum(if(c>mov(c,200,e),1,0) +if(c>mov(c,90,e),.1,0) +if(c>mov(c,30,e),.1,0),1) =1,
+     "Mildly Bullish")")")\
+       WriteIf( Sum(if(C>mov(C,200,e),0,-1) +if(C>mov(C,90,e),0,-.1) +if(C>mov(C,30,e),0,-.1),1) =-1.2,
+      "Very Bearish","writeif(sum(if(c>mov(c,200,e),0,-1) +if(c>mov(c,90,e),0,-.1) +if(c>mov(c,30,e),0,-.1),1) =-1.1,
+      "Bearish","writeif(sum(if(c>mov(c,200,e),0,-1) +if(c>mov(c,90,e),0,-.1) +if(c>mov(c,30,e),0,-.1),1) =-1,
+     "Mildly Bearish")")")
+
+The Close is currently WriteIf(C>mov(C,200,e),"Above","Below") it's 200 period moving average.
+The Close is currently WriteIf(C>mov(C,90,e),"Above","Below")  it's 90 period moving average.
+The Close is currently WriteIf(C>mov(C,30,e),"Above","Below")  it's 30 period moving average.
+
+
+WriteIf(LinRegSlope(C,144)>0 AND
+ LinRegSlope( LinRegSlope(C,144),5)>0 AND
+C>Mov(C,200,E) AND ((Cross(AroonUp(14), AroonDown(14)))+(Cross( PDI(14)-MDI(14) ,0)  AND ADXR(14)>25) +(Cross(MACD(),Mov(MACD(),9,E))+(Cross(C,SAR(.02,.2)))    ))>=1,"With strong confirmation from the short term trend and a current Buy signal.",
+"writeif(LinRegSlope(C,144)<0 and
+ LinRegSlope( LinRegSlope(C,144),5)<0 AND
+C<Mov(C,200,E) AND ((Cross( AroonDown(14),AroonUp(14)) )+(Cross(0, PDI(14)-MDI(14)) AND ADXR(14)>25 )+(Cross(Mov(MACD(),9,E),MACD()) )+(Cross(SAR(.02,.2),C))       )>=1,"With strong confirmation from the short term trend and a current Sell signal.")") writeif(C>Mov(C,200,E) and ref(sum(((Cross(AroonUp(14), AroonDown(14)) and LinRegSlope(C,144)>0 and LinRegSlope(LinRegSlope(C,144),5)>0 and C>Mov(C,200,E))+(Cross( PDI(14)-MDI(14) ,0) and ADXR(14)>25 and 
+LinRegSlope(C,144)>0 AND
+LinRegSlope( LinRegSlope(C,144),5)>0 AND
+C>Mov(C,200,E)) +(Cross(Mov(MACD(),9,E),MACD()) AND LinRegSlope(C,144)<0 AND
+LinRegSlope( LinRegSlope(C,144),5)<0 AND LinRegSlope(C,144)<0 AND
+C<Mov(C,200,E))+(Cross(C,SAR(.02,.2)))),9),-1)>=1," There is additional confirmation from one or more Buy signals within the last 10 periods. Refer to the Indicator Analysis table above for details. ",
+
+"writeif(C<Mov(C,200,E) and ref(sum(((Cross( AroonDown(14),AroonUp(14)) and
+LinRegSlope(C,144)<0 AND LinRegSlope( LinRegSlope(C,144),5)<0 AND LinRegSlope(C,144)<0 AND C<Mov(C,200,E) )+(Cross(0, PDI(14)-MDI(14)) AND ADXR(14)>25 AND LinRegSlope(C,144)<0 AND LinRegSlope( LinRegSlope(C,144),5)<0 AND
+LinRegSlope(C,144)<0 AND C<Mov(C,200,E) )+(Cross(Mov(MACD(),9,E),MACD()) AND
+LinRegSlope(C,144)<0 AND LinRegSlope( LinRegSlope(C,144),5)<0 AND LinRegSlope(C,144)<0 AND C<Mov(C,200,E))+(Cross(SAR(.02,.2),C))),9),-1)>=1," There is additional confirmation from one or more Sell signals within the last 10 periods. Refer to the Indicator Analysis table above for details.","There is no additional confirmation from trading signals generated over the last ten periods.")")
+
+

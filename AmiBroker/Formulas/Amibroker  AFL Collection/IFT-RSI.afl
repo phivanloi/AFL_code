@@ -1,0 +1,23 @@
+SetBarsRequired(10000,0);
+
+pr_d = (H+L)/2; 
+len_d = 10; 
+maxh_d = HHV(pr_d,len_d); 
+minl_d = LLV(pr_d,len_d); 
+Array1_d = .33*2*((pr_d-minl_d)/(maxh_d-minl_d)-.5); 
+val1_d = AMA(Array1_d,.67); 
+value1_d = IIf(val1_d>.99,.999,IIf(val1_d<-.99,-.999,val1_d)); 
+Array2_d = .5*log((1+value1_d)/(1-value1_d)); 
+fish_d = AMA(Array2_d,.5); 
+
+varOverboughtSignal = 0.20;
+varOversoldSignal = -0.20;
+PlotGrid(varOverboughtSignal, colorLightGrey);
+PlotGrid(varOversoldSignal, colorLightGrey);
+
+
+
+
+Plot(fish_d, "IFT_d", colorRed, styleThick);
+
+Title="IFT-RSI TimeFrame";

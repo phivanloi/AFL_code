@@ -1,0 +1,33 @@
+//Pattern Trading System 6
+a= (H>Ref(H,-1) AND L>Ref(L,-1));
+b= (H<Ref(H,-1) AND L<Ref(L,-1));
+state=IIf(BarsSince(a)<BarsSince(b),1,0);
+st=state>Ref(state,-1);
+st1=state<Ref(state,-1);
+st2=state==Ref(state,-1);
+//Buy=BarsSince(A)<BarsSince(b);
+//Sell =BarsSince(A)>BarsSince(b);
+PlotShapes( shapeUpArrow * st ,6,0,L); 
+PlotShapes( shapeDownArrow *st1 ,1,0,H);
+col=IIf(state == 1 ,51,IIf(state ==0,4,1));
+Plot(C,"",Col,128);
+
+_SECTION_BEGIN("");
+_N(Title = "{{NAME}} - {{INTERVAL}} {{DATE}}:: "+_DEFAULT_NAME()+" :: {{OHLCX}} {{VALUES}}" 
++"\n"+EncodeColor(colorYellow)+
+WriteIf(st,"EXIT all Short positions\nif trading long positions, enter long Now-\nOR at the market price on tomorrow's Open with stop="+EncodeColor(4)+WriteVal(L-.75*ATR(5),1.4)+",","")+
+WriteIf(st1,"exit all long positions today with a Market On Close (MOC) order\nOR at the market price on tomorrow's Open with stop="+EncodeColor(4)+WriteVal(H+.75*ATR(5),1.4)+",","")+ 
+WriteIf( st2 ,"No trading signals today.","") );
+_SECTION_END(); 
+
+Filter =  st OR st1 OR st2  ;
+AddColumn(C,"close",1.2);
+AddColumn(st,"exit short posti",1.2);
+AddColumn(st1,"exit long posti",1.2);
+AddColumn(st2,"no signal",1.2);
+                            
+                            
+/*this system  works by a very simple pattern. It enters long when the price closes above the High 
+of two days ago AND does it on more than 75% above the monthly average Volume. 
+It closes the long position AND enters a Short position when the price closes below the Low 
+of two days ago AND does it on more then 75% above the average monthly Volume.*/

@@ -1,0 +1,62 @@
+<HTML><HEAD>
+<TITLE>ichimokuP 1 2 31 - Backtest Report</TITLE><STYLE>
+<!--
+BODY { font-family:"Tahoma,Arial,Helvetica,Sans Serif"; font-size:8pt; }
+TD {  font-size:8pt; text-align: right; white-space: nowrap; }
+TH {  font-size:8pt; text-align: left; font-weight: normal; }
+.CH { text-align: right; font-weight:bold; }
+.CHL { text-align: left; font-weight:bold; }
+.BIG { font-size:10pt; font-weight:bold; text-align: center; }
+.TAB { font-size:10pt;  text-align: center; text-color:#CCCCCC; }
+.SELTAB { font-size:10pt; font-weight:bold; text-align: center; text-color:#000000; }
+.good { color:#006600; }
+.bad { color:#880000; }
+.neut { color:#000088; }
+a:active { background-color:#DDDDFF; }
+-->
+</STYLE>
+<SCRIPT>
+var curPart = 0;
+function showPart( i )
+{
+	 document.getElementById("part" + curPart ).style.display = "none";
+	 document.getElementById("part" + i ).style.display = "";
+	 curPart = i;
+}
+</SCRIPT>
+</HEAD>
+<BODY>
+<DIV ALIGN=CENTER><FONT class='TAB'><a href='stats.html'>Statistics</a> | <a href='charts.html'>Charts</a> | <a href='trades.html'><FONT class='SELTAB'>Trades</FONT></a> | <a href='formula.html'>Formula</a> | <a href='settings.html'>Settings</a> | <a href='symbols.html'>Symbols</a> | <a href='montecarlo.html'>Monte Carlo</a></FONT></DIV><br>
+<TABLE CELLSPACING=0 CELLPADDING=2 WIDTH=100%>
+<TR bgcolor="#DDDDDD"><TH COLSPAN=5 CLASS="BIG" >Trades</TH></TR>
+</TABLE><P><FONT class='BIG'>Trade list</FONT><DIV ID='partnavigation'></DIV>
+<TABLE width='800' CELLSPACING=3>
+<TR><TH class='CH'>Ticker</TH><TH class='CH'>Trade</TH><TH class='CH'>Entry</TH><TH class='CH'>Exit</TH><TH class='CH'>% change</TH><TH class='CH'>Profit</TH><TH class='CH'>Shares</TH><TH class='CH'>Pos. value</TH><TH class='CH'>Cum. profit</TH><TH class='CH'># bars</TH><TH class='CH'>Profit/bar</TH><TH class='CH'>MAE/MFE</TH><TH class='CH'>Scale In/Out</TH></TR><TBODY id='part0'><TR><TD>AGP</TD><TD>Long</TD><TD>6/9/2022 9:00:00 AM<BR>20</TD><TD>6/9/2022 11:00:00 AM<BR>19.5</TD><TD>-2.50%</TD><TD>-5.00<BR>-2.50%</TD><TD>10</TD><TD>200.00</TD><TD>-5.00</TD><TD>9</TD><TD>-0.56</TD><TD>-2.50%<BR>0.00%</TD><TD>0/0</TD></TR>
+<TR><TD>AGP</TD><TD>Short</TD><TD>6/9/2022 11:00:00 AM<BR>19.5</TD><TD>6/10/2022 2:00:00 PM<BR>20.2</TD><TD>3.59%</TD><TD>-42.00<BR>-3.59%</TD><TD>60</TD><TD>1170.00</TD><TD>-47.00</TD><TD>28</TD><TD>-1.50</TD><TD>-3.59%<BR>-0.00%</TD><TD>0/0</TD></TR>
+<TR><TD>ABB</TD><TD>Short (trail)</TD><TD>6/10/2022 2:00:00 PM<BR>11.5</TD><TD>6/16/2022 9:00:00 AM<BR>10.7</TD><TD>-6.96%</TD><TD>692.51<BR>6.96%</TD><TD>865.6401</TD><TD>9954.86</TD><TD>645.51</TD><TD>66</TD><TD>10.49</TD><TD>-0.00%<BR>22.61%</TD><TD>0/0</TD></TR>
+<TR><TD>ART</TD><TD>Long (trail)</TD><TD>6/16/2022 9:00:00 AM<BR>5.1</TD><TD>6/16/2022 11:15:00 AM<BR>4.8</TD><TD>-5.88%</TD><TD>-626.32<BR>-5.88%</TD><TD>2087.72</TD><TD>10647.37</TD><TD>19.20</TD><TD>10</TD><TD>-62.63</TD><TD>-5.88%<BR>0.00%</TD><TD>0/0</TD></TR>
+<TR><TD>ACL</TD><TD>Long (trail)</TD><TD>6/16/2022 11:15:00 AM<BR>25.3</TD><TD>6/17/2022 9:15:00 AM<BR>23.55</TD><TD>-6.92%</TD><TD>-693.16<BR>-6.92%</TD><TD>396.0892</TD><TD>10021.06</TD><TD>-673.96</TD><TD>13</TD><TD>-53.32</TD><TD>-6.92%<BR>0.79%</TD><TD>0/0</TD></TR>
+<TR><TD>ABT</TD><TD>Long (trail)</TD><TD>6/17/2022 9:15:00 AM<BR>41.6</TD><TD>6/20/2022 9:30:00 AM<BR>38.9</TD><TD>-6.49%</TD><TD>-540.00<BR>-6.49%</TD><TD>200</TD><TD>8320.00</TD><TD>-1213.96</TD><TD>22</TD><TD>-24.55</TD><TD>-9.37%<BR>0.00%</TD><TD>0/0</TD></TR>
+<TR><TD>ABT</TD><TD>Short (trail)</TD><TD>6/20/2022 9:30:00 AM<BR>40.4</TD><TD>6/21/2022 9:15:00 AM<BR>40.35</TD><TD>-0.12%</TD><TD>1.00<BR>0.12%</TD><TD>20</TD><TD>808.00</TD><TD>-1212.96</TD><TD>20</TD><TD>0.05</TD><TD>-0.00%<BR>4.33%</TD><TD>0/0</TD></TR>
+<TR><TD>ANV</TD><TD>Short (trail)</TD><TD>6/21/2022 9:15:00 AM<BR>61</TD><TD>6/21/2022 9:30:00 AM<BR>60.9</TD><TD>-0.16%</TD><TD>14.41<BR>0.16%</TD><TD>144.1184</TD><TD>8791.22</TD><TD>-1198.55</TD><TD>2</TD><TD>7.21</TD><TD>-0.00%<BR>4.92%</TD><TD>0/0</TD></TR>
+<TR><TD>BRC</TD><TD>Short (trail)</TD><TD>6/21/2022 9:30:00 AM<BR>13.4</TD><TD>6/21/2022 9:45:00 AM<BR>13.3</TD><TD>-0.75%</TD><TD>9.00<BR>0.75%</TD><TD>89.99999</TD><TD>1206.00</TD><TD>-1189.55</TD><TD>2</TD><TD>4.50</TD><TD>-0.00%<BR>6.72%</TD><TD>0/0</TD></TR>
+<TR><TD>AMS</TD><TD>Short (trail)</TD><TD>6/21/2022 9:45:00 AM<BR>9</TD><TD>6/21/2022 2:45:00 PM<BR>8.8</TD><TD>-2.22%</TD><TD>2.00<BR>2.22%</TD><TD>10</TD><TD>90.00</TD><TD>-1187.55</TD><TD>16</TD><TD>0.12</TD><TD>-0.00%<BR>8.89%</TD><TD>0/0</TD></TR>
+<TR><TD>AGG</TD><TD>Long</TD><TD>6/21/2022 2:45:00 PM<BR>37.8</TD><TD>6/22/2022 9:15:00 AM<BR>37.35</TD><TD>-1.19%</TD><TD>-104.96<BR>-1.19%</TD><TD>233.2443</TD><TD>8816.63</TD><TD>-1292.51</TD><TD>4</TD><TD>-26.24</TD><TD>-1.19%<BR>0.00%</TD><TD>0/0</TD></TR>
+<TR><TD>AAM</TD><TD>Short (trail)</TD><TD>6/22/2022 9:15:00 AM<BR>11.9</TD><TD>6/22/2022 11:15:00 AM<BR>12</TD><TD>0.84%</TD><TD>-3.00<BR>-0.84%</TD><TD>30</TD><TD>357.00</TD><TD>-1295.51</TD><TD>9</TD><TD>-0.33</TD><TD>-0.84%<BR>4.20%</TD><TD>0/0</TD></TR>
+<TR><TD>ABI</TD><TD>Short (max loss)</TD><TD>6/22/2022 11:15:00 AM<BR>46</TD><TD>6/27/2022 9:00:00 AM<BR>53.6</TD><TD>16.52%</TD><TD>-152.00<BR>-16.52%</TD><TD>20</TD><TD>920.00</TD><TD>-1447.51</TD><TD>52</TD><TD>-2.92</TD><TD>-16.52%<BR>-0.00%</TD><TD>0/0</TD></TR>
+<TR><TD>ABI</TD><TD>Long (max loss)</TD><TD>6/27/2022 9:00:00 AM<BR>53.6</TD><TD>6/27/2022 9:30:00 AM<BR>47</TD><TD>-12.31%</TD><TD>-1054.63<BR>-12.31%</TD><TD>159.7927</TD><TD>8564.89</TD><TD>-2502.14</TD><TD>3</TD><TD>-351.54</TD><TD>-12.31%<BR>0.00%</TD><TD>0/0</TD></TR>
+<TR><TD>BIC</TD><TD>Short (trail)</TD><TD>6/27/2022 9:30:00 AM<BR>26.6</TD><TD>6/29/2022 2:15:00 PM<BR>27.9</TD><TD>4.89%</TD><TD>-156.00<BR>-4.89%</TD><TD>120</TD><TD>3192.00</TD><TD>-2658.14</TD><TD>55</TD><TD>-2.84</TD><TD>-4.89%<BR>0.38%</TD><TD>0/0</TD></TR>
+<TR><TD>ANV</TD><TD>Long</TD><TD>6/29/2022 2:15:00 PM<BR>56.8</TD><TD>6/30/2022 11:15:00 AM<BR>55.2</TD><TD>-2.82%</TD><TD>-207.21<BR>-2.82%</TD><TD>129.5084</TD><TD>7356.08</TD><TD>-2865.35</TD><TD>14</TD><TD>-14.80</TD><TD>-8.98%<BR>0.35%</TD><TD>0/0</TD></TR>
+<TR><TD>ADS</TD><TD>Short (trail)</TD><TD>6/30/2022 11:15:00 AM<BR>19.5</TD><TD>7/4/2022 11:00:00 AM<BR>19.5</TD><TD>0.00%</TD><TD>-0.00<BR>-0.00%</TD><TD>366.6085</TD><TD>7148.86</TD><TD>-2865.35</TD><TD>40</TD><TD>-0.00</TD><TD>-0.00%<BR>6.15%</TD><TD>0/0</TD></TR>
+<TR><TD>ADS</TD><TD>Long (trail)</TD><TD>7/4/2022 11:00:00 AM<BR>19.5</TD><TD>7/5/2022 9:15:00 AM<BR>18.45</TD><TD>-5.38%</TD><TD>-384.94<BR>-5.38%</TD><TD>366.6085</TD><TD>7148.86</TD><TD>-3250.29</TD><TD>14</TD><TD>-27.50</TD><TD>-5.38%<BR>0.00%</TD><TD>0/0</TD></TR>
+<TR><TD>ABT</TD><TD>Short (trail)</TD><TD>7/5/2022 9:15:00 AM<BR>37.35</TD><TD>7/5/2022 10:15:00 AM<BR>39.8</TD><TD>6.56%</TD><TD>-24.50<BR>-6.56%</TD><TD>10</TD><TD>373.50</TD><TD>-3274.79</TD><TD>5</TD><TD>-4.90</TD><TD>-6.56%<BR>0.13%</TD><TD>0/0</TD></TR>
+<TR><TD>CLW</TD><TD>Short (trail)</TD><TD>7/5/2022 10:15:00 AM<BR>33.5</TD><TD>7/21/2022 11:00:00 AM<BR>28.7</TD><TD>-14.33%</TD><TD>480.00<BR>14.33%</TD><TD>100</TD><TD>3350.00</TD><TD>-2794.79</TD><TD>244</TD><TD>1.97</TD><TD>-0.00%<BR>19.85%</TD><TD>0/0</TD></TR>
+<TR><TD>AGG</TD><TD>Long</TD><TD>7/21/2022 11:00:00 AM<BR>37.9</TD><TD>7/22/2022 2:45:00 PM<BR>37.75</TD><TD>-0.40%</TD><TD>-15.00<BR>-0.40%</TD><TD>99.99999</TD><TD>3790.00</TD><TD>-2809.79</TD><TD>31</TD><TD>-0.48</TD><TD>-0.53%<BR>0.79%</TD><TD>0/0</TD></TR>
+<TR><TD>AGG</TD><TD>Short</TD><TD>7/22/2022 2:45:00 PM<BR>37.75</TD><TD>8/1/2022 2:15:00 PM<BR>37.5</TD><TD>-0.66%</TD><TD>47.79<BR>0.66%</TD><TD>191.1684</TD><TD>7216.61</TD><TD>-2762.00</TD><TD>119</TD><TD>0.40</TD><TD>-0.00%<BR>4.64%</TD><TD>0/0</TD></TR>
+<TR><TD>AGG</TD><TD>Long</TD><TD>8/1/2022 2:15:00 PM<BR>37.5</TD><TD>8/5/2022 9:45:00 AM<BR>37.15</TD><TD>-0.93%</TD><TD>-67.80<BR>-0.93%</TD><TD>193.7173</TD><TD>7264.40</TD><TD>-2829.80</TD><TD>68</TD><TD>-1.00</TD><TD>-2.80%<BR>0.13%</TD><TD>0/0</TD></TR>
+<TR><TD>ABR</TD><TD>Long (trail)</TD><TD>8/5/2022 9:45:00 AM<BR>12.95</TD><TD>8/11/2022 10:15:00 AM<BR>12.65</TD><TD>-2.32%</TD><TD>-3.00<BR>-2.32%</TD><TD>10</TD><TD>129.50</TD><TD>-2832.80</TD><TD>83</TD><TD>-0.04</TD><TD>-2.32%<BR>5.02%</TD><TD>0/0</TD></TR>
+<TR><TD>AIC</TD><TD>Long (trail)</TD><TD>8/11/2022 10:15:00 AM<BR>11.4</TD><TD>8/11/2022 10:45:00 AM<BR>10.8</TD><TD>-5.26%</TD><TD>-210.00<BR>-5.26%</TD><TD>350</TD><TD>3990.00</TD><TD>-3042.80</TD><TD>3</TD><TD>-70.00</TD><TD>-5.26%<BR>0.00%</TD><TD>0/0</TD></TR>
+<TR><TD>AGR</TD><TD>Short</TD><TD>8/11/2022 10:45:00 AM<BR>12.2</TD><TD>8/12/2022 1:45:00 PM<BR>12.3</TD><TD>0.82%</TD><TD>-57.32<BR>-0.82%</TD><TD>573.1593</TD><TD>6992.54</TD><TD>-3100.12</TD><TD>28</TD><TD>-2.05</TD><TD>-0.82%<BR>3.28%</TD><TD>0/0</TD></TR>
+<TR><TD>AAS</TD><TD>Long</TD><TD>8/12/2022 1:45:00 PM<BR>20.5</TD><TD>8/15/2022 10:00:00 AM<BR>20.2</TD><TD>-1.46%</TD><TD>-101.49<BR>-1.46%</TD><TD>338.3038</TD><TD>6935.23</TD><TD>-3201.61</TD><TD>11</TD><TD>-9.23</TD><TD>-2.44%<BR>0.00%</TD><TD>0/0</TD></TR>
+<TR><TD>AAS</TD><TD>Open Short</TD><TD>8/15/2022 10:00:00 AM<BR>20.3</TD><TD>8/15/2022 3:00:00 PM<BR>20.2</TD><TD>-0.49%</TD><TD>33.66<BR>0.49%</TD><TD>336.6373</TD><TD>6833.74</TD><TD>-3167.94</TD><TD>17</TD><TD>1.98</TD><TD>-0.00%<BR>1.97%</TD><TD>0/0</TD></TR>
+</TABLE></TBODY></TABLE><SCRIPT>document.getElementById('partnavigation').innerHTML="<P>Pages: <a href='javascript:void(0)' onclick='showPart(0)'>1</a> | </P>";</SCRIPT></BODY></HTML>

@@ -1,0 +1,40 @@
+SetChartOptions(0,chartShowArrows|chartShowDates);
+SetChartBkGradientFill( ParamColor("Inner panel upper",colorBlack),ParamColor("Inner panel lower",colorBlack));
+
+
+ChannelPeriods = Param("Channel Periods",10,1,50,1);
+AvgPeriods = Param("Average Periods",21,1,50,1);
+OverBought = Param("Over Bought Line",64,0,100,1);
+OverSold = Param("Over Sold Line",-64,-100,0,1);
+ColTCI = ParamColor("TCI Line Color",colorBrown);
+ColOB = ParamColor("Over Bought Color",colorRed);
+ColOS = ParamColor("Over Sold",colorGreen);
+XSpace = Param("GraphXSpace",7,0,20,0.5);
+
+n1 = ChannelPeriods; // Channel periodsdefault is 10.
+n2 = AvgPeriods; // Average periodsdefault is 21.
+
+AP = Avg; //Typical Price
+ESA = EMA(AP, n1);
+D = EMA(abs(AP - ESA), n1);
+CI = (AP - ESA) / (0.015 * D);
+TCI = EMA(CI, n2);
+
+WaveTrend1 = TCI;
+WaveTrend2 = MA(WaveTrend1,4);
+
+myColor = IIf (WaveTrend1 > WaveTrend2, colorBrightGreen,IIf (WaveTrend2 > WaveTrend1, colorRed ,colorLightYellow));
+
+Plot(WaveTrend1,"WTrnd1 ",myColor,styleDots | styleThick);
+//Plot(WaveTrend2,"WaveTrend2",colorLightYellow,styleDashed); 
+Plot(WaveTrend2,"WTrnd2",ParamColor("Signal Line color", colorLightBlue),styleDots); 
+
+Plot(OverBought,"OB Line",ColOB,8+16);//|styleNoLabel);//8+16
+Plot(OverSold,"OS Line",ColOS,8+16);//|styleNoLabel);
+Plot(n1,"Channel Periods",colorLightBlue,styleNoLabel |styleNoRescale |styleNoDraw);
+Plot(n2,"Avg Periods",colorBlue,styleNoLabel |styleNoRescale | styleNoDraw);
+Plot(0,"",colorRed,styleNoLabel);
+//Plot(100,"",9 ,styleOwnScale | styleArea | styleNoLabel,-5,100);
+//Background pane coloring
+
+GraphXSpace = XSpace; 

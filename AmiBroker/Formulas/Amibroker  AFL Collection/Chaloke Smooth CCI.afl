@@ -1,0 +1,14 @@
+///// Chaloke Smooth CCI ////// 
+
+x=Param("CCI Period 3 - 50",14,3,50,1); 
+x1=CCI(x); 
+Y=Param("Smooth Factor 3 - 15",7,3,15,1); 
+Y2=DEMA(x1,Y); 
+Z=Param("Signal Line 3 - 9",3,3,9,1); 
+Z2=MA(Y2,Z); 
+Plot(X1,"CCI",colorPink,1); 
+Plot(Y2,"Chaloke Smooth CCI",colorBlue,4); 
+Plot(Z2,"Signal",colorRed,4); 
+PlotGrid(100); 
+PlotGrid(0); 
+PlotGrid(-100);

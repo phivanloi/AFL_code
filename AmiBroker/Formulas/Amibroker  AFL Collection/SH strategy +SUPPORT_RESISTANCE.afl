@@ -1,0 +1,330 @@
+_SECTION_BEGIN("SUPPORT/RESISTANCE");
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorPink ), styleNoTitle | styleCandle ); 
+
+//This is an updated vesion. I have removed all references to "bar+1", 
+ //which had made it look like it was referencing to the future (although it was NOT).
+ // The the code is also a bit cleaner.
+ //The backtest results are the same as previous Version.
+
+ /*========== ========= ========= ========= ========= ========= ========= ========= =====
+ Global Settings
+ ============ ========= ========= ========= ========= ========= ========= ========= ===*/
+ SetFormulaName( "TT Support Resistance 1.2");
+ SetOption("InitialEquity",1000000);
+ //SetOption( "NoDefaultColumn s", True );
+ SetOption("CommissionMode",2); //$$ per trade
+ SetOption("CommissionAmount" ,0);
+ SetOption("MarginRequirement" ,10);
+ SetOption("UsePrevBarEquityForPosSizing", True);
+ SetOption("UseCustomBacktestProc" , True );
+
+ SetTradeDelays( 0, 0, 0, 0 );
+
+ /*========== ========= ========= ========= ========= ========= ========= ========= =====
+ User-defined Functions
+ ============ ========= ========= ========= ========= ========= ========= ========= ===*/
+ function Support(p)
+ {
+ sup = LLV(Low, p);
+ sup[0] = Low[0];
+
+ p = Min(p,BarCount) ; // avoid display error
+ //add (before for (i = 1; i < p; i++))
+
+ for (i = 1; i < p; i++)
+ {
+ if(Low[i] < sup[i-1]) sup[i] = Low[i];
+ else sup[i] = sup[i-1];
+ } 
+ return sup;
+ }
+
+ function Resistance(p)
+ {
+ res = HHV(High, p);
+ res[0] = High[0];
+ for (i = 1; i < p; i++)
+ {
+ if(High[i] > res[i-1]) res[i] = High[i];
+ else res[i] = res[i-1];
+ }
+ return res;
+ } 
+
+ function OptimizeNot( a1, a2, a3, a4, a5)
+ {
+ return a2;
+ }
+
+ /*========== ========= ========= ========= ========= ========= ========= ========= =====
+ Entry and Exit Rules
+ ============ ========= ========= ========= ========= ========= ========= ========= ===*/
+ fast = Optimize("Fast" , 20, 5, 105, 5);//20=4 WEEKS
+ slow = Optimize("Slow" , 140, 20, 420, 20);//140DAYS= 28WEEKS
+ FastRes = Resistance(fast) ;
+ FastSup = Support(fast) ;
+ SlowRes = Resistance(slow) ;
+ SlowSup = Support(slow) ;
+ heat = 0.05;
+
+ // determine longer term trend
+ // Note: could have problem if current bar is outside of all previous bars
+ // the trend can also be calculated within main loop, but put here for clarity
+ trend[0] = 0;
+ for(bar= 1; bar < BarCount; bar++) // bar must start from 1, otherwise trend calculation is wrong
+ {
+ if(High[bar] > SlowRes[bar- 1]) trend[bar] = 1;
+ else if(Low[bar] < SlowSup[bar- 1]) trend[bar] = -1;
+ else trend[bar] = trend[bar-1] ;
+ }
+
+ LastPosition = 0; // 1 - long; -1 - short
+ PositionRiskStop = 0;
+
+ Buy = Sell = Short = Cover = 0; // this has to be set otherwise they are undefined!!! weird
+ // main loop
+ for(bar = 5; bar < BarCount-1; bar++) // give some bars for the system to stablize
+ {
+ // Exit position by protection stop
+ if(LastPosition == 1)
+ {
+ // Sell at stop
+ if(PositionRiskStop > Low[bar] ) // skip if the signal price only touch (=) the low
+ {
+ // We just calculate the exact price to simulate Ed's skid 
+ stopPrice = PositionRiskStop;
+ ff = Min(Open[bar] , stopPrice) - Low[bar];
+ stopPrice = Min(Open[bar] , stopPrice) - 0.5*ff;
+ Sell[bar] = 1;
+ SellPrice[bar] = stopPrice;
+ TradePrice[bar] = stopPrice;
+ LastPosition = 0;
+ }
+ else // move the protection stop
+ {
+ PositionRiskStop = FastSup[bar] ;
+ }
+ }
+ else if(LastPosition == -1)
+ {
+ // Cover at stop
+ if(PositionRiskStop < High[bar]) // skip if the signal price only touch (=) the high
+ {
+ stopPrice = PositionRiskStop;
+ ff = High[bar] - Max(Open[bar] , stopPrice);
+ stopPrice = Max(Open[bar] , stopPrice) + 0.5*ff;
+ Cover[bar] = 1;
+ CoverPrice[bar] = stopPrice;
+ TradePrice[bar] = stopPrice;
+ LastPosition = 0;
+ }
+ else // move the protection stop
+ {
+ PositionRiskStop = FastRes[bar] ;
+ }
+ }
+ // Enter position only when last position has been closed
+ else { 
+ if(trend[bar- 1] == 1)
+ {
+ // buy at stop 
+ if( fastRes[bar- 1] < High[bar]) 
+ {
+ ff = High[bar] - Max(Open[bar] , FastRes[bar- 1]);
+ stopPrice = Max(Open[bar] , FastRes[bar- 1]) + 0.5*ff;
+ f = heat/(FastRes[ bar-1] - FastSup[bar- 1]);
+ Buy[bar] = 1;
+ BuyPrice[bar] = stopPrice;
+ PositionSize[ bar] = f; //this value is passed to CBT for position sizing
+ LastPosition = 1;
+ PositionRiskStop = FastSup[bar] ;
+ TradePrice[bar] = stopPrice;
+ }
+ }
+ else if(trend[bar- 1] == -1)
+ { 
+ // short at stop
+ if( FastSup[bar- 1] > Low[bar]) 
+ {
+ ff = Min(Open[bar] , FastSup[bar- 1]) - Low[bar];
+ stopPrice = Min(Open[bar] , FastSup[bar- 1]) - 0.5*ff;
+ f = heat/(FastRes[ bar-1] - FastSup[bar- 1]);
+ Short[bar] = 1;
+ ShortPrice[bar] = stopPrice;
+ PositionSize[ bar] = f; //this value is passed to CBT for position sizing
+ LastPosition = -1;
+ PositionRiskStop = FastRes[bar] ;
+ TradePrice[bar] = stopPrice;
+ }
+ }
+ }
+ }
+
+ // close final day for accounting purpose
+ bar = BarCount-1;
+ if(LastPosition == 1) { Sell[bar] = 1; SellPrice[bar] = (Low[bar]+Close[ bar])/2; }
+ else if(LastPosition == -1) { Cover[bar] = 1; CoverPrice[bar] = (High[bar]+Close[ bar])/2; }
+
+ /*========== ========= ========= ========= ========= ========= ========= ========= =====
+ Automatic Analysis Action Options
+ ============ ========= ========= ========= ========= ========= ========= ========= ===*/
+ AAAction = Status("action" );
+ if(AAAction == actionIndicator)
+ {
+ Plot(FastRes, "FastRes4WK- 20", colorRed);
+ Plot(SlowRes, "SlowRes 28WK-140", colorYellow) ;
+ Plot(FastSup, "FastSup20", colorGreen);
+ Plot(SlowSup, "SlowSup140" , colorBlue);
+ }
+ else if(AAAction == actionExplore)
+ {
+ Filter = Buy OR Sell; 
+ //AddColumn( Symbol,"Symbol" );
+ //AddColumn( DateTime(), "Date", formatDateTime ); 
+ //AddDefaultcolumns ;
+
+ //AddColumn( O, "Open");
+ //AddColumn( H, "High");
+ //AddColumn( L, "Low");
+ AddColumn(C, "Close");
+ AddColumn(FastRes, "1FastRes");
+ AddColumn(SlowRes, "2SlowRes");
+ AddColumn(FastSup, "1FastSup");
+ AddColumn(SlowSup, "2SlowSup");
+ AddColumn(Trend, "Trend");
+ AddColumn(IIf( Buy, Asc("B"), IIf(Sell, Asc("S"), IIf(Short, Asc("H"), IIf(Cover, Asc("C"), 0)))) , "Signal", formatChar);
+ //AddColumn( TradePrice, "TradePrice" );
+ shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+ PlotShapes( shape, IIf( Buy, colorGreen, colorRed ), 0, IIf( Buy, Low, High ) );
+
+ }
+ else if(AAAction == actionPortfolio)
+ {
+ bo = GetBacktesterObject ();
+ bo.PreProcess( ); // Initialize backtester
+ for( bar=0; bar < BarCount; bar++)
+ {
+ eq = bo.Equity;
+ for ( sig=bo.GetFirstSignal(bar); sig; sig=bo.GetNextSignaL(bar) )
+ {
+ if (sig.isExit( ))
+ {
+ if(bo.ExitTrade( bar,sig.symbol, sig.Price) )
+ { 
+ _TRACE("EXIT: " + sig.symbol + "@" + sig.Price);
+ }
+ }
+ }
+
+ // update stats after closing trades
+ bo.UpdateStats( bar, 1 );
+
+ for ( sig=bo.GetFirstSignal(bar); sig; sig=bo.GetNextSignaL(bar)) 
+ { 
+ if (sig.isEntry( )) 
+ { 
+ // sig.PosSize is passed from Phase I.
+ shares = round((eq*sig.PosSize)/ 100)*100;
+ ps = shares * sig.Price;
+
+ if(bo.EnterTrade( bar, sig.symbol, sig.IsLong, sig.Price, ps, sig.PosScore, sig.RoundLotSize )) 
+ {
+ _TRACE("ENTRY: " + sig.symbol + " @" + sig.Price + " PosScore=" + sig.PosScore + " PosSize=" + ps);
+ }
+ }
+ }
+
+ bo.UpdateStats( bar,1); // MAE/MFE is updated when timeinbar is set to 1.
+ bo.UpdateStats( bar,2);
+ }
+ bo.PostProcess( ); // Finalize backtester
+ }
+ /*========== ========= ========= ========= ========= ========= ========= ========= =====
+ End of Formula
+ ============ ========= ========= ========= ========= ========= ========= ========= ===*/
+
+ _SECTION_END( );
+
+_SECTION_BEGIN("MA10--30-nandu sam ver 2");
+P = ParamField("Price field",-1);
+
+//30 Minute
+TimeFrameSet(in15Minute*2);
+X=EMA( C,10);
+Z=EMA( C,30);
+R=X-Z;
+RM=EMA(R,5);
+
+TimeFrameRestore();
+
+
+
+//90 Minute
+TimeFrameSet(inHourly*1.5);
+X1=EMA( C,10);
+Z1=EMA( C,30);
+R1=X1-Z1;
+RM1=EMA(R1,5);
+TimeFrameRestore();
+
+RM=
+
+
+
+Color30=IIf(RM>Ref(RM,-1),colorGreen,colorRed);
+Color90=IIf(RM1>Ref(RM1,-1),colorLightBlue,colorCustom13);
+Plot(2,"",Color30, /* choose color */styleOwnScale|styleArea, -0.5, 100 );
+Plot(4,"",Color90, /* choose color */styleOwnScale|styleArea, -0.5, 100 );
+_SECTION_END();
+
+_SECTION_BEGIN("VOLUME_Hight of Volume Bars Control");
+
+
+PlotVOL = ParamToggle( "plot Volume?","No| Yes",0);
+
+VolColor = (C>O OR (C==O AND
+(H-C)<=(C-L) ))*ParamColor( "VUpColor" ,colorBlueGrey) +
+
+(C<O OR (C==O AND
+(H-C)>(C-L)) )*ParamColor( "VDnColor" ,colorPink) ;
+
+VolScale = Param("1/Vol. Height (TimeBar chart)(fraction of
+window) 5=1/5=20%",5, 2, 100, 1.0) ; // Timebars
+
+if (PlotVOL >0) 
+
+{
+
+Vheight = VolScale;
+
+Plot(Prec(Volume ,0),"V",VolColor,
+styleNoTitle| styleOwnScale| styleNoLabel| styleThick| ParamStyle( "VStyle", styleHistogram,maskHistogram| styleNoLabel) ,Vheight ); }
+//Plot(MA(Volume,50),"",colorLightBlue,styleLine);
+_SECTION_END();
+
+_SECTION_BEGIN("5EMAH-L-CLOUD");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorPink ), styleNoTitle | styleCandle ); 
+
+P = ParamField("Price field",-1);
+Periods = Param("Periods",20, 2, 300, 1, 10 );
+
+D=.00005*C;
+X=EMA( H,5);
+XT=X+D;
+XB=X-D;
+PlotOHLC(XT,XT,XB,XB,"",ColorRGB(150,50,50),styleCloud|styleNoLabel);
+
+
+Z=EMA( L,5);
+ZT=Z+D;
+ZB=Z-D;
+PlotOHLC(ZT,ZT,ZB,ZB,"",ColorRGB(50,150,50),styleCloud|styleNoLabel);
+
+PlotOHLC(XT,XT,ZB,ZB,"",ColorRGB(50,50,50),styleCloud|styleNoLabel);
+
+_SECTION_END();

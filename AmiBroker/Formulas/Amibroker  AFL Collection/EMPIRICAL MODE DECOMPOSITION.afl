@@ -1,0 +1,50 @@
+SetBarsRequired( sbrAll );  
+PI = 3.1415926;  
+ 
+function Poly2ndOrder( input, N, c0, c1, b0, b1, b2, a1, a2 )  
+{  
+   output = input; // initialize for N first bars  
+ 
+  for( i = Max( N, 2 ); i < BarCount; i++ )  
+  {  
+     output[ i ] =   c0[ i ] * ( b0 * input[ i ] +  
+                                 b1 * input[ i - 1 ] +  
+                                 b2 * input[ i - 2 ] ) +  
+                     a1 * output[ i - 1 ] +  
+                     a2 * output[ i - 2 ] -  
+                     c1 * input[ i - N ];  
+  }  
+ 
+  return output;  
+}  
+ 
+function BandPass( input, Period, delta )  
+{  
+   N = 0;  
+   an = 2 * PI / Period;  
+ 
+   c0 = b0 = 1;  
+   c1 = b1 = b2 = a1 = a2 = gamma1 = 0;  
+    
+   beta1 = cos( 2 * PI / Period );  
+   gamma1 = 1 / cos( 4 * PI * delta / Period );  
+   alpha = gamma1 - sqrt( gamma1 ^ 2 - 1 );  
+   a1 = beta1 * ( 1 + alpha );  
+   a2 = - alpha;  
+      
+   c0 = ( 1 - alpha ) / 2;  
+   b2 = -1;  
+ 
+   return Poly2ndOrder( input, N, c0, c1, b0, b1, b2, a1, a2 );  
+}  
+ 
+Period = Param("Period", 20, 2, 100 );  
+Delta = Param("Delta", 0.5, 0.01, 1, 0.01 );  
+ 
+BP = BandPass( (H+L)/2, Period, Delta );  
+Trend = MA( BP, 2 * Period );  
+ 
+if( ParamToggle("Mode", "Cycle|Trend", 0 ) == 0 )  
+ Plot( BP, "BP"+_PARAM_VALUES(), colorRed );  
+else  
+ Plot( Trend, "Trend"+_PARAM_VALUES(), colorBlue ); 

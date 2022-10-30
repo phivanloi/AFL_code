@@ -1,0 +1,70 @@
+_SECTION_BEGIN("Intraday template");
+/* Intraday template */
+
+GraphXSpace = 3 ;
+
+/* These are the calcs for the oscilator values and plots the paint bars*/
+Osc = EMA(C,8) - EMA(C,34);
+acc = Osc - EMA(Osc,13);
+
+col = IIf(Osc > Ref(Osc,-1) AND acc > Ref(acc,-1),colorGreen,
+IIf(Osc < Ref(Osc,-1) AND acc < Ref(acc,-1),colorRed,colorBlue));
+barcolor= 1;// this sets the color of the body of the candlesticks to default
+Plot( Close, "Intraday Template" ,col/barcolor, styleCandle);
+
+//---------------------------------------------------------------------------------
+
+/* This is the code for the exponential moving average flipper */
+
+mov = 13;
+hi = EMA(H,mov);
+lo = EMA(L,mov) ;
+x1 = IIf(C>Ref(hi,-1),1,IIf(C<Ref(lo,-1),-1,0));
+x2 = ValueWhen(x1!=0,x1,1);
+st = IIf(x2==-1,Hi,Lo);
+Plot(st,"",colorBlack,styleNoLine|styleDots);
+
+//---------------------------------------------------------------------------------
+
+/* This next code calculates the previous days high, low and close */
+
+Hi1 = IIf(Day()!=Ref(Day(),-1),Ref(HighestSince(Day()!=Ref(Day(),-1),H,1),-1),0);
+Hi = ValueWhen(Day()!=Ref(Day(),-1),Hi1,1);
+Lo1 = IIf(Day()!=Ref(Day(),-1),Ref(LowestSince(Day()!=Ref(Day(),-1),L,1),-1),0);
+Lo = ValueWhen(Day()!=Ref(Day(),-1),Lo1,1);
+Cl1 = IIf(Day()!=Ref(Day(),-1),Ref(C,-1),0);
+Cl = ValueWhen(Day()!=Ref(Day(),-1),Cl1,1);
+
+//---------------------------------------------------------------------------------
+
+/* Calculates and plots the pivots */
+
+rg = (Hi - Lo);
+bp = (Hi + Lo + Cl)/3;
+r1 = (bp*2)-Lo;
+s1 = (bp*2)-Hi;
+r2 = bp + r1 - s1;
+s2 = bp - r1 + s1;
+r3 = bp + r2 - s1;
+s3 = bp - r2 + s1;
+r4 = bp + r2 - s2;
+s4 = bp - r2 + s2;
+
+Plot(bp,"",colorOrange,styleBar|styleNoRescale);
+Plot(s1,"",colorGreen,styleBar|styleNoRescale);
+Plot(s2,"",colorGreen,styleBar|styleNoRescale);
+Plot(s3,"",colorGreen,styleBar|styleNoRescale);
+Plot(s4,"",colorGreen,styleBar|styleNoRescale);
+Plot(r1,"",colorBlue,styleBar|styleNoRescale);
+Plot(r2,"",colorBlue,styleBar|styleNoRescale);
+Plot(r3,"",colorBlue,styleBar|styleNoRescale);
+Plot(r4,"",colorBlue,styleBar|styleNoRescale);
+
+
+
+//--end----------------------------------------------------------------------------
+
+_SECTION_END();
+_SECTION_END();
+
+

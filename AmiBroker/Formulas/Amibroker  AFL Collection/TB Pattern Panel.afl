@@ -1,0 +1,74 @@
+/*
+Code created by Pete Hahn, Phoneix Arizona, USA 6/20/09
+This code is intended as an idicator only, this is not a trading system
+nor a trading methodology. Use at your own risk. Verify accurateness of
+this code before making any trading decisions based on it's output. There 
+is no gaurantee of profits or losses using any of the code's output.
+Inquiries may be sent to: onedryheat@yahoo.com
+*/
+
+_SECTION_BEGIN("TB Price Patterns"); 
+//Toby Crabel Price Patterns
+
+DlyRng = H-L;
+Plot(DlyRng, "Daily Range", colorGrey40, styleDots | styleNoLabel);
+TwoDayRng = HHV(H,2) - LLV(L,2);
+//Plot(TwoDayRng, "2DayRnge", colorGrey50, styleDots |styleNoLabel);
+ThreeDayRng = HHV(H,3) - LLV(L,3);
+//Plot(ThreeDayRng , "3DayRnge", colorGrey50, styleDots |styleNoLabel);
+
+SetChartBkColor(ParamColor("Panel color ",colorDarkGrey));
+NR = (H-L) < (Ref(H,-1) - Ref(L,-1));
+
+//code and plot the pivot top
+PivotTop = L < Ref(L,-1) AND H < Ref(H,-1) AND 
+			Ref(L,-1) < Ref(L,-2) AND Ref(H,-1) < Ref(H,-2) AND
+			Ref(H,-2) > Ref(H,-3) AND Ref(L,-2) > Ref(L,-3);
+
+//code and plot the pivot bottom
+PivotBottom = H > Ref(H,-1) AND L > Ref(L,-1) AND
+				Ref(H,-1) > Ref(H,-2) AND Ref(L,-1) > Ref(L,-2) AND
+				Ref(L,-2) < Ref(L,-3) AND Ref(H,-2) < Ref(H,-3);
+//code and plot the TwoBarNR 
+TwoBarNR = LLV(TwoDayRng, 20) == TwoDayRng;
+PlotShapes(IIf(TwoBarNR, shapeHollowSmallSquare, shapeNone), colorGold, 0, 0, 110);
+
+//code and plot the ThreeBarNR
+ThreeBarNR = LLV(ThreeDayRng, 20) == ThreeDayRng;
+PlotShapes(IIf(ThreeBarNR , shapeHollowSmallCircle, shapeNone), colorOrange, 0, 0, 95);
+
+//code and plot the NR7
+NR7 = (LLV(H-L,7) >= (H-L));
+PlotShapes(IIf(NR7,shapeDigit7, shapeNone),colorViolet, 0, 0, 80);
+
+//code and plot the WS4
+WS4 = (HHV(H-L,4) <= (H-L));
+PlotShapes(IIf(WS4, shapeDigit4, shapeNone), colorWhite, 0, 0, 120);
+
+//code and plot the WS7
+WS7 = (HHV(H-L,7) <= (H-L));
+PlotShapes(IIf(WS7, shapeDigit7, shapeNone), colorWhite, 0, 0, 135);
+
+//code and plot the ID
+PlotShapes(IIf(Inside(), shapeSmallSquare, shapeNone), colorViolet, 0, 0, 65);
+
+//code and plot the IDnr4
+IDnr4 = (LLV(H-L,4) >= (H-L)) AND Inside();
+PlotShapes(IIf(IDnr4, shapeDigit4, shapeNone), colorViolet, 0, 0, 50);
+
+//code and plot the hooks
+BullHook = NR AND O > Ref(H,-1) AND C < Ref(C,-1);
+PlotShapes(IIf(BullHook, shapeSmallCircle, shapeNone), colorLime, 0, 0, 40);
+BearHook = NR AND O < Ref(L,-1) AND C > Ref(C,-1);
+PlotShapes(IIf(BearHook, shapeSmallCircle, shapeNone), colorRose, 0, 0, 40);
+
+//code and plot the rares
+RareShort = O < (Ref(H-L,-1)*0.33)+Ref(L,-1) AND O < Ref(C,-1) AND
+			  Ref(Inside(),-1) AND Ref(L,-2) > Ref(L,-3);
+PlotShapes(IIf(RareShort, shapeStar, shapeNone), colorRed, 0, 0, 25);
+
+RareLong = O > Ref(C,-1) AND Ref(Inside(),-1) AND Ref(H,-2) < Ref(H,-3);
+PlotShapes(IIf(RareLong, shapeStar, shapeNone), colorGreen, 0, 0, 25);
+
+
+_SECTION_END();

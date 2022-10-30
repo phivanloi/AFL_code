@@ -1,0 +1,24 @@
+_SECTION_BEGIN("strategy_Stochastic_hourly_daily_Exploration");
+periods = Param( "Periods", 7, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 10, 1, 200, 1 );
+Dsmooth = Param( "%D avg", 4, 1, 200, 1 );
+TimeFrameSet(inHourly);
+KH = StochK( periods , Ksmooth);
+DH = StochD( periods , Ksmooth, DSmooth );
+TimeFrameRestore();
+TimeFrameSet(inDaily);
+KD = StochK( periods , Ksmooth);
+DD = StochD( periods , Ksmooth, DSmooth );
+TimeFrameRestore();
+
+
+
+EM5=EMA(C,5);
+EM13=EMA(C,13);
+
+Buy=KD>DD AND EM5>EM13 AND Cross(KH,DH);
+Sell=KD<DD AND EM5<EM13 AND Cross(DH,KH);
+Filter=Buy OR Sell;
+AddColumn(IIf(Buy,1,IIf(Sell,-1,0)) ,"BS",1.0,colorBlack,IIf(Buy,colorGreen,IIf(Sell,colorRed,colorBlack)));
+
+_SECTION_END();

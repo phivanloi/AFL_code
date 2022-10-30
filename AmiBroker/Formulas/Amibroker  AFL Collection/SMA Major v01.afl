@@ -1,0 +1,53 @@
+/* SMA Major v01 */
+
+// Candlestick chart plot.
+
+// Add family of four major simple moving averages of closing price.
+// SMA durations are 20, 50, 200, and 500 bar periods.
+
+// Uses some code supplied by Ray Archibald ("Archie") in 03/14.
+// Also uses some code suggested by Marcin Gorzynski in 04/04.
+
+// New 5/16/05 DCR 
+
+// Add space at top.
+
+GraphXSpace = 0.4;            
+
+// Assign names to colors.
+
+ColorSMA20  = colorAqua;
+ColorSMA50  = colorGold;
+ColorSMA200 = colorBlue;
+ColorSMA500 = colorRed;
+
+// Place chart title, symbol, key data, and legend at top and upper left of chart.
+
+Title = "  "
+		+ Name() + "  "
+		+ Date()
+		+ "  O = " + WriteVal(O, 5.2)
+		+ ", H = " + WriteVal(H, 5.2)
+		+ ", L = " + WriteVal(L, 5.2)
+		+ ", C = " + WriteVal(C, 5.2)
+		+ ", V = " + WriteVal(V, 8.0)
+		+ "  "
+		+ "\nSMA Major v01"
+		+ EncodeColor(ColorSMA20)  + "\nSMA(20)"
+		+ EncodeColor(ColorSMA50)  + "\nSMA(50)"
+		+ EncodeColor(ColorSMA200) + "\nSMA(200)"
+		+ EncodeColor(ColorSMA500) + "\nSMA(500)";
+
+// Plot candlestick chart of prices.  
+
+Plot( C, "", colorBlack, styleCandle );
+
+// Plot SMA curves.
+// Plotting them last puts them on a plane "behind" plane of price candlesticks.
+
+Plot( MA( C,  20 ), "\nSMA(20)",  ColorSMA20,   styleThick | styleNoLabel );
+Plot( MA( C,  50 ), "\nSMA(50)",  ColorSMA50,   styleThick | styleNoLabel );
+Plot( MA( C, 200 ), "\nSMA(200)",  ColorSMA200, styleThick | styleNoLabel );
+Plot( MA( C, 500 ), "\nSMA(500)", ColorSMA500,  styleThick | styleNoLabel );
+
+///////////////////////////////////////////////////////////////////////////////////

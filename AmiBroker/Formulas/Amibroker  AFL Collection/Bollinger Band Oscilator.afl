@@ -1,0 +1,16 @@
+pds = Param("Periods", 21,5,150,1);
+std = Param("Number Of Standard Deviation", 2,0.5,6,1);
+Std_Mult = std * 2;
+
+BBO = ((C+std*StDev(C,pds) - MA(C,pds)) / (Std_Mult*(StDev(C,pds))))*100;
+Plot( BBO, _DEFAULT_NAME(), ParamColor("color", colorCycle ), ParamStyle("Style") );
+
+PlotGrid(100, colorLightGrey);
+PlotGrid(50, colorLightGrey);
+PlotGrid(0, colorLightGrey);
+
+"The Bollinger Band Oscillator represents the price as it travels above and below the mean (50%) and outside the two standard deviations (zero and 100)."; 
+"";
+"Penetration of the upper or lower band represents overbought and oversold conditions."; 
+"";
+"When using the indicator, Failure Swings and Divergences can lead to significant reversals.";

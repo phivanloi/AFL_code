@@ -1,0 +1,13 @@
+/*i need a afl to Plot as well as exploration with the same
+RSI Cross abv 60 with MACD positive= Buy
+RSI breach below 40 with MACD negative=Sell
+pls help MA dear friend */
+
+Buy=Cross(RSI(14),60) AND MACD(12,26)>0;
+Sell=Cross(40,RSI(14)) AND MACD(12,26)<0;
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+Clr=IIf(Buy,colorBlue,IIf(Sell,colorRed,False));
+PlotShapes(Buy*shapeUpArrow+Sell*shapeDownArrow,Clr);
+Filter=Buy OR Sell;
+AddColumn(C,"close",1.2);

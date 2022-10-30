@@ -1,0 +1,35 @@
+_SECTION_BEGIN("GUPPY COUNT BACK orig");
+
+MASK= ParamStyle("MASK",styleCandle, maskPrice);
+barcolor = IIf(C > Ref(C,-1), ParamColor("Up Color",colorBrightGreen), IIf(C ==Ref(C,-1),colorOrange, ParamColor("Dn Color",colorOrange))); 
+Plot( C, "Close", barcolor,MASK);
+
+H1=0;
+L1=0;
+H2=0;
+L2=0;
+H3=0;
+L3=0;
+
+
+for( i = BarCount-20; i < BarCount; i++ ) 
+{ 
+if(H[i]>H[i-1])
+{ H1=H[i];L1=L[i] ;H1bar=i;
+for( j = H1bar-20; j < H1bar; j++ ) 
+{
+if(H[j]<H1 AND L[j]<L1)
+{ H2=H[j];L2=L[j] ;H2bar=j;
+for( k = H2bar-20; k < H1bar; k++ ) 
+{
+if(H[k]<H2 AND L[k]<L2){H3=H[k];L3=L[k] ;H3bar=k;
+}
+}
+} 
+}
+}
+}
+
+Plot( L3, "Close", colorOrange,styleLine);
+
+_SECTION_END();

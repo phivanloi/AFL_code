@@ -1,0 +1,20 @@
+_SECTION_BEGIN("JDMX");
+//SetBarsRequired(10000, 0); 
+
+
+Length=Param( "Length ", 14, 0, 100);
+
+Plot( JurikDMX( Length), _DEFAULT_NAME(), IIf (JurikDMX( Length)> Ref(JurikDMX( Length),-1),colorGreen, colorRed), ParamStyle("Style") );
+
+Plot(0,"",colorGrey50,styleLine);
+_SECTION_END();
+
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), Color, Style ); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), Color, Style ); 
+_SECTION_END();

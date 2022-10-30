@@ -1,0 +1,18 @@
+//CCI +100/-100 Peaks with stops ***Non-Optimized***
+
+//Enters short/long on peaks and troughs above/below the signal line. Stops when signal line goes back over threshold.
+
+pds=14;
+
+Buy=Ref(CCI(pds),-1) < -100 AND MA(CCI(pds),2) <= CCI(pds);
+Sell=Ref(CCI(pds),-1) > -100 AND CCI(pds) < -100 OR Ref(CCI(pds),-1) > 100 AND MA(CCI(pds),2) >= CCI(pds);
+Short=Ref(CCI(pds),-1) > 100 AND MA(CCI(pds),2) >= CCI(pds);
+Cover=Ref(CCI(pds),-1) < 100 AND CCI(pds) > 100 OR Ref(CCI(pds),-1) < -100 AND MA(CCI(pds),2) <= CCI(pds);
+
+Filter=Buy OR Sell OR Short OR Cover;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); Short=ExRem(Short,Cover); Cover=ExRem(Cover,Short);
+
+AddColumn(Buy,"Buy");
+AddColumn(Sell,"sell");
+AddColumn(Short,"short");
+AddColumn(Cover,"cover");

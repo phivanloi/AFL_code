@@ -1,0 +1,36 @@
+_SECTION_BEGIN("Background");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+if( ParamToggle("Tooltip shows", "All Values|Only Prices" ) )
+{
+ ToolTip=StrFormat("Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g
+(%.1f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1
+)));
+}
+
+SetChartBkColor(ParamColor("Outer panel color ",colorBlack)); // color of outer border 
+SetChartBkGradientFill( ParamColor("Inner panel color upper half",colorDarkTeal),
+	ParamColor("Inner panel color lower half",colorBlack)); //color of inner panel
+_SECTION_END();
+
+_SECTION_BEGIN("NoName_Indicator_6");
+HaClose = (O+H+L+C)/4; 
+
+HaOpen = AMA( Ref( HaClose, -1 ), 0.5);
+
+HaHigh = Max( H, Max( HaClose, HaOpen ) );
+
+HaLow = Min( L, Min( HaClose, HaOpen ) );
+
+PlotOHLC( HaOpen, HaHigh, HaLow, HaClose, "Modified " + Name(), 2, styleCandle );
+
+Buy=HaClose>HaOpen; 
+
+Sell=HaClose<HaOpen;
+
+Sell=ExRem(Sell,Buy);
+
+Buy=ExRem(Buy,Sell);
+
+PlotShapes( shapeUpArrow* Buy , colorGreen ,0, HaLow);
+PlotShapes( shapeHollowDownArrow* Sell, colorRed ,0,HaHigh);
+_SECTION_END();

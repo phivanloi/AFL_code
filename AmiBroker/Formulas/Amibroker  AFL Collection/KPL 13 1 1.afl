@@ -1,0 +1,48 @@
+_SECTION_BEGIN("KPL");
+
+no=Param( "Swing", 2, 1, 55 ); 
+tsl_col=ParamColor( "Color", colorCycle );
+
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+tsl=IIf(avn==1,sup,res);
+
+
+Buy1=C > tsl;
+Sell1= tsl <C;
+
+Period = Param("Period",14,1,100,1);
+
+n = Param("ref level",95,50,100,1);
+
+Plot(C,"",colorWhite,styleCandle);
+
+LLVBarsSince = LLVBars(L, Period) + 1;
+HHVBarsSince = HHVBars(H, Period) + 1;
+
+Aroon_Down = 100 * (Period - LLVBarsSince) / (Period - 1);
+Aroon_Up   = 100 * (Period - HHVBarsSince) / (Period - 1);
+Aroon_Osc  = Aroon_Up - Aroon_Down;
+Sell2= Ref(Aroon_Osc,-1)>n AND Aroon_Osc <n;
+Buy2= Ref(Aroon_Osc,-1)<-n AND Aroon_Osc >-n;
+
+Buy = Buy1 AND Buy2;
+Sell = Sell1 AND Sell2;
+
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ), 0, IIf( Buy, Low,High));
+_SECTION_END();
+
+_SECTION_BEGIN("EMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+_SECTION_BEGIN("EMA1");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();

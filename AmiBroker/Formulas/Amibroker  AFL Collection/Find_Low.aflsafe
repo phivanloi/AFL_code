@@ -1,0 +1,99 @@
+/*---------------------------------------------------
+	Automatic Low Levels
+	Ashis Roy Chowdhury and Satyajit, March, 5, 2006
+--------------------------------------------------------*/
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+Plot(C,"", colorBlack,styleCandle);
+
+// Get values for Low levels 
+
+StartBar=SelectedValue(BarIndex());
+FinishBar = EndValue( BarIndex() ); 
+i = startbar;
+period = FinishBar - StartBar;
+
+Lo =LLV(L,period);
+Hi = HHV(H,period);
+Line0 = 0; 
+Line1 = 0;
+Line2 = 0;
+Line3 = 0;
+Line4= 0;
+Line5= 0;
+Line6= 0;
+Line7= 0;
+Line8= 0;
+Line9= 0;
+Line10= 0;
+Line100 = 0;
+
+
+for( i = startbar; i < finishbar; i++ )
+{
+if(EndValue(L)>SelectedValue(L))
+{
+Line0  = EndValue(Lo);
+Line100 = EndValue(Hi);
+Line1 = (sqrt(Line0)+2)^2;
+Line2 = (sqrt(Line1)+2)^2;
+Line3 = (sqrt(Line2)+2)^2;
+Line4 = (sqrt(Line3)+2)^2;
+Line5 = (sqrt(Line4)+2)^2;
+Line6 = (sqrt(Line5)+2)^2;
+Line7 = (sqrt(Line6)+2)^2;
+Line8 = (sqrt(Line7)+2)^2;
+Line9 = (sqrt(Line8)+2)^2;
+Line10 = (sqrt(Line9)+2)^2;
+}
+else
+{
+Line100  = EndValue(Hi);
+Line0 = EndValue(Lo);
+Line1 =(sqrt(Line100)-2)^2;
+Line2 = (sqrt(Line1)-2)^2;
+Line3 = (sqrt(Line2)-2)^2;
+Line4 = (sqrt(Line3)-2)^2;
+Line5 = (sqrt(Line4)-2)^2;
+Line6 = (sqrt(Line5)-2)^2;
+Line7 = (sqrt(Line6)-2)^2;
+Line8 = (sqrt(Line7)-2)^2;
+Line9 = (sqrt(Line8)-2)^2;
+Line10 = (sqrt(Line9)-2)^2;
+
+}
+}
+
+// external Low lines begining fom selecetdbarindex()
+Low0= LineArray(startbar, Line0, finishbar, Line0, 0, 1);
+Low100 = LineArray(startbar, Line100, finishbar, Line100, 0, 1);
+
+// depth of middle lines
+n= round((finishbar-startbar)/2);
+
+// middle lines
+Low1= LineArray((finishbar-n), Line1, finishbar, Line1, 0, 1);
+Low2= LineArray((finishbar-n), Line2, finishbar, Line2, 0, 1);
+Low3= LineArray((finishbar-n), Line3, finishbar, Line3, 0, 1);
+Low4= LineArray((finishbar-n), Line4, finishbar, Line4, 0, 1);
+Low5= LineArray((finishbar-n), Line5, finishbar, Line5, 0, 1);
+Low6= LineArray((finishbar-n), Line6, finishbar, Line6, 0, 1);
+Low7= LineArray((finishbar-n), Line7, finishbar, Line7, 0, 1);
+Low8= LineArray((finishbar-n), Line8, finishbar, Line8, 0, 1);
+Low9= LineArray((finishbar-n), Line9, finishbar, Line9, 0, 1);
+Low10= LineArray((finishbar-n), Line10, finishbar, Line10, 0, 1);
+
+Plot(Low0,"", colorYellow);
+Plot(Low100,"", colorRed);
+Plot(Low1,"", colorBlue);
+Plot(Low2,"", colorGrey50);
+Plot(Low3,"", colorOrange);
+Plot(Low4,"", colorGreen);
+Plot(Low5,"", colorBlue);
+Plot(Low6,"", colorGrey50);
+Plot(Low7,"", colorOrange);
+Plot(Low8,"", colorGreen);
+Plot(Low9,"", colorBlue);
+Plot(Low10,"", colorGrey50);
+
+Title = Name() + " -  LOW LEVELS ";

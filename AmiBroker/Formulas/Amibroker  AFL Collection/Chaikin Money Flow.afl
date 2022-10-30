@@ -1,0 +1,13 @@
+_SECTION_BEGIN("Chaikin Money Flow");
+
+function CMF(r1)
+{
+//Graph0=(AD(C,H,L,V,r1)*V)/ Sum(V,r1);
+Graph0=Sum(IIf( H>L && V>0,((( C-L )-( H-C )) / ( H-L ))*V,0),r1) / Sum(V,r1);
+Plot(Graph0, "Chaikin Money Flow ("+r1+")", IIf(Graph0>Ref(Graph0,-1),ParamColor("Up Color", colorGreen ),
+ParamColor("Down Color", colorRed )), ParamStyle( "Style", styleHistogram | styleThick, maskHistogram  ) );
+
+}
+
+r1=Param("Periods", 21);
+CMF(r1);

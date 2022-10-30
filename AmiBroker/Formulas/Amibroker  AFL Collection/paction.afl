@@ -1,0 +1,30 @@
+_SECTION_BEGIN("Price Action");
+ 
+pa = ParamToggle("Price Action","Show|Hide",0);
+Q = Param( "% Change", 1, 0, 5, 0.1 );
+if (pa == 1 ){
+ 
+     
+    Z = Zig( C , q ) ;
+ 
+    HH = ( ( Z < Ref( Z, -1 ) AND Ref( Z, -1 ) > Ref( Z, -2 ) ) AND (Peak( z, q, 1 ) > Peak( Z, q, 2 ) ) );
+    LH = ( ( Z < Ref( Z, -1 ) AND Ref( Z, -1 ) > Ref( Z, -2 ) ) AND (Peak( Z, q, 1 ) < Peak( Z, q, 2 ) ) );
+    HL = ( ( Z > Ref( Z, -1 ) AND Ref( Z, -1 ) < Ref( Z, -2 ) ) AND (Trough( Z, q, 1 ) > Trough( Z, q, 2 ) ) );
+    LL = ( ( Z > Ref( Z, -1 ) AND Ref( Z, -1 ) < Ref( Z, -2 ) ) AND (Trough( Z, q, 1 ) < Trough( Z, q, 2 ) ) );
+ 
+    dist = 0.5 * ATR( 20 );
+  
+    for ( i = 0; i < BarCount; i++ )
+    {
+        if ( HH[i] )        PlotText( "HH", i, H[ i ] + dist[i], colorYellow ); 
+        if ( LH[i] )        PlotText( "LH", i, H[ i ] + dist[i], colorYellow ); 
+        if ( HL[i] )        PlotText( "HL", i, L[ i ] - dist[i], colorPink ); 
+        if ( LL[i] )        PlotText( "LL", i, L[ i ] - dist[i], colorPink );
+  
+    }
+}
+_SECTION_END();
+
+_SECTION_BEGIN("Price1");
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

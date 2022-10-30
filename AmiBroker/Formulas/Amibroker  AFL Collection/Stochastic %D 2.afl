@@ -1,0 +1,18 @@
+_SECTION_BEGIN("Stochastic %D");
+periods = Param( "Periods", 15, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 3, 1, 200, 1 );
+Dsmooth = Param( "%D avg", 3, 1, 200, 1 );
+Plot( StochD( periods , Ksmooth, DSmooth ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+_SECTION_END();
+
+_SECTION_BEGIN("Stochastic %K");
+periods = Param( "Periods", 15, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 3, 1, 200, 1 );
+Plot( StochK( periods , Ksmooth), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+_SECTION_END();
+
+/* Create date: 12 Jan 2009
+The Stochastic %K(Slow) crosses above the Stochastic %D(Slow) on the current bar */
+
+Buy = Cross( StochK( 14, 3 ), StochD( 14, 3, 3 ) )
+AND StochK( 14, 3 )<5;

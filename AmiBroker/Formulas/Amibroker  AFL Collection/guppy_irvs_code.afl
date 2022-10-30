@@ -1,0 +1,71 @@
+//  Irvs Guppy Code
+
+GraphXSpace = 2;
+
+//BLUE LINES = SHORT-TERM TREND
+MA23 = EMA( Close, 23 );
+
+COL = 55;
+Plot(MA23,"MA23",COL,styleThick);
+
+MA5 = EMA( Close, 5 );  
+COL = 7;
+Plot(MA5,"MA5",COL,styleLine);
+
+MA3 = EMA( Close, 3 ); MA60 = EMA( Close, 60);
+COL = 5;
+Plot(MA3,"MA3",COL,styleLine);  Plot(MA60,"MA60",COL,styleLine);
+
+MA10 = EMA( Close, 10 ); 
+MA12 = EMA( Close, 12 ); 
+MA15 = EMA( Close, 15 );
+
+COL = 10;
+Plot(MA10,"MA10",COL,styleLine);  
+Plot(MA12,"MA12",COL,styleLine);  
+Plot(MA15,"MA15",COL,styleLine);
+
+//RED LINES = INTERMEDIATE-TERM TREND
+MA30 = EMA( Close, 30 );  MA35 = EMA( Close, 35 ); MA40 = EMA( Close, 40 );
+MA45 = EMA( Close, 45 );  MA50 = EMA( Close, 50 ); MA8 = EMA( Close, 8);
+
+COL = 4;
+Plot(MA30,"MA30",COL,styleLine);   
+Plot(MA35,"MA35",COL,styleLine);  
+Plot(MA40,"MA40",COL,styleLine);
+Plot(MA45,"MA45",COL,styleLine);   
+Plot(MA50,"MA50",COL,styleLine);  
+Plot(MA8,"MA8",COL,styleLine);
+
+Up1 = Cross(MA12,MA23);
+Dn1 = Cross(MA23,MA12);
+Up2 = Cross(MA15,MA60);
+Dn2 = Cross(MA60,MA15);
+
+PlotShapes(Up1*shapeUpArrow, colorGreen);
+PlotShapes(Up2*shapeUpArrow, colorBlue);
+PlotShapes(Dn1*shapeDownArrow, colorRed);
+PlotShapes(Dn2*shapeDownArrow, colorBrown);
+
+//Plot(C,"C",colorLightGrey,styleBar);
+
+Title = EncodeColor(colorWhite) + Date() + "   " + Name() + "   " + EncodeColor(colorWhite) + "GUPP323AO " +
+	     EncodeColor(10) + "  EMA: 10,12,15" + EncodeColor(4) + "   EMA: 8,30,35,40,50" +                                       
+        EncodeColor(5) + "  EMA: 3,60" +  EncodeColor(7) + "  EMA: 5"  +
+        EncodeColor(55) + "  EMA: 23"  +  EncodeColor(11)  ; 
+//        "  OSCP: 73,60"  ;
+
+//INTERPRETATION WINDOW COMMENTARY BEGINS
+"\n"+
+"EMA(3) = " + WriteVal(MA8,5.2);
+"\nEMA(5) = " + WriteVal(MA12,5.2);
+"\nEMA(7) = " + WriteVal(MA8,5.2);
+"\nEMA(10) = " + WriteVal(MA45,5.2);   
+"\nEMA(12) = " + WriteVal(MA12,5.2);   
+"\nEMA(15) = " + WriteVal(MA15,5.2);
+"\nEMA(30) = " + WriteVal(MA30,5.2);   
+"\nEMA(35) = " + WriteVal(MA35,5.2);   
+"\nEMA(40) = " + WriteVal(MA40,5.2);
+"\nEMA(45) = " + WriteVal(MA45,5.2);   
+"\nEMA(50) = " + WriteVal(MA50,5.2);   
+"\nEMA(60) = " + WriteVal(MA60,5.2);

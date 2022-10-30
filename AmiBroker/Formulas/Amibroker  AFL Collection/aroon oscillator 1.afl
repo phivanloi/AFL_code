@@ -1,0 +1,20 @@
+_SECTION_BEGIN("aroon oscillator ");
+Period = Param("Period",14,1,100,1);
+
+n = Param("ref level",95,50,100,1);
+
+
+LLVBarsSince = LLVBars(L, Period) + 1;
+HHVBarsSince = HHVBars(H, Period) + 1;
+
+Aroon_Down = 100 * (Period - LLVBarsSince) / (Period - 1);
+Aroon_Up   = 100 * (Period - HHVBarsSince) / (Period - 1);
+Aroon_Osc  = Aroon_Up - Aroon_Down;
+
+Sell= Ref(Aroon_Osc,-1)>n AND Aroon_Osc <n;
+Buy= Ref(Aroon_Osc,-1)<-n AND Aroon_Osc >-n;
+Plot( Aroon_Osc, "Aroon osc", IIf(Buy,colorBrightGreen,IIf(Sell,colorRed,colorYellow)), Style = 1);
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ), 0, IIf( Buy, -n,n));
+
+_SECTION_END();

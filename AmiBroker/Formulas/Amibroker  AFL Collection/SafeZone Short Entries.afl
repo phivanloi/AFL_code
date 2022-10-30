@@ -1,0 +1,8 @@
+factor = Param("SafeZone Factor",2.0,0.0,20.0,0.1); 
+lookback=Param("LookBack Period",99,10,300,1);
+Hightot = Cum(IIf(High>Ref(High,-1),High - Ref(High,-1),0));
+HighCount= Cum(High>Ref(High,-1));
+Count= HighCount - Ref(HighCount,-lookback);
+Safe=IIf(count>0,(Hightot-Ref(Hightot,-lookback))/count,0);
+SZSE = High+factor*safe;
+Plot( SZSE, "", ParamColor("color", colorCycle ), ParamStyle("Style") );

@@ -1,0 +1,63 @@
+/*Len1 = Optimize("Len1", 2, 2, 11, 1);
+Len2 = Optimize("Len2", 10, 2, 21, 1);
+Len3 = Optimize("Len3", 30, 2, 50, 1);
+*/
+
+
+Len1 = Param("ma_len1",2,2,40,1);
+Len2 = Param("sum_len2",10,2,40,1);
+Len3 = Param("ema_len2",30,2,100,1);
+Len4 = 81;
+
+
+//Indicators
+
+
+MAz = Cum(0);
+MAy = C;
+
+
+for (i = 1; i <= Len2; i++)
+{
+MAy = MA(MAy, Len1);
+MAz = MAz + MAy;
+}
+
+ST1 = 100 * (C - (MAz / Len2)) / (HHV(C, Len2) - LLV(C, Len2));
+RMO = EMA(ST1,Len4);
+ST2 = EMA(ST1, Len3);
+ST3 = EMA(ST2, Len3);
+
+//New Buy & New Sell
+nb = RMO > 0  AND ST2 > 0 AND ST2 > ST3;
+ns = RMO < 0  AND ST2 < 0 AND ST2 < ST3;
+nbb = ExRem(nb,ns);
+nss = ExRem(ns,nb);
+
+//Almost a Buy or Sell
+a = RMO > 0;
+aa = ST2 > 0;
+aaa = ST2 > ST3;
+ab = a + aa + aaa == 2;
+
+
+a1 = RMO < 0;
+aa1 = ST2 < 0;
+aaa1 = ST2 < ST3;
+as = a1 + aa1 + aaa1 == 2;
+
+abb = ExRem(ab,as);
+ass = ExRem(as,ab);
+
+//rmo positive AND MACD Cross Buy and Sell
+rmb = RMO > 0 AND Cross(MACD(),Signal());
+rms = RMO < 0 AND Cross(Signal(),MACD());
+
+Buy = nb OR ab OR rmb;
+Sell = ns OR as OR rms;
+
+Filter = Buy OR Sell;
+
+AddColumn(IIf(nbb,66,IIf(nss,83,32)),"New Trade", formatChar, colorWhite, bkcolor =IIf(nbb, colorGreen,IIf(nss,colorRed,colorDefault)));
+AddColumn(IIf(abb,66,IIf(ass,83,32)),"Almost", formatChar, colorWhite, bkcolor =IIf(abb, colorGreen,IIf(ass,colorRed,colorDefault)));
+AddColumn(IIf(rmb,66,IIf(rms,83,32)),"RMO&MACD", formatChar, colorWhite, bkcolor =IIf(rmb, colorGreen,IIf(rms,colorRed,colorDefault)));

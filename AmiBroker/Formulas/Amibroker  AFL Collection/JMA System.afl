@@ -1,0 +1,21 @@
+_SECTION_BEGIN("JMA System");
+#include <JMA_Include.afl>;
+
+JMAarray5Day = Jma(Close, 5);
+JMAarray10Day = JMA(Close, 10);
+JMAarrayDelta = JMAarray5Day - JMAarray10Day;
+
+//-----------------------------------Signals---------------------------------------
+Buy = Cross(JMAarray5Day, JMAarray10Day);  //cross JMAarray10Day rising slope
+Sell = Cross(JMAarray10Day, JMAarray5Day);  //cross JMAarray10Day falling slope
+
+Buy = ExRem(Buy, Sell);
+Sell = ExRem(Sell, Buy); 
+
+//-----------------------------------Plot---------------------------------------
+SetChartOptions(0,chartShowArrows|chartShowDates);
+PlotColor = IIf(Buy, colorBrightGreen, IIf(Sell, colorRed, colorLightBlue));
+Plot(JMAarray5Day, "5 day JMA", ParamColor("Color 5 day JMA", colorOrange), ParamStyle("Style 5 day JMA"));
+Plot(JMAarray10Day, "10 day JMA", ParamColor("Color 10 day JMA", colorWhite), ParamStyle("Style 10 day JMA"));
+Plot(JMAarrayDelta, "JMAarrayDelta", PlotColor, styleHistogram|styleOwnScale);
+_SECTION_END(); 

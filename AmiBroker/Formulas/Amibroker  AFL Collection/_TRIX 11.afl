@@ -1,0 +1,4 @@
+t = Param("trix",3,1,50,1);
+StochMACD=100*(Trix(t)-LLV(Trix(t),14))/(HHV(Trix(t),14)-LLV(Trix(t),14));
+Plot(StochMACD,"",colorRed,styleThick); 
+_SECTION_END();

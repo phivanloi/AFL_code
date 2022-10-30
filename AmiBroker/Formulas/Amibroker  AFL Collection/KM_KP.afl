@@ -1,0 +1,244 @@
+//PREF > INTRADAY > START TIME INTERVAL       
+_SECTION_BEGIN("graph");  
+SetChartOptions(0,chartShowArrows|chartShowDates);     
+gxs=Param("GRAPH spaceing",10,5,50,5);  
+GraphXSpace = gxs; 
+strWeekday = StrMid("SunMonTueWedThuFriSat", SelectedValue(DayOfWeek())*3,3);
+ _SECTION_END(); 
+_SECTION_BEGIN("NMA mkm110709");    
+HaClose=(O+H+L+C)/4; 
+HaOpen = AMA( Ref( HaClose,  -1 ),  0.5 ); 
+HaHigh = Max( H,  Max( HaClose,  HaOpen ) ); 
+HaLow = Min( L,  Min( HaClose,  HaOpen ) ); 
+Candletype=ParamList("Candle Type","Candle|Haikin",1);
+UpCandle = ParamColor("Up Color", colorBrightGreen );
+DownCandle = ParamColor("Down Color", colorDarkRed );
+Consolidation = ParamColor("Consolidation", colorBlack ); 
+if(Candletype=="Haikin")
+{
+BG=HHV(LLV(HALow,4)+ATR(4),8); 
+BR=LLV(HHV(HAHigh,4)-ATR(4),8);
+MYcolor = IIf(HAClose>BG ,UpCandle,IIf(HAClose < BR,DownCandle,Consolidation));  
+PlotOHLC( HaOpen, HaHigh, HaLow, HaClose, "" + Name(), mycolor, styleCandle |styleThick );
+Com=("\n "+Name()+" Phase: ")+
+WriteIf(HAClose>BG,EncodeColor(colorLime)+"+Up",
+WriteIf(HAClose<BR,EncodeColor(colorRed)+"-Down",EncodeColor(colorLightYellow)+"Consolidation"));
+}
+else if(Candletype=="Candle")
+{
+BG2=HHV(LLV(Low,4)+ATR(4),8); 
+BR2=LLV(HHV(High,4)-ATR(4),8);
+Candlecolor = IIf(Close>BG2 ,UpCandle,IIf(Close < BR2,DownCandle,Consolidation));  
+SetBarFillColor( IIf(O <C, colorSeaGreen,colorOrange) ); 
+Plot( Close, "Price", CandleColor, styleCandle ); 
+Com=("\n "+Name()+" Phase: ")+
+WriteIf(C>BG2,EncodeColor(colorLime)+"+Up",
+WriteIf(C<BR2,EncodeColor(colorRed)+"-Down",EncodeColor(colorLightYellow)+"Consolidation"));
+}
+k =  Optimize("K",Param("K",1.75,1,5,0.25),1,5,0.25); //2.5 AS PER TT 5 MIN
+Per= Optimize("atr",Param("atr",10,3,30,1),3,30,1); //17     ''   "   "  "    "
+j=HaClose;
+nm= (H-L);
+rfsctor = WMA(nm, PER); 
+revers = K * rfsctor; 
+Trend = 1;   
+NW[0] = 0;   
+for(i = 1; i < BarCount; i++) 
+{ 
+ if(Trend[i-1] == 1)                 
+ { 
+  if(j[i] < NW[i-1])                  
+  { 
+   Trend[i] = -1;                    
+   NW[i] = j[i] + Revers[i];         
+  } 
+  else                               
+  { 
+   Trend[i] = 1; 
+   if((j[i] - Revers[i]) > NW[i-1]) 
+   { 
+    NW[i] = j[i] - Revers[i];  
+   } 
+   else 
+   { 
+    NW[i] = NW[i-1]; 
+   } 
+  }  
+ } 
+ if(Trend[i-1] == -1)                
+ { 
+  if(j[i] > NW[i-1])                 
+  { 
+   Trend[i] = 1;                     
+   NW[i] = j[i] - Revers[i];         
+  } 
+  else                               
+  { 
+   Trend[i] = -1; 
+   if((j[i] + Revers[i]) < NW[i-1])  
+   { 
+    NW[i] = j[i] + Revers[i];  
+   } 
+   else 
+   { 
+    NW[i] = NW[i-1]; 
+   } 
+  } 
+ } 
+} 
+
+Plot(NW, "", IIf(Trend == 1, 6, 4), 4); 
+
+//---------------trading  -------------
+
+Buy=Cross(j,nw);
+Short=Cross(nw,j);
+Sell=Cross(nw,j);
+Cover=Cross(j,nw);
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+Short=ExRem(Short,Cover);
+Cover=ExRem(Cover,Short);
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorSkyblue, 0,haLow,-15);  
+PlotShapes(IIf(Sell, shapeHollowDownArrow, shapeNone),colorLightYellow, 0,hahigh,-15);  
+PlotShapes(IIf(Cover, shapeHollowCircle, shapeNone),colorTan, 0,haclose,0);  
+PlotShapes(IIf(Short, shapeDownArrow, shapeNone),colorGold, 0,hahigh,-25); 
+//-----------end--------------
+Long=Flip(Buy,Sell OR Cover); 
+Shrt=Flip(Sell,Buy OR Cover); 
+NOTrade= NOT (Long OR shrt); 
+BuyPrice=ValueWhen(Buy,C);
+SellPrice=ValueWhen(Sell,C);
+ShortPrice=ValueWhen(Short,C);
+CoverPrice=ValueWhen(Cover,C);
+_SECTION_END(); 
+_SECTION_BEGIN("foreign NMA");
+Vr=ParamList("Index",List = "^NSEI,^NSEBANK,RELIANCE.NS,SBIN.NS,EURUSD,XAUUSD",0); 
+SetForeign(Vr);
+HaC =(O+H+L+C)/4; 
+HaO = AMA( Ref( HaC, -1 ), 0.5 ); 
+HaH = Max( H, Max( HaC, HaO) ); 
+HaL = Min( L, Min( HaC, HaO) );
+BG3=HHV(LLV(HaL,4)+ATR(4),8); 
+BR3=LLV(HHV(HaH ,4)-ATR(4),8); 
+co = IIf(Hac>BG3 ,colorAqua,IIf(Hac < BR3,colorCustom12,colorGrey50)); 
+Plot(4, "", Co,styleArea+styleOwnScale | styleNoLabel, -1, 100);
+Comm2=("\n "+Vr+" Phase: ")+
+WriteIf(Hac>BG3,EncodeColor(colorLime)+"+Up",
+WriteIf(Hac<BR3,EncodeColor(colorRed)+"-Down",EncodeColor(colorLightYellow)+"< ~ ~ >"));
+RestorePriceArrays();
+_SECTION_END();
+grid_day = IIf(Day()!=Ref(Day(),-1),1,0);  
+Plot(grid_day,"",colorDarkGrey,styleHistogram|styleDashed|styleNoLabel|styleOwnScale);
+//=================TITLE================================================================================================ 
+_SECTION_BEGIN("Title"); 
+if( Status("action") == actionIndicator )  
+( 
+Title = EncodeColor(colorWhite)+ "NMA I.T ("+k+" - "+per+")" + " - " +  Name() + " \n " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) + 
+ "  - " + Date() +"   -  "+ strWeekday +"  -  "+"\n" +EncodeColor(colorYellow) +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+ 
+"Cl-"+C+"  "+ "Vol= "+ WriteVal(V)+"\n"+ 
+EncodeColor(colorLime)+ 
+WriteIf (Buy AND Ref(shrt,-1), " GO LONG / Reverse Signal at "+C+"  ","")+ 
+WriteIf (Buy AND Ref(NOTrade,-1), " GO LONG at "+C+"  ","")+EncodeColor(colorRed)+   
+WriteIf (Sell AND Ref(NOTrade,-1), " GO Short at "+C+"  ","")+ 
+WriteIf (Sell AND Ref(Long,-1), " EXIT LONG / Reverse Signal at "+C+"  ","")+
+WriteIf (Cover, " cover "+C+"  ","")+
+EncodeColor(colorTan)+ Com+EncodeColor(colorTan)+Comm2);
+_SECTION_END();
+_SECTION_BEGIN("Background text");
+C11=ParamColor("up panel",colorDarkOliveGreen );
+C12=ParamColor("dn panel",colorDarkGrey );
+C13=Param("fonts",20,10,30,1 );
+C14=Param("left-right",2.1,1.0,5.0,0.1 );
+C15=Param("up-down",12,1,20,1 );
+ab=Param("test Color contrast",0.5,0,5,0.1 );
+Miny = Status("axisminy");
+Maxy = Status("axismaxy");
+lvb = Status("lastvisiblebar");
+fvb = Status("firstvisiblebar");
+pxwidth = Status("pxwidth");
+pxheight = Status("pxheight");
+GfxSetBkMode( 0 ); 
+GfxSetOverlayMode(1);
+GfxGradientRect(0,0,pxwidth, pxheight, C11, C12 ); 
+GfxSelectFont("Tahoma", Status("pxheight")/C13 );
+GfxSetTextAlign( 6 );
+//GfxSetTextColor( ColorBlend( colorPaleBlue, C13, ab  ));
+GfxTextOut( Name(), Status("pxwidth")/C14, Status("pxheight")/C15 );
+GfxSelectFont("Tahoma", Status("pxheight")/C13*0.5 );
+GfxTextOut( "NMA", Status("pxwidth")/C14, Status("pxheight")/C15*2.5 );
+GfxSelectFont("Tahoma", Status("pxheight")/C13*0.5 );
+GfxTextOut( " Karthik Marar", Status("pxwidth")/C14, Status("pxheight")/C15*4 );
+GfxSelectFont("MS Sans Serif", 10, 500, False, False, 0);
+GfxTextOut(""+Vr+"---cas67", Status("pxwidth")/1.08, Status("pxheight")/C15*11.1 );
+//axisarea = 56; // may need adjustment if you are using non-default font for axis
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+_SECTION_BEGIN("ABKPTrendBias2");
+/* TSKPTrendBias with TSKPSEB */
+parmTBStyle = ParamStyle("TB Style", styleLine, maskAll);
+parmTBColor = ParamColor("TB", colorRed);
+parmTBSlowStyle = ParamStyle("TB Slow Style", styleLine | styleThick, maskAll);
+parmTBSlowColor = ParamColor("TB Slow", colorBlue);
+dummy =  E_TSKPTRENDBIAS(High,Low,Close);
+KPTB = tskp_sb;
+KPTBSlow = tskp_tbxavg;
+Plot(KPTB, "TB", parmTBColor, parmTBStyle); 
+Plot(KPTBSlow, "TBSlow", parmTBSlowColor, parmTBSlowStyle); 
+
+/* Standard Error Bands */
+// user parameters
+Periods = Param("Standard Error", 80, 3, 200, 1); 
+Smooth  = Param("Smooth",14,2,100,1);
+parmMBColor = ParamColor("Color MB",colorBlack);  
+parmMBStyle = ParamStyle("Style MB", style=styleDashed | styleNoLabel, Mask=maskAll );
+parmUBColor = ParamColor("Color UB",colorBlack);
+parmUBStyle = ParamStyle("Style UB", style=styleLine | styleNoLabel, Mask=maskAll ); 
+parmLBColor = ParamColor("Color LB",colorBlack);
+parmLBStyle = ParamStyle("Style LB", style=styleLine | styleNoLabel, Mask=maskAll ); 
+parmToneColorUp = ParamColor("Tone Color Up", ColorRGB(167, 224, 243) );
+parmToneColorDn = ParamColor("Tone Color Dn", ColorRGB(255, 192, 203) );
+parmTrendColorUp = ParamColor("Trend Color Up", ColorRGB(167, 224, 243) );
+parmTrendColorDn = ParamColor("Trend Color Dn", ColorRGB(255, 192, 203) );
+
+// calculations
+LRCurve = LinearReg( KPTB, periods ); 
+MALRCurve  = MA(LRCurve, Smooth);
+SEValue = StdErr(KPTB, periods ); 
+SErrorAvg =  MA(SEValue, Smooth);
+
+LowerBand = MALRCurve - SErrorAvg ;
+UpperBand = MALRCurve + SErrorAvg ;
+
+Plot( MALRCurve , "MidBand", parmMBColor , parmMBStyle); 
+Plot( UpperBand , "UpperBand",parmUBColor ,parmUBStyle );
+Plot( LowerBand , "LowerBand", parmLBColor , parmLBStyle);
+PlotOHLC( UpperBand, UpperBand, LowerBand, LowerBand, "Band", IIf(KPTBSlow >= MALRCurve, parmTrendColorUp, parmToneColorDn) , styleCloud | styleNoLabel); 
+//plot Tone
+RibbonSize = Param("Ribbon Size", 1 , 0.5, 10, 0.5);
+
+Plot( RibbonSize, "Tone", IIf(KPTB > KPTBSlow, parmToneColorUp, parmToneColorDn) , styleArea |  styleNoLabel | styleOwnScale , 0, 10);
+_SECTION_END();

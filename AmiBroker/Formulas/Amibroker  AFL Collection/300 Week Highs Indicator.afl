@@ -1,0 +1,12 @@
+// 300 Week Highs Indicator
+// Set Scaling to automatic
+// Set Gridlines - Level 0, Show dates, Middle
+// Plot on a weekly chart only
+
+GraphXSpace = 10;
+
+Plot(Foreign("~Idx30Wk_Close_HL","C",1),"Close_HL",colorRed,styleLine);    
+Plot(Foreign("~Idx30Wk_Abs_HL","C",1),"Abs_HL",colorBlue,styleLine); 
+
+   
+         

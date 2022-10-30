@@ -1,0 +1,35 @@
+_SECTION_BEGIN("Multiple Ribbon Demo");
+// I was inspired by Dennis Brown's great looking chart, and here is one of the results:
+// This demo code comes with a ready to use Multiple Ribbon code and a FillColor Function which will return the different 
+// shades of the color according to your specifications.
+// You plot a Ribbon by calling the function as follows: MultiRibbon("Color", "Ribbon Number", "Name To Display");
+// The "Ribbon Number" is simply the order of the ribbon, starting with 1 as the bottom Ribbon. You can add as many 
+// ribbons as you want, until you run out of chart space. Just keep track of the 'Serial Number' (Ribbon Number). :-)
+RibbonThickness	= Param("Ribbon Thickness", 4, 1, 5, 0.1);
+Font				= ParamList("Font:","Arial|Calibri|Futura|Tahoma|Times New Roman");
+
+function GfxConvertBarToPixelX(Bar) 
+{ 
+ lvb = Status("lastvisiblebar"); fvb = Status("firstvisiblebar"); 
+ pxchartleft = Status("pxchartleft"); pxchartwidth = Status("pxchartwidth"); 
+ return pxchartleft + Bar  * pxchartwidth / (Lvb - fvb + 1); 
+} 
+
+procedure MultiRibbon(RibbonColor, Position, Label)
+{
+ LineColor	= colorLightGrey;
+ Position	= RibbonThickness * Position;
+ x2 = Status("pxchartright");
+ y2 = Status("pxchartbottom");
+
+ RibbonColor = IIf(GfxConvertBarToPixelX(BarIndex()-Status("firstvisiblebarindex")) > y2/1.5 * (RibbonThickness/100) * 18 , RibbonColor, colorYellow);
+
+ Plot(0, "", LineColor, styleOwnScale | styleNoLabel, 0, 100);
+ Plot(Position, "", LineColor, styleOwnScale | styleNoLabel, 0, 100);
+ Plot(Position, "", RibbonColor, styleArea | styleOwnScale | styleNoLabel, 0, 100);
+
+ GfxSetTextColor(colorBlack); 
+ GfxSelectFont(Font, y2/1.5 * (RibbonThickness/100), 400); 
+ GfxDrawText(Label, 8, y2 * 1.001 -(y2 * Position/100) , y2/1.5 * (RibbonThickness/100) * 17, y2, 2 + 32 + 256);
+ 
+}

@@ -1,0 +1,145 @@
+
+/*Body Colors*/
+whiteBody=C>=O;
+blackBody=O>C;
+
+/*Body Size*/
+smallBodyMaximum=0.0025;//less than 0.25%
+LargeBodyMinimum=0.01;//greater than 1.0%
+smallBody=(O>=C*(1-smallBodyMaximum) AND whiteBody) OR (C>=O*(1-smallBodyMaximum) AND blackBody);
+largeBody=(C>=O*(1+largeBodyMinimum) AND whiteBody) OR C<=O*(1-largeBodyMinimum) AND blackBody;
+mediumBody=NOT LargeBody AND NOT smallBody;
+identicalBodies=abs(abs(Ref(O,-1)-Ref(C,-1))-abs(O-C)) < abs(O-C)*smallBodyMaximum;
+realBodySize=abs(O-C);
+
+
+/*Shadows*/
+smallUpperShadow=(whiteBody AND H<=C*(1+smallBodyMaximum)) OR (blackBody AND H<=O*(1+smallBodyMaximum));
+smallLowerShadow=(whiteBody AND L>=O*(1-smallBodyMaximum)) OR (blackBody AND L>=C*(1-smallBodyMaximum));
+largeUpperShadow=(whiteBody AND H>=C*(1+largeBodyMinimum)) OR (blackBody AND H>=O*(1+largeBodyMinimum));
+largeLowerShadow=(whiteBody AND L<=O*(1-largeBodyMinimum)) OR (blackBody AND L<=C*(1-largeBodyMinimum));
+
+/*Gaps*/
+upGap=  IIf(Ref(blackBody,-1)AND whiteBody AND O>Ref(O,-1),1,
+        IIf(Ref(blackbody,-1) AND blackBody AND C>Ref(O,-1),1,
+        IIf(Ref(whiteBody,-1) AND whiteBody AND O>Ref(C,-1),1,
+        IIf(Ref(whiteBody,-1) AND blackBody AND C>Ref(C,-1),1,0))));
+
+downGap=IIf(Ref(blackBody,-1)AND whiteBody AND C<Ref(C,-1),1,
+        IIf(Ref(blackbody,-1) AND blackBody AND O<Ref(C,-1),1,
+        IIf(Ref(whiteBody,-1) AND whiteBody AND C<Ref(O,-1),1,
+        IIf(Ref(whiteBody,-1) AND blackBody AND O<Ref(O,-1),1,0))));
+
+/*Maximum High Today - (MHT)
+Today is the maximum High in the last 5 days*/
+MHT=  HHV(H,5)==H;
+
+/*Maximum High Yesterday - (MHY)
+Yesterday is the maximum High in the last 5 days*/
+MHY=   HHV(H,5)==Ref ( H, -1);
+
+/*Minimum Low Today - (MLT)
+Today is the minimum Low in the last 5 days*/
+MLT=   LLV(L,5)==L;
+
+/*Minimum Low Yesterday - (MLY)
+Yesterday is the minimum Low in the last 5 days*/
+MLY=   LLV(L,5)==Ref(L,-1);
+
+/*DOJI definitions*/
+
+/*Doji Today - (DT)*/
+DT = abs(C-O) <= (C*smallBodyMaximum) OR (abs(O-C)<=((H-L)*0.1));
+
+/* Doji Yesterday - (DY)*/
+DY = abs(Ref ( C, -1)-Ref(O,-1)) <= Ref ( C, -1) *smallBodyMaximum OR abs (Ref ( O, -1)-Ref(C,-1)) <= (Ref ( H, -1 ) - Ref ( L, -1 ) )*0.1;
+
+
+O1 = Ref(O,-1);O2 = Ref(O,-2);  
+H1 = Ref(H,-1);H2 = Ref(H,-2);  
+L1 = Ref(L,-1);L2 = Ref(L,-2);  
+C1 = Ref(C,-1);C2 = Ref(C,-2);  
+NearDoji = (abs(O-C)<= ((H-L)*0.1));   
+BlackCandle = (O>C);   
+LongBlackCandle = (O>C AND (O-C)/(0.001+H-L)>0.6);   
+SmallBlackCandle = ((O>C) AND ((H-L)>(3*(O-C))));   
+WhiteCandle = (C>O);   
+LongWhiteCandle = ((C>O) AND ((C-O)/(0.001+H-L)>0.6));   
+SmallWhiteCandle = ((C>O) AND ((H-L)>(3*(C-O))));   
+BlackMaubozu = (O>C AND H==O AND C==L);   
+WhiteMaubozu = (C>O AND H==C AND O==L);   
+BlackClosingMarubozu = (O>C AND C==L);   
+WhiteClosingMarubozu = (C>O AND C==H);   
+BlackOpeningMarubozu = (O>C AND O==H);   
+WhiteOpeningMarubozu = (C>O AND O==L);   
+HangingMan = (((H-L)>4*(O-C)) AND ((C-L)/(0.001+H-L)>= 0.75) AND ((O-L)/(0.001+H-L)>= 0.75));   
+Hammer = (((H-L)>3*(O-C)) AND ((C-L)/(0.001+H-L)>0.6) AND ((O-L)/(0.001+H-L)>0.6));   
+InvertedHammer = (((H-L)>3*(O-C)) AND ((H-C)/(0.001+H-L)>0.6) AND ((H-O)/(0.001+H-L)>0.6));   
+ShootingStar = (((H-L)>4*(O-C)) AND ((H-C)/(0.001+H-L)>= 0.75) AND ((H-O)/(0.001+H-L)>= 0.75));   
+BlackSpinningTop = ((O>C) AND ((H-L)>(3*(O-C))) AND (((H-O)/(0.001+H-L))<0.4) AND (((C-L)/(0.001+H-L))<0.4));   
+WhiteSpinningTop = ((C>O) AND ((H-L)>(3*(C-O))) AND (((H-C)/(0.001+H-L))<0.4) AND (((O-L)/(0.001+H-L))<0.4));   
+BearishAbandonedBaby = ((C1 == O1) AND (C2>O2) AND (O>C) AND (L1>H2) AND (L1>H));   
+BearishEveningDojiStar = ((C2>O2) AND ((C2-O2)/(0.001+H2-L2)>0.6) AND (C2<O1) AND (C1>O1) AND ((H1-L1)>(3*(C1-O1))) AND (O>C) AND (O<O1));   
+DarkCloudCover = (C1>O1 AND ((C1+O1)/2)>C AND O>C AND O>C1 AND C>O1 AND (O-C)/(0.001+(H-L)>0.6));   
+BearishEngulfing = ((C1>O1) AND (O>C) AND (O>= C1) AND (O1>= C) AND ((O-C)>(C1-O1)));   
+ThreeOutsideDownPattern = ((C2>O2) AND (O1>C1) AND (O1>= C2) AND (O2>= C1) AND ((O1-C1)>(C2-O2)) AND (O>C) AND (C<C1));   
+BullishAbandonedBaby = ((C1 == O1) AND (O2>C2) AND (C>O) AND (L2>H1) AND (L>H1));   
+BullishMorningDojiStar = ((O2>C2) AND ((O2-C2)/(0.001+H2-L2)>0.6) AND (C2>O1) AND (O1>C1) AND ((H1-L1)>(3*(C1-O1))) AND (C>O) AND (O>O1));   
+BullishEngulfing = ((O1>C1) AND (C>O) AND (C>= O1) AND (C1>= O) AND ((C-O)>(O1-C1)));   
+ThreeOutsideUpPattern = ((O2>C2) AND (C1>O1) AND (C1>= O2) AND (C2>= O1) AND ((C1-O1)>(O2-C2)) AND (C>O) AND (C>C1));   
+BullishHarami = ((O1>C1) AND (C>O) AND (C<= O1) AND (C1<= O) AND ((C-O)<(O1-C1)));   
+ThreeInsideUpPattern = ((O2>C2) AND (C1>O1) AND (C1<= O2) AND (C2<= O1) AND ((C1-O1)<(O2-C2)) AND (C>O) AND (C>C1) AND (O>O1));   
+PiercingLine = ((C1<O1) AND (((O1+C1)/2)<C) AND (O<C) AND (O<C1) AND (C<O1) AND ((C-O)/(0.001+(H-L))>0.6));   
+BearishHarami = ((C1>O1) AND (O>C) AND (O<= C1) AND (O1<= C) AND ((O-C)<(C1-O1)));   
+ThreeInsideDownPattern = ((C2>O2) AND (O1>C1) AND (O1<= C2) AND (O2<= C1) AND ((O1-C1)<(C2-O2)) AND (O>C) AND (C<C1) AND (O<O1));   
+ThreeWhiteSoldiers = (C>O*1.01) AND (C1>O1*1.01) AND (C2>O2*1.01) AND (C>C1) AND (C1>C2) AND (O<C1) AND (O>O1) AND (O1<C2) AND (O1>O2) AND (((H-C)/(H-L))<0.2) AND (((H1-C1)/(H1-L1))<0.2) AND (((H2-C2)/(H2-L2))<0.2);   
+DarkCloudCover = (C1>O1*1.01) AND (O>C) AND (O>H1) AND (C>O1) AND (((C1+O1)/2)>C) AND (C>O1) AND (MA(C,13)-Ref(MA(C,13),-4)>0);   
+ThreeBlackCrows = (O>C*1.01) AND (O1>C1*1.01) AND (O2>C2*1.01) AND (C<C1) AND (C1<C2) AND (O>C1) AND (O<O1) AND (O1>C2) AND (O1<O2) AND (((C-L)/(H-L))<0.2) AND (((C1-L1)/(H1-L1))<0.2) AND (((C2-L2)/(H2-L2))<0.2);
+eveningStar=Ref(LargeBody,-2) AND Ref(whiteBody,-2) AND Ref(upGap,-1) AND NOT Ref(largeBody,-1) AND blackBody AND NOT smallBody AND (MHT OR MHY);
+morningStar =Ref(largeBody,-2) AND Ref(blackBody,-2) AND Ref(downGap,-1) AND whiteBody AND LargeBody AND C>Ref(C,-2) AND MLY;
+Doji = (O == C);   
+GapUpx = GapUp();   
+GapDownx = GapDown();   
+BigGapUp = L>1.01*H1;   
+BigGapDown = H<0.99*L1;   
+HugeGapUp = L>1.02*H1;   
+HugeGapDown = H<0.98*L1;   
+DoubleGapUp = GapUp() AND Ref(GapUp(),-1);   
+DoubleGapDown = GapDown() AND Ref(GapDown(),-1);   
+
+c_Status =	
+WriteIf(HangingMan, "Hanging Man",
+WriteIf(ShootingStar, "Shooting Star",
+WriteIf(DarkCloudCover, "Dark Cloud Cover", 
+WriteIf(BearishEngulfing, "Bearish Engulfing",
+WriteIf(BearishHarami, "Bearish Harami",
+WriteIf(eveningStar, "Evening Star",
+WriteIf(Hammer, "Hammer",
+WriteIf(InvertedHammer, "Inverted Hammer",
+WriteIf(PiercingLine, "Piercing Line",
+WriteIf(BullishEngulfing, "Bullish Engulfing",
+WriteIf(BullishHarami, "Bullish Harami",
+WriteIf(morningStar, "Morning Star",
+WriteIf(NearDoji, "Near Doji",
+WriteIf(Doji, "Doji",
+"Zilch" ))))))))))))));
+
+
+P_status =
+WriteIf(GapUpx, "Gap Up", 
+WriteIf(GapDownx, "Gap Down",
+WriteIf(BigGapUp, "Big Gap Up",
+WriteIf(BigGapDown, "Big Gap Down",
+WriteIf(HugeGapUp, "Huge Gap Up",
+WriteIf(HugeGapDown, "Huge Gap Down",
+WriteIf(DoubleGapUp, "Double Gap Up",
+WriteIf(DoubleGapDown, "DoubleGapDown",
+"Zilch" ))))))));
+
+Filter = 1;
+
+AddTextColumn(C_Status, "Candle Pattern", 5.6, colorWhite, IIf(HangingMan OR ShootingStar OR DarkCloudCover OR BearishEngulfing OR BearishHarami OR eveningStar, colorRed, 
+IIf(Hammer OR InvertedHammer OR PiercingLine OR BullishEngulfing OR BullishHarami OR morningStar, colorGreen, IIf( NearDoji OR Doji, colorBlue, colorLightGrey))));
+
+AddTextColumn(P_Status, "Price Pattern", 5.6, colorWhite, IIf(GapDownx OR BigGapDown OR HugeGapDown OR DoubleGapDown, colorRed, 
+IIf(GapUpx OR BigGapUp OR HugeGapUp OR DoubleGapUp, colorGreen, colorLightGrey)));

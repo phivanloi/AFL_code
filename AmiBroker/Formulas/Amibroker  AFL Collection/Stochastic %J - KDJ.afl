@@ -1,0 +1,22 @@
+_SECTION_BEGIN("Stochastic %J");
+printf("The KDJ indicator is actually a derived form of the Stochastic with the only difference being an extra line called the J line." + 
+" The J line represents the divergence of the %D value from the %K. The value of J can go beyond [0, 100] for %K and %D lines on the chart." + 
+"\nTrading Signals: A negative value of J combined with %K and %D at the bottom range indicates a strong over sold signal." + 
+" Likewise, when the J value goes above 100, combined with %K and %D at the top range, it will indicate a strong over bought signal. " +  
+"\nSettings: Default:  14 period, 3 period, 1 period");
+
+
+N 	= param("Range", 9, 2, 20, 1); 
+M1 	= param("%K Period", 3, 1, 20, 1); 
+M2	= param("%D Period", 3, 1, 20, 1);
+
+RSV	= (CLOSE - LLV(LOW, N))/(HHV(HIGH, N)- LLV(LOW, N)) * 100;
+K 	= EMA(RSV, M1);
+D 	= EMA(K, M2);
+J 	= 3 * K-2 * D;
+plot(J, "Stochastic %J", colorred);
+plot(D, "Stochastic %D", colorblue);
+plot(K, "Stochastic %K", colorgreen);
+plot(80, "", colorblack);
+plot(20, "", colorblack);
+_SECTION_END();

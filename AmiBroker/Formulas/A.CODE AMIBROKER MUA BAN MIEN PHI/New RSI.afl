@@ -1,0 +1,34 @@
+// Downloaded From https://www.WiseStockTrader.com
+// Provided as is by www.AlvarezQuantTrading.com 
+
+///////////////////  Reverse RSI Calculator  ////////////////////////
+// Determines the closing value of a stock need to reach a particular RSI value
+function ReverseRSI(nLen, rsiTarget)
+{
+	gain = Max(C-Ref(C,-1), 0);     
+	loss = -Min(C-Ref(C,-1), 0);
+	
+	rsGain = IIf(BarIndex() < nLen-1,Null,   
+				IIf(BarIndex()==nLen-1, MA(gain, nLen), gain));
+	rsLoss = IIf(BarIndex() < nLen-1,Null,  
+				IIf(BarIndex()==nLen-1, MA(Loss,nLen), Loss));
+				
+	rsGain = AMA(rsGain, 1/nLen); 
+	rsLoss = AMA(rsLoss, 1/nLen);  
+	
+	RSIcalc = IIf(BarIndex()<nLen-1, Null, 100*rsGain/(rsGain+rsLoss));
+
+	targetPrice = IIf( (rsiTarget < RSI(nLen)),
+						C-100*(((nLen-1)*rsGain)/rsiTarget)+((nLen-1)*rsGain)+((nLen-1)*rsLoss),
+						C+((rsiTarget/(100-rsiTarget)*((nLen-1)*rsLoss))-((nLen-1)*rsGain)) 
+					 );
+					 
+	return targetPrice;
+}
+ 
+	
+Filter = TRUE ;
+AddColumn(C,"Close");
+AddColumn(RSI(2), "RSI2");
+AddColumn(ReverseRSI(2, 30),"RSI30-Next Day Price",1.3);
+AddColumn(ReverseRSI(2, 70),"RSI70-Next Day Price",1.3);

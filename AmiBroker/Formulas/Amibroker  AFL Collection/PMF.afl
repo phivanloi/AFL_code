@@ -1,0 +1,4 @@
+P = ParamField("Price field",-1);
+Period = Param("Periods", 28, 2, 300, 1, 10 );
+Plot( ROC( P, Period),	_DEFAULT_NAME(), ParamColor("Color", ColorCycle ) );
+PlotGrid(0, colorLightGrey);

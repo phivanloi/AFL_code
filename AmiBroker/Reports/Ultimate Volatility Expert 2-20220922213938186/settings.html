@@ -1,0 +1,54 @@
+<HTML><HEAD>
+<TITLE>Ultimate Volatility Expert 2 - Backtest Report</TITLE><STYLE>
+<!--
+BODY { font-family:"Tahoma,Arial,Helvetica,Sans Serif"; font-size:8pt; }
+TD {  font-size:8pt; text-align: right; white-space: nowrap; }
+TH {  font-size:8pt; text-align: left; font-weight: normal; }
+.CH { text-align: right; font-weight:bold; }
+.CHL { text-align: left; font-weight:bold; }
+.BIG { font-size:10pt; font-weight:bold; text-align: center; }
+.TAB { font-size:10pt;  text-align: center; text-color:#CCCCCC; }
+.SELTAB { font-size:10pt; font-weight:bold; text-align: center; text-color:#000000; }
+.good { color:#006600; }
+.bad { color:#880000; }
+.neut { color:#000088; }
+a:active { background-color:#DDDDFF; }
+-->
+</STYLE>
+<SCRIPT>
+var curPart = 0;
+function showPart( i )
+{
+	 document.getElementById("part" + curPart ).style.display = "none";
+	 document.getElementById("part" + i ).style.display = "";
+	 curPart = i;
+}
+</SCRIPT>
+</HEAD>
+<BODY>
+<DIV ALIGN=CENTER><FONT class='TAB'><a href='stats.html'>Statistics</a> | <a href='charts.html'>Charts</a> | <a href='trades.html'>Trades</a> | <a href='formula.html'>Formula</a> | <a href='settings.html'><FONT class='SELTAB'>Settings</FONT></a> | <a href='symbols.html'>Symbols</a> | <a href='montecarlo.html'>Monte Carlo</a></FONT></DIV><br>
+<TABLE CELLSPACING=0 CELLPADDING=2 WIDTH=100%>
+<TR bgcolor="#DDDDDD"><TH COLSPAN=5 CLASS="BIG" >Settings</TH></TR>
+</TABLE><TABLE CELLSPACING=2 WIDTH=100%>
+<TR><TH COLSPAN=5>&nbsp;</TH></TR>
+<TR><TH>Initial Equity:</TH><TD>10000</TD><TD></TD><TH>Periodicity/Positions:</TH><TD>15-minute/Long Short</TD></TR>
+<TR><TH>Commissions:</TH><TD>0.00 (Use portfolio settings)</TD><TD></TD><TH>Annual interest rate:</TH><TD>8.00%</TD></TR>
+<TR><TH>Range:</TH><TD>6/9/2021 - 9/30/2022</TD><TD></TD><TH>Apply to:</TH><TD>Filter</TD></TR><TR><TH><B>Include Filter</B></TH><TD>&nbsp;</TD><TD></TD><TH><B>Exclude Filter</B></TH><TD>&nbsp;</TD></TR><TR><TH>Market</TH><TD>-</TD><TD></TD><TH>Market</TH><TD>-</TD></TR><TR><TH>Group</TH><TD>-</TD><TD></TD><TH>Group</TH><TD>-</TD></TR><TR><TH>Sector</TH><TD>-</TD><TD></TD><TH>Sector</TH><TD>-</TD></TR><TR><TH>Industry</TH><TD>-</TD><TD></TD><TH>Industry</TH><TD>-</TD></TR><TR><TH>Watchlist</TH><TD>-</TD><TD></TD><TH>Watchlist</TH><TD>-</TD></TR><TR><TH>GICS</TH><TD>-</TD><TD></TD><TH>GICS</TH><TD>-</TD></TR><TR><TH>ICB</TH><TD>-</TD><TD></TD><TH>ICB</TH><TD>-</TD></TR><TR><TH>Index</TH><TD>-</TD><TD></TD><TH>Index</TH><TD>-</TD></TR><TR><TH>Favourite</TH><TD>-</TD><TD></TD><TH>Favourite</TH><TD>-</TD></TR><TR><TH>Account margin:</TH><TD>100</TD><TD></TD><TH>Futures mode:</TH><TD>No</TD></TR>
+<TR><TH>Def. round lot size:</TH><TD>0</TD><TD></TD><TH>Def. Tick Size</TH><TD>0</TD></TR>
+<TR><TH>Drawdowns based on:</TH><TD>High/Low prices</TD><TD></TD><TH>&nbsp;</TH><TD>&nbsp;</TD></TR>
+<TR><TH COLSPAN=5><b>Long trades</b></TH></TR>
+<TR><TH>Buy price:</TH><TD>Close</TD><TD></TD><TH>Sell price:</TH><TD>Close</TD></TR>
+<TR><TH>Buy delay:</TH><TD>0</TD><TD></TD><TH>Sell delay:</TH><TD>0</TD></TR>
+<TR><TH COLSPAN=5><b>Short trades</b></TH></TR>
+<TR><TH>Short price:</TH><TD>Close</TD><TD></TD><TH>Cover price:</TH><TD>Close</TD></TR>
+<TR><TH>Short delay:</TH><TD>0</TD><TD></TD><TH>Cover delay:</TH><TD>0</TD></TR>
+<TR><TH COLSPAN=5><b>Stops</b></TH></TR>
+<TR><TH>Maximum loss:</TH><TD>percent</TD><TD></TD><TH>Profit target:</TH><TD>percent</TD></TR>
+<TR><TH>Value:</TH><TD>10.00</TD><TD></TD><TH>Value:</TH><TD>20.00</TD></TR>
+<TR><TH>Exit at stop?</TH><TD>no</TD><TD></TD><TH>Exit at stop?</TH><TD>no</TD></TR>
+<TR><TD colspan=5>&nbsp;</TD></TR><TR><TH>Trailing stop:</TH><TD>percent</TD><TD></TD><TH>&nbsp;</TH><TD>&nbsp;</TD></TR>
+<TR><TH>Value:</TH><TD>5.00</TD><TD></TD><TH>&nbsp;</TH><TD>&nbsp;</TD></TR>
+<TR><TH>Exit at stop?</TH><TD>no</TD><TD></TD><TH>&nbsp;</TH><TD>&nbsp;</TD></TR>
+</TABLE><P><P><FONT class='BIG'>Parameters</FONT>
+<TABLE CELLSPACING=3 WIDTH=100%>
+<TR><TH><B>Name</B></TH><TD><B>Value</B></TD></TR><TR><TH>End year</TH><TD>2011</TD></TR><TR><TH>Start year</TH><TD>2010</TD></TR><TR><TH>Shift BAck/Forward</TH><TD>26</TD></TR><TR><TH>Wavetrend	TCI Line Color</TH><TD>17</TD></TR><TR><TH>Start day</TH><TD>1</TD></TR><TR><TH>Test_model	Kijun</TH><TD>17</TD></TR><TR><TH>Kijun</TH><TD>17</TD></TR><TR><TH>Wavetrend	Over Sold Level 1 Color</TH><TD>27</TD></TR><TR><TH>Background text	up panel</TH><TD>16</TD></TR><TR><TH>Zoom</TH><TD>2</TD></TR><TR><TH>Wavetrend	Over Sold Level 2 Color</TH><TD>27</TD></TR><TR><TH>ICHIMOKU	Span B Period</TH><TD>26</TD></TR><TR><TH>ICHIMOKU	chuky</TH><TD>4</TD></TR><TR><TH>Background text	xposn</TH><TD>1</TD></TR><TR><TH>Price	bkcolor</TH><TD>56</TD></TR><TR><TH>End month</TH><TD>1</TD></TR><TR><TH>Kijun color</TH><TD>29</TD></TR><TR><TH>ICHIMOKU	Shift BAck/Forward</TH><TD>26</TD></TR><TR><TH>Background text	yposn</TH><TD>1</TD></TR><TR><TH>Background text	left-right</TH><TD>2.1</TD></TR><TR><TH>Channel Period</TH><TD>10</TD></TR><TR><TH>Wavetrend	Channel Period</TH><TD>10</TD></TR><TR><TH>ICHIMOKU	Telegram Bot API Key</TH><TD>1333859675:AAFTmHzM54SIGgzrHajwbiCY1G_mv0bJ2uw</TD></TR><TR><TH>Intraday Target Levels</TH><TD>Hide</TD></TR><TR><TH>File type</TH><TD>csv</TD></TR><TR><TH>Test_model	Shift BAck/Forward</TH><TD>26</TD></TR><TR><TH>Wavetrend	Over Sold Level 1</TH><TD>-60</TD></TR><TR><TH>Wavetrend	GraphXSpace</TH><TD>7</TD></TR><TR><TH>Background text	fonts</TH><TD>20</TD></TR><TR><TH>Number of Days</TH><TD>10</TD></TR><TR><TH>Test_model	chuky</TH><TD>4</TD></TR><TR><TH>Filter multitimeframe	Style</TH><TD>1</TD></TR><TR><TH>Wavetrend	Over Sold Level 2</TH><TD>-53</TD></TR><TR><TH>ICHIMOKU	Tenkan color</TH><TD>11</TD></TR><TR><TH>Test_model	Kijun color</TH><TD>29</TD></TR><TR><TH>Test_model	Tenkan color</TH><TD>11</TD></TR><TR><TH>Test_model	select type</TH><TD>daily</TD></TR><TR><TH>chuky</TH><TD>10</TD></TR><TR><TH>Background text	Volume lookback period</TH><TD>15</TD></TR><TR><TH>Wavetrend	Over Bought Level 1</TH><TD>60</TD></TR><TR><TH>Telegram Bot API Key</TH><TD>1333859675:AAFTmHzM54SIGgzrHajwbiCY1G_mv0bJ2uw</TD></TR><TR><TH>Wavetrend	Over Bought Level 2</TH><TD>53</TD></TR><TR><TH>ICHIMOKU	Telegram Channel ID</TH><TD>@phukhangami</TD></TR><TR><TH>Day hours only</TH><TD>No</TD></TR><TR><TH>Tenkan color</TH><TD>11</TD></TR><TR><TH>Tenkan</TH><TD>9</TD></TR><TR><TH>End day</TH><TD>1</TD></TR><TR><TH>Start month</TH><TD>1</TD></TR><TR><TH>Test_model	Tenkan</TH><TD>9</TD></TR><TR><TH>Span B Period</TH><TD>26</TD></TR><TR><TH>RSI Maximal</TH><TD>45</TD></TR><TR><TH>Style</TH><TD>1</TD></TR><TR><TH>Value Min (Rp. Mil)</TH><TD>3</TD></TR><TR><TH>ICHIMOKU	Kijun</TH><TD>17</TD></TR><TR><TH>ICHIMOKU	Kijun color</TH><TD>29</TD></TR><TR><TH>Background text	up-down</TH><TD>8</TD></TR><TR><TH>MOnthly, Weekly Levels</TH><TD>Show</TD></TR><TR><TH>Over Sold Level 1</TH><TD>-60</TD></TR><TR><TH>Over Bought Level 1 Color</TH><TD>32</TD></TR><TR><TH>Over Bought Level 2 Color</TH><TD>32</TD></TR><TR><TH>Over Sold Level 1 Color</TH><TD>27</TD></TR><TR><TH>Test_model	Span B Period</TH><TD>26</TD></TR><TR><TH>Over Bought Level 1</TH><TD>60</TD></TR><TR><TH>Over Sold Level 2</TH><TD>-53</TD></TR><TR><TH>Over Sold Level 2 Color</TH><TD>27</TD></TR><TR><TH>GraphXSpace</TH><TD>7</TD></TR><TR><TH>Wavetrend	Over Bought Level 1 Color</TH><TD>32</TD></TR><TR><TH>Background text	dn panel</TH><TD>16</TD></TR><TR><TH>Average Period</TH><TD>21</TD></TR><TR><TH>Over Bought Level 2</TH><TD>53</TD></TR><TR><TH>TCI Line Color</TH><TD>17</TD></TR><TR><TH>Wavetrend	Average Period</TH><TD>21</TD></TR><TR><TH>Wavetrend	Over Bought Level 2 Color</TH><TD>32</TD></TR><TR><TH>ICHIMOKU	Tenkan</TH><TD>9</TD></TR></TABLE></BODY></HTML>

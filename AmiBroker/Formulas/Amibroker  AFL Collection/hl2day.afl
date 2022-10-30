@@ -1,0 +1,10 @@
+//by detwo
+Htoday = LastValue(TimeFrameGetPrice("H", inDaily, 0));
+Ltoday = LastValue(TimeFrameGetPrice("L", inDaily, 0));
+Hyday  = LastValue(TimeFrameGetPrice("H", inDaily, -1));
+Lyday  = LastValue(TimeFrameGetPrice("L", inDaily, -1));
+style  = styleDashed|styleNoRescale;
+Plot(Htoday, "High of today", colorGreen, style);
+Plot(Ltoday, "Low of today", colorRed, style);
+Plot(Hyday, "High of yesterday", colorPaleGreen, style);
+Plot(Lyday, "Low of yesterday", colorOrange, style);

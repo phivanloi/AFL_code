@@ -1,0 +1,65 @@
+/*
+TAIO Price chart 
+Version:1.2   06-August-2004 
+
+@copyright by Thomas Zmuck
+www.tradingbasis.com
+e-mail: support@tradingbasis.com
+*/
+
+///default
+pricestyle = Param("50} Price style",128,0,128,64);
+thickness = Param("51} Price thickness",1,1,4,4);
+upbar_col = Param("52} Upbar-color",colorBlue,1,55,1);
+dnbar_col = Param("53} Dnbar-color",colorRed,1,55,1);
+Bollinger_onoff=Param("54} Bollinger on/off",1,0,1,1);
+Bollinger_color=Param("55} Bollinger color",colorBlue,1,50,1);
+Bollinger_thickness=Param("56} Bollinger thickness",0,0,4,4);
+Parabolic_Sar_onoff=Param("57} Parabolic sar on/off",1,0,1,1);
+Parabolic_Sar_color_up=Param("58} Parabolic sar color up",colorBlack,1,55,1);
+Parabolic_Sar_color_down=Param("59} Parabolic sar color down",colorBlack,1,55,1);
+TAIOstyle = Param("60} TAIO off/on/shortterm/longterm", 2,0,2,1);
+TAIO_up_color = Param("61} TAIO up-color",colorSeaGreen,1,55,1);
+TAIO_dn_color = Param("62} TAIO dn-color",colorRed,1,55,1);
+TAIO_ribbon_position = Param("63} TAIO ribbon/position",1,0,2,1);
+Mov1_off_on_type =Param("64} Mov1 off/on/type",0,0,3,1);
+mov1_pds = Param("65} Mov1 periods",5,1,200,1);
+mov1_color = Param("66} Mov1 color",colorSeaGreen,1,55,1);
+Mov2_off_on_type =Param("67} Mov2 off/on/type",0,0,3,1);
+mov2_pds = Param("68} Mov2 periods",25,1,200,1);
+mov2_color = Param("69} Mov2 color",colorBlue,1,55,1);
+Mov3_off_on_type =Param("70} Mov3 off/on/type",0,0,3,1);
+mov3_pds = Param("71} Mov3 periods",50,1,200,1);
+mov3_color = Param("72} Mov3 color",colorRed,1,55,1);
+mov_thickness = Param("73} Movings thickness",4,1,4,4);
+upbar = C>Ref(C,-1); dnbar = C<Ref(C,-1);
+Taio=100*EMA(EMA(ROC(C,3),5),8)/EMA(EMA(abs(ROC(C,3)),5),8);
+pricecolor = 
+IIf(upbar & Taiostyle<1,upbar_col,
+IIf(dnbar & Taiostyle<1,dnbar_col, 
+IIf(Taiostyle==1 & Taio>Ref(Taio,-1),TAIO_up_color, 
+IIf(Taiostyle==1 & Taio<Ref(Taio,-1),TAIO_dn_color,
+IIf(Taiostyle==2 & Taio>0,TAIO_up_color, 
+IIf(Taiostyle==2 & Taio<0,TAIO_dn_color,1
+))))));
+
+Plot(C,"close",pricecolor,pricestyle + thickness );
+Plot(IIf(TAIO_ribbon_position>0,1.5,-1e10),"",IIf(TAIO>0,TAIO_up_color,IIf(TAIO<0,TAIO_dn_color,1)),styleOwnScale|styleArea|styleNoLabel, -0.1, 100);
+Plot(IIf(TAIO_ribbon_position>0,1.5,-1e10),"",IIf(TAIO>Ref(TAIO,-1),TAIO_up_color,IIf(TAIO<Ref(TAIO,-1),TAIO_dn_color,1)),styleOwnScale|styleArea|styleNoLabel,IIf(TAIO_ribbon_position==1,-90,-1.7),IIf(TAIO_ribbon_position==1,6,100));
+Plot(
+IIf(Mov1_off_on_type==1,scGauss2ord(C,mov1_pds),
+IIf(Mov1_off_on_type==2,MA (C,mov1_pds),
+IIf(Mov1_off_on_type==3,EMA(C,mov1_pds),-1e10))),"",mov1_color,1+mov_thickness+styleNoRescale);
+Plot(
+IIf(Mov2_off_on_type==1,scGauss2ord(C,mov2_pds),
+IIf(Mov2_off_on_type==2,MA (C,mov2_pds),
+IIf(Mov2_off_on_type==3,EMA(C,mov2_pds),-1e10))),"",mov2_color,1+mov_thickness+styleNoRescale);
+Plot(
+IIf(Mov3_off_on_type==1,scGauss2ord(C,mov3_pds),
+IIf(Mov3_off_on_type==2,MA (C,mov3_pds),
+IIf(Mov3_off_on_type==3,EMA(C,mov3_pds),-1e10))),"",mov3_color,1+mov_thickness+styleNoRescale);
+Plot(IIf(Bollinger_onoff,BBandTop(C,20),-1e10),"BB Top",Bollinger_color,styleLine+Bollinger_thickness);
+Plot(IIf(Bollinger_onoff,BBandBot(C,20),-1e10),"BB Bottom",Bollinger_color,styleLine+Bollinger_thickness);
+Plot(IIf(Bollinger_onoff,MA(C,20),-1e10),"ma(c,20)",Bollinger_color,styleLine+Bollinger_thickness);
+Plot(IIf(Parabolic_Sar_onoff,SAR(),-1e10),"Parabolic_Sar",IIf(SAR()>H,Parabolic_Sar_color_down, Parabolic_Sar_color_up),styleDots+styleNoLine+styleNoRescale);
+///default

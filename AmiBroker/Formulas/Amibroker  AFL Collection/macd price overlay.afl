@@ -1,0 +1,36 @@
+_SECTION_BEGIN("Macd time frame");
+
+TimeFrameSet( inDaily);
+LongTermEMA = EMA(Close, 10);
+TimeFrameRestore( );
+
+TimeFrameSet( inHourly) ;
+MediumTermEMA = EMA(Close, 10);
+TimeFrameRestore( );
+
+fMACD = MACD(6,19);
+fSignal = Signal(6,19, 9);
+
+Buy = Cross(fMACD, fSignal);
+Sell = Cross(fSignal, fMACD);
+
+//Plot(TimeFrameExpand(LongTermEMA, inDaily), "Daily EMA", colorRed);
+//Plot(TimeFrameExpand(MediumTermEMA, inHourly), "\nHourly EMA", colorBlue);
+Plot(fMACD, "\nCurrent chart MACD", colorGreen, styleOwnScale) ;
+Plot(fSignal, "\nCurrent chart Signal", colorGreen, styleDashed |
+styleOwnScale) ;
+
+PlotShapes(Buy * shapeUpArrow, colorGreen);
+PlotShapes(Sell * shapeDownArrow, colorRed);
+// program end
+_SECTION_END();
+
+_SECTION_END();
+
+
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+_SECTION_END();
+

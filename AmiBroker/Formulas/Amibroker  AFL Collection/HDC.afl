@@ -1,0 +1,42 @@
+_SECTION_BEGIN("HDC");
+
+/* HaDiffCo Modified */
+
+HaClose=(O+H+L+C)/4;
+HaOpen=AMA(Ref(HaClose,-1),0.5);
+HaHigh=Max(H,Max(HaClose,HaOpen));
+HaLow=Min(L,Min(HaClose,HaOpen));
+
+HaDiffCO = (HaClose-HaOpen);
+VarRedLine = WMA(HaDiffCO,5);
+VarBlueLine = MA(HaDiffCO,8);
+Per = Param("MA Periods",8,3,50,1);
+Plot(HaDiffCO,"HaDiffCO",colorDarkRed);
+
+Title = "D_Opt HaDiffCO";
+
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 100, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), Color, Style ); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), Color, Style ); 
+
+VarAMA = Param("varAMA",0.1,0,2,0.01);
+HaClose2=(H+L+C)/3;
+HaOpen2=AMA(Ref(HaClose2,-1),VarAMA);
+HaHigh2=Max(H,Max(HaClose2,HaOpen2));
+HaLow2=Min(L,Min(HaClose2,HaOpen2));
+HaDiffCO2 = HaClose2-HaOpen2;
+Plot(HaDiffCO2,"HaDiffCO2",colorGreen);
+
+VarAMA3 = Param("varAMA2",1,0,2,0.1);
+HaClose3=(H+L+C)/3;
+HaOpen3=AMA(Ref(HaClose3,-1),VarAMA3);
+HaHigh3=Max(H,Max(HaClose3,HaOpen3));
+HaLow3=Min(L,Min(HaClose3,HaOpen3));
+HaDiffCO3 = HaClose3-HaOpen3;
+
+Plot(0,"0",colorBlack,styleDots);
+_SECTION_END();

@@ -1,0 +1,434 @@
+_SECTION_BEGIN("Dimitris Swing trade");
+//Dimitris (Explortion) . Let me know how it works for you.Dick H.
+
+t=20;
+x=DEMA( StochD(40) ,t); 
+
+tA=50;
+xA=DEMA( StochD(40) ,tA);
+
+Buy=Ref(x,-1) ==LLV(x,3) AND (PDI (14)>MDI(14) );
+
+PlotShapes(Buy*shapeUpTriangle, colorYellow) ;
+
+
+Sell=Ref(x,- 1)==HHV(x, 3)AND (PDI (14)<MDI(14) );
+PlotShapes(Sell*shapeDownTriangle, colorYellow) ;
+//Plot(50*Sell, "Sell",colorRed, 2);
+
+k1=BarsSince( Buy);
+
+k2=BarsSince( Sell);
+
+//Plot((k2>k1) *10,"K2>K1" ,colorBrightGreen,2);
+
+//Plot((k2<k1) *10,"K2<K1" ,colorRed, 2);
+
+Coeff=2;
+
+trendbars=20; // calibrate here the start of variable smoothing
+
+t1=IIf(k2>k1 AND k2>trendbars, t+coeff*k1, IIf(k1>k2 AND k1>trendbars, t+coeff*k2, t));
+
+x1=DEMA(StochD( 40),t1);
+
+Plot(x1*3,"X1" ,(x1>Ref( x1,-1))*colorBrightGreen+ (x1<Ref(x1, -1))*colorRed, 8);
+
+Plot(x*3,"X",colorGrey40,8);
+
+GraphXSpace= 2;
+
+//Filter = C <15 AND C >2 AND Volume > 100000 AND C> Ref(C,-1)AND NOT (IndustryID( ) == 34 OR IndustryID() ==36);
+
+Result = WriteIf(Buy, "Buy","Sell" );
+
+//AddTextColumn( WriteIf(Buy, "Buy" , "Sell" ) , "TRADE" , 5 , IIf(Buy,colorYellow , colorWhite), IIf(Buy, colorDarkGreen, colorDarkRed) );
+
+//AddTextColumn( IndustryID( 1) ," Industry Sector ", 25.0, colorWhite, colorBlue);
+
+//AddColumn( Close, "Close", 1.2, IIf( ROC(C, 1 ) >= 0, colorDarkGreen, colorRed ),50 );
+
+//AddColumn(Ref( Close,-1) ,"Y-Close" ,1.2, IIf( ROC(Ref(C,-1) ,1)>=0,colorDarkGreen, colorRed ),50 );
+
+//AddColumn( ROC( Close, 1 ), "ROC(1)", 1.2, IIf( ROC(C, 1 ) >= 0,colorDarkGreen, colorRed));
+
+//AddColumn( Volume, "Volume", 8.0, IIf( ROC(V, 1 ) >= 0,colorDarkGreen, colorRed ) );
+
+//AddColumn(Ref( MA(V,21), -1), "10d Avg VOL", 8.0, colorWhite, colorBlue);
+
+//AddColumn( (V/Ref(MA(V, 21),-1))* 100,"V%of10 dMA" ,3.0, colorLightYellow, colorDarkGrey) ;
+_SECTION_END();
+_SECTION_BEGIN("Dimitris Swing trade OwnScale_sto_10_30");
+//Dimitris (Explortion) . Let me know how it works for you.Dick H.
+
+t1=10;
+x1=DEMA( StochD(40) ,t1);
+
+tA1=30;
+xA1=DEMA( StochD(40) ,tA1);
+
+Buy=Ref(x1,-1) ==LLV(x1,3) AND (PDI (14)>MDI(14) );
+
+//Plot(50*Buy, "Buy",colorBrightGreen,2) ;
+
+Sell=Ref(x1,- 1)==HHV(x1, 3)AND (PDI (14)<MDI(14) );
+
+//Plot(50*Sell, "Sell",colorRed, 2);
+
+k1=BarsSince( Buy);
+
+k2=BarsSince( Sell);
+
+
+
+Coeff=2;
+
+trendbars=20; // calibrate here the start of variable smoothing
+
+t1=IIf(k2>k1 AND k2>trendbars, t+coeff*k1, IIf(k1>k2 AND k1>trendbars, t+coeff*k2, t));
+
+x1=DEMA(StochD( 40),t1);
+
+Plot(x1,"X1" ,(x1>Ref( x1,-1))*colorYellow+ (x1<Ref(x1, -1))*colorCustom12, 8|styleOwnScale);
+
+
+_SECTION_END();
+
+
+
+
+
+
+
+
+
+
+_SECTION_BEGIN("CCI Panel for Amibroker");
+/////////////////////////////// 
+// CCI Panel for Amibroker
+// Codded/Added by Dennis, Kris, Wring, Santacs
+// Last Update: 1/02/2008
+/////////////////////////////// 
+// Go to www.woodiescciclub.com to learn everything about this system.
+// You must be a registered user to see the images and downloads.
+/////////////////////////////// 
+// Setup Axes and Grid section (right click on chart panel, click on Parameters):
+// Scaling: Custom , Min=-250  Max=250
+// Show Date Axis = Yes , Show Middle Lines = No
+/////////////////////////////// 
+// To activate the timer properly, make sure the following is set:
+// click on Tools==>Preferences==>Intraday....
+// make sure "Allign minute bars to market hours" is checked...
+// make sure "Start time of interval" is checked...
+// make sure "Override: Weekly/monthly bars use day of last trade" is checked.
+/////////////////////////////// 
+// Tic/PIP values: YM=1.0, ER2=0.10, NQ=0.25, EUR/USD=.0001, USD/JPY=0.01, Stocks=0.01
+///////////////////////////////
+// Rangebar Settings :
+// ER2 1.50 
+// YM 25  
+// ES 3 
+// NQ 3.75 
+// DAX 5  
+// ZG 1.5  
+/////////////////////////////// 
+// Discalimer: For educational purposes only. Trade at your own risk.
+/////////////////////////////// 
+
+// Timer
+
+TTMperiod = 6; 
+Low_ma = EMA(L, TTMperiod); 
+High_ma = EMA(H, TTMperiod); 
+Low_third = (High_ma - Low_ma) / 3 + Low_ma; 
+High_third = 2 * (High_ma - Low_ma) / 3 + Low_ma; 
+tempnum = Now( 4 ) - TimeNum(); 
+TimeRem = Interval() - ((int(tempnum[BarCount - 1] / 100) * 60) + (tempnum[BarCount - 1] - int(tempnum[BarCount - 1] / 100) * 100)); 
+if (TimeRem[BarCount - 1] < 0) TimeRem = 0; 
+MinuteVar = int(TimeRem / 60); 
+SecondsVar = int(frac(TimeRem / 60) * 60); 
+if (TimeRem[BarCount - 1] > 60) 
+{ 
+TitleTimeRem = EncodeColor(colorWhite) + MinuteVar + ":" + WriteIf(SecondsVar > 9, "", "0") +  SecondsVar; 
+} 
+else if (TimeRem[BarCount - 1] > 20) 
+{ 
+TitleTimeRem =  EncodeColor(colorYellow) + MinuteVar + ":" + WriteIf(SecondsVar > 9, "", "0") + SecondsVar; 
+} 
+else 
+{ 
+TitleTimeRem = EncodeColor(colorRed) + MinuteVar + ":" + WriteIf(SecondsVar > 9, "", "0") +  SecondsVar; 
+} 
+
+// Background color
+CBK=colorBlack;
+SetChartBkColor(ParamColor("Panel color ",CBK)); 
+
+// CCI colors
+
+zcolor= ParamColor("WCCI color",colorWhite);
+z6color= ParamColor("TCCI color",colorLightBlue);
+
+// CCI periods
+
+zperiod=Param("WCCI period",14,0,100);
+z = CCI(zperiod);
+
+
+
+ 
+z6period=Param("TCCI period",6,0,1000);
+z6 = CCI(z6period); 
+
+// Tic/PIP value
+
+TicMult= Param("Tic multiplier(ER2=10,YM=1,ES=4,FOREX=1)",1,0,1000000);
+TicDiv= Param("Tic or PIP value(ER2=0.1,YM=1,FOREX=1)",1,0,1000000);
+
+// Rangebar interval
+
+rbint= Param("Rangebar interval:(YM=25.0,AB=1.5,NQ=3.75,ES=3.0)",1.0,0.25,1000000);
+
+// Rangebar counter
+
+rbcounter= round(((rbint-(H-L))) * ticmult);
+rbcounterpercent= round((rbcounter/(rbint * ticmult))*100);
+
+// Timer/counter title
+
+timercode= Param("Timer:(minutes=1,rangebar=2)",1,1,2);
+timetitle= WriteIf(timercode==1,TitleTimeRem, EncodeColor(colorWhite) + "Countdown  " + rbcounter + "  (" + rbcounterpercent + "%)"); 
+
+// Spread
+
+spread= Param("Spread (included in stop)",0,0,1000000); 
+
+// Stop value
+
+stopval= Param("Stop above/below entry bar",2,0,1000000); 
+
+// Plot grids
+
+PlotTheGrids = ParamToggle("Plot grids","No|Yes",0); 
+if (PlotTheGrids ==1) 
+{ 
+PlotGrid(0); 
+PlotGrid(-100); 
+PlotGrid(100);
+PlotGrid(-200); 
+PlotGrid(200); 
+} 
+
+// Angle variables
+
+PI = atan(1.00) * 4; 
+periods = 30; 
+HighHigh = HHV(H, periods); 
+LowLow = LLV(L, periods); 
+range = 25 / (HighHigh - LowLow) * LowLow;
+
+// EMA34 Angle
+
+EMA34 = EMA(C,34);
+x1_EMA34 = 0; 
+x2_EMA34 = 1; 
+y1_EMA34 = 0; 
+y2_EMA34 = (Ref(EMA34, -1) - EMA34) / Avg * range; 
+c_EMA34 = sqrt((x2_EMA34 - x1_EMA34)*(x2_EMA34 - x1_EMA34) + (y2_EMA34 - y1_EMA34)*(y2_EMA34 - y1_EMA34)); 
+angle_EMA34 = round(180 * acos((x2_EMA34 - x1_EMA34)/c_EMA34) / PI); 
+angle_EMA34 = IIf(y2_EMA34 > 0, - angle_EMA34, angle_EMA34); 
+
+// LSMA25 Angle
+
+LSMA25 = LinearReg(C, 25 ); 
+x1_LSMA25 = 0; 
+x2_LSMA25 = 1; 
+y1_LSMA25 = 0; 
+y2_LSMA25 = (Ref(LSMA25, -1) - LSMA25) / Avg * range; 
+c_LSMA25 = sqrt((x2_LSMA25 - x1_LSMA25)*(x2_LSMA25 - x1_LSMA25) + (y2_LSMA25 - y1_LSMA25)*(y2_LSMA25 - y1_LSMA25)); 
+angle_LSMA25 = round(180 * acos((x2_LSMA25 - x1_LSMA25)/c_LSMA25) / PI); 
+angle_LSMA25 = IIf(y2_LSMA25 > 0, - angle_LSMA25, angle_LSMA25); 
+
+// Color the bars for Woodies Trend Following 
+
+function Consecutive( array ) 
+{ 
+return BarsSince( NOT( array ) ); 
+} 
+function Occurrences( array , period ) 
+{ 
+return Sum( array, period ); 
+} 
+array = z; 
+HighBars = Consecutive( array > 0 ); 
+LowBars = Consecutive( array < 0 ); 
+UpCondition = BarsSince( HighBars >= 6 AND Occurrences( array > 100 , 5 ) > 0 ); 
+DnCondition = BarsSince( LowBars >= 6 AND Occurrences( array < -100 , 5 ) > 0 ); 
+UpTrend = ( array > 0 ) AND ( UpCondition < DnCondition ); 
+DnTrend = ( array < 0 ) AND ( UpCondition > DnCondition ); 
+TrTrend = ( HighBars >= 5 AND NOT UpTrend ) OR ( LowBars >= 5 AND NOT DnTrend ); 
+Color = IIf( UpTrend, colorBlue, IIf( DnTrend, colorRed, IIf( TrTrend, colorYellow, colorGrey40 ) ) );  
+
+// CCI Line 
+
+//Plot(round(z),"WCCI", zcolor, styleLine | styleThick);
+
+// Turbo CCI 
+
+
+d=0.03;
+z6t=z6+HHV(z6,100)*d;
+z6b=z6-HHV(z6,100)*d;
+
+Plot(round(z6),"TCCI", z6color, styleThick);
+PlotOHLC(z6t,z6t,z6b,z6b,"",z6color,styleCloud,styleNoLabel);
+
+d=0.03;
+zt=z+HHV(z,100)*d;
+zb=z-HHV(z,100)*d;
+ 
+PlotOHLC(zt,zt,zb,zb,"",zcolor,styleCloud,styleNoLabel);
+
+Z42=CCI(42); 
+//Plot(Z42,"", colorCustom12, styleLine | styleThick); 
+
+
+
+
+
+
+
+
+
+
+// CCI Histogram 
+
+Plot( array, "", colorDefault, styleLine | styleThick | styleNoLabel); 
+Plot( array, "", Color, styleHistogram | styleThick| styleNoLabel); 
+
+// Zero line 25lsma 
+
+Plot(0,"", IIf(C > LSMA25,colorBrightGreen,IIf(C < LSMA25,colorRed,colorTeal)), styleLine | styleThick | styleNoLabel); 
+
+// Plot the Mock CZI on the 100s 
+
+ColorANGLE_EMA = IIf(angle_EMA34 >=5,colorTurquoise,
+IIf(angle_EMA34 <5 AND angle_EMA34 >=3.57,colorDarkGreen,
+IIf(angle_EMA34 <3.57 AND angle_EMA34 >=2.14,colorPaleGreen,
+IIf(angle_EMA34 <2.14 AND angle_EMA34 >=.71,colorLime,
+IIf(angle_EMA34 <=-1*5,colorDarkRed,
+IIf(angle_EMA34 >-1*5 AND angle_EMA34 <=-1*3.57,colorRed,
+IIf(angle_EMA34 >-1*3.57 AND angle_EMA34 <=-1*2.14,colorOrange,
+IIf(angle_EMA34 >-1*2.14 AND angle_EMA34 <=-1*.71,colorLightOrange,colorYellow))))))));
+Plot(100,"", ColorANGLE_EMA , styleLine | styleThick | styleNoLabel); 
+Plot(-100,"", ColorANGLE_EMA , styleLine | styleThick | styleNoLabel); 
+
+// Plot the Mock Sidewinder on the 200s
+
+SW = IIf((abs(angle_EMA34) >= 15) AND (abs(angle_EMA34 + angle_LSMA25) >= 50), IIf(angle_LSMA25 > 0, 2, -2), 
+IIf((abs(angle_EMA34) >= 0) AND (((angle_EMA34 >= 0) AND (angle_LSMA25 >= 0)) OR ((angle_EMA34 <= 0) AND (angle_LSMA25 <= 0))) AND (abs(angle_EMA34 + angle_LSMA25) >= 5), IIf(angle_LSMA25 > 0, 1, -1), 0)); 
+ColorSW = IIf(abs(SW) == 2, colorBrightGreen, 
+IIf(abs(SW) == 1, colorYellow, colorRed)); 
+Plot(200,"", ColorSW, styleLine | styleThick | styleNoLabel); 
+Plot(-200,"", ColorSW, styleLine | styleThick | styleNoLabel);
+
+// CCI Points
+
+CCipointmove= z-Ref(z,-1);
+CCIpointmovetitle= WriteIf(abs(CCipointmove)<15,EncodeColor(colorRed) + "\n"  + "DIFF  " + 
+abs(round(CCipointmove)),WriteIf(abs(CCipointmove)>=15 AND abs(CCipointmove)<20,EncodeColor(colorYellow) + "\n"  + "DIFF  " + 
+abs(round(CCipointmove)),WriteIf(abs(CCIpointmove)>=20,EncodeColor(colorBrightGreen) + "\n"  + "DIFF  " + 
+abs(round(CCipointmove)),"")));
+
+// Price Panel
+
+Lastpricetitlehi= WriteIf(H>Ref(H,-1),EncodeColor(colorBrightGreen) + Ref(H,-1) + "  " + H , EncodeColor(colorWhite)+ Ref(H,-1) + "  " + H);
+Lastpricetitlelo= WriteIf(L<Ref(L,-1),EncodeColor(colorRed) + Ref(L,-1) + "  " + L , EncodeColor(colorWhite) + Ref(L,-1) + "  " + L);
+Closecolor=WriteIf(C==H AND H>Ref(H,-1),EncodeColor(colorBrightGreen),WriteIf(C==L AND L<Ref(L,-1),EncodeColor(colorRed),EncodeColor(colorWhite)));
+
+// Stop in
+
+Longbar= L+rbint;
+Shortbar= H-rbint;
+sstoptitle=WriteIf(timercode==2, EncodeColor(colorBlue) + "\n" + "Stop In Long  " + Longbar + EncodeColor(colorRed) + "\n" + "Stop In Short  " + Shortbar + "\n","");
+
+// Stop out
+
+stopCode=ParamToggle("Display stop-out ","No|Yes",0); 
+StopLong1= C -(L - (stopval*ticdiv) - (spread*ticdiv));
+stoplong1c=C-stoplong1;
+stoplong= round(StopLong1/ticdiv);
+StopShort1= (H + (stopval*ticdiv) + (spread*ticdiv)) - C;
+stopshortc= C+StopShort1;
+StopShort= round(StopShort1/ticdiv);
+stoptitle= WriteIf(stopcode==1,EncodeColor(colorBlue) + "\n" + "Stop Out Long  " + stoplong1c + "   " + stoplong + "\n" +
+EncodeColor(colorRed) + "Stop Out Short  " + stopshortc + "   " + stopshort  + "\n","");
+
+// Title
+
+Title = "\n" + "" + EncodeColor(colorWhite) + Date() + "\n" + "\n" +
+timetitle + "\n" + "\n" + Lastpricetitlehi + "\n" + Closecolor + C +   
+"\n" + Lastpricetitlelo + "\n" +  CCIpointmovetitle + "\n" + sstoptitle + stoptitle;
+
+Buy=Z42>0 AND (Cross(round(z),-100) OR Cross(round(z),0) OR Cross(round(z),50));
+Sell=Z42<0 AND (Cross(100,round(z)) OR Cross(0,round(z)) OR Cross(-50,round(z)));
+Filter=Buy OR Sell;
+
+AddColumn( IIf(Buy,1,IIf(Sell,-1,0)) ,"BS",1.0,colorBlack,IIf(Buy,colorGreen,IIf(Sell,colorRed,colorBlack)));
+
+_SECTION_END();
+
+
+
+
+
+_SECTION_BEGIN("Stochastic_45-4-2_833");
+
+
+//ColorX=colorWhite;
+
+
+ 
+periods = Param( "Periods", 45, 1, 200, 1 );
+K1smooth = Param( "%K1 avg", 4, 1, 200, 1 );
+//Plot( StochK( periods , K1smooth), _DEFAULT_NAME(), colorCustom3, styleNoLabel  | styleThick | styleDots);
+
+
+periods = Param( "Periods", 45, 1, 200, 1 );
+K1smooth = Param( "%K1 avg", 4, 1, 200, 1 );
+D1smooth = Param( "%D1 avg", 2, 1, 200, 1 );
+//Plot( StochD( periods , K1smooth, D1Smooth ), _DEFAULT_NAME(), colorCustom3, styleNoLabel  | styleThick | styleDots);
+
+
+
+A = StochK( periods , K1smooth);
+B = StochD( periods , K1smooth, D1Smooth );
+
+
+
+PlotOHLC( 300, 300 , 250 , 250 , "", IIf(A>80,colorPaleBlue,CBK), styleCloud | styleNoLabel);
+PlotOHLC( -250, -250 , -300 , -300 , "", IIf(A<20,colorPaleBlue,CBK), styleCloud | styleNoLabel);
+
+periods = Param( "Periods", 8, 1, 200, 1 );
+K1smooth = Param( "%K1 avg", 3, 1, 200, 1 );
+
+
+
+periods = Param( "Periods", 8, 1, 200, 1 );
+K2smooth = Param( "%K1 avg", 3, 1, 200, 1 );
+D2smooth = Param( "%D1 avg", 3, 1, 200, 1 );
+
+M = StochK( periods , K2smooth);
+N = StochD( periods , K2smooth, D2Smooth );
+
+ColorK=IIf(A>B,colorBrightGreen,colorRed);
+
+//Plot( M,"StoK", ColorK, styleNoLabel|styleThick);
+//Plot( N,"StoD", colorDarkYellow, styleNoLabel|styleDashed);
+
+
+
+PlotOHLC( 0, A , B , B , "Cloud", IIf(A > B ,colorAqua,colorRed), styleCloud | styleNoLabel);
+
+
+_SECTION_END();

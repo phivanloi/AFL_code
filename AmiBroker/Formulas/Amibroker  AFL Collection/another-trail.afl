@@ -1,0 +1,63 @@
+function trail_func(jj,trBull,trBear)
+{
+	trailArray[ 0 ] = jj[ 0 ]; // initialize
+	for( i = 1; i < BarCount; i++ )
+	{
+		prev = trailArray[ i - 1 ];
+ 
+		if (jj[ i ] > prev AND jj[ i - 1 ] > prev)
+		{
+			trailArray[ i ] = Max(prev,jj[ i ] - trBull[ i ]);
+		}
+		else if (jj[ i ] < prev AND jj[ i - 1 ] < prev)
+		{
+			trailArray[ i ] = Min(prev,jj[ i ] + trBear[ i ]);
+		}
+		else if (jj[ i ] > prev)
+		{
+			trailArray[ i ] = jj[ i ] - trBull[ i ];
+		}
+		else
+		{
+			trailArray[ i ] = jj[ i ] + trBear[ i ];	
+		}
+	}
+	return trailArray;
+}
+
+// code by E.M.Pottasch
+// adjusted from M.Kartnik 
+// following: http://wisestocktrader.com/indicators/1710-nma-v-3-6-a-optimiser
+
+k_bull = Param("mult bull",1.25,1,4,0.05); 
+k_bear = Param("mult bear",1.25,1,4,0.05); 
+Per= Param("period",10,5,50,1); 
+ 
+HaClose=(O+H+L+C)/4; 
+HaOpen = AMA(Ref(HaClose,-1),0.5); 
+HaHigh = Max(H,Max( HaClose,HaOpen)); 
+HaLow = Min(L,Min(HaClose,HaOpen));
+
+ms=ParamList("ST0P/REV",List="Reg|Smoothed",0);
+if(ms=="Reg")
+{
+	nm =(H-L);
+	j=(O+H+L+C)/4;
+}
+else
+{
+	nm=(HaHigh-HaLow);
+	j=(HaOpen+HaHigh+HaLow+HaClose)/4;
+}
+ 
+rfsctor = WMA(nm,PER); 
+revers_bull=k_bull*rfsctor; 
+revers_bear=k_bear*rfsctor;
+
+nw = trail_func(j,revers_bull,revers_bear);
+
+GraphXSpace = 5;
+SetChartOptions(0, chartShowDates);
+Plot( Close, "\nPrice", colorGreen, styleCandle ); 
+Plot(IIf(NW > j,NW,Null),"\ntrailShort",ParamColor("ColorTrailShort",ColorRGB(255,0,0)),styleStaircase);
+Plot(IIf(NW < j,NW,Null),"\ntrailLong",ParamColor("ColorTrailLong",ColorRGB(0,255,0)),styleStaircase);

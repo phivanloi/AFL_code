@@ -1,0 +1,188 @@
+//------------------------------------------------------------------------------
+//
+//  Formula Name:    Chandelier Exit
+//  Author/Uploader: Geoff Mulhall - geoffmulhall [at] optusnet.com.au
+//  E-mail:          
+//  Date/Time Added: 2006-11-11 18:19:29
+//  Origin:          Chuck LeBeau
+//  Keywords:        Chandelier Exit
+//  Level:           advanced
+//  Flags:           indicator,function
+//  Formula URL:     http://www.amibroker.com/library/formula.php?id=759
+//  Details URL:     http://www.amibroker.com/library/detail.php?id=759
+//
+//------------------------------------------------------------------------------
+//
+//  This is the afl code behind the Chandelier plugin which I originally wrote
+//  in C using the Amibroker Developers Kit.
+//
+//  This code needs to be stored in a say "C:\Program
+//  Files\Amibroker\AFL\Include" and referenced in your formula via an include
+//  statement
+//
+//  #include "c:\Program Files\Amibroker\AFL\Include\Chandelier.afl"
+//
+//  Now a challenge - further improvement to the Chandelier can be made if it
+//  is tightened when volatility increases. This is a common phenomenon at the
+//  end of a move where a stock goes into stage 3 and forms a double/triple top
+//  or head and shoulders pattern. The challenge is to determine the best way
+//  to do this. I've had some ideas but would welcome the thoughts of others.
+//
+//------------------------------------------------------------------------------
+
+function ChandelierCl(AtrARRAY, AtrMult) {
+// Skip empty values
+i = 0;
+do {result[i] = Null;
+	i++;
+	} 
+while( i < BarCount AND (IsNull(O[i]) OR IsNull(H[i]) OR IsNull(L[i]) OR IsNull(C[i]) ) ); 
+First = i;
+
+if (i < BarCount - 1) {
+	HHC[First]    = C[First];
+	LLC[First]    = C[First];
+
+	if (C[First + 1] > HHC[First]) {
+		HHC[First + 1] = C[First + 1];
+		LLC[First + 1] = LLC[First];
+		result[First] = C[First] - AtrMult * AtrARRAY[First];
+		iTrade = "LT";
+	}
+	else {
+		if (C[First + 1] < LLC[First]) {
+			HHC[First = 1] = HHC[First];
+			LLC[First + 1] = LLC[First + 1];
+			result[First] = C[First] + AtrMult * AtrARRAY[First];
+			iTrade = "ST";
+		}
+		else {
+			HHC[First + 1] = C[First + 1];
+			LLC[First + 1] = C[First + 1];
+			result[First] = C[First] - AtrMult * AtrARRAY[First];
+			iTrade = "LT";
+		}
+	}
+
+	for( i = First; i < BarCount; i++ ) {
+		if (iTrade == "LT") {
+			if (C[i] >= result[i-1]) {        // Long Trade is continuing
+				if (C[i] > C[i-1]) {
+					HHC[i] = C[i];
+				}
+				else { 
+					HHC[i] = HHC[i-1];
+				}
+				result[i] = HHC[i] - AtrMult * AtrARRAY[i];
+				if (result[i] < result[i-1]) {
+					result[i] = result[i-1];
+				}
+			}
+			else {                            // Long trade Exit triggered
+				iTrade = "ST";
+				LLC[i] = C[i];
+				result[i] = C[i] + AtrMult * AtrARRAY[i];
+			}
+		}
+		else {                               // Short trade
+			if (C[i] <= result[i-1]) {
+				if (C[i] <= C[i-1]) {        // Short Trade is continuing
+					LLC[i] = C[i];
+				}
+				else {
+					LLC[i] = LLC[i-1];
+				}
+				result[i] = LLC[i] + AtrMult * AtrARRAY[i];
+				if (result[i] > result[i-1]) {
+					result[i] = result[i-1];
+				}
+			}
+			else {                           //Short Trade Exit is triggered
+				iTrade = "LT";
+				HHC[i]  = C[i];
+				result[i] = C[i] - AtrMult * AtrARRAY[i];
+			}
+		}
+	}
+}
+return result;
+}
+
+function ChandelierHL(AtrARRAY, AtrMult) {
+// Skip empty values
+i = 0;
+do {result[i] = Null;
+	i++;
+	} 
+while( i < BarCount AND (IsNull(O[i]) OR IsNull(H[i]) OR IsNull(L[i]) OR IsNull(C[i]) ) ); 
+First = i;
+
+if (i < BarCount - 1) {
+	HHC[First]    = H[First];
+	LLC[First]    = L[First];
+
+	if (H[First + 1] > HHC[First]) {
+		HHC[First + 1] = H[First + 1];
+		LLC[First + 1] = LLC[First];
+		result[First] = H[First] - AtrMult * AtrARRAY[First];
+		iTrade = "LT";
+	}
+	else {
+		if (L[First + 1] < LLC[First]) {
+			HHC[First = 1] = HHC[First];
+			LLC[First + 1] = LLC[First + 1];
+			result[First] = L[First] + AtrMult * AtrARRAY[First];
+			iTrade = "ST";
+		}
+		else {
+			HHC[First + 1] = C[First + 1];
+			LLC[First + 1] = C[First + 1];
+			result[First] = H[First] - AtrMult * AtrARRAY[First];
+			iTrade = "LT";
+		}
+	}
+
+	for( i = First; i < BarCount; i++ ) {
+		if (iTrade == "LT") {
+			if (C[i] >= result[i-1]) {        // Long Trade is continuing
+				if (H[i] > H[i-1]) {
+					HHC[i] = H[i];
+				}
+				else { 
+					HHC[i] = HHC[i-1];
+				}
+				result[i] = HHC[i] - AtrMult * AtrARRAY[i];
+				if (result[i] < result[i-1]) {
+					result[i] = result[i-1];
+				}
+			}
+			else {                            // Long trade Exit triggered
+				iTrade = "ST";
+				LLC[i] = L[i];
+				result[i] = L[i] + AtrMult * AtrARRAY[i];
+			}
+		}
+		else {                               // Short trade
+			if (C[i] <= result[i-1]) {
+				if (L[i] <= L[i-1]) {        // Short Trade is continuing
+					LLC[i] = L[i];
+				}
+				else {
+					LLC[i] = LLC[i-1];
+				}
+				result[i] = LLC[i] + AtrMult * AtrARRAY[i];
+				if (result[i] > result[i-1]) {
+					result[i] = result[i-1];
+				}
+			}
+			else {                           //Short Trade Exit is triggered
+				iTrade = "LT";
+				HHC[i]  = H[i];
+				result[i] = H[i] - AtrMult * AtrARRAY[i];
+			}
+		}
+	}
+}
+return result;
+}
+		

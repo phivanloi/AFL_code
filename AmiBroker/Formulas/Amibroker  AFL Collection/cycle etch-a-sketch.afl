@@ -1,0 +1,39 @@
+
+BarNo  = Cum(1);
+
+GraphXSpace = 10;
+
+BegBar = BeginValue(BarNo);
+
+Pi     = 3.14159265;
+Pi2    = 2 * Pi;
+
+BotTop = ParamList("Cycle Bottom/Top", "Bot|Top", 0); 
+
+LenFac = Param("Length Factor",    0, 0, 5, 0.01);
+
+AmpFac = Param("Amplitude Factor", 0, 0, 5, 0.01);
+
+Title  = EncodeColor(colorWhite) + "Cycle Tool   ";
+
+Col = Len = Amp = zzz = Cum(0);
+
+function PlotIt(i)
+{
+    Col[i] = ParamColor("#" + NumToStr(i, 1.0) + " Color", colorRed);
+    Len[i] = IIf(i > 1 AND LenFac > 0, Len[i - 1] * LenFac, Param("#" + NumToStr(i, 0) + " Length",    1000, 3, 3000));
+    Amp[i] = IIf(i > 1 AND AmpFac > 0, Amp[i - 1] * AmpFac, Param("#" + NumToStr(i, 0) + " Amplitude", 1000, 3, 3000));
+    Oft[i] = IIf(BotTop == "Bot", - Pi, 0);
+    Ofc[i] = - (BegBar - int((BegBar - 1) / Len[i]) * Len[i]) * Pi2 / Len[i];
+    yyy    = (cos(BarNo * (Pi2 / (Len[i])) + Oft[i] + Ofc[i]) + 1) * Amp[i];
+    zzz    = zzz + yyy;
+    Title  = Title + EncodeColor(Col[i]) + "#" + NumToStr(i, 1.0) + " Len/Amp = " + NumToStr(Len[i], 1.0) + "/" + NumToStr(Amp[i], 1.0) + "   ";
+    Plot(yyy, "", Col[i]);
+    return 1;
+}
+
+for (i = 1; i < 7; i++)
+    x = PlotIt(i);
+
+Plot(zzz, "", colorWhite, styleThick);
+ 

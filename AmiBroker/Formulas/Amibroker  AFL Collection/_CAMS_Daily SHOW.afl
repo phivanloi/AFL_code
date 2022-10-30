@@ -1,0 +1,94 @@
+_SECTION_BEGIN("PriceCandle");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorPink ), styleNoTitle | styleCandle ); 
+_SECTION_END();
+
+
+_SECTION_BEGIN("SIMPLE_D-CAMS_SHOW");
+//---- pivot points 
+
+
+
+
+
+DayH = TimeFrameGetPrice("H", inDaily, -1);// yesterdays high 
+DayL = TimeFrameGetPrice("L", inDaily, -1);//low 
+DayC = TimeFrameGetPrice("C", inDaily, -1);//close 
+DayO = TimeFrameGetPrice("O", inDaily);// current day open 
+HiDay = TimeFrameGetPrice("H", inDaily); 
+LoDay = TimeFrameGetPrice("L", inDaily);
+
+
+
+
+
+
+
+
+TimeFrameSet( inDaily );
+
+
+R6 = (DayH / DayL) * DayC * 1.002;
+R5 = (DayH / DayL) * DayC;
+R4 = (((DayH / DayL) + 0.83) / 1.83) * DayC;
+R3 = ( ( (DayH / DayL) + 2.66) / 3.66) * DayC;
+R2 = ( ( (DayH / DayL) + 4.5) / 5.5) * DayC;
+R1 = ( ( (DayH / DayL) + 10) / 11) * DayC;
+ 
+S1 = (2- ( ( (DayH / DayL) + 10) / 11)) * DayC;
+S2 = (2-( (DayH / DayL) + 4.5) / 5.5) * DayC;
+S3 = (2-(( DayH / DayL) + 2.66) / 3.66) * DayC;
+S4 = (2-( (DayH / DayL) + 0.83) / 1.83) * DayC;
+S5 = (2-( DayH / DayL)) * DayC;
+S6 = (2-( DayH / DayL)) * DayC * 0.998;
+
+
+ShowR5 = ParamToggle("R5", "No|Yes");
+ShowR4 = ParamToggle("R4", "No|Yes");
+ShowR3 = ParamToggle("R3", "No|Yes");
+ShowR2 = ParamToggle("R2", "No|Yes");
+ShowR1 = ParamToggle("R1", "No|Yes");
+
+
+ShowS1 = ParamToggle("S1", "No|Yes");
+ShowS2 = ParamToggle("S2", "No|Yes");
+ShowS3 = ParamToggle("S3", "No|Yes");
+ShowS4 = ParamToggle("S4", "No|Yes");
+ShowS5 = ParamToggle("S5", "No|Yes");
+
+
+
+
+Shadowcolor = ParamColor("Shadow",ColorRGB(40,30,20));
+Shadowcolor1 = ParamColor("Shadow1",ColorRGB(20,30,20));
+Shadowcolor2 = ParamColor("Shadow2",ColorRGB(30,40,0));
+
+style = styleDots | styleThick + styleNoRescale ; 
+
+
+if(ShowR5 == True)
+Plot(R5, "R5",colorPaleBlue,style);
+if(ShowR4 == True) 
+Plot(R4, "R4",colorRed,Style);
+if(ShowR3 == True)
+Plot(R3, "R3",colorRed,style);
+if(ShowR2 == True) 
+Plot(R2, "R2",colorDarkRed,styleLine);
+if(ShowR1 == True)
+Plot(R1, "R1",colorDarkRed,styleLine);
+
+if(ShowS1 == True)
+Plot(S1, "S1",colorLightBlue,styleLine);
+if(ShowS2 == True)
+Plot(S2, "S2",colorLightBlue,styleLine);
+if(ShowS3 == True)
+Plot(S3, "S3",colorGreen,style);
+if(ShowS4 == True) 
+Plot(S4, "S4",colorGreen,style);
+if(ShowS5 == True) 
+Plot(S5, "S5",colorPaleBlue,style); 
+
+
+
+_SECTION_END();

@@ -1,0 +1,36 @@
+//Code from Dan Valcu’s article in this issue, “Making The Most Of A Trend With The Disparity Index.”
+//Dix scan applied to all Nasdaq 100 stocks on July 16, 2009. 
+//List is sorted on descending values of Dix(200), then Dix(50), AND finally Dix(20).
+
+
+//THE DISPARITY INDEX (DIX) — VALCU ARTICLE CODE
+// DIX-scan.afl - Disparity Index Scan in Amibroker 4.9
+// Scan to list DIX(200), DIX(50) and DIX(20)
+// ‘use filter’ = Nasdaq 100 stock universe
+// ‘range’ = n last days with n=1
+// Copyright 2009 Dan Valcu 
+Buy=1;
+Filter = 1; /* all symbols and quotes accepted */
+// Compute DIX(200)
+nper1 = 200;
+dix200=100*(C-EMA(C,nper1))/C;
+
+// Compute DIX(50)
+nper2 = 50;
+dix50=100*(C-EMA(C,nper2))/C;
+
+// Compute DIX(20)
+nper3 = 20;
+dix20=100*(C-EMA(C,nper3))/C;
+
+Col2 = dix200;
+Col3 = dix50;
+Col4 = dix20;
+
+SetOption("NoDefaultColumns", True );
+AddTextColumn(Name(), "Ticker", 5 , colorDefault, colorDefault);
+AddColumn(Close,"Close",1.2);
+AddColumn(Col2,"DIX(200)",1.2);
+AddColumn(Col3,"DIX(50)",1.2);
+AddColumn(Col4,"DIX(20)",1.2);
+AddTextColumn(Name(), "Ticker", 5 , colorDefault, colorDefault);

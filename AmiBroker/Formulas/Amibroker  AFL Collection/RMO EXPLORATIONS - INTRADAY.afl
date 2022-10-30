@@ -1,0 +1,66 @@
+//RMO EXPLORATIONS - INTRADAY
+_SECTION_BEGIN("RMO");
+SwingTrd1=100 *
+(Close - ((MA(C,2) +
+MA(MA(C,2),2) +
+MA(MA(MA(C,2),2),2) +
+MA(MA(MA(MA(C,2),2),2),2) +
+MA(MA(MA(MA(MA(C,2),2),2),2),2) +
+MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2) +
+MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2) +
+MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2),2) +
+MA(MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2), 2),2) +
+MA(MA(MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2), 2),2),2),2)) / 10)) /
+(HHV(C,10) - LLV(C,10));
+SwingTrd2=EMA(SwingTrd1,30);
+SwingTrd3=EMA(SwingTrd2,30);
+RMO = EMA(SwingTrd1,81);
+New_Bullish = IIf(RMO > 0 AND Ref(RMO, -1) <= 0,1,0);
+New_Bearish = IIf(RMO < 0 AND Ref(RMO, -1) >= 0,1,0);
+New_Buy_Arrow = IIf(Cross(SwingTrd2,SwingTrd3),1,0) AND RMO >0;
+New_Sell_Arrow = IIf(Cross(SwingTrd3,SwingTrd2),1,0) AND RMO <0;
+New_Blue_Bar = IIf(Cross(SwingTrd2,0),1,0) AND RMO >0;
+New_Red_Bar = IIf(Cross(0,SwingTrd2),1,0) AND RMO <0;
+Old_Bullish = IIf(RMO > 0 AND Ref(RMO, -1) > 0,1,0);
+Old_Bearish = IIf(RMO < 0 AND Ref(RMO, -1) < 0,1,0);
+New_Buy_Bar = IIf(Ref(New_Buy_Arrow,-1) AND C > Ref(H,-1), 1, 0);
+New_Sell_Bar = IIf(Ref(New_Sell_Arrow,-1) AND C < Ref(L,-1), 1, 0);
+P_Buy = (Ref(RMO,-1) > 0) AND (Ref(New_Blue_Bar,-1) > 0);
+P_Sell= (Ref(RMO,-1) < 0) AND (Ref(New_Red_Bar,-1) > 0);
+CBR = RMO;
+CBS2= SwingTrd2;
+CBS3= SwingTrd3;
+PBR = Ref(RMO,-1);
+PBS2= Ref(SwingTrd2,-1);
+PBS3= Ref(SwingTrd3,-1);
+New3CBuy = ((CBR > 0) AND (CBS2 >0) AND (CBS2 > CBS3) AND ((PBR <= 0) AND (PBS2 <=0) AND (PBS2 <= PBS3)));
+New3CSell= ((CBR < 0) AND (CBS2 <0) AND (CBS2 < CBS3) AND ((PBR >= 0) AND (PBS2 >=0) AND (PBS2 >= PBS3))); 
+New_Arrow_New_Bar_Buy = ((CBR > 0) AND (CBS2 >0) AND (CBS2 > CBS3) AND ((PBS2 <=0) AND (PBS2 <= PBS3))); 
+New_Arrow_New_Bar_Sell= ((CBR < 0) AND (CBS2 <0) AND (CBS2 < CBS3) AND ((PBS2 >=0) AND (PBS2 >= PBS3)));
+B1=New_Buy_Bar;
+S1=New_Sell_Bar;
+B2=New3CBuy;
+S2=New3CSell;
+B3=New_Buy_Arrow;
+S3=New_Sell_Arrow;
+B4=New_Buy_Arrow;
+S4=New_Sell_Arrow;
+B5=New_Blue_Bar;
+S5=New_Red_Bar;
+B6=New_Bullish;
+S6=New_Bearish;
+Buy= (B1 OR B2 OR B3 OR B4 OR B5 OR B6) ;
+Sell= (S1 OR S2 OR S3 OR S4 OR S5 OR S6); 
+Filter=Buy OR Sell; 
+SetOption("NoDefaultColumns", True );
+AddTextColumn(Name(),"Security",1.2, colorDefault, colorDefault, 90);
+AddColumn( DateTime(), "Date", formatDateTime, colorDefault,colorDefault,100);
+AddColumn(IIf(B1,66,IIf(S1,83,32)),"New Trade Bar", formatChar, colorWhite, bkcolor =IIf(B1, colorGreen,IIf(S1,colorRed,colorDefault)));
+AddColumn(IIf(B2,66,IIf(S2,83,32)),"New3C", formatChar, colorWhite, bkcolor =IIf(B2, colorGreen,IIf(S2,colorRed,colorDefault)));
+AddColumn(IIf(B3,66,IIf(S3,83,32)),"New Arrow+Bar", formatChar, colorWhite, bkcolor =IIf(B3, colorGreen,IIf(S3,colorRed,colorDefault)));
+AddColumn(IIf(B4,66,IIf(S4,83,32)),"New Arrow", formatChar, colorWhite, bkcolor =IIf(B4, colorGreen,IIf(S4,colorRed,colorDefault)));
+AddColumn(IIf(B5,66,IIf(S5,83,32)),"New Bar", formatChar, colorWhite, bkcolor =IIf(B5, colorGreen,IIf(S5,colorRed,colorDefault)));
+AddColumn(IIf(B6,66,IIf(S6,83,32)),"New RMO", formatChar, colorWhite, bkcolor =IIf(B6, colorGreen,IIf(S6,colorRed,colorDefault)));
+AlertIf( Buy, "SOUND C:\\Windows\\Media\\chimes.wav", "Audio alert", 1, 1+8 );
+AlertIf( Sell, "SOUND C:\\Windows\\Media\\ding.wav", "Audio alert", 2, 1+8 );
+_SECTION_END();

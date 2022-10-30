@@ -1,0 +1,6 @@
+periods = Param("Periods", 21, 2, 200, 1 );
+ROCadj = periods * EMA( ROC( C, 1 ), periods );
+Plot( ROCadj, "ROCadj "+periods, colorRed, styleThick );
+// the line below adds standard ROC overlay
+Plot( ROC( C, periods ), "ROC "+periods, colorBlue );
+

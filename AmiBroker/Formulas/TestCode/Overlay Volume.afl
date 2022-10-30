@@ -1,0 +1,23 @@
+// Downloaded From https://www.WiseStockTrader.com
+isVol =   ParamToggle("Show Volume ?","No|Yes",1);
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+
+_SECTION_BEGIN("Volume");
+PaneHght = Param( "Volume Pane Height (in %)", 15, 1, 100, 1 );
+PaneHghtMin = LowestVisibleValue( V);
+PaneHghtMax = HighestVisibleValue(V) * 100 / PaneHght;
+gxs=Param("GRAPH spaceing",15,5,50,5); 
+GraphXSpace = gxs;
+
+if (isVol == 1)
+{
+
+xcol1= IIf( C > Ref( C, -1 ) AND V > Ref( V, -1 ), colorGreen, IIf( C < Ref( C, -1 ) AND V > Ref( V, -1 ),colorOrange, colorBlue) );
+xcol2= IIf( C > Ref( C, -1 ) AND V > Ref( V, -1 ), colorbrightGreen, IIf( C < Ref( C, -1 ) AND V > Ref( V, -1 ),colorpink, colorSkyblue) );
+
+hz=EMA(Volume,5);
+Plot( hz, "Vol", colorblue, styledashed |styleOwnScale  ,  PaneHghtMin, PaneHghtMax, 0, 0, 2 );
+Plot( Volume, "", xcol1,  styleHistogram | styleOwnScale | styleThick | styleNoTitle , PaneHghtMin, PaneHghtMax, 0, 0, 2 );
+Plot( Volume, "", xcol2,  styleArea | styleOwnScale | styleThick | styleNoTitle , PaneHghtMin, PaneHghtMax, 0, 0, 2 );
+}
+_SECTION_END();

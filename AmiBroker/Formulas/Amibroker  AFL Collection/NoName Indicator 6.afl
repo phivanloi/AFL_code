@@ -1,0 +1,20 @@
+HaClose = (O+H+L+C)/4; 
+
+HaOpen = AMA( Ref( HaClose, -1 ), 0.5 );
+
+HaHigh = Max( H, Max( HaClose, HaOpen ) );
+
+HaLow = Min( L, Min( HaClose, HaOpen ) );
+
+PlotOHLC( HaOpen, HaHigh, HaLow, HaClose, "Modified " + Name(), 2, styleCandle );
+
+Buy=HaClose>HaOpen; 
+
+Sell=HaClose<HaOpen;
+
+Sell=ExRem(Sell,Buy);
+
+Buy=ExRem(Buy,Sell);
+
+PlotShapes( shapeUpArrow* Buy , colorGreen ,0, HaLow);
+PlotShapes( shapeHollowDownArrow* Sell, 16 ,0,HaHigh);

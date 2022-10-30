@@ -1,0 +1,40 @@
+_SECTION_BEGIN("MACD HIst"); 
+
+SetChartBkColor( colorBlack ) ;
+f = Param("fast ema",12,1,50,1);
+s = Param("Slow ema",26,2,100,1);
+t = Param ("signal",9,1,50,1);
+A1=EMA(C,f)-EMA(C,s);
+a2 = EMA(a1,t);
+Hist = a1-a2;
+em = EMA(Hist,2);
+col_hist= IIf(Hist > BBandTop( Hist, 5, 0.5 ),colorDarkGreen,IIf(Hist < BBandBot( Hist, 5, 0.5 ),colorDarkRed,colorYellow));
+Plot (Hist,"Histogram",IIf(hist> Ref(hist,-1),colorBrightGreen,colorRed), styleLine+styleThick);
+Plot (Hist,"",col_hist, styleHistogram+styleNoLabel);
+Plot (EM,"trgger",IIf(em > Ref(em,-1),colorAqua,colorBrown), styleLine);
+Plot(0,"",31,styleNoLabel);
+_SECTION_END();
+
+ST33= Hist;
+bars=50;
+TR1= LLVBars(ST33,5);
+COND1=TR1> 0 AND Ref(TR1,-1)==0 AND Ref(ST33,-1)<0;
+TR2= IIf(COND1,Ref(ST33,-1),0);
+M1= ValueWhen(COND1,ST33);
+P1= ValueWhen(COND1,LLV(L,3));
+DM1=M1- Ref(M1,-1);DP1=P1-Ref(P1,-1);
+DT= Ref(BarsSince(COND1),-1);
+POSDIV1=DM1> 0 AND DP1<0 AND DT<BARS; 
+TR11= HHVBars(ST33,5);
+COND11=TR11> 0 AND Ref(TR11,-1)==0 AND Ref(ST33,-1)>0;
+TR21= IIf(COND11,Ref(ST33,-1),0);
+M11= ValueWhen(COND11,ST33);
+P11= ValueWhen(COND11,HHV(H,3));
+DM11=M11- Ref(M11,-1);DP11=P11-Ref(P11,-1); 
+DT1= Ref(BarsSince(COND11),-1);
+NEGDIV1=DM11< 0 AND DP11>0 AND DT1<BARS;
+PlotShapes(shapeDigit4*POSDIV1,colorBrightGreen);
+PlotShapes(shapeDigit4*NEGDIV1,colorRed);
+
+
+

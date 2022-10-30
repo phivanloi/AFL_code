@@ -1,0 +1,8 @@
+Buy = 	BBandTop( Close, 15, 2 ) > Ref( BBandTop( Close, 15, 2 ) , -1 )
+	AND BBandBot( Close, 15, 2 ) < Ref( BBandBot( Close, 15, 2 ) , -1 );
+
+Sell = 0;
+
+Short = 0;
+
+Cover = 0;

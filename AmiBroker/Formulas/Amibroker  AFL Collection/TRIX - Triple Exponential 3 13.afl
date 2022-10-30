@@ -1,0 +1,23 @@
+_SECTION_BEGIN("TRIX");
+a = round (Trix(3)*100)/100; 
+
+periods = Param("Periods", 9, 2, 200, 1 );
+Plot(a,"",colorRed,styleThick+styleDots);
+ar1 = DEMA(a,13);
+Plot (ar1, "signal", colorBlue);
+
+//a = Trix(3);
+a = round (Trix(3)*100)/100;
+a1 = Ref(a,-1);
+diff1 = round((a - a1)*10)/10;
+diff2 = round((a1 - Ref(a,-2))*10)/10;
+
+Title =
+EncodeColor(colorYellow)+"Trix                  :"+ WriteIf(a > 0,  EncodeColor(colorGreen)+a,EncodeColor(colorRed)+a)
++ WriteIf(diff1 > 0, EncodeColor(colorGreen)+"  Up by "+diff1,EncodeColor(colorRed)+"  Dn by "+diff1)
++"\n"
++EncodeColor(colorYellow)+ "One bar ago  :"+ WriteIf(a1 > 0, EncodeColor(colorGreen)+a1,EncodeColor(colorRed)+a1)
++ WriteIf(diff2 > 0, EncodeColor(colorGreen)+"  Up by "+diff2,EncodeColor(colorRed)+"  Dn by "+diff2)
+;
+ 
+_SECTION_END(); 

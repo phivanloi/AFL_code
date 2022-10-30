@@ -1,0 +1,56 @@
+
+
+Ctmpl = E_TSKPCOLORTMPL(Open,High,Low,Close,Volume);
+total = 0;
+total = total  + IIf(tskp_colortmplcnd0 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd1 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd2 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd3 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd4 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd5 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd6 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd7 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd8 > 0, 1, -1); 
+
+Cutoff = 5;
+for( i = 0; i < BarCount; i++ ) 
+{
+	if( total[i] >= Cutoff  )
+		Color[i] = colorBlue;
+	else if(  total[i] <= -Cutoff  )
+		Color[i] = colorRed;
+	else
+		Color[i] = colorYellow;
+}
+
+
+//PlotGrid(4,ParamColor("CutoffColor",colorCycle));
+//PlotGrid(-4,ParamColor("CutoffColor",colorCycle));
+Plot(total,"ScoreCard",Color,ParamStyle("ScoreCardStyle",default=styleHistogram+styleThick,MAsk=maskHistogram));
+
+
+if( Status("action") == actionCommentary ) 
+{ 
+
+printf(   "KPA900" +       NumToStr(tskp_colortmplcnd0) +  WriteIf(tskp_colortmplcnd0 > 0, " +++", " ---") );
+printf( "\nAutoStop" +     NumToStr(tskp_colortmplcnd1) +  WriteIf(tskp_colortmplcnd1 > 0, " +++", " ---") );
+printf( "\nHighlight" +    NumToStr(tskp_colortmplcnd2) +  WriteIf(tskp_colortmplcnd2 > 0, " +++", " ---") );
+printf( "\nCombo" +        NumToStr(tskp_colortmplcnd3) +  WriteIf(tskp_colortmplcnd3 > 0, " +++", " ---") );
+printf( "\nFast3" +        NumToStr(tskp_colortmplcnd4) +  WriteIf(tskp_colortmplcnd4 > 0, " +++", " ---") );
+printf( "\nSTTB" +         NumToStr(tskp_colortmplcnd5) +  WriteIf(tskp_colortmplcnd5 > 0, " +++", " ---") );
+printf( "\nTrigger/Stop" + NumToStr(tskp_colortmplcnd6) +  WriteIf(tskp_colortmplcnd6 > 0, " +++", " ---") );
+printf( "\n115Split" +     NumToStr(tskp_colortmplcnd7) +  WriteIf(tskp_colortmplcnd7 > 0, " +++", " ---") );
+printf( "\nMedium" +       NumToStr(tskp_colortmplcnd8) +  WriteIf(tskp_colortmplcnd8 > 0, " +++", " ---") );
+
+/*
+printf(         WriteIf(tskp_colortmplcnd0 > 0, "+++", "---") + "KPA900" +       NumToStr(tskp_colortmplcnd0));
+printf( "\n" +  WriteIf(tskp_colortmplcnd1 > 0, "+++", "---") + "AutoStop" +     NumToStr(tskp_colortmplcnd1) );
+printf( "\n" +  WriteIf(tskp_colortmplcnd2 > 0, "+++", "---") + "Highlight" +    NumToStr(tskp_colortmplcnd2) );
+printf( "\n" +  WriteIf(tskp_colortmplcnd3 > 0, "+++", "---") + "Combo" +        NumToStr(tskp_colortmplcnd3) );
+printf( "\n" +  WriteIf(tskp_colortmplcnd4 > 0, "+++", "---") + "Fast3" +        NumToStr(tskp_colortmplcnd4));
+printf( "\n" +  WriteIf(tskp_colortmplcnd5 > 0, "+++", "---") + "STTB" +         NumToStr(tskp_colortmplcnd5) );
+printf( "\n" +  WriteIf(tskp_colortmplcnd6 > 0, "+++", "---") + "Trigger/Stop" + NumToStr(tskp_colortmplcnd6) );
+printf( "\n" +  WriteIf(tskp_colortmplcnd7 > 0, "+++", "---") + "115Split" +     NumToStr(tskp_colortmplcnd7) );
+printf( "\n" +  WriteIf(tskp_colortmplcnd8 > 0, "+++", "---") + "Medium" +       NumToStr(tskp_colortmplcnd8) );
+*/
+}

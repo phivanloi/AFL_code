@@ -1,0 +1,199 @@
+
+GraphXSpace = Param("Zoom",2,1);
+/////////
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_END();
+
+PlotVAPOverlay( Param("lines",260,10,1000,1), Param("width",10,1,99,1), ParamColor("color", colorPaleBlue), Param("style",2,0,7,2) );
+
+//02. Bollinger Bands
+{
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 20, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorLightGrey );
+Style = ParamStyle("Style", styleLine | styleNoLabel ) | styleNoLabel;
+Plot( bbt = BBandTop( P, Periods, Width ), "\nBBTop", colorGrey40, Style ); 
+Plot( bbb = BBandBot( P, Periods, Width ), "BBBot", colorGrey40, Style ); 
+PlotOHLC( bbt, bbt, bbb, bbb, "", ColorBlend( Color, GetChartBkColor(), 0.8 ), styleNoLabel | styleCloud | styleNoRescale, Null, Null, Null, -1 );
+_SECTION_END();
+}
+
+Plot(MA( C, 6 ),"MA6",colorLightOrange,styleLine);
+Plot(MA( C, 10 ),"MA10",colorPaleBlue,styleLine);
+Plot(MA( C, 20 ),"MA20",colorGreen,styleLine|styleLine);
+Plot(MA( C, 50 ),"MA50",colorBrown,styleLine|styleLine);
+Plot(MA( C, 65 ),"MA65",colorCustom12,styleLine|styleLine);
+Plot(MA( C, 150 ),"MA150",colorDarkYellow,styleLine);
+Plot(MA( C, 200 ),"MA200",colorGrey40,styleThick);
+
+
+_SECTION_BEGIN("SAR");
+acc = Param("Acceleration", 0.02, 0, 1, 0.001 );
+accm = Param("Max. acceleration", 0.2, 0, 1, 0.001 );
+Plot( SAR( acc, accm ), _DEFAULT_NAME(), ParamColor( "Color", colorGrey40 ), ParamStyle("Style", styleDots | styleNoLine, maskDefault | styleDots | styleNoLine ) );
+_SECTION_END();
+//GfxDrawImage( "C:\\Folder1\\Folder2\\Folder3\\logo.png", 1700, 15 );
+//CHI BAO MA20 CAT MA50 VA MA65
+_SECTION_BEGIN("CHI BAO MUA BAN MA20-50-65");
+ma20   =MA(C,20);            
+ma50   =MA(C,50);   
+ma65   =MA(C,65);  
+ma20ma50up=Cross(ma20,ma50);
+ma20ma65up=Cross(ma20,ma65); 
+ma20ma50dw=Cross(ma50,ma20);
+ma20ma65dw=Cross(ma65,ma20);          
+PlotShapes(shapeUpArrow*ma20ma50up, colorBlue, 0, L,-20);
+PlotShapes(shapeUpArrow*ma20ma65up, colorCustom12, 0, L,-20);
+PlotShapes(shapedownArrow*ma20ma50dw, colorBlue, 0, H,-20);
+PlotShapes(shapedownArrow*ma20ma65dw, colorCustom12, 0, H,-20);
+_SECTION_END();
+
+
+
+////////////////////Filter68- Anh Tâm Ðao////////////
+								DK1 = C > MA (C , 20);
+
+								DK2 = (MACD (12,26) > Signal (12,26,9)) AND (MACD(12,26) > Ref (MACD (12,26), -1));
+
+								TYLETANG = (C-Ref (C,-1))/Ref(C,-1);
+								DK3 = TYLETANG > 0.01;
+
+								GIALONNHAT10 = HHV (Ref(C,-1), 10);
+								GIABENHAT10 = LLV(Ref(C,-1), 10);
+
+								DK4 = GIALONNHAT10 < 1.05*GIABENHAT10; //GIAO DONG TRONG 5%.
+
+								GIABENHAT20 = LLV (Ref(C,-1), 20);
+
+								DK5 = GIABENHAT20*1.15 > C;
+
+								DK_GIA = C > 1.9;
+
+								DK_KL = V > 30000; 
+								dktk = C* MA(V, 20) > 500000;
+
+								Buytd68 = DK1 AND DK2 AND DK3 AND DK4 AND DK5 AND DK_GIA AND DK_KL AND dktk;
+								PlotShapes(shapesmallCircle*Buytd68, colorBlue, 0, L,-7);
+////////////////////Filter86- Anh Tâm Dao///////
+								_SECTION_BEGIN("Loc Mua Ban");
+								FormulaName = "Supe Robot 3in1";
+								prev=AMA2(C,1,0);
+								d=IIf(C>Ref(Max(Max(H,Ref(H,-3)),Max(Ref(H,-1),Ref(H,-2))),-1),Min(Min(L,Ref(L,-3)),Min(Ref(L,-1),Ref(L,-2))),
+								IIf(C<Ref(Min(Min(L,Ref(L,-3)),Min(Ref(L,-1),Ref(L,-2))),-1),Max(Max(H,Ref(H,-3)),Max(Ref(H,-1),Ref(H,-2))),PREV));
+								a=Cross(Close,d);
+								b=Cross(d,Close);
+								state=IIf(BarsSince(a)<BarsSince(b),1,0);
+								s=state>Ref(state,-1);//mua
+								ss=state<Ref(state,-1);//ban
+								sss=state==Ref(state,-1);//w
+								PlotShapes(shapesmallCircle*s, colorGreen, 0, L,-14);
+								PlotShapes(shapesmallCircle*ss, colorRed, 0, H,10);
+						/////////////
+						roboNo = Param("Robo No", 3, 1, 4);
+						minVolume = Param("Min Volume", 20000, 1000, 1000000);
+						function ZeroLagTEMA( array, period )
+{
+						TMA1 = TEMA( array, period );
+						TMA2 = TEMA( TMA1, period );
+						Diff = TMA1 - TMA2;
+						return TMA1 + Diff ;
+}
+						function Check(period, isBuy) {
+						HaClose = (O+H+L+C)/4;
+						HaOpen = AMA( Ref( HaClose, -1 ), 0.5 );
+						HaHigh = Max( H, Max( HaClose, HaOpen ) );
+						HaLow = Min( L, Min( HaClose, HaOpen ) );
+						HaClose = ( HaClose + HaOpen + HaHigh + HaLow )/4;
+						ZLHa = ZeroLagTEMA( HaClose, period );
+						ZLTyp = ZeroLagTEMA( Avg, period );
+	
+						result = Null;
+						if (isBuy > 0)
+						{
+							result = Cross( ZLTyp, ZLHa );
+						}
+						else if (isBuy < 0)
+						{ 
+							result = Cross( ZLHa, ZLTyp );
+						}
+						return result;
+}
+						function Tplus(isBuy) {
+						prev=AMA2(C,1,0);
+						d=IIf(C>Ref(Max(Max(H,Ref(H,-3)),Max(Ref(H,-1),Ref(H,-2))),-1),Min(Min(L,Ref(L,-3)),Min(Ref(L,-1),Ref(L,-2))),
+						IIf(C<Ref(Min(Min(L,Ref(L,-3)),Min(Ref(L,-1),Ref(L,-2))),-1),Max(Max(H,Ref(H,-3)),Max(Ref(H,-1),Ref(H,-2))),PREV));
+						a=Cross(Close,d);
+						b=Cross(d,Close);
+						state=IIf(BarsSince(a)<BarsSince(b),1,0);
+						if (isBuy > 0)
+							result = state>Ref(state,-1);
+						else if (isBuy < 0) 
+							result = state<Ref(state,-1);
+						else result = state==Ref(state,-1);
+	
+						return result;
+}
+						bscore = Check(13, 1) + Check(20, 1) + Check(35, 1) + Check(55, 1)+ Check(65, 1) + Tplus(1);
+						sscore = Check(13, -1) + Check(20, -1) + Check(35, -1) + Check(55, -1)+Check(65, -1) + Tplus(-1);
+
+						Buytd2 = bscore >= roboNo;//cham diem mua
+						Selltd2 = sscore >= roboNo;//cham diem ban
+						Filtertd2 = (V > minVolume) && ((bscore > 0) || (sscore  > 0));
+						
+
+/////////////////////////////////////////////////////////////////////////////////////
+_SECTION_BEGIN ("Hien Thi Gia");
+FS=Param("Font Size",18,11,100,1);
+GfxSelectFont("Times New Roman", FS, 700, True ); 
+GfxSetBkMode( colorWhite );  
+GfxSetTextColor( ParamColor("Color",colorGreen) ); 
+Hor=Param("Horizontal Position",35,1,70,1);
+Ver=Param("Vertical Position",45,1,45,1); 
+GfxTextOut(""+WriteVal(C,1.2), Hor , Ver );
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+
+//////////////////////
+//Fractals
+nbar = Param("Longer Term",16,2,10000,1);
+
+PHigh = H > Ref(HHV(H,nbar),-1) AND Ref(HHV(H,nbar),nbar) <= H;
+PHighPrice = ValueWhen(PHigh,H);
+PLow = L < Ref(LLV(L,nbar),-1) AND Ref(LLV(L,nbar),nbar) >= L;
+PLowPrice = ValueWhen(PLow,L); 
+
+Bear = ValueWhen(PHigh, DateTime());
+Bull = ValueWhen(PLow, DateTime());
+
+PlotShapes(shapeSmallCircle*PLow,colorTan,0,L,-20);
+PlotShapes(shapeSmallCircle*PHigh,colorTan,0,H,20);
+
+//Plot(PLowPrice, "Fractal Low", colorGreen, styleDots | styleNoLine);
+//Plot(PHighPrice, "Fractal High", colorRed, styleDots | styleNoLine);
+
+phase = IIf(bull > bear, 0, 1);
+
+
+
+//10. NAME AND FULL NAME//CLICK DAU CONG DE MO RONG CODE
+  {
+_SECTION_BEGIN("NAME AND FULL NAME");
+  GfxSetOverlayMode(0);
+GfxSelectFont("Arial",30, 500);
+GfxSetBkMode(0); // transparent
+GfxSetTextColor( colorCustom3 );
+GfxTextOut("" +Name(), 180, 30);
+  //////////////////
+ GfxSelectFont("Arial",12, 500);
+GfxSetBkMode(0); // transparent
+GfxSetTextColor( colorPaleBlue );
+GfxTextOut("" +FullName(), 300, 50);
+}

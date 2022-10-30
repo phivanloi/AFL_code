@@ -1,0 +1,62 @@
+eq=Param("0 equity",1,0,1,1);
+n=Param("1 profit",2.5,0.1,10,0.1);
+b=Param("2 media breve",2,1,50,1);
+m=Param("3 media lunga",5,1,50,1);
+s=Param("4 segnale",3,2,50,1);
+
+
+
+
+ppo=( (EMA(C,(b))) -EMA(C,(m)) ) /EMA(C,(m))*100 ;
+signa=EMA(ppo,(s));
+PositionSize=-100;
+Buysetup=Cross(ppo  ,Signa);
+Shortsetup=Cross(Signa,ppo);
+Buysetupvalid=Flip(Buysetup,Shortsetup);
+Shortsetupvalid=Flip(Shortsetup,Buysetup);
+
+Buy=Cover= Ref(Buysetupvalid,-1)==1  AND H>ValueWhen(buysetup,H)+0.02;
+
+BuyPrice=CoverPrice=IIf(O>ValueWhen( buysetup==1,H),O,ValueWhen( buysetup==1,H) +0.02)    ;
+
+
+Short=Sell=Ref(Shortsetupvalid,-1)==1  AND L<ValueWhen(Shortsetup,L)-0.02;
+
+ShortPrice=SellPrice=IIf(O<ValueWhen( Shortsetup==1,L),O,ValueWhen( Shortsetup==1,L)  -0.02 );
+
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+Short=ExRem(Short,Cover);
+Cover=ExRem(Cover,Short);
+
+
+//ApplyStop(1,2,n,1); 
+Buys=Flip(Buy,Sell);
+
+
+BarColor=IIf(Buys,colorGreen,colorRed);
+
+Plot(C,"Close",BarColor,128);
+Plot(IIf(Ref(shortsetupvalid,-1)==1,ValueWhen( Shortsetup==1,L),Null), "Shortsetup",colorDarkRed,8);
+Plot(ValueWhen( Shortsetup==1,L), "Shortsetup",colorRed,1);
+Plot(IIf(Ref(buysetupvalid,-1)==1  ,ValueWhen(buysetup,H),Null),"buysetup",colorDarkGreen,8);
+Plot(ValueWhen(buysetup,H),"buysetup",colorGreen,1);
+PlotShapes(IIf(Sell,
+shapeDownArrow,shapeNone),colorRed,0,H ,-10);  
+PlotShapes(IIf(Buy,
+shapeUpArrow,shapeNone),colorBlue,0,L,-10); 
+
+
+equi=IIf(eq==0,Null,Equity(  ));
+Plot( Equi,"equity",colorCustom3, styleArea+styleLeftAxisScale);
+
+
+
+
+/*Buy=Cover= Ref (Buysetupvalid, - 1) ==1 AND H>ValueWhen (buysetup, H) +2; 
+
+BuyPrice=CoverPrice=IIf (O>ValueWhen (buysetup==1, H), O+1, ValueWhen (buysetup==1, H) +2+1); 
+
+Short=Sell=Ref (Shortsetupvalid, - 1) ==1 AND L<ValueWhen (Shortsetup, L) - 2; 
+
+ShortPrice=SellPrice=IIf (O<ValueWhen (Shortsetup==1, L), O-1, ValueWhen (Shortsetup==1, L) - 2-1);

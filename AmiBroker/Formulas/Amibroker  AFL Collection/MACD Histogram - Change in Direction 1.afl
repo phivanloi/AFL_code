@@ -1,0 +1,87 @@
+//------------------------------------------------------------------------------
+//
+//  Formula Name:    MACD Histogram - Change in Direction
+//  Author/Uploader: crash 
+//  E-mail:          crashandburn59@hotmail.com
+//  Date/Time Added: 2006-05-03 07:33:26
+//  Origin:          
+//  Keywords:        
+//  Level:           basic
+//  Flags:           indicator
+//  Formula URL:     http://www.amibroker.com/library/formula.php?id=618
+//  Details URL:     http://www.amibroker.com/library/detail.php?id=618
+//
+//------------------------------------------------------------------------------
+//
+//  This indicator shows the value of tomorrow's Closing Price in order for the
+//  slope of the MACD Histogram to change Direction. (ie. changing from a
+//  positive slope to a negative slope or changing from a negative slope to a
+//  positive slope)
+//
+//------------------------------------------------------------------------------
+
+_SECTION_BEGIN("MACD");
+GraphXSpace = 8;
+r1 = Param( "Fast avg", 12, 2, 200, 1 );
+r2 = Param( "Slow avg", 26, 2, 200, 1 );
+r3 = Param( "Signal avg", 9, 2, 200, 1 );
+
+mm = MACD(r1, r2);
+ms = Signal(r1, r2, r3);
+
+f1 = ((r3+1)*MM-2*MS)/(r3-1);
+f2 = EMA(C,r1)*(r1-1)/(r1+1);
+f3 = EMA(C,r2)*(r2-1)/(r2+1);
+f4 = 2/(r1+1) - 2/(r2+1);
+
+dcv = (f1-f2+f3)/ f4;
+
+Plot(dcv,"",4);
+PlotOHLC(O,H,L,C,"",1,styleCandle);
+Title = Name() + "  -  " + FullName() + "  -  " + Date() + "  -  Close = " + WriteVal(C,0.3) + "  -  DCV = " + WriteVal(dcv,0.3);
+_SECTION_END();
+
+_SECTION_BEGIN("rsi stoch bb");
+/*
+StochLow=Optimize("StochLow",20,15,25,1);
+StochHigh=Optimize("StochHigh",80,75,85,1);
+RSILow=Optimize("StochLow",30,25,35,1);
+RSIHigh=Optimize("StochHigh",70,65,75,1);
+StochKperiod =Optimize("StochKperiod ",14,10,18,1);
+StochKsmooth =Optimize("StochKsmooth ",3,1,3,1);
+StochDperiod =Optimize("StochDperiod ",14,10,18,1);
+StochDsmooth =Optimize("StochDsmooth ",3,1,3,1);
+BBperiod =Optimize("BBperiod ",15,12,16,1);
+BBwidth =Optimize("BBwidth ",2,1,3,0.1);
+RSIperiod =Optimize("RSIperiod ",14,10,18,1);
+*/
+
+StochLow=30;
+StochHigh=70;
+RSILow=30;
+RSIHigh=70;
+StochKperiod =14;
+StochKsmooth =3;
+StochDperiod =14;
+StochDsmooth =3;
+BBperiod =15;
+BBwidth =2;
+RSIperiod =14;
+
+
+k=StochK(StochKperiod, StochKsmooth);
+d=StochD(StochDperiod, StochKsmooth,StochDsmooth);
+bbTop=BBandTop( C, BBperiod , BBwidth );
+bbBottom=BBandBot( C, BBperiod , BBwidth );
+r=RSI( RSIperiod);
+
+Buy= r < RSILow AND C < bbBottom AND k < StochLow AND d < StochLow;
+Sell= r > RSIHigh AND C > bbTop AND k > StochHigh AND d > StochHigh;
+
+Short= Sell;
+Cover= Buy;
+
+
+PlotShapes (shapeUpTriangle*Buy,colorYellow);
+PlotShapes (shapeDownTriangle*Sell,colorYellow);
+_SECTION_END();

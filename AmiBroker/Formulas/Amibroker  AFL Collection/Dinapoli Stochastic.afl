@@ -1,0 +1,32 @@
+//--------------------------------------------------------------------------------
+//
+//	Dinapoli Stochastic
+//
+//--------------------------------------------------------------------------------
+//	Begin of AFL Code
+//--------------------------------------------------------------------------------
+
+Periods = Param( "Periods", 8, 5, 55, 1 );
+KSmoothing = Param( "%K Smoothing", 3, 1, 55, 1 );
+DSmoothing = Param( "%D Smoothing", 3, 1, 55, 1 );
+
+//--------------------------------------------------------------------------------
+
+KLine = ( Sum( ( Close - LLV( Close, Periods ) ), KSmoothing ) / Sum( ( HHV( Close, Periods ) - LLV( Close, Periods ) ), KSmoothing ) ) * 100;
+KLine = MA( KLine, KSmoothing );
+DLine = MA( KLine, DSmoothing );
+
+//--------------------------------------------------------------------------------
+//	Plot Graph
+//--------------------------------------------------------------------------------
+
+GraphXSpace = 2;
+Title = Name() + " - Stochastic " + WriteVal( Periods, 1.0 ) + "," + WriteVal( KSmoothing , 1.0 ) + "," + WriteVal( DSmoothing , 1.0 );
+Plot( KLine, "%K", colorRed, styleLine );
+Plot( DLine, "%D", colorBlue, styleLine );
+Plot (20,"", 12);
+Plot (80,"",colorDarkGreen);
+
+//--------------------------------------------------------------------------------
+//	End of AFL Code
+//--------------------------------------------------------------------------------

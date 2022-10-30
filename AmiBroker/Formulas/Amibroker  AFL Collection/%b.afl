@@ -1,0 +1,10 @@
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 20, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+BBW = BBandTop(P, 20, 2) - BBandBot(P, 20, 2); 
+b = (P - BBandBot(P, 20,2))/ BBW;
+Plot(b, "%b("+Periods+", "+Width+")", ParamColor("color", colorCycle ), ParamStyle("Style") );
+PlotGrid(0.5, colorLightGrey);
+PlotGrid(0, colorLightGrey);
+PlotGrid(1, colorLightGrey);
+

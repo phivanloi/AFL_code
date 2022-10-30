@@ -1,0 +1,15 @@
+len = 20; len2 = 25;
+
+value1 = C - L;
+value2=H - C;
+
+value3=((value1-value2)/C);
+
+value4 = Ref(C,-1)- Ref(L,-1);
+value5 = Ref(H,-1) - Ref(C,-1);
+value6=((value4-value5)/Ref(C,-1));
+
+value7 = IIf (value3 > 0 AND value6 > 0,( value3 - value6),0);
+
+Plot(MA(value7,len), "SprdRatio", colorRed ) ;
+Plot(MA(MA(value7,len),len2),"average", colorLime);

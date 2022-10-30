@@ -1,0 +1,161 @@
+SetChartOptions(0,chartShowArrows|chartShowDates);  
+_SECTION_BEGIN("Vol-bands");
+Vf=Param("V-b Values",0.0146,-0.0001,0.1,0.0001);
+P1 = ValueWhen(TimeNum() == 095500, Open);
+T0 = P1+(P1*0.25*Vf);
+B0 = P1-(P1*0.25*Vf);
+T1 = P1+(P1*0.5*Vf);
+B1 = P1-(P1*0.5*Vf);
+T2 = P1+(P1*1*Vf);
+B2 = P1-(P1*1*Vf);
+T3 = P1+(P1*1.28*Vf);
+B3 = P1-(P1*1.28*Vf);
+T4 = P1+(P1*1.5*Vf);
+B4 = P1-(P1*1.5*Vf);
+T5 = P1+(P1*2*Vf);
+B5 = P1-(P1*2*Vf);
+T6 = P1+(P1*2.5*Vf);
+B6 = P1-(P1*2.5*Vf);
+T7 = P1+(P1*3*Vf);
+B7 = P1-(P1*3*Vf);
+
+hts  = Param ("Text Shift", -55,-150,150,1); 
+numbars = LastValue(Cum(Status("barvisible"))); 
+fraction= IIf(StrRight(Name(),3) == "", 3.2, 3.2); 
+Today = LastValue(Day()) ; 
+starttime = ParamTime( "Start Time", "09:55" );
+endtime = ParamTime( "End Time", "10:00" );
+tn = TimeNum();
+timecond = tn >= starttime AND tn <= endtime;
+firstBarOfDay = timecond ;
+firstBarOfDay = firstBarOfDay - Ref( firstBarOfDay, -1 );
+Cb=ParamToggle("0.25 ","NO|YES",1);
+Cb1=ParamToggle("0.50","NO|YES",1);
+Cb2=ParamToggle("1.0 ","NO|YES",1);
+Cb3=ParamToggle("1.28","NO|YES",1);
+Cb4=ParamToggle("1.5 ","NO|YES",0);
+Cb5=ParamToggle("2.0 ","NO|YES",0);
+Cb6=ParamToggle("2.5 ","NO|YES",0);
+Cb7=ParamToggle("3.0 ","NO|YES",0);
+if(Cb==1){
+Plot(IIf( tn > endtime , t0, Null ) ,"",7, styleLine+ styleNoLabel);
+PlotText("0.25= " + WriteVal(T0,fraction),LastValue(BarIndex())-(numbars/hts),LastValue (T0,1) , 2);  
+Plot(IIf( tn > endtime , b0, Null ),"",7, styleLine+ styleNoLabel); 
+PlotText("0.25= " + WriteVal(B0,fraction),LastValue(BarIndex())-(numbars/hts),LastValue (B0,1) , 2);
+}if(Cb1==1){
+Plot(IIf( tn > endtime , t1, Null ),"",48, styleDashed+ styleNoLabel);
+PlotText("0.50=  " + WriteVal(T1,fraction),LastValue(BarIndex())-(numbars/hts),LastValue (T1,1) , 2);
+Plot(IIf( tn > endtime , b1, Null ),"",48, styleDashed+ styleNoLabel);
+PlotText("0.50= " + WriteVal(B1,fraction),LastValue(BarIndex())-(numbars/hts),LastValue (B1,1) , 2);
+}if(Cb2==1){
+Plot(IIf( tn > endtime , t2, Null ),"",3, styleLine+ styleNoLabel);
+PlotText("1.00= " + WriteVal(T2,fraction),LastValue(BarIndex())-(numbars/hts),LastValue (T2,1) , 2);
+Plot(IIf( tn > endtime , b2, Null ),"",3, styleLine+ styleNoLabel);
+PlotText("1.00=  " + WriteVal(B2,fraction),LastValue(BarIndex())-(numbars/hts),LastValue (B2,1) ,2);
+}if(Cb3==1){
+Plot(IIf( tn > endtime , t3, Null ),"",51, styleDashed+ styleNoLabel);
+PlotText("1.28= " + WriteVal(T3,fraction),LastValue(BarIndex())-(numbars/hts),LastValue (T3,1) , 2);
+Plot(IIf( tn > endtime , b3, Null ),"",51, styleDashed+ styleNoLabel);
+PlotText("1.28= " + WriteVal(B3,fraction),LastValue(BarIndex())-(numbars/hts),LastValue (B3,1) , 2);
+}if(Cb4==1){
+Plot(IIf( tn > endtime , t4, Null ),"",5, styleDashed+ styleNoLabel); 
+PlotText("1.50= " + WriteVal(T4,fraction),LastValue(BarIndex())-(numbars/hts),LastValue (T4,1) , 2);
+Plot(IIf( tn > endtime , b4, Null ),"",5, styleDashed+ styleNoLabel);
+PlotText("1.50= " + WriteVal(B4,fraction),LastValue(BarIndex())-(numbars/hts),LastValue (B4,1) , 2);
+}if(Cb5==1){
+Plot(IIf( tn > endtime , t5, Null ),"",4, styleDashed+ styleNoLabel);
+PlotText("2.00= " + WriteVal(T5,fraction),LastValue(BarIndex())-(numbars/hts),LastValue (T5,1) , 2);
+Plot(IIf( tn > endtime , b5, Null ),"",4, styleDashed+ styleNoLabel);
+PlotText("2.00= " + WriteVal(B5,fraction),LastValue(BarIndex())-(numbars/hts),LastValue (B5,1) , 2);
+}if(Cb6==1){
+Plot(IIf( tn > endtime , t6, Null ), "",47, styleDashed+ styleNoLabel);
+PlotText("2.50= " + WriteVal(T6,fraction),LastValue(BarIndex())-(numbars/hts),LastValue (T6,1) , 2);
+Plot(IIf( tn > endtime , b6, Null ),"",47, styleDashed+ styleNoLabel);
+PlotText("2.50= " + WriteVal(B6,fraction),LastValue(BarIndex())-(numbars/hts),LastValue (B6,1) , 2);
+}if(Cb7==1){
+Plot( T7,"", colorLightBlue, 1|styleNoLabel );
+Plot( B7,"", colorLightBlue, 1|styleNoLabel );}
+
+
+
+Plot(Close, "Price", 47, styleCandle ); 
+up= tn > endtime AND((Cross(Close,t0)OR Cross(Close,t1)OR Cross(Close,t2) OR Cross(Close,t3)OR Cross(Close,t4)OR Cross(Close,t5)OR Cross(Close,t6) OR Cross(Close,t7)
+    OR Cross(Close,b0) OR Cross(Close,b1) OR Cross(Close,b2) OR Cross(Close,b3) OR Cross(Close,b4) OR Cross(Close,b5) OR Cross(Close,b6) OR Cross(Close,b7)));                 
+dn=tn > endtime AND ((Cross(b0,Close)OR Cross( b1,Close)OR Cross( b2,Close)OR Cross(b3,Close)OR Cross( b4,Close)OR Cross( b5,Close) OR Cross( b6,Close) OR Cross( b7,Close)
+   OR Cross(t0,Close)OR Cross( t1,Close)OR Cross( t2,Close)OR Cross(t3,Close)OR Cross( t4,Close)OR Cross( t5,Close)OR Cross( t6,Close)OR Cross( t7,Close)));
+
+Cb7=ParamToggle("Alerts","NO|YES" ,0);if(Cb7==1){
+PlotShapes( IIf( up, shapeUpArrow, shapeNone ),10,0,L,-20  ); 
+PlotShapes( IIf( dn, shapeDownArrow, shapeNone ),13,0,H,-20  );}
+//------------------------------------------------------------
+HaC=(O+H+L+C)/4;
+pab=tn > endtime AND (Cross(HaC,t0)OR Cross(Hac,b0));
+pb= tn > endtime AND (Cross(HaC,t1) OR Cross(Hac,b1)); 
+pb1=tn > endtime AND (Cross(HaC,t2) OR Cross(Hac,b2)); 
+pb2=tn > endtime AND (Cross(HaC,t3) OR Cross(Hac,b3)) ;
+pb3=tn > endtime AND (Cross(HaC,t4) OR Cross(Hac,b4)); 
+pb4=tn > endtime AND (Cross(HaC,t5)OR Cross(Hac,b5)); 
+pb5=tn > endtime AND (Cross(HaC,t6)OR Cross(Hac,b6)); 
+pb6=tn > endtime AND (Cross(HaC,t7)OR Cross(Hac,b7)); 
+
+pas=tn > endtime AND (Cross(b0,HaC)OR Cross(t0,HaC));
+ps= tn > endtime AND (Cross( b1,HaC)OR Cross( t1,HaC));
+ps1=tn > endtime AND (Cross( b2,HaC)OR Cross( t2,HaC));
+ps2=tn > endtime AND (Cross(b3,HaC)OR Cross(t3,HaC));
+ps3=tn > endtime AND (Cross( b4,HaC)OR Cross( t4,HaC));
+ps4=tn > endtime AND (Cross( b5,HaC)OR Cross( t5,HaC));
+ps5=tn > endtime AND (Cross( b6,HaC)OR Cross( t6,HaC));
+ps6=tn > endtime AND (Cross( b7,HaC)OR Cross( t7,HaC));
+
+PlotP = ParamToggle("Plot  Shapes","Off,On",0); 
+//P1Shape = Param("buy Shape Typ",35,0,50,1);
+//P2Shape = Param("sell Shape Typ",36,0,50,1);
+if(PlotP){
+PlotShapes(IIf(pab,shapeDigit1,shapeNone),colorAqua,0,L,-10 );
+PlotShapes(IIf(pas,shapeDigit1,shapeNone),colorCustom2,0,H,10 );
+PlotShapes(IIf(pb,shapeDigit2,shapeNone),colorLime,0,L,-10 );
+PlotShapes(IIf(ps,shapeDigit2,shapeNone),colorOrange,0,H,10 );
+PlotShapes(IIf(pb1,shapeDigit3,shapeNone),2,0,L,-10 );
+PlotShapes(IIf(ps1,shapeDigit3,shapeNone),13,0,H,10 );
+PlotShapes(IIf(pb2,shapeDigit4,shapeNone),6,0,L,-10 );
+PlotShapes(IIf(ps2,shapeDigit4,shapeNone),31,0,H,10 );
+PlotShapes(IIf(pb3,shapeDigit5,shapeNone),5,0,L,-10 );
+PlotShapes(IIf(ps3,shapeDigit5,shapeNone),4,0,H,10 );
+PlotShapes(IIf(pb4,shapeDigit6,shapeNone),5,0,L,-10 );
+PlotShapes(IIf(ps4,shapeDigit6,shapeNone),4,0,H,10 );
+PlotShapes(IIf(pb5,shapeDigit7,shapeNone),5,0,L,-10 );
+PlotShapes(IIf(ps5,shapeDigit7,shapeNone),4,0,H,10 );
+PlotShapes(IIf(pb6,shapeDigit8,shapeNone),5,0,L,-10 );
+PlotShapes(IIf(ps6,shapeDigit8,shapeNone),4,0,H,10 );
+}
+Title = EncodeColor(colorWhite)+ "Volatility-Bands stocks" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) + 
+ "  - " + Date() +"   -  "+"\n" +EncodeColor(colorYellow) +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+ 
+"Cl-"+C+"  "+ "Vol= "+ WriteVal(V);
+_SECTION_END();
+_SECTION_BEGIN("Background text");
+C11=ParamColor("up panel",colorDarkOliveGreen );
+C12=ParamColor("dn panel",colorDarkGrey );
+C13=Param("fonts",20,10,30,1 );
+C14=Param("left-right",2.1,1.0,5.0,0.1 );
+C15=Param("up-down",12,1,20,1 );
+Miny = Status("axisminy");
+Maxy = Status("axismaxy");
+lvb = Status("lastvisiblebar");
+fvb = Status("firstvisiblebar");
+pxwidth = Status("pxwidth");
+pxheight = Status("pxheight");
+GfxSetBkMode( 0 ); 
+GfxSetOverlayMode(1);
+GfxGradientRect(0,0,pxwidth, pxheight, C11, C12 ); 
+GfxSelectFont("Tahoma", Status("pxheight")/C13 );
+GfxSetTextAlign( 6 );
+GfxTextOut( Name(), Status("pxwidth")/C14, Status("pxheight")/C15 );
+GfxSelectFont("Tahoma", Status("pxheight")/C13*0.5 );
+GfxTextOut( "Volatility Bands - stocks", Status("pxwidth")/C14, Status("pxheight")/C15*2.5 );
+GfxSelectFont("Tahoma", Status("pxheight")/C13*0.5 );
+GfxTextOut( " www.TAtechnics.in", Status("pxwidth")/C14, Status("pxheight")/C15*4 );
+_SECTION_END();
+NewDay = Day() != Ref( Day(), -1 );
+DailyBarNum = BarsSince( NewDay ) + 1;
+DBN = DailyBarNum <= 1;
+Plot( DBN, "Day Seprator", 31, styleHistogram| styleOwnScale | styleNoLabel);

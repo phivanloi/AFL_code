@@ -1,0 +1,654 @@
+/*
+Code created by Pete Hahn, Phoneix Arizona, USA Updated 7/5/09
+Notice: The contents of this code are intended to be purely 
+educational in nature. Trade at your own risk. Nothing in this 
+code is intended to guarantee profits or losses of any size. 
+Past results are not indicative of future performance. Consult 
+your registered financial planner before applying any of these 
+techniques to your live trading account. Errors may be present
+in the code of which the author is not aware.
+Inquiries may be sent to: onedryheat@yahoo.com
+
+Version Notes:
+VVVVVVVVVVVVVVVVVV   1.3  VVVVVVVVVVVVVVVVVVVVVVVVV
+v1.3 adds rounding feature with adjustable parameters to work
+with stocks, futures and forex. Also added to V1.3 is an exploration
+with two modes. One for quick scans run just after the market opens 
+and can be run multiple securities with an output of the basic levels. 
+The other is a more thorough exploration intended to be used with one 
+security at a time, and then output to a spread sheet for further analysis. 
+Search in this docutment for the word 'Exploration' as the instructions 
+or it's use are contained within that section.
+VVVVVVVVVVVVVVVVVV   1.4  VVVVVVVVVVVVVVVVVVVVVVVVV
+## Added user selectable stop amount. Stop amount is selected in the 
+parameters dialog and is used as a multiplier to position the stop loss
+in between the breakout and the open. Lower values move the stop loss
+closer to the brekout, higher values move the stop loss closer to the
+open. Greater than 1 places the stop on the opposite side of the open.
+## Fixed a bug in the FirstBOL and First BOL statements which prevented
+an entry Signal from being recorded on the opening bar.
+##Modified start and end time for market hours so the user can select whether
+to adjust for daylight savings. User may chage the date ranges used for the 
+daylight savings adjustment in the Parameters as well. Your data may not 
+need to be adjusted for daylight savings so you should check your database
+to determine if this parameter should be on or off.
+## Cleaned up the code to reduce processor usage.
+## Fixed some problems with the way the exploration was calculating the 
+various levels AND recording entries/exits.
+## Modified various price patterns so they can adjust for shortened
+holiday trading days, (mostly used for futures and forex). User can select 
+whether to filter out holidays or not. Your data may not contain data from 
+shortened holiday market hours. This is mainly found in Futures and Forex data.
+You should examine your data to determine the best seeting to use.
+## Added parameter to allow adjustment of the profit target line
+## IMPORTANT NOTICE: I used a section of VBScript in order to calculate some
+of the time values related to the market open and close times. VBScript host 
+is required in order to run this AFL, and it is included in Windows 2000 and XP.
+I don't know if this is compatible with Windows Vista. More information is 
+available in the AB help files. Search "AFL Scripting Host" to locate the 
+Amibroker support information.
+*/
+
+_SECTION_BEGIN("Setup");
+//required settings:
+//		Tools --> Preferences | go to Intraday tab and select "START time of interval"
+//		View --> Intraday --> "Show 24 Hours Trading"
+//		View --> Intraday --> "Filter Weekends"
+
+// Rounding the Study line values
+StopLst = ParamList("Select Stop", ".25|.33|.50|.66|.75|1.0|1.5", 6);
+TargetLst = ParamList("Adjust Target", "0.50|0.66|0.75|1.00|1.10|1.20|1.25|1.30|1.35", 0);
+Instrument = ParamList("Instrument", "Stocks|Forex|Futures");
+length 	= ParamList("Digits to R of Decimal","0|2|4",1);		// Number or numbers to the right of the decimal
+rounding  = ParamList("Rounding (for pts.)", "Truncate|NearestQuarter");	// don't round, round to nearest 1, round to nearest .25
+ExpFilter = ParamList("Exploration", "ORB|STATS|OHLC", 1);
+FltrHolidays = ParamToggle("Filter Holidays", "YES|NO", 0);
+UseDaySave = ParamToggle("Daylight Savings", "YES|NO", 0);
+UserSpringFoward = ParamDate("SpringForward", "3/8/2009");
+UserFallBehind = ParamDate("FallBehind", "11/2/2008");
+UserOpen = ParamTime("Market Open", "09:30");
+UserClose = ParamTime("Market Close", "16:00");
+_SECTION_END();
+_SECTION_BEGIN("Plot lines");
+//Set parameter default to YES for displaying the final
+//results of the break out calculations.
+PlotBreak =  ParamToggle("Plot Breakout", "YES|NO", 0);
+//set parameter default to YES for displaying PP, S1 and R1
+PPSR1 = ParamToggle("PP,S1/R1", "YES|NO", 0);
+//set paramter default to NO for displaying S2 and R2
+S2R2 = ParamToggle("S2,R2", "YES|NO", 1);
+//set parameter default to NO for dsiplaying S3 and R3
+S3R3 = ParamToggle("S3,R3", "YES|NO", 1);
+//set paramter default to NO for diplaying S4 and R4
+S4R4 = ParamToggle("S4,R4", "YES|NO", 1);
+_SECTION_END();
+
+_SECTION_BEGIN("Price");
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+SetChartBkColor(ParamColor("Panel color ",colorLightBlue));
+_SECTION_END();
+
+_SECTION_BEGIN("Speed Lines");
+P20 = 20;
+Plot( EMA( C, P20 ), "Spd20" ,colorBlack, styleLine | styleThick ); 
+
+P18 = 18;
+Plot( EMA( C, P18 ), "Spd18" ,colorCustom9, styleLine | styleThick ); 
+
+P50 = 50;
+Plot( MA( C, P50 ), "Spd 50" , colorBlue,styleDashed | styleThick); 
+
+P200 = 200;
+Plot( MA( C, P200 ), "Spd 200" , colorRed, ParamStyle("Style") ); 
+
+Prd3HLC = Param("HLC 3 Prds", 3, 3, 10, 1);
+Plot(MA((H + L + C)/3, Prd3HLC), "HLC 3MA", colorBlue, styleLine | styleThick);
+
+Prd5HLC = Param("HLC 5 Prds", 5, 3, 10, 1);
+Plot(MA((H + L + C)/3, Prd5HLC), "HLC 5MA", colorCustom12, styleLine | styleThick);
+_SECTION_END();
+
+_SECTION_BEGIN("Open Range Break Out");
+
+CurBarTime = TimeNum();
+
+//Need to use VBscript here to take the user selected date
+//and covert it to the DateNum() format for use by AFL
+EnableScript("vbscript");
+<%
+dim VarPart
+    varPartSpring = Split(AFL("UserSpringFoward"), "/", 3)
+
+AFL("Spring") = varPartSpring(0) 
+	VarPartFall = Split(AFL("UserFallBehind"), "/", 3)
+AFL("Fall") = VarPartFall(0)
+
+%>
+//convert VBscript output to number format and assign to 
+//AFL variables
+SpringForward = StrToNum(Spring);
+FallBehind = StrToNum(Fall);
+
+//based on user selection in parameters dialog for daylight savings and
+// market open and close times, adjust the Open/Close for the market accordingly
+if(UseDaySave == 0)
+{
+//if user selects daylight savings then test to see if each bar is within the daylight
+//savings time window. For each bar that lies within the window, shift the time one hour
+//forward. 
+TimeOpen = IIf(DateTimeConvert( 0, DateTime() ) >= FallBehind AND DateTimeConvert( 0, DateTime() ) <= SpringForward,
+			 UserOpen + 10000, UserOpen ) ;
+CalcClose = IIf(DateTimeConvert( 0, DateTime() ) >= FallBehind AND DateTimeConvert( 0, DateTime() ) <= SpringForward, 
+				UserClose + 10000, UserClose ) ;
+}
+if(UseDaySave == 1)
+{
+//if user selects no for daylight savings then use the values as the are
+TimeOpen = UserOpen ;
+CalcClose = UserClose;
+}
+//Here is the $64,000.00 code. How to convert the TimeNum() output into
+//a form which allows one to subtract the number of minutes based on
+//the time frame selected. You have no idea how much brain mojo this took
+//to put together. I could NOT have done it without an Excel spread sheet
+//=IF(MID(A17,3,2)="00",6000-(B17*100)+(A17-10000),A17-(100*B17))
+TimeClose = IIf(StrMid(NumToStr(CalcClose ,1,False),2,2)=="00",
+			6000-((Interval()/60)*100)+(CalcClose-10000),
+			CalcClose-(100*(Interval()/60)));
+
+//Determine the value of the market open. Initial setting is for
+//9:30 AM to match US Market Open. Adjust as need for your market
+MrktOpen = ValueWhen(CurBarTime  == TimeOpen , Open);
+DlyOpen =ValueWhen(CurBarTime == TimeClose, MrktOpen);
+//Determine the highest high for each day's trading.
+//Adjust time as needed for your market.
+DlyHigh = HighestSince(CurBarTime  == TimeOpen , High);
+//Take a snapshot value of the day's high at the time of market 
+//close. Intial stting is 4:00 pm to match US Market Close. 
+//Adjust as needed for your market.
+DlyHighest = ValueWhen(CurBarTime  == TimeClose , DlyHigh);
+//Do the same for the lowest value of the trading day.
+//Adjust time as needed for your market.
+DlyLow = LowestSince(CurBarTime  == TimeOpen , Low);
+DlyLowest = ValueWhen(CurBarTime  == TimeClose , DlyLow);
+//determine the market closing price
+DlyClose = ValueWhen(CurBarTime  == TimeClose , C);
+//Now calculate the min range value using Open, Low and High
+//variables calculated above
+RngMin = Min(DlyHighest - MrktOpen, MrktOpen - DlyLowest);
+//Compres this to a daily time frame in order to capture
+//the final value of the Range Min for each trading day
+DlyRngMin = TimeFrameCompress(RngMin, inDaily, compressLast);
+//Use the compressed variable to calculate a 10 day average\
+RngMinAvg = MA(DlyRngMin , 10);
+
+//uncompress the daily variable so that it can be used in 
+//calcuating the long and short break out levels for each day
+RngMinAvg = TimeFrameExpand(RngMinAvg, inDaily);
+
+//caclculate the max range value using the opn, low and high
+//variables
+RngMax = Max(DlyHighest - MrktOpen, MrktOpen - DlyLowest);
+//compress this to a daily time frame in order to capture
+//the final value of the range max for each trading day
+DlyRngMax = TimeFrameCompress(RngMax, inDaily, compressLast);
+//use the compressed variable to calculate a 10 day average
+RngMaxAvg = MA(DlyRngMax, 10);
+//uncompress the daily variable so that it can be used in
+//calculating the profit target for opening range breakouts
+RngMaxAvg = TimeFrameExpand(RngMaxAvg, inDaily);
+//Use the values calculated above to determine the opening
+//range break outs. Notice the Range Min has been shifted so
+//that is reads the previous day's value and this is used against
+//the current day's open to determine the break out levels
+BreakOutLong = MrktOpen + Ref(RngMinAvg, -1);
+BreakOutShort = MrktOpen - Ref(RngMinAvg, -1);
+
+//round the breakout levels based on user selection in parameters
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if(Length == "0")
+	{
+		breakOutLong = int(breakOutLong );
+		breakOutShort = int(breakOutShort );
+	}
+else if(Length == "2")
+	{
+	if(rounding == "NearestQuarter" AND Instrument == "Futures")
+		{
+		breakOutLong = 0.25 * ceil( 0.5 + BreakOutLong * 4 );
+		breakOutShort = 0.25 * floor( 0.5 + BreakOutShort * 4 );
+		}
+	else
+		{
+		breakOutLong = 0.01 * round(0.5 + BreakOutLong * 100);
+		breakOutShort = 0.01 * round(0.5 + BreakOutShort * 100);
+		}
+test = 0;
+	}
+else if(Length == "4")
+{
+		breakOutLong = Prec(breakOutLong , 4);
+		breakOutShort = Prec(breakOutShort , 4);
+}
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//now use the average max range to calculate a profit target
+//for each day's opening range break out
+UserTarget = StrToNum(TargetLst);
+
+//allow user to modify the profit target from selection made in 
+//the parameters.
+ProfitLong = MrktOpen + (Ref(RngMaxAvg, -1))*UserTarget ;
+ProfitShort = MrktOpen - (Ref(RngMaxAvg, -1))*UserTarget ;
+
+UserStop = StrToNum(StopLst);
+
+
+//Allow user to modify the stop loss values from selection made
+//in the parameters.
+StopAmtLong = Prec((breakOutLong - MrktOpen)*UserStop ,2);
+StopAmtShort = Prec((MrktOpen - breakOutShort)*UserStop ,2);
+
+//round the stop and profit target levels based on user selection in parameter
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+if(Length == "0")
+	{
+		StopAmtShort = int(StopAmtShort);
+		StopAmtLong = int(StopAmtLong);
+		ProfitShort = int(ProfitShort) ;
+		ProfitLong = int(ProfitLong); 
+	}
+else if(Length == "2")
+	{
+	if(rounding == "NearestQuarter" AND Instrument == "Futures")
+		{
+		StopAmtShort = 0.25 * ceil( 0.5 + StopAmtShort * 4 )+0.25;
+		StopAmtLong = 0.25 * floor( 0.5 + StopAmtLong * 4 );
+		ProfitShort = 0.25 * ceil( 0.5 + ProfitShort * 4 ) ;
+		ProfitLong = 0.25 * floor( 0.5 + ProfitLong * 4 ) - 0.25;
+		}
+	else
+		{
+		StopAmtShort = 0.01 * floor(0.5 + StopAmtShort * 100);
+		StopAmtLong = 0.01 * round(0.5 + StopAmtLong * 100)+0.01;
+		ProfitShort = Prec(ProfitShort , 2) ;
+		ProfitLong = Prec(ProfitLong , 2);
+		}
+
+	}
+else if(Length == "4")
+{
+		StopAmtShort = Prec(StopAmtShort , 4);
+		StopAmtLong = Prec(StopAmtLong , 4);
+		ProfitShort = Prec(ProfitShort , 4) ;
+		ProfitLong = Prec(ProfitLong , 4); 
+}
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+//create the title layout for the various levels
+TitleBreakOuts = EncodeColor(colorCustom11) +"Today's Breakout Levels:" +"\n"
+					+"Long Target: " +ProfitLong + "\n"
+					+"Breakout Long: " +breakOutLong +"\n"
+					+"Long Stop: " +(BreakOutLong - StopAmtLong) +"\n"
+					+"Today's Open: " +MrktOpen +"\n"
+					+"Breakout Short: " +breakOutShort +"\n"
+					+"Short Target: " +ProfitShort +"\n"
+					+"Short Stop: " + (BreakOutShort + StopAmtShort)+"\n";
+
+_SECTION_END();
+
+_SECTION_BEGIN("Toby Crabel Patterns");
+TitleHeader = EncodeColor(colorYellow) +"Yesterday's Price Patterns" +"\n";
+TitleSwing = EncodeColor(colorLavender) +"1 Day Swing Trend" + "\n";
+
+//compress daily high and low for use in calculations
+DlyC = TimeFrameCompress(DlyClose , inDaily, compressLast);
+DlyH = TimeFrameCompress(DlyHighest, inDaily, compressLast);
+DlyL = TimeFrameCompress(DlyLowest, inDaily, compressLast);
+DlyO = TimeFrameCompress(MrktOpen, inDaily, compressLast);
+DlyRng = DlyH-DlyL;
+//use compressed daily high and low to expand day's 2-5
+PrevO = TimeFrameExpand(DlyO, inDaily);//day 2 open
+//PrevO2 = TimeFrameExpand(Ref(DlyO, -1), inDaily);//day 3 open
+CurH = TimeFrameExpand(DlyH, inDaily);//day 2 high
+PrevH = TimeFrameExpand(Ref(DlyH,-1), inDaily);//day 3 high
+PrevH2 = TimeFrameExpand(Ref(DlyH,-2), inDaily);//day 4 high
+//PrevH3 = TimeFrameExpand(Ref(DlyH,-3), inDaily);//day 5 high
+CurL = TimeFrameExpand(DlyL, inDaily);//day 2 low
+PrevL = TimeFrameExpand(Ref(DlyL,-1), inDaily);//day 3 low
+PrevL2 = TimeFrameExpand(Ref(DlyL,-2), inDaily);//day 4 low
+//PrevL3 = TimeFrameExpand(Ref(DlyL,-3), inDaily);//day 5 low
+PrevC = TimeFrameExpand(DlyC, inDaily);//day 2 close
+PrevC2 = TimeFrameExpand(Ref(DlyC,-1), inDaily);//day 3 close
+PrevC3 = TimeFrameExpand(Ref(DlyC,-2), inDaily);//day 4 close
+
+//code and plot the Doji 
+//abs(O-C)/(H-L) < .11 AND (O+C)/2 < H-((H-L)*.33) AND (O+C)/2 > L+((H-L)*.33)
+DlyDoji = (abs(DlyO-DlyC)/(DlyRng)) < 0.11 AND  
+			((DlyO+DlyC)/2) < (DlyH-((DlyRng)*0.33)) AND 
+			((DlyO+DlyC)/2) > (DlyL+((DlyRng)*0.33));
+doji = TimeFrameExpand(DlyDoji, inDaily);
+
+Cntr = 0;
+Holiday = 0;
+for(i=1;i<BarCount;i++)
+	{
+	if(CurBarTime[i] >= TimeOpen[i] AND CurBarTime[i] <= TimeClose[i])
+		Cntr = 1;	
+		if(Cntr[i] >= 1 AND CurBarTime[i] == TimeClose[i])
+		{
+			Cntr = 2;
+		}
+			if(Cntr[i] < 2 AND CurBarTime[i] > TimeClose[i])
+			{
+				Holiday[i] = 1;
+			}
+	}
+
+Holiday = TimeFrameCompress(Holiday,inDaily);
+
+//apply holiday filter if the user selects it in the parameters
+if(FltrHolidays == 0)
+{
+
+//code and plot the NR4
+DlyNR4 = IIf(Holiday OR (BarsSince(Holiday) >= 1 AND BarsSince(Holiday) <= 4),
+			(LLV(DlyRng,5) == (DlyRng)),
+			(LLV(DlyRng,4) == (DlyRng)));
+//code and plot the WS4
+DlyWS4 = IIf(Holiday OR (BarsSince(Holiday) >= 1 AND BarsSince(Holiday) <= 4),
+			(HHV(DlyRng,5) == (DlyRng)),
+			HHV(DlyRng,4) == (DlyRng));
+//code and plot the NR7
+DlyNR7 = IIf(Holiday OR (BarsSince(Holiday) >= 1 AND BarsSince(Holiday) <= 7),
+			(LLV(DlyRng,8) == (DlyRng)),
+			(LLV(DlyRng,7) == (DlyRng)));
+//code and plot the WS7
+DlyWS7 = IIf(Holiday OR (BarsSince(Holiday) >= 1 AND BarsSince(Holiday) <= 7),
+			(HHV(DlyRng,8) == (DlyRng)),
+			(HHV(DlyRng,7) == (DlyRng)));
+//calculate the 2 day range
+DlyTwoDayRng = IIf(Holiday OR (BarsSince(Holiday) == 1 ),
+					HHV(DlyH ,3) - LLV(DlyL ,3),
+					HHV(DlyH ,2) - LLV(DlyL ,2));
+//calculate the 3 day range
+DlyThreeDayRng = IIf(Holiday OR (BarsSince(Holiday) >= 1 AND BarsSince(Holiday) <= 2),
+					HHV(DlyH ,4) - LLV(DlyL ,4),
+					HHV(DlyH ,3) - LLV(DlyL ,3));
+
+TitleDoji = WriteIf(Holiday OR (BarsSince(Holiday) >= 1 AND BarsSince(Holiday) <= 2),
+						EncodeColor(colorGold) +WriteIf(Ref(doji,-2), " Doji Day" +"\n", ""),
+						EncodeColor(colorGold) +WriteIf(Ref(doji,-1), " Doji Day" +"\n", ""));
+}
+
+
+//calculate the price patterns based on standard method if the user
+//has selected NO in the filter holidays parameter.
+if(FltrHolidays == 1)
+{
+//code and plot the NR4
+DlyNR4 = (LLV(DlyRng,4) == (DlyRng));
+//code and plot the WS4
+DlyWS4 = (HHV(DlyRng,4) == (DlyRng));
+//code and plot the NR7
+DlyNR7 = (LLV(DlyRng,7) == (DlyRng));
+//code and plot the WS7
+DlyWS7 = (HHV(DlyRng,7) == (DlyRng));
+//calculate the 2 day range
+DlyTwoDayRng = HHV(DlyH ,2) - LLV(DlyL ,2);
+//calculate the 3 day range
+DlyThreeDayRng = HHV(DlyH ,3) - LLV(DlyL ,3);
+
+TitleDoji = EncodeColor(colorGold) +WriteIf(Ref(doji,-1), " Doji Day" +"\n", "");
+}
+
+//code the NR
+NR = (CurH - CurL) < (PrevH - PrevL);
+
+NR4 = TimeFrameExpand(DlyNR4, inDaily);
+TitleNR4 = EncodeColor(colorWhite) + WriteIf(Ref(NR4,0), " NR4 Day"+"\n", "");
+
+WS4 = TimeFrameExpand(DlyWS4, inDaily);
+TitleWS4 = EncodeColor(colorRed) +WriteIf(Ref(WS4,0), " WS4 Day"+"\n", "");
+
+NR7 = TimeFrameExpand(DlyNR7, inDaily);
+TitleNR7 = EncodeColor(colorWhite) + WriteIf(Ref(NR7,0), " NR7 Day"+"\n", "");
+
+WS7 = TimeFrameExpand(DlyWS7, inDaily);
+TitleWS7 = EncodeColor(colorRed) +WriteIf(Ref(WS7,0), " WS7 Day" +"\n", "");
+
+TwoDayRng = TimeFrameExpand(DlyTwoDayRng, inDaily);
+
+//determine lowest 2 day range in previous 20 days
+DlyTwoBarNR = LLV(DlyTwoDayRng , 20) == DlyTwoDayRng ;
+TwoBarNR = TimeFrameExpand(DlyTwoBarNR, inDaily);
+TitleTwoBarNR = WriteIf(Ref(TwoBarNR, -1), " 2DayNR" +"\n", "");
+
+ThreeDayRng = TimeFrameExpand(DlyThreeDayRng, inDaily);
+
+//determine lowest 3 day range in previous 20 days
+DlyThreeBarNR = LLV(DlyThreeDayRng , 20) == DlyThreeDayRng ;
+ThreeBarNR = TimeFrameExpand(DlyThreeBarNR, inDaily);
+TitleThreeBarNR = WriteIf(Ref(ThreeBarNR, -1), " 3DayNR" +"\n", "");
+
+//code and plot the pivot top
+PivotTop = CurL < PrevL  AND CurH < PrevH  AND PrevH > PrevH2;
+
+//code and plot the pivot bottom
+PivotBottom = CurH > PrevH   AND CurL > PrevL   AND PrevL < PrevL2;
+
+SwingUP = PrevC > ValueWhen(PivotTop, PrevH,1);
+SwingDWN = PrevC < ValueWhen(PivotBottom, PrevL,1);
+
+TitleSwingTrend = WriteIf(SwingUP, " Swing UP" +"\n",
+						WriteIf(SwingDWN, " Swing DWN" +"\n", " Swing Flat" +"\n"));
+ExpSwingTrend = IIf(SwingUP, 9,
+						IIf(SwingDWN, 0, 1));
+
+//determine if previous day closed up or down
+CloseUP = PrevO > PrevH;
+//printf("Closed: " +WriteIf( Ref(DlyO,-1) < DlyC, "UP" +"\n", "DWN" +"\n"));
+TitleUPDWN = WriteIf(PrevO > PrevH, " UP Day" +"\n", " DWN Day" +"\n");
+GapDayUP = PrevO > PrevH2 ;
+GapDayDWN = PrevO < PrevL2;
+TitleGapDay = WriteIf(GapDayUP,
+				WriteIf(CloseUP, " Gap UP and closed UP" +"\n", " Gap UP and closed DWN" +"\n"),
+				WriteIf(GapDayDWN, 
+				WriteIf(CloseUP, " Gap DWN and closed UP" +"\n", " Gap DWN and closed DWN" +"\n"),""));
+_SECTION_END();
+
+_SECTION_BEGIN("Exploration");
+//the exploration is divided into two sections. each section is tied to the 
+//the value of the parameter toggle which is used to select from two choices
+
+//Choice 1 is ORB which is a simple scan showing the brekout, profit and stop 
+//levels for each ticker. Run this scan within first minutes of market open to
+//record the levels for each of the securities you are tracking. Set the range
+//of the analsys window to 'n last days' where n=1.
+
+//Choice 2 is STATS wich is a more thorough scan that is intended to be used on
+//a single security at a time. Results can then be exported into a spread sheet for
+//further analysis. While it is not perfect the intended goal is to output a set 
+//of data which can be used to measure the profitabilty of the system on a given
+//security as well as determine the best way to filter out undesirable trades. Set
+//the range in the analysis window to include whatever range of days you want to 
+//output.
+
+/*
+$$$$$$$$ The two lines below display the output of the STATS exploration $$$$$$$$$$
+$$$$$$$$ The top line contains the column headings and the bottom line   $$$$$$$$$$
+$$$$$$$$ contains the data for each time stamp. Trend is measured as a 1 $$$$$$$$$$
+$$$$$$$$ day swing pivot. U means the previous day closed above a recent $$$$$$$$$$
+$$$$$$$$ pivot top. D mena the previous day closed below a recent        $$$$$$$$$$
+$$$$$$$$ pivot bottom. F means the previous day closed between a         $$$$$$$$$$
+$$$$$$$$ both the recent pivot top and pivot bottom. D3 and D2 are  plus $$$$$$$$$$
+$$$$$$$$ and minus symbols to show the close of each day relative to the $$$$$$$$$$
+$$$$$$$$ previous. D1 is the current day's open relative to previous     $$$$$$$$$$
+$$$$$$$$ day's close. D1 is trade day, D2 is the day before trade day    $$$$$$$$$$
+$$$$$$$$ and D3 is the day before that. After this is a series of 5      $$$$$$$$$$
+$$$$$$$$ price patterns taken from Toby Crabel's book. 1's and 0's show  $$$$$$$$$$
+$$$$$$$$ for each time stamp what the PREVIOUS day's price pattern       $$$$$$$$$$
+$$$$$$$$ looked like. After the price patterns you find the 6 dollar     $$$$$$$$$$
+$$$$$$$$ values for the breakout, stop and profit targets. The final 6   $$$$$$$$$$
+$$$$$$$$ columns show what occured during each step and using 1's and    $$$$$$$$$$
+$$$$$$$$ 0's diplays when you enter long/short, stop out long/short or   $$$$$$$$$$
+$$$$$$$$ hit the long/short target.                                      $$$$$$$$$$
+
+Ticker				Date/Time			Trend	D3	D2	D1	WS4	WS7 Doji	NR4	NR7		BOL		LngTarg	LngStp	BOS		ShrtTarg	ShrtStp	LngEnt	StpOut	Targ	ShrtEnt	StpOut	Targ
+ESU9-GLOBEX-FUT	5/1/2009 9:37		U		+	-	+	1	1	 0		0	0		873		886.75		871.5	867.25	853.25		868.5		0		0		0		1			0		0
+
+So the line above tells us these things:
+(Trend) Yesterday closed above a recent pivot top. (D1)Today's open was above yesterday's close, (D2) yesterday
+closed below the previous day's close and (D3) that day closed above it's prior day. Yesterday was
+also WS4 and WS7 day which means expansion. At 9:37 am pries broke below the short breakout level
+and a short entry was indicated.
+It is best to run the STATS exploration in a 1 minute time frame to prevent false stops occurring when
+a single 5 or 15 minute bar stretches across both the stop loss and breakout levels
+*/
+
+intraHigh = HighestSince(CurBarTime  == TimeOpen, H);
+intraLow = LowestSince(CurBarTime  == TimeOpen, L);
+FirstBOL = Cross(H, breakOutLong) AND Ref(intraHigh,-1)  < breakOutLong OR
+				H == breakOutLong AND Ref(intrahigh,-1) < breakOutlong OR 
+			Cross(H, breakOutLong) AND CurBarTime  == TimeOpen OR
+				H == breakOutLong AND CurBarTime  == TimeOpen;
+
+LongStop = L <= (breakOutLong - StopAmtLong) AND intraHigh >= breakOutLong AND intraHigh < ProfitLong;
+FirstLongStop = LongStop AND Ref(LowestSince(Ref(FirstBOL,-1),L),-1) > (BreakOutLong - StopAmtLong) OR
+					LongStop AND Ref(FirstBOL,-1);
+
+StgProfitLong = Cross(H, ProfitLong) AND Ref(intraHigh,-1) <= ProfitLong;
+FirstProfitLong = IIf(HighestSince(CurBarTime  == TimeOpen, LongStop) < 1, StgProfitLong, 0);
+
+FirstBOS = Cross(BreakOutShort, L) AND Ref(intraLow,-1) > breakOutShort OR
+				L == breakOutShort AND Ref(intraLow,-1) > breakOutShort OR
+			Cross(breakOutShort, L) AND CurBarTime  == TimeOpen OR
+				L == breakOutShort AND CurBarTime  == TimeOpen;
+
+ShortStop = H >= (BreakOutShort + StopAmtShort) AND intraLow <= breakoutShort AND intraLow > ProfitShort;
+FirstShortStop  = ShortStop AND Ref(HighestSince(Ref(FirstBOS,-1),H),-1) < (BreakOutShort + StopAmtShort) OR
+						ShortStop AND Ref(FirstBOS,-1);
+
+StgProfitShort = Cross(ProfitShort, L) AND Ref(intraLow,-1) >= ProfitShort;
+FirstProfitShort = IIf(HighestSince(CurBarTime  == TimeOpen, ShortStop) < 1, StgProfitShort , 0);
+MrktHours = CurBarTime  >= TimeOpen AND CurBarTime  <= TimeClose;
+if(expFilter == "ORB")
+{
+Filter = TimeNum() == TimeOpen;
+AddColumn(breakOutLong, "BOL", 1.2);
+AddColumn(ProfitLong, "LngTarg", 1.2);
+AddColumn(breakOutLong - StopAmtLong, "LngStp", 1.2);
+AddColumn(breakOutShort, "BOS", 1.2);
+AddColumn(ProfitShort, "ShrtTarg", 1.2);
+AddColumn(breakOutShort + StopAmtShort, "ShrtStp", 1.2);
+
+}
+if(expFilter == "STATS")
+{
+
+Filter = MrktHours  AND 
+			( FirstBOS  OR FirstShortStop OR FirstProfitShort OR FirstBOL OR FirstLongStop OR FirstProfitLong  );
+AddColumn(IIf( ExpSwingTrend == 9, 85, 
+			IIf( ExpSwingTrend == 0, 68, 70 )), "Trend", formatChar );
+AddColumn(IIf(PrevC2 > PrevC3, 43, 45), "D3", formatChar);
+AddColumn(IIf(PrevC > PrevC2, 43, 45), "D2", formatChar);
+AddColumn(IIf(MrktOpen > PrevC, 43, 45), "D1", formatChar);
+AddColumn(WS4, "WS4", 1);
+AddColumn(WS7, "WS7", 1);
+AddColumn(doji, "Doji", 1);
+AddColumn(NR4, "NR4", 1);
+AddColumn(NR7, "NR7", 1);
+
+AddColumn(breakOutLong, "BOL", 1.2);
+AddColumn(ProfitLong, "LngTarg", 1.2);
+AddColumn(breakOutLong - StopAmtLong, "LngStp", 1.2);
+AddColumn(breakOutShort, "BOS", 1.2);
+AddColumn(ProfitShort, "ShrtTarg", 1.2);
+AddColumn(breakOutShort + StopAmtShort, "ShrtStp", 1.2);
+
+AddColumn(FirstBOL, "LngEnt", 1);
+AddColumn(FirstLongStop, "StpOut", 1);
+AddColumn(FirstProfitLong, "Targ", 1);
+
+AddColumn(FirstBOS, "ShrtEnt", 1);
+AddColumn(FirstShortStop, "StpOut", 1);
+AddColumn(FirstProfitShort, "Targ", 1);
+}
+
+if(expFilter == "OHLC")
+{
+//When exploration filter is set to OHLC in parameters,
+//this will output the O,H,L,C for each day/ticker selected in
+//the analysis window.
+Filter = CurBarTime == TimeClose ;
+AddColumn(DlyOpen, "O", 1.2);
+AddColumn(DlyHighest, "H", 1.2);
+AddColumn(DlyLowest, "L", 1.2);
+AddColumn(DlyClose, "C", 1.2);
+
+}
+_SECTION_END();
+
+_SECTION_BEGIN("Daily Pivots");
+//Determine the value of the market close. Initial setting is for
+//4:00 PM to match US Market Open. Adjust as need for your market
+MrktClose = ValueWhen(CurBarTime  == TimeClose , Close);
+Range = DlyHighest - DlyLowest;
+PP = (DlyHighest + DlyLowest + MrktClose)/3;
+PP = round(PP * 4) / 4;
+R1 = (2 * PP) - DlyLowest;
+S1 = (2 * PP) - DlyHighest;
+R2 = PP + Range;
+S2 = PP - Range;
+R3 = R2 + Range;
+S3 = S2 - Range;
+R4 = R3 + Range;
+S4 = S3 - Range;
+
+TitlePivots = EncodeColor(colorBlack) +"Today's Daily Pivots" +"\n"
+				+"R1: " +R1 +"\n" +"PP: " +PP +"\n" +"S1: " +S1 +"\n";
+if(PPSR1 == 0)
+{
+Plot(R1, "Dly R1", colorBlue, styleLine | styleThick | styleNoRescale);
+Plot(PP, "Dly Pivot", colorCustom12, styleLine | styleThick | styleNoRescale);
+Plot(S1, "Dly S1", colorBlue, styleLine | styleThick | styleNoRescale);
+}
+if(S2R2 == 0)
+{
+Plot(R2, "Dly R2", colorBlue, styleLine  | styleNoRescale);
+Plot(S2, "Dly S2", colorBlue, styleLine  | styleNoRescale);
+}
+if(S3R3 == 0)
+{
+Plot(R3, "Dly R3", colorBlue, styleDashed | styleThick | styleNoRescale);
+Plot(S3, "Dly S3", colorBlue, styleDashed | styleThick | styleNoRescale);
+}
+if(S4R4 == 0)
+{
+Plot(R4, "Dly R4", colorBlue, styleDashed  | styleNoRescale);
+Plot(S4, "Dly S4", colorBlue, styleDashed  | styleNoRescale);
+}
+
+_SECTION_END();
+if(PlotBreak == 0)
+{
+Plot(MrktOpen, "Daily Open", colorBlack, styleLine | styleNoRescale);
+Plot(BreakOutLong , "Break Out Long", colorGreen, styleLine | styleNoRescale);
+Plot(BreakOutShort , "Break Out Short", colorRed, styleLine | styleNoRescale);
+Plot(ProfitLong, "Long Target", colorGold, styleDots | styleThick | styleNoRescale);
+Plot(ProfitShort, "Short Target", colorGold, styleDots | styleThick | styleNoRescale);
+PlotOHLC(MrktOpen, breakOutLong, MrktOpen, MrktOpen, "", colorPaleGreen, styleCloud | styleNoRescale | styleNoLabel);
+PlotOHLC(MrktOpen, MrktOpen, BreakOutShort , MrktOpen, "", colorRose, styleCloud | styleNoRescale | styleNoLabel);
+}
+RibbonColor = IIf(MrktHours  , colorGreen, colorRed);
+
+Plot( 2, "ribbon",RibbonColor,styleOwnScale|styleArea|styleNoLabel, -1, 100 );
+
+_SECTION_BEGIN("Title");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) ", O, H, L, C, 
+SelectedValue( ROC( C, 1 ) ) )+"\n" +TitleBreakOuts  +TitlePivots +TitleSwing +TitleSwingTrend +TitleHeader 
++TitleNR4  +TitleNR7 +TitleTwoBarNR +TitleThreeBarNR +TitleWS4 
++TitleWS7 +TitleDoji 
++EncodeColor(colorWhite) +WriteIf(TitleGapDay == "", TitleUPDWN, "") +TitleGapDay   );
+_SECTION_END();

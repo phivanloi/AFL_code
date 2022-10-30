@@ -1,0 +1,9 @@
+// tskp_fast1val1, tskp_fast1val2, tskp_fast1val3, tskp_fast1val4
+dummy = E_TSKPFAST1(Open,High,Low,Close,Volume);
+
+Plot( tskp_fast1val1, "Fast1_1", ParamColor( "Fast1_1Color", colorBlue ), ParamStyle("Fast1_1Style",default=styleHistogram+styleNoLabel,mask=maskHistogram) );
+Plot( tskp_fast1val2, "Fast1_2", ParamColor( "Fast1_2Color", colorRed ), ParamStyle("Fast1_2Style",default=styleHistogram+styleNoLabel,mask=maskHistogram) );
+
+
+Plot( tskp_fast1val3, "Fast1_3", ParamColor( "Fast1_3Color", colorYellow ), ParamStyle("Fast1_3Style",styleNoLabel) );
+Plot( tskp_fast1val4, "Fast1_4", ParamColor( "Fast1_4Color", colorCustom11 ), ParamStyle("Fast1_4Style",styleNoLabel) );

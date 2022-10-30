@@ -1,0 +1,27 @@
+_SECTION_BEGIN("DISTANCE FROM BASE");
+PERIOD1=5;
+PERIOD2=20;
+PERIOD3=50;
+PERIOD4=100;
+PERIOD5=200;
+PERIOD6=280;
+C=Close;
+z5=( Close - MA( Close, period1 ));
+z20=( Close - MA( Close, period2 ));
+z50=( Close - MA( Close, period3 ));
+z100=( Close - MA( Close, period4 ));
+z200=( Close - MA( Close, period5 ));
+z280=( Close - MA( Close, period6 ));
+////////////////////////////////////////////////////////////
+zST=StDev( Close, period2 );
+z3=z20/zST;
+//////////////////////////////////////////////////
+Plot(0,"",styleLine,styleThick);
+Plot( Z5, "BASE5", ColorRGB(0,255,0),ParamStyle("Style",styleHistogram |styleThick|styleNoLabel ,maskAll) );
+Plot( Z20, "BASE20", ColorRGB(0,0,255),ParamStyle("Style",styleHistogram |styleThick|styleNoLabel ,maskAll) );
+//Plot( Z50, "BASE50", ColorRGB(255,100,0),ParamStyle("Style",styleHistogram |styleThick|styleNoLabel ,maskAll) );
+//Plot( Z100, "BASE100", ColorRGB(255,0,0),ParamStyle("Style",styleHistogram |styleThick|styleNoLabel ,maskAll) );
+Plot( Z200, "BASE200", ColorRGB(255,255,255),ParamStyle("Style",styleHistogram |styleThick|styleNoLabel ,maskAll) );
+//Plot( Z280, "BASE280", ColorRGB(240,0,0),ParamStyle("Style",styleHistogram |styleThick|styleNoLabel ,maskAll) );
+
+_SECTION_END();

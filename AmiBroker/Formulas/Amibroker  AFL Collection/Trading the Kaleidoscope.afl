@@ -1,0 +1,43 @@
+// Trading the Kaleidoscope
+// Developed by Gerard Carey from Steve Karnish's "CCT Kaleidoscope"
+
+/* This formula was developed to signal short-term trend changes
+in the direction of the CONFIRMED Medium-Term trend - thus giving 
+both long AND Short opportunities. 
+
+The red histogram plots the MT trend as being up (above zero line)
+OR being down (below zero line).
+
+The black line plots the ST trend in the same manner.
+
+The long entry is signalled when the red Histogram is ABOVE 
+zero and the black ST line, after dipping below the zero line, 
+reverses back up (green arrow).
+
+Likewise, the Short entry is signalled when the red Histogram is 
+BELOW zero AND the black ST line, after rising above the zero line, 
+reverses back down (red arrow). */
+
+// NB. Exits are NOT sigalled. As usual, signals appear more reliable in less volatile markets.
+
+// Trading the Kaleidoscope
+CA=LinRegSlope(C,5)+ 100 * ( EMA( EMA( C - Ref( C, -1 ) ,2 ) ,5) / 
+EMA( EMA( abs( C - Ref( C, -1) ),2 ), 5 ) ) +100 * 
+( EMA( EMA( C - (0.5 * ( HHV(H,13) + LLV(L,13))),2),5) / 
+(0.5 * EMA( EMA( HHV(H,13) - LLV(L,13),2),5 ) ) );
+
+CB=LinRegSlope(C,5) + 100 * ( EMA( EMA( C - Ref( C, -1 ) ,2 ) ,25) / 
+EMA( EMA( abs( C - Ref( C, -1) ),2 ), 25) ) +100 * 
+( EMA( EMA( C - (0.5 * ( HHV(H,13) + LLV(L,13))),2),25) / 
+(0.5 * EMA( EMA( HHV(H,13) - LLV(L,13),2),25) ) );
+
+Plot(CA,"Trading the Kaleidoscope",5,4);
+Plot(CB," Child",4,4);
+Plot(CB,"",4,2+4);
+Plot(0,"",4);
+
+CondA= CB>0 AND (CA<0 OR Ref(CA,-1)<0) AND CA>Ref(CA,-1) AND Ref(CA,-1)<Ref(CA,-2) ;
+PlotShapes( shapeSmallUpTriangle*CondA, 5,L,-100) ;
+
+CondB= CB<-0 AND (CA>0 OR Ref(CA,-1)>0) AND CA<Ref(CA,-1) AND Ref(CA,-1)>Ref(CA,-2) ;
+PlotShapes( shapeSmallDownTriangle*CondB, 4,H,100);

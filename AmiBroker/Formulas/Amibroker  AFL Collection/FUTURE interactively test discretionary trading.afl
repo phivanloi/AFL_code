@@ -1,0 +1,129 @@
+SetBarsRequired(-1,1);
+
+lvBar = Status( "LastVisibleBar" );
+lvbar = Max(0, Min(Status( "LastVisibleBar" ),BarCount-1));
+
+Vnbuy   = Nz(StaticVarGet("vnbuy"));
+vnsell  = Nz(StaticVarGet("vnsell"));
+Vnbuyp  = Nz(StaticVarGet("vnbuyp"));
+vnsellp = Nz(StaticVarGet("vnsellp"));
+
+Vnshort = Nz(StaticVarGet("Vnshort"));
+vncover = Nz(StaticVarGet("vncover"));
+Vnshortp= Nz(StaticVarGet("vnshortp"));
+vncoverp= Nz(StaticVarGet("vncoverp"));
+
+inbuy = Nz(StaticVarGet("inbuy"));
+inshort = Nz(StaticVarGet("inshort"));
+
+profit = Nz(StaticVarGet("profit"));
+
+procedure CloseTrade() {
+global vnsell;
+global vnsellp;
+global vnbuy;
+global vnbuyp;
+global Vnshort;
+global Vncover;
+global Vnshortp;
+global Vncoverp;
+global inbuy;
+global inshort;
+global profit;
+
+    if (inbuy) {
+    inbuy = 0;
+    vnsell[lvBar] = 1;
+    vnsellp = C[Lvbar];
+    profit = profit + vnsellp-Vnbuyp;
+ 
+    StaticVarSet("vnsell", Vnsell);
+    StaticVarSet("vnsellp", Vnsellp);
+    StaticVarSet("inbuy", 0);
+    StaticVarSet("profit", profit);
+    } else if (inshort) {
+    inshort = 1;
+    vncover[lvBar] = 1;
+    vncoverp = C[Lvbar];
+    profit = profit + vnshortp - vncoverp;
+ 
+    StaticVarSet("vncover", vncover);
+    StaticVarSet("vncoverp", vncoverp);
+    StaticVarSet("inshort", 0);
+    StaticVarSet("profit", profit);
+    }
+}
+
+mBuy = ParamTrigger("buy", "Buy");
+if (mBuy){
+  if (!inbuy && !inshort){
+    inbuy = 1;
+    vnbuy[lvBar] = 1;
+    vnbuyp = C[Lvbar];
+    StaticVarSet("vnbuy", Vnbuy );
+    StaticVarSet("vnbuyp", Vnbuyp);
+    StaticVarSet("inbuy", 1);
+  } else {
+    CloseTrade();
+  }
+}
+
+mShort = ParamTrigger("Short", "Short");
+if (mShort){
+  if (!inbuy && !inshort){
+    inshort = 1;
+    vnshort[lvBar] = 1;
+    vnshortp = C[Lvbar];
+    StaticVarSet("vnshort", Vnshort);
+    StaticVarSet("vnshortp", vnshortp);
+    StaticVarSet("inshort", 1);
+  } else {
+    CloseTrade();
+  }
+}
+
+reset = ParamTrigger("reset", "reset");
+if (reset){
+  vnbuy = 0;   vnsell = 0; vnshort  = 0; vncover  = 0; 
+  vnbuyp = 0; vnsellp = 0; vnshortp = 0; vncoverp = 0; 
+  inbuy = 0; inshort = 0; profit = 0;
+
+  StaticVarSet("vnbuy", Vnbuy);
+  StaticVarSet("vnbuyp", Vnbuyp);
+  StaticVarSet("vnsell", Vnsell);
+  StaticVarSet("vnsellp", Vnsellp);
+  StaticVarSet("inbuy", 0);
+
+  StaticVarSet("vnshort", Vnshort);
+  StaticVarSet("vnshortp", vnshortp);
+  StaticVarSet("vncover", vncover);
+  StaticVarSet("vncoverp", vncoverp);
+  StaticVarSet("inshort", 0);
+
+  StaticVarSet("profit", profit);
+
+}
+
+setABArrays= ParamToggle("setABArrays", "on|off");
+if (setABArrays == 0){
+  Buy = vnbuy; Sell = vnsell; Short = vnshort; Cover = vncover; 
+  BuyPrice = vnbuyp; SellPrice = vnsellp; ShortPrice = vnshortp; CoverPrice = vncoverp; 
+}
+
+UProfit = 0;
+if (inbuy){
+  UProfit = C[lvbar] - Vnbuyp[Lvbar];
+} else if (inshort){
+  UProfit = Vnshortp[Lvbar] - C[lvbar];
+}
+
+printf("R profit: %g\n", profit);
+printf("U profit: %g\n", UProfit);
+
+PlotShapes(shapeSmallUpTriangle*Nz(Vnbuy),colorBrightGreen,   0, L, -10);
+PlotShapes(shapeSmallDownTriangle*Nz(Vnsell),colorRed,   0, H, -10);
+PlotShapes(shapeHollowSmallDownTriangle*Nz(Vnshort),colorRed,   0, H, -10);
+PlotShapes(shapeHollowSmallUpTriangle*Nz(Vncover),colorBrightGreen,   0, L, -10);
+
+//Plot( C, "Close", colorBlack, styleNoTitle | ParamStyle("Style") | GetPriceStyle()); 
+

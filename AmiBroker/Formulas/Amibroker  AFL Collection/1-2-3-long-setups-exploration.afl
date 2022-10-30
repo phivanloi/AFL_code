@@ -1,0 +1,98 @@
+// Connor/Cooper 1-2-3 setup (long) for 1-2-3-4 trade send to watchlist # 16
+//  Coded by Patrick Hargus -- Mar, 2001, updated for parameters and other improvements to ver 4.7
+
+w = Param("Empty Watchlist First?  Yes = 1, No = 2" ,  2,  1,  2,  1);  
+w1 = Param("Autofill Watchlist? Yes = 1, No = 2" , 1, 1,  2, 1);
+x = Param ( "Add Results to an Existing Watchlist? Yes = 1, No = 2" , 2 , 1 , 2 , 1 ) ;   // select whether to add results to watchlist or not
+y = Param("Set Watchlist Number", 16, 2, 60, 1);     // sets the watchlist number, but reserves the first 2 and last 4 watchlists
+Clear = IIf(w ==1, x==2, 0); if( LastValue(Clear) ) {CategoryRemoveSymbol("", categoryWatchlist, y); }  
+
+
+//  --------  Parameter Variables for Exploration  --------------------------------
+TCH = Param("High close value ", 150, 5, 300, 0.5);
+TCL	= Param("Low close value " , 5, 1, 10, 0.25);
+AVP = Param("Period for Avg Vol " , 21, 10, 240, 1);
+SV = Param("Stock minimum Avg Vol " , 125000, 50000, 1000000, 5000);
+My_Conditions = Close >= tcl AND Close <= tch AND MA( Volume, avp ) > sv ;
+
+Setup = Param("********** Run As Check for 1-2-3 Setup (1) or Day 4 Entry (2)  ************ ",  1, 1, 2, 1);
+
+AP = 14;  	// ADX Period
+A = Param("Filter by ADX above " , 30, 0, 60, 1) ; 					// C & C said stock must have an ADX value > 30, the higher the better
+CL = Param(" Close below yesterday's High? Yes = 1, No=2"  ,2,1,2,1);		//  This is an optional filter I have devised
+CU = Param("Close above Open Required? Yes = 1, No = 2" , 2,1,2,1);		//  This is an optional filter I have devised
+z1 = Param("PDI > MDI Required Yes = 1, No = 2", 1,1,2,1);				//  C & C said +DI must be > -DI 
+
+PH1 =  Param(" Short Highest High Period", 5,  2, 21, 1);  // short period to check for recent high
+PH2 =  Param(" Long Highest High Period" , 21, 5, 65,1);  // long period to check for recent high  
+z2 = Param("Optional: HHV(H) of short period  > HHV(H) of prior long period required? Yes = 1, No =2", 2,1,2,1);  //  an optional filter I have devised
+
+My_Other_Conditions = 
+	ADX() >= A
+	AND IIf( CL==1, C <= Ref(H,-1), C=C)
+      AND IIf( CU==1, C>O,  C=C) 
+	AND UT = IIf(z1==1, PDI()>MDI(), C=C)
+	AND HH = IIf(z2==1,    HHV(H,PH1) >= Ref(HHV(H,PH1),-PH2) , C=C)  // look for stocks whose highest high in last __ days >= that of prior __ days
+	;
+
+//  *****  THE BASIC 1-2-3 setup to go long *********
+
+Long123 = 
+	(
+   	// 3 lower lows     
+      	( Ref(L,-2)<Ref(L,-3) AND Ref(L,-1)<Ref(L,-2) AND L <Ref(L,-1) )  OR   
+   	// Inside, Low, Low      
+      	(  	( Ref(H,-2) <= Ref(H,-3)  AND  Ref(L,-2) ) <= Ref(L,-3)  AND Ref(L,-1)<Ref(L,-2) AND L < Ref(L,-1) )   OR
+   	// Low, Inside, Low
+      	( Ref(L,-2) < Ref(L,-3)  AND ( Ref(H,-1) <= Ref(H,-2) AND Ref(L,-1) <= Ref(L,-2) ) AND L < Ref(L,-1)  ) OR 
+   	// Low, Low, Inside     
+      	( Ref(L,-2)< Ref(L,-3) AND Ref(L,-1)< Ref(L,-2) AND (  H <= Ref(H,-1) AND L <= Ref(L,-1) ) ) 
+	)
+	;
+//  Day-4 condition
+		TE = Param("Recommended entry, Trade above high by __" , 0.05 , 0.01, 0.75, 0.005);   // enter trade above prior day high  -- C & C said  .125, in pre decimal days; I find .05 works well now
+		Entry_Day4 =	C > Ref(H,-1) + TE 	;
+
+Filter = IIf(setup == 1, (Long123 AND My_Other_Conditions AND My_Conditions) , ( Ref( Long123 ,-1) AND ( My_Other_Conditions AND My_Conditions AND Entry_Day4) ) ); 
+
+
+Buy = Filter;
+		autoFILL = IIf( w1==1, Filter,0 ) ; 
+		Add = IIf( x==1, Filter , 0 ) ;
+		if( LastValue( Add OR autoFill ) )
+		{  CategoryAddSymbol( "", categoryWatchlist, y ); }
+
+
+
+
+//  --------------  Organize the exploration results ------------------------------------
+
+MAP = Param("For Output Info: Close above the SMA of " , 9, 1, 55) ;  // moving average period for stocks to close above, optional info I find useful
+TD = Param("Rec Entry and Stop  based on Today (1), Yesterday (2) ", 1,   1, 2, 1);  //  C & C said entry should be .125 > the day 3 High -- this setting allows to check during day 4
+RecEnt =  	IIf( TD==1, H+TE, Ref(H,-1) +TE);
+PStop = 	IIf( TD==1, L, Ref(L,-1) ); 
+
+AddTextColumn(IndustryID(1) ,"Industry Sector  ", 30.0, colorBlue, colorYellow);
+AddColumn(C, "Last ",2.2, colorWhite,colorBlue);
+AddColumn(H, "High", 2.2, colorGreen );
+
+AddColumn(RecEnt, "Recommend Entry",2.2,colorDarkRed,colorLightGrey );
+AddColumn(PStop, "Proctective Stop ~ ", 2.2, colorWhite, colorPlum);
+AddColumn(IIf(TD ==1, HHV(H,3), Ref(HHV(H,3),-1) ) , "BO > HHV(H, 3)", 2.2, colorYellow, colorBlue);
+AddColumn(ADX(AP), "ADX ",2.1,colorBlue,colorYellow  );
+
+AddColumn(V, "Today's Volume   ", 8.0, colorWhite,colorGreen  );
+AddColumn((V/Ref(MA(V,21),-1)*100),"% Of Avg Vol", 2.2,colorGreen, colorGold ); 
+AddColumn(Ref(MA(V,21),-1), "21 D AVG VOL",1.0, colorWhite, colorDarkGrey);
+
+AddColumn(O,"Open ", 2.2,colorYellow, colorBlue  );
+
+AddColumn( H-L, "Today's Range", 2.2, colorWhite, colorBlue);
+
+
+AddColumn(MA(C,MAP),WriteVal(MAP,2.0)+" d SMA",2.2,colorWhite,colorBlue);
+AddColumn(ATR(5), "ATR(5)", 2.2, colorWhite,colorGreen );
+
+AddColumn(ADX(AP), "ADX ",2.1,colorBlue, colorLightGrey);
+AddColumn(RSI(), "RSI", 2.2, colorGreen,colorYellow);
+AddTextColumn(Name(), "NAME", 5.0, colorYellow, colorBlue );

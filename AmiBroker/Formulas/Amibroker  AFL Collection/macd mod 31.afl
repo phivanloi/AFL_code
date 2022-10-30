@@ -1,0 +1,8 @@
+_SECTION_BEGIN("MACD");
+r1 = Param( "Fast avg", 3, 2, 200, 1 );
+r2 = Param( "Slow avg", 11, 2, 200, 1 );
+MAc = MACD (r1,r2);
+Col = IIf (MAc > Ref(MAc,-1),colorBlue,colorRed);
+Plot( MAc,"MACD", Col, styleThick );
+Plot(6, "ribbon", Col, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+_SECTION_END();

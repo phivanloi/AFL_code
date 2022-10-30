@@ -1,0 +1,17 @@
+_SECTION_BEGIN("MACD");
+
+SetChartBkColor( colorBlack ) ;
+A1=EMA(C,3)-EMA(C,11); 
+BBtop=BBandTop(A1,10,1); 
+BBbot=BBandBot(A1,10,1);
+Color=IIf(a1<0 AND a1>Ref(a1,-1), colorBlue,IIf(a1>0 AND a1>Ref(a1,-1),colorBlue,IIf(a1>0 AND a1<Ref(a1,-1),colorRed,colorRed)));
+Plot(a1,"MACD",color,styleDots+styleLine);
+Plot(BBtop,"BBtop",colorDarkGreen,styleDashed);
+Plot(BBbot,"BBbot",colorDarkRed,styleDashed);
+Plot(0,"",31,1);
+_SECTION_END();
+
+_SECTION_BEGIN("EMA1");
+P = ParamField("Price field",-1);
+Plot( EMA( P, 9 ), _DEFAULT_NAME(), colorBlue, styleThick ); 
+_SECTION_END();

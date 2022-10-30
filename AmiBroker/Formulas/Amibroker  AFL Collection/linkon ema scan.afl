@@ -1,0 +1,16 @@
+Buy = 	MA(  Close , 10 ) > EMA(  Close , 30 ) 
+	AND ADX( 14 ) > 25
+	AND ADX( 14 ) > Ref( ADX( 14 ) , -1 )
+	AND Ref( ADX( 14 ) , -1 ) > Ref( ADX( 14 ) , -2 );
+
+
+Sell = MA(  Close , 10 ) < EMA(  Close , 30 ) 
+	AND ADX( 14 ) > 25
+	AND ADX( 14 ) > Ref( ADX( 14 ) , -1 )
+	AND Ref( ADX( 14 ) , -1 ) > Ref( ADX( 14 ) , -2 );
+
+
+
+Short = 0;
+
+Cover = 0;

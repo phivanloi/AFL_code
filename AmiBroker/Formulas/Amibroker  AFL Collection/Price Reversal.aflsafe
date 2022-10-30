@@ -1,0 +1,137 @@
+/*							Price Reversal.afl - Bill Barnard, 12/13/05
+	This is to be used as an include file for SIGNAL STUDY.afl or the entire contents are to be
+	pasted into SIGNAL OPTIMIZE.afl. Read discussion (first parameter) in SIGNAL STUDY.afl 	*/
+
+AA		=  (Status("action")==3 OR Status("action")==4 OR Status("action")==5);	//	= 1 in AA
+if (AA)	sigSelect = "Price Reversal";
+if (sigSelect=="Price Reversal")	{
+
+if (AA)	//	if this code is being used in AA
+{
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	Current		= ParamToggle("Use Current Symbol?", "Using Symbol named just below for Indicator,Using Current Symbol for Indicator");
+	indicSym		= ParamStr("Indicator Symbol", "RUT-I");
+	param1		= Optimize("Smooth",  1, 1, 5, 1);
+	param2		= Optimize("SellPerc", 	5, 1, 51, 2);
+	param3		= Optimize("BuyPerc", 	5, 1, 31, 2);
+	param6		= 1;//Optimize("AveTyp",  1, 0, 5, 1);
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+}
+
+//	if this code is being used in an indicator, retrieve stored param information
+if (Status("action")==1)
+{
+	PRParamsList			= "";
+	PRParamsFileName	= "ConfigFiles\\PRParams"+GetChartID()+".bf";
+
+	fh 						= fopen( PRParamsFileName, "r");
+	if( fh )
+	{
+		while( ! feof( fh ) )
+		{
+			PRParamsList = fgets( fh );
+		}
+		fclose( fh );
+	}
+
+	q0		=		IIf(PRParamsList !="", 	StrToNum(StrExtract(PRParamsList,  0	)), 0	 		);//	Current
+	q1		= WriteIf(PRParamsList !="", 				  StrExtract(PRParamsList,   1	), 	"RUT-I"	);//	indicSym
+	q2		=		IIf(PRParamsList !="", 	StrToNum(StrExtract(PRParamsList,  2	)), 1	 		);//	param1
+	q3		=		IIf(PRParamsList !="", 	StrToNum(StrExtract(PRParamsList,  3	)), 5			);//	param2
+	q4		=		IIf(PRParamsList !="", 	StrToNum(StrExtract(PRParamsList,  4	)), 5	 		);//	param3
+	q5		=		IIf(PRParamsList !="", 	StrToNum(StrExtract(PRParamsList,  5	)), 0	 		);//	param4
+	q6		=		IIf(PRParamsList !="", 	StrToNum(StrExtract(PRParamsList,  6	)), 0			);//	param5
+	q7		=		IIf(PRParamsList !="", 	StrToNum(StrExtract(PRParamsList,  7	)), 1	 		);//	param6
+	q8		=		IIf(PRParamsList !="", 	StrToNum(StrExtract(PRParamsList,  8	)), 0			);//	param7
+	q9		=		IIf(PRParamsList !="", 	StrToNum(StrExtract(PRParamsList,  9	)), 0	 		);//	param8
+
+
+	_SECTION_BEGIN("INDICATOR PARAMETERS");
+	Current		= ParamToggle("Price Reversal -                     Use Current Symbol?",
+						"Symbol below makes Indicator - click to change,Current Symbol makes Indicator - click to change", q0);
+	IndicString	= ParamStr("Price Reversal -                            Indicator Symbol", "Indicator Symbol---"+q1);
+	indicSym		= StrMid(StrToUpper(IndicString), 19, 5);
+	param1		= Param("Price Reversal -                  Price Smoothing Period", q2, 1, 100, 1);
+	param2		= q3;
+	param3		= Param("Price Reversal -                           Reversal Percent", q4, 1, 30, 1);
+	param4		= q5;
+	param5		= q6;
+	param6		= ParamList("Price Reversal -                                Average Type", "Simple Moving Average,"+
+								"Exponential Moving Average,Double Moving Average,Triple Moving Average,"+
+								"Weighted Moving Average,Till3 Moving Average", q7);
+	param6		= 	IIf(param6=="Simple Moving Average", 0, IIf(param6=="Exponential Moving Average", 1,
+						IIf(param6=="Double Moving Average", 2, IIf(param6=="Triple Moving Average", 3,
+						IIf(param6=="Weighted Moving Average", 4, 5)))));
+	param7		= q8;
+	param8		= q9;
+	_SECTION_END();
+}
+
+//	Buy/Sell rules start here
+aveStr		= "MA,EMA,DEMA,TEMA,WMA,Till3";
+aveType 		= StrExtract(aveStr, Param6);
+
+ind1		= IIf(current, Close, Foreign(indicSym, "Close"));
+indError	= IIf(IsNull(ind1), 1, 0);
+indicSym	= WriteIf(indError, "", indicSym);
+indstart	= param1;
+Nam		= WriteIf(current, Name(), indicSym);					Name1	= Nam+w2(ind1);
+ind2		= MovAve(aveType, ind1, Param1);						Name2	= aveType+"("+Param1+") of "+Nam+w2(ind2);
+ind1		= Null;	//	through with it and don't want it plotted
+
+z			= Zig(ind2, param3);
+bot 		= ROC(z, 1) < 0 AND Ref(ROC(z, 1), 1) > 0;
+top		= ROC(z, 1) > 0 AND Ref(ROC(z, 1), 1) < 0;
+recValley	= ValueWhen(bot, ind2, 1);
+BuyLine	= IIf(BarsSince(top) > BarsSince(bot) OR BarsSince(top)==0
+				OR IsEmpty(BarsSince(top)),  (1 + 0.01*param3)*recValley, Null);
+recPeak	= ValueWhen(top, ind2, 1);
+SellLine	= IIf(BarsSince(top) < BarsSince(bot) OR BarsSince(bot)==0
+				OR IsEmpty(BarsSince(bot)),  (1 - 0.01*param3)*recPeak, Null);
+
+ind3		= BuyLine;														Name3	= "BuyLine"+w2(ind3);
+ind4		= SellLine;														Name4	= "SellLine"+w2(ind4)+nl(1);
+
+ind5		= param3;														Name5	= "Reversal"+w0(ind5)+"%";
+Param3	= ind5;
+ind5		= Null;	//we are  through with it and don't want it to be plotted
+
+Buy		= IIf(BarIndex() > indstart, Cross(ind2, ind3), 0);
+Sell		= IIf(BarIndex() > indstart, Cross(ind4, ind2), 0);
+
+BuyCond	= Flip(Buy, Sell);
+SellCond	= Flip(Sell, Buy);
+
+Buy		= ExRem(Buy, Sell);
+Sell		= ExRem(Sell, Buy);
+
+
+if (Status("action")==1)	// if this code is being used for an indicator
+{
+	//	make an initiation file to store params
+	PRParamsList = ""+
+		Current		+","+
+		indicSym		+","+
+		param1		+","+
+		param2		+","+
+		param3		+","+
+		param4		+","+
+		param5		+","+
+		param6		+","+
+		param7		+","+
+		param8		+","+
+		"";
+
+	fh 	= fopen( PRParamsFileName, "w");
+	if( fh )
+	{
+		fputs(PRParamsList, fh);
+		fclose( fh );
+	}
+}
+
+}

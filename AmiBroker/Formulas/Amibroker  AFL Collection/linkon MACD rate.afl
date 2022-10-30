@@ -1,0 +1,74 @@
+y_now = Signal( 12, 26, 9 );
+y1 = Ref( Signal( 12, 26, 9 ) , -1 );
+y2 = Ref( Signal( 12, 26, 9 ) , -2 );
+y3 = Ref( Signal( 12, 26, 9 ) , -3 );
+y4 = Ref( Signal( 12, 26, 9 ) , -4 );
+y5 = Ref( Signal( 12, 26, 9 ) , -5 );
+y6 = Ref( Signal( 12, 26, 9 ) , -6 );
+
+x_now = MACD( 12, 26 );
+x1 = Ref( MACD( 12, 26 ) , -1 );
+x2 = Ref( MACD( 12, 26 ) , -2 );
+x3 = Ref( MACD( 12, 26 ) , -3 );
+x4 = Ref( MACD( 12, 26 ) , -4 );
+x5 = Ref( MACD( 12, 26 ) , -5 );
+x6 = Ref( MACD( 12, 26 ) , -6 );
+X_ave =((x1+x2+x3+x4+x5+x6)/6);
+
+zp_now = PDI();
+zp_1 = Ref( PDI(), -1 );
+zp_2 = Ref( PDI(), -2 );
+zp_3 = Ref( PDI(), -3 );
+zp_4 = Ref( PDI(), -4 );
+zp_ave = (zp_1+zp_2+zp_3+zp_4)/4;
+
+zm_now = MDI();
+zm_1 = Ref( MDI(), -1 );
+zm_2 = Ref( MDI(), -2 );
+zm_3 = Ref( MDI(), -3 );
+zm_4 = Ref( MDI(), -4 );
+zm_ave = (zm_1+zm_2+zm_3+zm_4)/4;
+
+
+Buy = ADX( 14 ) > Ref( ADX( 14 ), -1 )
+AND Ref( ADX( 14 ), -1 )> Ref( ADX( 14 ), -2 )
+AND Ref( ADX( 14 ), -2 )> Ref( ADX( 14 ), -3 )
+AND x_now > x1
+AND y_now > y1
+/* Create date: 12 Jan 2009
+The MACD crosses above the Signal on the current bar */
+
+AND Cross( MACD( 12, 26 ), Signal( 12, 26, 9 ) );
+
+Sell = ADX( 14 ) > Ref( ADX( 14 ), -1 )
+AND Ref( ADX( 14 ), -1 )> Ref( ADX( 14 ), -2 )
+AND Ref( ADX( 14 ), -2 )> Ref( ADX( 14 ), -3 )
+AND x_now < x1
+AND y_now < y1
+/* Create date: 12 Jan 2009
+The Signal crosses above the MACD on the current bar */
+
+AND Cross( Signal( 12, 26, 9 ), MACD( 12, 26 ) );
+
+
+//AND zm_now<zm_ave
+//AND zp_now>zp_ave;
+
+/* Create date: 12 Jan 2009
+The DI+ crosses above the DI- on the current bar */
+
+//Buy = Cross( PDI(), MDI() );
+/* Create date: 12 Jan 2009
+The DI- of the current bar is greater than the DI- of 1 bar ago */
+
+//AND  MDI() > Ref( MDI(), -1 )
+//AND  Ref(MDI(), -1) > Ref( MDI(), -2 );
+//AND x_now > x1
+//AND y_now < y1;
+
+//Short = x_now < X1
+//AND y_now > y1;
+//AND x_now < x1
+//AND x1 < x2
+//AND x3 > x4
+//AND x4 > x5

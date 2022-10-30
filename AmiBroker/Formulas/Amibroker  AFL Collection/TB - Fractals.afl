@@ -1,0 +1,131 @@
+//|------------------------------------------------------------------
+//|Tradingbasis.com - Fractals
+//|Version:1.8   06-June-2006
+//|Copyright © 2005, Tradingbasis.com
+//|http://www.tradingbasis.com
+//|e-mail: support@tradingbasis.com
+//|------------------------------------------------------------------
+SetChartOptions(0,chartShowDates|chartShowArrows|chartWrapTitle);
+#pragma nocache
+#include  <\TBInc\Tradingbasis_f0.afl> 
+AddAlertParam(0,0,0);
+_SECTION_BEGIN("Alerts");
+SRbS = ParamToggle("S/R broken","Off,On",1); 
+SRcS = ParamToggle("S/R confirmed","Off,On",1);
+PjabS = ParamToggle("Price just above/below","Off,On",1); 
+_SECTION_END();
+
+_SECTION_BEGIN("Main parameters");
+SRplot = ParamToggle("Plot S/R","Off,On",1);
+Sswitch = ParamToggle("PLot Swing Chart","Off,On",0);
+Shswitch = ParamToggle("Plot Swing Shapes","Off,On",0);
+SwingPeriod = Param("Swing Period",5,0.1,40,0.1);
+_SECTION_END();
+
+_SECTION_BEGIN("Styles");
+Swingstyle = ParamStyle("Swing Line",styleLine|styleThick,maskDefault);
+TopShape = Param("Top Fractal Typ",21,0,50,1);
+ValleyShape = Param("Valley Fractal Typ",22,0,50,1);
+_SECTION_END();
+
+_SECTION_BEGIN("Colors");
+SLC = ParamColor("Swing Low",colorPaleGreen);
+SHC = ParamColor("Swing High",colorLightOrange);
+Swingcolor = ParamColor("Swing Line",colorLime);
+Topshapecolor = ParamColor("Top  Fractal",colorRed);
+Valleyshapecolor = ParamColor("Bottom Fractal",colorLime);
+_SECTION_END();
+
+#include  <\TBInc\Tradingbasis_1.afl> 
+
+Hp1 = Ref(H,-1);Hp2 = Ref(H,-2); Lp1 = Ref(L,-1);Lp2 = Ref(L,-2);
+Hf1 = Ref(H,1);Hf2 = Ref(H,2); Lf1 = Ref(L,1);Lf2 = Ref(L,2);
+
+x = Cum(1);
+divx = LastValue(x)-x;
+
+//Tops
+A = H; 
+Top = A > Hf2 & A > Hf1 & A > Hp1 & A > Hp2 & divx>2;    
+TopHigh = ValueWhen(Top,H);
+TopX = ValueWhen(Top,X);
+x_lasttop = LastValue(ValueWhen(top,x,1));
+       
+//Valleys
+A = L;
+Valley =  A < Lf2 & A <= Lf1 & A <= Lp1 & A <  Lp2 & divx>2;
+ValleyLow = ValueWhen(Valley,L);
+ValleyX = ValueWhen(Valley,X);
+x_lastvalley = LastValue(ValueWhen(Valley,x,1));
+
+PlotShapes(IIf(Top,TopShape,-1e10),Topshapecolor,0,H,12);
+PlotShapes(IIf(Valley,Valleyshape,-1e10),ValleyShapecolor,0,L,12);
+
+Plot(IIf(SRplot & x>= x_lasttop,LastValue(ValueWhen(top,H,1)),Null),"",Topshapecolor,1);
+Plot(IIf(SRplot & x>= x_lastvalley,LastValue(ValueWhen(Valley,L,1)),Null),"",Valleyshapecolor,1);
+
+Distance = 0.5*ATR(14);
+//Support line signals
+Sup_break = Cross(ValleyLow,C) & Ref(LowestSince(Ref(Valley,-1),Low)>ValleyLow,-1) & X-ValleyX >2;
+Sup_pricejustabove = L<ValleyLow+Distance & L>ValleyLow & LowestSince(Ref(Valley,-1),Low,1)>ValleyLow & X-ValleyX >2; 
+Sup_confirmed = L<=ValleyLow & C>ValleyLow & Ref(LowestSince(Ref(Valley,-1),Low)>ValleyLow,-1) & X-ValleyX >2;
+
+//Resistance line signals
+Res_break = Cross(C,TopHigh) & Ref(HighestSince(Ref(Top,-1),High)<TopHigh,-1) & X-TopX >2;
+Res_pricejustbelow = H>TopHigh-Distance & H<TopHigh & HighestSince(Ref(Top,-1),High)<TopHigh & X-ValleyX >2; 
+Res_confirmed = H>=TopHigh & C<TopHigh & Ref(HighestSince(Ref(Top,-1),High)<TopHigh,-1) & X-ValleyX >2;
+
+SupSignals = Sup_break | Sup_pricejustabove | Sup_confirmed;
+ResSignals = Res_break | Res_pricejustbelow | Res_confirmed;
+
+BS = Sup_confirmed OR Res_break;
+SS = Res_confirmed OR Sup_break;
+Buy = BS; Sell = SS;
+
+Filter = BarIndex()==LastValue(BarIndex()) AND NOT GroupID()==253;
+Filter = Filter AND (SupSignals OR ResSignals);
+Adddefaultcolumns(2,1);
+AddTextColumn(
+WriteIf(Sup_pricejustabove,"Price just above",
+WriteIf(Sup_confirmed,"Confirmed",
+WriteIf(Sup_break,"Break",""))),"Support",1.2,
+IIf(Sup_pricejustabove OR sup_confirmed,colorGreen,colorRed));
+
+AddTextColumn(
+WriteIf(Res_pricejustbelow,"Price just below",
+WriteIf(Res_confirmed,"Confirmed",
+WriteIf(Res_break,"Break",""))),"Resistance",1.2,
+IIf(Res_pricejustbelow OR Res_confirmed,colorRed,colorGreen));
+
+AddTextColumn(FullName(),"Full name");
+
+ZZ = Zig(C,LastValue(SwingPeriod)); 
+PivotLow = Ref(IIf(Ref(ROC(ZZ,1),-1) < 0 AND ROC(ZZ,1) > 0, 1, Null),1);
+PivotHigh = Ref(IIf(Ref(ROC(ZZ,1),-1) > 0 AND ROC(ZZ,1) < 0, 1, Null),1);
+PlotShapes(IIf(Shswitch AND PivotLow,shapeCircle,Null), SLC,0,L,-35) ; 
+PlotShapes(IIf(Shswitch AND PivotHigh,shapeCircle,Null),SHC,0,H, 35) ;
+Plot(IIf(Sswitch,ZZ,Null)," ",Swingcolor,Swingstyle + styleNoTitle);
+
+// Alerts ////////////////////////////////////////////////////////////////////
+Alerttext = "";
+/*
+DefaultAlertText +", "
++"\nSupport Line =   "+ WriteVal(ValleyLow)+", "
++"\nResistance Line =   "+WriteVal(TopHigh);
+*/
+
+if(SRbS){
+AddAlert(Res_break,Audio,Email,"Resistance broken"+AlertText,2,BarComplete);
+AddAlert(Sup_break,Audio,Email,"Support broken"+AlertText,2,BarComplete);
+}
+if(SRcS){
+AddAlert(Sup_confirmed,Audio,Email,"Support confirmed"+AlertText,1,BarComplete);
+AddAlert(Res_confirmed,Audio,Email,"Resistance confirmed"+AlertText,2,BarComplete);
+}
+if(PjabS){
+AddAlert(Sup_pricejustabove,Audio,Email,"Price just above Support"+AlertText,1,BarComplete);
+AddAlert(Res_pricejustbelow,Audio,Email,"Price just below Resistance"+AlertText,2,BarComplete);
+}
+////////////////////////////////////////////////////////////////////////////
+
+Title = "Tradingbasis.com - Fractals" +default_title;

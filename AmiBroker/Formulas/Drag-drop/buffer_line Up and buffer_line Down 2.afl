@@ -1,0 +1,172 @@
+//-------------------------------------
+//  Formula Name: Buffer line Up and buffer line Down Indicator for Amibroker AFL by pipschart
+//  Author	:      KrT group
+//  Uploader	:      www.pipschart.com
+//  E-mail		:      info@pipschart.com
+//  Amibroker Blog	:      www.pipschart.com/amibroker
+//  Origin		:      Modified & Collected from different sources.
+//----------------------------------------
+
+_SECTION_BEGIN("KrT group of Limited");
+GfxSetBkMode(1);
+X=750;
+Y=1;
+Font=10;
+GfxSelectFont("Impact",Font*2.2, 550);GfxSetTextColor(colorRed);GfxTextOut("KrT group",x,y);
+GfxSelectFont("Impact",Font*2.2, 550);GfxSetTextColor(colorGreen);GfxTextOut("RESEARCH",x+120,Y);
+
+_SECTION_END();
+
+//---------------------------------------
+
+GfxSetOverlayMode(0); 
+GfxSelectFont("Tahoma", Status("pxheight")/56); 
+GfxSetTextAlign( 6 );// center alignment 
+GfxSetTextColor( colorLightGrey ); 
+GfxSetBkMode(0); // transparent 
+GfxTextOut( Name(), Status("pxwidth")/1.2, Status("pxheight")/15 );
+GfxTextOut( "www.pipschart.com", Status("pxwidth")/1.2, Status("pxheight")/10 );
+
+x = Ref(H,-1);
+Y = Ref(L,-1);
+a=x+5;
+b=y-5;
+uptrend=StochK(39,3) > StochD(39,3,3);
+downtrend=StochK(39,3) < StochD(39,3,3);
+Buy = Cover = H > a AND uptrend;
+Sell = Short = L < b AND downtrend;
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorBrightGreen,0,L,-15);
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed,0,H,-15);
+_SECTION_BEGIN("Price");
+
+Graph0 = Close;
+Graph0Style = 128;
+barcolor = IIf( downtrend, 4, IIf( uptrend, 5, 1 ) );
+Graph0BarColor = ValueWhen( barcolor != 0, barcolor );
+SetBarFillColor( IIf( Close > Open, colorBlack, colorBlack ) ); 
+SetChartBkGradientFill( ParamColor("BgTop", colorBlack),ParamColor("BgBottom", colorBlack),ParamColor("Titleblock",colorLightGrey)); 
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle |
+ParamStyle("Style") | GetPriceStyle() ); 
+
+//--------------------------------------------------------------
+
+_SECTION_BEGIN("super trend");
+
+procedure calcTrend_proc(ATR_Period,tr,ATR_Multiplier,TrendMode,CalcPrice)
+{
+global buffer_line_down;
+global buffer_line_up;
+buffer_line_down = Null;
+buffer_line_up = Null;
+
+PHASE_NONE = 0;
+PHASE_BUY = 1;
+PHASE_SELL = -1;
+
+phase=PHASE_NONE;
+band_upper = 0;band_lower = 0;
+   
+for(i = ATR_Period + 1; i < BarCount; i++)
+{
+    band_upper = CalcPrice[i] + ATR_Multiplier * tr[i];
+    band_lower = CalcPrice[i] - ATR_Multiplier * tr[i];
+     
+    if(phase==PHASE_NONE)
+    {
+        buffer_line_up[i] = CalcPrice[i];
+        buffer_line_down[i] = CalcPrice[i];
+    }
+    if(phase!=PHASE_BUY && Close[i]>buffer_line_down[i-1] && !IsEmpty(buffer_line_down[i-1])) 
+    {
+        phase = PHASE_BUY;
+        buffer_line_up[i] = band_lower;
+        buffer_line_up[i-1] = buffer_line_down[i-1];
+    }
+    if(phase!=PHASE_SELL && Close[i]<buffer_line_up[i-1] && !IsEmpty(buffer_line_up[i-1]))
+    {
+        phase = PHASE_SELL;
+        buffer_line_down[i] = band_upper;
+        buffer_line_down[i-1] = buffer_line_up[i-1];
+    }   
+    if(phase==PHASE_BUY && ((TrendMode==0 && !IsEmpty(buffer_line_up[i-2])) || TrendMode==1) )
+    {
+        if(band_lower>buffer_line_up[i-1]) 
+        {
+            buffer_line_up[i] = band_lower;
+        }
+        else
+        {
+            buffer_line_up[i] = buffer_line_up[i-1];
+        }
+    }
+    if(phase==PHASE_SELL && ((TrendMode==0 && !IsEmpty(buffer_line_down[i-2])) || TrendMode==1) )
+    {
+        if(band_upper<buffer_line_down[i-1])
+        {
+            buffer_line_down[i] = band_upper;
+        }
+        else
+        {
+            buffer_line_down[i] = buffer_line_down[i-1];
+        }
+    }
+}
+}
+
+SetBarsRequired(sbrAll,sbrAll);
+
+TrendMode = ParamToggle("TrendMode","Off|On",1);
+ATR_Multiplier = Param("ATR_Multiplier",2,0.1,10,0.1);
+ATR_Period = Param( "ATR_Period",5,1,20,1);
+tr = ATR(ATR_Period);
+
+CalcPrice = (H+L)/2;
+calcTrend_proc(ATR_Period,tr,ATR_Multiplier,TrendMode,CalcPrice);
+
+SetChartOptions(0,chartShowDates);
+
+Plot(buffer_line_up,"\ntu",ColorRGB(28,134,238),styleThick);
+Plot(buffer_line_down,"\ntd",ColorRGB(205,51,51),styleThick);
+
+Plot( 2,"",IIf(buffer_line_up,colorGreen,colorBlack),styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+Plot( 4,"",IIf(buffer_line_down,colorRed,colorBlack),styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+
+
+
+Title = EncodeColor(colorYellow)+  Title = Name() + "    " + EncodeColor(2) + Date()+EncodeColor(11)  +
+   EncodeColor(55)+ "   Open:  "+ EncodeColor(colorWhite)+ WriteVal(O,format=1.2) + 
+   EncodeColor(55)+ "   High:  "+ EncodeColor(colorWhite) + WriteVal(H,format=1.2) +
+   EncodeColor(55)+ "   Low:  "+ EncodeColor(colorWhite)+ WriteVal(L,format=1.2) + 
+   EncodeColor(55)+ "   Close:  "+  WriteVal(C,format=1.2)+  
+   EncodeColor(55)+ "   Change:  "+ EncodeColor(colorRed)+ WriteVal(ROC(C,1),format=1.2)+ "%"+
+                          
+   EncodeColor(55)+ "   Volume: "+ EncodeColor(colorWhite)+ WriteVal(V,1);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Display");
+Display= ParamToggle("Display","Off|On",1);
+if(Display==1)
+{
+x=Param("xposn",100,0,1000,1);
+y=Param("yposn",569,0,1000,1);
+
+GfxSetBkColor(ColorRGB(23,25,23));
+GfxSelectFont( "Times New Roman",9,500, True);
+GfxSetTextColor( colorGrey40);  
+GfxTextOut("RSI: "+WriteVal(RSI(14),1.0)+" | MACD:  "+WriteVal(MACD(),1.2)+" | F(Ema): "+NumToStr(EMA(C,5),1.2)+" |9(Ema): "+NumToStr(EMA(C,9),1.2)+"
+|15(EMA): "+NumToStr(EMA(C,15),1.2)+" |30(EMA): "+NumToStr(EMA(C,30),1.2)+" |50(EMA): "+NumToStr (EMA(C,50),1.2), x, y );
+
+cx=Param("cxposn",537,0,1000,1);
+cy=Param("cyposn",12,0,1000,1);
+
+GfxSetBkColor(ColorRGB(23,25,23));
+GfxSelectFont( "Bodoni MT",14,50, False);
+GfxSetTextColor( colorWhite);  
+GfxTextOut("LTP: "+C+" ", cx, cy );
+
+_SECTION_END();}

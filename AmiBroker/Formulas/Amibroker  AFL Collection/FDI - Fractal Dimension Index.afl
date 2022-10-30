@@ -1,0 +1,14 @@
+pr = Close;
+periods = 30;
+Ri =  log(pr/Ref(pr,-1));
+Mn =  Sum(ri,periods)/periods;
+X =  Sum((Ri-Mn),periods);
+Rn =  HHV(X,periods) - LLV(X,periods);
+Sn =  StDev(Ri,periods);
+Hurst =  log(Rn/Sn) / log(periods/2);
+FDI =  2 - Hurst;
+Plot(FDI, "", colorRed);
+
+PlotGrid(1, colorLightGrey);
+PlotGrid(1.5, colorLightGrey);
+PlotGrid(2, colorLightGrey);

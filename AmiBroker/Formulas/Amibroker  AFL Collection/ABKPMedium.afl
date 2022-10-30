@@ -1,0 +1,29 @@
+// tskp_mediumma,tskp_mediumup,tskp_mediumdown
+_SECTION_BEGIN("TSKPMedium");
+
+parmMediumUpColor = ParamColor( "Up Color", colorBlue );
+parmMediumUpStyle = ParamStyle("Up Style",default=styleHistogram+styleThick+styleNoLabel,mask=maskHistogram);
+parmMediumDnColor = ParamColor( "Down Color", colorRed );
+parmMediumDnStyle = ParamStyle("Down Style",default=styleHistogram+styleThick+styleNoLabel,mask=maskHistogram);
+parmMediumMAColor = ParamColor( "MA Color", colorBlack ); 
+parmMediumMAStyle = ParamStyle("MA Style",default=styleLine+styleThick+styleNoLabel, maskAll);
+parmPlotXA = ParamToggle("Plot MediumMA Crosses", "No|Yes");
+parmXAUpColor = ParamColor("XA Up Color", colorBlue);
+parmXADnColor = ParamColor("XA Dn Color", colorRed); 
+SetBarsRequired(350, -1);
+dummy = E_TSKPMEDIUM(Close);
+KPMediumUp = tskp_mediumup;
+KPMediumDn = tskp_mediumdown;
+KPMediumMA = tskp_mediumma;
+KPMedium = KPMediumUp + KPMediumDn;
+Plot( KPMediumUp, "MediumUp",parmMediumUpColor , parmMediumUpStyle);
+Plot(KPMediumDn , "MediumDown",parmMediumDnColor , parmMediumDnStyle );
+Plot(KPMediumMA , "MediumMA", parmMediumMAColor , parmMediumMAStyle );
+// Plot Medium Crossovers
+if( parmPlotXA == 1)
+{
+	PlotShapes( IIf( Cross( KPMediumMA, KPMediumUp) AND KPMediumUp != 0, shapeSmallDownTriangle, shapeNone),  parmXADnColor,  0, KPMediumMA, -12);
+	PlotShapes( IIf( Cross(KPMediumDn, KPMediumMA) AND KPMediumDN != 0, shapeSmallUpTriangle, shapeNone),  parmXAUpColor , 0, KPMediumMA, -12);
+
+}
+_SECTION_END(); 

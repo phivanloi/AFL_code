@@ -1,0 +1,86 @@
+_SECTION_BEGIN("Macd coloured price");
+//============================================candle sticks=======================
+  SetChartBkColor(16);
+
+a = Param("fast macd period",3,1,100,1);
+b = Param("slow macd period",34,1,100,1);
+
+Up_MACD_TRIX = MACD( a, b ) > Ref(MACD(a,b),-1);
+
+Down_MACD_TRIX =  MACD( a, b ) < Ref(MACD(a,b),-1);
+
+Colormacd = IIf(Up_MACD_TRIX,colorLime,IIf(Down_MACD_TRIX,colorRed,colorCustom12)); 
+
+
+//PlotOHLC( Open, High, Low, Close, "", Colormacd, styleBar ); 
+
+//PlotOHLC( 1.01*Open, 1.01*High, 1.01*Low, 1.01*Close, "", Colormacd, styleCandle ); 
+//PlotOHLC( Open, High, Low, Close, "", Colormacd, styleCandle ); 
+
+_SECTION_END();
+
+_SECTION_BEGIN("pl dot");
+ /*
+The tools which i am using is based on Drummond geometry.
+
+
+The PL dot is a Short term moving average based on three bars of data, which captures the trend / non-trend activity of the time frame which is being charted. 
+It has a simple formula, the average of the High Low & Close of the last three bars. PL dot = (AvH1L1C1 + AvH2L2C2 + AvH3L3C3) / 3.
+
+The first thing we notice is that the dot is a constant & that it is always there. It is pole star in a constantly shifting universe.
+
+PL dot push: It exists when the PL dot pushes prices away from it in a directional manner, with a close away from the dot. 
+
+PL dot refresh: PL dot refresh exists when price is along way away from the PL dot & return to it. 
+So the PL dot refresh can exist when the market is in congestion as well as when it is in a trend.
+
+Pl dot push & refresh is always present in the market.
+
+
+Now i have added two more indicators along with Pl dot.
+The red one is Envelope top & the green one as Envelope bottom.
+
+Envelope theory : The basic envelope theory says that when the market is at near to, or below the envelope & then re-enters the bottom of the envelope, from below, or the bottom of the envelope becomes support, it has a target of the top of the envelope, or higher, depending on how it reacts to the PL dot, when it gets to the top of the envelope, it will stay inside the envelope unless the PL dot pushes it out over the envelope top or in a sea- wave. If a sea-wave occurs, this connotes significant new energy. The reverse condition apply when the market is at, near, or above the envelope, & then re-enters the envelope from above, or the envelope top becomes resistance, the target is the bottom of the envelope, or lower depending on what happens at the PL dot.
+
+Formulas for the envelope are as we require three days data to calculate Etop, Pl dot, Ebot.
+
+11Dot=(H+L+C)/3
+11 High = (11dot * 2) – L
+11 Low = (11dot * 2) – H
+E Top = (11H1 + 11H2 + 11H3) / 3
+E Bot = (11L1 + 11L2 + 11L3) / 3
+PL dot = (11 Dot1 + 11 Dot2 + 11 Dot3) / 3
+
+Plot Etop E bot & Pl dot on the chart.
+
+I will be back with more tools which provide market extremes.
+
+11Dot=(H+L+C)/3
+ 
+
+*/
+//TimeFrameSet( in1Minute*3 ); 
+pldot = (H + L + C ) / 3;
+
+Colorpldot = IIf(pldot > Ref(pldot,-1), colorAqua,colorOrange);
+pldot1 = (Ref(pldot,-1)+Ref(pldot,-2)+Ref(pldot,-3))/3;
+
+plhigh = (Ref(H,-1)+Ref(H,-2)+Ref(H,-3))/3;
+pllow = (Ref(L,-1)+Ref(L,-2)+Ref(L,-3))/3;
+
+Plot (pldot, "mean", Colorpldot, styleThick);
+Plot (pldot1, "mean_av", colorBlue, styleThick);
+Plot (plhigh, "top", colorYellow, styleDashed);
+Plot (pllow, "bottom", colorYellow,styleDashed);
+//TimeFrameRestore();
+
+Buy = Cross(pldot,plhigh);
+
+Sell = Cross(pllow,pldot);
+
+
+PlotShapes(Buy*shapeUpArrow, colorGreen);
+PlotShapes(Sell*shapeDownArrow, colorRed);
+Plot(C,"close",Colormacd,styleCandle);
+
+_SECTION_END();

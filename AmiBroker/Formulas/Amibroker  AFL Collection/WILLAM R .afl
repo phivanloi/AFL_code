@@ -1,0 +1,30 @@
+_SECTION_BEGIN("Williams  %R with 9 period signal line");
+/* by Anthony Faragasso */
+MaxGraph =10;
+
+R = ((HHV(H,9) - C) /(HHV (H,9) -LLV (L,9))) *-100;
+Graph0 = R;
+Graph1 =-30;
+Graph2 =-70;
+Graph3 =-90;
+Graph4 =-10;
+Graph5=MA(R , 9);
+Graph5Style = 1+4;
+Graph5Color =2;
+Graph0Style=1+4;
+Graph1Style =Graph2Style= 1;
+Graph3Style  =Graph4Style =1;
+Graph3Color = Graph4Color =5;
+Graph2Color = Graph1Color =9;
+Buy=  Graph0 > Graph5;
+Sell= Graph5  > Graph0;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy);
+PlotShapes( shapeUpArrow* Buy , colorBrightGreen,1);
+PlotShapes( shapeDownArrow* Sell, colorYellow, 1);
+
+Filter = Buy OR Sell;
+AddTextColumn(FullName(),"Name");
+AddColumn( Buy, "BUY");
+AddColumn( Sell, "SELL");
+Title =Name() + " -Williams %R: " +" % R Line " +"("+ WriteVal ( Graph0,format=1.2)+")"+ "  Signal Line " + ""+"("+WriteVal(Graph5,format=1.2)+")" +" , "   + Date(  );
+_SECTION_END();

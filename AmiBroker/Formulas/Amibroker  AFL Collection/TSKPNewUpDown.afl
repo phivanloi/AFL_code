@@ -1,0 +1,6 @@
+NewUpDown = E_TSKPNEWUPDOWN(Open,High,Low,Close,Volume);
+PlotShapes( 
+IIf( NewUpDown >0, shapeUpArrow, IIf(NewUpDown <0, shapeDownArrow,shapeNone)), 
+IIf(NewUpDown >0,colorBlue,colorRed),
+0,
+IIf( NewUpDown >0, Low, High ) ); 

@@ -1,0 +1,50 @@
+//  ZScoreBuyWeaknessStats.afl
+//
+//	Buys an downward fall through a z-score level
+//
+//	Set n days = 1
+//	Run as an Exploration for a single symbol
+//	or a portfolio
+//
+Filter = 1;
+
+// Start at zscore of -4.0
+zsBase = -4.0;
+
+// Increase zscore in 0.25 StDev steps
+
+for ( k = 0; k < 35; k++ )
+{
+    // Set the zscore for this pass
+    zsLevel = zsBase + k * 0.25;
+    // Compute the price for that level
+    Pricezs = MA( C, 20 ) + zsLevel * StDev( C, 20 );
+    // Compute the maximum favorable excursion
+    // within the next 5 days
+    MFEBuy = ( Ref( HHV( H, 5 ), 5 ) - Pricezs ) / Pricezs;
+
+    // Initialize for the loop
+    CountzsBuy = 0;
+    SumMFEzsBuy = 0.0;
+
+    // For all of the data
+
+    for ( i = 25; i < BarCount - 5; i++ )
+    {
+        // Check for a downward break of the level
+        if ( ( L[i-1] > Pricezs[i-1] ) AND ( L[i] < Pricezs[i] ) )
+        {
+            // did break -- accumulate statistics
+            CountzsBuy = CountzsBuy + 1;
+            SumMFEzsBuy = SumMFEzsBuy + MFEBuy[i] ;
+        }
+    }
+
+    // Compute the average for all breaks of this level
+    AvgMFEzsBuy = IIf( CountzsBuy > 0, SumMFEzsBuy / CountzsBuy, 0 );
+
+    // Write columns -- to be exported to Excel
+    AddColumn( zsLevel, "zsLevel", 1.2 );
+    AddColumn( AvgMFEzsBuy, "Avg Buy", 1.6 );
+    AddColumn( CountzsBuy, "CountBuy", 1.0 );
+}

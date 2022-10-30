@@ -1,0 +1,27 @@
+//©Copyright 2004~2007 Jose Silva.
+//The grant of this license is for personal use
+//only - no resale OR repackaging allowed.
+//All code remains the property of Jose Silva.
+//http://www.metastocktools.com }
+
+//{ User inputs }
+wickLim = Param("Minimum Candlewick % Size of H-L Range",25,0,100);
+multi = Param ("H-L Range Minimum: Range Avg X", 2,0,100);
+pds = Param("H-L Range Average Lookback Periods",21,1,250);
+
+//{ Minimum average H-L range }
+range = Max(H-L,0.00001);
+rangeOk = (H-L) > MA(range,pds)*multi;
+
+//{ Wicks }
+upHi = Max(O,C);
+dwLo = Min(O,C);
+wickUp = (1-(upHi-L)/range)*100;
+wickDw = (dwLo-L)/range*100;
+
+//{ Signals }
+Buy = rangeOk AND wickDw > wickLim AND dwLo <= Ref(L,-1);
+Sell = rangeOk AND wickUp > wickLim AND upHi >= Ref(H,-1);
+signals = Buy-Sell;
+
+Plot(Signals, "", 4);

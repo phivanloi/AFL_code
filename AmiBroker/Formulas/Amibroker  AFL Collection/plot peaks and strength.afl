@@ -1,0 +1,57 @@
+_SECTION_BEGIN("Price1");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("EMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+_SECTION_BEGIN("EMA1");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+_SECTION_BEGIN("linkon schochastic");
+Buy = 	Ref( StochD( 15, 3, 3 ) , -2 ) > Ref( StochK( 15, 3 ) , -2 )
+	AND StochD( 15, 3, 3 ) < StochK( 15, 3 )
+AND StochD( 15, 3, 3 ) < 7;
+
+Sell = Ref( StochD( 15, 3, 3 ) , -2 ) < Ref( StochK( 15, 3 ) , -2 )
+	AND StochD( 15, 3, 3 ) > StochK( 15, 3 )
+	AND StochD( 15, 3, 3 ) > 93;
+PlotShapes(Buy*shapeUpArrow,colorGreen);
+PlotShapes(Sell*shapeDownArrow,colorRed);
+
+
+Short = 0;
+
+Cover = 0;
+_SECTION_END();
+
+_SECTION_BEGIN("linkon ADX Buy");
+Buy = 	ADX( 9 ) > Ref( ADX( 9 ) , -1 )
+//	AND Close > Ref( High , -1 )
+	AND Ref( ADX( 9 ) , -1 ) > Ref( ADX( 9 ) , -2 )
+	AND MACD( 12, 26 ) > Ref( MACD( 12, 26 ) , -1 )
+	AND Ref( ADX( 9 ) , -2 ) > Ref( ADX( 9 ) , -3 );
+
+Sell = 	ADX( 9 ) > Ref( ADX( 9 ) , -1 )
+//	AND Close < Ref( Low , -1 )
+	AND Ref( ADX( 9 ) , -1 ) > Ref( ADX( 9 ) , -2 )
+	AND MACD( 12, 26 ) < Ref( MACD( 12, 26 ) , -1 )
+AND Ref( MACD( 12, 26 ) , -1 ) < Ref( MACD( 12, 26 ) , -2 )
+	AND Ref( ADX( 9 ) , -2 ) > Ref( ADX( 9 ) , -3 );
+PlotShapes(Buy*shapeHollowSmallUpTriangle,colorGreen);
+PlotShapes(Sell*shapeHollowSmallDownTriangle,colorPink);
+_SECTION_END();
+
+_SECTION_BEGIN("EMA2");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();

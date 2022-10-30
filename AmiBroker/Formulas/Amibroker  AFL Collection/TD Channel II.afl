@@ -1,0 +1,31 @@
+/******************************************************************
+ * TD Channel II: Short term indicator
+ * TD says that two consecutive closes above the upper channel indicate
+ * a price exhaustion to the upside.
+ *
+ * TD Says that two consecutive closes below the lower channel indicate
+ * a price exhaustion to the downside.
+ * 
+ * Channel extremes are less effective if the market is trending. Use
+ * the TDSequential signal or TD Combo signal to determine that trend
+ * has ended.
+ *
+ * Improvements:
+ * Notes: Seems to work best on monthly prices
+ * Author observation: A close where the open is above the upper channel
+ * tends to indicate a market top. The reverse is applied for a bottom.
+*******************************************************************/
+EnterType = ParamList("Security Type","Stock,Commodity");
+TDPlotStyle = ParamStyle("Plot Style", styleDashed );
+TDGraphColor = ParamColor("Color", colorYellow);
+fHighMultiplier = 0.995;
+fLowMultiplier = 1.005;
+if( EnterType == "Stock" )
+	{
+	fHighMultiplier = 0.930;
+	fLowMultiplier = 1.070;
+	}
+TDC2lma = MA( L, 3) * fLowMultiplier;
+TDC2hma = MA( H, 3) * fHighMultiplier;
+Plot( TDC2lma, "TDC2L",	TDGraphColor,	TDPlotStyle);
+Plot( TDC2hma, "TDC2H",	TDGraphColor,	TDPlotStyle);

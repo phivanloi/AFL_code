@@ -1,0 +1,1412 @@
+//------------------------------------------------------------------------------
+//  Formula Name	:      Risk Picker AFL For AMIBROKER by pipschart
+//  Author	:      KrT group
+//  Uploader	:      www.pipschart.com
+//  E-mail		:      info@pipschart.com
+//  Amibroker Blog	:      www.pipschart.com/amibroker
+//  Origin		:      Modified & Collected from different sources.
+//------------------------------------------------------------------------------
+
+_SECTION_BEGIN("KrT group");
+GfxSetBkMode(1);
+X=750;
+Y=1;
+Font=10;
+GfxSelectFont("Impact",Font*2.2, 550);GfxSetTextColor(colorRed);GfxTextOut("KrT group",x,y+10);
+GfxSelectFont("Impact",Font*2.2, 550);GfxSetTextColor(colorGreen);GfxTextOut("RESEARCH",x+120,Y+10);
+
+_SECTION_END();
+
+//------------------------------------------------------------------------------
+
+_SECTION_BEGIN("FRACTAL_RBO");
+
+// CHART ZOOM
+Zoom1Year = ParamTrigger("Zoom 1 Years", "Click To Show");
+Zoom2Year = ParamTrigger("Zoom 2 Years", "Click To Show");
+Zoom3Year = ParamTrigger("Zoom 3 Years", "Click To Show");
+Zoom3Month = ParamTrigger("Zoom 3 Months", "Click To Show");
+Zoom6Month = ParamTrigger("Zoom 6 Months", "Click To Show");
+Zoom9Month = ParamTrigger("Zoom 9 Months", "Click To Show");
+function DrawButton( Text, x1, y1, x2, y2, BackColor, TextColor )
+{
+GfxSetOverlayMode( 0 );
+GfxSelectFont( "Tahoma", 9, 800 );
+GfxSelectPen( TextColor , 2);
+GfxSetBkMode( 1 );
+GfxSelectSolidBrush( BackColor );
+GfxSetBkColor( BackColor );
+GfxSetTextColor( 1 );
+GfxRectangle( x1, y1, x2, y2 );
+GfxDrawText( Text, x1, y1, x2, y2, 32 | 1 | 4 );
+}
+
+// Zoom box button
+//X=Param( "Zoom X Position", 11,0,100,1);
+X=11;
+//Y=Param( "ZoomY Position", 187,0,300,1);
+Y=200;
+//z = Param("z",27,0,100,1);
+z=27;
+//space = Param("space",2,0,100,1);
+space = 2;
+
+DX= GetCursorXPosition();
+EnableTextOutput(False);
+DT= DateTimeToStr(DX) ;
+if (_DT(DT)>0)
+{
+DrawButton( "1m", X, Y, X+z, Y+z, colorYellow, colorBlack );
+DrawButton( "3m", X, Y+1*(z+space), X+z, Y+1*(z+space)+z, colorYellow, colorBlack );
+DrawButton( "6m", X, Y+2*(z+space), X+z, Y+2*(z+space)+z, colorYellow, colorBlack );
+DrawButton( "1Y", X, Y+3*(z+space), X+z, Y+3*(z+space)+z, colorYellow, colorBlack );
+DrawButton( "10Y", X, Y+4*(z+space), X+z, Y+4*(z+space)+z, colorYellow, colorBlack );
+}
+
+// inside click
+LButtonTrigger = GetCursorMouseButtons() == 9 AND _DT(DT)>0;
+
+MouseX = Nz( GetCursorXPosition( 1 ) );
+MouseY = Nz( GetCursorYPosition( 1 ) );
+
+CursorIn1mBox = MouseX > X AND MouseX < X+z AND MouseY > Y AND MouseY < Y+z;
+CursorIn3mBox = MouseX > X AND MouseX < X+z AND MouseY > Y+1*(z+space) AND MouseY < Y+1*(z+space)+z;
+CursorIn6mBox = MouseX > X AND MouseX < X+z AND MouseY > Y+2*(z+space) AND MouseY < Y+2*(z+space)+z;
+CursorIn1YBox = MouseX > X AND MouseX < X+z AND MouseY > Y+3*(z+space) AND MouseY < Y+3*(z+space)+z;
+CursorIn10YBox = MouseX > X AND MouseX < X+z AND MouseY > Y+4*(z+space) AND MouseY < Y+4*(z+space)+z;
+
+if (CursorIn1mBox OR CursorIn3mBox OR CursorIn6mBox OR CursorIn1YBox OR CursorIn10YBox )
+{
+GfxTextOut("Click to Zoom",MouseX+20,MouseY);
+}
+
+procedure ZoomChart(BeginZoom, EndZoom)
+{
+AB = CreateObject( "Broker.Application" );
+AW = AB.ActiveWindow;
+AW.ZoomToRange( BeginZoom, EndZoom);
+}
+
+function getBeginZoom(ZoomPeriod)
+{
+
+Days = ZoomPeriod;
+BlankBars = 0; // Enter the number of Blank Bars you have defined under Preferences- Charting.
+NumberOfBars = Days;
+BI = BarIndex();
+DT = DateTime();
+BeginBarIndex = ValueWhen( LastValue(BarIndex())- BarIndex() > NumberOfBars + BlankBars, BI );
+BeginDateTime = DT[LastValue( BeginBarIndex - BI[0] + 2 )];
+return DateTimeToStr(BeginDateTime);
+}
+
+Y = 250;
+M = 20;
+M6 = 125;
+
+if(Zoom1Year OR (CursorIn1YBox AND LButtonTrigger))
+{
+ZoomChart(getBeginZoom(Y), Now());
+}
+
+if(Zoom2Year)
+{
+ZoomChart(getBeginZoom(Y*2), Now());
+}
+
+if(Zoom3Year)
+{
+ZoomChart(getBeginZoom(Y*3), Now());
+}
+
+if (CursorIn10YBox AND LButtonTrigger)
+{
+ZoomChart(getBeginZoom(10*Y), Now());
+}
+
+if (CursorIn1mBox AND LButtonTrigger)
+{
+ZoomChart(getBeginZoom(M), Now());
+}
+if(Zoom3Month OR (CursorIn3mBox AND LButtonTrigger))
+{
+ZoomChart(getBeginZoom(M*3), Now());
+}
+
+if(Zoom6Month OR (CursorIn6mBox AND LButtonTrigger))
+{
+ZoomChart(getBeginZoom(M6), Now());
+}
+
+if(Zoom9Month)
+{
+ZoomChart(getBeginZoom(M*9), Now());
+}
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} O = %g, H = %g, Lo = %g, C = %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ))));
+
+EnableTextOutput(False);
+SharesUnit=WriteIf(V<=999,"",
+WriteIf(V>999 AND V<=999999," K",
+WriteIf(V>999999 AND V<=999999999," M",
+WriteIf(V>999999999," B",""))));
+SharesNumber=IIf( V<=999,V,
+IIf(V>999 AND V<=999999,Prec((V/1000),2),
+IIf(V>999999 AND V<=999999999,Prec((V/1000000),2),
+IIf(V>999999999,Prec((V/1000000000),2),0))));
+function getTick(Value , ParamMarket, Arah, Ext)
+{
+if (ParamMarket == "IDX")
+{
+if (Arah == "up")
+{
+OTV=IIf( Value<500,1,
+IIf(Value>=500 AND Value<5000,5,
+IIf(Value>=5000,25,0)));
+}
+else
+{
+OTV=IIf( Value<=500,1,
+IIf(Value>500 AND Value<=5000,5,
+IIf(Value>5000,25,0)));
+}
+}
+
+if (ParamMarket == "US/INDEX")
+{
+if (Arah == "up")
+{
+OTV=IIf(Value < 0.1, 0.001,0.01);
+}
+else
+{
+OTV=IIf(Value <= 0.1, 0.001,0.01);
+}
+}
+
+if (ParamMarket == "SGX")
+{
+if (Arah == "up")
+{
+OTV=IIf(Value < 0.2, 0.001,
+IIf(Value >= 0.2 AND Value < 2, 0.005,
+IIf(Value >= 2,0.01,0)));
+}
+else
+{
+OTV=IIf(Value <= 0.2, 0.001,
+IIf(Value > 0.2 AND Value <= 2, 0.005,
+IIf(Value > 2,0.01,0)));
+}
+}
+
+if (ParamMarket == "ASX")
+{
+if (Arah == "up")
+{
+OTV=IIf(Value < 0.1, 0.001,
+IIf(Value >= 0.1 AND Value < 2, 0.005,
+IIf(Value >= 2,0.01,0)));
+}
+else
+{
+OTV=IIf(Value <= 0.1, 0.001,
+IIf(Value > 0.1 AND Value <= 2, 0.005,
+IIf(Value > 2,0.01,0)));
+}
+}
+
+if (ParamMarket == "HKG")
+{
+if (Arah == "up")
+{
+OTV=IIf(Value < 0.25, 0.001,
+IIf(Value >= 0.25 AND Value < 0.5, 0.005,
+IIf(Value >= 0.5 AND Value < 10, 0.01,
+IIf(Value >= 10 AND Value < 20, 0.02,
+IIf(Value >= 20 AND Value < 100, 0.05,
+IIf(Value >= 100 AND Value < 200, 0.1,
+IIf(Value >= 200 AND Value < 500, 0.2,
+IIf(Value >= 500 AND Value < 1000, 0.5,
+IIf(Value >= 1000 AND Value < 2000, 1,
+IIf(Value >= 2000 AND Value < 5000, 2,
+5))))))))));
+}
+else
+{
+OTV=IIf(Value <= 0.25, 0.001,
+IIf(Value > 0.25 AND Value <= 0.5, 0.005,
+IIf(Value > 0.5 AND Value <= 10, 0.01,
+IIf(Value > 10 AND Value <= 20, 0.02,
+IIf(Value > 20 AND Value <= 100, 0.05,
+IIf(Value > 100 AND Value <= 200, 0.1,
+IIf(Value > 200 AND Value <= 500, 0.2,
+IIf(Value > 500 AND Value <= 1000, 0.5,
+IIf(Value > 1000 AND Value <= 2000, 1,
+IIf(Value > 2000 AND Value <= 5000, 2,
+5))))))))));
+}
+}
+
+Factor = 1;
+
+if (Ext == "Y")
+{
+if ( Arah == "up")
+Factor = IIf(Value < 30, 1,
+IIf(Value < 70, 2,
+IIf(Value < 100, 5,
+15)));
+else
+Factor = IIf(Value < 20, 1,
+IIf(Value < 50, 5,
+IIf(Value < 100, 10,
+IIf(Value < 500, 20,
+50))));
+}
+
+return OTV * Factor;
+}
+
+if (StrToUpper(GetDatabaseName()) == "INTEGRITY DATA")
+{
+switch ( StrRight( Name(), 3) )
+{
+case ".DJ" : PMarket = "US/INDEX"; break;
+case ".SG" : PMarket = "SGX"; break;
+case ".HK" : PMarket = "HKG"; break;
+case ".AX" : PMarket = "ASX"; break;
+default : PMarket = "IDX";
+}
+
+if (StrLeft( Name(), 1) == "^")
+PMarket = "US/INDEX";
+}
+else
+{
+switch ( StrRight( Name(), 3) )
+{
+case ".JK" : PMarket = "IDX"; break;
+case ".SG" : PMarket = "SGX"; break;
+case ".HK" : PMarket = "HKG"; break;
+case ".AX" : PMarket = "ASX"; break;
+default : PMarket = "US/INDEX";
+}
+}
+
+ExtendedBPBT = ParamToggle("Extended BP/BT","Tidak|Ya",0);
+if (ExtendedBPBT)
+ExtParam = "Y";
+else
+ExtParam = "N";
+// START SCRIPT untuk rbo
+
+ThisIsLastBar = BarIndex() == LastValue( BarIndex() );
+ThisIs2ndLastBar = BarIndex() == (LastValue( BarIndex() )) - 1;
+ThisIs3rdLastBar = BarIndex() == (LastValue( BarIndex() )) - 2;
+ThisIsLastVisibleBar = BarIndex() == LastVisibleValue( BarIndex() );
+kuning = Ref(H,-1) > C AND L > Ref(L,-1) AND H < Ref(H,-1);
+putih = C>O AND L <= Ref(L,-1) AND H >= Ref(H,-1);
+merah = H < Ref(H,-1) AND L <= Ref(L,-1);
+hitam = (C < O AND H >= Ref(H,-1) AND L <= Ref(L,-1));
+hijau = H >= Ref(H,-1) AND L > Ref(L,-1);
+
+RBOUp = H > Ref(H,-1);
+RBODown = L < Ref(L,-1);
+
+// RBO Indicator, Thanks to Pak Ferry Ariesandy untuk contoh ExRem nya
+HijauDayBefore = Ref( H, -1 ) > Ref( H, -2 ) AND Ref( L, -1 ) > Ref( L, -2 );
+MerahDayBefore = Ref( H, -1 ) < Ref( H, -2 ) AND Ref( L, -1 ) <= Ref( L, -2 );
+KuningDayBefore = Ref(L,-1) > Ref(L,-2) AND Ref(H,-1) < Ref(H,-2);
+
+PanahHijau = (HijauDayBefore OR KuningDayBefore) AND RBOup AND ThisIsLastBar ;
+PanahMerah = (MerahDayBefore OR KuningDayBefore) AND RBODown AND ThisIsLastBar ;
+
+PanahHijau= ExRem (PanahHijau, !hijau) ;
+PanahMerah= ExRem (PanahMerah, !merah) ;
+
+//ChartStyle = ParamToggle("Ikuti Chart Style System","Tidak|Ya",0);
+
+ChartStyle = ParamList("Chart Style","RBO Candlestick|BarChart|Classic Candlestick");
+
+if (ChartStyle == "RBO Candlestick")
+{
+SetBarFillColor(IIf(kuning, colorYellow,
+IIf(putih, colorWhite,
+IIf(hitam, ColorRGB(10,10,10),
+IIf(merah, colorRed,ColorRGB(28,255,36))))));
+
+if (ParamToggle("Tampil Panah RBO", "Tidak|Ya", 1 ))
+{
+PlotShapes(IIf(PanahHijau, shapeHollowUpArrow, shapeNone),ParamColor("Warna Panah RBO Up",colorGreen), 0,L, -40);
+PlotShapes(IIf(PanahMerah, shapeHollowDownArrow, shapeNone),ParamColor("Warna Panah RBO Down",colorRed), 0,H, -40);
+}
+
+Plot( C, "Close", ParamColor("OutlineBarColor", colorGrey40 ), styleCandle | styleThick |styleNoTitle );
+}
+else
+{
+if (ChartStyle == "BarChart")
+{
+Plot( C, "Close", IIf( C > O, colorBlue, colorRed ), styleThick | styleBar | styleNoTitle);
+}
+else
+{
+Plot( C, "Close", IIf( C > O, colorBlue, colorRed ), styleThick | styleCandle | styleNoTitle);
+}
+}
+// END SCRIPT untuk RBO
+
+// START SCRIPT UNTUK SUPPORT / RESISTANT
+
+// S/R RECODE by Stefanus Wardoyo @6March2014
+
+WarnaResistant = ParamColor("Warna Garis Resistant",colorBlack);
+WarnaSupport = ParamColor("Warna Garis Support",colorRed);
+R1_show = 0;
+S1_show = 0;
+
+SRStyle = ParamStyle("S/R Style",styleThick);
+
+if (ParamToggle("Garis Support&Resistance", "Tidak|Ya", 1 ))
+{
+// RESISTANT
+LastHighestValue = LastVisibleValue(Ref(H,-1));
+if (LastVisibleValue(H) == H[LastValue(BarIndex())])
+LastHighestValue = LastVisibleValue(H);
+
+i = 1;
+
+if (LastHighestValue < HighestVisibleValue(H))
+{
+while (LastVisibleValue(ValueWhen(H <= Ref(H,-1) AND Ref(H,-2) <= Ref(H, -1),Ref(H, -1), i)) < LastHighestValue)
+i++;
+
+R1 = LastVisibleValue(ValueWhen(H <= Ref(H,-1) AND Ref(H,-2) <= Ref(H, -1),Ref(H, -1), i));
+
+R1x = LastVisibleValue(ValueWhen(H <= Ref(H,-1) AND Ref(H,-2) <= Ref(H, -1),Ref(BarIndex(), -1), i));
+Plot(IIf(BarIndex() >= R1x,LastValue(R1),Null),"R1",WarnaResistant ,SRStyle);
+R1_show = 1;
+
+i++;
+
+if (HighestVisibleValue( H ) > R1)
+{
+while (LastVisibleValue(ValueWhen(H <= Ref(H,-1) AND Ref(H,-2) <= Ref(H, -1), Ref(H,-1), i)) <= R1)
+i++;
+
+R2 = LastVisibleValue(ValueWhen(H <= Ref(H,-1) AND Ref(H,-2) <= Ref(H, -1), Ref(H,-1), i));
+R2x = LastVisibleValue(ValueWhen(H <= Ref(H,-1) AND Ref(H,-2) <= Ref(H, -1),Ref(BarIndex(), -1), i));
+
+Plot(IIf(BarIndex() >= R2x,LastValue(R2),Null),"R2",WarnaResistant ,SRStyle);
+i++;
+if (HighestVisibleValue( H )> R2)
+{
+while (LastVisibleValue(ValueWhen(H <= Ref(H,-1) AND Ref(H,-2) <= Ref(H, -1), Ref(H,-1), i)) <= R2)
+i++;
+R3 = LastVisibleValue(ValueWhen(H <= Ref(H,-1) AND Ref(H,-2) <= Ref(H, -1), Ref(H,-1), i));
+R3x = LastVisibleValue(ValueWhen(H <= Ref(H,-1) AND Ref(H,-2) <= Ref(H, -1),Ref(BarIndex(), -1), i));
+
+Plot(IIf(BarIndex() >= R3x,LastValue(R3),Null),"R3",WarnaResistant ,SRStyle);
+}
+}
+}
+else if (LastHighestValue == HighestVisibleValue(H))
+{
+R1 = LastVisibleValue(ValueWhen(H <= Ref(H,-1) AND Ref(H,-2) <= Ref(H, -1),Ref(H, -1), i));
+R1x = LastVisibleValue(ValueWhen(H <= Ref(H,-1) AND Ref(H,-2) <= Ref(H, -1),Ref(BarIndex(), -1), i));
+if (R1 == LastHighestValue)
+{
+Plot(IIf(BarIndex() >= R1x,LastValue(R1),Null),"R1",WarnaResistant ,SRStyle);
+R1_show = 1;
+}
+}
+
+// SUPPORT
+LastLowestValue = LastVisibleValue(Ref(L,-1));
+if (LastVisibleValue(L) == L[LastValue(BarIndex())])
+LastLowestValue = LastVisibleValue(L);
+
+i = 1;
+
+if (LastLowestValue > LowestVisibleValue(L))
+{
+while (LastVisibleValue(ValueWhen(L >= Ref(L,-1) AND Ref(L,-2) >= Ref(L, -1),Ref(L, -1), i)) > LastLowestValue)
+i++;
+
+S1 = LastVisibleValue(ValueWhen(L >= Ref(L,-1) AND Ref(L,-2) >= Ref(L, -1),Ref(L, -1), i));
+S1x = LastVisibleValue(ValueWhen(L >= Ref(L,-1) AND Ref(L,-2) >= Ref(L, -1),Ref(BarIndex(), -1), i));
+Plot(IIf(BarIndex() >= S1x,LastValue(S1),Null),"S1",WarnaSupport ,SRStyle);
+S1_show = 1;
+i++;
+
+if (LowestVisibleValue( L ) < S1)
+{
+while (LastVisibleValue(ValueWhen(L >= Ref(L,-1) AND Ref(L,-2) >= Ref(L, -1), Ref(L,-1), i)) >= S1)
+i++;
+
+S2 = LastVisibleValue(ValueWhen(L >= Ref(L,-1) AND Ref(L,-2) >= Ref(L, -1), Ref(L,-1), i));
+S2x = LastVisibleValue(ValueWhen(L >= Ref(L,-1) AND Ref(L,-2) >= Ref(L, -1), Ref(BarIndex(),-1), i));
+
+Plot(IIf(BarIndex() >= S2x,LastValue(S2),Null),"S2",WarnaSupport ,SRStyle);
+i++;
+if (LowestVisibleValue( L )< S2)
+{
+while (LastVisibleValue(ValueWhen(L >= Ref(L,-1) AND Ref(L,-2) >= Ref(L, -1), Ref(L,-1), i)) >= S2)
+i++;
+S3 = LastVisibleValue(ValueWhen(L >= Ref(L,-1) AND Ref(L,-2) >= Ref(L, -1), Ref(L,-1), i));
+S3x = LastVisibleValue(ValueWhen(L >= Ref(L,-1) AND Ref(L,-2) >= Ref(L, -1), Ref(BarIndex(),-1), i));
+Plot(IIf(BarIndex() >= S3x,LastValue(S3),Null),"S3",WarnaSupport ,SRStyle);
+}
+}
+}
+else if (LastLowestValue == LowestVisibleValue(L))
+{
+S1 = LastVisibleValue(ValueWhen(L >= Ref(L,-1) AND Ref(L,-2) >= Ref(L, -1),Ref(L, -1), i));
+S1x = LastVisibleValue(ValueWhen(L >= Ref(L,-1) AND Ref(L,-2) >= Ref(L, -1),Ref(BarIndex(), -1), i));
+if (S1 == LastLowestValue)
+{
+Plot(IIf(BarIndex() >= S1x,LastValue(S1),Null),"S1",WarnaSupport ,SRStyle);
+S1_show = 1;
+}
+}
+
+if (S1_show AND R1_show)
+{
+SR = Prec((1-(S1/R1))*100,2);
+}
+}
+
+// END SCRIPT UNTUK SUPPORT / RESISTANT
+// START SCRIPT UNTUK PEAK TROUGH
+UpFractal3= ValueWhen(
+(Ref(H,-3) >= Ref(H, -4)) AND
+(Ref(H,-3) >= Ref(H, -2)) AND
+(Ref(H,-3) >= Ref(H, -1)) AND
+(Ref(H,-3) >= H), Ref(H,-3));
+
+UpFractal2= ValueWhen(
+(Ref(H,-2) >= Ref(H, -3)) AND
+(Ref(H,-2) >= Ref(H, -1)) AND
+(Ref(H,-2) >= H), Ref(H,-2));
+
+P2 = Ref(UpFractal2,2);
+P3 = Ref(UpFractal3,3);
+
+UpFractal = ValueWhen(
+//kondisinya 1
+(
+(Ref(H,-3) >= Ref(H, -4)) AND
+(Ref(H,-3) >= Ref(H, -2)) AND
+(Ref(H,-3) >= Ref(H, -1)) AND
+(Ref(H,-3) >= H)
+)
+OR
+// kondisi 2
+(
+(Ref(H,-2) >= Ref(H, -3)) AND
+(Ref(H,-2) >= Ref(H, -1)) AND
+(Ref(H,-2) >= H) AND
+(Ref(P2,-3) >= Ref(H,-2)) AND
+(Ref(P3,-3) >= Ref(H,-2))
+)
+,
+// result
+HHV(H,4)
+);
+
+DownFractal= ValueWhen(
+(Ref(L,-3) <= Ref(L, -4)) AND
+(Ref(L,-3) <= Ref(L, -2)) AND
+(Ref(L,-3) <= Ref(L, -1)) AND
+(Ref(L,-3) <= L), Ref(L,-3));
+
+GarisPeak = ValueWhen(
+(Ref(H,-1) <= H) AND !ThisIsLastBar AND
+(H >= Ref(H,1)) AND !ThisIs2ndLastBar AND
+(H >= Ref(H,2)) AND
+(((H >= Ref(H,3)) AND !ThisIs3rdLastBar) OR (Ref(UpFractal,3) >= H))
+,
+H
+);
+
+//printf("Fractal:"+SelectedValue(Ref(UpFractal,3)));
+//GarisP = Ref(UpFractal,3);
+GarisP = GarisPeak;
+GarisT = Ref(DownFractal,3);
+P = UpFractal;
+T = DownFractal;
+BP = GarisP+getTick(GarisP,PMarket,"up",ExtParam );
+BT = GarisT-getTick(GarisT,PMarket,"down",ExtParam );
+
+BP_Asli = P+getTick(P,PMarket,"up",ExtParam );
+BT_Asli = T-getTick(T,PMarket,"down",ExtParam );
+BH = H+getTick(H,PMarket,"up",ExtParam );
+BL = L-getTick(L,PMarket,"down",ExtParam );
+
+ChartHole = IIf (V == 0,1,0);
+
+Plot(GarisP, "PEAK", ParamColor("Warna Garis Peak",colorBlue), ParamStyle("Style Garis Peak", styleDashed));
+Plot(GarisT, "TROUGH",ParamColor("Warna Garis Trough",colorRed), ParamStyle("Style Garis Trough", styleDashed));
+
+if (ParamToggle("Tampilkan ChartHole","Tidak|Ya",1) && StrLeft( Name(), 1 ) != "^")
+PlotShapes( IIf(ChartHole,shapeDigit0,0) ,colorRed, 0, H,12);
+
+//Plot(P, "PEAK-ASLI", ParamColor("Warna Garis Peak",colorBlue), styleNoDraw|styleNoTitle);
+//Plot(T, "TROUGH-ASLI",ParamColor("Warna Garis Trough",colorRed), styleNoDraw|styleNoTitle);
+if (ExtendedBPBT)
+{
+Plot(BP, "GarisBREAKPEAK", colorBlue, styleDashed|styleNoTitle);
+Plot(BT, "GarisBREAKTROUGH",colorRed, styleDashed|styleNoTitle);
+}
+
+Beli = (Ref(H,-1)<=P) AND H>P;// AND V >= MA(V,20);
+Jual = (Ref(L,-1)>=T) AND L<T;
+
+// END SCRIPT UNTUK PEAK TROUGH
+// START SCRIPT UNTUK BACKTEST BREAK PEAK / TROUGH
+BacktestMethod = ParamList("Backtest Method", "Fractal Only|RBO Only|Fractal & RBO" );
+
+BeliFRACTAL= (Ref(H,-1)<=P) AND H>P;// AND V >= MA(V,20);
+JualFRACTAL = (Ref(L,-1)>=T) AND L<T;
+BeliRBO = (HijauDayBefore OR KuningDayBefore) AND RBOup;
+JualRBO = (MerahDayBefore OR KuningDayBefore) AND RBODown;
+if (BacktestMethod == "Fractal Only")
+{
+Buy = BeliFRACTAL;
+BuyPrice = BP_Asli;
+Sell = JualFRACTAL;
+SellPrice = BT_Asli;
+
+Short = JualFRACTAL;
+ShortPrice = BT_Asli;
+Cover = BeliFRACTAL;
+CoverPrice = BP_Asli;
+}
+
+if (BacktestMethod == "RBO Only")
+{
+Buy = BeliRBO;
+BuyPrice = IIf(Ref(BH,-1) >= O, Ref(BH,-1), O);
+Sell = JualRBO;
+SellPrice = IIf(Ref(BL,-1) <= O, Ref(BL,-1), O);
+
+Short = JualRBO;
+ShortPrice = IIf(Ref(BL,-1) <= O, Ref(BL,-1), O);
+Cover = BeliRBO;
+CoverPrice = IIf(Ref(BH,-1) >= O, Ref(BH,-1), O);
+}
+
+if (BacktestMethod == "Fractal & RBO")
+{
+Buy = BeliFRACTAL OR BeliRBO;
+BuyPrice = IIf(BeliFRACTAL, BP_Asli, IIf(Ref(BH,-1) >= O, Ref(BH,-1), O));
+Sell = JualFRACTAL OR JualRBO;
+SellPrice = IIf(JualFRACTAL, BT_Asli, IIf(Ref(BL,-1) <= O, Ref(BL,-1), O));
+
+Short = JualFRACTAL OR JualRBO;
+ShortPrice = IIf(JualFRACTAL, BT_Asli, IIf(Ref(BL,-1) <= O, Ref(BL,-1), O));
+Cover = BeliFRACTAL OR BeliRBO;
+CoverPrice = IIf(BeliFRACTAL, BP_Asli, IIf(Ref(BH,-1) >= O, Ref(BH,-1), O));
+
+}
+if (ParamToggle("Tampilkan Panah BP/BT","Tidak|Ya",1))
+{
+PlotShapes(IIf(Beli,shapeUpArrow,Null), ParamColor("Warna Untuk Panah Beli FRACTAL", colorGreen), 0, L,-10);
+PlotShapes( IIf(Jual,shapeDownArrow,Null) ,ParamColor("Warna Untuk Panah jual FRACTAL", colorRed), 0, H,-10);
+}
+
+// END SCRIPT UNTUK BREAK PEAK / TROUGH
+
+// STOCK SPLIT / MERGE ALERT
+PlotShapes(IIf(Aux1 != Aux2,shapeHollowStar,Null), colorRed, 0, L,-20);
+// END STOCK SPLIT / MERGE ALERT
+// MA
+MAShortPeriods = Param("MA1 Periods", 20, 2, 300, 1, 10 );
+MAMedPeriods = Param("MA2 Periods", 50, 2, 300, 1, 10 );
+MALongPeriods = Param("MA3 Periods", 200, 2, 300, 1, 10 );
+
+MA1Color = ParamColor( "MA1 Color", colorRed );
+MA2Color = ParamColor( "MA2 Color", colorBlue );
+MA3Color = ParamColor( "MA3 Color", colorGreen );
+
+MAStyle = ParamStyle("MA Style", styleThick);
+
+if (ParamToggle("Tampilkan MA1","Tidak|Ya",1))
+Plot( MA( C, MAShortPeriods ), "MA"+MAShortPeriods, MA1Color, MAStyle);
+if (ParamToggle("Tampilkan MA2","Tidak|Ya",1))
+Plot( MA( C, MAMedPeriods ), "MA"+MAMedPeriods, MA2Color, MAStyle );
+if (ParamToggle("Tampilkan MA3","Tidak|Ya",1))
+Plot( MA( C, MALongPeriods ), "MA"+MALongPeriods, MA3Color, MAStyle );
+
+MA1vsMA2_GC = Cross(MA( C, MAShortPeriods ),MA( C, MAMedPeriods ));
+MA1vsMA3_GC = Cross(MA( C, MAShortPeriods ),MA( C, MALongPeriods ));
+MA2vsMA3_GC = Cross(MA( C, MAMedPeriods ),MA( C, MALongPeriods ));
+MA1vsMA2_GD = Cross(MA( C, MAMedPeriods ),MA( C, MAShortPeriods ));
+MA1vsMA3_GD = Cross(MA( C, MALongPeriods ),MA( C, MAShortPeriods ));
+MA2vsMA3_GD = Cross(MA( C, MALongPeriods ),MA( C, MAMedPeriods ));
+
+MA1vsMA2_Info = WriteIf(MA1vsMA2_GC, "Golden Cross",
+WriteIf(MA1vsMA2_GD, "Dead Cross",
+WriteIf(MA(C,MAShortPeriods) < MA(C,MAMedPeriods), "MA"+MAShortPeriods+" < MA"+MAMedPeriods,
+WriteIf(MA(C,MAShortPeriods) > MA(C,MAMedPeriods), "MA"+MAShortPeriods+" > MA"+MAMedPeriods,""))));
+
+MA1vsMA3_Info = WriteIf(MA1vsMA3_GC, "Golden Cross",
+WriteIf(MA1vsMA3_GD, "Dead Cross",
+WriteIf(MA(C,MAShortPeriods) < MA(C,MALongPeriods), "MA"+MAShortPeriods+" < MA"+MALongPeriods,
+WriteIf(MA(C,MAShortPeriods) > MA(C,MALongPeriods), "MA"+MAShortPeriods+" > MA"+MALongPeriods,""))));
+MA2vsMA3_Info = WriteIf(MA2vsMA3_GC, "Golden Cross",
+WriteIf(MA2vsMA3_GD, "Dead Cross",
+WriteIf(MA(C,MAMedPeriods) < MA(C,MALongPeriods), "MA"+MAMedPeriods+" < MA"+MALongPeriods,
+WriteIf(MA(C,MAMedPeriods) > MA(C,MALongPeriods), "MA"+MAMedPeriods+" > MA"+MALongPeriods,""))));
+// INTERPRETER
+
+Risk = (1-(BT/BP))*100;
+
+PTOT = (((GarisP - GarisT) / GarisP)*100);
+CTOP = (((GarisP - C) / C)*100);
+CTOT = (((GarisT - C) / C)*100);
+
+printf("n"+Name()+ " (" + FullName() + ")"+"n");
+printf("Market : "+PMarket +"nn");
+
+if (SelectedValue(P) > SelectedValue(T))
+{
+WriteIf(BeliFractal, "BREAK PEAK",
+WriteIf(JualFractal, "BREAK TROUGH",""));
+
+printf("Risk BP/BT = "+Prec(Risk,2)+"%%n");
+printf("P to T = "+Prec(PTOT,2) + "%%" + "n");
+printf("Close to P = "+Prec(CTOP,2) + "%%" + "n");
+printf("Close to T = "+Prec(CTOT,2) + "%%" + "n");
+}
+else
+{
+printf("P <= T");
+printf("n");
+}
+
+printf("n");
+printf("BP = "+BP+ "n");
+printf("BT = "+BT+ "n");
+printf("BH = "+BH+ "n");
+printf("BL = "+BL+ "n");
+if (S1_show AND R1_show)
+printf("Jarak S1-R1 = "+SR+ "%%n");
+
+printf("n");
+printf("SIMULASI ORDERn");
+ModalPerSlot = Param("Modal per Slot",10000000,0,100000000);
+printf("Modal / Slot :"+NumToStr(ModalPerSlot,1.22)+"nn");
+printf("Buy When BPn");
+if (PMarket == "IDX")
+printf("Jumlah Lot Saham :"+floor(ModalPerSlot/SelectedValue(BP)/100)+"n");
+else
+printf("Jumlah Lembar Saham :"+floor(ModalPerSlot/SelectedValue(BP))+"n");
+printf("Modal per Slot :"+NumToStr(floor(ModalPerSlot/SelectedValue(BP))*BP,1.22)+"nn");
+
+printf("Sell When BTn");
+if (PMarket == "IDX")
+printf("Jumlah Lot Saham :"+floor(ModalPerSlot/SelectedValue(BT)/100)+"n");
+else
+printf("Jumlah Lembar Saham :"+floor(ModalPerSlot/SelectedValue(BT))+"n");
+printf("Modal per Slot :"+NumToStr(floor(ModalPerSlot/SelectedValue(BT))*BT,1.22)+"nn");
+// START EXPLORATION
+
+// START BACKGROUND DESIGN
+
+
+GfxSelectFont("Tahoma", Status("pxheight")/28 );
+GfxSetBkMode(1); // transparent
+GfxSetTextAlign( 0 | 0 );
+
+if (ParamToggle("Tampilkan Data Tooltip","Tidak|Ya",1))
+{
+
+RequestTimedRefresh( 0.1 );
+ClosingPercentage = Prec(SelectedValue( ROC( C, 1 )),2);
+
+// ---- GFX Tool Tip ---- data tooltip
+
+x1Rrect= 12;
+y1Rrect = 21;
+x2Rrect = 129;
+y2Rrect = 170;
+
+// FontSize=Param("Fonts Size",9,8,13,1);
+FontSize = 9;
+
+DX= GetCursorXPosition();
+DT= DateTimeToStr(DX) ;
+if (_DT(DT)>0)
+{
+GfxSetOverlayMode(0);
+GfxSelectPen( colorBlack, 1 ); // data tooltip round border color
+GfxSelectSolidBrush( colorLightYellow ); // data tooltip color
+GfxRoundRect( x1Rrect, y1Rrect , x2Rrect+x1Rrect , y2Rrect+y1Rrect , 15, 15 ); // data tooltip size
+GfxSetBkMode(1);
+GfxSelectFont( "Arial", FontSize, 700, False );
+GfxSetTextColor( ParamColor("Fonts Color", colorBlack) );
+GfxSetTextAlign(0);
+GfxTextOut( Name()+" - "+Date(),7+x1Rrect, y1Rrect+FontSize);
+GfxTextOut( "O = "+O,7+x1Rrect, 13+y1Rrect+FontSize);
+GfxTextOut( "H = "+H,7+x1Rrect, 26+y1Rrect+FontSize);
+GfxTextOut( "L = "+L,7+x1Rrect, 39+y1Rrect+FontSize);
+GfxTextOut( "C = "+C,7+x1Rrect, 52+y1Rrect+FontSize);
+GfxSetTextColor( IIf( SelectedValue(ClosingPercentage)>0, colorGreen,colorRed) );
+GfxTextOut ( "+/- = "+(WriteIf( ClosingPercentage>0, "+",""))+ClosingPercentage+"%",7+x1Rrect, 65+y1Rrect+FontSize);
+GfxSetTextColor( colorBlack );
+GfxTextOut( "V = "+SharesNumber+SharesUnit,7+x1Rrect, 78+y1Rrect+FontSize);
+GfxSetTextColor( colorBlue );
+GfxTextOut( "Peak = "+ GarisP,7+x1Rrect, 91+y1Rrect+FontSize);
+GfxSetTextColor( colorRed );
+GfxTextOut( "Trough = "+ GarisT,7+x1Rrect, 104+y1Rrect+FontSize);
+GfxSetTextColor( colorBlack );
+GfxTextOut( "Peak-8% = "+ GarisP*0.92,7+x1Rrect, 117+y1Rrect+FontSize);
+if (SelectedValue(Risk) > 0)
+GfxTextOut( "Risk BP/BT = "+ Prec(Risk,2)+"%",7+x1Rrect, 129+y1Rrect+FontSize);
+else
+GfxTextOut( "BP < BT",7+x1Rrect, 129+y1Rrect+FontSize);
+if (SelectedValue(Aux1) != SelectedValue(Aux2))
+{
+GfxSetTextColor( colorRed );
+GfxTextOut( "Stock Adj = "+ SelectedValue(Aux1) +":"+SelectedValue(Aux2), 7+x1Rrect, 142+y1Rrect+FontSize);
+}
+}
+}
+
+// START EXPLORATION / SCREENER
+TickP = Param("Max Jumlah Tick untuk PrePeak Signal",3,1,1000,1);
+TickT = Param("Max Jumlah Tick untuk PreTrough Signal",3,1,1000,1);
+
+PrePeak = (P - H) <= (getTick(H,PMarket,"up",ExtParam) * TickP) AND (P - H) > 0 AND H >= T;
+PreTrough = (L - T) <= (getTick(L,PMarket,"down",ExtParam) * TickT) AND (L - T) >0 AND L <= P;
+
+PrePP = NumToStr((1 - (C/P))*100,1.23) + "% to P" ;
+PreTP = NumToStr((1 - (T/C))*100,1.23) + "% to T" ;
+PreP = NumToStr(floor((P - H) / (getTick(H,PMarket,"up",ExtParam))),1) + "-Pre-P";
+PreT = NumToStr(floor((L - T) / (getTick(L,PMarket,"down",ExtParam))),1) + "-Pre-T";
+PostP = NumToStr((1 - (P/C))*100,1.23) + "% from P" ;
+PostT = NumToStr((1 - (T/C))*100,1.23) + "% from T" ;
+MAShortPeriodValue = MA(C,MAShortPeriods);
+CtoMAShort = ((C/MAShortPeriodValue)-1)*100;
+
+// CTOPT = WriteIf(BeliFRACTAL, PostP, WriteIf(JualFRACTAL, PostT, WriteIf(PrePeak, PrePP, WriteIf(PreTrough,PreTP,"No-Signal"))));
+CTOP = WriteIf(BeliFRACTAL, PostP,PrePP);
+CTOT = WriteIf(JualFRACTAL, PostT,PreTP);
+BreakThrough = WriteIf(BeliFRACTAL, "BP", WriteIf(JualFRACTAL, "BT", WriteIf(PrePeak, PreP, WriteIf(PreTrough,PreT,"No-Signal"))));
+
+//-----------------KS Line
+ml = EMA(C,5) - EMA(C,13);
+KLine = Wilders(ml,5);
+pk = 250;
+Jarak = HHV(KLine,pk) - LLV(Kline,pk);
+Pos = (Kline-(LLV(Kline,pk)))/Jarak*100;
+
+nilai5 = IIf(V>=5*MA(V, 125),5,0);
+nilai4 = IIf(V>=4*MA(V, 125),4,0);
+nilai3 = IIf(V>=3*MA(V, 125),3,0);
+nilai2 = IIf(V>=2*MA(V, 125),2,0);
+nilai1 = IIf(V>=1*MA(V, 125),1,0);
+
+VolMultiple = WriteIf(nilai5 > 0, NumToStr(5,1)+"x Avg",
+WriteIf(nilai4 > 0, NumToStr(4,1)+"x Avg",
+WriteIf(nilai3 > 0, NumToStr(3,1)+"x Avg",
+WriteIf(nilai2 > 0, NumToStr(2,1)+"x Avg",
+WriteIf(nilai1 > 0, NumToStr(1,1)+"x Avg",
+"< Avg")))));
+
+NamaWarnaCandle = WriteIf(kuning, "Kuning",
+WriteIf(putih, "Putih",
+WriteIf(merah, "Merah",
+WriteIf(Hitam, "Hitam", "Hijau"))));
+
+WarnaCandle = IIf(kuning, colorYellow,
+IIf(putih, colorWhite,
+IIf(merah, colorRed,
+IIf(Hitam, colorBlack, colorBrightGreen))));
+
+WarnaBackground = IIf(putih, colorBlack, colorWhite);
+
+p1 = Param( "MACD Short Period", 15, 1, 500, 1);
+p2 = Param( "MACD Mid Period", 60, 1, 500, 1);
+p3 = Param( "MACD Long Period", 125, 1, 500, 1);
+fr = Param( "MACD Flat Range", 0.02, 0.01, 0.10, 0.01);
+
+mm = (H + L) / 2;
+x = Cum(1);
+selv = SelectedValue(x);
+
+//----------------short-term----------------------------
+
+aaa1 = LinRegIntercept(mm, p1);
+bbb1 = LinRegSlope(mm, p1);
+
+daa1 = SelectedValue(ValueWhen(x, aaa1, 1));
+dbb1 = SelectedValue(ValueWhen(x, bbb1, 1));
+
+xx1 = IIf(x > selv - p1 AND x <= selv, x - (selv - p1),Null);
+yy1 = daa1 + dbb1 * xx1;
+
+dhh1 = abs(H - yy1);
+dll1 = abs(L - yy1);
+dtt1 = Max(dhh1,dll1);
+
+wd1 = SelectedValue(HHV(dtt1,p1));
+
+selisih1 = yy1 - daa1;
+flatRange1 = fr * yy1;
+
+Up1 = IIf(yy1 > daa1 AND selisih1 > flatrange1, 1,0);
+Down1 = IIf(yy1 < daa1 AND abs(selisih1) > flatrange1, 1,0);
+trend1 = WriteIf(Up1, "Up", WriteIf(Down1, "Down", "Flat"));
+trendColor1 = IIf(Up1, colorBrightGreen, IIf(Down1, colorRed, colorBlue));
+
+//----------------Mid-term--------------------------
+
+aaa2 = LinRegIntercept(mm, p2);
+bbb2 = LinRegSlope(mm, p2);
+
+daa2 = SelectedValue(ValueWhen(x, aaa2, 1));
+dbb2 = SelectedValue(ValueWhen(x, bbb2, 1));
+
+xx2 = IIf(x > selv - p2 AND x <= selv, x - (selv - p2),Null);
+yy2 = daa2 + dbb2 * xx2;
+
+dhh2 = abs(H - yy2);
+dll2 = abs(L - yy2);
+dtt2 = Max(dhh2,dll2);
+
+wd2 = SelectedValue(HHV(dtt2,p2));
+
+//utk Exploration
+selisih2 = yy2 - daa2;
+flatRange2 = fr * yy2;
+
+Up2 = IIf(yy2 > daa2 AND selisih2 > flatrange2, 1,0);
+Down2 = IIf(yy2 < daa2 AND abs(selisih2) > flatrange2, 1,0);
+trend2 = WriteIf(Up2, "Up", WriteIf(Down2, "Down", "Flat"));
+trendColor2 = IIf(Up2, colorBrightGreen, IIf(Down2, colorRed, colorBlue));
+
+//----------------Long-term----------------------------
+aaa3 = LinRegIntercept(mm, p3);
+bbb3 = LinRegSlope(mm, p3);
+
+daa3 = SelectedValue(ValueWhen(x, aaa3, 1));
+dbb3 = SelectedValue(ValueWhen(x, bbb3, 1));
+
+xx3 = IIf(x > selv - p3 AND x <= selv, x - (selv - p3),Null);
+yy3 = daa3 + dbb3 * xx3;
+
+dhh3 = abs(H - yy3);
+dll3 = abs(L - yy3);
+
+dtt3 = Max(dhh3,dll3);
+
+wd3 = SelectedValue(HHV(dtt3,p3));
+
+//utk Exploration
+selisih3 = yy3 - daa3;
+flatRange3 = fr * yy3;
+
+Up3 = IIf(yy3 > daa3 AND selisih3 > flatrange3, 1,0);
+Down3 = IIf(yy3 < daa3 AND abs(selisih3) > flatrange3, 1,0);
+trend3 = WriteIf(Up3, "Up", WriteIf(Down3, "Down", "Flat"));
+trendColor3 = IIf(Up3, colorBrightGreen, IIf(Down3, colorRed, colorBlue));
+
+//-----------------------------------MACD-------------------------------------
+// parameters
+
+FastPeriods = Param("MACD Fast Periods", 12, 2, 100);
+SlowPeriods = Param("MACD Slow Periods", 26, 2, 100);
+SignalPeriods = Param("MACD Signal Periods", 9, 2, 100);
+
+// MACD golden dan dead cross
+
+CrossUp = Cross(MACD(FastPeriods, SlowPeriods), Signal(FastPeriods, SlowPeriods, SignalPeriods));
+CrossDown = Cross(Signal(FastPeriods, SlowPeriods, SignalPeriods),MACD(FastPeriods, SlowPeriods));
+MidLineUp = (MACD(FastPeriods, SlowPeriods) - Signal(FastPeriods, SlowPeriods, SignalPeriods)) > 0;
+
+MACD_Info = WriteIf(CrossUp AND MidLineUp, "Golden diatas 0",
+WriteIf(CrossUp, "Golden dibawah 0",
+WriteIf(CrossDown AND MidLineUp, "Dead diatas 0",
+WriteIf(CrossDown, "Dead dibawah 0",
+WriteIf(MidLineUp, "> 0", "< 0")))));
+
+WarnaMACD = IIf(CrossUp AND MidLineUp, colorGreen,
+IIf(CrossUp, colorGreen,
+IIf(CrossDown AND MidLineUp, colorRed,
+IIf(CrossDown, colorRed,
+IIf(MidLineUp, colorGreen, colorRed)))));
+
+// Divergence, hanya mencari 3 hari divergence sbg indikasi mungkin terjadi divergence.
+PriceUp = C > Ref(C, -1) AND Ref(C, -1) > Ref(C,-2);
+MACDUp = MACD(FastPeriods, SlowPeriods) > Ref(MACD(FastPeriods, SlowPeriods), -1) AND Ref(MACD(FastPeriods, SlowPeriods), -1) > Ref(MACD(FastPeriods, SlowPeriods), -2);
+PriceDown = C < Ref(C, -1) AND Ref(C, -1) < Ref(C,-2);
+MACDDown = MACD(FastPeriods, SlowPeriods) < Ref(MACD(FastPeriods, SlowPeriods), -1) AND Ref(MACD(FastPeriods, SlowPeriods), -1) < Ref(MACD(FastPeriods, SlowPeriods), -2);
+MACD_Divergence_info = WriteIf(PriceUp AND MACDDown, "negative",
+WriteIf(PriceDown AND MACDUp, "Positive",""));
+WarnaDivMACD = IIf(PriceUp AND MACDDown, colorRed,colorGreen);
+Cto3M = (C / Ref(C,-59) * 100)-100;
+CCIPeriod = Param("CCI Period",20,1,100,1);
+RSIPeriod = Param( "RSI Periods", 14, 1, 200, 1 );
+CCI_Info = WriteIf(CCI(CCIPeriod) > 100, "Overbought",
+WriteIf(CCI(CCIPeriod) < -100, "Oversold",
+"Normal"));
+RSI_Info = WriteIf(RSI(RSIPeriod) > 70, "Overbought",
+WriteIf(RSI(RSIPeriod) < 30, "Oversold",
+"Normal"));
+// START CANDLESTICK FORMATION
+// COPIED FROM http://www.wisestocktrader.com/indicators/3212-candle-pattern-exploration
+
+WhiteBody = C > O;
+BigWhite = (Close - Open)/Open > 0.015 AND (Close - Open) * 2 > High - Low;
+BlackBody = C < O;
+BigBlack = (Open - Close)/Open > 0.015 AND (Open - Close) * 2 > High - Low;
+Big = abs((Close - Open)/Open) > 0.014;
+LongUpperShadow = H - Max(O,C) > (H - L)*0.67;
+LongLowerShadow = Min(O,C) - L > (H - L)*0.67;
+rng = abs((C-O)/O);
+lowerShadow = Min(O,C) - L;
+uppershadow = H - Max(O,C);
+body = abs(O-C);
+rngx = abs(H - L);
+rngy = H-L;
+shaven = lowerShadow < rngy*0.1;
+ShavenBottom = L == Min(O,C);
+ShavenHead = H == Max(O,C);
+prevSize = abs(Ref(O,-1)-Ref(C,-1));
+currentSize = abs(O-C);
+fwh = Ref(H,-4);
+fwl = Ref(L,-4);
+isPrevLargeWhite = Ref(big,-1) AND Ref(whitebody,-1);
+SmallRealBody = rng < 0.01 AND rng >0;
+Diff = abs((prevSize - currentSize) / currentSize);
+DownTrend = (H < Ref(H,-1) AND L < Ref(L,-1));
+UpTrend = (H > Ref(H,-1) AND L > Ref(L,-1));
+//UpTrend = (MA(C,20) > MA(Ref(C,-1),20);
+
+isPrevUpTrend = Ref(uptrend,-1);
+RealBodyGapUp = Min(O,C) > Max(Ref(O,-1),Ref(C,-1));
+RealBodyGapDown = Max(O,C) < Min(Ref(O,-1),Ref(C,-1));
+FallingWindow = Ref(downtrend,-1) AND GapDown();
+RisingWindow = Ref(uptrend,-1) AND GapUp();
+isfalling = bigblack AND fallingwindow;
+isrising = bigwhite AND risingwindow;
+rwh = Ref(H,-4);
+rwl = Ref(L,-4);
+isFallingBlack = Ref(fallingwindow,-1) AND Ref(blackbody,-1);
+horw = Ref(H,-2);
+windowOpen = C < horw;
+opensInside = O < Ref(O,-1) AND O > Ref(C,-1);
+similarSize = diff <= 0.25;
+GapUpFromWhite = realBodyGapUp AND isPrevLargeWhite AND isPrevUptrend;
+isPrevLargeBlack = Ref(big,-1) AND Ref(blackbody,-1);
+isPrevDownTrend = Ref(downtrend,-1);
+GapDownFromBlack = realBodyGapDown AND isPrevLargeBlack AND isPrevDowntrend;
+isRisingWhite = Ref(risingwindow,-1) AND Ref(whitebody,-1);
+lorw = Ref(L,-2);
+windowOpenx = C > lorw;
+Doji = C == O AND V > 0;
+LongLeggedDoji = doji AND (H - L)/L > 0.01;
+StarUp = smallRealBody AND gapUpFromWhite;
+DojiStarUp = doji AND gapUpFromWhite;
+DojiStarDown = doji AND gapDownFromBlack;
+StarDown = smallRealBody AND gapDownFromBlack;
+isPrevDownTrendx = Ref(downtrend,-3);
+firstDoji = Ref(doji,-2);
+secDojiLower = Ref(doji,-1) AND Ref(realBodyGapDown,-1);
+isPrevUpTrendx = Ref(uptrend,-3);
+secDojiHigher = Ref(doji,-1) AND Ref(realBodyGapUp,-1);
+BeltHold = shavenbottom AND shavenhead AND big;
+Engulfing = Max(O,C) > Ref(Max(O,C),-1) AND Min(O,C) < Ref(Min(O,C),-1);
+UmbrellaLine = uppershadow < rngx*0.1 AND lowershadow > body*2;
+//====================================================================================================
+
+//----------------------------------------
+// Bearish
+//----------------------------------------
+
+// Kicker
+KBR = Ref(O,-1) < Ref(C,-1) AND O <= Ref(O,-1) AND C <= O;
+
+//Evening Doji Star
+EveningDojiStar = Ref(dojiStarUp,-1) AND blackbody AND big AND C < Ref((O + C)/2,-2);
+/*
+A large white candlestick followed by a doji that gaps up from the
+previous candles real body. This is followed by a third candlestick that is black and has a
+close lower than the half way point of the first candlesticks real body. Must be preceeded by an uptrend.
+*/
+
+// Evening Star
+EveningStar = Ref(starUp,-1) AND blackbody AND big AND C < Ref((O + C)/2,-2);
+/*
+A large white candlestick followed by a small real body of either colour that gaps up from the
+previous candles real body. This is followed by a third candlestick that is black and has a
+close lower than the half way point of the first candlesticks real body. Must be preceeded by an uptrend.
+*/
+
+// Grave Stone Doji
+GraveStoneDoji = longleggeddoji AND L == C AND Ref(uptrend,-1);
+/*
+A doji with no lower shadow and an extremenly long upper shadow. Must be preceeded by an uptrend.
+*/
+
+//Bear 3 Formation
+Bear3Formation = bigblack AND C < Ref(C,-4) AND
+Ref(H,-1) <= fwh AND Ref(L,-1) >= fwl AND
+Ref(H,-2) <= fwh AND Ref(L,-2) >= fwl AND
+Ref(H,-3) <= fwh AND Ref(L,-3) >= fwl AND
+Ref(isfalling, -4);
+/*A strong black candle in a falling window, followed by three
+candles that fall within the high/low range of the strong black candle, followed
+by another strong black candle that closes below the close of the first black candle.
+This is a bearish confirmation.*/
+
+//Bearish Abandoned Baby
+BearishAbandonedBaby = EveningDojiStar AND Ref(GapUp(),-1) AND GapDown();
+/*
+An evening doji star where there is a gap between the lower shadow of the doji and
+the upper shadows of the prior and next candle.
+*/
+
+//Bearish Belt Hold
+BearishBeltHold = belthold AND blackbody AND Ref(uptrend,-1);
+/*
+A large black candle with a shaven head and bottom preceeded by an uptrend.
+*/
+
+//Bearish Counter Attack
+BearishCounterAttack = Ref(big AND whitebody,-1) AND O > Ref(H,-1) AND C == Ref(C,-1) AND big AND blackbody AND Ref(uptrend,-1);
+/*
+A large white candle followed by a black candle which opens sharply higher but closes
+at the prior black candles close. Must be preceeded by an uptrend.
+*/
+
+// Bearish Harami Cross
+BearishHaramiCross = doji AND Ref(C,-1) > O AND Ref(O,-1) < O AND Ref(big AND whitebody,-1) AND Ref(uptrend,-1);
+/*
+A doji preceded by and contained within the real body of a big white
+candlestick in an uptrend
+*/
+
+// Bearish Harami
+BearishHarami = Ref(big AND whitebody,-1) AND smallRealBody AND Min(O,C) > Ref(O,-1) AND Max(O,C) < Ref(C,-1) AND Ref(uptrend,-1);
+/*
+A small candlestick preceded by and whose real body is contained
+within, the real body of a big white candlestick in an uptrend
+*/
+
+// Bearish Separating Line
+BearishSeparatingLine = Ref(whitebody AND big,-1) AND blackbody AND big AND O == Ref(O,-1) AND Ref(downtrend,-1);
+/*
+A white candlestick followed by a black candlestick with the same opening price. Continues
+the previous downtrend.
+*/
+
+// Dark Cloud Cover
+DarkCloudCover = Ref(bigwhite,-1) AND blackbody AND O > Ref(H,-1) AND C <= Ref((O+C)/2,-1) AND C > Ref(O,-1) AND Ref(uptrend,-1);
+/*
+A strong white candle in an uptrend followed by a black candle that opens above the high of the
+white candle and closes at least 50 percent into the white candles real body. Note that if the black candle completely
+engulfs the white candles real body then this is not Dark Cloud Cover but a Bearish Engulfing Pattern.
+*/
+// Engulfing Bear
+EngulfingBear = Ref(whitebody,-1) AND blackbody AND engulfing AND Ref(uptrend,-1);
+/*
+This bar is black and its real body engulfs the previous bars white real body. Must be preceeded by
+an uptrend.
+*/
+
+//Hamging Man
+HangingMan = umbrellaline AND uptrend AND Ref(uptrend,-1);
+/*
+The same as a hammer except must be preceeded by an uptrend.
+*/
+
+//Shooting Star
+ShootingStar = smallRealBody AND shaven AND realBodyGapUp AND longuppershadow AND Ref(uptrend,-1);
+/*
+A small body that closes near the bottom of its range and
+has a long upper shadow. There must be a real body gap up from the previous sessions candle. This
+pattern occurs only after an uptrend.
+*/
+
+//Three Black Crows
+ThreeBlackCrows = (big AND blackbody) AND Ref(big AND blackbody, -1) AND Ref(big AND blackbody, -2) AND O < Ref(O,-1) AND Ref(O,-1) < Ref(O,-2) AND Ref(uptrend,-4);
+/*
+The last three candlesticks are large and black. Each opens within or lower than the
+previous candles real body.Must be preceeded by an uptrend.
+*/
+
+// Tri-Star Bottom
+TriStarBottom = firstDoji AND secDojiLower AND doji AND realBodyGapUp AND isPrevDownTrendx;
+/*
+A doji followed by a lower doji which is followed by another doji that is higher than the
+second doji. Must be preceeded by a downtrend.
+*/
+
+//Tweezer Tops
+TweezerTops = H == Ref(H,-1) AND Ref(big AND whitebody,-1) AND Ref(uptrend,-2);
+/* A large candle followed by a candle with the same high. Must be preceeded by an uptrend. */
+
+// Upside Gap Two Crows
+UpsideGapTwoCrows = Ref(big AND whitebody,-2) AND Ref(realBodyGapUp,-1) AND Ref(smallRealBody,-1) AND Ref(blackbody,-1) AND engulfing AND blackbody AND C > Ref((O+C)/2,-2) AND Ref(uptrend,-2);
+/* A strong white candle followed by a small black candle which gaps above the previous
+candles real body, followed by a black candle which engulfs the previous black candle. Preceeded by an uptrend. */
+
+//----------------------------------------
+// Bullish
+//----------------------------------------
+
+// Kicker
+KBL = Ref(O,-1) > Ref(C,-1) AND O >= Ref(O,-1) AND C > O;
+
+// Morning Star
+MorningStar = Ref(starDown,-1) AND whitebody AND big AND C > Ref((O + C)/2,-2);
+/*
+A large black candlestick followed by a small real body of either colour,
+that gaps below the previous black candles real body, with a third white candlestick, that has a close
+higher than the half way point of the first black candlestick. Must be preceeded by a downtrend.
+*/
+
+// Morning Doji Star
+MorningDojiStar = Ref(dojiStarDown,-1) AND whitebody AND big AND C > Ref((O + C)/2,-2);
+/*
+A large black candlestick followed by a doji that gaps below its real body, with a third
+white candlestick, that has a close at least half of the way up the black candlestick. Must be preceeded by a
+downtrend.
+*/
+
+// Bull 3 Formation
+Bull3Formation = bigwhite AND C > Ref(C,-4) AND
+Ref(H,-1) <= rwh AND Ref(L,-1) >= rwl AND
+Ref(H,-2) <= rwh AND Ref(L,-2) >= rwl AND
+Ref(H,-3) <= rwh AND Ref(L,-3) >= rwl AND
+Ref(isrising, -4);
+/*
+A strong white candle in a rising window, followed by three
+candles that fall within the high/low range of the strong white candle, followed
+by another strong white candle that closes above the close of the first white candle.
+This is confirmation of the Bullish trend."
+*/
+
+// Bullish Abandoned Baby
+BullishAbandonedBaby = morningdojistar AND Ref(GapDown(),-1) AND GapUp();
+/*
+A morning doji star where there is a gap between the lower shadow of the doji and
+the prior and next candle.
+*/
+// Bullish Belt Hold
+BullishBeltHold = belthold AND whitebody AND Ref(downtrend,-1);
+/*
+A large white candle with no upper or lower shadow preceeded by a downtrend.
+*/
+
+// Bullish Counter Attack
+BullishCounterAttack = Ref(big AND blackbody,-1) AND O < Ref(H,-1) AND C == Ref(C,-1) AND big AND whitebody AND Ref(downtrend,-1);
+/*
+A large black candle followed by a white candle which opens sharply lower but closes at the
+prior white candles close. Must be preceeded by a downtrend
+*/
+
+// Bullish Harami Cross
+BullishHaramiCross = doji AND Ref(O,-1) > O AND Ref(C,-1) < O AND Ref(big AND blackbody,-1) AND Ref(downtrend,-1);
+/*
+A doji preceded by and contained within the real body of a big
+black candlestick in a downtrend.
+*/
+
+// Bullish Harami
+BullishHarami = Ref(big AND blackbody,-1) AND smallRealBody AND Min(O,C) > Ref(C,-1) AND Max(O,C) < Ref(O,-1) AND Ref(downtrend,-1);
+/*
+A small candlestick, preceded by, and whose body is contained within a big black
+candlestick in a downtrend
+*/
+
+// Bullish Separating Line
+BullishSeparatingLine = Ref(blackbody AND big,-1) AND whitebody AND big AND O == Ref(O,-1) AND Ref(uptrend,-1);
+/*
+A black candlestick followed by a white candlestick with the same opening price. Continues
+the previous uptrend.
+*/
+
+//Dragonfly Doji
+DragonflyDoji = longleggeddoji AND H==C AND Ref(downtrend,-1);
+/*A doji with no upper shadow AND a long lower shadow preceeded by a downtrend.*/
+
+// Engulfing Bull
+EngulfingBull = Ref(blackbody,-1) AND whitebody AND engulfing AND Ref(downtrend,-1);
+/*
+This bar is white and its real body engulfs the previous bars black real body. Must be
+preceeded by a downtrend.
+*/
+
+// Hammer
+Hammer = umbrellaline AND Ref(downtrend,-1);
+/*
+The upper shadow is less than ten percent of the range
+and the lower shadow is more than two times the size of the body. Must be preceeded by a downtrend.
+*/
+
+//Inverted Hammer
+InvertedHammer = smallRealBody AND shaven AND realBodyGapDown AND longuppershadow AND Ref(downtrend,-1);
+/*
+An upside down Hammer that appears after a downtrend
+*/
+
+//Piercing Line
+PiercingLine = Ref(bigblack,-1) AND whitebody AND O < Ref(L,-1) AND C >= Ref((O+C)/2,-1) AND C < Ref(O,-1) AND Ref(downtrend,-1);
+/*
+A stong black candle followed by a white candle that opens below the low of
+the prior black candle but closes more than halfway into the black candles real body. Preceeded by a downtrend. Note that if the
+white candle engulfs the prior black candles real body then this is a Bullish Engulfing Pattern not a Piercing Pattern
+*/
+
+// SeperatingLines
+SeperatingLines = O == Ref(O,-1) AND (blackbody AND Ref(whitebody,-1) OR whitebody AND Ref(blackbody,-1));
+/*
+a black candlestick is followed by a white candlestick, or a white with a black,and they have the same opening prices.
+*/
+
+//Three White Soldiers
+ThreeWhiteSoldiers = (whitebody AND big) AND Ref(whitebody AND big,-1) AND Ref(whitebody AND big,-2) AND O > Ref(O,-1) AND Ref(O,-1) > Ref(O,-2);
+/*
+The last three candlesticks are large and white. Each opens within or higher than the
+previous candles real body.
+*/
+
+// Tri-Star Top
+TriStarTop = firstDoji AND secDojiHigher AND doji AND realBodyGapDown AND isPrevUpTrendx;
+/*
+A doji followed by a higher doji which is followed by another doji that is lower than the
+second doji. Must be preceeded by an uptrend.
+*/
+
+// Tweezer Bottoms
+TweezerBottoms = L == Ref(L,-1) AND Ref(big AND blackbody,-1) AND Ref(downtrend,-2);
+/* A large candle followed by a candle with the same Low. Must be preceeded by a downtrend. */
+
+//----------------------------------------
+// Continuation
+//----------------------------------------
+
+// Downward Gapping Tasuki
+DownwardGappingTasuki = isFallingBlack AND whitebody AND opensInside AND C > Ref(O,-1) AND windowOpen AND similarSize;
+/* A black candle that gaps down followed by a similarly sized white candle that opens Inside the black candles real body AND closes above it. */
+
+//Upward Gapping Tasuki
+UpwardGappingTasuki = isRisingWhite AND blackbody AND opensInside AND C < Ref(O,-1) AND windowOpenx AND similarSize;
+/* A white candle that gaps up followed by a similarly sized black candle that opens Inside the white candles real body AND closes below it; */
+
+//Inverted Black Hammer
+InvertedBlackHammer = blackbody AND InvertedHammer;
+
+STS = /*Bears*/
+WriteIf(KBR, "Bearish Kicker",
+WriteIf(EveningDojiStar, "Evening Doji Star",
+WriteIf(EveningStar, "Evening Star",
+WriteIf(GraveStoneDoji, "Grave Stone Doji",
+WriteIf(Bear3Formation, "Bear 3 Formation",
+WriteIf(BearishAbandonedBaby, "Bearish Abandoned Baby",
+WriteIf(BearishBeltHold, "Bearish Belt Hold",
+WriteIf(BearishCounterAttack, "Bearish Counter Attack",
+WriteIf(BearishHaramiCross, "Bearish Harami Cross",
+WriteIf(BearishHarami, "Bearish Harami",
+WriteIf(BearishSeparatingLine, "BearishSeparatingLine",
+WriteIf(DarkCloudCover, "DarkCloudCover",
+WriteIf(EngulfingBear, "Engulfing Bear",
+WriteIf(HangingMan, "Hanging Man",
+WriteIf(ShootingStar, "Shooting Star",
+WriteIf(ThreeBlackCrows, "Three Black Crows",
+WriteIf(TriStarBottom, "TriStar Bottom",
+WriteIf(TweezerTops, "Tweezer Tops",
+WriteIf(UpsideGapTwoCrows, "UpsideGapTwoCrows",
+/*Bulls*/
+WriteIf(KBL, "Bullish Kicker",
+WriteIf(MorningStar, "Morning Star",
+WriteIf(MorningDojiStar, "Morning Doji Star",
+WriteIf(Bull3Formation, "Bull 3 Formation",
+WriteIf(BullishAbandonedBaby, "Bullish Abandoned Baby",
+WriteIf(BullishBeltHold, "Bullish Belt Hold",
+WriteIf(BullishCounterAttack, "Bullish Counter Attack",
+WriteIf(BullishHaramiCross, "Bullish Harami Cross",
+WriteIf(BullishHarami, "Bullish Harami",
+WriteIf(BullishSeparatingLine, "Bullish Separating Line",
+WriteIf(DragonflyDoji, "Dragonfly Doji",
+WriteIf(EngulfingBull, "Engulfing Bull",
+WriteIf(Hammer, "Hammer",
+WriteIf(InvertedHammer, "Inverted Hammer",
+WriteIf(PiercingLine, "Piercing Line",
+WriteIf(SeperatingLines, "Seperating Lines",
+WriteIf(ThreeWhiteSoldiers, "Three White Soldiers",
+WriteIf(TriStarTop, "Tri-Star Top",
+WriteIf(TweezerBottoms, "Tweezer Bottoms",""))))))))))))))))))))))))))))))))))))));
+
+Filter = 1;
+
+Col = IIf(KBR OR EveningDojiStar OR EveningStar OR GraveStoneDoji OR Bear3Formation OR BearishAbandonedBaby
+OR BearishBeltHold OR BearishCounterAttack OR BearishHaramiCross OR BearishHarami OR BearishSeparatingLine
+OR DarkCloudCover OR EngulfingBear OR HangingMan OR ShootingStar OR ThreeBlackCrows OR TriStarBottom
+OR TweezerTops OR UpsideGapTwoCrows, colorRed, IIf( MorningStar OR MorningDojiStar OR Bull3Formation
+OR BullishAbandonedBaby OR BullishBeltHold OR BullishCounterAttack OR BullishHaramiCross
+OR BullishHarami OR BullishSeparatingLine OR DragonflyDoji OR EngulfingBull OR Hammer OR InvertedHammer
+OR PiercingLine OR SeperatingLines OR ThreeWhiteSoldiers OR TriStarTop OR TweezerBottoms OR KBL, colorGreen, 0));
+
+// END OF CANDLESTICK FORMATION
+
+Filter = V > 0;
+
+AddColumn(C, "Close", 1.2, colorBlack, colorLavender, 70);
+AddColumn(Prec(1-(Ref(C,-1)/C),2), "Change(%)",1.23,23,IIf(Prec(1-(Ref(C,-1)/C),2)>=0,colorLightBlue,colorRed),65);
+
+AddTextColumn(BreakThrough, "T3B Signal",1,IIf(Buy,colorGreen, IIf(Sell,colorRed,colorBlue)),colorWhite,75);
+AddTextColumn(CTOP, "C to P (%)",1,IIf(Buy,colorGreen, IIf(Sell,colorRed,colorBlue)),colorWhite,75);
+AddTextColumn(CTOT, "C to T (%)",1,IIf(Buy,colorGreen, IIf(Sell,colorRed,colorBlue)),colorWhite,75);
+AddColumn(CtoMAShort,"C vs MA"+NumToStr(MAShortPeriods,1)+"(%)",1.2,21,colorWhite,90);
+AddColumn(V, "Volume",1,21,colorWhite,70);
+AddColumn(V*(H+L)/2, "Value",1,21,colorWhite,90);
+AddTextColumn(VolMultiple, "Average",1,21,colorWhite,65);
+AddTextColumn(MACD_Info, "MACD Histogram", 0, warnaMACD, colorWhite, 80);
+// AddTextColumn(MACD_Divergence_info, "MACD Div", 0, warnaDivMACD, colorWhite, 90);
+AddTextColumn(NamaWarnaCandle, "OS Color",1,WarnaCandle, WarnaCandle , 70);
+/*
+AddTextColumn(trend1, NumToStr(p1,1.0) + " d trend",1,trendcolor1, colorWhite);
+AddTextColumn(trend2, NumToStr(p2,1.0) + " d trend",1,trendcolor2, colorWhite);
+AddTextColumn(trend3, NumToStr(p3,1.0) + " d trend",1,trendcolor3, colorWhite);
+*/
+AddTextColumn(MA1vsMA2_Info,"MA"+NumToStr(MAShortPeriods,1.0)+" vs "+"MA"+NumToStr(MAMedPeriods,1.0),1,21,colorWhite);
+AddTextColumn(MA1vsMA3_Info,"MA"+NumToStr(MAShortPeriods,1.0)+" vs "+"MA"+NumToStr(MALongPeriods,1.0),1,21,colorWhite);
+AddTextColumn(MA2vsMA3_Info,"MA"+NumToStr(MAMedPeriods,1.0)+" vs "+"MA"+NumToStr(MALongPeriods,1.0),1,21,colorWhite);
+AddColumn((BP-BT)/BP*100, "BP-BT%",1.2,21, colorYellow, 55);
+AddColumn((BP-BT)/BT*100, "BT-BP%",1.2,21, colorYellow, 55);
+AddColumn(Pos, "KS Line %",1.2,21,colorWhite,65); //persen posisi KLine
+AddColumn(Cto3M, "3M Price Change(%)",1.2,IIf(Cto3M > 0, colorGreen, colorRed), colorWhite);
+AddTextColumn(RSI_Info,"RSI("+RSIPeriod+")",1,21,colorWhite);
+AddTextColumn(CCI_Info,"CCI("+CCIPeriod+")",1,21,colorWhite);
+AddTextColumn(sts, "Candle", 1.0, Col, colorDefault,100);
+
+// VOLUME OVERLAY
+if (ParamToggle("Volume at Price","Tidak|Ya",1))
+PlotVAPOverlay( Param("Lines",1000,1,1000), Param("Width",50,1,50), ParamColor("Volume at Price Color", colorAqua ), 7);
+ColorVolDn = ParamColor("Volume Down Color", ColorRGB(207,166,149));
+ColorVolUp = ParamColor("Volume Up Color", ColorRGB(165,192,150));
+ColorVolFl = ParamColor("Volume Flat Color", ColorRGB(193,193,193));
+
+WarnaVol = IIf(O < C,ColorVolUp,
+IIf(O > C, ColorVolDn,
+ColorVolFl));
+
+VScale = Param( "1/N Scale", 2, 1, 10, 0.5 );
+
+//VMARange = Param("VMA Range",125,1,1000,1);
+//VMA = MA(V, VMARange);
+
+if (ParamToggle("Tampilkan Volume","Tidak|Ya",1))
+{
+Plot( V, _DEFAULT_NAME(), WarnaVol , styleHistogram | styleThick | styleOwnScale | styleNoTitle | styleNoLabel, VScale,Null, -10 , -50);
+// Plot(VMA, "VMA"+VMARange, ColorRGB(124,134,108), styleOwnScale , VScale, Null, 0, -9, 1);
+}
+_SECTION_END();

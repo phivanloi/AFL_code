@@ -1,0 +1,159 @@
+_SECTION_BEGIN("MACD indicator display3_10_16");
+//------------------------------------------------------------------------------
+//
+//  Formula Name:    MACD indicator display
+//  Author/Uploader: Paul Moore 
+//  E-mail:          
+//  Date/Time Added: 2006-05-21 19:36:21
+//  Origin:          
+//  Keywords:        MACD
+//  Level:           medium
+//  Flags:           indicator
+//  Formula URL:     http://www.amibroker.com/library/formula.php?id=622
+//  Details URL:     http://www.amibroker.com/library/detail.php?id=622
+//
+//------------------------------------------------------------------------------
+//
+//  Sometimes, it can be difficult to view the MACD histogram bars when the
+//  MACD lines are very close together, causing the bars to be very short. This
+//  indicator automatically adjusts the scaling of the MACD histogram bars such
+//  that they occupy the maximum area in its indicator pane.
+//
+//------------------------------------------------------------------------------
+
+PeriodFast = Param( "Fast EMA", 3, 2, 200, 1 );
+PeriodSlow = Param( "Slow EMA", 10, 2, 200, 1 );
+PeriodSignal = Param( "Signal EMA", 16, 2, 200, 1 );
+MACDInd = MACD(PeriodFast, PeriodSlow );
+SigInd = Signal(PeriodFast, PeriodSlow , PeriodSignal );
+HistInd = MACDInd - SigInd ;
+_N( macdStr = WriteVal( PeriodFast, 1.0 )+","+WriteVal( PeriodSlow , 1.0 ) );
+_N( sigStr = macdStr + ","+WriteVal( PeriodSignal , 1.0 ) );
+
+// Get displayed min and max value of MACD and MACD-H, to rescale it for better visibility
+// BarsDisplayed = BarsSince( Status("barvisible") AND NOT Ref(Status("barvisible"),-1)  );
+BarsDisplayed = IIf( IsEmpty(BarsSince( Status("barvisible") AND NOT Ref(Status("barvisible"),-1) ) ),
+                     BarIndex(),
+                     BarsSince( Status("barvisible") AND NOT Ref(Status("barvisible"),-1) ) );
+scMACDMax = LastValue(HHV(Max(MACDInd, sigInd), BarsDisplayed ) );
+scMACDMin = LastValue(-HHV(Max(-MACDInd, -sigInd), BarsDisplayed ) );
+scaleMACD = Max( abs(scMACDMax), abs(scMACDMin) ); 
+
+//////////////////////////////////////////////////////
+
+scHistMax = LastValue(HHV(HistInd, BarsDisplayed ) );
+scHistMin = LastValue(LLV(HistInd, BarsDisplayed ) );
+scaleHist = Max( abs(scHistMax), abs(scHistMin) );
+////////////////////////
+
+
+MD=MACDInd;
+SD=SigInd;
+X=abs(MD-SD);
+
+
+ColorMD=IIf(MD>Ref(MD,-1),colorYellow,colorRed);
+
+
+
+//HistColour = IIf( HistInd > Ref(HistInd,-1), ColorRGB(0,120,10), colorCustom13 ); 
+//Plot( HistInd, "", HistColour, styleHistogram  | styleThick | styleOwnScale|styleNoLabel, -scaleHist * 1.2, scaleHist * 1.2 );
+
+//Plot( HistInd, "", HistColour, styleDots  | styleThick | styleOwnScale , -scaleHist * 1.2, scaleHist * 1.2 );
+
+Plot( MD*3, "", ColorMD,styleNoLabel|styleThick);
+Plot( SD*3 , "", colorGold,styleNoLabel|styleThick|styleDashed);
+
+
+
+
+_SECTION_END();
+
+// Paste the code below to your price chart somewhere and green ribbon means both
+// both MACD and ADX trending up so if the red ribbon shows up the MACD and the ADX 
+// are both trending down.
+
+_SECTION_BEGIN("trending ribbon");
+uptrend=PDI()>MDI()AND Signal()<MACD();
+downtrend=MDI()>PDI()AND Signal()>MACD();
+
+
+//Plot( 5, /* defines the height of the ribbon in percent of pane width */"ribbon",
+//IIf( uptrend, colorGreen, IIf( downtrend, colorRed, 0 )), /* choose color */styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+
+Color00=IIf( uptrend, ColorRGB(10,200,20), ColorRGB(100,10,120));
+Plot( 0 , "", Color00,styleNoLabel|styleThick);
+
+Color0=IIf( uptrend, ColorRGB(10,200,20), ColorRGB(30,10,20));
+PlotOHLC( 0, 0.5 , -0.5 ,-0.5 , "MACD31016", IIf(0.5 > -0.5 ,Color0,Color0), styleCloud|styleNoLabel);
+
+
+//////////////////////////////////////////TTM SQUEEZE////////////////////////////////////////////////////////
+
+function Momentum( array, period )
+{
+  return array - Ref( array, -period );
+}
+
+
+
+chanPeriod     = Param("Channel Period", 20);
+bolBandStdDev  = Param("Bollinger Band StdDev",2);
+keltStdDev     = Param("Keltner Band StdDev",1.5);
+momPeriod      = Param("Momemtum Period", 12 );
+momEMA         = Param("Momentum EMA Period", 5);
+
+highBBChl = BBandTop( C, chanPeriod, bolBandStdDev);
+lowBBChl  = BBandBot( C, chanPeriod, bolBandStdDev); 
+
+centerLine = MA( C, chanPeriod );
+highKeltn  = centerLine + keltStdDev * ATR(chanPeriod);
+lowKeltn   = centerLine - keltStdDev * ATR(chanPeriod);
+
+momHist = EMA(Momentum(C, momPeriod),momEMA);
+
+BBUp  = IIf(highBBChl > highKeltn AND momHist > 0, momHist, 0);
+BBDo  = IIf(lowBBChl < lowKeltn AND momHist < 0, momHist, 0);
+BBMid = IIf(BBUp == 0 AND BBDo == 0, momHist, 0);
+
+
+Buy  = BBUp; 
+Sell = BBDo; 
+
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+ColorA=IIf(BBUp>Ref(BBUp,-1),ColorRGB(0,150,0),ColorRGB(0,70,100));
+ColorB=IIf(BBDo>Ref(BBDo,-1),ColorRGB(150,0,0),ColorRGB(70,0,100));
+
+Plot(BBUp, "TTM Squeeze - Momentum Up", ColorA,styleHistogram  | styleThick|styleNoLabel);
+Plot(BBUp, "TTM Squeeze - Momentum Up", ColorA,styleThick  | styleThick|styleNoLabel);
+
+Plot(BBDo, "Momentum Down", ColorB, styleHistogram  | styleThick|styleNoLabel);
+Plot(BBDo, "Momentum Down", ColorB, styleThick  | styleThick|styleNoLabel);
+
+Plot(BBMid, "Momentum Mid", IIf(BBMid > 0, colorLightBlue, colorBrown), styleHistogram  | styleThick|styleNoLabel);
+Plot(BBMid, "Momentum Mid", IIf(BBMid > 0, colorLightBlue, colorBrown), styleThick  | styleThick|styleNoLabel);
+
+
+PlotShapes( shapeUpArrow*Buy, colorBrightGreen,0, 0, 0); 
+PlotShapes( shapeDownArrow*Sell, colorRed,0, 0, 0); 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
+Buy=Cross(MD,SD) AND SD>=Ref(SD,-1);
+Sell=Cross(SD,MD) AND SD<=Ref(SD,-1);
+
+Filter =(Buy AND BBDo>=Ref(BBDo,-1)AND BBDo<-30) OR (Sell AND BBUp<=Ref(BBUp,-1)AND BBUp>30);
+
+
+
+
+AddColumn( Buy, "Buy", 1.2 );
+AddColumn( Sell, "Sell", 1.2 );
+AddColumn(Close,"Close",1.2);
+AddColumn(Volume,"Volume",1.0);
+AddColumn(V/EMA(V,10),"Vspurt",1.0);
+AddColumn( RSI(), "RSI", 1.2 );
+AddColumn( BBUp, "BBUp", 1.2 );
+AddColumn( BBDo, "BBDo", 1.2 );
+_SECTION_END();

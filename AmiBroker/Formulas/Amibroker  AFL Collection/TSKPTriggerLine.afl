@@ -1,0 +1,3 @@
+// tskp_upsell, tskp_triggerline, tskp_triggerlinevma
+sw = E_TSKPUPSELL(Open,High,Low,Close,Volume);
+Plot( tskp_triggerline, _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style",style=styleNoLabel, mask=maskDefault) ); 

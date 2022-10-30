@@ -1,0 +1,67 @@
+blsLong = 0;
+
+KP115Val = E_TSKP115SPLIT(High,Low,Close);
+KP104Val = E_TSKP104(High,Low,Close); 
+dummy = E_TSKPMEDIUM(Close);
+KPMediumUpVal = tskp_mediumup;
+KPMediumDnVal = tskp_mediumdown;
+UpperBand = BBandTop(Close,20,1);
+LowerBand = BBandBot(Close,20,1);
+swVal = E_TSKPSWINGLINE(High,Low,Close);
+MeanSwingLnVal = tskp_swmean;
+
+
+Ctmpl = E_TSKPCOLORTMPL(Open,High,Low,Close,Volume);
+sctotal = 0;
+sctotal = sctotal  + IIf(tskp_colortmplcnd0 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd1 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd2 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd3 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd4 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd5 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd6 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd7 > 0, 1, -1); 
+sctotal = sctotal  + IIf(tskp_colortmplcnd8 > 0, 1, -1); 
+
+
+// -- Create 0-initialized arrays the size of barcount
+aHPivs = H - H;
+aLPivs = L - L;
+aHiVal = H - H;
+aLoVal = L - L;
+
+
+
+for (curBar=5; curBar < BarCount-1; curBar++)
+{
+	if (blsLong != 1) {
+		if( (sctotal[curBar] >= 5) AND (KPMediumUpVal[curBar] > 1.75) AND (Close[curBar] > UpperBand[curBar]) 	
+			AND (Close[curBar] > KP115Val[curBar]) AND (Close[curBar] > KP104Val[curBar]) 
+			AND (High[curBar] > High[curBar-3]) AND (Close[curBar] > Close[curBar-3]) 
+			AND (Close[CurBar] > MeanSwingLnVal[CurBar] ) ){
+				blsLong = 1;
+				aLPivs[curBar] =1;
+				aLoVal[curBar] = Low[curBar];
+		}
+	}
+	else if (blsLong != -1) {
+		if( (sctotal[curBar] <= -5) AND (KPMediumDnVal[curBar] < -1.75) AND (Close[curBar] < LowerBand[curBar]) 	
+			AND (Close[curBar] < KP115Val[curBar]) AND (Close[curBar] < KP104Val[curBar]) 
+			AND (Low[curBar] < Low[curBar-3]) AND (Close[curBar] < Close[curBar-3])
+			AND (Close[curBar] < MeanSwingLnVal[curBar] ) ){
+				blsLong = -1;
+				aHPivs[curBar] =1;
+				aHiVal[curBar] = High[curBar];
+			}
+	}
+}
+
+PlotShapes(
+IIf(aHPivs == 1,  shapeCircle,shapeNone), colorYellow,0, aHiVal+0.00, Offset = 35);
+
+PlotShapes(
+IIf(aLPivs == 1,  shapeCircle,shapeNone), colorYellow,0, aLoVal-0.00, Offset = -35);
+
+
+
+				

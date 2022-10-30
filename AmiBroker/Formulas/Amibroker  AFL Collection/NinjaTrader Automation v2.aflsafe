@@ -1,0 +1,294 @@
+ /* NinjaTrader Automation v2*/  
+/* Author Marc Valley Copyright  2004  All rights Reserved */
+/* Use constitutes an agreement to hold Marc Valley harmless and no warranties are made even for a particular purpose. */
+/* User assumes all the substantial risk of loss. */
+/*For Educational purposes only */
+AutomationSwitch = 1; //Switch Automation   On or OFF   OFF ==0 and On==1;
+Simulatortype =1;// A Value of ZERO sends a LIVE order, because SIMULATOR IS OFF // A Value of 1 sends the order to the Simulator //  The default order goes to the simulator
+
+////////// Buy Sell Rules 
+ 
+ 
+Buy = (Name() == "ES H4") AND INSERT Buy RULES HERE);
+Sell = INSERT Sell RULES HERE);
+Short=Sell; 
+Cover=Buy; 
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); Short=ExRem(Short,Cover); Cover=ExRem(Cover,Short); 
+ 
+Equity(1); 
+
+BIR = IIf(Status("BarInRange") > 0, 1, 0);
+
+CurEq = Equity();
+
+MaxEq = Highest(CurEq);
+
+CurDD = IIf(BIR, 100 * (MaxEq - CurEq) / MaxEq, 0);
+
+MaxDD = Highest(CurDD);
+
+NumOfShares = round(CurEq / Close);
+
+Commission = NumOfShares * (2*.005); // RoundTurn Commission Setting .005 * 2 for trades greater that 500 shares - Change as Needed 
+
+BP1 = ValueWhen( Buy, C, 1);  //BP1 = BuyPrice;
+
+SP1 = ValueWhen( Sell, C, 1);  //SP1 = SellPrice;
+
+Profit = (( SP1 - Ref( BP1,-1) ) * NumOfShares) - Commission ;
+
+CumProfit = Cum( IIf( IsEmpty( Profit * Sell ), 0, Profit * Sell ) );
+
+Filter = Buy ; 
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// REMEMBER THIS FILE GENERATES REAL ORDER FILES - USE IN SIMULATION MODE TO TEST AND REMOVE ALL TEST ORDER FILES BEFORE LOADING FOR LIVE TRADING -
+ 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////// ASCII OIF Export Generation for Passive Automation - Insert your own values - Trade at your own risk ////
+//////// Assigning a value of "1" to AutomationSwitch turns on Automated file generation, when everything is properly set up.  You are responsible to set it up properly. If you do not understand it. Do not use it.
+//////// Assigning a value of "1" to AutomationSwitch Acknowledges and Agrees to Hold Marc Valley Harmless.  - Marc Valley (C) 2004   All rights reserved
+/////// DayTrading people can and do lose money - With Automated trading you can lose money while you sleep !!!  Consult a professional - Do not trade until you understand and are wiling to assume all risk.
+/////// You are responsible to insert your own settings and values for the system you are trading - Do Not assume the values contained will be profitable.
+
+
+AutomationSwitch = 1; //Switch Automation   On or OFF   OFF ==0 and On==1;
+Simulatortype =1;// A Value of ZERO sends a LIVE order, because SIMULATOR IS OFF // A Value of 1 sends the order to the Simulator //  The default order goes to the simulator
+
+/* ALERT BUY SELL CODE */
+//// FOR TEST PURPOSES ONLY - USE ONLY BUY OR SELL AT ONE TIME, NOT BOTH;
+//Buy=1;  // Remove the // to genereate a "Fake" "BUY" signal for automation testing ONLY  /////////////////////////// FOR GENERATING A FAKE BUY SIGNAL TO TEST FILE OUTPUT ORDER FILE order.txt
+//Sell = 1;  // Remove the // to genereate a "Fake" "BUY" signal for automation testing ONLY  /////////////////////////// FOR GENERATING A FAKE SELL SIGNAL TO TEST FILE OUTPUT ORDER FILE order.txt
+
+
+Action1 = "BUY";   //BUY
+Action2 = "SELL";   //SELL
+Action3= " ";
+Action=Buy OR Sell;
+Actions=Action;  // Valid actions are BUY or SELL
+Actions = WriteIf(Action==1,Action1,WriteIf(Action==2,Action2,Action3));
+
+ContractsOrShareSize = 1; //-100 means spend 100% of capital on position or select integer for share size
+PositionSize1 = ContractsOrShareSize;
+PositionSize2 = 0;
+PositionSize = -100;
+shareqty1 = PositionSize1;  
+shareqty2 = PositionSize2 ;
+symbol = Name();  //Symbol Name  Any valid IB symbol
+SecType = 1;  // Choose 1 for futures, 2 for stocks or 3 for blank  //Valid types are FUT for futures or STK for stocks
+SecType1 = "FUT";
+SecType2 = "STK";
+SecType3 = "";
+SecTypes = SecType;
+SecTypes = WriteIf( SecType==1, SecType1, WriteIf( SecType ==2, SecType2, SecType3));
+
+expiry = ""; //WriteIf( SecType ==1, "200307", SecType3) ;  // Expiration date in format "YYYYMM"
+
+Exchange = 3;
+Exchange1 = "GLOBEX";
+Exchange2 = "ACE";
+Exchange3 = "SMART";
+Exchanges = Exchange;
+Exchanges = WriteIf( Exchange==1, Exchange1, WriteIf( Exchange==2, Exchange2, Exchange3));
+
+exittype =2;
+exittype1 = "MANUAL";
+exittype2 = "BRACKET";
+exittype3 = "SCALE";
+exittypes = WriteIf( exittype ==1, exittype1 , WriteIf( exittype ==2, exittype2 , exittype3 ));
+
+ordertype =2; // BUYORDERTYPE and SELLORDERTYPE
+ordertype1 = "MKT";
+ordertype2 = "LMT";
+ordertype3 = "STP";
+ordertype4 = "STP LMT";
+ORdertypes = ORdertype;
+ORdertypes = WriteIf(ORdertype ==1,ORdertype1, WriteIf(ORdertype ==2,ORdertype2, WriteIf(ORdertype ==3,ORdertype3, ORdertype4))) ;
+
+buylimitprice = Close;  //Buylimit Price -- insert your own formula to calculate the buy limit price
+Limitprice = buylimitprice;   //Must contain A minimum value of "0"
+buylimitprice2 = WriteVal(0 ,1.0) ;  //Buylimit Price -- insert your own formula to calculate the buy limit price 2
+Limitprice2 = buylimitprice2;   //Must contain A minimum value of "0"
+
+orderstopprice = WriteVal(0 ,1.0) ;//WriteVal((Close-(Close * .10)),format=1.2);  // 10% PROTECTIVE STOP Placed at the same time as the entry order
+stopprice = orderstopprice;  // This is the STOP value for the entry order. Must contain a minimum value of "0"
+orderstopprice2 = WriteVal(0 ,1.0) ;//WriteVal((Close-(Close * .10)),format=1.2);  // 10% PROTECTIVE STOP Placed at the same time as the entry order
+stopprice2 = orderstopprice2;  // This is the STOP value for the entry order. Must contain a minimum value of "0"
+Sellimitprice = 0;  
+dummyprice =0;
+
+
+//OFFSETS
+Offset1 = ".07";
+targetoffset1 = Offset1;  //Must contain a minimum value of "0"
+Offset2 = 0;
+targetoffset2 = Offset2;  //Must contain a minimum value of "0"
+Offset3 = ".12";
+stopoffset = Offset3; // Must contain A minimum value of "0"  If your order is filled at 20.00, then the STOP would be at 19.90
+Offset4 = ".10";
+stoplimitoffset = Offset4; // Must contain A minimum value of "0"
+Offset5 =0 ; // WriteVal((Close +(.05)),format=1.2);  // TARGET PROFIT Placed at the same time as the entry order // Direct Automation
+targetoffset5 = Offset5;  //Must contain a minimum value of "0"   // Direct Automation
+Offset6 = 0; 
+targetoffset6 = Offset6;  //Must contain a minimum value of "0"
+Offset7 = 0;
+stopoffset7 = Offset7; // Must contain A minimum value of "0"  If your order is filled at 20.00, then the STOP would be at 19.90  // Direct Automation
+
+
+
+breakeventriggeroffset = 0;
+breakevenoffset = breakeventriggeroffset;  //Must contain a minimum value of "0"
+breakevenplus = 1;  //Default is True
+breakevenplus1 = "TRUE";  
+breakevenplus2 = "FALSE";
+breakevenplustypes = WriteIf(breakevenplus ==2,breakevenplus2 ,breakevenplus1 );  //Valid values are "TRUE" or "FALSE"
+
+//INCREMENTS
+Increment = SecType;
+Increment1 = ".50";
+Increment2 = ".01";
+Increment3 = "0";
+Increments = Increment;
+Increments = WriteIf( Increment ==1, Increment1 , WriteIf( Increment ==2, Increment2 , Increment3 ));
+
+
+// EXIT ORDER TYPES  
+// Valid types are ordertype3 = "STP"; and ordertype4 = "STP LMT";
+
+ExitOrderType = 4; //EXITORDERTYPE
+exitordertype1 = "MKT";
+exitordertype2 = "LMT";
+exitordertype3 = "STP";
+exitordertype4 = "STP LMT";
+ExitOrderTypes= ExitOrderType;
+ExitOrderTypes= WriteIf(exitORdertype ==4,exitordertype4, WriteIf(exitORdertype ==3,exitordertype3, WriteIf(exitORdertype ==2,exitordertype2, exitordertype1))) ;
+
+TimeInForce = 1;
+TimeInForce1 = "DAY";
+TimeInForce2 = "GTC";
+TimeInForce3 = "IOC";
+TimeInForces = TimeInForce;
+TimeInForces = WriteIf(TimeInForce ==3,TimeInForce3,WriteIf(TimeInForce ==2,TimeInForce2,TimeInForce1));
+
+//Simulatortype =0;// A Value of 1 =TRUE and sends the order to the Simulator // A Value of ZERO means FALSE and therefroe NO SIMULATOR AND SENDS a LIVE order that will wait in the AT folder to be  executed.
+Simulatortype1 = "TRUE";
+Simulatortype2 = "FALSE";
+Simulatortype3 = "FALSE";
+Simulatortypes = WriteIf( Simulatortype ==1, Simulatortype1 , WriteIf( Simulatortype ==0, Simulatortype2 , Simulatortype3 ));
+
+strategyname = "ESTest101"; // You must set up a Strategy in Strategy Manager of NT
+
+
+//////////////////// NINJATRADER OIF INTEGRATION 
+
+/////////// Ninja Trader Automation - START ///////////////
+
+fileischanged = 0;
+
+if (LastValue(Buy) == 1 AND AutomationSwitch ==1) {
+
+mvOrderOIF = 
+"ES" + 
+","+ ContractsOrShareSize +  
+","+ TimeInForces  +  
+","+ WriteIf(Buy,Action1,Action3) +  
+"," + ORdertypes  +  
+","+ WriteVal(Limitprice ,1.2) +  
+","+
+","+
+","+ 
+","+  
+","+  
+"," + Simulatortypes  +  
+"," + strategyname +   ",";
+
+mvOrderOIFLog = 
+Name() +
+","+ ContractsOrShareSize +  
+","+ TimeInForces  +  
+","+ WriteIf(Buy,Action1,Action3)  +  
+"," + ORdertypes  +  
+","+ WriteVal(Limitprice ,1.2) +  
+","+
+","+
+","+
+","+  
+","+   
+"," + Simulatortypes  +  
+"," + strategyname +   "," + Date()  +","+WriteVal(Close ,1.4) +"\n";
+
+
+  filepath="C:\\Program Files\\NinjaTrader\\NinjaTrader Version 3\\AT\\order.txt";
+  filehandle=fopen(filepath, "w");
+  fputs(mvOrderOIF, filehandle);
+  fclose(filehandle);
+
+  filepath="C:\\Program Files\\NinjaTrader\\NinjaTrader Version 3\\DATA\\ATorderlog.txt";
+  filehandle=fopen(filepath, "a");
+  fputs(mvOrderOIFLog, filehandle);
+  fclose(filehandle);
+
+
+  fileischanged=1;
+
+};
+
+/////////////////// Sell Automation
+
+fileischanged = 0;
+
+if (LastValue(Sell) == 1 AND AutomationSwitch ==1) {
+
+mvOrderOIF = 
+"ES" +
+","+ ContractsOrShareSize +  
+","+ TimeInForces  +  
+","+ WriteIf(Sell,Action2,Action3) +  
+"," + ORdertypes  +  
+","+ WriteVal(Limitprice ,1.2) +  
+","+ 
+","+ 
+","+
+","+   
+","+  
+"," + Simulatortypes  +  
+"," + strategyname +   ",";
+
+mvOrderOIFLog = 
+Name() + 
+","+ ContractsOrShareSize +  
+","+ TimeInForces  +  
+","+ WriteIf(Sell,Action2,Action3)  +  
+"," + ORdertypes  +  
+","+ WriteVal(Limitprice ,1.2) +  
+","+
+","+
+","+
+","+
+","+   
+"," + Simulatortypes  +  
+"," + strategyname +   "," + Date()  +","+WriteVal(Close ,1.4) +"\n";
+
+
+  filepath="C:\\Program Files\\NinjaTrader\\NinjaTrader Version 3\\AT\\order.txt";
+  filehandle=fopen(filepath, "w");
+  fputs(mvOrderOIF, filehandle);
+  fclose(filehandle);
+
+  filepath="C:\\Program Files\\NinjaTrader\\NinjaTrader Version 3\\DATA\\ATorderlog.txt";
+  filehandle=fopen(filepath, "a");
+  fputs(mvOrderOIFLog, filehandle);
+  fclose(filehandle);
+
+
+  fileischanged=1;
+
+};
+
+/////////////  NinjaTrader integration code - end //////////

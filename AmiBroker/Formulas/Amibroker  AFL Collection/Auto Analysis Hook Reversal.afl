@@ -1,0 +1,5 @@
+/*Hook Reversals Automatic Analysis
+by Larry Lovrencic*/
+
+buy=O<(L+0.2*(H-L)) AND C>(H-0.2*(H-L)) AND H<ref(H,-1) AND L>ref(L,-1);
+sell=O>(L+0.8*(H-L)) AND C<(H-0.8*(H-L)) AND H<ref(H,-1) AND L>ref(L,-1);

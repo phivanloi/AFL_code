@@ -1,0 +1,118 @@
+/*
+Data Purity IT 1.0 by MSR Murthy
+I enjoyed coding this and using this. Hope you too will. 
+This will NOT change any data in your database, but only will show the suspected data.
+This can be run in all the modes namely the Chart, Scan & the Explore modes
+The BUY / COVER / SELL / SHORT are used only to facilitate navigation and are NOT repeat NOT Buy/cover/sell/short signals.
+In the present version it will show the suspected data, with colors in exploration mode indicating the type of suspected error.
+
+You can reduce the scope by selecting the 'Apply To' and the 'Range' while running the AFL.
+The scope may be further be changed by changing the parameters TCRLIMIT, HL_LIMIT & the OP_LIMIT.
+
+In this version, only the suspected data is shown without making any suggestions.
+This version may be used by all, but the next version by those with some familiarity with AB.
+
+Next version needs assigning a fullname() to each stock to match with the symbol of the 'other' exchange using a suitable format file and data.
+In the next version, lternate values will be presented.
+The Alternate values for NSE stocks are obtained from the corresponding BSE stock and vice versa.
+Some code present in this is intended for use the next version, just ignore such extra code.
+
+Any feedback is welcome.
+This AFL is posted in the INDITRADERS forum.
+*/
+
+TCRLIMIT = Param( "TCr Above", 10, 0, 100, 1);
+HL_LIMIT = Param( "HL Spike Limit", 10, 2, 10, 1);
+OP_LIMIT = Param( "Open Limit", 10, 0, 10, 1);
+
+///////////////////////////////
+T1 = C*V/10000000;
+TCRM = MA(C*V/10000000,22);
+
+FG0 =  TCRM>TCRLIMIT AND V>500;
+O2C = 100*(C-O)/C;
+
+////////////////////////////////////////
+X2O = 100*(O-Ref(C,-1))/Ref(C,-1);
+X2H = 100*(H-Ref(C,-1))/Ref(C,-1);
+X2L = 100*(L-Ref(C,-1))/Ref(C,-1);
+X2C = 100*(C-Ref(C,-1))/Ref(C,-1);
+
+HILIMIT = (Max(O,C) + Ref(EMA(H-Max(O,C),3),-1))*(1+HL_LIMIT/100);
+LOLIMIT = (Min(O,C) - Ref(EMA(Min(O,C),3)-L,-1))*(1-HL_LIMIT/100);
+
+/////////////////////////////////////// Foreign
+FNAME = "";
+FNAME = StrRight(FullName(),6);
+FO 	= Foreign( FNAME, "Open" );
+FH 	= Foreign( FNAME, "High" );
+FL 	= Foreign( FNAME, "Low" );
+FC	= Foreign( FNAME, "Close" );
+FV	= Foreign( FNAME, "Volume" );
+
+/////////////////////////////////////////// CHARTING
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+_N(Title = StrFormat("Purity - {{NAME}} - {{INTERVAL}} - {{DATE}} ::: O= %.2f : FO= %.2f --- H= %.2f : FH= %.2f --- L= %.2f : FL= %.2f --- C= %.2f : FC= %.2f " + 
+"{{VALUES}}", O, FO, H, FH, L, FL, C, FC));
+
+ToolTip =
+"Name/FName     : " + Name() + " / ( " + FName + " )" +
+"\nV/T1/TM : " + WriteVal(V,1.0) + " / " + WriteVal(T1,1.0) + WriteVal(TCRM,1.0) +
+"\n" +
+"\nLow/%X2L  : " + WriteVal(L,1.2) + WriteVal(X2L,1.2)+ 
+"\nOpen/%X2O : " + WriteVal(O,1.2) + WriteVal(X2O,1.2)+
+"\nHigh/%X2H : " + WriteVal(H,1.2) + WriteVal(X2H,1.2)+ 
+"\nClose/%X2C: " + WriteVal(C,1.2) + WriteVal(X2C,1.2) ;
+
+Plot( C, "Close", IIf(C>Ref(C,-1),colorGreen,colorRed), styleNoTitle|styleCandle|styleThick); 
+_SECTION_END();
+
+
+{
+//////////////////////////////////////// Scan & Exploration
+
+OLZ = IIf(FG0 AND O-L<=0 AND X2O<-OP_LIMIT ,1,0);
+OHZ = IIf(FG0 AND O-H>=0 AND X2O>=OP_LIMIT ,1,0);
+
+LCZ = IIf(FG0 AND O-H<0 AND O-L>0 AND C-L<=0,1,0);
+HCZ = IIf(FG0 AND O-H<0 AND O-L>0 AND C-H>=0,1,0);
+
+LLZ = IIf(FG0 AND O-H<0 AND O-L>0 AND C-H<0 AND C-L>0 AND L< LOLIMIT,1,0);
+HHZ = IIf(FG0 AND O-H<0 AND O-L>0 AND C-H<0 AND C-L>0 AND H>=HILIMIT,1,0);
+
+Buy   = OLZ;
+Cover = OHZ;
+Sell  = (LCZ OR HCZ);
+Short = (HHZ OR LLZ);
+//Short = 0;
+
+Filter = Buy OR Sell OR Short OR Cover;
+SetOption("NoDefaultColumns", True );
+
+AddColumn(X2L, "X2L", format=1.1,IIf(LLZ,colorBrown,colorDefault),IIf(OLZ OR LCZ,colorLightOrange,colorDefault));
+AddColumn(X2O, "X2O", format=1.1,colorDefault, IIf(OHZ, colorPaleGreen, IIf(OLZ,colorLightOrange,colorDefault)));
+AddColumn(X2H, "X2H", format=1.1,IIf(HHZ,colorGreen,colorDefault),IIf(OHZ OR HCZ,colorPaleGreen,colorDefault));
+AddColumn(X2C, "X2C", format=1.1,colorDefault,IIf(HCZ,colorPaleGreen,IIf(HCZ OR LCZ,colorLightOrange,colorDefault)));
+
+
+AddTextColumn( Name(), "Name",width=-1);
+AddColumn(DateTime(), "Quote Dt", formatDateTime);
+
+AddColumn(L, "Low ", format=1.2,IIf(LLZ,colorBrown,colorDefault),IIf(OLZ OR LCZ,colorLightOrange,colorDefault));
+AddColumn(FL, "FLow ", format=1.2,IIf(LLZ,colorBrown,colorDefault),IIf(OLZ OR LCZ,colorLightOrange,colorDefault));
+
+AddColumn(O, "Open", format=1.2,colorDefault, IIf(OHZ, colorPaleGreen, IIf(OLZ,colorLightOrange,colorDefault)));
+AddColumn(FO, "FOpen", format=1.2,colorDefault, IIf(OHZ, colorPaleGreen, IIf(OLZ,colorLightOrange,colorDefault)));
+
+AddColumn(H, "High", format=1.2,IIf(HHZ,colorGreen,colorDefault),IIf(OHZ OR HCZ,colorPaleGreen,colorDefault));
+AddColumn(FH, "FHigh", format=1.2,IIf(HHZ,colorGreen,colorDefault),IIf(OHZ OR HCZ,colorPaleGreen,colorDefault));
+
+AddColumn(C, "Close", format=1.2,colorDefault,IIf(HCZ,colorPaleGreen,IIf(HCZ OR LCZ,colorLightOrange,colorDefault)));
+AddColumn(FC, "FClose", format=1.2,colorDefault,IIf(HCZ,colorPaleGreen,IIf(HCZ OR LCZ,colorLightOrange,colorDefault)));
+
+AddColumn(V, "Volume", format=1.0);
+AddColumn(T1, "T1", format=1.0);
+AddColumn(TCRM, "TCRM", format=1.0);
+}

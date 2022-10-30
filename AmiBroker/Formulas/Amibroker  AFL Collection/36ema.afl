@@ -1,0 +1,142 @@
+TimeFrameSet(in15Minute);
+Limit=Param(" Trade Till (Hour)(Min)(Sec)",144500,103000,153000,100);
+since=(TimeNum() >= 091500 AND TimeNum()<= Limit) AND (DateNum()==LastValue(DateNum()));
+inv=Param("INVEST CAPITAL", 28000,1000, 1000000, 500 );
+
+SetChartOptions(0,chartShowArrows|chartShowDates|chartWrapTitle|chartHideQuoteMarker);
+PlotOHLC(Open,High,Low,Close,"", IIf(CCI(14) > ((Ref(CCI(14),-1)+Ref(CCI(14),-2))/2),colorAqua,colorBrown) , styleCandle|styleThick);
+
+
+_SECTION_BEGIN("Stochastic %D");
+Plot( StochD( 8 , 4, 3 ), _DEFAULT_NAME(), colorBrown,  styleLine| styleOwnScale | styleThick | styleNoLabel  );
+_SECTION_END();
+
+_SECTION_BEGIN("EMA");
+P = ParamField("Price field",-1);
+Plot( EMA( P, 3), _DEFAULT_NAME(), colorBlue, styleLine| styleOwnScale | styleThick | styleNoLabel  );
+
+_SECTION_END();
+
+_SECTION_BEGIN("EMA1");
+Plot( EMA( P, 6 ), _DEFAULT_NAME(), colorRed, styleLine| styleOwnScale | styleThick | styleNoLabel  );
+
+_SECTION_END();
+st=StochD( 8 , 4, 3 );
+EMA3= EMA( P, 3);
+EMA6= EMA( P, 6);
+
+Buyr=IIf(since & (st<=50 & (Cross(EMA3,EMA6) | EMA3>EMA6)),1,0);
+Buy=IIf(Ref(Buyr,-1),H>=Ref(H,-1),0);
+Dayl=TimeFrameGetPrice("L",inDaily,0);
+BuyPrice=(round(ValueWhen(Buyr,H)*10))/10;
+Buystop1=(round((ValueWhen(Buyr,dayL) | ValueWhen(Cross(EMA6,EMA3),H))*10))/10;
+Buytp1= (round((BuyPrice + (BuyPrice-Buystop1))*10))/10;
+Buytp2=IIf(Cross(H,Buytp1) | Cross(C,Buytp1) |Cross(Buystop1,L) | Cross(EMA6,EMA3) , 1,0);
+Buystop2=(Cross(buystop1,L) | Cross(H,buystop1) | Cross(EMA6,EMA3));
+shortr=IIf(since & (st>=45 & (Cross(EMA6,EMA3) | EMA6>EMA3)),1,0);
+Short=IIf(Ref(shortr,-1),L<=Ref(L,-1),0);
+Dayh=TimeFrameGetPrice("H",inDaily,0);
+SellPrice=(round(ValueWhen(shortr,L)*10))/10;
+sellstop1=(round((ValueWhen(Shortr,Dayh) | ValueWhen(Cross(EMA3,EMA6),L))*10))/10;
+Sellstop2=(Cross(H,sellstop1) | Cross(sellstop1,L) | Cross(EMA3,EMA6));
+Lotsize=IIf(buyr|shortr,round((inv*5.5)/H),0);
+
+Selltp1= (round((ShortPrice - (sellstop1-SellPrice))*10))/10;
+Selltp2=IIf(Cross(selltp1,L) | Cross(selltp1,C) |Cross(H,sellstop1) | Cross(EMA6,EMA3) , 1,0);
+
+TSB=BuyTP1;
+TSS=SellTP1;
+
+Buy=ExRem(Buy,Short);
+Short=ExRem(Short,Buy);
+//cumulative trades total
+trades1=Param("Trade Above",1,1,10,1);
+
+tradebase=(Buy OR Short );
+trades=Cum(tradebase);
+trades2=(trades>=trades1);
+BuyStop=IIf((Buy AND NOT BuyTP2),BuyStop1,Null);
+SellStop=IIf(Short AND NOT SellTP2,SellStop1,Null);
+BuyTP=IIf(Buy AND NOT BuyStop,BuyTP2,Null);
+SellTP=IIf(Short AND NOT SellStop,SellTP2,Null);
+//cumulative trades individual
+
+tradesB=Cum(Buy);
+TSB1=IIf(tradesB>=1,(Cross(H,TSB) OR Cross(C,TSB)) AND since,0);
+BSL1=IIf(tradesB>=1,(Cross(Buystop1,L) OR Cross(BuyStop1,C)) AND since,0);
+tradesBTP=Cum(TSB1);
+tradesBSL=Cum(BSL1);
+tradesS=Cum(Short);
+TSS1=IIf(tradesS>=1,(Cross(TSS,L) OR Cross(TSS,C)) AND since,0);
+SSL1=IIf(tradesS>=1,(Cross(H,SellStop1) OR Cross(C,SellStop1)) AND since,0);
+tradesSTP=Cum(TSS1);
+tradesSSL=Cum(SSL1);
+Sell1=IIf(TradesBTP==1,TSB1,0);
+Sell2=IIf(TradesBTP>=1,Hold(Sell1==1,Limit),0);
+Cover1=IIf(tradesSTP==1,TSS1,0);
+Cover2=IIf(tradesSTP>=1,Hold(Cover1==1,Limit),0);
+bstop1=IIf(tradesBSL==1,BSL1,0);
+bstop2=IIf(tradesBSL>=1 AND (Sell2==0 OR Cover2==0),Hold(bstop1==1,Limit),0);
+sstop1=IIf(tradesSSL==1,SSL1,0);
+sstop2=IIf(tradesSSL>=1 AND (Cover2==0 OR Sell2==0),Hold(sstop1==1,Limit),0);
+Sell=IIf(bstop2==1,0,Sell1);
+bstop=IIf(Sell2==1,0,bstop1);
+Cover=IIf(sstop2==1,0,Cover1);
+sstop=IIf(Cover2==1,0,sstop1);
+
+FH_Range   = (TimeNum() >= 085959 AND TimeNum()<= 090459) AND (DateNum()==LastValue(DateNum()));
+FH_Prices  = High * FH_Range;
+FH_Marker  = BarsSince(FH_Range>0);
+
+//Find number of bars in 60 minutes 
+Num_Bars   = 3600 / Interval(1);  
+
+isAll = True;
+isRth =  TimeNum() >= 085959 AND TimeNum() <= 090459;
+isdRth =  TimeNum() >= 085959 AND TimeNum() <= 160000;
+aRthL = IIf(isRth, L, 1000000);
+aRthH = IIf(isdRth, H, Null);
+aRthLd = IIf(isdRth, L, 1000000);
+DayH = TimeFrameCompress( aRthH, inDaily, compressHigh );
+DayH = TimeFrameExpand( DayH, inDaily, expandFirst );
+DayL = TimeFrameCompress( aRthLd, inDaily, compressLow );
+DayL = TimeFrameExpand( DayL, inDaily, expandFirst );
+
+
+//line plot basics
+Bars       = BarsSince(TimeNum() >= 085959 AND TimeNum() < 090459) ;// AND DateNum()==LastValue(DateNum());
+x0         = BarCount-LastValue(Bars);
+x1         = BarCount-1;
+DayHline=LineArray(x0,LastValue(DayH),x1,LastValue(DayH),0);
+DayLline=LineArray(x0,LastValue(DayL),x1,LastValue(DayL),0);
+BuyPriceline=LineArray(x0,LastValue(BuyPrice),x1,LastValue(BuyPrice),0);
+BuyStopline=LineArray(x0,LastValue(BuyStop1),x1,LastValue(BuyStop1),0);
+BuyTPline=LineArray(x0,SelectedValue(TSB),x1,SelectedValue(TSB),0);
+SellPriceline=LineArray(x0,LastValue(SellPrice),x1,LastValue(SellPrice),0);
+SellStopline=LineArray(x0,LastValue(SellStop1),x1,LastValue(SellStop1),0);
+SellTPline=LineArray(x0,SelectedValue(TSS),x1,SelectedValue(TSS),0);
+
+
+Plot(DayHline,"",colorYellow,styleLine|styleNoRescale);
+Plot(DayLline,"",colorYellow,styleLine|styleNoRescale);
+//PLOT LINES
+Plot(BuyPriceline,"Buy Here",colorBrightGreen,styleDots|styleNoRescale);
+//Plot(BuyStopline,"BuyStop",colorBrightGreen,styleDots|styleNoRescale| styleNoLine);
+Plot(BuyTPline,"Buy Take profit",colorBrightGreen,styleDashed|styleNoRescale);
+Plot(SellPriceline,"Short Here",colorRed,styleDots|styleNoRescale);
+//Plot(SellStopline,"ShortStop",colorRed,styleDots|styleNoRescale| styleNoLine);
+Plot(SellTPline,"Short Take Profit",colorRed,styleDashed|styleNoRescale);
+
+//shapes
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorBrightGreen,0,L,-25 );
+PlotShapes(IIf(Short,shapeDownArrow,shapeNone),colorRed,0,H,-25 );
+AddColumn( IIf(Buyr, 82, IIf(Shortr, 82,01 )), "READY", formatChar, colorWhite, bkcolor= IIf(Shortr,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy, 66, IIf(Short, 83,01 )), "GO", formatChar, colorWhite, bkcolor= IIf(Short,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Sell, 80, IIf(Cover, 80,01 )), "PR", formatChar, colorWhite, bkcolor= IIf(Cover ,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(bstop, 76, IIf(sstop, 76,01 )), "SL", formatChar, colorWhite, bkcolor= IIf(sstop ,colorDarkRed,colorDarkGreen) );
+
+AddColumn( IIf(Buy OR bstop OR Sell | Buyr , BuyPrice, IIf(Short OR sstop OR Cover |Shortr , SellPrice,01 )), "ENTRY@", 1.2, colorWhite, bkcolor= IIf(Short OR sstop OR Cover | Shortr,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy OR bstop OR Sell| Buyr , BuyStop1, IIf(Short OR sstop OR Cover |Shortr , SellStop1,01 )), "STPLS@", 1.2, colorWhite, bkcolor= IIf(Short OR sstop OR Cover |Shortr ,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy OR bstop OR Sell| Buyr , TSB, IIf(Short OR sstop OR Cover |Shortr , TSS,01 )), "PROFIT@", 1.2, colorWhite, bkcolor= IIf(Short OR sstop OR Cover |Shortr ,colorDarkRed,colorDarkGreen) );
+AddColumn( IIf(Buy OR bstop OR Sell| Buyr , Lotsize, IIf(Short OR sstop OR Cover |Shortr , Lotsize,01 )), "QTY", 1.0, colorWhite, bkcolor= IIf(Short OR sstop OR Cover|Shortr ,colorDarkRed,colorDarkGreen) );
+Filter=Buyr | Shortr | Buy OR  Short OR Sell OR Cover  OR bstop OR sstop ;

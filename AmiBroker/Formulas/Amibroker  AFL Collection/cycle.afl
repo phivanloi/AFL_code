@@ -1,0 +1,78 @@
+//Cycle 1
+WW:=Input("Length:",7,10000,10);
+WWW:=WW/6;
+OF:=Input("Horizontal Shift:",0,10000,0);
+CC:=Cum(30/WWW);
+
+FF:=frac(LastValue(Cum(1))/WW);
+OFF:=WW*FF;
+
+abs(Ref(sin(CC),-LastValue(OFF)-OF))
+
+//Cycle 2
+WW:=Input("Length:",7,10000,10);
+WWW:=WW/6;
+OF:=Input("Horizontal Shift:",0,10000,0);
+CC:=Cum(30/WWW);
+
+FF:=frac(LastValue(Cum(1))/WW);
+OFF:=WW*FF;
+
+abs(Ref(sin(CC),-LastValue(OFF)-OF))*2
+
+
+//Cycle 3
+WW:=Input("Length:",7,10000,10);
+WWW:=WW/6;
+OF:=Input("Horizontal Shift:",0,10000,0);
+CC:=Cum(30/WWW);
+
+FF:=frac(LastValue(Cum(1))/WW);
+OFF:=WW*FF;
+
+abs(Ref(sin(CC),-LastValue(OFF)-OF))*4
+
+
+//Cycle 3
+WW:=Input("Length:",7,10000,10);
+WWW:=WW/6;
+OF:=Input("Horizontal Shift:",0,10000,0);
+CC:=Cum(30/WWW);
+
+FF:=frac(LastValue(Cum(1))/WW);
+OFF:=WW*FF;
+
+abs(Ref(sin(CC),-LastValue(OFF)-OF))*8
+
+
+//Cycle 5
+{Cycles indicator fixed at 5}
+period:=5;
+RawStoch1:=Stoch(period,1);
+Ema13:=Mov(RawStoch1,3,E);
+RawStoch2:=(Ema13-LLV(Ema13,period))/(HHV(Ema13,period)-LLV(Ema13,period))*100;
+Ema23:=Mov(Rawstoch2,3,E);
+Ema23;
+
+
+
+//Cycle 10
+{Cycles indicator fixed at 10}
+period:=10;
+RawStoch1:=Stoch(period,1);
+Ema13:=Mov(RawStoch1,3,E);
+RawStoch2:=(Ema13-LLV(Ema13,period))/(HHV(Ema13,period)-LLV(Ema13,period))*100;
+Ema23:=Mov(Rawstoch2,3,E);
+Ema23;
+
+
+//cycles
+period:=Input("Period",5,50,10);
+smooth:=1;
+{smooth:=Input("Smoothing periods",1,5,1);}
+RawStoch1:=Stoch(period,smooth);
+Ema13:=Mov(RawStoch1,3,E);
+RawStoch2:=(Sum(Ema13-LLV(Ema13,period),smooth)/Sum(HHV(Ema13,period)-LLV(Ema13,period),smooth))*100;
+Ema23:=Mov(Rawstoch2,3,E);
+Ema23; {Plot the cycles indicator}
+{Mov(Ema23,5,S);} {Plot the Signal line}

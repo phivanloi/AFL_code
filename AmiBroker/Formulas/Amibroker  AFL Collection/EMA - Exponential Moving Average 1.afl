@@ -1,0 +1,6 @@
+_SECTION_BEGIN("EMA");
+Plot( EMA( Close, 3 ),"3", colorWhite, styleThick ); 
+Plot( EMA( Close, 13 ),"13", colorRed, styleThick ); 
+Plot( EMA( Close, 34 ),"34", colorBlue, styleThick ); 
+
+_SECTION_END();

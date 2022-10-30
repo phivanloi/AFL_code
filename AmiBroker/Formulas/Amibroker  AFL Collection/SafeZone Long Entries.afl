@@ -1,0 +1,9 @@
+factor = Param("SafeZone Factor",2.0,0.0,20.0,0.1); 
+lookback=Param("LookBack Period",99,10,300,1);
+Lowtot = Cum(IIf(Low<Ref(Low,-1),Ref(Low,-1)-Low,0));
+LowCount= Cum(Low<Ref(Low,-1));
+Count= LowCount - Ref(LowCount,-lookback);
+Safe=IIf(count>0,(Lowtot-Ref(Lowtot,-lookback))/count,0);
+SZLE = Low-factor*safe;
+
+Plot( SZLE, "SZ-LE", ParamColor("color", colorCycle ), ParamStyle("Style") );

@@ -1,0 +1,2 @@
+ttf5 = IIf(Ref(H,-2)==HHV(H,5),1,0);
+Plot(ttf5, "",4);

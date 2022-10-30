@@ -1,0 +1,31 @@
+Type = ParamList("Chart Type",
+    "Price Bands|Price Band Oscillator|Stochastic Channel|Raw Stochastic");
+Periods = Param("Periods", 14, 2, 100, 1 );
+Smoothed = ParamToggle("Smoothed", "No|Yes", 1 );
+IsStochType = ( Type == "Stochastic Channel" OR Type == "Raw Stochastic" );
+// if stochastic - include today's bar
+PH = IIf( IsStochType, H, Ref( H, -1 ) );
+PL = IIf( IsStochType, L, Ref( L, -1 ) );
+if( Type == "Price Bands" OR Type == "Stochastic Channel" )
+{
+ // plot price chart
+ Plot( C, "Price", colorBlack, styleCandle );
+ Plot( HHV( PH, Periods ), Type + " (Top)", colorDarkGreen );
+ Plot( LLV( PL, Periods ), Type + " (Bot)", colorDarkRed );
+}
+else
+{
+ // plot oscillator
+ Range = HHV( PH, Periods ) - LLV( PL, Periods );
+ Position = C - LLV( PL, Periods );
+ if( Smoothed )
+ {
+   Slow = 100 * Sum( Position, 3 ) / Sum( Range, 3 );
+   Plot( Slow, "Smoothed " + Type, colorRed );
+ }
+ else
+ {
+   Raw = 100 * ( Position / Range );
+   Plot( Raw, Type, colorRed );
+ }
+}

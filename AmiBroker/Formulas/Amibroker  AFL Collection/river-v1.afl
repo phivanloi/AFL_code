@@ -1,0 +1,41 @@
+//RiverV1
+//This indicator is a cocktail that combines
+//- Stochastic.
+//- RSI.
+//- MFI
+//- Bollinger Bands
+//
+// The indicator draws two lines:
+// - Black: Cocktail of indicators
+// - Red: exponential moving average
+// buy when the black line cross over the red line
+// sell when the black line cross down the red line
+
+//Params
+Period1 = Param("Periods", 21, 2, 200, 1 );
+Period2 = Param("Periods", 14, 2, 200, 1 );
+m=Param("stock",10,2,50,1);
+
+//Stochastic
+stoc=StochK(Period1,3);
+
+//RSI
+xrsi=RSIa(Close,Period1);
+
+//MFI
+xmf=MFI(period1);
+
+//Bollinger
+Ob1= (BBandTop(Close,Period1,2)+BBandBot(Close,Period1,2))/2;
+Ob2=BBandTop(Close,Period1,2)+BBandBot(Close,Period1,2);
+bollosc=((Close-Ob1)/Ob2)*100;
+
+//Combination of indicators
+comb=((xrsi+xmf+bollosc+(stoc/3))/2)-60;
+//Ema
+mComb=EMA(Comb,m);
+
+//Plot
+Plot(0,"",colorBlack);
+Plot(comb,"vigia",colorBlack);
+Plot(mComb,"vmr",colorRed);

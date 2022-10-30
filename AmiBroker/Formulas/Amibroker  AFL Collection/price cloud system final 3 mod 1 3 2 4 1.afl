@@ -1,0 +1,314 @@
+_SECTION_BEGIN("MA1"); 
+// parameter of the MA to use as trigger 
+PMA = Param("ma OF",25,1,100,1);
+icol = IIf ( MA (Close,pma) > Ref (MA (Close,pma),-1),colorGreen,colorRed); // icol is for colour band..if its' rising then green and if its down, then red
+ 
+Plot( MA( High, pma ),"", icol);
+Plot( MA( Low, pma ), "",icol);
+_SECTION_END();
+
+_SECTION_BEGIN("price");
+//============================================candle sticks=======================
+ 
+Color_buy = IIf(Close > EMA(Close,55) AND Close > MA(High,pma),colorBlue,IIf(Close < EMA(Close,55) AND Close < MA(Low,pma),colorRed,colorYellow));
+PlotOHLC( Open, High, Low, Close, "", Color_buy, styleCandle ); 
+
+
+upper_band = IIf (MA( High, pma )> EMA(Close,55),MA( High, pma ), EMA(Close,55));
+Lower_band = IIf (MA( Low, pma )< EMA(Close,55),MA( Low, pma ), EMA(Close,55));
+
+EMA55 = EMA(Close,55);
+
+
+
+
+//=======================
+
+_SECTION_END();
+
+//Col_band = IIf(MA(Close,34)>Ref(MA(Close,34),-1),colorBlue,colorRed);
+
+_SECTION_BEGIN("EMA fabonachi");
+
+fab5 = EMA(Close,5);
+fab8 = EMA(Close,8);
+fab13 = EMA(Close,13);
+fab21 = EMA(Close,21);
+fab34 = EMA(Close,34);
+fab55 = EMA(Close,55);
+fab89 = EMA(Close,89); 
+
+Color_fab5 = IIf(Close > fab5,ColorRGB(197,254,214),colorPink);
+Color_fab8 = IIf(Close > fab8,ColorRGB(197,254,214),colorPink);
+Color_fab13 = IIf(Close > fab13,ColorRGB(197,254,214),colorPink);
+Color_fab21 = IIf(Close > fab21,ColorRGB(197,254,214),colorPink);
+Color_fab34 = IIf(Close > fab34,ColorRGB(197,254,214),colorPink);
+Color_fab55 = IIf(Close > fab55,ColorRGB(197,254,214),colorPink);
+Color_fab89 = IIf(Close > fab89,ColorRGB(197,254,214),colorPink);
+
+//Plot( fab5, "", Color_fab5, styleDashed+styleNoLabel ); 
+Plot( fab55, "", Color_fab55, styleDashed ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Pivot");
+
+SetBarsRequired(350, -0);
+
+//user parameters
+parmPlotScoreCard = ParamToggle("Plot KPScoreCard", "No|Yes", 0);
+parmPlotA900AutoStop = ParamToggle("Plot A900/AutoStop", "No|Yes", 0);
+parmA900Color = ParamColor("A900 Color", colorWhite);
+parmA900Style = ParamStyle("A900 Style", styleLine, maskAll);
+parmAutoStopColor = ParamColor("AutoStop Color", colorYellow);
+parmAutoStopStyle = ParamStyle("AutoStop Style", styleLine, maskAll);
+parmPPTextColor = ParamColor("PP Text color", colorBlack);
+parmPPTrndColorUp = ParamColor("PP Trend Up color", colorGreen );
+parmPPTrndColorDn = ParamColor("PP Trend Dwn color", colorRed );
+parmPPTextOffSet = Param("PP OffSet", 0.90, 0.40, 1.5, 0.1);
+parmTickMultipler = Param("M/W tick allowance", 0, 0, 10, 1);
+parmA900AutoStopX = ParamToggle("Plot A900/AutoStop Cross", "No|Yes");
+parmA900AutoStopColorX = ParamColor("A900/AutoStop Cross Color", colorBlack);
+ParmSCThreshold = Param("ScoreCard Threshold", 5, 1, 9, 1);
+ParmDebug = ParamToggle("Debug", "No|Yes", 0);
+
+// constants
+
+
+_N(PaneName = Name() + Interval(2)+ _SECTION_NAME());
+_N(NewBarName = "NewBar" + PaneName);
+
+//functions
+function NewBar()
+{
+	PrevDT = StaticVarGet( NewBarName);
+	DT = LastValue(DateTime());
+	StaticVarSet( NewBarName,DT);
+	return DT != PrevDT;
+}
+function MRound(Number, Multiple )
+{
+	if(Multiple == 0 )
+	{
+
+		xMultiple = 0.01;	}
+	else
+	{
+	xMultiple = Multiple; 
+	}
+	Divided = Number / xMultiple;
+	intDivided = int(Divided);
+	intDivided = intDivided + round(Divided - intDivided);
+	return intDivided * xMultiple;
+}
+
+//miscellaneous setups
+ObjAB = CreateObject("Broker.Application");
+ticker = objAB.Stocks(Name() );
+if(ticker.TickSize == 0)
+	{
+		TickValue = 0.01;	//set TickValue to a penney
+	}
+else
+	{
+		TickValue = ticker.TickSize;	// use Tick Size for this symbol
+	}
+NewBarSignal = NewBar();
+
+
+//  KP Indicators
+KPA900 = E_TSKPA900(Close);
+KPAutoStop = E_TSKPAUTOSTOP(High,Low,Close);
+Ctmpl = E_TSKPCOLORTMPL(Open,High,Low,Close,Volume);	//ScoreCard
+KPScoreCard = 0;
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd0 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd1 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd2 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd3 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd4 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd5 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd6 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd7 > 0, 1, -1); 
+KPScoreCard = KPScoreCard  + IIf(tskp_colortmplcnd8 > 0, 1, -1); 
+
+if(parmDebug == 1)
+	{
+		printf("a900: %0.6f% \nAutoStop: %0.6f%\nScoreCard: %0.0f%\n", KPA900, KPAutoStop, KPScoreCard);
+	}
+if(parmPlotScoreCard == 1)
+	{
+		{
+ 			ToolTip=StrFormat("Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.2f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 )));
+		}
+		Color = IIf(KPScoreCard >= parmSCThreshold, colorBlue, IIf(KPScoreCard <= -parmSCThreshold, colorRed, colorYellow) );
+		Plot( C, "Close", Color , styleNoTitle | ParamStyle("OHLC Style") | GetPriceStyle() ); 
+	}
+//user want A900/AutoStop plotted
+if(parmPlotA900AutoStop == 1)
+	{
+		Plot(KPA900, "A900", parmA900Color, parmA900Style);
+		Plot(KPAutoStop, "AutoStop", parmAutoStopColor, parmAutoStopStyle);
+	}
+// find A900/AutoStop cross over/under with ScoreCard confirmation.
+XOUp = (KPA900 > KPAutoStop) AND (KPScoreCard >= parmSCThreshold);	// New Pivot Low
+XODn = (KPA900 < KPAutoStop) AND (KPScoreCard <= -parmSCThreshold); // New Pivot High
+if(parmDebug == 1)
+	{
+		printf(WriteIf(XOUp, "before= XOUp: True", "before= XOUp: False") + WriteIf(XODn, " XODn: True\n", " XODn: False\n") );
+	}
+//remove duplicate signals
+XOUp = ExRem(XOUp, XODn);
+XODn = ExRem(XODn, XOUp);
+
+if(parmDebug == 1)
+	{
+		printf(WriteIf(XOUp, "after= XOUp: True", "after= XOUp: False") + WriteIf(XODn, " XODn: True\n", " XODn: False\n") );
+	}
+//find the current Pivot Points - PL and PH
+//remember XOUp = 1 means a PL and XODn =1 means a PH
+PLBars = IIf(XOUp, LowestSinceBars(XODn, L ,1), 0);	//find the bar that produced the Lowest Low
+PHBars = IIf(XODn, HighestSinceBars(XOUp, H, 1),0);	//find the bar that produced the Highest High
+//PLPrice = IIf(XOUp, Ref(L, -PLBars), 0);
+//PHPrice = IIf(XODn, Ref(H, -PHBars),0);
+PLPrice =  Ref(L, -PLBars);
+PHPrice =  Ref(H, -PHBars);
+
+//keep track of the previous Pivot Points
+PrevPLBars = Ref(BarsSince(XOUp), -1) +1;
+PrevPHBars =  Ref(BarsSince(XODn), -1) +1;
+PrevPLPrice =  Ref(PLPrice, -prevPLBars);
+PrevPHPrice =  Ref(PHPrice, -PrevPHBars );
+PivotsCloseEnough = TickValue * parmTickMultipler;
+PLDifference = Mround(PLPrice - PRevPLPrice, ticker.TickSize);
+PHDifference = Mround(PHPrice - PrevPHPrice, ticker.TickSize);
+PPTrend = IIf(XOUp AND (PLDifference > PivotsCloseEnough) AND PrevPHPrice > PrevPLPrice AND PRevPHPrice > PLPrice, 1, 
+				IIf(XOUp AND (PLDifference <  - PivotsCloseEnough) AND PRevPHPrice > PrevPLPrice AND PrevPHPrice > PLPrice, -1,
+ 				IIf(XODn AND (PHDifference > PivotsCloseEnough) AND PrevPLPrice < PrevPHprice AND PrevPLPrice < PHPrice, 1,
+				IIf(XODn AND (PHDifference < -PivotsCloseEnough) AND PrevPLPrice < PrevPHPrice AND PrevPLPrice < PHPrice, -1, 0)) ));
+
+PPTrend = IIf(XOUp AND PLPrice > PRevPLPrice AND PrevPHPrice > PrevPLPrice AND PRevPHPrice > PLPrice, 1, 
+				IIf(XOUp AND PLPrice < PRevPLPrice AND PRevPHPrice > PrevPLPrice AND PrevPHPrice > PLPrice, -1,
+ 				IIf(XODn AND PHPrice > PrevPHPrice AND PrevPLPrice < PrevPHprice AND PrevPLPrice < PHPrice, 1,
+				IIf(XODn AND PHPrice < PrevPHPrice AND PrevPLPrice < PrevPHPrice AND PrevPLPrice < PHPrice, -1, 0)) ));
+
+if(ParmDebug)
+	{
+		printf("Current PH Bar: %g% /Price: %g%\n", PHBars, PHPrice);
+		printf("Current PL Bar: %g% /Price: %g%\n", PLBars, PLPrice);
+		printf("Previous PH Bar: %g% /Price: %g%\n", PrevPHBars, PrevPHPrice);
+		printf("Previous PL Bar: %g% /Price: %g%\n", PrevPLBars, PrevPLPrice) ;
+		printf("PP Trend: %g%\n", PPTrend);
+		printf("PHPrice - PrevPHPrice: %g%\nPLPrice - PrevPLPrice: %g%\nPivotsCloseEnough: %g%", PHDifference, PLDifference, PivotsCloseEnough);
+	}
+//PLot pivots as  text
+dist = parmPPTextOffSet * ATR(10);
+//for( i = 0; i < BarCount -1; i++)
+for( i = 0; i < BarCount ; i++)
+	{  
+		if(XOUp[i ] == 1 )	//cross up -plot the Pivot Low
+			{
+				PlotText("PL \n"+PLPrice[i], i - PLBars[i], PLPrice[i] - dist[i] , parmPPTextColor, IIf(PPTrend[i] == 1, parmPPTrndColorUp, IIf(PPTrend[i] == -1, parmPPTrndColorDn, colorYellow) ));
+Title = EncodeColor(colorWhite)+ "linkon's trading system" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"\n" +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+ "Cl-"+C+"  "+ "Vol= "+ WriteVal(V)+
+EncodeColor(colorLime)+ WriteIf (PPTrend[i] == 1 , "\n GO LONG / reversal short trigger at "+PLPrice[i],"")+
+EncodeColor(colorRed)+ WriteIf (PPTrend[i] == -1 , "\n stay SHORT : new Lower PL made at -"+PLPrice[i],"")
++ EncodeColor(colorGreen)+ "\n" + WriteIf(Close > upper_band, "Go long above "+upper_band , WriteIf(Close < Lower_band,EncodeColor(colorGreen)+ "Go SHORT below "+ Lower_band,EncodeColor(colorWhite)+"trend not clear"))+ "\n" +EncodeColor(colorYellow)+ "keep SL at :"+KPAutoStop;
+
+			}
+		if(XODn[i ] == 1 )	//cross down - plot the pivot high
+			{
+				PlotText("PH \n"+PHPrice[i], i - PHBars[i], PHPrice[i] + dist[i], parmPPTextColor, IIf(PPTrend[i] == 1, parmPPTrndColorUp, IIf(PPTrend[i] == -1, parmPPTrndColorDn, colorYellow) ));
+Title = EncodeColor(colorWhite)+ "linkon's trading system" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"\n" +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+ "Cl-"+C+"  "+ "Vol= "+ WriteVal(V)
++ EncodeColor(colorRed)+ WriteIf (PPTrend[i] == -1 , "\n GO SHORT / reversal Long trigger at "+PHPrice[i],"")
++ EncodeColor(colorGreen) +WriteIf (PPTrend[i] == 1 , "\n stay LONG : new higher PH made at "+PHPrice[i],"")
++ EncodeColor(colorGreen)+ "\n" + WriteIf(Close > upper_band, "Go long above "+upper_band , WriteIf(Close < Lower_band,EncodeColor(colorGreen)+ "Go SHORT below "+ Lower_band,EncodeColor(colorWhite)+"trend not clear"))+ "\n" +EncodeColor(colorYellow)+ "keep SL at :"+KPAutoStop;
+
+
+			}
+	}	//end For
+// Plot A900/AutoStop cross over/under
+if(parmA900AutoStopX == 1)
+	{
+		PlotShapes(IIf(Cross(KPA900, KPAutoStop), shapeUpTriangle, shapeNone), parmA900AutoStopColorX, 0, L, -20);
+		PlotShapes(IIf(Cross(KPAutoStop, KPA900), shapeDownTriangle, shapeNone), parmA900AutoStopColorX, 0, H , -20);
+	}
+//PHLine = LineArray(BarCount - LastValue(PHBars) -3, LastValue(PHPrice), BarCount - LastValue(PHBars) +2, LastValue(PHPrice), 0);
+//Plot(PHLine, "PH", colorWhite, styleLine);
+//PLLine = LineArray(BarCount - LastValue(PLBars) -3, LastValue(PLPrice), BarCount - LastValue(PLBars) +2, LastValue(PLPrice), 0);
+//Plot(PLLine, "PL", colorWhite, styleLine);
+// identify M, lazy M, W and Lazy W formations
+_SECTION_END();
+
+Buy = Color_buy ==colorBlue AND KPAutoStop < C;
+Sell = Color_buy ==colorRed AND KPAutoStop > C;
+
+PlotShapes (Buy*shapeHollowSmallUpTriangle, colorBlue);
+PlotShapes (Sell*shapeHollowSmallDownTriangle, colorRed);
+_SECTION_END();
+
+_SECTION_BEGIN("ABKPTrendBias");
+/* TSKPTrendBias with TSKPSEB */
+// user parameters
+parmTBStyle = ParamStyle("TB Style", styleLine, maskAll);
+parmTBColor = ParamColor("TB color", colorRed);
+parmTBSlowStyle = ParamStyle("TB Slow Style", styleLine | styleThick, maskAll);
+parmTBSlowColor = ParamColor("TB Slow color", colorBlue);
+parmPlotOsc = ParamToggle("Plot as Oscillator", "No|Yes", 0);
+parmTBOscStyle = ParamStyle("TB Osc. Style", styleHistogram, maskAll);
+parmPlotOscRibbon = ParamToggle("Plot Osc. as Ribbon", "No|Yes", 0);
+parmRibbonSize = Param("RibbonSize", 1, 0.5, 10, 0.5);
+parmPlotSEBands = ParamToggle("Plot SEBands", "No|Yes", 0);
+Periods = Param("Standard Error", 80, 3, 200, 1); 
+Smooth  = Param("Smooth",14,2,100,1);
+parmMBColor = ParamColor("Color MB",colorBlack);  
+parmMBStyle = ParamStyle("Style MB", style=styleDashed | styleNoLabel, Mask=maskAll );
+parmUBColor = ParamColor("Color UB",colorBlack);
+parmUBStyle = ParamStyle("Style UB", style=styleLine | styleNoLabel, Mask=maskAll ); 
+parmLBColor = ParamColor("Color LB",colorBlack);
+parmLBStyle = ParamStyle("Style LB", style=styleLine | styleNoLabel, Mask=maskAll ); 
+parmToneColorUp = ParamColor("Tone Color Up", ColorRGB(167, 224, 243) );
+parmToneColorDn = ParamColor("Tone Color Dn", ColorRGB(255, 192, 203) );
+parmTrendColorUp = ParamColor("Trend Color Up", ColorRGB(167, 224, 243) );
+parmTrendColorDn = ParamColor("Trend Color Dn", ColorRGB(255, 192, 203) );
+// KP indicators
+dummy =  E_TSKPTRENDBIAS(High,Low,Close);
+KPTB = tskp_sb;
+KPTBSlow = tskp_tbxavg;
+if(parmPlotOsc == 1 OR parmPlotOscRibbon == 1)
+	{
+		KPTBOsc = KPTB - KPTBSlow;
+	}
+// calculations
+if(parmPlotSEBands == 1)
+	{
+		LRCurve = LinearReg( KPTB, periods ); 
+		MALRCurve  = MA(LRCurve, Smooth);
+		SEValue = StdErr(KPTB, periods ); 
+		SErrorAvg =  MA(SEValue, Smooth);
+		LowerBand = MALRCurve - SErrorAvg ;
+		UpperBand = MALRCurve + SErrorAvg ;
+	}
+// plots
+if(parmPlotOsc == 0 AND parmPlotOscRibbon == 0)
+	{
+		Plot(KPTB, "TB", parmTBColor, parmTBStyle); 
+		Plot(KPTBSlow, "TBSlow", parmTBSlowColor, parmTBSlowStyle); 
+		if(parmPLotSEBands == 1)
+			{
+				Plot( MALRCurve , "MidBand", parmMBColor , parmMBStyle); 
+				Plot( UpperBand , "UpperBand",parmUBColor ,parmUBStyle );
+				Plot( LowerBand , "LowerBand", parmLBColor , parmLBStyle);
+				PlotOHLC( UpperBand, UpperBand, LowerBand, LowerBand, "Band", IIf(KPTBSlow >= MALRCurve, parmTrendColorUp, parmToneColorDn) , styleCloud | styleNoLabel); 
+				//plot Tone
+				Plot( parmRibbonSize, "Tone", IIf(KPTB > KPTBSlow, parmToneColorUp, parmToneColorDn) , styleArea |  styleNoLabel | styleOwnScale , 0, 10);
+			}
+	}
+else if(parmPlotOsc == 1)
+		{
+			Plot( KPTBOsc, "Tone", IIf(KPTBOsc >= 0, parmToneColorUp, parmToneColorDn) , parmTBOscStyle);
+		}
+else if(parmPlotOscRibbon == 1)
+		{
+			Plot( parmRibbonSize, "Tone", IIf(KPTBOsc >= 0, parmToneColorUp, parmToneColorDn) , styleArea |  styleNoLabel | styleOwnScale , 0, 10);
+		}
+_SECTION_END();

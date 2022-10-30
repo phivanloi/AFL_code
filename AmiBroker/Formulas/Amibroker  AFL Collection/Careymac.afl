@@ -1,0 +1,48 @@
+_SECTION_BEGIN("Trading CAREYMAC");
+// CAREYMAC INDICATOR - Short-term (ST) & Medium-term (MT)
+/* This formula was developed to signal short-term trend changes 
+in the direction of the CONFIRMED Medium-Term trend.
+What I had in mind was in effect a "buy in the dips" strategy for
+traders, 
+where entries would only be made in the direction of the medium term
+trend.  
+
+The red histogram plots the MT trend as being up (above zero line) 
+or being down (below zero line).
+The black line plots the ST trend in the same manner.
+
+/* Long Entry trading Signals
+The red Histogram MUST be above zero.
+The long entry is signalled when the black ST line, after dipping 
+BELOW the zero line, reverses back up (green arrow).
+
+Short Entries trading Signals
+The red Histogram MUST be below zero.
+The Short entry is signalled when the black ST line, after dipping 
+ABOVE the zero line, reverses back down (red arrow).  */
+
+// NB. Exits are NOT sigalled. Your specific exits will enablebacktesting.
+// As usual, signals appear more reliable in less volatile markets. 
+
+// CODE:
+// CAREYMAC
+// AFL code by Gerard Carey
+// 13th Feb 2006
+
+ST= (EMA(Avg,2)-EMA(Avg,10)) + (EMA(Avg,1)-EMA(Avg,5)) ;
+MT= (EMA(Avg,6)-EMA(C,30)) + (EMA(Avg,3)-EMA(Avg,15)) ;
+
+Plot(ST,"CAREYMAC/ST",1,4);
+Plot(MT,"  CAREYMAC/MT",4,4);
+Plot(MT,"",4,2+4);
+
+Plot(0,"",IIf(C>EMA(C,34),6,4));
+
+CondA= MT>0 AND (ST<0 OR Ref(ST,-1)<0) AND ST>Ref(ST,-1) 
+AND Ref(ST,-1)<Ref(ST,-2) ;
+PlotShapes( shapeSmallUpTriangle*CondA, 27) ;
+
+CondB= MT<0 AND (ST>0 OR Ref(ST,-1)>0) AND ST<Ref(ST,-1) 
+AND Ref(ST,-1)>Ref(ST,-2) ;
+PlotShapes( shapeSmallDownTriangle*CondB, 4);
+_SECTION_END();

@@ -1,0 +1,821 @@
+//www.aflcode.com
+DisplayAlerts = ParamToggle("Pop up Alerts","Off|On",0);
+VoiceAlerts = ParamToggle("Voice Alerts","Off|On",0);
+ 
+timeout = 1000;
+ 
+StaticVarSetText( "CurrPos", "" );
+ 
+function GetSecondNum()
+{
+    Time = Now( 4 );
+    Seconds = int( Time % 100 );
+    Minutes = int( Time / 100 % 100 );
+    Hours = int( Time / 10000 % 100 );
+    SecondNum = int( Hours * 60 * 60 + Minutes * 60 + Seconds );
+    return SecondNum;
+}
+ 
+function PopupWindowEx( popupID, bodytext, captiontext, timeout, left, top )
+{
+    displayText = bodytext + captiontext;
+ 
+    if ( ( StaticVarGetText( Name() + "prevPopup" + popupID ) != displayText ) OR ( StaticVarGet( Name() + "prevPopupTime" + popupID ) < GetSecondNum() ) )
+    {
+        StaticVarSetText( Name() + "prevPopup" + popupID, displayText );
+        StaticVarSet( Name() + "prevPopupTime" + popupID, GetSecondNum() + timeout );
+        if (DisplayAlerts ==1) {
+   PopupWindow( bodytext, Captiontext + popupID, timeout, Left, top );
+         PlaySound( "c:\\windows\\media\\ding.wav" );
+   }
+   if (VoiceAlerts ==1) Say (bodytext);
+    }
+}
+ 
+ 
+//=============================SETUP TREND======================================
+//SetBarsRequired(100000,0);
+pds = 20;
+MAFAST = EMA( Close, 20 );
+MASLOW = EMA( Close, 40 );
+ 
+DonchianUpper = HHV( Ref( H, -1 ), pds ); // Highest high value of highs in last 20 periods
+DonchianLower = LLV( Ref( L, -1 ), pds ); // Lowest low value of low in last 20 periods
+DonchianMiddle = ( DonchianUpper + DonchianLower ) / 2;
+ 
+UpTrend = C > ( LLV( L, 20 ) + 2 * ATR( 10 ) ) AND EMA( Close, 20 ) > EMA( Close, 40 );
+DnTrend = C < ( HHV( H, 20 ) - 2 * ATR( 10 ) ) AND EMA( Close, 20 ) < EMA( Close, 40 );
+Color = IIf( UpTrend, colorGreen, IIf( DnTrend, colorRed, colorCustom10 ) );
+ 
+// Plots a 20 period Donchian channel
+//Plot( C, "Price", Color, styleBar | styleThick );
+ 
+ 
+//=============================DISPLAY PARAMS======================================
+_SECTION_BEGIN("Price");
+ Buy=Sell=Short=Cover=0;
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, High %g, Low %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+ 
+_SECTION_BEGIN("Magnified Market Price");
+procedure DrawData (Text, x1, y1, x2, y2, BoxColor, FontSize)
+{
+ GfxSetOverlayMode(0);
+ GfxSelectFont("Segoe UI", FontSize, 600);
+ //FS=Param("Font Size",FontSize,FontSize,100,1);
+ //GfxSelectFont("Segoe UI", FS, 900, italic = False, underline = False, True );
+ GfxSetBkMode(1);
+ //GfxGradientRect(x1, y1, x2, y2, colorFrom, colorTo);
+ GfxSelectSolidBrush( BoxColor);
+ GfxRoundRect( x1, y1, x2, y2, 7, 7 );
+ GfxDrawText(Text, x1, y1, x2, y2, 32|0|4|16);
+}
+GfxSetTextColor(colorWhite);
+ 
+if(StaticVarGetText("firstflag")=="")
+{
+ StaticVarSetText ("firstflag","0");
+}
+ 
+if(StaticVarGetText("firstflag"+Name())=="")
+{
+ StaticVarSet(("BuyIndex" + Name()), 0);
+ StaticVarSet(("BuyCount" + Name()), 0);
+ StaticVarSet(("BuyFlag"  + Name()), 0);
+ StaticVarSet(("BuyPrice"  + Name()), 0);
+ StaticVarSet(("BuyQty"  + Name()), 0);
+ 
+ StaticVarSet(("SellIndex" + Name()), 0);
+ StaticVarSet(("SellCount" + Name()), 0);
+ StaticVarSet(("SellFlag"  + Name()), 0);
+ StaticVarSet(("SellPrice"  + Name()), 0);
+ StaticVarSet(("SellQty"  + Name()), 0);
+ 
+ StaticVarSet("LTPSave" + Name(), 0);
+ StaticVarSet("LTQSave" + Name(), 0);
+ StaticVarSet("VolumeTemp" + Name(), 0);
+ StaticVarSet("AskSave" + Name(), 0);
+ StaticVarSet("BidSave" + Name(), 0);
+ 
+ StaticVarSet("LastLTPColor" + Name(), colorGrey40);
+ StaticVarSet("LastLTQColor" + Name(), colorGrey40);
+ StaticVarSet("LastAskColor" + Name(), colorGrey40);
+ StaticVarSet("LastBidColor" + Name(), colorGrey40);
+ 
+ StaticVarSetText("firstflag"+Name(), "0");
+}
+ 
+CurrentAskPrice = LastValue(Aux1);
+CurrentBidPrice = LastValue(Aux2);
+CurrentTradedPrice = LastValue(C);
+CurrentVolume = LastValue(Volume);
+ 
+LTPTemp = StaticVarGet("LTPSave" + Name());
+LTQTemp = StaticVarGet("LTQSave" + Name());
+VolumeTemp = StaticVarGet("VolumeTemp" + Name());
+AskTemp = StaticVarGet("AskSave" + Name());
+BidTemp = StaticVarGet("BidSave" + Name());
+ 
+CurrentLTQ = (CurrentVolume - VolumeTemp);
+ 
+if(CurrentLTQ < 0)
+{
+ CurrentLTQ = CurrentLTQ * -1;
+}
+ 
+if(CurrentLTQ == 0)
+{
+ CurrentLTQ = LTQTemp;
+}
+ 
+LTPColor = StaticVarGet("LastLTPColor" + Name());
+LTQColor = StaticVarGet("LastLTQColor" + Name());
+AskColor = StaticVarGet("LastAskColor" + Name());
+BidColor = StaticVarGet("LastBidColor" + Name());
+ 
+if(LTPTemp > CurrentTradedPrice)
+{
+ LTPColor = colorRed;
+}
+else if(LTPTemp < CurrentTradedPrice)
+{
+ LTPColor = colorGreen;
+}
+ 
+if(LTQTemp > CurrentLTQ)
+{
+ LTQColor = colorRed;
+}
+else if(LTQTemp < CurrentLTQ)
+{
+ LTQColor = colorGreen;
+}
+ 
+StaticVarSet("LastLTPColor" + Name(), LTPColor);
+StaticVarSet("LastLTQColor" + Name(), LTQColor);
+StaticVarSet("LastAskColor" + Name(), AskColor);
+StaticVarSet("LastBidColor" + Name(), BidColor);
+ 
+StaticVarSet("LTPSave" + Name(), CurrentTradedPrice);
+StaticVarSet("LTQSave" + Name(), CurrentLTQ);
+StaticVarSet("VolumeTemp" + Name(), CurrentVolume);
+StaticVarSet("AskSave" + Name(), CurrentAskPrice);
+StaticVarSet("BidSave" + Name(), CurrentBidPrice);
+ 
+X0 = 10;
+Y0 = 100;
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+ 
+//DrawData ("" + CurrentTradedPrice +" ("+xx+"%)", X0, Y0, X0+320, Y0+50, LTPColor, 30);
+DrawData ("" + C, X0, Y0, X0+150, Y0+50, LTPColor, 30);
+DrawData (" ("+xx+"%) ", X0+155, Y0, X0+300, Y0+50, LTPColor, 24);
+DrawData (" LTQ : " + NumToStr(CurrentLTQ,1,0), X0, Y0+55, X0+100, Y0+85, LTQColor, 12);
+ 
+/*
+FS=Param("Font Size",30,30,100,1);
+GfxSelectFont("Arial", FS, 900, italic = False, underline = False, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor( ParamColor("Color",colorYellow) );
+//Hor=Param("Horizontal Position",800,800,800,800);
+  
+Hor=Param("Horizontal Position",100,100,100,100);  
+Ver=Param("Vertical Position",25,25,250,50);
+GfxTextOut(""+C,Hor , Ver );
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+GfxSelectFont("Arial", 12, 700, italic = False, underline = False, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor(ParamColor("Color",colorYellow) );
+GfxTextOut(""+DD+" ("+xx+"%)", Hor+5, Ver+45 );
+*/
+_SECTION_END();
+ 
+/*_SECTION_BEGIN("Name");
+GfxSetOverlayMode(0);
+GfxSelectFont("Tahoma", Status("pxheight")/8 );
+GfxSetTextAlign( 0 );// center alignment
+GfxSetTextColor( ColorHSB( 42, 42, 42 ) );
+GfxSetBkMode(1); // transparent
+Hor=Param("Horizontal Position",100,100,100,100);  
+Ver=Param("Vertical Position",360,360,250,50);
+GfxTextOut(""+Name(), Hor+5, Ver+45 );
+_SECTION_END();
+*/
+ 
+_SECTION_BEGIN( "GFX EMA" );
+procedure Plotlinewidth( pvalue, ptitle, pcolor, pstyle, pmin, pmax, pxshift, plinewidth, pshowdate )
+{
+    local pvalue, ptitle, pcolor, pstyle, pmin, pmax, pxshift, plinewidth, ppenstyle, pshowdate;
+    local Miny, Maxy;
+    local Lvb, fvb;
+    local pxwidth, pxheight;
+    local TotalBars, axisarea;
+    local i, x, y;
+ 
+    if ( plinewidth > 0 && Status( "action" ) == 1 && ( pstyle & styleLine == styleLine ) )
+    {
+        ////GfxSetOverlayMode( 0 );
+        Miny = Status( "axisminy" );
+        Maxy = Status( "axismaxy" );
+        lvb = Status( "lastvisiblebar" );
+        fvb = Status( "firstvisiblebar" );
+        pxwidth = Status( "pxwidth" );
+        pxheight = Status( "pxheight" );
+        TotalBars = Lvb - fvb;
+        xaxisarea = 56;
+ 
+        if ( pshowdate )
+            yaxisarea = 10;
+        else
+            yaxisarea = 0;
+ 
+        i = 0;
+ 
+        x = 5 + i * ( pxwidth - xaxisarea - 10 ) / ( TotalBars + 1 );
+ 
+        y = 5 + yaxisarea + ( pvalue[i+fvb] - Miny ) * ( pxheight - yaxisarea - 10 ) / ( Maxy - Miny );
+ 
+        GfxMoveTo( x, pxheight - y );
+ 
+        for ( i = 1; i < TotalBars AND i < ( BarCount - fvb ); i++ )
+        {
+            GfxSelectPen( pcolor[i + fvb], plinewidth, 0 );
+            x = 5 + i * ( pxwidth - xaxisarea - 10 ) / ( TotalBars + 1 );
+            y = 5 + yaxisarea + ( pvalue[i+fvb] - Miny ) * ( pxheight - yaxisarea - 10 ) / ( Maxy - Miny );
+            GfxLineTo( x, pxheight - y );
+        }
+    }
+}
+ 
+RequestTimedRefresh( 2 );
+_SECTION_END();
+ 
+ 
+ 
+_SECTION_BEGIN( "Small Triggers" );
+p1 = Param( "TL 1 Periods", 20, 5, 50, 1 );
+p2 = Param( "TL 2 Periods", 5, 3, 25, 1 );
+TL1 = LinearReg( C, p1 );
+TL2 = EMA( TL1, p2 );
+Col1 = IIf( TL1 > TL2, ParamColor( "TL Up Colour", colorBrightGreen ), ParamColor( "TL Dn Colour", colorCustom12 ) );
+ShortTrend = WriteIf( TL1 > TL2, "Uptrend", "Downtrend" );
+Plot( TL1, "LinearReg(20)", Col1, styleLine | styleNoLabel );
+Plot( TL2, "EMA(5)", Col1, styleLine | styleNoLabel ); // | styleThick
+_SECTION_END();
+ 
+_SECTION_BEGIN( "Large Triggers" );
+p3 = Param( "TL 3 Periods", 80, 5, 100, 1 );
+p4 = Param( "TL 4 Periods", 20, 3, 100, 1 );
+TL3 = LinearReg( C, p3 );
+TL4 = EMA( TL3, p4 );
+Col1 = IIf( TL3 > TL4, ParamColor( "TLL Up Colour", colorBlue ), ParamColor( "TLL Dn Colour", colorRed ) );
+LongTrend = WriteIf( TL3 > TL4, "Uptrend", "Downtrend" );
+Plot( TL3, "LinearReg(80)", Col1, styleLine | styleNoLabel );
+Plot( TL4, "EMA(20)", Col1, styleLine | styleNoLabel );
+_SECTION_END();
+ 
+_SECTION_BEGIN( "Fibo Retrace and Extensions" );
+fibs = ParamToggle( "Plot Fibs", "Off|On", 1 );
+pctH = Param ( "Pivot Hi %", 0.325, 0.001, 2.0, 0.002 );
+HiLB = Param ( "Hi LookBack", 1, 1, BarCount - 1, 1 );
+pctL = Param ( "Pivot Lo %", 0.325, 0.001, 2.0, 0.002 );
+LoLB = Param ( "Lo LookBack", 1, 1, BarCount - 1, 1 );
+Back = Param ( "Extend Left = 2", 1, 1, 500, 1 );
+Fwd  = Param( "Plot Forward", 0, 0, 500, 1 );
+text = ParamToggle( "Plot Text", "Off|On", 1 );
+hts  = Param ( "Text Shift", -33.5, -50, 50, 0.10 );
+style = ParamStyle( "Line Style", styleLine, styleNoLabel );
+x = BarIndex();
+pRp  = PeakBars( H, pctH, 1 ) == 0;
+yRp0 = SelectedValue( ValueWhen( pRp, H, HiLB ) );
+xRp0 = SelectedValue( ValueWhen( pRp, x, HiLB ) );
+pSp  = TroughBars( L, pctL, 1 ) == 0;
+ySp0 = SelectedValue( ValueWhen( pSp, L, LoLB ) );
+xSp0 = SelectedValue( ValueWhen( pSp, x, LoLB ) );
+Delta = yRp0 - ySp0;
+ 
+function fib( ret )
+{
+    retval = ( Delta * ret );
+    Fibval = IIf( ret < 1.0
+                  AND xSp0 < xRp0, yRp0 - retval, IIf( ret < 1.0
+                                                       AND xSp0 > xRp0, ySp0 + retval, IIf( ret > 1.0
+                                                                                            AND xSp0 < xRp0, yRp0 - retval, IIf( ret > 1.0
+                                                                                                                                 AND xSp0 > xRp0, ySp0 + retval, Null ) ) ) );
+    return FibVal;
+}
+ 
+x0 = Min( xSp0, xRp0 ) - Back;
+x1 = ( BarCount - 1 );
+ 
+r236 = fib( 0.236 );
+r236I = LastValue ( r236, 1 );
+r382 = fib( 0.382 );
+r382I = LastValue ( r382, 1 );
+r050 = fib( 0.50 );
+r050I = LastValue ( r050, 1 );
+r618 = fib( 0.618 );
+r618I = LastValue ( r618, 1 );
+r786 = fib( 0.786 );
+r786I = LastValue ( r786, 1 );
+e127 = fib( 1.27 );
+e127I = LastValue ( e127, 1 );
+e162 = fib( 1.62 );
+e162I = LastValue ( e162, 1 );
+e200 = fib( 2.00 );
+e200I = LastValue ( e200, 1 );
+e262 = fib( 2.62 );
+e262I = LastValue ( e262, 1 );
+e424 = fib( 4.24 );
+e424I = LastValue ( e424, 1 );
+ 
+p00 = IIf( xSp0 > xRp0, ySp0, yRp0 );
+p00I = LastValue ( p00, 1 );
+p100 = IIf( xSp0 < xRp0, ySp0, yRp0 );
+p100I = LastValue ( p100, 1 );
+color00 = IIf( xSp0 > xRp0, colorLime, colorRed );
+color100 = IIf( xSp0 < xRp0, colorLime, colorRed );
+ 
+numbars = LastValue( Cum( Status( "barvisible" ) ) );
+fraction = IIf( StrRight( Name(), 3 ) == "", 3.2, 3.2 );
+ 
+if ( fibs == 1 )
+{
+    Plot( LineArray( xRp0 - Fwd, yRp0, x1, yRp0, Back ), "PR", 32, 8 | styleNoRescale, Null, Null, Fwd );
+    Plot( LineArray( xSp0 - Fwd, ySp0, x1, ySp0, Back ), "PS", 27, 8 | styleNoRescale, Null, Null, Fwd );
+    Plot( LineArray( x0 - Fwd, r236, x1, r236, Back ), "", 45, style | styleNoRescale, Null, Null, Fwd );
+    Plot( LineArray( x0 - Fwd, r382, x1, r382, Back ), "", 44, style | styleNoRescale, Null, Null, Fwd );
+    Plot( LineArray( x0 - Fwd, r050, x1, r050, Back ), "", 41, style | styleNoRescale, Null, Null, Fwd );
+    Plot( LineArray( x0 - Fwd, r618, x1, r618, Back ), "", 43, style | styleNoRescale, Null, Null, Fwd );
+    Plot( LineArray( x0 - Fwd, r786, x1, r786, Back ), "", 42, style | styleNoRescale, Null, Null, Fwd );
+    Plot( LineArray( x0 - Fwd, e127, x1, e127, Back ), "e127", 47, style | styleNoRescale, Null, Null, Fwd );
+    Plot( LineArray( x0 - Fwd, e162, x1, e162, Back ), "e162", 47, style | styleNoRescale, Null, Null, Fwd );
+    Plot( LineArray( x0 - Fwd, e200, x1, e200, Back ), "p200", 47, style | styleNoRescale, Null, Null, Fwd );
+    Plot( LineArray( x0 - Fwd, e262, x1, e262, Back ), "p262", 47, style | styleNoRescale, Null, Null, Fwd );
+    Plot( LineArray( x0 - Fwd, e424, x1, e424, Back ), "p424", 25, style | styleNoRescale, Null, Null, Fwd );
+}
+ 
+if ( text == 1 )
+{
+    PlotText( " 0% = " + WriteVal( p00, fraction ),     LastValue( BarIndex() ) - ( numbars / hts ), p00I  + 0.05, color00 );
+    PlotText( "23% = " + WriteVal( r236, fraction ), LastValue( BarIndex() ) - ( numbars / hts ), r236I + 0.05, 45 );
+    PlotText( "38% = " + WriteVal( r382, fraction ), LastValue( BarIndex() ) - ( numbars / hts ), r382I + 0.05, 44 );
+    PlotText( "50% = " + WriteVal( r050, fraction ), LastValue( BarIndex() ) - ( numbars / hts ), r050I + 0.05, 41 );
+    PlotText( "62% = " + WriteVal( r618, fraction ), LastValue( BarIndex() ) - ( numbars / hts ), r618I + 0.05, 43 );
+    PlotText( "78% = " + WriteVal( r786, fraction ), LastValue( BarIndex() ) - ( numbars / hts ), r786I + 0.05, 42 );
+    PlotText( "100% = " + WriteVal( p100, fraction ), LastValue( BarIndex() ) - ( numbars / hts ), p100I + 0.05, color100 );
+    PlotText( "127% = " + WriteVal( e127, fraction ), LastValue( BarIndex() ) - ( numbars / hts ), e127I + 0.05, 47 );
+    PlotText( "162% = " + WriteVal( e162, fraction ), LastValue( BarIndex() ) - ( numbars / hts ), e162I + 0.05, 47 );
+    PlotText( "200% = " + WriteVal( e200, fraction ), LastValue( BarIndex() ) - ( numbars / hts ), e200I + 0.05, 47 );
+    PlotText( "262% = " + WriteVal( e262, fraction ), LastValue( BarIndex() ) - ( numbars / hts ), e262I + 0.05, 47 );
+    PlotText( "424% = " + WriteVal( e424, fraction ), LastValue( BarIndex() ) - ( numbars / hts ), e424I + 0.05, 25 );
+}
+ 
+_SECTION_END();
+ 
+_SECTION_BEGIN( "Pivot Finder for Amibroker" );
+/* **********************************
+ 
+Code to automatically identify pivots
+ 
+********************************** */
+ 
+// -- what will be our lookback range for the hh and ll?
+farback = Param( "How Far back to go", 100,50, 5000, 10 );
+nBars = Param( "Number of bars", 12, 5, 40 );
+ 
+// -- Title.
+ 
+/*Title = Name() + " (" + StrLeft( FullName(), 15 ) + ") O: " + Open + ",
+ 
+        H: " + High + ", L: " + Low + ", C: " + Close;
+*/
+ 
+// -- Plot basic candle chart
+ 
+/*PlotOHLC( Open, High, Low, Close,
+ 
+          "BIdx = " + BarIndex() +
+ 
+          "\n" + "O = " + O + "\n" + "H = " + H + "\n" + "L = " + L
+ 
+          + "\n" + "C ",
+ 
+          colorBlack, styleBar );
+*/
+GraphXSpace = 7;
+ 
+// -- Create 0-initialized arrays the size of barcount
+ 
+aHPivs = H - H;
+ 
+aLPivs = L - L;
+ 
+// -- More for future use, not necessary for basic plotting
+ 
+aHPivHighs = H - H;
+ 
+aLPivLows = L - L;
+ 
+aHPivIdxs = H - H;
+ 
+aLPivIdxs = L - L;
+ 
+nHPivs = 0;
+ 
+nLPivs = 0;
+ 
+lastHPIdx = 0;
+ 
+lastLPIdx = 0;
+ 
+lastHPH = 0;
+ 
+lastLPL = 0;
+ 
+curPivBarIdx = 0;
+ 
+// -- looking back from the current bar, how many bars
+ 
+// back were the hhv and llv values of the previous
+ 
+// n bars, etc.?
+ 
+aHHVBars = HHVBars( H, nBars );
+ 
+aLLVBars = LLVBars( L, nBars );
+ 
+aHHV = HHV( H, nBars );
+ 
+aLLV = LLV( L, nBars );
+ 
+// -- Would like to set this up so pivots are calculated back from
+ 
+// last visible bar to make it easy to "go back" and see the pivots
+ 
+// this code would find. However, the first instance of
+ 
+// _Trace output will show a value of 0
+ 
+aVisBars = Status( "barvisible" );
+ 
+nLastVisBar = LastValue( Highest( IIf( aVisBars, BarIndex(), 0 ) ) );
+ 
+_TRACE( "Last visible bar: " + nLastVisBar );
+ 
+// -- Initialize value of curTrend
+ 
+curBar = ( BarCount - 1 );
+ 
+curTrend = "";
+ 
+if ( aLLVBars[curBar] <
+ 
+        aHHVBars[curBar] )
+{
+ 
+    curTrend = "D";
+ 
+}
+ 
+else
+{
+ 
+    curTrend = "U";
+ 
+}
+ 
+// -- Loop through bars. Search for
+ 
+// entirely array-based approach
+ 
+// in future version
+ 
+for ( i = 0; i < farback; i++ ){
+ 
+    curBar = ( BarCount - 1 ) - i;
+ 
+// -- Have we identified a pivot? If trend is down...
+ 
+    if ( aLLVBars[curBar] < aHHVBars[curBar] )
+    {
+ 
+// ... and had been up, this is a trend change
+ 
+        if ( curTrend == "U" )
+        {
+ 
+            curTrend = "D";
+ 
+// -- Capture pivot information
+ 
+            curPivBarIdx = curBar - aLLVBars[curBar];
+ 
+            aLPivs[curPivBarIdx] = 1;
+ 
+            aLPivLows[nLPivs] = L[curPivBarIdx];
+ 
+            aLPivIdxs[nLPivs] = curPivBarIdx;
+ 
+            nLPivs++;
+ 
+        }
+ 
+// -- or current trend is up
+ 
+    }
+    else
+    {
+ 
+        if ( curTrend == "D" )
+        {
+ 
+            curTrend = "U";
+ 
+            curPivBarIdx = curBar - aHHVBars[curBar];
+ 
+            aHPivs[curPivBarIdx] = 1;
+ 
+            aHPivHighs[nHPivs] = H[curPivBarIdx];
+ 
+            aHPivIdxs[nHPivs] = curPivBarIdx;
+ 
+            nHPivs++;
+ 
+        }
+ 
+// -- If curTrend is up...else...
+ 
+    }
+ 
+// -- loop through bars
+ 
+}
+ 
+// -- Basic attempt to add a pivot this logic may have missed
+ 
+// -- OK, now I want to look at last two pivots. If the most
+ 
+// recent low pivot is after the last high, I could
+ 
+// still have a high pivot that I didn't catch
+ 
+// -- Start at last bar
+ 
+curBar = ( BarCount - 1 );
+ 
+candIdx = 0;
+ 
+candPrc = 0;
+ 
+lastLPIdx = aLPivIdxs[0];
+ 
+lastLPL = aLPivLows[0];
+ 
+lastHPIdx = aHPivIdxs[0];
+ 
+lastHPH = aHPivHighs[0];
+ 
+if ( lastLPIdx > lastHPIdx )
+{
+ 
+// -- Bar and price info for candidate pivot
+ 
+    candIdx = curBar - aHHVBars[curBar];
+ 
+    candPrc = aHHV[curBar];
+ 
+    if (
+ 
+        lastHPH < candPrc AND
+ 
+        candIdx > lastLPIdx AND
+ 
+        candIdx < curBar )
+    {
+ 
+ 
+// -- OK, we'll add this as a pivot...
+ 
+        aHPivs[candIdx] = 1;
+ 
+// ...and then rearrange elements in the
+ 
+// pivot information arrays
+ 
+        for ( j = 0; j < nHPivs; j++ )
+        {
+ 
+            aHPivHighs[nHPivs-j] = aHPivHighs[nHPivs-
+ 
+                                              ( j+1 )];
+ 
+            aHPivIdxs[nHPivs-j] = aHPivIdxs[nHPivs-( j+1 )];
+ 
+        }
+ 
+        aHPivHighs[0] = candPrc ;
+ 
+        aHPivIdxs[0] = candIdx;
+ 
+        nHPivs++;
+ 
+    }
+ 
+}
+else
+{
+ 
+ 
+// -- Bar and price info for candidate pivot
+ 
+    candIdx = curBar - aLLVBars[curBar];
+ 
+    candPrc = aLLV[curBar];
+ 
+    if (
+ 
+        lastLPL > candPrc AND
+ 
+        candIdx > lastHPIdx AND
+ 
+        candIdx < curBar )
+    {
+ 
+ 
+// -- OK, we'll add this as a pivot...
+ 
+        aLPivs[candIdx] = 1;
+ 
+// ...and then rearrange elements in the
+ 
+// pivot information arrays
+ 
+        for ( j = 0; j < nLPivs; j++ )
+        {
+ 
+            aLPivLows[nLPivs-j] = aLPivLows[nLPivs-( j+1 )];
+ 
+            aLPivIdxs[nLPivs-j] = aLPivIdxs[nLPivs-( j+1 )];
+ 
+        }
+ 
+        aLPivLows[0] = candPrc;
+ 
+        aLPivIdxs[0] = candIdx;
+ 
+        nLPivs++;
+ 
+    }
+ 
+}
+ 
+// -- Dump inventory of high pivots for debugging
+ 
+/*
+ 
+for (k=0; k<nHPivs; k++) {
+ 
+_TRACE("High pivot no. " + k
+ 
++ " at barindex: " + aHPivIdxs[k] + ", "
+ 
++ WriteVal(ValueWhen(BarIndex()==aHPivIdxs[k],
+ 
+DateTime(), 1), formatDateTime)
+ 
++ ", " + aHPivHighs[k]);
+ 
+}
+ 
+*/
+ 
+// -- OK, let's plot the pivots using arrows
+ 
+//============== EXPLORATION ============== 
+Buy = aLPivs==1; 
+Sell = aHPivs==1; 
+//Buy = ExRem(Buy,Sell);
+//Sell = ExRem(Sell,Buy);
+BuyPrice = ValueWhen( Buy, O );
+SellPrice = ValueWhen( Sell, O );
+ 
+/*SellPrice=ValueWhen(Sell,C,1); 
+BuyPrice=ValueWhen(Buy,C,1); 
+Long=Flip(Buy,Sell); 
+Shrt=Flip(Sell,Buy );
+*/
+ 
+autotrader= ParamToggle( "Automate Trade", "No|Yes", 0 );
+ 
+if (autotrader == 1) SATC1.(Open, High, Low, Close, Volume, Aux1, Aux2, Buy, Sell, Sell, Buy);
+ 
+for(i=BarCount-1;i>1;i--)
+{
+if(Buy[i] == 1)
+{
+entry = C[i];
+sig = "BUY";
+bars = i;
+i = 0;
+}
+if(Sell[i] == 1)
+{
+sig = "SELL";
+entry = C[i];
+bars = i;
+i = 0;
+}
+}
+ 
+ 
+ 
+if ( sig =="BUY" )
+{
+    PopupWindowEx( "ID:0", "Get Ready to BUY  \n" + Name() + " @ " + BuyPrice, "Buy Alert -", timeout, 100, 1 );
+}
+else
+{
+    PopupWindowEx( "ID:1", "Get Ready to SELL  \n" + Name() + " @ " + SellPrice, "Sell Alert -", timeout, 100, 1 );
+}
+ 
+ 
+ 
+PlotShapes(shapeUpArrow*Buy,colorBrightGreen);
+PlotShapes(shapeDownArrow*Sell,colorRed);
+ 
+//PlotShapes( IIf( Sell, shapeDownArrow, shapeNone ), colorRed, 0, High, Offset = -15 );
+//PlotShapes( IIf( Buy, shapeUpArrow , shapeNone ), colorBrightGreen, 0, Low, Offset = -15 );
+ 
+ 
+//AlertIf( Sell, "SOUND C:\\Windows\\Media\\Ding.wav", "Sell " + C, 2, 1 + 2, 1 );
+//AlertIf( Buy, "SOUND C:\\Windows\\Media\\Ding.wav", "Buy " + C, 1, 1 + 2, 1 );
+ 
+dist = 1.1 * ATR( 15 );
+ 
+for ( i=BarCount-1; i > 0; i-- )
+{
+    if ( Buy[i] )
+        PlotText( "Buy@" + O[ i ], i, L[ i ] - dist[i], colorWhite, colorGreen);
+ 
+    if ( Sell[i] )
+        PlotText( "Sell@" + O[ i ], i, H[ i ] + dist[i], colorWhite, colorRed);
+}
+ 
+TelegramAlerts = ParamTrigger("Telegram Alert","Send Alert");
+TelegramAPI_ID = ParamStr("Telegram Bot API Key","1200942736:AAEG8y9qyJ7aHefUm4vt_xKqkNBxfKd3qCc");  //Get the Bot API key via BotFather in Telgram
+TelgramCHAT_ID = ParamStr("Telegram Channel ID","@Victor_AlgoTrading"); 
+EnableScript("VBScript"); 
+<% 
+Public Sub Telegram(Message_Text)
+sAPI_ID = AFL.Var("TelegramAPI_ID")
+sChat_ID = AFL.Var("TelgramCHAT_ID")
+sMSG = Message_Text
+
+'URL to open....
+sUrl = "https://api.telegram.org/bot" & sAPI_ID & "/sendMessage"
+'POST Request to send.
+sRequest = "text=" & sMSG & "&chat_id=" & sChat_ID
+
+set oHTTP = CreateObject("Microsoft.XMLHTTP")
+oHTTP.open "POST", sUrl,false
+oHTTP.setRequestHeader "Content-Type", "application/x-www-form-urlencoded"
+oHTTP.setRequestHeader "Content-Length", Len(sRequest)
+oHTTP.send sRequest
+HTTPPost = oHTTP.responseText
+
+'Store response 
+'msgbox(objXmlHttpMain.responseText)
+'response.Write (objXmlHttpMain.responseText) 
+End Sub 
+
+%> 
+tg = GetScriptObject(); 
+/*
+if (LastValue(ValueWhen(Ref(Buy,-1),BarIndex())==BarIndex()) AND StaticVarGet(Name()+GetChartID()+"buyAlert")==0 )
+{
+tg.Telegram("Buy Alert in " + Name() + " : BuyPrice Value is " + BuyPrice + " Time " + TimeNum());
+StaticVarSet(Name()+ GetChartID() + "buyAlertBar", LastValue(TimeNum()));
+}
+
+if (LastValue(TimeNum()) == StaticVarGet(Name()+GetChartID()+"buyAlertBar"))
+StaticVarSet(Name()+GetChartID()+"buyAlert",1); //alert was triggered, no more alerts on this bar
+else
+StaticVarSet(Name()+GetChartID()+"buyAlert",0); // new bar formed, and alerts can be trigered.
+*/
+if((Buy[BarCount-1]==True AND (Status("action") == actionExplore OR StaticVarGet(Name()+GetChartID()+"TGCLongEntry")==0)) OR TelegramAlerts)
+{
+tg.Telegram("Buy Alert in " + Name() + " : BuyPrice Value is " + BuyPrice + " Times " + TimeNum());
+}
+/*
+else
+if (LastValue(ValueWhen(Ref(Sell,-1),BarIndex())==BarIndex()) AND StaticVarGet(Name()+GetChartID()+"sellAlert")==0 )
+{
+tg.Telegram("Sell Alert in " +Name() + " : SellPrice Value is " + SellPrice + " Time " + TimeNum());
+StaticVarSet(Name()+ GetChartID() + "sellAlertBar", LastValue(TimeNum()));
+}

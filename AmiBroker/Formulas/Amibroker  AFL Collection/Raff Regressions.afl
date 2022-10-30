@@ -1,0 +1,32 @@
+_SECTION_BEGIN("Raff Regressions");
+/*
+Raff Regression Channels on AB 4.14
+by Corey Saxe 9/21/02
+*/
+
+GraphXSpace=2;
+T1=50; //Span of line
+T2=10; //Offset of line from today
+Y=C;  //Array
+LR=ValueWhen(LastValue(Cum(1))-T2==Cum(1),LinearReg(Y,T1),1);
+LRS=ValueWhen(LastValue(Cum(1))-T2==Cum(1),LinRegSlope(Y,T1),1);
+
+R=-(LastValue(Cum(1))-(T1+T2));
+Z=(LastValue(Cum(1))-T2)-Cum(1);
+U=LastValue(LR)-(LastValue(LinRegSlope(Y,T1))*Z);
+L1=LastValue(Cum(1))-T2;
+
+A1=LastValue(LR)-(LastValue(LRS)*Z) * sqrt(IIf(Cum(1)>L1,-1,1))+ Ref(Y,R) - Ref(Y,R);
+ZZ=LastValue(ValueWhen(Cum(1)==(LastValue(Cum(1)-T2)),HHV(abs(A1-Y),T1)));
+ATZ=ValueWhen(LastValue(Cum(1))-T2==Cum(1),ATR(T1),1);
+
+Plot(Y,"Array",2,8);
+Plot(A1,"LinReg Line",0,1);
+Plot(A1+ZZ,"Top Line",3,1);
+Plot(A1-ZZ,"Bot Line",3,1);
+
+Title="Raff Regression Channels     Periods "+WriteVal(T1,1.0)+
+"     Offset "+WriteVal(T2,1.0)+
+"     Slope "+WriteVal(LRS,1.6)+
+"     Spacing "+WriteVal(ZZ/ATZ,1.2)+" ATRs and $"+WriteVal(PointValue*ZZ,1.2);
+_SECTION_END();

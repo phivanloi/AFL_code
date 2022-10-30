@@ -1,0 +1,67 @@
+fmkdir( "C:\\SaveData" );
+Buy = ( (DateNum() >= 900131) AND (DateNum() <= 1070716) );
+
+//if we want to oexport data for a single Day, we modify the Second line like this
+//Buy = ( (DateNum() == 1070129));
+
+for( i = 0; i < BarCount; i++ )
+if( Buy[i] )
+{
+  //fh = fopen( "C:\\SaveData\\intraday.csv", "a");//if we want to export all data in a single file//
+    fh = fopen( "C:\\SaveData\\"+Name()+".csv", "a");// if we want to export data in an individual file// 
+  if( fh ) 
+   { 
+     y = Year(); 
+     m = Month(); 
+     d = Day(); 
+     r = Hour();
+     e = Minute();
+   
+   for( i = 0; i < BarCount; i++ )
+   if( Buy[i] )
+
+   { 
+      fputs( Name() + "," , fh );
+      ds = StrFormat("%02.0f/%02.0f/%02.0f%02,", 
+                     m[ i ], d[ i ], y[ i ] ); 
+      fputs( ds, fh ); 
+     
+      ts = StrFormat("%02.0f:%02.0f,", 
+                     r[ i ],e[ i ]); 
+      fputs( ts, fh ); 
+
+      qs = StrFormat("%.2f,%.2f,%.2f,%.2f,%.0f\n", 
+                     O[ i ],H[ i ],L[ i ],C[ i ],V[ i ] ); 
+      fputs( qs, fh );
+   }
+   fclose( fh );
+   }
+}
+
+/*Export Data from Amibroker to ASCII files
+
+Here there is a formula available to export data from Amibroker to ASCII files. With the formula we can export data for a specified period from Amibroker database.
+
+How to export:
+
+Download,unzip and copy this afl formula file to Amibroker\Formulas\Custom folder.
+Scan with the formula in Automatic Analyser (AA) in Amibroker.
+The formula will create a folder in C drive named 'OHLC' and will collecte the data in separate text files for each symbol.
+
+Periodicity:
+
+WE can export the data for different periodicity 1min, 5min, 10min or daily etc. as we required. To configure that go to AA > settings > General > Periodicity and set periodicity. Thus we can get data for 5min, 10min, 1 Hour, daily etc.
+
+Select Date Range:
+
+To set the date range, we have to edit the formula.
+Open AA > pick (the formula file) > edit.
+In the second line we can see:
+
+Buy = ( (DateNum() >= 1061225) AND (DateNum() <= 1070110) );
+
+First DateNum is the start date and second DateNum is end date.
+The current settings will export data from 20061225 to 20070110.
+Just like that, we can select another date range. Instead of 2006, should give 106 and for 2007, give 107 etc. Month and date are same. Save the formula and scan it.
+It will export and save the data in C:\OHLC folder.
+If you want to export for an another date range, that will also be added to the corresponding files just after the current data.*/

@@ -1,0 +1,38 @@
+_SECTION_BEGIN("Visible Max and Min Value Demo");
+// Demo of 2 fuctions I wrote, which will find the Maximum and Minimum value in the visible horizontal chart area.
+// Can be used for many different reasons and this is only an example. Inpiration came from several different codes
+// I have seen, but can't at this moment find out who created them. Thanks anyway!!!
+// I an new to AFL programming and this could probably be achieved in an easier way and if so, please let me know.
+
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+
+function VisibleMaxValue(Value)
+{
+ BI							= BarIndex();
+ FirstVisibleBarIndex	= Status("FirstvisiblebarIndex");
+ FirstVisibleBar     	= FirstVisibleBarIndex == BI;
+ HighestVisibleValue		= HighestSince(FirstVisibleBar, Value);
+ LastVisibleBarIndex		= Status("LastvisiblebarIndex");
+ BlankBars					= SelectedValue(LastVisibleBarIndex - BI);
+ LastVisibleBar     		= LastVisibleBarIndex == BI + BlankBars;
+ MaxValue 					= LastValue(ValueWhen(Lastvisiblebar, HighestVisibleValue));
+ return MaxValue;
+}
+
+function VisibleMinValue(Value)
+{
+ BI							= BarIndex();
+ FirstVisibleBarIndex	= Status("FirstvisiblebarIndex");
+ FirstVisibleBar     	= FirstVisibleBarIndex == BI;
+ LowestVisibleValue		= LowestSince(FirstVisibleBar, Value);
+ LastVisibleBarIndex		= Status("LastvisiblebarIndex");
+ BlankBars					= SelectedValue(LastVisibleBarIndex - BI);
+ LastVisibleBar     		= LastVisibleBarIndex == BI + BlankBars;
+ MinValue 					= LastValue(ValueWhen(Lastvisiblebar, LowestVisibleValue));
+ return MinValue;
+}
+
+Plot(VisibleMaxValue(High), "", colorGreen, 0);
+Plot(VisibleMinValue(Low), "", colorRed, 0);
+
+_SECTION_END();

@@ -1,0 +1,34 @@
+// Piecewise EMA is an EMA that restarts calculations each time
+// the 'sincebar' argument is true
+function PiecewiseEMA( array, range, sincebar )
+{
+  factor = IIf( sincebar, 1, 2/(range+1) );
+  return AMA2( array, factor, 1-factor );
+}
+// parameters
+m=4;
+n=250;
+// generate reversal signals based on EMA crossover rule
+Lpf1 = EMA( C, 7  );
+Lpf2 = EMA( C, 15 );
+CrossPoint = Cross( Lpf1, Lpf2 ) OR Cross( Lpf2, Lpf1 );
+Periods = BarsSince( CrossPoint );
+// variable bar sum
+DC = Close - Ref( Close, -1 );
+CPC = Sum( DC, Periods );
+// smooth CPC by piecewise 4 bar EMA
+Trend = PiecewiseEMA( CPC, 4, CrossPoint );
+// noise
+DT = CPC - Trend;
+Noise = 2 * sqrt( MA( DT^2, n ) );
+// alternative 'linear' noise calculation
+// Noise = 2 * MA( abs( DT ), n ) );
+QIndicator = Trend/Noise;
+Plot(sign(Lpf1-Lpf2), "Rev", colorRed );
+Plot( Qindicator, "Qindicator", colorGreen, styleHistogram);
+PlotGrid( -1 );
+PlotGrid( 1 );
+PlotGrid( 2 );
+PlotGrid( -2 );
+PlotGrid( 5 );
+PlotGrid( 5);

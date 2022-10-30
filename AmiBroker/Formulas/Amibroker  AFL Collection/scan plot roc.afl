@@ -1,0 +1,11 @@
+_SECTION_BEGIN("ROCadj");
+periods = Param("Periods", 21, 2, 200, 1 );
+ROCadj = periods * EMA( ROC( C, 1 ), periods );
+Plot( ROCadj, "ROCadj "+periods, colorRed, styleThick );
+// the line below adds standard ROC overlay
+Plot( ROC( C, periods ), "ROC "+periods, colorBrightGreen );
+Buy=Cross(ROCadj, ROC(C, periods));
+Sell=Cross(ROC(C, periods), ROCadj);
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ), 0, IIf( Buy, Low, High ) );
+_SECTION_END();

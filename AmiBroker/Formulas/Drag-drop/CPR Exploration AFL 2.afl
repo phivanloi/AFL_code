@@ -1,0 +1,58 @@
+//------------------------------------------------------
+//
+//  Formula Name:    CPR Exploration AFL
+//  Author/Uploader: Trading Tuitions
+//  E-mail:          support@tradingtuitions.com
+//  Website:         www.tradingtuitions.com
+//------------------------------------------------------
+
+_SECTION_BEGIN("CPR Exploration");
+
+PrevDay = 0; // Value should be 1 if your database is updated upto current day
+
+PrevLow = Ref(L,-PrevDay);
+PrevHigh = Ref(H,-PrevDay);
+PrevClose = Ref(C,-PrevDay);
+
+Pivot = (PrevLow+PrevHigh+PrevClose)/3;
+BC = (PrevLow+PrevHigh)/2;
+TC = (Pivot-BC) + Pivot;
+
+NRThreshold = 0.2;
+NarrowRangeCond = (abs(TC-BC)/PrevClose*100) < NRThreshold;
+NarrowRange = WriteIF(NarrowRangeCond,"YES","NO");
+
+NarrowRangeFGColor=IIf(NarrowRangeCond,colorWhite,colorBlack);
+NarrowRangeBKColor=IIf(NarrowRangeCond,colorBrightGreen,colorWhite);
+
+R1 = (2*Pivot) - PrevLow;
+R2 = (Pivot+PrevHigh) - PrevLow;
+R3 = R1 + (PrevHigh-PrevLow);
+R4 = R3 + (R2-R1);
+
+S1 = (2*Pivot) - PrevHigh;
+S2 = Pivot - (PrevHigh-PrevLow);
+S3 = S1 - (PrevHigh-PrevLow);
+S4 = S3 - (S1-S2);
+  
+Filter = C>10;
+ 
+AddColumn(PrevClose, "Close", 1.2,colorBlack,colorLightGrey,width=100);
+AddColumn(PrevLow, "Low", 1.2,colorBlack,colorLightGrey,width=100);
+AddColumn(PrevHigh, "High", 1.2,colorBlack,colorLightGrey,width=100);
+AddColumn(Pivot, "Pivot", 1.2, colorBlack, colorLightOrange,100);
+AddColumn(BC, "BC", 1.2, colorBlack, colorAqua,100);
+AddColumn(TC, "TC", 1.2, colorBlack, colorPaleTurquoise,100);
+AddTextColumn(NarrowRange, "NarrowRange",format=1.2,NarrowRangeFGColor,NarrowRangeBKColor);
+AddColumn(R1,"R1",1.2,colorWhite,colorBlueGrey,100);
+AddColumn(R2,"R2",1.2,colorWhite,colorBlueGrey,100);
+AddColumn(R3,"R3",1.2,colorWhite,colorBlueGrey,100);
+AddColumn(R4,"R4",1.2,colorWhite,colorBlueGrey,100);
+
+AddColumn(S1,"S1",1.2,colorWhite,colorTeal,100);
+AddColumn(S2,"S2",1.2,colorWhite,colorTeal,100);
+AddColumn(S3,"S3",1.2,colorWhite,colorTeal,100);
+AddColumn(S4,"S4",1.2,colorWhite,colorTeal,100);
+
+
+_SECTION_END();

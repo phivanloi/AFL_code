@@ -1,0 +1,23 @@
+// Normalized RSI AFL by Karthikmarar for the thread "Experiments in Technical Analysis" at Traderji.com
+_SECTION_BEGIN("NPO");
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+
+
+n=Param("period",60,5,100,1);
+J=RSI(15);
+
+np = (j - MA(j,n))/StDev(j,n); 
+npo=(np+(2*Ref(np,-1))+(2*Ref(np,-2))+Ref(np,-3))/6;
+
+Plot(npo,"Normalized RSI",colorBlack,1);
+PlotGrid(2,colorRed);
+PlotGrid(3,colorYellow);
+PlotGrid(-2,colorRed);
+PlotGrid(-3,colorYellow);
+
+
+
+graphx=10;
+PlotGrid(1,colorPink);
+PlotGrid(-1,colorPink);
+PlotOHLC( npo,npo,1,-1, "", IIf( npo> 1, colorLime ,colorRed), styleCloud | styleClipMinMax, -1, 1); 

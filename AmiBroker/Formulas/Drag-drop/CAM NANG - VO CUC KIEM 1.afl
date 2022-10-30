@@ -1,0 +1,2231 @@
+_SECTION_BEGIN("Duong Gia");
+Plot(C,"",IIf(C>Ref(C,-1),colorCustom9,colorRed),styleCandle);
+GraphXSpace =5;
+_SECTION_END();
+_SECTION_BEGIN("Gartley");
+GBmin = Param("Swing B Min.",0.55,0.3,1,0.01);
+GBmax = Param("Swing B Max.",0.72,0.4,1,0.01);
+GCmin = Param("Swing C Min.",0.38,0.3,1.27,0.01);
+GCmax = Param("Swing C Max.",1.0,0.4,1.27,0.01);
+GDmin = Param("Swing D Min.(XA)",0.55,0.3,1,0.01);
+GDmax = Param("Swing D Max.(XA)",1.0,0.4,1.0,0.01);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Bat");
+
+BatBmin = Param("Swing B Min.",0.38,0.3,1,0.01);
+BatBmax = Param("Swing B Max.",0.55,0.4,1,0.01);
+BatCmin = Param("Swing C Min.",0.38,0.3,1.62,0.01);
+BatCmax = Param("Swing C Max.",1.27,0.4,1.62,0.01);
+BatDmin = Param("Swing D Min.(XA)",0.5,0.3,1,0.01);
+BatDmax = Param("Swing D Max.(XA)",1.0,0.4,1.0,0.01);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Butterfly");
+
+BtBmin = Param("Swing B Min.",0.55,0.3,1,0.01);
+BtBmax = Param("Swing B Max.",0.9,0.4,1,0.01);
+BtCmin = Param("Swing C Min.",0.38,0.3,1.62,0.01);
+BtCmax = Param("Swing C Max.",1.27,0.4,1.62,0.01);
+BtDmin = Param("Swing D Min.(XA)",1,1,1.8,0.01);
+BtDmax = Param("Swing D Max.(XA)",1.8,1,1.8,0.01);						// Max XA of Butterfly = (1.0 - 1.618)
+
+_SECTION_END();
+
+_SECTION_BEGIN("Crab");
+
+CBmin = Param("Swing B Min.",0.38,0.3,1,0.01);
+CBmax = Param("Swing B Max.",0.65,0.4,1,0.01);
+CCmin = Param("Swing C Min.",0.38,0.3,1.62,0.01);
+CCmax = Param("Swing C Max.",1.270,0.4,1.62,0.01);
+CDmin = Param("Swing D Min.(XA)",1.25,1,1.8,0.01);
+CDmax = Param("Swing D Max.(XA)",1.8,1,2,0.01);
+
+_SECTION_END();
+
+_SECTION_BEGIN("AB=CD");
+
+abcd_Cmin = Param("Swing C Min.",0.3,		0.3	,	1,		0.01);
+abcd_Cmax = Param("Swing C Max.",0.8,		0.8	,	1,		0.01);
+abcd_Dmin = Param("Swing D Min.",1.2,		1,		2.7,	0.01);
+abcd_Dmax = Param("Swing D Max.",3.7,		1,		4,		0.01);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Patterns");
+	
+//strength = Param("Strength",5,2,15,1);									// Best use: 3, 4, 5
+strength = Param("BARS of each LINE",5,2,15,1);							// So luong bar cho moi duong XA, AB, BC, 
+bu = ParamToggle("Bullish Pattern","Off|On",1);							// So bar/lines se quyet dinh. mo^ hinh` duoc ve the' nao`
+be = ParamToggle("Bearish Pattern","Off|On",1);
+
+bi = Cum(1)-1;
+
+function GetTop(bars) 														// Lay' gia' tri cao nhat' = di?nh
+	{
+		Top = H == HHV(H,2*bars) AND Ref(HHV(H,bars),bars) < H;
+		Top = Top AND LastValue(bi)-ValueWhen(Top,bi) > bars;
+		return Top;
+	}
+
+function GetValley(bars)													// La'y gia tri thap' nhat' = day'
+	{
+		Valley = L == LLV(L,2*bars) AND Ref(LLV(L,bars),bars) > L;
+		Valley = Valley AND LastValue(bi)-ValueWhen(Valley,bi) > bars;
+		return Valley;
+	}
+
+
+// Build fractals array
+
+P1 = GetTop(strength);										// so' bar cho 1 duong` XA, AB, BC, CD
+V1 = GetValley(Strength);
+
+P1 = IIf(P1,IIf(ValueWhen(P1,bi,2) < ValueWhen(V1,bi),P1,IIf(ValueWhen(P1,H,2) > H,False,P1)),P1);
+P1 = IIf(P1 AND ValueWhen(P1,bi,0) > bi,IIf(ValueWhen(P1,bi,0) < ValueWhen(V1,bi,0),IIf(ValueWhen(P1,H,0) >= H,False,P1),P1),P1);
+V1 = IIf(V1,IIf(ValueWhen(V1,bi,2) < ValueWhen(P1,bi),V1,IIf(ValueWhen(V1,L,2)<L,False,V1)),V1);
+V1 = IIf(V1 AND ValueWhen(V1,bi,0) > bi ,IIf(ValueWhen(V1,bi,0) < ValueWhen(P1,bi,0),IIf(ValueWhen(V1,L,0) <= L, False,V1),V1),V1); 
+
+
+P1H1 = ValueWhen(P1,H);
+P1Bar1 = ValueWhen(P1,bi);
+P1H2 = ValueWhen(P1,H,2);
+P1Bar2 = ValueWhen(P1,bi,2);
+V1L1 = ValueWhen(V1,L);
+V1Bar1 = ValueWhen(V1,bi);
+V1L2 = ValueWhen(V1,L,2);
+V1Bar2 = ValueWhen(V1,bi,2);
+
+
+//============================================
+//				BULLISH PATTERNS
+//============================================
+/*
+	Mo hinh Bullish:
+	A	=	P1H2
+	B	=	V1L1
+	C	=	P1H1
+	X	=	V1L2
+
+*/
+
+PTvalid = (P1Bar1 > V1Bar1 AND V1Bar1 > P1Bar2 AND P1bar2 > V1Bar2) AND P1; // Peaks and troughs are in order
+
+myAX			=	P1H2-V1L2;
+myAB			=	P1H2-V1L1;
+myBC			=	P1H1-V1L1;
+
+myAB_AX		=	myAB/ myAX;
+myBC_AB		=	myBC/ myAB;	
+
+BullGartley4 		= PTvalid 	AND 	(	myAB_AX > GBmin	) 		AND (	myAB_AX < GBmax	)
+								AND  	(	myBC_AB > GCMin 	) 		AND (	myBC_AB < GCMax	); 
+
+BullBat4 			= PTvalid 	AND 	(	myAB_AX > BatBmin ) 		AND (	myAB_AX < BatBmax	)
+								AND 	(	myBC_AB > BatCMin ) 		AND (	myBC_AB < BatCMax	); 
+
+BullButterfly4 	= PTvalid 	AND 	(	myAB_AX > BtBmin ) 		AND (	myAB_AX < BtBMax	)
+								AND  	(	myBC_AB > BtCmin ) 		AND (	myBC_AB < BtCmin 	);
+
+BullCrab4 			= PTvalid 	AND 	(	myAB_AX > CBmin )	  		AND (	myAB_AX < CBmax 	)
+								AND  	(	myBC_AB > CCmin ) 		AND (	myBC_AB < CCmax	);
+
+BullABCD4			= PTvalid AND 	(	myBC_AB > abcd_Cmin) 	AND (	myBC_AB < abcd_Cmax	);
+
+strPattern = "";
+
+//==================================================
+//				 BULLISH ABCD
+// 	Bullish pattern found. D retracement level is not evaluated
+//==================================================
+	dHigh		=		HighestSince(BullABCD4,H);				// Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+	dLow 		= 		LowestSince(BullABCD4,L);
+	myC			=		ValueWhen(BullABCD4,P1H1);
+	myB			=		ValueWhen(BullABCD4,V1L1);
+	myA			=		ValueWhen(BullABCD4,P1H2);
+	myX			=		ValueWhen(BullABCD4,V1L2);
+	myCB		=		myC - myB;
+	my_d_min	=		myCB	*	abcd_DMin ;					// Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+	my_d_max	=		myCB	*	abcd_DMax ;
+	my_Cd_min	=		myC - my_d_min;					   // Khoang dich chuyen cua duong Ad con.
+	my_Cd_max	=		myC - my_d_max;
+
+BullABCD	 	= 		IIf(		( dLow  <	my_Cd_min	)	AND		( dLow	> my_Cd_max )	
+								AND	( dHigh	<=	myC		)	AND		( dLow	==	L), 
+								True, False
+							);
+
+BullABCD		=		BullABCD	AND (dLow		<	myB);
+
+
+//==================================================
+// 				BULLISH GARTLEY
+//==================================================
+	dHigh		=		HighestSince(BullGartley4,H);				// Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+	dLow 		= 		LowestSince(BullGartley4,L);
+
+	myC			=		ValueWhen(BullGartley4,P1H1);
+	myB			=		ValueWhen(BullGartley4,V1L1);
+	myA			=		ValueWhen(BullGartley4,P1H2);
+	myX			=		ValueWhen(BullGartley4,V1L2);
+	myAX		=		myA - myX;
+
+	my_d_min	=		myAX	*	GDmin;							// Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+	my_d_max	=		myAX	*	GDMax;
+	my_Ad_min	=		myA - my_d_min;							// Khoang dich chuyen cua duong Ad con.
+	my_Ad_max	=		myA - my_d_max;
+
+BullGartley 	= 		IIf(		( dLow  <	my_Ad_min	)	AND		( dLow	> my_Ad_max )	
+								AND	( dHigh	<=	myC		)	AND		( dLow	==	L), 
+								True, False
+							);
+BullGartley 	=		BullGartley 	AND (dLow		<	myB);						// diem D thap' hon B
+strPattern 	=		WriteIf(BullGartley,"BULLISH GARTLEY",strPattern);
+
+
+
+//==================================================
+// 				BULLISH BAT
+//==================================================
+	dHigh		=		HighestSince(BullBat4,H);				// Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+	dLow 		= 		LowestSince(BullBat4,L);	
+
+	myC			=		ValueWhen(BullBat4,P1H1);
+	myB			=		ValueWhen(BullBat4,V1L1);
+	myA			=		ValueWhen(BullBat4,P1H2);
+	myX			=		ValueWhen(BullBat4,V1L2);
+	myAX		=		myA - myX;
+
+	my_d_min	=		myAX	*	BatDmin;						// Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+	my_d_max	=		myAX	*	BatDmax ;
+	my_Ad_min	=		myA - my_d_min;							// Khoang dich chuyen cua duong Ad con.
+	my_Ad_max	=		myA - my_d_max;
+
+BullBat 		= 		IIf(		( dLow  <	my_Ad_min	)	AND		( dLow	> my_Ad_max )	
+								AND	( dHigh	<=	myC		)	AND		( dLow	==	L), 
+								True, False
+							);
+BullBat 		=		BullBat 	AND (dLow		<	myB);			// diem d thap hon diem B
+strPattern 	=		WriteIf(BullBat,"BULLISH BAT",strPattern);
+
+
+//==================================================
+// 				BULLISH CRAB - CUA
+//==================================================
+	dHigh		=		HighestSince(BullCrab4,H);				// Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+	dLow 		= 		LowestSince(BullCrab4,L);
+
+	myC			=		ValueWhen(BullCrab4,P1H1);
+	myB			=		ValueWhen(BullCrab4,V1L1);
+	myA			=		ValueWhen(BullCrab4,P1H2);
+	myX			=		ValueWhen(BullCrab4,V1L2);
+	myAX		=		myA - myX;
+
+	my_d_min	=		myAX	*	CDmin ;					// Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+	my_d_max	=		myAX	*	CDmax ;
+	my_Ad_min	=		myA - my_d_min;						// Khoang dich chuyen cua duong Ad con.
+	my_Ad_max	=		myA - my_d_max;
+
+BullCrab 		= 		IIf(		( dLow  <	my_Ad_min	)	AND		( dLow	> my_Ad_max )	
+								AND	( dHigh	<=	myC		)	AND		( dLow	==	L), 
+								True, False
+							);
+BullCrab 		=		BullCrab 	AND (dLow		<	myX);					// diem D thap' hon X
+strPattern 	=		WriteIf(BullCrab ,"BULLISH CRAB",strPattern);
+
+
+//==================================================
+// 				BULLISH  BUTTTERFLY
+//==================================================
+	dHigh		=		HighestSince(BullButterfly4,H);				// Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+	dLow 		= 		LowestSince(BullButterfly4,L);
+
+	myC			=		ValueWhen(BullButterfly4,P1H1);
+	myB			=		ValueWhen(BullButterfly4,V1L1);
+	myA			=		ValueWhen(BullButterfly4,P1H2);
+	myX			=		ValueWhen(BullButterfly4,V1L2);
+	myAX		=		myA - myX;
+
+	my_d_min	=		myAX	*	BtDmin ;								// Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+	my_d_max	=		myAX	*	BtDmax ;
+	my_Ad_min	=		myA - my_d_min;									// Khoang dich chuyen cua duong Ad con.
+	my_Ad_max	=		myA - my_d_max;
+
+BullButterfly 	= 		IIf(		( dLow  <	my_Ad_min	)	AND		( dLow	> my_Ad_max )	
+									AND	( dHigh	<=	myC		)	AND		( dLow	==	L), 
+								True, False
+								);
+BullButterfly 	=		BullButterfly 	AND (dLow		<	myX);					// diem D thap' hon X
+strPattern 		=		WriteIf(BullButterfly ,"BULLISH BUTTERFLY",strPattern);
+
+
+
+//==========================================================
+//   VE DUONG CHO MO HINH BULLISH ABCB 
+//==========================================================
+BullHar4 	=  BullABCD4;
+BullHar 	=  BullABCD;
+
+Point4 = IIf(BullHar,ValueWhen(BullHar4,bi),Null);
+BullHar = IIf(BullHar, IIf(Point4 == ValueWhen(BullHar,point4,0) AND ValueWhen(BullHar,bi,0) > bi ,False,BullHar),BullHar);
+
+A = ValueWhen(BullHar4,P1H2);
+Abar = ValueWhen(BullHar4,P1bar2);
+B = ValueWhen(BullHar4,V1L1);
+Bbar = ValueWhen(BullHar4,V1bar1);
+C1 = ValueWhen(BullHar4,P1H1);
+C1bar = ValueWhen(BullHar4,P1bar1);
+D = ValueWhen(BullHar,L);
+Dbar = ValueWhen(BullHar,bi);
+
+BCdAB = (C1-B)/(A-B);
+BCdCD = (C1-D)/(C1-B);
+
+PlotPattern = Dbar > C1bar;
+
+if(LastValue(PlotPattern) AND bu)
+{
+		ColorX = colorGreen;
+	// Ve cac duong AB, BC, CD
+		Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(Bbar),LastValue(B)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(C1bar),LastValue(C1)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(C1bar),LastValue(C1),LastValue(Dbar),LastValue(D)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(C1bar),LastValue(C1)),"",ColorX ,styleDashed);
+		Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(Dbar),LastValue(D)),"",ColorX ,styleDashed);
+
+	// Ve cac gia tri Fibo
+		PlotText(NumToStr(LastValue(BCdAB),1.2),(LastValue(C1bar)+LastValue(Abar))/2,(LastValue(C1)+LastValue(A))/2,ColorX );
+		PlotText(NumToStr(LastValue(BCdCD),1.2),(LastValue(Bbar)+LastValue(Dbar))/2,(LastValue(B)+LastValue(D))/2,ColorX );
+
+	//---------- Viet cac diem X, A, B, C, D: by binhnd---------------------
+		xlech		=	0;
+		ylech 		= 	2;
+		PlotText("",LastValue(Abar)	+ 	xlech,	LastValue(A)	+	ylech,	ColorX );
+		PlotText("",LastValue(Bbar)	+ 	xlech,	LastValue(B)	-	ylech,	ColorX );
+		PlotText("",LastValue(C1bar)	+ 	xlech,	LastValue(C1)	+	ylech,	ColorX );
+		PlotText("DIEM MUA",LastValue(Dbar)	+ 	xlech,	LastValue(D)	-	ylech,	ColorX );
+
+	//--------- Viet thuyet minh mo hinh: by binhnd--------------
+		if (strPattern!="")  
+		{
+			myStr			=	"THAN KIEM: BULLISH AB=CD";
+			toadoX			=	LastValue(Abar);
+			toadoY			=	LastValue(D);
+
+			PlotText(myStr,toadoX,toadoY,ColorX );
+		}
+
+}			//	end of Ve duong` bullish abcd
+
+
+
+//==========================================================
+//   VE DUONG CHO MO HINH BULLISH BAT, GARTLEY, BUTTERFLY, CRAB
+//==========================================================
+
+
+BullHar4 = BullGartley4 OR BullButterfly4 OR BullBat4 OR BullCrab4 ;
+BullHar = BullGartley OR BullButterfly OR BullBat OR BullCrab;
+
+Point4 = IIf(BullHar,ValueWhen(BullHar4,bi),Null);
+BullHar = IIf(BullHar, IIf(Point4 == ValueWhen(BullHar,point4,0) AND ValueWhen(BullHar,bi,0) > bi ,False,BullHar),BullHar);
+
+X = ValueWhen(BullHar4,V1L2);
+Xbar = ValueWhen(BullHar4,V1Bar2);
+A = ValueWhen(BullHar4,P1H2);
+Abar = ValueWhen(BullHar4,P1bar2);
+B = ValueWhen(BullHar4,V1L1);
+Bbar = ValueWhen(BullHar4,V1bar1);
+C1 = ValueWhen(BullHar4,P1H1);
+C1bar = ValueWhen(BullHar4,P1bar1);
+D = ValueWhen(BullHar,L);
+Dbar = ValueWhen(BullHar,bi);
+
+ABdXA = (A-B)/(A-X);
+BCdAB = (C1-B)/(A-B);
+ADdXA = (A-D)/(A-X);
+BCdCD = (C1-D)/(C1-B);
+
+PlotPattern = Dbar > C1bar;
+
+if(LastValue(PlotPattern) AND bu)
+{
+			ColorX	= colorBlue;
+		// Ve cac duong XA, AB, BC, CD
+			Plot( LineArray(LastValue(Xbar),LastValue(X),LastValue(Abar),LastValue(A)),"",ColorX,styleThick);
+			Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(Bbar),LastValue(B)),"",ColorX,styleThick);
+			Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(C1bar),LastValue(C1)),"",ColorX,styleThick);
+			Plot(LineArray(LastValue(C1bar),LastValue(C1),LastValue(Dbar),LastValue(D)),"",ColorX,styleThick);
+			Plot(LineArray(LastValue(Xbar),LastValue(X),LastValue(Bbar),LastValue(B)),"",ColorX,styleDashed);
+			Plot(LineArray(LastValue(Xbar),LastValue(X),LastValue(Abar),LastValue(A)),"",ColorX,styleThick);
+			Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(C1bar),LastValue(C1)),"",ColorX,styleDashed);
+			Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(Dbar),LastValue(D)),"",ColorX,styleDashed);
+			Plot(LineArray(LastValue(Xbar),LastValue(X),LastValue(Dbar),LastValue(D)),"",ColorX,styleDashed);
+
+		// Ve cac gia tri Fibo
+			PlotText(NumToStr(LastValue(ABdXA),1.2),(LastValue(Bbar)+LastValue(Xbar))/2,(LastValue(B)+LastValue(X))/2,ColorX);
+			PlotText(NumToStr(LastValue(BCdAB),1.2),(LastValue(C1bar)+LastValue(Abar))/2,(LastValue(C1)+LastValue(A))/2,ColorX);
+			PlotText(NumToStr(LastValue(ADdXA),1.2) ,(LastValue(Dbar)+LastValue(Xbar))/2,(LastValue(D)+LastValue(X))/2,ColorX);
+			PlotText(NumToStr(LastValue(BCdCD),1.2),(LastValue(Bbar)+LastValue(Dbar))/2,(LastValue(B)+LastValue(D))/2,ColorX);
+
+		//---------- Viet cac diem X, A, B, C, D: by binhnd---------------------
+			xlech		=	0;
+			ylech 		= 	2;
+			PlotText("",LastValue(Xbar)	+ 	xlech,	LastValue(X)	-	ylech,	ColorX);
+			PlotText("",LastValue(Abar)	+ 	xlech,	LastValue(A)	+	ylech,	ColorX);
+			PlotText("",LastValue(Bbar)	+ 	xlech,	LastValue(B)	-	ylech,	ColorX);
+			PlotText("",LastValue(C1bar)	+ 	xlech,	LastValue(C1)	+	ylech,	ColorX);
+			PlotText("DIEM MUA",LastValue(Dbar)	+ 	xlech,	LastValue(D)	-	ylech,	ColorX);
+
+		//--------- Viet thuyet minh mo hinh: by binhnd--------------
+			if (strPattern!="")  
+			{
+				strPattern 	= 	"THAN KIEM: " + strPattern;
+				toadoX			=	(LastValue(Dbar)+LastValue(Xbar))/2;
+				toadoY			=	(LastValue(D)+LastValue(X))/2;
+
+				PlotText(strPattern,toadoX,toadoY-2,ColorX);
+			}
+
+}			// end of Ve duong cho cac mo hinh Crab, Butterfly, Bat
+
+
+//=============================================================
+//				BEARISH PATTERNS
+//=============================================================
+
+PTvalid = (V1Bar1 > P1Bar1 AND P1Bar1 > V1Bar2 AND V1Bar2 > P1Bar2) AND V1;
+
+/*=====================
+		X 	= 	P1H2					 Trong mo hinh` bear: Die^m X cao hon diem A. MyAX = X-> A
+		A	=	V1L2
+		B	=	P1H1
+		C	=	V1L1
+
+=======================*/
+myAX			=	P1H2-V1L2;				
+myAB			=	P1H1-V1L2;
+myBC			=	P1H1-V1L1;
+
+myAB_AX		=	myAB/ myAX;
+myBC_AB		=	myBC/ myAB;	
+
+BearGartley4 		= PTvalid 	AND 	(	myAB_AX > GBmin	) 		AND (	myAB_AX < GBmax	)
+								AND  	(	myBC_AB > GCMin 	) 		AND (	myBC_AB < GCMax	); 
+
+BearBat4 			= PTvalid 	AND 	(	myAB_AX > BatBmin ) 		AND (	myAB_AX < BatBmax	)
+								AND 	(	myBC_AB > BatCMin ) 		AND (	myBC_AB < BatCMax	); 
+
+BearButterfly4 	= PTvalid 	AND 	(	myAB_AX > BtBmin ) 		AND (	myAB_AX < BtBMax	)
+								AND  	(	myBC_AB > BtCmin ) 		AND (	myBC_AB < BtCmin 	);
+
+BearCrab4 			= PTvalid 	AND 	(	myAB_AX > CBmin )	  		AND (	myAB_AX < CBmax 	)
+								AND  	(	myBC_AB > CCmin ) 		AND (	myBC_AB < CCmax	);
+
+BearABCD4			= PTvalid AND 	(	myBC_AB > abcd_Cmin) 	AND (	myBC_AB < abcd_Cmax	);
+
+strPattern = "";
+
+
+
+//==========================================================
+//				 BEARISH ABCD
+// 	Bearish pattern found. D retracement level is not evaluated
+//==========================================================
+	dHigh		=		HighestSince(BearABCD4,H);				// Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+	dLow 		= 		LowestSince(BearABCD4,L);
+	
+	myA			=		ValueWhen(BearABCD4,V1L2);
+	myB			=		ValueWhen(BearABCD4,P1H1);
+	myC			=		ValueWhen(BearABCD4,V1L1);
+	myCB		=		myB - myC;
+
+	my_d_min	=		myCB	*	abcd_DMin ;					// Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+	my_d_max	=		myCB	*	abcd_DMax ;
+	my_Cd_min	=		myC + my_d_min;					   // Khoang dich chuyen cua duong Ad con.
+	my_Cd_max	=		myC + my_d_max;
+
+BearABCD	 	= 		IIf(		( dHigh  	>	my_Cd_min	)	AND		( dHigh	< my_Cd_max )	
+								AND	( dLow		>=	myC			)	AND		( dHigh	==	H), 
+								True, False
+							);
+
+BearABCD		=		BearABCD	AND (dHigh		>	myB);
+
+//=============================================================
+//				BEARISH GARTLEY
+//=============================================================
+	dHigh		=		HighestSince(BearGartley4,H);		// Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+	dLow 		= 		LowestSince(BearGartley4,L);
+
+	myX			=		ValueWhen(BearGartley4,P1H2);
+	myA			=		ValueWhen(BearGartley4,V1L2);
+	myAX		=		myX - myA;
+
+	myB			=		ValueWhen(BearGartley4,P1H1);
+	myC			=		ValueWhen(BearGartley4,V1L1);
+
+
+	my_d_min	=		myAX	*	GDmin;						// Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+	my_d_max	=		myAX	*	GDMax;
+	my_Ad_min	=		myA 	+ 	my_d_min;					// Khoang dich chuyen cua duong Ad con.
+	my_Ad_max	=		myA 	+ 	my_d_max;
+
+BearGartley 	= 		IIf(		( dHigh	>	my_Ad_min	)	AND		( dHigh	< my_Ad_max )	
+								AND	( dLow		>=	myC			)	AND		( dHigh	==	H), 
+								True, False
+							);
+BearGartley 	=		BearGartley 	AND (dHigh		>	myB);						// diem D cao hon B
+strPattern 	=		WriteIf(BearGartley ,"BEARISH BAT",strPattern);
+
+//=============================================================
+//				BEARISH BAT
+//=============================================================
+	dHigh		=		HighestSince(BearBat4,H);		// Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+	dLow 		= 		LowestSince(BearBat4,L);
+
+	myX			=		ValueWhen(BearBat4,P1H2);
+	myA			=		ValueWhen(BearBat4,V1L2);
+	myAX		=		myX - myA;
+
+	myB			=		ValueWhen(BearBat4,P1H1);
+	myC			=		ValueWhen(BearBat4,V1L1);
+
+
+	my_d_min	=		myAX	*	BatDmin ;						// Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+	my_d_max	=		myAX	*	BatDMax ;
+	my_Ad_min	=		myA 	+ 	my_d_min;					// Khoang dich chuyen cua duong Ad con.
+	my_Ad_max	=		myA 	+ 	my_d_max;
+
+BearBat 		= 		IIf(		( dHigh	>	my_Ad_min	)	AND		( dHigh	< my_Ad_max )	
+								AND	( dLow		>=	myC			)	AND		( dHigh	==	H), 
+								True, False
+							);
+BearBat 		=		BearBat 	AND (dHigh		>	myB);						// diem D cao hon B
+strPattern 	=		WriteIf(BearBat ,"BEARISH BAT",strPattern);
+
+
+//=============================================================
+//				BEARISH BUTTERFLY
+//=============================================================
+	dHigh		=		HighestSince(BearButterfly4,H);		// Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+	dLow 		= 		LowestSince(BearButterfly4,L);
+
+	myX			=		ValueWhen(BearButterfly4,P1H2);
+	myA			=		ValueWhen(BearButterfly4,V1L2);
+	myAX		=		myX - myA;
+
+	myB			=		ValueWhen(BearButterfly4,P1H1);
+	myC			=		ValueWhen(BearButterfly4,V1L1);
+
+
+	my_d_min	=		myAX	*	BtDmin ;						// Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+	my_d_max	=		myAX	*	BtDmax ;
+	my_Ad_min	=		myA 	+ 	my_d_min;						// Khoang dich chuyen cua duong Ad con.
+	my_Ad_max	=		myA 	+ 	my_d_max;
+
+BearButterfly = 		IIf(		( dHigh	>	my_Ad_min	)	AND		( dHigh	< my_Ad_max )	
+								AND	( dLow		>=	myC			)	AND		( dHigh	==	H), 
+								True, False
+							);
+BearButterfly	=		BearButterfly 	AND (dHigh		>	myX);						// diem D cao hon X
+strPattern		=		WriteIf(BearButterfly ,"BEARISH BUTTERFLY",strPattern);
+
+
+
+//=============================================================
+//				BEARISH CRAB
+//=============================================================
+	dHigh		=		HighestSince(BearCrab4,H);				// Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+	dLow 		= 		LowestSince(BearCrab4,L);
+
+	myX			=		ValueWhen(BearCrab4,P1H2);
+	myA			=		ValueWhen(BearCrab4,V1L2);
+	myAX		=		myX - myA;
+
+	myB			=		ValueWhen(BearCrab4,P1H1);
+	myC			=		ValueWhen(BearCrab4,V1L1);
+
+
+	my_d_min	=		myAX	*	CDmin ;						// Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+	my_d_max	=		myAX	*	CDmax ;
+	my_Ad_min	=		myA 	+ 	my_d_min;						// Khoang dich chuyen cua duong Ad con.
+	my_Ad_max	=		myA 	+ 	my_d_max;
+
+BearCrab 		= 		IIf(		( dHigh	>	my_Ad_min	)	AND		( dHigh	< my_Ad_max )	
+								AND	( dLow		>=	myC			)	AND		( dHigh	==	H), 
+								True, False
+							);
+BearCrab 		=		BearCrab 	AND (dHigh		>	myX);						// diem D cao hon X
+strPattern 	=		WriteIf(BearCrab ,"BEARISH CRAB",strPattern);
+
+
+
+//==========================================================
+//   VE DUONG CHO MO HINH BEARISH ABCD
+//==========================================================
+
+
+BearHar4 = BearABCD4;
+BearHar = BearABCD;
+
+Point4 = IIf(BearHar,ValueWhen(BearHar4,bi),Null);
+BearHar = IIf(BearHar, IIf(Point4 == ValueWhen(BearHar,point4,0) AND ValueWhen(BearHar,bi,0) > bi ,False,BearHar),BearHar);
+
+A = ValueWhen(BearHar4,V1L2);
+Abar = ValueWhen( BearHar4,V1bar2);
+B = ValueWhen(BearHar4,P1H1);
+Bbar = ValueWhen(BearHar4,P1bar1);
+C1 = ValueWhen(BearHar4,V1L1);
+C1bar = ValueWhen(BearHar4,V1bar1);
+D = ValueWhen(BearHar,H);
+Dbar = ValueWhen(BearHar,bi);
+
+BCdAB = (B-C1)/(B-A);
+BCdCD = (D-C1)/(B-C1);
+
+PlotPattern = Dbar > C1bar;
+
+//--------- Ve duong ------------------
+if(LastValue(Plotpattern) AND be)
+{
+		ColorX = colorYellow;
+	// Ve duong AB, BC
+		Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(Bbar),LastValue(B)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(C1bar),LastValue(C1)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(C1bar),LastValue(C1),LastValue(Dbar),LastValue(D)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(C1bar),LastValue(C1)),"",ColorX ,styleDashed);
+		Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(Dbar),LastValue(D)),"",ColorX ,styleDashed);
+
+	// Viet cac gia tri Fibo tren duong AB, BC
+		PlotText(NumToStr(LastValue(BCdAB),1.2),(LastValue(C1bar)+LastValue(Abar))/2,(LastValue(C1)+LastValue(A))/2,ColorX );
+		PlotText(NumToStr(LastValue(BCdCD),1.2) ,(LastValue(Dbar)+LastValue(Bbar))/2,(LastValue(D)+LastValue(B))/2,ColorX );
+
+	//---------- Viet cac diem A, B, C, D: by binhnd---------------------
+		xlech		=	-1;
+		ylech 		= 	1;
+		PlotText("",LastValue(Abar)	+ 	xlech,	LastValue(A)	-	ylech,	ColorX );
+		PlotText("",LastValue(Bbar)	+ 	xlech,	LastValue(B)	+	ylech,	ColorX );
+		PlotText("",LastValue(C1bar)	+ 	xlech,	LastValue(C1)	-	ylech,	ColorX );
+		PlotText("DIEM BAN",LastValue(Dbar)	+ 	xlech,	LastValue(D)	+	ylech,	ColorX );
+
+	//--------- Viet thuyet minh mo hinh: by binhnd--------------
+		if (strPattern!="") 
+			{
+				myStr			=	"MAU HINH: BEARISH AB=CD";
+				toadoaX		=	LastValue(Abar);
+				toadoY			=	LastValue(D);
+
+				PlotText(myStr,toadoaX,toadoY+1,ColorX );
+			}
+	
+}			// end of VE DUONG CHO MO HINH BEARISH ABCD
+
+
+//==========================================================
+//   VE DUONG CHO MO HINH BEARISH BAT, GARTLEY, BUTTERFLY, CRAB
+//==========================================================
+
+BearHar4 = BearGartley4 OR BearButterfly4 OR BearBat4 OR BearCrab4 ;
+BearHar = BearGartley OR BearButterfly OR BearBat OR BearCrab ;
+
+Point4 = IIf(BearHar,ValueWhen(BearHar4,bi),Null);
+BearHar = IIf(BearHar, IIf(Point4 == ValueWhen(BearHar,point4,0) AND ValueWhen(BearHar,bi,0) > bi ,False,BearHar),BearHar);
+
+X = ValueWhen(BearHar4,P1H2);
+Xbar = ValueWhen(BearHar4,P1Bar2);
+A = ValueWhen(BearHar4,V1L2);
+Abar = ValueWhen( BearHar4,V1bar2);
+B = ValueWhen(BearHar4,P1H1);
+Bbar = ValueWhen(BearHar4,P1bar1);
+C1 = ValueWhen(BearHar4,V1L1);
+C1bar = ValueWhen(BearHar4,V1bar1);
+D = ValueWhen(BearHar,H);
+Dbar = ValueWhen(BearHar,bi);
+
+ABdXA = (B-A)/(X-A);
+BCdAB = (B-C1)/(B-A);
+ADdXA = (D-A)/(X-A);
+BCdCD = (D-C1)/(B-C1);
+
+PlotPattern = Dbar > C1bar;
+
+//--------- Ve duong ------------------
+if(LastValue(Plotpattern) AND be)
+{
+		ColorX = colorRed;
+	// Ve duong XA, AB, BC
+		Plot( LineArray(LastValue(Xbar),LastValue(X),LastValue(Abar),LastValue(A)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(Bbar),LastValue(B)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(C1bar),LastValue(C1)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(C1bar),LastValue(C1),LastValue(Dbar),LastValue(D)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(Xbar),LastValue(X),LastValue(Bbar),LastValue(B)),"",ColorX ,styleDashed);
+		Plot(LineArray(LastValue(Xbar),LastValue(X),LastValue(Abar),LastValue(A)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(C1bar),LastValue(C1)),"",ColorX ,styleDashed);
+		Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(Dbar),LastValue(D)),"",ColorX ,styleDashed);
+		Plot(LineArray(LastValue(Xbar),LastValue(X),LastValue(Dbar),LastValue(D)),"",ColorX ,styleDashed);
+
+	// Viet cac gia tri Fibo tren duong XA, AB, BC
+		PlotText(NumToStr(LastValue(ABdXA),1.2),(LastValue(Bbar)+LastValue(Xbar))/2,(LastValue(B)+LastValue(X))/2,ColorX );
+		PlotText(NumToStr(LastValue(BCdAB),1.2),(LastValue(C1bar)+LastValue(Abar))/2,(LastValue(C1)+LastValue(A))/2,ColorX );
+		PlotText(NumToStr(LastValue(BCdCD),1.2) ,(LastValue(Dbar)+LastValue(Bbar))/2,(LastValue(D)+LastValue(B))/2,ColorX );
+		PlotText(NumToStr(LastValue(ADdXA),1.2) ,(LastValue(Dbar)+LastValue(Xbar))/2,(LastValue(D)+LastValue(X))/2,ColorX );
+
+	//---------- Viet cac diem X, A, B, C, D: by binhnd---------------------
+		xlech		=	-1;
+		ylech 		= 	1;
+		PlotText("",LastValue(Xbar)	+ 	xlech,	LastValue(X)	+	ylech,	ColorX );
+		PlotText("",LastValue(Abar)	+ 	xlech,	LastValue(A)	-	ylech,	ColorX );
+		PlotText("",LastValue(Bbar)	+ 	xlech,	LastValue(B)	+	ylech,	ColorX );
+		PlotText("",LastValue(C1bar)	+ 	xlech,	LastValue(C1)	-	ylech,	ColorX );
+		PlotText("DIEM BAN",LastValue(Dbar)	+ 	xlech,	LastValue(D)	+	ylech,	ColorX );
+
+	//--------- Viet thuyet minh mo hinh: by binhnd--------------
+		if (strPattern!="") 
+			{
+				strPattern 	= 	"THAN KIEM: " + strPattern;
+				toadoaX		=	(LastValue(Dbar)+LastValue(Xbar))/2;
+				toadoY			=	(LastValue(D)+LastValue(X))/2;
+
+				PlotText(strPattern,toadoaX,toadoY+1,ColorX );
+			}
+	
+}			// end of VE DUONG CHO MO HINH BEARISH BAT, GARTLEY, BUTTERFLY, CRAB
+
+//=================================
+// Show diem ho^~ tro. va` khang' cu. ko?
+//=================================
+
+plotFractals = ParamToggle("Plot Fractals","Off|On",0);				
+if(PlotFractals)
+{
+	PlotShapes(shapeDownArrow*P1,colorRed,0,H,-10);
+	PlotShapes(shapeUpArrow*V1,colorGreen,0,L,-10);
+}
+//==============================================
+// DAT DIEU KIEN cho TIM KIEM BULL
+//==============================================
+dkBull = False;
+ListBull 		= 	ParamList("Type of Bullish", "None|AB=CD|Gartley|Butterfly|Bat|Crab|All Patterns", 6);
+	if 	(	ListBull == "None"		)		dkBull = 	True;
+	if (	ListBull =="AB=CD"		) 		dkBull	=	BullABCD ;
+	if (	ListBull =="Gartley"		) 		dkBull	=	BullGartley ;
+	if (	ListBull =="Butterfly"	) 		dkBull	=	BullButterfly ;
+	if (	ListBull =="Bat"			) 		dkBull	=	BullBat ;
+	if (	ListBull =="Crab"			) 		dkBull	=	BullCrab ;
+	if (	ListBull =="All Patterns") 		dkBull	=	(BullABCD) OR (BullGartley) OR (BullButterfly ) OR (BullBat ) OR (BullCrab);
+//===============================
+
+//==============================================
+// DAT DIEU KIEN cho TIM KIEM BEAR
+//==============================================
+dkBear = False;
+ListBear 		= 	ParamList("Type of Bearish", "None|AB=CD|Gartley|Butterfly|Bat|Crab|All Patterns", 0);
+	if 	(	ListBear == "None"		)		dkBear = 	True;
+	if (	ListBear =="AB=CD"		) 		dkBear	=	BearABCD ;
+	if (	ListBear =="Gartley"		) 		dkBear	=	BearGartley ;
+	if (	ListBear =="Butterfly"	) 		dkBear	=	BearButterfly ;
+	if (	ListBear =="Bat"			) 		dkBear	=	BearBat ;
+	if (	ListBear =="Crab"			) 		dkBear =	BearCrab ;
+	if (	ListBear =="All Patterns") 		dkBear =	(BearABCD ) OR (BearGartley ) OR (BearButterfly ) OR (BearBat ) OR (BearCrab );
+//===============================
+AddColumn(BullABCD,"BlABCD",True);
+AddColumn(BullGartley,"BlGartley",True);
+AddColumn(BullBat,"BLBat",True);
+AddColumn(BullCrab,"BlCrab",True);
+AddColumn(BullButterfly,"BlButrfly",True);
+
+AddColumn(BearABCD,"BrABCD",True);
+AddColumn(BearGartley,"BrGartley",True);
+AddColumn(BearBat,"BrBat",True);
+AddColumn(BearCrab,"BrCrab",True);
+AddColumn(BearButterfly,"BrButrfly",True);
+
+//dkBull	=	 (BullGartley) OR (BullButterfly ) OR (BullBat ) OR (BullCrab);
+dkBear =	 (BearGartley ) OR (BearButterfly ) OR (BearBat ) OR (BearCrab )  OR (BearABCD );
+AddColumn(V,"Volume",1.0);
+Filter = (dkBull) AND (dkBear);
+AddColumn((dkBull),"Than Kiem Mua 1");
+AddColumn((dkBear),"Than Kiem Mua 2");
+Buy=(dkBull);
+Sell=(dkBear);
+AlertIF( Buy, "SOUND C:\\Program Files\\AmiBroker\\music\\than kiem mua.wav", "Audio alert", 1 );
+AlertIF( Sell, "SOUND C:\\Program Files\\AmiBroker\\music\\than kiem ban.wav", "Audio alert", 2 );
+_SECTION_END();
+_SECTION_BEGIN("Cam nang RSI");
+_SECTION_BEGIN("Song Kiem Phan Ky RSI");
+GraphXSpace=15;
+ n=Param("% Reverse ",20,0,100,1);
+ Buy=Sell=0;
+Var = Zig(RSI(), n); 
+ t= Trough(RSI(), n, 1); 
+ p= Peak(RSI(), n, 1); 
+ x[0] =Var[0];
+ price[0] = C[0];
+ j=0;
+// Bao phan ky vung dinh
+ for ( i=0; i<BarCount; i++) 
+ {
+ if(Var[i] == p[i])
+ {
+ 
+j++;
+ x[j] =Var[i];
+ price[j] =C[i];
+ if(x[j] <x[j-1] && price[j-1]< price[j]) 
+ Sell[i] =1;
+ }
+ }
+// Bao phan ky vung day
+ for ( i=0; i<BarCount; i++) 
+ {
+ if(Var[i] == t[i])
+ {
+ j++;
+ x[j] =Var[i];
+ price[j] =C[i];
+ if(x[j] >x[j-1] && price[j]<price[j-1]) 
+ Buy[i] =1;
+ }
+ }
+ dist = 1.9*ATR(1);
+ for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] ) PlotText( "Mua RSI ", i, L[ i ]-dist[i], colorWhite );
+if( Sell[i] ) PlotText( "Ban RSI ", i, H[ i ]+dist[i], colorWhite );
+}
+RSIsell=Sell;
+RSIbuy=Buy;
+AlertIF( Buy, "SOUND C:\\Program Files\\AmiBroker\\music\\song kiem phan ky mua.wav", "Audio alert", 5 );
+AlertIF( Sell, "SOUND C:\\Program Files\\AmiBroker\\music\\song kiem phan ky ban.wav", "Audio alert", 6 );                   
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-15);                     
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-15);
+_SECTION_END();
+_SECTION_BEGIN("RSI Phan ky Ver2");
+n=Optimize("ZIG",9,5,50,1);
+per=Optimize("rsi",28,5,50,1);
+Buy=Sell=0;
+Var = Zig(RSI(per), n); 
+t= Trough(RSI(per), n, 1); 
+p= Peak(RSI(per), n, 1); 
+x[0] =Var[0];
+price[0] = C[0];
+j=0;
+// Bao phan ky vung day
+for ( i=0; i<BarCount; i++) 
+{
+if(Var[i] == p[i])
+{
+
+j++;
+x[j] =Var[i];
+price[j] =C[i];
+if(x[j] <x[j-1] && price[j-1]< price[j]) 
+Sell[i] =1;
+}
+}
+// Bao phan ky vung day
+for ( i=0; i<BarCount; i++) 
+{
+if(Var[i] == t[i])
+{
+j++;
+x[j] =Var[i];
+price[j] =C[i];
+if(x[j] >x[j-1] && price[j]<price[j-1]) 
+Buy[i] =1;
+}
+}
+RSIsell2=Sell;
+RSIbuy2=Buy;
+ dist = 1.7*ATR(1);
+ for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] ) PlotText( "Mua RSI ", i, L[ i ]-dist[i], colorWhite);
+if( Sell[i] ) PlotText( "Ban RSI ", i, H[ i ]+dist[i], colorWhite );
+}
+AlertIF( Buy, "SOUND C:\\Program Files\\AmiBroker\\music\\song kiem phan ky mua.wav", "Audio alert", 7 );
+AlertIF( Sell, "SOUND C:\\Program Files\\AmiBroker\\music\\song kiem phan ky ban.wav", "Audio alert", 8 );                    
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-15);                     
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-15);
+
+_SECTION_BEGIN("Sieu kiem MACD");
+r1 = Param( "Fast avg", 12, 2, 200, 1 );
+r2 = Param( "Slow avg", 26, 2, 200, 1 );
+r3 = Param( "Signal avg", 9, 2, 200, 1 );
+r4 = Param( "Wk slow", 17, 2, 200, 1 );
+r5 = Param( "Wk fast", 8, 2, 200, 1 );
+m1=MACD(r1,r2);
+s1=Signal(r1,r2,r3);
+_SECTION_BEGIN("SIEU KIEM PHAN KY MACD");
+P = Param("Phan Ky MACD", 14, 2, 14, 1);
+VMACD = MACD(p);
+Length = 100; 
+Lapse = 3; 
+fDown = VMACD < Ref(VMACD, -1) & VMACD < Ref(VMACD, 1) & VMACD < 45;
+Div = 0;
+for(i = Length; i < BarCount; i++)
+{
+// Bao ban phan ky MACD
+/*if(fUp[i])
+{
+k = i-1;
+do
+{
+if(VMACD[k] > VMACD[i] & fUp[i] & fUp[k])
+{
+if(C[k] < C[i] & i-k > Lapse)
+{
+Div[i] = 1;
+}
+k = i-Length;
+}
+else
+k = k-1;
+} while( k > i-Length );
+}*/
+
+// Bao mua phan ky MACD
+
+if(fDown[i])
+{
+k = i-1;
+do
+{
+if(VMACD[k] < VMACD[i] & fDown[i] & fDown[k])
+{
+if(C[k] > C[i] & i-k > Lapse)
+{
+Div[i] = -1;
+}
+k = i-Length;
+}
+else
+k = k-1;
+} while( k > i-Length );
+}
+}
+Fon = IIf(Div == 0, 0, 1);
+Title = EncodeColor(4)+"RSI(" + WriteVal(P, 2.0) + ")" + EncodeColor(1) + " ="+WriteVal(RSI(P)); 
+Buy = Fon;
+AlertIF( Buy, "SOUND C:\\Program Files\\AmiBroker\\music\\tin hieu mua phan ky macd.wav", "Audio alert", 3 );
+PlotShapes(Buy*shapeUpArrow,colorCustom8);
+_SECTION_END();
+_SECTION_BEGIN("TIN HIEU MUA MACD");
+VMACD2 = Zig(MACD(P),4);
+fUp = VMACD2 > Ref(VMACD2, -1) & VMACD2 > Ref(VMACD2, 1) & VMACD2 <55 ;
+Div = 0;
+for(i = Length; i < BarCount; i++)
+{
+if(fup[i])
+{
+k = i-1;
+do
+{
+if(VMACD2[k] > VMACD2[i] & fup[i] & fup[k])
+{
+if(C[k] < C[i] & i-k > Lapse)
+{
+Div[i] = 1;
+}
+k = i-Length;
+}
+else
+k = k-1;
+} while( k > i-Length );
+}
+
+}
+Con = IIf(Div == 0, 0, 1);
+Sell = Con;
+AlertIF( Sell, "SOUND C:\\Program Files\\AmiBroker\\music\\tin hieu ban phan ky macd.wav", "Audio alert", 4 );
+PlotShapes(Sell*shapedownArrow,colorcustom8);
+ dist = 1.9*ATR(1);
+ for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] ) PlotText( "Mua MACD ", i, L[ i ]-dist[i], colorCustom8 );
+if( Sell[i] ) PlotText( "Ban MACD ", i, H[ i ]+dist[i], colorCustom8 );
+}
+_SECTION_END();
+_SECTION_BEGIN("MACD HISTOGRAM");
+r1 = Param( "Fast avg", 12, 2, 200, 1 );
+r2 = Param( "Slow avg", 26, 2, 200, 1 );
+r3 = Param( "Signal avg", 9, 2, 200, 1 );
+r4 = Param( "Wk slow", 17, 2, 200, 1 );
+r5 = Param( "Wk fast", 8, 2, 200, 1 );
+m1=MACD(r1,r2);
+s1=Signal(r1,r2,r3);
+_SECTION_BEGIN("SIEU KIEM PHAN KY MACD HISTOGRAM");
+P = Param("Phan Ky MACD HISTOGRAM", 14, 2, 14, 1);
+m2 = Zig(MACD(r1,r2),55);
+s2 = Zig(Signal(r1,r2,r3),55);
+VMACD = m2-s2;
+
+Length = 100; 
+Lapse = 3; 
+
+fUp = VMACD > Ref(VMACD, -1) & VMACD > Ref(VMACD, 1) & VMACD >55;
+fDown = VMACD < Ref(VMACD, -1) & VMACD < Ref(VMACD, 1) & VMACD < 45;
+
+Div = 0;
+
+for(i = Length; i < BarCount; i++)
+{
+// Bao ban phan ky MACD
+if(fUp[i])
+{
+k = i-1;
+do
+{
+if(VMACD[k] > VMACD[i] & fUp[i] & fUp[k])
+{
+if(C[k] < C[i] & i-k > Lapse)
+{
+Div[i] = 1;
+}
+k = i-Length;
+}
+else
+k = k-1;
+} while( k > i-Length );
+}
+Sell = fUp;
+// Bao mua phan ky MACD
+
+if(fDown[i])
+{
+k = i-1;
+do
+{
+if(VMACD[k] < VMACD[i] & fDown[i] & fDown[k])
+{
+if(C[k] > C[i] & i-k > Lapse)
+{
+Div[i] = -1;
+}
+k = i-Length;
+}
+else
+k = k-1;
+} while( k > i-Length );
+}
+
+}
+buyFon = IIf(Div == 0, 0, 1);
+Buy = buyFon;
+AlertIF( Buy, "SOUND C:\\Program Files\\AmiBroker\\music\\phan ky macd histogram bao mua.wav", "Audio alert", 11 );
+PlotShapes(Buy*shapeUpArrow,colorcustom13);
+_SECTION_END();
+VMACD2 = m2-s2;
+fUp = VMACD2 > Ref(VMACD2, -1) & VMACD2 > Ref(VMACD2, 1) & VMACD2 <55 ;
+Div = 0;
+for(i = Length; i < BarCount; i++)
+{
+if(fup[i])
+{
+k = i-1;
+do
+{
+if(VMACD2[k] > VMACD2[i] & fup[i] & fup[k])
+{
+if(C[k] < C[i] & i-k > Lapse)
+{
+Div[i] = 1;
+}
+k = i-Length;
+}
+else
+k = k-1;
+} while( k > i-Length );
+}
+
+}
+sellCon = IIf(Div == 0, 0, 1);
+Sell = sellCon;
+AlertIF( Sell, "SOUND C:\\Program Files\\AmiBroker\\music\\phan ky macd histogram bao ban.wav", "Audio alert", 12 );
+PlotShapes(Sell*shapedownArrow,colorcustom13);
+ dist = 1.9*ATR(1);
+ for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] ) PlotText( "Mua HISTOGRAM ", i, L[ i ]-dist[i], colorcustom13,null );
+if( Sell[i] ) PlotText( "Ban HISTOGRAM ", i, H[ i ]+dist[i], colorcustom13, null );
+}
+_SECTION_END();
+_SECTION_BEGIN("Y Thien Kiem");
+Plot(MA( C, 65 ),"MA65",colorCustom12,styleLine|styleThick);
+Plot(MA( C, 50 ),"MA50",colorCustom11,styleLine|styleThick);
+Plot(MA( C, 20 ),"MA20",colorYellow,styleLine|styleThick);
+Plot(MA( C, 200 ),"MA200",colorBrown,styleThick);
+Plot(MA( C, 250 ),"MA250",ParamColor("Color",ColorRGB( 235, 37, 126 )),styleThick);
+Plot(EMA( C, 150 ),"EMA150",colorCustom8,styleLine|styleDots);
+MA65 = MA(C,65);
+MA50 = MA(C,50);
+MA20 = MA(C,20);
+Cover = Cross(MA20, MA65);
+Short = Cross ( MA65, MA20);
+PlotShapes( shapeUpArrow * Cover, colorCustom12, 0,Low);
+PlotShapes( shapeDownArrow * Short, colorCustom12, 0,High );
+Buy = Cross(MA20, MA50);
+Sell = Cross ( MA50, MA20);
+PlotShapes( shapeUpArrow * Buy, colorCustom11, 0,Low);
+PlotShapes( shapeDownArrow * Sell, colorCustom11, 0,High );
+_SECTION_BEGIN("Debarghya: AFL Coding");
+
+// Simple logic to plot your EMA. You use any EMA value
+//em3=EMA(C,3);
+//em13=MA(C,13);
+//Plot( em3, "EMA(3)", colorRed );
+//Plot( em13, "EMA(13)", colorGreen );
+
+//PlotOHLC( Open,High,Low,Close, "Price", colorRed, styleCandle);
+//PlotOHLC( em3,em3,em13,em13, "", IIf( em3 > em13, colorGreen, colorRed ), styleCloud | styleClipMinMax );
+
+Buy = Cross(MA20, MA50);
+Sell = Cross ( MA50, MA20);
+//Buy = ExRem(Buy,Sell);
+//Sell = ExRem(Sell,Buy);
+
+
+//PlotShapes(IIf(Sell==1, shapeDownArrow, shapeNone), colorRed, 0,High, Offset=20);
+//PlotShapes(IIf(Buy==1, shapeUpArrow , shapeNone), colorGreen, 0,Low, Offset=20);
+/*dist = 1.7*ATR(1);
+for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] ) PlotText( "Mua " + C[ i ], i, L[ i ]-dist[i], colorGreen,colorYellow );
+if( Sell[i] ) PlotText( "Ban " + C[ i ], i, H[ i ]+dist[i], colorRed, colorYellow );
+}*/
+_SECTION_END();
+SetBarsRequired(100000,0);
+SetTradeDelays(1,1,1,1);
+Factor=Param("Factor",2,1,10,1);
+Pd=Param("ATR Periods",1,1,100,1);
+Up=(H+L)/2+(Factor*ATR(Pd));
+Dn=(H+L)/2-(Factor*ATR(Pd));
+iATR=ATR(Pd);
+TrendUp=TrendDown=Null;
+trend[0]=1;
+changeOfTrend=0;
+flag=flagh=0;
+
+for (i = 1; i <BarCount; i++) {
+      TrendUp[i] = Null;
+      TrendDown[i] = Null;
+     
+      trend[i]=1;
+   
+      
+      if (Close[i]>Up[i-1]) {
+         trend[i]=1;
+         if (trend[i-1] == -1) changeOfTrend = 1;
+         
+      }
+      else if (Close[i]<Dn[i-1]) {
+         trend[i]=-1;
+         if (trend[i-1] == 1) changeOfTrend = 1;
+      }
+      else if (trend[i-1]==1) {
+         trend[i]=1;
+         changeOfTrend = 0;       
+      }
+      else if (trend[i-1]==-1) {
+         trend[i]=-1;
+         changeOfTrend = 0;
+      }
+
+      if (trend[i]<0 && trend[i-1]>0) {
+         flag=1;
+      }
+      else {
+         flag=0;
+      }
+      
+      if (trend[i]>0 && trend[i-1]<0) {
+         flagh=1;
+      }
+      else {
+         flagh=0;
+      }
+      
+      if (trend[i]>0 && Dn[i]<Dn[i-1]){
+         Dn[i]=Dn[i-1];
+		}
+      
+      if (trend[i]<0 && Up[i]>Up[i-1])
+        { Up[i]=Up[i-1];
+		}
+      
+      if (flag==1)
+       {  Up[i]=(H[i]+L[i])/2+(Factor*iATR[i]);;
+        } 
+      if (flagh==1)
+        { Dn[i]=(H[i]+L[i])/2-(Factor*iATR[i]);;
+         }
+      if (trend[i]==1) {
+         TrendUp[i]=Dn[i];
+         if (changeOfTrend == 1) {
+            TrendUp[i-1] = TrendDown[i-1];
+            changeOfTrend = 0;
+         }
+      }
+      else if (trend[i]==-1) {
+         TrendDown[i]=Up[i];
+         if (changeOfTrend == 1) {
+            TrendDown[i-1] = TrendUp[i-1];
+            changeOfTrend = 0;
+         }
+      }
+   } 
+
+//y thien xanh
+
+Buy = Cross(MA20, MA50);
+Sell = Cross ( MA50, MA20);
+TrendSL=IIf(trend==1,TrendUp,TrendDown);
+for(i=BarCount-1;i>1;i--)
+{
+if(Buy[i] == 1)
+{
+entry = L[i];
+sig = "mua";
+nududo = "vao";
+sl = TrendSL[i];
+bars3 = i;
+i = 0;
+}
+if(Sell[i] == 1)
+{
+sig = "ban";
+nududo = "ra";
+entry = L[i];
+sl = TrendSL[i];
+bars3 = i;
+i = 0;
+}
+}
+Clr = IIf(sig == "mua", colorLime, colorRed);
+ssl = IIf(bars3 == BarCount-1, TrendSL[BarCount-1], Ref(TrendSL, -1));
+sl = ssl[BarCount-1];
+
+// code y thien tim
+Buy = Cross(MA20, MA65);
+Sell = Cross ( MA65, MA20);
+
+for(i=BarCount-1;i>1;i--)
+{
+if(Buy[i] == 1)
+{
+entry2 = L[i];
+sig2 = "mua";
+nududo2 = "vao";
+bars2 = i;
+i = 0;
+}
+if(Sell[i] == 1)
+{
+sig2 = "ban";
+nududo2 = "ra";
+entry2 = L[i];
+
+bars2 = i;
+i = 0;
+}
+}
+Offset = 20;
+Clr2 = IIf(sig2 == "mua", colorLime, colorRed);
+ssl2 = IIf(bars2 == BarCount-1, TrendSL[BarCount-1], Ref(TrendSL, -1));
+sl2 = ssl[BarCount-1];
+//tat mo box mua ban
+messageboard = ParamToggle("Tat box mua ban","An|Hien",1);
+if (messageboard == 1 )
+{
+GfxSelectFont( "Arial", 13, 100 );
+GfxSetBkMode( 1 );
+GfxSetTextColor( colorWhite );
+GfxSelectSolidBrush( colorCustom2);
+pxHeight = Status( "pxchartheight" ) ;
+xx = Status( "pxchartwidth");
+Left = 1100;
+width = 310;
+x = 5;
+x2 = 212;
+y = pxHeight;
+GfxSelectFont("arial", 8,700);
+GfxSelectPen( colorCustom8, 1); // broader color
+GfxRoundRect( x, y - 375, x2, y , 5, 5) ;
+GfxSetTextColor( colorCustom8 );
+GfxTextOut( ("Cam nang Song Kiem" ), 60, y-370) ;
+GfxTextOut( ("Luon dong hanh cung cac ban"  ), 38, y-355) ;
+if ( (bars2 - bars3) < 7 AND sig2 == "mua" AND sig == "mua" AND (bars2 - bars3) > -7)
+{
+GfxSelectSolidBrush( ColorRGB( 2, 100, 3 )); // this is the box background color
+}
+else
+{
+if ( (bars2 - bars3) < 7 AND sig2 == "ban" AND sig == "ban"  AND (bars2 - bars3) > -7)
+{
+GfxSelectSolidBrush( ColorRGB( 148, 50, 0 ));
+}
+else
+{
+GfxSelectSolidBrush( ColorRGB( 20, 20, 13 ));
+}
+}
+//code ket luan
+if((bars2 - bars3) < 7 AND (sig2 == "mua") AND (sig == "mua") AND (bars2 - bars3) > -7 )//
+{
+loi = "loi nhuan";
+lo = "cat lo";
+sig3 = "xem xet mua";
+Buy = Cross(MA20, MA65);
+dist = 1.9*ATR(1);
+AlertIF( Buy, "SOUND C:\\Program Files\\AmiBroker\\music\\y thien kiem bao mua.wav", "Audio alert", 3 );
+for( i = 0; i < BarCount; i++ )
+{
+if( Buy[i] ) PlotText( "MUA Y THIEN KIEM ", i, L[ i ]-dist[i], colorGreen,colorcustom8 );
+}
+TrendSL=IIf(trend==1,TrendUp,TrendDown);
+for(i=BarCount-1;i>1;i--)
+{
+if(Buy[i] == 1)
+{
+entry = L[i];
+sig = "mua";
+nududo = "vao";
+sl = TrendSL[i];
+bars = i;
+i = 0;
+}
+}
+}
+else
+{
+if((bars2 - bars3) < 7 AND (sig2 == "ban") AND (sig == "ban") AND (bars2 - bars3) > -7 )
+{
+sig3 = "Xem xet ban";
+loi = "bao ban";
+lo = "bao ban 3";
+sig3 = "Xem xet ban";
+Sell = Cross ( MA65, MA20);
+AlertIF( Sell, "SOUND C:\\Program Files\\AmiBroker\\music\\y thien kiem bao ban.wav", "Audio alert", 4 );
+dist = 1.9*ATR(1);
+ for( i = 0; i < BarCount; i++ )
+{
+if( Sell[i] ) PlotText( "Ban Y THIEN KIEM ", i, H[ i ]+dist[i], colorRed, colorcustom8 );
+}
+TrendSL=IIf(trend==1,TrendUp,TrendDown);
+for(i=BarCount-1;i>1;i--)
+{
+if(Sell[i] == 1)
+{
+sig = "ban";
+nududo = "ra";
+sl = TrendSL[i];
+bars2 = i;
+i = 0;
+}
+}
+}
+else
+{
+for(i=BarCount-1;i>1;i--)
+{
+sig3 = "Chua co KL";
+entry2 = Null;
+bars2 = null;
+}
+}
+}
+pxHeight = Status( "pxchartheight" ) ;
+xx = Status( "pxchartwidth");
+Left = 1100;
+width = 310;
+x = 5;
+x2 = 212;
+y = pxHeight;
+GfxSelectPen( colorCustom8, 1); // broader color
+GfxRoundRect( x, y - 82, x2, y, 5, 5) ;
+GfxSelectFont("arial", 7,700);
+GfxSetTextColor( colorCustom8 );
+GfxTextOut( ("Tin hieu Y Thien Kiem"  ), 60, y-75) ;
+GfxSelectFont("arial", 7,700);
+GfxSetTextColor( colorwhite );//y thien tim
+GfxTextOut( ("- Bao " + sig2 + " truoc do " + (BarCount-bars2-1) + " phien"), 13, y-60) ;
+GfxTextOut( ("- Diem bao " + sig2 +" "+ nududo2 + " : " + entry2), 13, y-45) ; 
+GfxTextOut( ("- Loi / Lo (-) : " + WriteVal(IIf(sig2 == "Mua",(entry2 - C),(C - entry2)),2.2)), 13, y-30);
+GfxTextOut( ("Ket Luan : " + sig3 +" "+ Name()), 13, y-15) ;
+_SECTION_END();
+_SECTION_BEGIN("Cam nang THAN KIEM");
+SetBarsRequired(100000,0);
+ea = EMA (C,10);
+eb = EMA (C,20);
+SetBarFillColor( IIf( ea > eb, colorCustom9, colorRed ) ); 
+Buy = ea > eb AND TimeNum() > 092000 AND TimeNum() < 150000;
+Sell = eb > ea OR TimeNum() > 150000;
+Short = 0;
+Cover = 0;
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+Short = ExRem(Short,Cover);
+Cover = ExRem(Cover,Short);
+SetTradeDelays(1,1,1,1);
+Factor=Param("Factor",2,1,10,1);
+Pd=Param("ATR Periods",1,1,100,1);
+Up=(H+L)/2+(Factor*ATR(Pd));
+Dn=(H+L)/2-(Factor*ATR(Pd));
+iATR=ATR(Pd);
+TrendUp=TrendDown=Null;
+trend[0]=1;
+changeOfTrend=0;
+flag=flagh=0;
+
+for (i = 1; i <BarCount; i++) {
+      TrendUp[i] = Null;
+      TrendDown[i] = Null;
+     
+      trend[i]=1;
+   
+      
+      if (Close[i]>Up[i-1]) {
+         trend[i]=1;
+         if (trend[i-1] == -1) changeOfTrend = 1;
+         
+      }
+      else if (Close[i]<Dn[i-1]) {
+         trend[i]=-1;
+         if (trend[i-1] == 1) changeOfTrend = 1;
+      }
+      else if (trend[i-1]==1) {
+         trend[i]=1;
+         changeOfTrend = 0;       
+      }
+      else if (trend[i-1]==-1) {
+         trend[i]=-1;
+         changeOfTrend = 0;
+      }
+
+      if (trend[i]<0 && trend[i-1]>0) {
+         flag=1;
+      }
+      else {
+         flag=0;
+      }
+      
+      if (trend[i]>0 && trend[i-1]<0) {
+         flagh=1;
+      }
+      else {
+         flagh=0;
+      }
+      
+      if (trend[i]>0 && Dn[i]<Dn[i-1]){
+         Dn[i]=Dn[i-1];
+		}
+      
+      if (trend[i]<0 && Up[i]>Up[i-1])
+        { Up[i]=Up[i-1];
+		}
+      
+      if (flag==1)
+       {  Up[i]=(H[i]+L[i])/2+(Factor*iATR[i]);;
+        } 
+      if (flagh==1)
+        { Dn[i]=(H[i]+L[i])/2-(Factor*iATR[i]);;
+         }
+      if (trend[i]==1) {
+         TrendUp[i]=Dn[i];
+         if (changeOfTrend == 1) {
+            TrendUp[i-1] = TrendDown[i-1];
+            changeOfTrend = 0;
+         }
+      }
+      else if (trend[i]==-1) {
+         TrendDown[i]=Up[i];
+         if (changeOfTrend == 1) {
+            TrendDown[i-1] = TrendUp[i-1];
+            changeOfTrend = 0;
+         }
+      }
+   } 
+
+//Plot(TrendUp,"Trend",colorGreen);
+//Plot(TrendDown,"Down",colorRed);
+
+Buy = trend==1;
+Sell=trend==-1;
+
+Buy=(dkBull);
+Sell=(dkBear);
+
+
+BuyPrice=ValueWhen(Buy,C);
+SellPrice=ValueWhen(Sell,C);
+ShortPrice=ValueWhen(Short,C);
+CoverPrice=ValueWhen(Cover,C);
+
+
+TrendSL=IIf(trend==1,TrendUp,TrendDown);
+
+for(i=BarCount-1;i>1;i--)
+{
+if(Buy[i] == 1)
+{
+entry4 = C[i];
+sig4 = "mua than kiem";
+
+nududo4 = "la";
+sl = TrendSL[i];
+tar4 = entry4 + (entry4 * .050);
+tar5 = entry4 + (entry4 * .092);
+tar6 = entry4 - (entry4 * .092);
+loithankiem = "loi nhuan";
+lothankiem = "cat lo";
+bars = i;
+i = 0;
+}
+if(Sell[i] == 1)
+{
+sig4 = "ban than kiem";
+nududothankiem = "tren than kiem";
+nududo4 = "la";
+entry4 = C[i];
+sl = TrendSL[i];
+tar4 = entry4 - (entry4 * .050);
+tar5 = entry4 - (entry4 * .112);
+tar6 = entry4 - (entry4 * .212);
+loithankiem = "bao ban";
+lothankiem = "bao ban 3";
+bars = i;
+i = 0;
+}
+}
+
+Offset = 20;
+Clr = IIf(sig4 == "mua than kiem", colorLime, colorRed);
+ssl = IIf(bars == BarCount-1, TrendSL[BarCount-1], Ref(TrendSL, -1));
+sl = ssl[BarCount-1];
+ 
+
+//Plot(LineArray(bars-Offset, tar1, BarCount, tar1,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+//Plot(LineArray(bars-Offset, tar2, BarCount, tar2,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+//Plot(LineArray(bars-Offset, tar3, BarCount, tar3,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+
+//Plot(LineArray(bars-Offset, sl, BarCount, sl,1), "", colorDarkRed, styleLine|styleLine, Null, Null, Offset);
+//Plot(LineArray(bars-Offset, entry, BarCount, entry,1), "", colorGreen, styleLine|styleLine, Null, Null, Offset);
+ 
+for (i=bars; i <BarCount;i++)
+{
+//PlotText(""+sig+"@"+entry, BarCount+1,entry,Null,colorBlue);
+//PlotText("T1@"+tar1,BarCount+3,tar1,Null,Clr);PlotText("T2@"+tar2,BarCount+3,tar2,Null,Clr);PlotText ("T3@"+tar3,BarCount+3,tar3,Null,Clr);
+ 
+}
+ 
+if (messageboard == 1 )
+{
+
+GfxSetTextColor( colorWhite );
+}
+if ( sig4 =="mua than kiem")
+{
+GfxSelectSolidBrush(ColorRGB( 2, 100, 3 )); // this is the box background color
+}
+else
+{
+GfxSelectSolidBrush( ColorRGB( 148, 50, 0 )); // this is the box background color
+}
+pxHeight = Status( "pxchartheight" ) ;
+xx = Status( "pxchartwidth");
+Left = 1100;
+width = 310;
+x = 5;
+x2 = 212;
+y = pxHeight;
+GfxSelectFont("arial", 7,700);
+GfxSelectPen( colorCustom8, 1); // broader color
+GfxRoundRect( x, y - 146, x2 , y - 81 , 5, 5) ;
+GfxSetTextColor( colorCustom8 );
+GfxTextOut( ( "Tin hieu Than Kiem"),64,y-141);
+GfxSetTextColor( colorwhite );
+GfxTextOut( ("- Bao " + sig4 + " truoc do " + (BarCount-bars-1) + " phien"), 13, y-126) ; // The text format location
+GfxTextOut( ("- Bao " + sig4 + " " + Name() + " " + nududo4 + " : " + entry4), 13, y-111) ; 
+//GfxTextOut( ("" + WriteIf(sig =="Mua",sig + " @ ",sig + " @") + " : " + entry), 13, y-38);
+//GfxTextOut( ("- Diem mua vao" + " : " + entry), 13, y-38);
+//GfxTextOut( ("Diem : " + TrendSL + " (" + WriteVal(IIf(sig == "Ban",entry-sl,sl-entry), 2.2) + ")"), 508, y-30);
+GfxTextOut( ("- Loi / Lo (-) : " + WriteVal(IIf(sig4 == "mua than kiem",(C-entry4),(entry4-C)),2.2))+" (Nghin dong)", 13, y-96);;
+_SECTION_END();
+_SECTION_BEGIN("Cam nang RSI");
+SetTradeDelays(1,1,1,1);
+Factor=Param("Factor",2,1,10,1);
+Pd=Param("ATR Periods",1,1,100,1);
+Up=(H+L)/2+(Factor*ATR(Pd));
+Dn=(H+L)/2-(Factor*ATR(Pd));
+iATR=ATR(Pd);
+TrendUp=TrendDown=Null;
+trend[0]=1;
+changeOfTrend=0;
+flag=flagh=0;
+
+for (i = 1; i <BarCount; i++) {
+      TrendUp[i] = Null;
+      TrendDown[i] = Null;
+     
+      trend[i]=1;
+   
+      
+      if (Close[i]>Up[i-1]) {
+         trend[i]=1;
+         if (trend[i-1] == -1) changeOfTrend = 1;
+         
+      }
+      else if (Close[i]<Dn[i-1]) {
+         trend[i]=-1;
+         if (trend[i-1] == 1) changeOfTrend = 1;
+      }
+      else if (trend[i-1]==1) {
+         trend[i]=1;
+         changeOfTrend = 0;       
+      }
+      else if (trend[i-1]==-1) {
+         trend[i]=-1;
+         changeOfTrend = 0;
+      }
+
+      if (trend[i]<0 && trend[i-1]>0) {
+         flag=1;
+      }
+      else {
+         flag=0;
+      }
+      
+      if (trend[i]>0 && trend[i-1]<0) {
+         flagh=1;
+      }
+      else {
+         flagh=0;
+      }
+      
+      if (trend[i]>0 && Dn[i]<Dn[i-1]){
+         Dn[i]=Dn[i-1];
+		}
+      
+      if (trend[i]<0 && Up[i]>Up[i-1])
+        { Up[i]=Up[i-1];
+		}
+      
+      if (flag==1)
+       {  Up[i]=(H[i]+L[i])/2+(Factor*iATR[i]);;
+        } 
+      if (flagh==1)
+        { Dn[i]=(H[i]+L[i])/2-(Factor*iATR[i]);;
+         }
+      if (trend[i]==1) {
+         TrendUp[i]=Dn[i];
+         if (changeOfTrend == 1) {
+            TrendUp[i-1] = TrendDown[i-1];
+            changeOfTrend = 0;
+         }
+      }
+      else if (trend[i]==-1) {
+         TrendDown[i]=Up[i];
+         if (changeOfTrend == 1) {
+            TrendDown[i-1] = TrendUp[i-1];
+            changeOfTrend = 0;
+         }
+      }
+   } 
+
+//Plot(TrendUp,"Trend",colorGreen);
+//Plot(TrendDown,"Down",colorRed);
+Buy = trend==1;
+Sell=trend==-1;
+Buy=(RSIbuy2 OR RSIbuy) ;
+Sell=(RSIsell2 OR RSIsell);
+TrendSL=IIf(trend==1,TrendUp,TrendDown);
+
+for(i=BarCount-1;i>1;i--)
+{
+if(Buy[i] == 1)
+{
+entryrsi = C[i];
+sigrsi = "mua rsi";
+
+nududorsi = "la";
+sl = TrendSL[i];
+loirsi = "loi nhuan";
+lorsi = "cat lo";
+bars = i;
+i = 0;
+}
+
+if(Sell[i] == 1)
+{
+sigrsi = "ban rsi";
+nududorsi = "tren rsi";
+nududorsi = "la";
+entryrsi = C[i];
+sl = TrendSL[i];
+loirsi = "bao ban";
+lorsi = "bao ban 3";
+bars = i;
+i = 0;
+}
+
+}
+Offset = 20;
+Clr = IIf(sigrsi == "mua rsi", colorLime, colorRed);
+ssl = IIf(bars == BarCount-1, TrendSL[BarCount-1], Ref(TrendSL, -1));
+sl = ssl[BarCount-1];
+ 
+
+//Plot(LineArray(bars-Offset, tar1, BarCount, tar1,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+//Plot(LineArray(bars-Offset, tar2, BarCount, tar2,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+//Plot(LineArray(bars-Offset, tar3, BarCount, tar3,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+
+//Plot(LineArray(bars-Offset, sl, BarCount, sl,1), "", colorDarkRed, styleLine|styleLine, Null, Null, Offset);
+//Plot(LineArray(bars-Offset, entry, BarCount, entry,1), "", colorGreen, styleLine|styleLine, Null, Null, Offset);
+ 
+for (i=bars; i <BarCount;i++)
+{
+//PlotText(""+sig+"@"+entry, BarCount+1,entry,Null,colorBlue);
+//PlotText("T1@"+tar1,BarCount+3,tar1,Null,Clr);PlotText("T2@"+tar2,BarCount+3,tar2,Null,Clr);PlotText ("T3@"+tar3,BarCount+3,tar3,Null,Clr);
+ 
+}
+ 
+if (messageboard == 1 )
+{
+
+GfxSetTextColor( colorWhite );
+}
+if ( sigrsi =="mua rsi")
+{
+GfxSelectSolidBrush(ColorRGB( 2, 100, 3 )); // this is the box background color
+}
+else
+{
+GfxSelectSolidBrush( ColorRGB( 148, 50, 0 )); // this is the box background color
+}
+pxHeight = Status( "pxchartheight" ) ;
+xx = Status( "pxchartwidth");
+Left = 1100;
+width = 310;
+x = 5;
+x2 = 212;
+y = pxHeight;
+GfxSelectFont("arial", 7,700);
+GfxSelectPen( colorCustom8, 1); // broader color
+GfxRoundRect( x, y - 210, x2 , y - 145 , 5, 5) ;
+GfxSetTextColor( colorCustom8 );
+GfxTextOut( ( "Tin hieu mua/ban RSI"),60,y-205);
+GfxSetTextColor( colorwhite );
+GfxTextOut( ("- Bao " + sigrsi + " truoc do " + (BarCount-bars-1) + " phien"), 13, y-190) ; // The text format location
+GfxTextOut( ("- Bao " + sigrsi + " " + Name() + " " + nududorsi + " : " + entryrsi), 13, y-175) ; 
+//GfxTextOut( ("" + WriteIf(sig =="Mua",sig + " @ ",sig + " @") + " : " + entry), 13, y-38);
+//GfxTextOut( ("- Diem mua vao" + " : " + entry), 13, y-38);
+//GfxTextOut( ("Diem : " + TrendSL + " (" + WriteVal(IIf(sig == "Ban",entry-sl,sl-entry), 2.2) + ")"), 508, y-30);
+GfxTextOut( ("- Loi / Lo (-) : " + WriteVal(IIf(sigrsi == "mua rsi",(C-entryrsi),(entryrsi-C)),2.2))+" (Nghin dong)", 13, y-160);;
+_SECTION_END();
+_SECTION_BEGIN("Cam nang MACD");
+
+SetTradeDelays(1,1,1,1);
+Factor=Param("Factor",2,1,10,1);
+Pd=Param("ATR Periods",1,1,100,1);
+Up=(H+L)/2+(Factor*ATR(Pd));
+Dn=(H+L)/2-(Factor*ATR(Pd));
+iATR=ATR(Pd);
+TrendUp=TrendDown=Null;
+trend[0]=1;
+changeOfTrend=0;
+flag=flagh=0;
+
+for (i = 1; i <BarCount; i++) {
+      TrendUp[i] = Null;
+      TrendDown[i] = Null;
+     
+      trend[i]=1;
+   
+      
+      if (Close[i]>Up[i-1]) {
+         trend[i]=1;
+         if (trend[i-1] == -1) changeOfTrend = 1;
+         
+      }
+      else if (Close[i]<Dn[i-1]) {
+         trend[i]=-1;
+         if (trend[i-1] == 1) changeOfTrend = 1;
+      }
+      else if (trend[i-1]==1) {
+         trend[i]=1;
+         changeOfTrend = 0;       
+      }
+      else if (trend[i-1]==-1) {
+         trend[i]=-1;
+         changeOfTrend = 0;
+      }
+
+      if (trend[i]<0 && trend[i-1]>0) {
+         flag=1;
+      }
+      else {
+         flag=0;
+      }
+      
+      if (trend[i]>0 && trend[i-1]<0) {
+         flagh=1;
+      }
+      else {
+         flagh=0;
+      }
+      
+      if (trend[i]>0 && Dn[i]<Dn[i-1]){
+         Dn[i]=Dn[i-1];
+		}
+      
+      if (trend[i]<0 && Up[i]>Up[i-1])
+        { Up[i]=Up[i-1];
+		}
+      
+      if (flag==1)
+       {  Up[i]=(H[i]+L[i])/2+(Factor*iATR[i]);;
+        } 
+      if (flagh==1)
+        { Dn[i]=(H[i]+L[i])/2-(Factor*iATR[i]);;
+         }
+      if (trend[i]==1) {
+         TrendUp[i]=Dn[i];
+         if (changeOfTrend == 1) {
+            TrendUp[i-1] = TrendDown[i-1];
+            changeOfTrend = 0;
+         }
+      }
+      else if (trend[i]==-1) {
+         TrendDown[i]=Up[i];
+         if (changeOfTrend == 1) {
+            TrendDown[i-1] = TrendUp[i-1];
+            changeOfTrend = 0;
+         }
+      }
+   } 
+
+//Plot(TrendUp,"Trend",colorGreen);
+//Plot(TrendDown,"Down",colorRed);
+Buy = trend==1;
+Sell=trend==-1;
+Buy= Fon;
+Sell= Con;
+TrendSL=IIf(trend==1,TrendUp,TrendDown);
+
+for(i=BarCount-1;i>1;i--)
+{
+if(Buy[i] == 1)
+{
+entrymacd = C[i];
+sigmacd = "mua macd";
+
+nududomacd = "la";
+sl = TrendSL[i];
+loimacd = "loi nhuan";
+lomacd = "cat lo";
+bars = i;
+i = 0;
+}
+
+if(Sell[i] == 1)
+{
+sigmacd = "ban macd";
+nududomacd = "tren macd";
+nududomacd = "la";
+entrymacd = C[i];
+sl = TrendSL[i];
+loimacd = "bao ban";
+lomacd = "bao ban 3";
+bars = i;
+i = 0;
+}
+
+}
+Offset = 20;
+Clr = IIf(sigmacd == "mua macd", colorLime, colorRed);
+ssl = IIf(bars == BarCount-1, TrendSL[BarCount-1], Ref(TrendSL, -1));
+sl = ssl[BarCount-1];
+ 
+
+//Plot(LineArray(bars-Offset, tar1, BarCount, tar1,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+//Plot(LineArray(bars-Offset, tar2, BarCount, tar2,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+//Plot(LineArray(bars-Offset, tar3, BarCount, tar3,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+
+//Plot(LineArray(bars-Offset, sl, BarCount, sl,1), "", colorDarkRed, styleLine|styleLine, Null, Null, Offset);
+//Plot(LineArray(bars-Offset, entry, BarCount, entry,1), "", colorGreen, styleLine|styleLine, Null, Null, Offset);
+ 
+for (i=bars; i <BarCount;i++)
+{
+//PlotText(""+sig+"@"+entry, BarCount+1,entry,Null,colorBlue);
+//PlotText("T1@"+tar1,BarCount+3,tar1,Null,Clr);PlotText("T2@"+tar2,BarCount+3,tar2,Null,Clr);PlotText ("T3@"+tar3,BarCount+3,tar3,Null,Clr);
+ 
+}
+ 
+if (messageboard == 1 )
+{
+
+GfxSetTextColor( colorWhite );
+}
+if ( sigmacd =="mua macd")
+{
+GfxSelectSolidBrush(ColorRGB( 2, 100, 3 )); // this is the box background color
+}
+else
+{
+GfxSelectSolidBrush( ColorRGB( 148, 50, 0 )); // this is the box background color
+}
+pxHeight = Status( "pxchartheight" ) ;
+xx = Status( "pxchartwidth");
+Left = 1100;
+width = 310;
+x = 5;
+x2 = 212;
+y = pxHeight;
+GfxSelectFont("arial", 7,700);
+GfxSelectPen( colorCustom8, 1); // broader color
+GfxRoundRect( x, y - 274, x2 , y - 209 , 5, 5) ;
+GfxSetTextColor( colorCustom8 );
+GfxTextOut( ( "Tin hieu mua/ban MACD"),60,y-269);
+GfxSetTextColor( colorwhite );
+GfxTextOut( ("- Bao " + sigmacd + " truoc do " + (BarCount-bars-1) + " phien"), 13, y-254) ; // The text format location
+GfxTextOut( ("- Diem bao " + sigmacd + " " + Name() + " " + nududomacd + " : " + entrymacd), 13, y-239) ; 
+//GfxTextOut( ("" + WriteIf(sig =="Mua",sig + " @ ",sig + " @") + " : " + entry), 13, y-38);
+//GfxTextOut( ("- Diem mua vao" + " : " + entry), 13, y-38);
+//GfxTextOut( ("Diem : " + TrendSL + " (" + WriteVal(IIf(sig == "Ban",entry-sl,sl-entry), 2.2) + ")"), 508, y-30);
+GfxTextOut( ("- Loi / Lo (-) : " + WriteVal(IIf(sigmacd == "mua macd",(C-entrymacd),(entrymacd-C)),2.2))+" (Nghin dong)", 13, y-224);;
+_SECTION_END();
+_SECTION_BEGIN("MACD HISTOGRAM");
+SetTradeDelays(1,1,1,1);
+Factor=Param("Factor",2,1,10,1);
+Pd=Param("ATR Periods",1,1,100,1);
+Up=(H+L)/2+(Factor*ATR(Pd));
+Dn=(H+L)/2-(Factor*ATR(Pd));
+iATR=ATR(Pd);
+TrendUp=TrendDown=Null;
+trend[0]=1;
+changeOfTrend=0;
+flag=flagh=0;
+
+for (i = 1; i <BarCount; i++) {
+      TrendUp[i] = Null;
+      TrendDown[i] = Null;
+     
+      trend[i]=1;
+   
+      
+      if (Close[i]>Up[i-1]) {
+         trend[i]=1;
+         if (trend[i-1] == -1) changeOfTrend = 1;
+         
+      }
+      else if (Close[i]<Dn[i-1]) {
+         trend[i]=-1;
+         if (trend[i-1] == 1) changeOfTrend = 1;
+      }
+      else if (trend[i-1]==1) {
+         trend[i]=1;
+         changeOfTrend = 0;       
+      }
+      else if (trend[i-1]==-1) {
+         trend[i]=-1;
+         changeOfTrend = 0;
+      }
+
+      if (trend[i]<0 && trend[i-1]>0) {
+         flag=1;
+      }
+      else {
+         flag=0;
+      }
+      
+      if (trend[i]>0 && trend[i-1]<0) {
+         flagh=1;
+      }
+      else {
+         flagh=0;
+      }
+      
+      if (trend[i]>0 && Dn[i]<Dn[i-1]){
+         Dn[i]=Dn[i-1];
+		}
+      
+      if (trend[i]<0 && Up[i]>Up[i-1])
+        { Up[i]=Up[i-1];
+		}
+      
+      if (flag==1)
+       {  Up[i]=(H[i]+L[i])/2+(Factor*iATR[i]);;
+        } 
+      if (flagh==1)
+        { Dn[i]=(H[i]+L[i])/2-(Factor*iATR[i]);;
+         }
+      if (trend[i]==1) {
+         TrendUp[i]=Dn[i];
+         if (changeOfTrend == 1) {
+            TrendUp[i-1] = TrendDown[i-1];
+            changeOfTrend = 0;
+         }
+      }
+      else if (trend[i]==-1) {
+         TrendDown[i]=Up[i];
+         if (changeOfTrend == 1) {
+            TrendDown[i-1] = TrendUp[i-1];
+            changeOfTrend = 0;
+         }
+      }
+   } 
+
+//Plot(TrendUp,"Trend",colorGreen);
+//Plot(TrendDown,"Down",colorRed);
+Buy = trend==1;
+Sell=trend==-1;
+Buy= buyFon;
+Sell= sellCon;
+TrendSL=IIf(trend==1,TrendUp,TrendDown);
+
+for(i=BarCount-1;i>1;i--)
+{
+if(Buy[i] == 1)
+{
+entryhistogram = C[i];
+sighistogram = "mua histogram";
+
+nududohistogram = "la";
+sl = TrendSL[i];
+loihistogram = "loi nhuan";
+lohistogram = "cat lo";
+bars = i;
+i = 0;
+}
+
+if(Sell[i] == 1)
+{
+sighistogram = "ban histogram";
+nududohistogram = "tren histogram";
+nududohistogram = "la";
+entryhistogram = C[i];
+sl = TrendSL[i];
+loihistogram = "bao ban";
+lohistogram = "bao ban 3";
+bars = i;
+i = 0;
+}
+
+}
+Offset = 20;
+Clr = IIf(sighistogram == "mua histogram", colorLime, colorRed);
+ssl = IIf(bars == BarCount-1, TrendSL[BarCount-1], Ref(TrendSL, -1));
+sl = ssl[BarCount-1];
+ 
+
+//Plot(LineArray(bars-Offset, tar1, BarCount, tar1,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+//Plot(LineArray(bars-Offset, tar2, BarCount, tar2,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+//Plot(LineArray(bars-Offset, tar3, BarCount, tar3,1), "", Clr, styleLine|styleDots, Null, Null, Offset);
+
+//Plot(LineArray(bars-Offset, sl, BarCount, sl,1), "", colorDarkRed, styleLine|styleLine, Null, Null, Offset);
+//Plot(LineArray(bars-Offset, entry, BarCount, entry,1), "", colorGreen, styleLine|styleLine, Null, Null, Offset);
+ 
+for (i=bars; i <BarCount;i++)
+{
+//PlotText(""+sig+"@"+entry, BarCount+1,entry,Null,colorBlue);
+//PlotText("T1@"+tar1,BarCount+3,tar1,Null,Clr);PlotText("T2@"+tar2,BarCount+3,tar2,Null,Clr);PlotText ("T3@"+tar3,BarCount+3,tar3,Null,Clr);
+ 
+}
+ 
+if (messageboard == 1 )
+{
+
+GfxSetTextColor( colorWhite );
+}
+if ( sighistogram == "mua histogram")
+{
+GfxSelectSolidBrush(ColorRGB( 2, 100, 3 )); // this is the box background color
+}
+else
+{
+GfxSelectSolidBrush( ColorRGB( 148, 50, 0 )); // this is the box background color
+}
+pxHeight = Status( "pxchartheight" ) ;
+xx = Status( "pxchartwidth");
+Left = 1100;
+width = 310;
+x = 5;
+x2 = 212;
+y = pxHeight;
+GfxSelectFont("arial", 7,700);
+GfxSelectPen( colorCustom8, 1); // broader color
+GfxRoundRect( x, y - 340, x2 , y - 273 , 5, 5) ;
+GfxSetTextColor( colorCustom8 );
+GfxTextOut( ( "Tin hieu HISTOGRAM"),60,y-332);
+GfxSetTextColor( colorwhite );
+GfxTextOut( ("- Bao " + sighistogram + " truoc do " + (BarCount-bars-1) + " phien"), 13, y-317) ; // The text format location
+GfxTextOut( ("- Diem bao " + sighistogram + " " + Name() + " " + nududohistogram + " : " + entryhistogram), 13, y-302) ; 
+//GfxTextOut( ("" + WriteIf(sig =="Mua",sig + " @ ",sig + " @") + " : " + entry), 13, y-38);
+//GfxTextOut( ("- Diem mua vao" + " : " + entry), 13, y-38);
+//GfxTextOut( ("Diem : " + TrendSL + " (" + WriteVal(IIf(sig == "Ban",entry-sl,sl-entry), 2.2) + ")"), 508, y-30);
+GfxTextOut( ("- Loi / Lo (-) : " + WriteVal(IIf(sigrsi == "mua rsi",(C-entryrsi),(entryrsi-C)),2.2))+" (Nghin dong)", 13, y-287);;
+_SECTION_END();
+/*
+_SECTION_BEGIN("KHUYEN NGHI");
+if((bars2 - bars3) < 7 AND (sig2 == "mua") AND (sig == "mua") AND (bars2 - bars3) > -5 AND sig4 == "mua than kiem" )//
+{
+sig5 = "Trang thai bao mua rat manh voi";
+sig6 = "Than Kiem va Y Thien Kiem bao mua";
+sig7 = "Co phieu dang trong chu ky tang diem manh";
+sig8 = "chu y mua theo tin hieu cua 1 trong 2 cong cu.";
+sig9 = "Than kiem thuong xuat hien truoc Y Thien Kiem";
+}
+else
+{
+if((bars2 - bars3) < 7 AND (sig2 == "ban") AND (sig == "ban") AND (bars2 - bars3) > -5 AND sig4 == "ban than kiem" )
+{
+sig5 = "Trang thai bao ban ranh manh voi";
+sig6 = "Than kiem va Y thien kiem bao ban manh!";
+sig7 = "Suc manh tang co phieu khong con, xem xet";
+sig8 = "khong nen tiep tuc vao co phieu, co phieu con";
+sig9 = "co the tiep tuc giam sau nua.";
+
+}
+else
+{
+sig5 = "Tin hieu mua/ban trung tinh";
+sig6 = "Co the xuat hien Than Kiem Or Y Thien Kiem";
+sig7 = "Trang thai nay nha dau tu mua/ban theo tin hieu";
+sig8 = "cua Y thien kiem hoac Than kiem, Than kiem";
+sig9 = "thuong xuat hien truoc Y thien kiem!";
+}
+}
+GfxTextOut( (sig5 +" "+ Name()), 13, y-370) ;
+GfxTextOut( ("- "  + "" + sig6), 13, y-355) ;
+GfxTextOut( (sig7), 13, y-340) ;
+GfxTextOut( (sig8), 13, y-325) ;
+GfxTextOut( (sig9), 13, y-310) ;
+
+_SECTION_END();*/
+}
+
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 20, 2, 100, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorDarkGrey );
+Style = ParamStyle("Style", styleLine | styleNoLabel ) | styleNoLabel;
+Plot( bbt = BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), colorCustom1, Style ); 
+Plot( bbb = BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), colorCustom1, Style ); 
+PlotOHLC( bbt, bbt, bbb, bbb, "", ColorBlend( Color, GetChartBkColor(), 0.1 ), styleThick | styleCloud | styleNoRescale, Null, Null, Null, -1 );
+_SECTION_END();
+_SECTION_BEGIN("Price");
+Title = EncodeColor(colorYellow)+ FullName()+"("+Name()+") - " + "Hotline :" + EncodeColor(colorRed)+ " 0372.095.129" + EncodeColor(colorYellow)+ " - Website :  "+ EncodeColor(colorRed)+"Nududo.com" + EncodeColor(colorWhite) + " - " + Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +"\n" +EncodeColor(colorWhite) +"Mo cua-"+O+"  "+"Cao-"+H+"  "+"Thap-"+L+"  "+
+"Dong cua-"+C+"  "+ "Khoi Luong= "+ WriteVal(V);
+_SECTION_BEGIN("Magnified Market Price");
+FS=Param("Font Size",35,11,100,1);
+GfxSelectFont("Times New Roman", 34, 700, italic = True, underline = False, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor( ParamColor("Color",colorCustom9) );
+Hor=Param("Horizontal Position",234,1,1200,1);
+Ver=Param("Vertical Position",1,1,1,1);
+GfxTextOut(""+C,Hor-150 , Ver+30 );
+GfxTextOut( Name(), Hor,Ver-50 );
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+GfxSelectFont("Times New Roman", 14, 700, italic =True, underline = False, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor(ParamColor("Color",colorCustom9) );
+GfxTextOut(""+DD+" ("+xx+"%)", Hor-150, Ver+85 );
+GfxSelectFont("arial", 18 );
+GfxSetTextColor(ParamColor("dong",colorCustom8) );
+GfxSetTextAlign( 6 );// center alignment
+GfxSetTextColor( ColorRGB( 255, 255, 0 ) );
+GfxSetBkMode(0); // transparent
+GfxSelectFont("UVN But Long 1", Status("pxheight")/26 );
+GfxTextOut( "VO CUC KIEM", Status("pxwidth")/2, Status("pxheight")/18 );
+GfxSelectFont("UVN But Long 1", Status("pxheight")/36 );
+GfxTextOut( "Hotline : 0372.095.129 - Website : Nududo.com" , Status("pxwidth")/2, Status("pxheight")/8 );
+GfxSetTextColor( colorLightGrey );
+GfxSelectFont("UVN But Long 1", Status("pxheight")/46 );
+GfxTextOut( FullName() , Status("pxwidth")/1.2, Status("pxheight")/9 );
+GfxTextOut( "("+Name()+") " , Status("pxwidth")/1.2, Status("pxheight")/7 );
+_SECTION_END();
+/* ICHIMOKU CHART */
+
+n1 = Param("9 1",9,1,200,1); 
+n2 = Param("26: период 2",26,1,400,1); 
+n3 = Param("26: период 3",52,1,600,1); 
+ 
+TenkanSen   =(HHV(H,n1)+LLV(L,n1))/2;             
+KijunSen    =(HHV(H,n2)+LLV(L,n2))/2;            
+ChinkouSpan =Ref(C,-n2);                          
+Cks         = Close;                             
+SenkouSpanA =Ref((KijunSen+TenkanSen)/2,-n2);    
+SpA         =(KijunSen+TenkanSen)/2;             
+SenkouSpanB =Ref((HHV(H,n3)+LLV(L,n3))/2,-n2);    
+SpB         =(HHV(H,n3)+LLV(L,n3))/2;            
+DL = Ref( C, 25 );
+Cond1 =  Ref(Close > Max(SenkouSpanA,SenkouSpanB),-1);   
+Cond2 =  Ref(Close < Min(SenkouSpanA,SenkouSpanB),-1);  
+Cond3 =  Ref(Cross(TenkanSen,KijunSen),-1);  
+Cond4 =  Ref(Cross(KijunSen,TenkanSen),-1);  
+Cond5 =  Ref(Cross(Close,ChinkouSpan ),-1);  
+Cond6 =  Ref(Cross(ChinkouSpan ,Close),-1);  
+Cond7 =  Ref(Cross (Close , Max(SenkouSpanA,SenkouSpanB)),-1);  
+Cond8 =  Ref(Cross ( Min(SenkouSpanA,SenkouSpanB), Close),-1);  
+Cond9 = Close > TenkanSen AND TenkanSen > KijunSen AND KijunSen > Max(SenkouSpanA,SenkouSpanB); 
+Cond10= Close < TenkanSen AND TenkanSen < KijunSen AND KijunSen < Min(SenkouSpanA,SenkouSpanB); 
+RemCond9=ExRem(Cond9,NOT Cond9);                  
+RemCond10=ExRem(Cond10,NOT Cond10); 
+ 
+ColSenk =IIf (Cond1,colorGreen, IIf(Cond2,colorRed,colorLightGrey)); 
+Flat  =  TenkanSen == Ref(TenkanSen,-1) OR (NOT(Cond1) AND NOT(Cond2)) ; 
+ 
+for( i = 0; i < BarCount; i++ ) 
+{ 
+   if (Flat[i]) 
+      ColTenk[i] = colorLightGrey; 
+   else
+   { 
+if (Cond1[i] AND TenkanSen[i] > TenkanSen[i-1]) 
+     ColTenk[i] = colorGreen; 
+if (Cond1[i] AND TenkanSen[i] < TenkanSen[i-1]) 
+     ColTenk[i] = colorRed; 
+if (Cond2[i] AND TenkanSen[i] < TenkanSen[i-1]) 
+     ColTenk[i] = colorRed; 
+if (Cond2[i] AND TenkanSen[i] > TenkanSen[i-1]) 
+     ColTenk[i] = colorGreen; 
+   } 
+}  
+PlotOHLC (SpA,SpA,SpB,SpB,"Cloud",IIf (SpA > SpB,ColorRGB( 64, 128, 128 ),ColorRGB( 128, 128, 128 )),styleCloud, 10, 10, n2 ); 
+above = IIf(KijunSen>SenkouSpanA AND TenkanSen>SenkouSpanB,1,0);
+within = IIf(KijunSen>SenkouSpanA AND TenkanSen<SenkouSpanB,1,0);
+below = IIf(TenkanSen<SenkouSpanA AND TenkanSen<SenkouSpanB,1,0);
+Buy = Cross(TenkanSen,KijunSen) AND (DL>Close);
+Sell = Cross(KijunSen,TenkanSen) AND (DL<KijunSen);
+StrongBuy = Buy AND above;
+MediumBuy = Buy AND within;
+WeakBuy = Buy AND below;
+StrongSell = Sell AND below;
+MediumSell = Sell AND within;
+WeakSell = Sell AND above;
+//IIf( (StrongBuy),PlotShapes(shapeUpArrow*StrongBuy,colorYellow, layer = 0, yposition = Graph0, offset = -52, xshift = 0) , 0);
+//IIf( (MediumBuy),PlotShapes(shapeUpArrow*MediumBuy,colorYellow, layer = 0, yposition = Graph0, offset = -52, xshift = 0), 0);
+//IIf( (WeakBuy),PlotShapes(shapeUpArrow*WeakBuy,colorYellow, layer = 0, yposition = Graph0, offset = -52, xshift = 0), 0);
+//IIf( (StrongSell),PlotShapes(shapeDownArrow*StrongSell,colorYellow, layer = 0, yposition = Graph0, offset = -52, xshift = 0), 0);
+//IIf( (MediumSell),PlotShapes(shapeDownArrow*MediumSell,colorYellow, layer = 0, yposition = Graph0, offset = -52, xshift = 0), 0);
+//IIf( (WeakSell),PlotShapes(shapeDownArrow*WeakSell,colorYellow, layer = 0, yposition = Graph0, offset = -52, xshift = 0), 0);
+///end ichimoku
+_SECTION_BEGIN("Vol");
+no=Param( "Swing", 10, 1, 55 );
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+tsl=IIf(avn==1,sup,res);
+VCol = ParamColor("Vol. Color", colorLime );
+VH = Param("Volume Height", 5,1,15,1 );
+SetBarFillColor( IIf( V > Ref(V,-1), colorGreen, colorRed) );
+PlotOHLC(0,V,0,V,"Volume",VCol,styleCandle|styleOwnScale,VH );
+_SECTION_END();

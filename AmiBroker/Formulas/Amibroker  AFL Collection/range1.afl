@@ -1,0 +1,56 @@
+_SECTION_BEGIN("Chart Settings");
+ SetChartOptions(0,chartShowArrows|chartShowDates); 
+ SetChartBkColor(ParamColor("Outer panel color ",colorBlack)); // color of outer border 
+ SetChartBkGradientFill( ParamColor("Inner panel color upper half", colorWhite),
+ ParamColor("Inner panel color lower half", colorWhite)); // color of inner panel 
+ GraphXSpace=Param("GraphXSpace",10,0,100,1);
+
+ Plot(C,"C",colorBlack,64);
+
+ HiDay = TimeFrameGetPrice("H", inDaily); 
+ LoDay = TimeFrameGetPrice("L", inDaily); 
+
+ Plot(HiDay ,"",colorGreen,styleDots | styleNoLine);
+ Plot(LoDay ,"",colorRed,styleDots | styleNoLine);
+
+ //Intraday Hrl HI LO //
+
+ HiHrly = TimeFrameGetPrice("H", inHourly);
+ LoHrly = TimeFrameGetPrice("L", inHourly);
+
+ Plot(HiHrly ,"",colorBlue, styleLine );
+ Plot(LoHrly ,"",colorDarkRed,styleLine);
+
+
+ //Previous Days HI LO //
+
+ DayH = TimeFrameGetPrice("H", inDaily, -1); DayHI = LastValue (DayH,1);// yesterdays high
+ DayL = TimeFrameGetPrice("L", inDaily, -1); DayLI = LastValue (DayL,1);// yesterdays low
+
+
+ numbars = LastValue(Cum(Status("barvisible")));
+ hts = -33.5;
+
+ YHL = ParamToggle("Yesterday HI LO","Show|Hide",1);
+ if(YHL==0) {
+ Plot(DayL,"YL",colorDarkRed,styleLine|styleNoRescale|styleNoTitle);
+ Plot(DayH,"YH",colorDarkGreen,styleLine|styleNoRescale|styleNoTitle);
+ PlotText(" YH " , LastValue(BarIndex())-(numbars/Hts), DayHI, colorDarkRed);
+ PlotText(" YL " , LastValue(BarIndex())-(numbars/Hts), DayLI, colorDarkGreen);
+ }
+
+
+ RangeTitle = EncodeColor(colorBlack) + "TODay Range= " + EncodeColor(colorBlack) + StrToNum(NumToStr(round((HiDay - LoDay)), 4.4));
+ YSDAYRangeTitle = EncodeColor(colorBlack) + "YSDay Range= " + EncodeColor(colorBlack) + StrToNum(NumToStr(round((DayH - DayL)), 5.4));
+ Hodcolorsheme=colorDarkBlue;
+ LodColorscheme=colorOrange;
+ Title = EncodeColor(colorDarkBlue)+ "HULK HOD-LOD" + " - " + Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorRed) +
+ " - " + Date() +" - "+"\n" +EncodeColor(colorBlack) +"Op-"+O+" "+"Hi-"+H+" "+"Lo-"+L+" "+
+ "Cl-"+C+" "+ "Vol= "+ WriteVal(V,1.0)+"\n" + 
+ EncodeColor(Hodcolorsheme) + "HiHrly= " + EncodeColor(colorBlack) + HiHrly + "\n" +
+ EncodeColor(LodColorscheme) + "LowHrly= " + EncodeColor(colorBlack) + LoHrly + "\n" +
+ EncodeColor(Hodcolorsheme) + "HOD= " + EncodeColor(colorBlack) + Hiday + "\n" +
+ EncodeColor(LodColorscheme) + "LOD= " + EncodeColor(colorBlack) + Loday + "\n" + RangeTitle +"\n" + 
+ EncodeColor(Hodcolorsheme) + "YsdayHi= " + EncodeColor(colorBlack) + DayH+ "\n" +
+ EncodeColor(LodColorscheme) + "YsdayLow= " + EncodeColor(colorBlack) + DayL + "\n" + YSDAYRangeTitle;
+ _SECTION_END();

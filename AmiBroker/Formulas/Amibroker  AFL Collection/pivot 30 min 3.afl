@@ -1,0 +1,122 @@
+_SECTION_BEGIN("Fibo for all bars");
+
+TimeFrameSet( in15Minute*2 ); 
+DH=Ref(H,-1); 
+DL=Ref(L,-1);
+DC=Ref(C,-1);
+
+
+pd = ( DH+ DL + DC )/3;
+sd1 = (2*pd)-DH;
+sd2 = pd -(DH - DL);
+sd3 = Sd1 - (DH-DL); 
+rd1 = (2*pd)-DL;
+rd2 = pd +(DH -DL);
+rd3 = rd1 +(DH-DL);
+
+
+
+Plot (pd,"Pivot",colorBlue,styleThick+styleDots);
+Plot (rd1," R1 ",35,8+16);
+Plot (rd2," R2 ",35,8+16);
+Plot (rd3," R3 ",35,8+16);
+
+Plot (sd1," S1 ",4,8+16);
+Plot (Sd2," S2 ",4,8+16);
+Plot (Sd3," S3 ",4,8+16);
+ColP = IIf (C > pd,colorBlue,colorOrange);
+style = IIf(ParamList("Chart style", "styleCandle|styleBar")=="styleCandle",64,128+4);
+Plot (C,Date ()+"",colP,style); //ENABLE THIS TO HAVE CANDLES AS WELL
+_SECTION_END();
+
+_SECTION_BEGIN("price");
+SetBarsRequired(200,0); 
+
+GraphXSpace = 5;
+SetChartOptions(0,chartShowArrows|chartShowDates); 
+HACLOSE=(O+H+L+C)/4;
+HaOpen = AMA( Ref( HaClose,  -1 ),  0.5 );
+HaHigh = Max( H,  Max( HaClose,  HaOpen ) );
+HaLow = Min( L,  Min( HaClose,  HaOpen ) );
+Col_bar = IIf(Haclose < Haopen ,colorRed,colorBlue);
+EMA3 = EMA(RSI(14),3);
+ema27 = EMA(RSI(14),27); 
+
+diff = ema3-EMA27;
+ema_short = EMA(diff,Param("short ema",3,1,20,1));
+EMA_Long = EMA(diff,Param("long ema",5,1,20,1));
+
+Col_rsi = IIf (EMA_long > Ref(EMA_long,-1),colorBlue,colorRed);
+//Plot (EMA_short,"diff in rsi1",colorYellow,styleThick);
+//Plot (EMA_long,"diff in rsi5",Col_rsi,styleThick);
+//Plot (0,"",colorWhite,styleThick);
+
+Buy = Cross (EMA_short,EMA_long);
+Sell = Cross (EMA_long, EMA_short);
+Short = Sell;
+Cover = Buy;
+//PlotOHLC( HaOpen, HaHigh, HaLow, HaClose, "" + Name(), col_bar, styleCandle  );
+//PlotOHLC( O, H, L, C, "" + Name(), col_bar, styleCandle  );
+
+
+//PlotShapes (shapeUpTriangle*Buy,colorYellow);
+//PlotShapes (shapeDownTriangle*Sell,colorYellow);
+//Buy1 = Col_rsi ==colorBlue AND Col_bar == colorBlue;
+//sell1 = Col_rsi ==colorRed AND Col_bar == colorRed;
+/*
+Title = EncodeColor(colorWhite)+ "Rakesh Scalping System" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"\n" +EncodeColor(colorYellow) +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+ "Cl-"+C+"  "+ "Vol= "+ WriteVal(V)+ "\n"+
+EncodeColor(colorLime)+
+WriteIf (Buy1 , " GO LONG at "+C+"  "+"Target of :"+(C+10)+"  SL @ "+(C-7)+"   Reversal at "+(C-10),"")+
+EncodeColor(colorRed)+
+WriteIf (Sell1 , " GO short at "+C+"  "+"Target of :"+(C-10)+"  SL @ "+(C+7)+"   Reversal at "+(C+10),"")
+;
+*/
+_SECTION_END();
+
+_SECTION_BEGIN("band");
+per = Param ("ma period",10,2,50,1);
+//Plot (MA (MA( Close, per ),5),"",colorBlue,styleThick);
+//Plot( MA( Close, per ), "", colorRed, styleThick ); 
+//Plot( BBandTop( MA(Close,per), 10, 1 ), "BBTop" + _PARAM_VALUES(), colorYellow, styleDashed ); 
+//Plot( BBandBot( MA(Close,per), 10, 1 ), "BBBot" + _PARAM_VALUES(), colorYellow, styleDashed ); 
+_SECTION_END();
+
+m1 = MACD(3, 11);
+s1 = Signal(3,11,16);
+
+//sto = MA( StochK(7,3), 3 ); 
+sto = StochK(7,3); 
+
+
+// filters..............................
+
+
+_SECTION_BEGIN("HLCby3");
+
+pivot = (H +L+C)/3; 
+piv = EMA (pivot,Param("short ema",5,1,20,1));
+piv2 = EMA (pivot,Param("fast ema",10,1,50,1));
+Buyq = Cross (piv, piv2);
+Shortq = Cross (piv2,piv);
+pivot_col =  IIf (pivot > Ref(pivot,-1), colorBlue,colorRed);
+piv_col = IIf (piv > Ref(piv,-1), colorBlue,colorRed);
+piv2_col = IIf (piv2 > Ref(piv2,-1),colorBlue, colorRed);
+//Plot (pivot , "pivot", piv_col, styleThick);
+
+//bar_col = IIf (MACD( 5, 34 ) > Signal( 5, 34, 14 ), colorBlue, colorRed);
+//Plot (pivot , "pivot", pivot_col, styleThick);
+//Plot (piv , "piv", piv_col, styleThick);
+//Plot (piv2 , "piv2", piv2_col, styleThick);                
+Col = IIf (H > Ref(H,-1) AND L > Ref(L,-1), colorBlue, IIf (Low < Ref(L,-1) AND High < Ref(H,-1),colorRed, colorYellow));
+//Plot( C, "Close", bar_Col, styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+PlotShapes (shapeUpArrow*Buyq, colorGreen);
+PlotShapes (shapeDownArrow*Shortq, colorRed);
+
+//pv_col = IIf ( ADX(9) > Ref(ADX(9),-1) AND PDI( 9 ) > MDI( 9 ),colorBlue,IIf (ADX(9) > Ref(ADX(9),-1) AND PDI( 9 ) < MDI( 9 ),colorRed, colorYellow));
+pv_col = IIf (  piv_col == colorBlue AND piv2_col ==colorBlue,colorBlue,IIf ( piv_col == colorRed AND piv2_col ==colorRed,colorRed,colorYellow));
+
+Plot(3, "ribbon", piv_col, styleOwnScale| styleArea|styleNoLabel,-0.5,100); 
+Plot(6, "ribbon", Col_rsi, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+
+_SECTION_END();

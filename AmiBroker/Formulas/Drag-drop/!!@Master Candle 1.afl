@@ -1,0 +1,56 @@
+//dt:31/03/2016
+//Coded by Mayur Patel | www.facebook.com/Mayursss
+
+_SECTION_BEGIN("Master Candle");
+
+//------Defination----------//
+	M = H < Ref(H, -4) AND Ref(H, -1) < Ref(H, -4) AND Ref(H, -2) < Ref(H, -4) AND Ref(H, -3) < Ref(H, -4) AND 
+    	L > Ref(L, -4) AND Ref(L, -1) > Ref(L, -4) AND Ref(L, -2) > Ref(L, -4) AND Ref(L, -3) > Ref(L, -4);
+
+//-------Plot--------------//
+	Fvb=Status("firstvisiblebar");
+	for(i = Fvb; i< BarCount-1; i++)
+	{
+  	if(M[i])
+		{
+			Mline_H=LineArray( i-4, H[i-4], i, H[i-4], extend = 0, usebarindex = True ) ;
+			Mline_L=LineArray( i-4, L[i-4], i, L[i-4], extend = 0, usebarindex = True ) ;
+
+       	/* if(C[i]>C[i-4]) 
+          		Col=colorDarkGreen;
+          		else
+          		Col=colorDarkRed;*/
+			Plot(Mline_H,"",ColorRGB(212, 172, 13),styleLine|styleThick);
+			Plot(Mline_L,"",ColorRGB(212, 172, 13),styleLine|styleThick);
+		}
+	}
+Buy = Cross (C, Mline_H) ;
+Sell = Cross(Mline_L, C) ; 
+
+
+
+
+_SECTION_END();
+
+_SECTION_BEGIN("Chart Pane");
+	SetChartOptions(0,chartShowArrows|chartShowDates);
+	SetChartBkColor(ParamColor("Outer Panel",ColorRGB(30, 30, 30)));
+	SetChartBkGradientFill(ParamColor("Upper Chart",colorDarkGrey),ParamColor("LowerChart",colorDarkGrey));
+	GraphXSpace=Param("GraphXSpace",10,0,100,1);
+   SetBarFillColor (IIf(C>O,19,IIf(C<O,24,42))); 
+   Plot(C,"",IIf(C>O,51,IIf(C<O,33,55)),64);
+ 
+dec =1.2;
+Title = EncodeColor(ColorRGB(127, 179, 213))+  Title = Name() + "     " + EncodeColor(ColorRGB(41, 128, 185)) + Date() +
+"      " + EncodeColor(ColorRGB(127, 179, 213)) + "{{INTERVAL}}  " +
+	EncodeColor(ColorRGB(127, 179, 213))+ "     Open = "+ EncodeColor(ColorRGB(41, 128, 185))+ WriteVal(O,dec) + 
+	EncodeColor(ColorRGB(127, 179, 213))+ "     High = "+ EncodeColor(ColorRGB(41, 128, 185)) + WriteVal(H,dec) +
+	EncodeColor(ColorRGB(127, 179, 213))+ "      Low = "+ EncodeColor(ColorRGB(41, 128, 185))+ WriteVal(L,dec) + 
+	EncodeColor(ColorRGB(127, 179, 213))+ "    Close = "+ EncodeColor(ColorRGB(41, 128, 185))+ WriteVal(C,dec)+
+	EncodeColor(ColorRGB(127, 179, 213))+ "    Volume = "+ EncodeColor(ColorRGB(41, 128, 185))+ WriteVal(V,1);
+
+VHeight = Param("Volume Scaler", 10, 1, 20, 1);
+Plot(V, "Volume", ColorRGB(27, 79, 114),styleHistogram|styleOwnScale|styleThick, VHeight);
+_SECTION_END();
+
+

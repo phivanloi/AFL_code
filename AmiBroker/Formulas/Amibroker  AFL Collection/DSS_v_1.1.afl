@@ -1,0 +1,19 @@
+pds = Param("DSS Period", 10,3,250,1);
+pdss = Param("Smoothing Period", 3,1,15,1);
+
+denom1 = IIf(HHV(H,pds)-LLV(L,pds)>0, HHV(H,pds)-LLV(L,pds), 1);
+P1 = EMA(((C-LLV(L,pds))/ denom1)*100,pdss);
+denom2 = IIf(HHV(P1,pds)-LLV(P1,pds)>0, HHV(P1,pds)-LLV(P1,pds), 1);
+DSS = EMA(((P1-LLV(P1,pds))/denom2)*100,pdss);
+
+BlineShape = IIf(DSS >= 40 OR DSS<=20, shapeCircle, shapeNone);
+BlineColor = IIf(DSS>=80, colorGreen, IIf(DSS<=20, colorRed, colorWhite));
+
+
+PlotShapes(BlineShape, BlineColor, 0, DSS, 0);
+
+Plot(DSS, "DSS("+pds+","+pdss+")", ParamColor("color", colorCycle ), ParamStyle("Style", styleThick) );
+
+PlotGrid(20, colorLightGrey);
+PlotGrid(40, colorLightGrey);
+PlotGrid(80, colorLightGrey);

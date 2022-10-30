@@ -1,0 +1,158 @@
+_SECTION_BEGIN("Visual BackTest for AmibrokerNew formula");
+// Downloaded From https://www.WiseStockTrader.com
+//Visual BackTest for Amibroker
+//Made by Sethmo (Ipeleng Molete)
+//Date Made: 8 November 2013
+//Feel free to use as you wish, please acknowledge the author
+
+SetBarsRequired(-2,0);
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+
+EMA1 = EMA(C, 5);
+EMA2 = EMA(C, 10);
+
+WMA1 = WMA(C, 5);
+WMA2 = WMA(C, 10);
+
+Color = colorBlack;
+
+//----------------------------------------------------------//
+//	TRADE CONDITIONS
+//----------------------------------------------------------//
+
+LongEntry1 = Cross(EMA1,EMA2);
+ShortEntry1 = Cross(WMA2,WMA1);
+
+LongExit1 = Cross(EMA2,EMA1);
+ShortExit1 = Cross(WMA1,WMA2);
+
+LongEntry = LongEntry1;
+ShortEntry = ShortEntry1;
+
+LongExit = LongExit1;
+ShortExit = ShortExit1;
+
+LongEntryDate = ValueWhen(LongEntry1, DateTime());
+ShortEntryDate = ValueWhen(ShortEntry1, DateTime());
+LongExitDate = ValueWhen(LongExit1, DateTime());
+ShortExitDate = ValueWhen(ShortExit1, DateTime());
+
+Longtrue = Flip(Longentry, LongExit);
+Shorttrue = Flip(Shortentry, Shortexit);
+
+systemState = IIf(Shorttrue AND !Longtrue, 0, //in short trade
+				IIf(Longtrue AND !Shorttrue, 1, //in long trade
+				IIf(!Longtrue AND !Shorttrue, 2, 3)));//ready
+
+LongEntry = LongEntry AND systemstate == 1;
+ShortEntry = ShortEntry AND systemstate == 0;
+
+//----------------------------------------------------------//
+//	TRADE MANAGEMENT
+//----------------------------------------------------------//
+
+Buy = LongEntry AND systemstate == 1;
+Sell = LongExit;
+Short = ShortEntry AND systemstate == 0;
+Cover = ShortExit;
+
+inlong = Flip(Buy, Sell);
+inshort = Flip(Short, Cover);
+
+realBuy = inlong AND !Ref(inlong, -1);
+realSell = !inlong AND Ref(inlong, -1);
+realShort = inshort AND !Ref(inshort,-1);
+realCover = !inshort AND Ref(inshort,-1);
+
+LongEntryPrice = ValueWhen(realBuy,O);
+LongExitPrice = ValueWhen(realSell,O);
+ShortEntryPrice = ValueWhen(realShort,O);
+ShortExitPrice = ValueWhen(realCover,O);
+
+BuyPrice = LongEntryPrice;
+SellPrice = LongExitPrice;
+ShortPrice = ShortEntryPrice;
+CoverPrice = ShortExitPrice;
+
+//----------------------------------------------------------//
+//	PLOTTING
+//----------------------------------------------------------//
+LongProfit = IIf(realSell,ValueWhen(realSell,LongExitPrice - LongEntryPrice),0);
+ShortProfit = IIf(realCover,ValueWhen(realCover, ShortEntryPrice - ShortExitPrice),0);
+
+Profit = IIf(realSell, LongProfit,
+		  IIf(realCover, ShortProfit, 0));
+
+TotalLP = Sum(LongProfit, Cum(1));
+TotalSP = Sum(ShortProfit, Cum(1));
+Total = TotalLP + TotalSP;
+
+LongProfitColour = colorGreen;
+ShortProfitColour = colorRed;
+TotalColour = colorTurquoise;
+
+LongTrades = 0;
+ShortTrades = 0;
+LongWinners = 0;
+ShortWinners = 0;
+
+for (i = 0; i < BarCount - 1; i++)
+{
+	if(realSell[i])
+	{	
+		LongTrades++;	
+	}	
+	if(realCover[i])
+	{
+		ShortTrades++;
+	}
+	if(LongProfit[i] > 0)
+	{
+		LongWinners++;
+	}
+	if(ShortProfit[i] > 0)
+	{
+		ShortWinners++;
+	}
+}
+
+LongWinPerc = (LongWinners/LongTrades)*100;
+ShortWinPerc = (ShortWinners/ShortTrades)*100;
+TotalTrades = LongTrades + ShortTrades;
+TotalWinners = LongWinners + ShortWinners;
+TotalWinPerc = (TotalWinners/TotalTrades) * 100;
+
+printf("\nLong Trades: \t" + WriteVal(LongTrades, 1.0));
+printf("\nShort Trades: \t" + WriteVal(ShortTrades, 1.0));
+printf("\nLong Winners: \t" + WriteVal(LongWinners, 1.0));
+printf("\nShort Winners: \t" + WriteVal(ShortWinners, 1.0));
+printf("\nLong Win %%: \t" + WriteVal(LongWinPerc, 1.0) + "%%");
+printf("\nShort Win %%: \t" + WriteVal(ShortWinPerc, 1.0) + "%%");
+printf("\nTotal Trades: \t" + WriteVal(TotalTrades, 1.0));
+printf("\nTotal Winners: \t" + WriteVal(TotalWinners, 1.0));
+printf("\nTotal Win %%: \t" + WriteVal(TotalWinPerc, 1.0) + "%%");
+
+if (ParamToggle("Show TRADE PROFITS?", "No|Yes", 0))
+{
+	Plot(Profit, "\nTrade Profit", IIf(LongProfit, LongProfitColour, IIf(ShortProfit, ShortProfitColour, colorBlue)), styleThick | styleHistogram | styleLeftAxisScale);
+	Plot(0, "\n0", colorYellow, styleThick | styleLeftAxisScale);
+}
+
+if (ParamToggle("Show TOTALS?", "No | Yes", 0))
+{
+	Plot(totalLP, "\nTotalLP", LongProfitColour, styleLine | styleOwnScale);
+	Plot(totalSP, "\nTotalSP", ShortProfitColour, styleLine | styleOwnScale);
+	Plot(total, "\nTotal", TotalColour, styleThick | styleLine | styleOwnScale);
+}
+
+Plot( C, "Close", color, styleNoTitle | styleCandle );
+
+if (ParamToggle("Show REAL TRADES?", "No|Yes", 0))
+{
+	PlotShapes( realBuy * shapeUpArrow, colorDarkGreen, 0, L, -50);
+	PlotShapes( realSell * shapeHollowDownArrow, colorDarkGreen, 0, H, -50);
+	PlotShapes( realShort * shapeDownArrow, colorDarkRed, 0, H, -50);
+	PlotShapes( realCover * shapeHollowUpArrow, colorDarkRed, 0, L, -50);
+}
+_SECTION_END();

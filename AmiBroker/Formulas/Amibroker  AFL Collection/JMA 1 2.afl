@@ -1,0 +1,34 @@
+Length=Param( "Length ", 10, 0, 500);  
+Phase=Param( "Phase", 0, -100, 100);
+
+Col_trix = IIf(Trix(3) > Ref(Trix(3),-1),colorBrightGreen,colorRed);
+Col_cci = IIf(CCI(14) > 100, colorBrightGreen, IIf(CCI(14) < -100, colorRed, IIf(CCI(14) > Ref(CCI(14),-1),colorDarkGreen,colorDarkRed)));
+Plot( JurikJMA( Close, 15, Phase), _DEFAULT_NAME(), IIf(JurikJMA( Close, 15, Phase) > Ref(JurikJMA( Close, 15, Phase),-1),colorYellow,colorRed), styleThick );
+Plot(Close,"close",col_trix,styleBar);
+_SECTION_BEGIN("JMA");
+Plot( JurikJMA( Close, 3, Phase), _DEFAULT_NAME(), colorWhite, styleThick );
+Plot( JurikJMA( Close, 5, Phase), _DEFAULT_NAME(), colorBlue, styleThick+styleNoLabel );
+Plot( JurikJMA( Close, 8, Phase), _DEFAULT_NAME(), colorBlue, styleThick+styleNoLabel );
+Plot( JurikJMA( Close, 10, Phase), _DEFAULT_NAME(), colorBlue, styleThick+styleNoLabel );
+Plot( JurikJMA( Close, 12, Phase), _DEFAULT_NAME(), colorBlue, styleThick+styleNoLabel );
+
+
+_SECTION_END();
+Buy = JurikJMA( Close, 3, Phase) > JurikJMA( Close, 15, Phase);
+Sell = JurikJMA( Close, 3, Phase) < JurikJMA( Close, 15, Phase);
+
+_SECTION_BEGIN("Price");
+Buy=ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+dist = 1.5*ATR(10); 
+
+/*
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "Buy\n@" + C[ i ] , i, L[ i ]-dist[i], colorBlack,colorGreen ); 
+if( Sell[i] ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorBlack, colorRed ); 
+
+} 
+*/
+PlotShapes( Buy * shapeUpTriangle + Sell * shapeDownTriangle, IIf( Buy, colorYellow, colorYellow ) );
+_SECTION_END();

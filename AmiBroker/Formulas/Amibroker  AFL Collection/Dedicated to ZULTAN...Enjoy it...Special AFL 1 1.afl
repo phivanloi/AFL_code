@@ -1,0 +1,112 @@
+_SECTION_BEGIN(" ATR & Volume Adjusted Momentum");
+SetBarsRequired(sbrAll);
+SetChartBkColor(colorBlack);
+
+p1=Param("First period",5,2,14,1);
+p2=Param("Second Period",30,14,60,1);
+momp=Param("Momentum Period",5,3,14,1);
+
+Mtm = (C - Ref (C, -momp ))/ATR(momp);/// changed
+AbsMtm = (abs ( mtm)+ abs(V-Ref(V,-momp))); //changed
+///===============================================
+Num_E = EMA ( EMA ( Mtm, P1 ), P2 );//changed
+Den_E = EMA ( EMA ( AbsMtm, P1 ), p2 );//changed
+///===============================================
+Bensu = 100 * Nz ( Num_E / Den_E);
+////Sude= (Bensu+(2*Ref(Bensu,-1))+(2*Ref(Bensu,-2))+Ref(Bensu,-3))/6;
+
+AA1=C/Ref(C,-8)*100;
+AA2=C/Ref(C,-13)*100;
+AA3=C/Ref(C,-21)*100;
+a1=EMA(AA1,1);
+a2=EMA(AA2,1);
+a3=EMA(AA3,1);
+b1=StDev(a1,8);
+b2=StDev(a2,13);
+b3=StDev(a3,21);
+RMOV=((a1*b1)+(a2*b2)+(a3*b3))/(b1+b2+b3);
+KK=EMA(EMA(RMOV,3),3);
+_SECTION_END();
+////////////////////////////////////////////////////////////////////////////
+_SECTION_BEGIN("");
+
+
+
+upcolor=ParamColor("UpCandleColor",colorBlack );
+downcolor=ParamColor("DownCandleColor",colorBlack );
+
+
+//Volume Change
+Volwma=WMA(Bensu,13);
+Volchange=(((Bensu-Volwma)/Volwma)*100);
+Vol=(ROC(Bensu,1)); 
+
+
+GraphXSpace = Param("Xspace", 10, 2, 20, 1);
+// vol with std
+LBP = Param("Look Back", 15, 0, 150,1 );
+Mean = MA(ln(Bensu),LBP);
+StD = StDev(ln(Bensu),LBP);
+xp3 = exp(mean + 2*std); //3 band
+xp2 = exp(mean + 1.5*std); //2 nd band
+xp1 = exp(mean + 1*std); // 1st band
+xm = exp(mean); // avg
+xn1 = exp(mean - 1*std); // -1 band
+xn2 = exp(mean - 1.5*std); //-2 band
+VolColor=IIf(KK>100,colorGold,colorRed);
+Plot(Volwma, "VOLUME ADJUSTED MOMENTUM", VolColor,ParamStyle("AvgStyle",styleLine|styleThick|styleDots,maskAll),1|4096);
+//ParamColor( "AvgColor", colorGold ),ParamStyle("AvgStyle",styleLine|styleThick|style Dots,maskAll),1|4096);
+
+Plot(xn1,"",colorBlue,1|4096);
+Plot(xn2,"", 1,1|4096);
+
+upbar = Bensu > Ref(Bensu,-1);
+downbar = Bensu< Ref(Bensu,-1);
+barcolor2=IIf(downbar,colorRed, IIf(upbar, 2,19) );
+
+upbar = Bensu > Ref(Bensu,-1);
+downbar =Bensu< Ref(Bensu,-1);
+
+O = IIf(downbar, Bensu, 0); 
+C = IIf(downbar, 0,Bensu);
+L=0; 
+H = Bensu;
+
+ColorHighliter = IIf(upbar, upcolor,IIf(downbar, downcolor,colorDarkGreen));
+SetBarFillColor( ColorHighliter );
+pds = 10;
+V1 = Bensu/MA(Bensu,13); V2 = Bensu/MA(Bensu,21);
+V3 = Bensu/MA(Bensu,34);
+
+barcolor = IIf(Bensu<MA(Bensu,pds),colorRed,colorWhite);
+SetBarFillColor( barcolor );
+PlotOHLC( O,H,L,C, "", barColor2, ParamStyle("CandleStyle",styleCandle,maskAll));
+//GfxTextOut( "VOLUME ADJUSTED MOMENTUM", Status("pxwidth")/2, Status("pxheight")/3 );
+
+_SECTION_END();
+
+_SECTION_BEGIN("Centered-StochRSI Line");
+x=(( RSI(21) - LLV(RSI(21) ,21)) / ((HHV(RSI(21 ) ,21)) - LLV(RSI(21),21)))*100;
+Value1=0.1*((x)-50);
+Value2=WMA(Value1,7);
+KK4=(exp(Value2)-1)/(exp(Value2)+1);
+
+Plot(0,"",IIf(EMA(KK4,3)>0.50,colorBrightGreen,colorRed) ,4+styleNoLabel);
+
+
+//=====================================================================
+//background stock name (works only on Amibroker version 5.00 onwards.
+//=====================================================================
+_SECTION_BEGIN("Name");
+GfxSetOverlayMode(1);
+GfxSelectFont("Tahoma", Status("pxheight")/6 );
+GfxSetTextAlign( 6 );// center alignment
+//GfxSetTextColor( ColorRGB( 300, 300, 300 ) );
+GfxSetTextColor( ColorHSB( 41, 41, 41 ) );
+GfxSetBkMode(0); // transparent
+GfxTextOut( Name(), Status("pxwidth")/2, Status("pxheight")/12 );
+GfxSelectFont("Tahoma", Status("pxheight")/12 );
+GfxTextOut( "kargocu AFL", Status("pxwidth")/2, Status("pxheight")/3 );
+GfxSelectFont("Tahoma", Status("pxheight")/36 );
+GfxTextOut( "Dedicated to ZULTAN...Enjoy it...Special AFL ", Status("pxwidth")/2, Status("pxheight")/2 );
+_SECTION_END();

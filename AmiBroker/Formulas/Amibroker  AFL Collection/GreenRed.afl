@@ -1,0 +1,41 @@
+_SECTION_BEGIN("GreenRed");
+ Title = Name() +"   "+ WriteVal( DateTime(), formatDateTime )+"   "+"Open: "+WriteVal(O,1.0)+" "+"   Hi: "+WriteVal(H,1.0)+" "+"   Low: "+WriteVal(L,1.0)+" "+"   Close: "+WriteVal(C,1.0)+"   Volume: "+WriteVal(V,1);
+
+ 
+
+F1=ValueWhen(H<Ref(H,-2) AND Ref(H,-1)<Ref(H,-2) AND 
+
+Ref(H,-3)<Ref(H,-2) AND Ref(H,-4)<Ref(H,-2),Ref(H,-2),1);
+
+F2=ValueWhen(L>Ref(L,-2) AND Ref(L,-1)>Ref(L,-2) AND 
+
+Ref(L,-3)>Ref(L,-2) AND Ref(L,-4)>Ref(L,-2),Ref(L,-2),1);
+
+A=Cross(H,F1);
+
+b=Cross(F2,L);
+
+Buy=BarsSince(A)<BarsSince(b);
+
+Sell =BarsSince(A)>BarsSince(b);
+
+Cover=Buy;
+
+Short=Sell;
+
+//Buy=ExRem(Buy,Sell);
+
+//Sell=ExRem(Sell,Buy);
+
+//Cover=ExRem(Cover,Short);
+
+//Short=ExRem(Short,Cover); 
+
+//X = Buy OR Sell OR Null;
+
+barcolor=IIf(Buy,colorGreen,IIf(Sell,colorRed,colorWhite));
+
+Plot(Close, "C: ", barcolor, styleBar);
+
+Plot(MA(C,18), "18-day SMA", colorRed, 4); 
+_SECTION_END();

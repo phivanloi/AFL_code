@@ -1,0 +1,32 @@
+Title = "{{NAME}} - {{INTERVAL}} {{DATE}} - Ichimokku -11: {{VALUES}}";
+// Optimizer can be used to find optimum periods for SL and TL
+
+SL_Prd = Optimize( "No_of_Days for SL", 22, 18, 24, 1 );
+TL_Prd = Optimize( "No_of_Days for TL", 7, 5, 11, 1 );
+
+SL = ( HHV( H, SL_Prd) + LLV( L, SL_Prd) )/2;
+TL = ( HHV( H, TL_Prd) + LLV( L, TL_Prd) )/2;
+
+Span1 = Ref( ( SL + TL )/2, -SL_Prd );
+Span2 = Ref( (HHV( H, 2*SL_Prd) + LLV(L, 2*SL_Prd))/2, -SL_Prd);
+
+MaxGraph = 6;
+GraphXSpace = 15; /* create empty space of 15% top and bottom of chart */
+
+Plot(SL,"SL",colorBlue,styleThick); // standard, base, or kijun-sen line
+Plot(TL,"TL",colorRed,styleThick); // turning, conversion, or tenkan-sen line
+
+Plot(Close,"Close",colorLightGrey,styleLine,styleThick); // price close
+
+Buy = Cross(C, TL);
+Sell = Cross(TL, C) ;
+Equity(1,0);
+
+IIf( (Buy),PlotShapes(shapeUpArrow*Buy,colorBlue),0);
+IIf( (Sell),PlotShapes(shapeDownArrow*Sell,colorRed),0) ;
+
+Plot( Volume, _DEFAULT_NAME(), ParamColor("Color", colorBlueGrey ), ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick, maskHistogram ), 2 );
+
+
+_SECTION_END();
+

@@ -1,0 +1,29 @@
+//Adds speed lines (copy & paste to the end of code)
+
+if(direction<0)
+{
+speedline1 = LineArray(x1-shift, top, x2-shift, bot+fib1,1);
+speedline2 = LineArray(x1-shift, top, x2-shift, bot+fib2,1);
+speedline3 = LineArray(x1-shift, top, x2-shift, bot+fib3,1);
+speedline4 = LineArray(x1-shift, top, x2-shift, bot+fib4,1);
+}
+else
+{
+speedline1 = LineArray(x2-shift, bot, x1-shift, top-fib1,1);
+speedline2 = LineArray(x2-shift, bot, x1-shift, top-fib2,1);
+speedline3 = LineArray(x2-shift, bot, x1-shift, top-fib3,1);
+speedline4 = LineArray(x2-shift, bot, x1-shift, top-fib4,1);
+}
+
+speedlineplot=ParamToggle("Plot Speed lines", "No,Yes");
+if(speedlineplot)
+{
+Plot(speedline1,"", color, styleDashed ); 
+Plot(speedline2,"", color,styleDashed ); 
+Plot(speedline3,"", color,styleDashed); 
+Plot(speedline4,"", color,styleDashed); 
+}
+else
+{
+Null;
+}

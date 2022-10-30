@@ -1,0 +1,65 @@
+Buy = Cross(EMA(C, 5), EMA(C, 10));
+Sell = Cross(EMA(C,10), EMA(C, 5));
+
+PlotShapes(shapeUpArrow * Buy, colorCustom12, 0, Low);
+PlotShapes(shapeDownArrow *Sell, colorCustom11, 0, High);
+//AddColumn(Buy, "Mua" , 1);
+//Filter = 1;
+_SECTION_BEGIN("Telegram Alerts");
+TelegramAlerts = ParamTrigger("Telegram Alert","Send Alert");
+TelegramAPI_ID = ParamStr("Telegram Bot API Key","1200942736:AAEG8y9qyJ7aHefUm4vt_xKqkNBxfKd3qCc");  //Get the Bot API key via BotFather in Telgram
+TelgramCHAT_ID = ParamStr("Telegram Channel ID","@Victor_AlgoTrading"); 
+EnableScript("VBScript"); 
+<% 
+Public Sub Telegram(Message_Text)
+sAPI_ID = AFL.Var("TelegramAPI_ID")
+sChat_ID = AFL.Var("TelgramCHAT_ID")
+sMSG = Message_Text
+
+'URL to open....
+sUrl = "https://api.telegram.org/bot" & sAPI_ID & "/sendMessage"
+'POST Request to send.
+sRequest = "text=" & sMSG & "&chat_id=" & sChat_ID
+
+set oHTTP = CreateObject("Microsoft.XMLHTTP")
+oHTTP.open "POST", sUrl,false
+oHTTP.setRequestHeader "Content-Type", "application/x-www-form-urlencoded"
+oHTTP.setRequestHeader "Content-Length", Len(sRequest)
+oHTTP.send sRequest
+HTTPPost = oHTTP.responseText
+
+'Store response 
+'msgbox(objXmlHttpMain.responseText)
+'response.Write (objXmlHttpMain.responseText) 
+End Sub 
+
+%> 
+tg = GetScriptObject(); 
+if (LastValue(ValueWhen(Ref(Buy,-1),BarIndex())==BarIndex()) AND StaticVarGet(Name()+GetChartID()+"buyAlert")==0 )
+{
+tg.Telegram("Buy Alert in " +Name() + " : BuyPrice Value is " + BuyPrice + " Time " + TimeNum());
+StaticVarSet(Name()+ GetChartID() + "buyAlertBar", LastValue(TimeNum()));
+}
+if (LastValue(TimeNum()) == StaticVarGet(Name()+GetChartID()+"buyAlertBar"))
+StaticVarSet(Name()+GetChartID()+"buyAlert",1); //alert was triggered, no more alerts on this bar
+else
+StaticVarSet(Name()+GetChartID()+"buyAlert",0); // new bar formed, and alerts can be trigered.
+
+if (LastValue(ValueWhen(Ref(Sell,-1),BarIndex())==BarIndex()) AND StaticVarGet(Name()+GetChartID()+"sellAlert")==0 )
+{
+tg.Telegram("Sell Alert in " +Name() + " : SellPrice Value is " + SellPrice + " Time " + TimeNum());
+StaticVarSet(Name()+ GetChartID() + "sellAlertBar", LastValue(TimeNum()));
+}
+
+if (LastValue(TimeNum()) == StaticVarGet(Name()+GetChartID()+"sellAlertBar"))
+StaticVarSet(Name()+GetChartID()+"sellAlert",1); //alert was triggered, no more alerts on this bar
+else
+StaticVarSet(Name()+GetChartID()+"sellAlert",0); // new bar formed, and alerts can be trigered.
+
+/*
+if((Buy[BarCount-1]==True AND (Status("action") == actionExplore OR StaticVarGet(Name()+GetChartID()+"TGCLongEntry")==0)) OR TelegramAlerts)
+{
+tg.Telegram("Buy Alert in " + Name() + " : BuyPrice Value is " + BuyPrice + " Times " + TimeNum());
+}
+*/
+_SECTION_END();

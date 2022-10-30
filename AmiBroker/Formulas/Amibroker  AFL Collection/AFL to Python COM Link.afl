@@ -1,0 +1,143 @@
+The AFL documentation shows how AFL may be linked to external programs using the
+COM (common object model). An example is provided for implimenting the IIf (infinite impulse Filter)
+in Visual Basic AND then calling the method from AFL.
+
+Python is a modern Open source object oriented language that has extensive support on the web. 
+The follow sets of code show how Python methods may be used to perform calculations AND
+pass the results back to AFL. The same IIf method shown in the documentation is shown here
+as implemented in python. 
+
+Once you have installed Python, cut AND past the code into a seperate file with an extension ".py"
+Run the code AND it will install itself into the registry. You can then access the mehods AND attributes
+from AFL.
+
+Since Python does NOT come standard with Windows, you will need to download AND install the 
+Python interpreter to use this code. Web addresses for obtaining Python are shown below.
+
+######################################Begin Python Code#########################################
+#
+# Com file framework for Python routines to be called
+#  from AmiBroker
+#
+# This code shows how a python com server can be build to
+#  allow python code to be called from an afl program.
+#  more information about python is available at: www.python.org
+#  other sites distributing python with some extra libraries
+#  are:
+#  http://code.enthought.com/
+#  http://www.activestate.com/Products/languages.plex
+#
+# one quick note about python versus AFL -- python uses indentation
+#  to delinate blocks of code where afl uses "{}" to designate blocks
+#
+#  data can be passed to AND from AFL via method calls OR attributes
+#
+
+import pythoncom
+from win32com.server.exception import COMException
+import win32com.server.util
+import win32com.client.dynamic
+import win32gui
+import Random
+
+
+class PythonUtilities(object):
+    _public_methods_=['IIR2']
+
+    #
+    # Use pythoncom.CreateGuid() 2/1/08
+    #               
+    _reg_clsid_="{25F32489-9E84-4D9F-8AEB-44DC9B528405}"
+    _reg_desc_ =   "Utilities for Extending Amibroker AFL"
+    _reg_progid_ = "PyAFL"
+    _readonly_attrs_ = ['revision']
+
+   # class attributes can be defined AND used to transfer values from AFL
+
+    _public_attrs_=['NDepVar','ArrayLen','ProbArray',
+                    'X_Open','X_High','X_Low','X_Close',
+                    'X_Volume','X_OI','log']
+
+    log=""  # log may be a  string use to pass text to AFL
+    
+    def IIR2(self,InList,coef0,coef1,coef2):
+        # example infinite impulse response Filter from Amibroker docs
+        #
+        self.revision="version 1"
+        OutList=[]
+##
+##        print type(InList),type(coef0)
+##        print coef0,coef1,coef2
+##        
+        InList=list(InList)
+        
+        if len(InList)==0:
+            return OutList
+        OutList=InList[0:2]
+        for index in range(2,len(InList)):
+            OutList.append(coef0*InList[index]+coef1*InList[index-1]+coef2*InList[index-2])
+        if OutList is None:
+            return
+        else:
+            return OutList
+
+        
+    
+        
+if __name__=='__main__':
+    print "Registering COM Server "
+    import win32com.server.register
+    win32com.server.register.UseCommandLine(PythonUtilities)
+
+# uncomment out if you want to unregister com server 
+
+##    from win32com.server.register import UnregisterServer
+##    UnregisterServer(PythonUtilities._reg_clsid_)
+##    print "Com server unregistered."    
+
+#############################################End Python Code ####################################
+
+
+//----------------------------------------------------------------------------------------Start AFL Code --------------------------------------------------------------------------
+
+MyObj=CreateObject("PyAFL");  // link to python com server
+
+Coef0=Param("Coef0",0.2,-5,5);
+Coef1=Param("Ceof1",1.2,-5,5);
+Coef2=Param("Coef2",-0.4,-5);
+
+// COM object interface cannot deal with null value, set to zero to be sure
+
+Close=Nz(Close);
+
+ // use IIR2 method in com server to calculate smoothed value
+
+SmValue = MyObj.IIR2(Close,Coef0,Coef1,Coef2);
+
+
+Plot(C,"Close",Color=colorBlue,style=styleLine);
+Plot(SmValue,"IIR2 smooth",Color=colorDarkRed,style=styleLine);
+
+
+_SECTION_BEGIN("DEMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 200, 1, 10 );
+Plot( DEMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+//------------------------------------------------------------------------------------------End AFL Code------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    

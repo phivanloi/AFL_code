@@ -1,0 +1,41 @@
+_SECTION_BEGIN("TSKPScoreCardColors");
+Ctmpl = E_TSKPCOLORTMPL(Open,High,Low,Close,Volume);
+total = 0;
+total = total  + IIf(tskp_colortmplcnd0 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd1 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd2 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd3 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd4 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd5 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd6 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd7 > 0, 1, -1); 
+total = total  + IIf(tskp_colortmplcnd8 > 0, 1, -1); 
+
+
+for( i = 0; i < BarCount; i++ ) 
+{
+
+	if( total[i] >= 5 )
+		Color[i] = colorBlue;
+	else if(  total[i] <= -5 )
+		Color[i] = colorRed;
+	else
+		Color[i] = colorYellow;
+} 
+
+CO = Open;
+CH = High;
+CL = Low;
+CC = Close;
+PlotOHLC( CO,CH,CL,CC, "Price", color, styleBar+styleThick );//Plot Selected Ticker
+_SECTION_END();
+
+_SECTION_BEGIN("TSKPDynSupRes");
+sw = E_TSKPSWINGLINE(High,Low,Close);
+// tskp_sw, tskp_swmean,tskp_swupper,tskp_swlower
+Plot( tskp_swmean, "Mean", ParamColor( "MeanColor", colorDarkGreen ), ParamStyle("MeanStyle",styleNoLabel) ); 
+Plot( tskp_swupper, "Resistance", ParamColor( "ResistanceColor", colorDarkGreen ), ParamStyle("ResistanceStyle",styleNoLabel) ); 
+Plot( tskp_swlower, "Support", ParamColor( "SupportColor", colorDarkGreen ), ParamStyle("SupportStyle",styleNoLabel) ); 
+_SECTION_END();
+
+Plot(6, "", IIf(PDI(7) > MDI(7) AND PDI(7) > 30,colorGreen,IIf (MDI(7) > PDI(7) AND MDI(7) > 30,colorRed,colorYellow)), styleOwnScale| styleArea|styleNoLabel,-0.5,100);

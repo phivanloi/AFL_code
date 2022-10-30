@@ -1,0 +1,10 @@
+_SECTION_BEGIN("CCIAverage_i");
+/* This example shows how to plot averaged CCI */
+Graph0 = CCI();
+Graph0Color=43;
+Graph0Style=1+4;
+
+Graph1 = EMA( Graph0, 11 );
+Graph1Color=4;
+Graph1Style=1+4;
+_SECTION_END();

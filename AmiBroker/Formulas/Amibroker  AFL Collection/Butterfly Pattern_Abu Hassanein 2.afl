@@ -1,0 +1,1755 @@
+SetOption("RefreshWhenCompleted", True ); 
+_SECTION_BEGIN("Basic Chart");
+BringPatternToFront = ParamToggle("Bring Pattern To Front ", "Yes|No" );
+if(BringPatternToFront ==1)
+{
+
+Plot( C, "Close", ParamColor("Color", colorBlack ),ParamStyle("Style") | GetPriceStyle() ); 
+}
+
+OpenPct = (Open - Ref(C,-1))/Ref(C,-1)*100 ;
+HighPct = (H - Ref(C,-1))/Ref(C,-1)*100 ;
+LowPct = (L - Ref(C,-1))/Ref(C,-1)*100 ;
+ClosePct = (C - Ref(C,-1))/Ref(C,-1)*100 ;
+VolPct = (V - Ref(V,-1))/Ref(V,-1)*100 ;
+	_N(Title =Name() + "   " + FullName() + "   Date: "+Date() 
+	+WriteIf(Open>Ref(C,-1),EncodeColor(colorGreen),EncodeColor(colorRed))+"   Open:"+ WriteVal( Open, 1.2 ) +"  ("+WriteVal(OpenPct ,1.2) +"%)"
+	+WriteIf(H>Ref(C,-1),EncodeColor(colorGreen),EncodeColor(colorRed))+ "    H:" + WriteVal( H , 1.2 ) +"  ("+WriteVal(HighPct ,1.2) +"%)" 
+	+WriteIf(L>Ref(C,-1),EncodeColor(colorGreen),EncodeColor(colorRed))+"    L:"+ WriteVal( L, 1.2 ) +"  ("+WriteVal(LowPct ,1.2) +"%)" 
+	+WriteIf(C>Ref(C,-1),EncodeColor(colorGreen),EncodeColor(colorRed))+"    C:"+ WriteVal( C, 1.2 ) +"  ("+WriteVal(ClosePct ,1.2) +"%)" 
+	+WriteIf(V>Ref(V,-1),EncodeColor(colorGreen),EncodeColor(colorRed))+"    V: "+ WriteVal( V, 1.2 ) +"  ("+WriteVal(VolPct ,1.2) +"%)") ;
+
+ShowToolTip =0;
+if( ShowToolTip == 0)
+{
+ ToolTip=  "Open: "+ WriteVal( Open, 1.2 ) +"  ("+WriteVal(OpenPct ,1.2) +"%)"
+		 +"\nHigh  : "+ WriteVal( H , 1.2 ) +"  ("+WriteVal(HighPct ,1.2) +"%)"  
+		 +"\nLow   : "+ WriteVal( L, 1.2 ) +"  ("+WriteVal(LowPct ,1.2) +"%)"  
+		 +"\nClose: "+ WriteVal( C, 1.2 ) +"  ("+WriteVal(ClosePct ,1.2) +"%)"  
+		 +"\nVolume: "+ WriteVal( V, 1.2 ) +"  ("+WriteVal(VolPct ,1.2) +"%)"  ;
+
+}
+
+
+
+lvb = Status("lastvisiblebar"); 
+fvb = Status("firstvisiblebar"); 
+
+VisibleBars= Min( Lvb - fvb, BarCount - fvb ); 
+//"VisibleBars= "+VisibleBars;
+ShowAuthorName = ParamToggle("Show Author Name", "Yes|No" );
+if (ShowAuthorName ==0)
+{	GfxSelectFont("ARIAL", 16, 800 ); 
+	GfxSetBkMode(1); 
+	GfxSetTextColor(colorBrown); 
+	GfxTextOut("Abuhasanain V 1.0", 5 , 10); 
+}
+SetChartBkGradientFill( ParamColor("Bg Top Color", colorBlack),
+							ParamColor("Bg Bottom Color", colorBlack),
+							ParamColor("Title Block Color",colorBlack));
+GraphXSpace = Param("Vertical Zoom Out",2,-50,200,0.5);
+_SECTION_END(); //Eof Basic Chart
+Buy = BuyEma = BuyStc = Buyengulf = BuySwing3days = buyRsiCciVol = BuyBBand = buyFibo =0;
+
+Sell = SellEma = SellStc = Sellengulf = SellSwing3days = sellRsiCciVol = sellBBand = sellFibo =0;
+	printf(  Name()+" "+FullName()+"\n");
+
+_SECTION_BEGIN("Last 4 Days Zigzag Lines");
+	Linestyle1 = ParamStyle("Line Style1",styleThick ,styleDots|styleLine|styleDashed|styleThick  ); 
+	ZigzagChange = Param ("Zigzag Change %", 5,0.5,100.0,0.5); 
+	"Zigzag Change Sensitivity = "+ ZigzagChange +" %\n";
+	bi = BarIndex();
+	x0_1st = (BarCount -1) - LastValue(PeakBars( H, ZigzagChange , 1)); 
+	y0_1st = LastTop1st = LastValue(Peak( H, ZigzagChange ,1));
+	x1_1st = x1_0th = LastValue(bi);
+	y1_1st = LastValue(L); 
+	x1_0th = LastValue(bi);
+	y1_0th = LastValue(L); 
+
+	LLValueBarNumber = BarCount - x0_1st;
+	LLValue = LastValue( LLV(L, LLValueBarNumber ));
+	LLVBar = LLVBars( L, LLValueBarNumber ); 
+	y1_1st = LLValue ; 
+	x1_1st = LastValue(ValueWhen( LLValue == L, BarIndex(), 1));
+	x1_0th = LastValue(bi);
+	y1_0th = LastValue(L); 
+	x0_2nd = (BarCount -1) - LastValue(TroughBars( L, ZigzagChange , 1)); 
+	y0_2nd = LastTop2nd = LastValue(Trough( L, ZigzagChange ,1)); 
+	x1_2nd = x0_1st;
+	y1_2nd = LastTop2nd = y0_1st; 
+	x0_3rd = (BarCount -1) - LastValue(PeakBars( H, ZigzagChange , 2)); 
+	y0_3rd = LastTop3rd = LastValue(Peak( H, ZigzagChange ,2)); 
+	x1_3rd = x0_2nd ;
+	y1_3rd = LastTop3rd = y0_2nd ; 
+
+	if(x0_3rd > x1_3rd )
+	{
+		for (i = 3; i <= 10; i++)
+		{
+			x0_3rd = (BarCount -1) - LastValue(PeakBars( H, ZigzagChange , i)); 
+			y0_3rd = LastTop3rd = LastValue(Peak( H, ZigzagChange ,i)); 
+			if(x0_3rd < x1_3rd )
+				i=10 ;
+		}
+
+	}
+	x0_4th= (BarCount -1) - LastValue(TroughBars( L, ZigzagChange , 2)); 
+	y0_4th= LastTop4th= LastValue(Trough( L, ZigzagChange ,2)); 
+	x1_4th= x0_3rd  ;
+	y1_4th= LastTop4th= y0_3rd  ; 
+	if(x0_4th> x1_4th)
+	{
+		for (i = 3; i <= 10; i++)
+		{	x0_4th= (BarCount -1) - LastValue(TroughBars( L, ZigzagChange , i)); 
+			y0_4th= LastTo=p4th= LastValue(Trough( L, ZigzagChange ,i)); 
+			if(x0_4th< x1_4th)
+				i=10 ;
+		}
+
+	}
+	x0_5th = (BarCount -1) - LastValue(PeakBars( H, ZigzagChange , 2)); 
+	y0_5th = LastTop5th = LastValue(Peak( H, ZigzagChange ,2)); 
+	x1_5th = x0_4th;
+	y1_5th = LastTop5th = y0_4th; 
+
+	if(x0_5th > x1_5th )
+	{
+		for (i = 3; i <= 10; i++)
+		{
+			x0_5th = (BarCount -1) - LastValue(PeakBars( H, ZigzagChange , i)); 
+			y0_5th = LastTop5th = LastValue(Peak( H, ZigzagChange ,i)); 
+			if(x0_5th < x1_5th )
+				i=10 ;
+		}
+
+	}
+	x0_6th= (BarCount -1) - LastValue(TroughBars( L, ZigzagChange , 2)); 
+	y0_6th= LastTop6th= LastValue(Trough( L, ZigzagChange ,2)); 
+	x1_6th= x0_5th ;
+	y1_6th= LastTop6th= y0_5th ; 
+	if(x0_6th> x1_6th)
+	{
+		for (i = 3; i <= 10; i++)
+		{	x0_6th= (BarCount -1) - LastValue(TroughBars( L, ZigzagChange , i)); 
+			y0_6th= LastTo=p6th= LastValue(Trough( L, ZigzagChange ,i)); 
+			if(x0_6th< x1_6th)
+				i=10 ;
+		}
+
+	}
+	x0_7th = (BarCount -1) - LastValue(PeakBars( H, ZigzagChange , 2)); 
+	y0_7th = LastTop7th = LastValue(Peak( H, ZigzagChange ,2)); 
+	x1_7th = x0_6th;
+	y1_7th = LastTop7th = y0_6th; 
+
+	if(x0_7th > x1_7th )
+	{
+		for (i = 3; i <= 10; i++)
+		{
+			x0_7th = (BarCount -1) - LastValue(PeakBars( H, ZigzagChange , i)); 
+			y0_7th = LastTop7th = LastValue(Peak( H, ZigzagChange ,i)); 
+			if(x0_7th < x1_7th )
+				i=10 ;
+		}
+
+	}
+
+	x0_8th= (BarCount -1) - LastValue(TroughBars( L, ZigzagChange , 2)); 
+	y0_8th= LastTop8th= LastValue(Trough( L, ZigzagChange ,2)); 
+	x1_8th= x0_7th ;
+	y1_8th= LastTop8th= y0_7th ; 
+	if(x0_8th> x1_8th)
+	{
+		for (i = 3; i <= 10; i++)
+		{	x0_8th= (BarCount -1) - LastValue(TroughBars( L, ZigzagChange , i)); 
+			y0_8th= LastTo=p8th= LastValue(Trough( L, ZigzagChange ,i)); 
+			if(x0_8th< x1_8th)
+				i=10 ;
+		}
+
+	}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+if(x0_2nd > x1_2nd )
+{
+	x0_1st = (BarCount -1) - LastValue(TroughBars( L, ZigzagChange , 1)); 
+	y0_1st = LastTop1st = LastValue(Trough( L, ZigzagChange ,1));
+	y1_1st = LastValue(H); 
+	HHValueBarNumber = BarCount - x0_1st;
+	HHValue = LastValue( HHV(H, HHValueBarNumber ));
+	HHVBar = HHVBars( H, HHValueBarNumber); 
+	y1_1st = HHValue ; 
+	x1_1st = LastValue(ValueWhen( HHValue == H, BarIndex(), 1));
+	x1_0th = LastValue(bi);
+	y1_0th = LastValue(L); 
+	x0_2nd = (BarCount -1) - LastValue(PeakBars( H, ZigzagChange , 1)); 
+	y0_2nd = LastTop2nd = LastValue(Peak( H, ZigzagChange ,1)); 
+	x1_2nd = x0_1st;
+	y1_2nd = LastTop2nd = y0_1st; 
+	x0_3rd = (BarCount -1) - LastValue(TroughBars( L, ZigzagChange , 2)); 
+	y0_3rd = LastTop3rd = LastValue(Trough( L, ZigzagChange ,2)); 
+	x1_3rd = x0_2nd ;
+	y1_3rd = LastTop3rd = y0_2nd ; 
+
+	if(x0_3rd > x1_3rd )
+	{
+		for (i = ZigzagChange ; i >= 0; i--)
+	{
+			x0_3rd = (BarCount -1) - LastValue(TroughBars( L, ZigzagChange , i)); 
+			y0_3rd = LastTop3rd = LastValue(Trough( L, ZigzagChange ,i)); 
+
+			if(x0_3rd < x1_3rd )
+				i=0 ;
+		}
+	}
+
+	x0_4th= (BarCount -1) - LastValue(PeakBars( H, ZigzagChange , 1)); 
+	y0_4th= LastTop4th= LastValue(Peak( H, ZigzagChange ,1)); 
+	x1_4th= x0_3rd  ;
+	y1_4th= LastTop4th= y0_3rd  ; 
+
+	if(x0_4th == x1_3rd )
+	{
+		for (i = ZigzagChange ; i >= 0; i--)
+		{	
+		x0_4th= (BarCount -1) - LastValue(PeakBars( H, ZigzagChange -i , 2)); 
+		y0_4th= LastTop4th= LastValue(Peak( H,ZigzagChange - i ,2)); 
+			if(x0_4th < x1_3rd )
+				i=0 ;
+		}
+
+	}
+
+	x0_5th = (BarCount -1) - LastValue(TroughBars( L, ZigzagChange , 2)); 
+	y0_5th = LastTop5th = LastValue(Trough( L, ZigzagChange ,2)); 
+	x1_5th = x0_4th ;
+	y1_5th = LastTop5th = y0_4th ; 
+	if(x0_5th > x1_5th )
+	{
+		for (i = 3; i <= 10; i++)
+		{
+			x0_5th = (BarCount -1) - LastValue(TroughBars( L, ZigzagChange , i)); 
+			y0_5th = LastTop5th = LastValue(Trough( L, ZigzagChange ,i)); 
+			if(x0_5th < x1_5th )
+				i=10 ;
+		}
+	}
+
+	x0_6th = (BarCount -1) - LastValue(PeakBars( H, ZigzagChange , 2)); 
+	y0_6th = LastTop6th = LastValue(Peak( H, ZigzagChange ,2)); 
+	x1_6th = x0_5th ;
+	y1_6th = LastTop6th = y0_5th ; 
+	if(x0_6th > x1_6th )
+	{
+		for (i = 3; i <= 10; i++)
+		{
+			x0_6th = (BarCount -1) - LastValue(PeakBars( H, ZigzagChange , i)); 
+			y0_6th = LastTop6th = LastValue(Peak( H, ZigzagChange ,i)); 
+			if(x0_6th < x1_6th )
+				i=10 ;
+		}
+	}
+
+	x0_7th = (BarCount -1) - LastValue(TroughBars( L, ZigzagChange , 2)); 
+	y0_7th = LastTop7th = LastValue(Trough( L, ZigzagChange ,2)); 
+	x1_7th = x0_6th ;
+	y1_7th = LastTop7th = y0_6th ; 
+	if(x0_7th > x1_7th )
+	{
+		for (i = 3; i <= 10; i++)
+		{
+			x0_7th = (BarCount -1) - LastValue(TroughBars( L, ZigzagChange , i)); 
+			y0_7th = LastTop7th = LastValue(Trough( L, ZigzagChange ,i)); 
+			if(x0_7th < x1_7th )
+				i=10 ;
+		}
+	}
+	x0_8th = (BarCount -1) - LastValue(PeakBars( H, ZigzagChange , 2)); 
+	y0_8th = LastTop8th = LastValue(Peak( H, ZigzagChange ,2)); 
+	x1_8th = x0_7th;
+	y1_8th = LastTop8th = y0_7th; 
+
+	if(x0_8th > x1_8th )
+	{
+		for (i = 3; i <= 10; i++)
+		{
+			x0_8th = (BarCount -1) - LastValue(PeakBars( H, ZigzagChange , i)); 
+			y0_8th = LastTop8th = LastValue(Peak( H, ZigzagChange ,i)); 
+			if(x0_8th < x1_8th )
+				i=10 ;
+		}
+
+	}
+
+}
+
+/*------------------------------------------------------------------------*/
+/*------------------------------------------------------------------------*/
+	ShowAnalysisOnMainScreen = ParamToggle("Show Analysis On Main Screen ", "Yes|No" );
+	TargetPosition = Param ("Target Position ", 2,1,40,1); 
+	TargetPosition = BarCount + TargetPosition ;
+	GfxSelectFont("ARIAL", 12, 800 ); 
+
+ShowLabels = ParamToggle("Show Zigzag Labels  ", "Yes|No" );
+FindLastTrueHiLow = ParamToggle("Find Last True Hi Low ", "Yes|No" );
+ReReadPattern = ParamToggle("Re-Read Pattern ", "Yes|No" );
+ShowSuppRes1 = ParamToggle("Show Supp & Res Lines1", "Yes|No" );
+ShowSuppRes2 = ParamToggle("Show Supp & Res Lines2", "Yes|No" );
+ShowXYvalues = 1;
+
+pk=PeakBars(H,ZigzagChange)==0;
+tr=TroughBars(L,ZigzagChange)==0;
+
+ZigzagHi=Zig(H,ZigzagChange);
+ZigzagLo=Zig(L,ZigzagChange);
+Avg=(ZigzagHi+ZigzagLo)/2;
+
+x=IIf(pk,ZigzagHi,IIf(tr,ZigzagLo,IIf(Avg>Ref(Avg,-1),H,L)));
+ZigzagHiLo=Zig(x,ZigzagChange);
+
+bar1 = bar2 = bar3 = bar4 = bar5 = 1;
+DownTrend =0;
+x1_1st = x1_0th = BarCount-1;
+y1_1st = y1_0th = LastValue(L);
+if(LastValue( ZigzagHiLo) > LastValue( Ref(ZigzagHiLo,-1)))
+	{
+	DownTrend =1;
+	y1_1st = y1_0th = LastValue(H);
+	}
+NoValidTrend = _x0_5th =_x0_4th = 0;
+	if (DownTrend == 1 OR DownTrend == 0)
+	{
+		for (bar1= 1; bar1< BarCount; bar1++ ) 
+		{
+			x0_1st =  x1_2nd = BarCount - bar1-1; //
+			if( DownTrend == 1 AND ZigzagHiLo [BarCount-bar1] > ZigzagHiLo[BarCount-bar1-1] 
+						AND ZigzagHiLo [BarCount-bar1-1] < ZigzagHiLo[BarCount-bar1-2] OR DownTrend == 1  AND IsEmpty(ZigzagHiLo[BarCount-bar1]))
+			{	y0_1st = y1_2nd = L[ BarCount-bar1-1]; //
+				if(ShowXYvalues == 0)
+				{
+					printf("\n x0_1st = x1_2nd = "+x0_1st);
+					printf( "\n y0_1st = y1_2nd = "+y0_1st );
+					printf("\n aaaa exit = 1");
+					printf( "\n");
+				}
+				bar2 = bar1;
+				bar1 = BarCount;
+
+				if(FindLastTrueHiLow == 0)
+				{
+					HHValueBarNumber = BarCount - x0_1st;
+					HHValue = LastValue( HHV(H, HHValueBarNumber ));
+					HHVBar = HHVBars( H, HHValueBarNumber); 
+					y1_1st = HHValue ; 
+					x1_1st = LastValue(ValueWhen( HHValue == H, BarIndex(), 1));
+					x1_0th = LastValue(bi); 
+					y1_0th = LastValue(L); 
+				}
+			}
+			if( DownTrend == 0 AND ZigzagHiLo [BarCount-bar1] < ZigzagHiLo[BarCount-bar1-1] 
+						AND ZigzagHiLo [BarCount-bar1-1] > ZigzagHiLo[BarCount-bar1-2]  OR DownTrend == 0  AND IsEmpty(ZigzagHiLo[BarCount-bar1]))
+			{
+				y0_1st = y1_2nd = H[ BarCount-bar1-1]; 
+				if(ShowXYvalues == 0)
+				{
+					printf("\n x0_1st = x1_2nd = "+x0_1st);
+					printf( "\n y0_1st = y1_2nd = "+y0_1st);
+					printf("\n bbbb exit = 1");
+					printf( "\n");
+				}
+				bar2 = bar1;
+				bar1 = BarCount;
+
+				if(FindLastTrueHiLow == 0)
+				{
+					LLValueBarNumber = BarCount - x0_1st;
+					LLValue = LastValue( LLV(L, LLValueBarNumber ));
+					LLVBar = LLVBars( L, LLValueBarNumber ); 
+					y1_1st = LLValue ; 
+					x1_1st = LastValue(ValueWhen( LLValue == L, BarIndex(), 1));
+					y1_0th = LastValue(H); 
+				}
+			}
+		}
+//-----------------------------------------------------------
+		for (bar2= bar2+1; bar2< BarCount; bar2++ ) 
+		{
+			x0_2nd = x1_3rd = BarCount-bar2-1;
+			if( DownTrend == 1 AND ZigzagHiLo [BarCount-bar2] < ZigzagHiLo[BarCount-bar2-1] 
+						AND ZigzagHiLo [BarCount-bar2-1] > ZigzagHiLo[BarCount-bar2-2] OR DownTrend == 1  AND IsEmpty(ZigzagHiLo[BarCount-bar2-2]))
+			{
+				y0_2nd = y1_3rd = H[ BarCount-bar2-1];
+				if(ShowXYvalues == 0)
+				{
+					printf("\n x0_2nd = x1_3rd = "+x0_2nd );
+					printf( "\n y0_2nd = y1_3rd = "+y0_2nd);
+					printf("\n aaa exit = 2");
+					printf( "\n");
+				}
+				if(IsEmpty(ZigzagHiLo[BarCount-bar2]))
+				{	x0_2nd= x0_1st;
+					y0_2nd= y0_1st;
+					NoValidTrend = NoValidTrend + 1;
+				}
+				bar3 = bar2;
+				bar2 = BarCount;
+			}
+			if( DownTrend == 0 AND ZigzagHiLo [BarCount-bar2] > ZigzagHiLo[BarCount-bar2-1] 
+						AND ZigzagHiLo [BarCount-bar2-1] < ZigzagHiLo[BarCount-bar2-2] OR DownTrend == 0  AND IsEmpty(ZigzagHiLo[BarCount-bar2]))
+			{
+				y0_2nd = y1_3rd = L[ BarCount-bar2-1];
+				if(ShowXYvalues == 0)
+				{
+					printf("\n x0_2nd = x1_3rd = "+x1_2nd );
+					printf( "\n y0_2nd = y1_3rd = "+y0_2nd);
+					printf("\n bbb exit = 2");
+					printf( "\n");
+				}
+				if(IsEmpty(ZigzagHiLo[BarCount-bar2]))
+				{	x0_2nd= x0_1st;
+					y0_2nd= y0_1st;
+					NoValidTrend = NoValidTrend + 1;
+				}
+				bar3 = bar2;
+				bar2 = BarCount;
+			}
+		}
+//-----------------------------------------------------------
+		for (bar3= bar3+1; bar3< BarCount; bar3++ ) 
+		{
+			x0_3rd = x1_4th = BarCount-bar3-1;
+			if( DownTrend == 1 AND ZigzagHiLo [BarCount-bar3] > ZigzagHiLo[BarCount-bar3-1] 
+						AND ZigzagHiLo [BarCount-bar3-1] < ZigzagHiLo[BarCount-bar3-2] OR DownTrend == 1  AND IsEmpty(ZigzagHiLo[BarCount-bar3-2]))
+			{
+				y0_3rd = y1_4th = L[ BarCount-bar3-1];
+				if(ShowXYvalues == 0)
+				{
+					printf("\n x0_3rd = x1_4th = "+ x0_3rd);
+					printf( "\n y0_3rd = y1_4th = "+y0_3rd);
+					printf("\n aaa exit = 3");
+					printf( "\n");
+				}
+				if(IsEmpty(ZigzagHiLo[BarCount-bar3]))
+				{	x0_3rd= x0_2nd;
+					y0_3rd= y0_2nd;
+					NoValidTrend = NoValidTrend + 1;
+				}
+				bar4 = bar3;
+				bar3 = BarCount;
+			}
+			if( DownTrend == 0 AND ZigzagHiLo [BarCount-bar3] < ZigzagHiLo[BarCount-bar3-1] 
+						AND ZigzagHiLo [BarCount-bar3-1] > ZigzagHiLo[BarCount-bar3-2] OR DownTrend == 0  AND IsEmpty(ZigzagHiLo[BarCount-bar3]))
+			{
+				y0_3rd = y1_4th = H[ BarCount-bar3-1];
+				if(ShowXYvalues == 0)
+				{
+					printf("\n x0_3rd = x1_4th = "+x0_3rd);
+					printf( "\n y0_3rd = y1_4th = "+y0_3rd );
+					printf("\n bbb exit = 3");
+					printf( "\n");
+				}
+				if(IsEmpty(ZigzagHiLo[BarCount-bar3]))
+				{	x0_3rd= x0_2nd;
+					y0_3rd= y0_2nd;
+					NoValidTrend = NoValidTrend + 1;
+				}
+				bar4 = bar3;
+				bar3 = BarCount;
+			}
+		}
+
+//-----------------------------------------------------------
+		for (bar4= bar4+1; bar4< BarCount; bar4++ ) 
+		{
+			x0_4th = x1_5th = BarCount-bar4-1;
+			if( DownTrend == 1 AND ZigzagHiLo [BarCount-bar4] < ZigzagHiLo[BarCount-bar4-1] 
+						AND ZigzagHiLo [BarCount-bar4-1] > ZigzagHiLo[BarCount-bar4-2] OR DownTrend == 1  AND IsEmpty(ZigzagHiLo[BarCount-bar4-2]))
+			{
+				y0_4th = y1_5th = H[ BarCount-bar4-1];
+				if(ShowXYvalues == 0)
+				{
+					printf("\n x0_4th = x1_5th = "+x0_4th);
+					printf( "\n y0_4th = y1_5th = "+y0_4th );
+					printf("\n aaa exit = 4" );
+					printf( "\n");
+				}
+				if(IsEmpty(ZigzagHiLo[BarCount-bar4]))
+				{	x0_4th= x0_3rd;
+					y0_4th= y0_3rd;
+					NoValidTrend = NoValidTrend + 1;
+				}
+				bar5 = bar4;
+				bar4 = BarCount;
+			}
+			if( DownTrend == 0 AND ZigzagHiLo [BarCount-bar4] > ZigzagHiLo[BarCount-bar4-1] 
+								AND ZigzagHiLo [BarCount-bar4-1] < ZigzagHiLo[BarCount-bar4-2]  OR DownTrend == 0  AND IsEmpty(ZigzagHiLo[BarCount-bar4]))
+			{
+				y0_4th = y1_5th = L[ BarCount-bar4-1];
+				if(ShowXYvalues == 0)
+				{
+					printf("\n x0_4th = x1_5th = "+x0_4th);
+					printf( "\n y0_4th = y1_5th = "+y0_4th);
+					printf("\n bbb exit = 4");
+					printf( "\n");
+				}
+				if(IsEmpty(ZigzagHiLo[BarCount-bar4]))
+				{	_x0_4th= x0_3rd;
+					x0_4th= x0_3rd;
+					y0_4th= y0_3rd;
+					NoValidTrend = NoValidTrend + 1;
+				}
+				bar5 = bar4;
+				bar4 = BarCount;
+			}
+		}
+//-----------------------------------------------------------		
+	for (bar5= bar5+1; bar5< BarCount; bar5++ ) 
+		{
+			x0_5th = BarCount-bar5-1;
+			if( DownTrend == 1 AND ZigzagHiLo [BarCount-bar5] > ZigzagHiLo[BarCount-bar5-1] 
+					AND ZigzagHiLo [BarCount-bar5-1] < ZigzagHiLo[BarCount-bar5-2] OR DownTrend == 1  AND IsEmpty(ZigzagHiLo[BarCount-bar5-2]))
+			{
+				y0_5th = L[ BarCount-bar5-1];
+				if(ShowXYvalues == 0)
+				{
+					printf("\n x0_5th = x1_6th = "+x0_5th);
+					printf( "\n y0_5th = y1_6th = "+y0_5th);
+					printf("\n aaa exit = 5");
+					printf( "\n");
+				}
+				if(IsEmpty(ZigzagHiLo[BarCount-bar5]))
+				{	x0_5th = x0_4th;
+					y0_5th = y0_4th;
+					NoValidTrend = NoValidTrend + 1;
+				}
+				bar5 = BarCount;
+			}
+			if( DownTrend == 0 AND ZigzagHiLo [BarCount-bar5] < ZigzagHiLo[BarCount-bar5-1] 
+					AND ZigzagHiLo [BarCount-bar5-1] > ZigzagHiLo[BarCount-bar5-2] OR DownTrend == 0  AND IsEmpty(ZigzagHiLo[BarCount-bar5]))
+			{
+				y0_5th = H[ BarCount-bar5-1];
+				if(ShowXYvalues == 0)
+				{
+					printf("\n x0_5th = x1_6th = "+x0_5th);
+					printf( "\n y0_5th = y1_6th = "+y0_5th );
+					printf("\n bbb exit = 5");
+					printf( "\n");
+				}
+				if(IsEmpty(ZigzagHiLo[BarCount-bar5]))
+				{	_x0_5th = x0_5th;
+					x0_5th = x0_4th;
+					y0_5th = y0_4th;
+					NoValidTrend = NoValidTrend + 1;
+				}
+				bar5 = BarCount;
+			}
+		}
+	}
+	if(ReReadPattern == 0)
+	{
+		x0_6th = x0_5th ;
+		y0_6th = y0_5th ;
+		x1_6th = x1_5th ;
+		y1_6th = y1_5th ;
+
+		x0_5th = x0_4th;
+		y0_5th = y0_4th;
+		x1_5th = x1_4th;
+		y1_5th = y1_4th;
+
+		x0_4th = x0_3rd;
+		y0_4th = y0_3rd;
+		x1_4th = x1_3rd;
+		y1_4th = y1_3rd;
+
+		x0_3rd = x0_2nd;
+		y0_3rd = y0_2nd;
+		x1_3rd = x1_2nd;
+		y1_3rd = y1_2nd;
+
+		x0_2nd = x0_1st;
+		y0_2nd = y0_1st;
+		x1_2nd = x1_1st;
+		y1_2nd = y1_1st;
+
+		x0_1st = x1_1st;
+		y0_1st = y1_1st;
+		x1_1st = x1_0th;
+		y1_1st = y1_0th;
+	}
+
+_SECTION_END(); //Eof Last 4 Days Zigzag Lines
+
+_SECTION_BEGIN("Fibonacci Signals");
+
+	Wave_1st = abs(y1_1st - y0_1st) 	;
+	Wave_2nd = abs(y0_2nd - y1_2nd)	;
+	Wave_3rd = abs(y1_3rd - y0_3rd)	;
+	Wave_4th = abs(y0_4th - y1_4th)	;
+	Wave_5th = abs(y1_5th - y0_5th)	;
+
+_SECTION_END(); //Eof Fibonacci Signals	 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+_SECTION_BEGIN("Completed Harmonic Trader");
+
+
+ 	Level_382 = 0.382;
+ 	Level_500 = 0.500;
+ 	Level_618 = 0.618;
+ 	Level_786 = 0.786;
+ 	Level_886 = 0.886;
+ 	Level_127 = 1.27;
+ 	Level_1618 = 1.618;
+
+	xa = Wave_5th ;	ab = Wave_4th ;	bc = Wave_3rd ;	Cd = Wave_2nd ;	ad = y1_5th - y1_2nd ; A_price = y1_5th;
+	D_price = Y0_1st;
+	ab_of_xa = ab/xa ;
+	bc_of_ab = bc/ab ;
+	Cd_of_bc = Cd/bc ;
+	ad_of_xa = ad/xa ;
+
+	DE = abs(y0_1st - y1_1st);
+	showlengthXABCD = ParamToggle("Show Side Length of XABCD ", "Yes|No" );
+	if (showlengthXABCD ==0)
+	{
+		printf("\nCompleted Pattern info:" );
+		printf("\nXA = "+xa );
+		printf("\nAB = "+ab + "  ("+WriteVal(ab_of_xa,1.2)+"%% of XA)");
+		printf("\nBC = "+bc + "  ("+WriteVal(bc_of_ab,1.2)+"%% of AB)");
+		printf("\nCD = "+Cd + "  ("+WriteVal(Cd_of_bc,1.2)+"%% of BC)");
+		printf("\nAD = "+Cd + "  ("+WriteVal(ad_of_xa,1.2)+"%% of XA)");
+		printf("\nDE = "+ WriteVal(de,1.2) + "  ("+WriteVal(de/Cd,1.2)+"%% of CD)\n");
+	}
+/*-----------------------------------------------------------------------*/
+		XX = x0_5th;
+		XY = y0_5th;
+		AX = x0_4th;
+		AY = y0_4th;
+		BX = x0_3rd;
+		BY = y0_3rd;
+		CX = x0_2nd;
+		CY = y0_2nd;
+		DX = x1_2nd;
+		DY = y1_2nd;
+
+	Tolerance = 0.1;
+	ButterflyCondition1 = (ab_of_xa  >= Level_786- Tolerance) AND (ab_of_xa <= Level_786+ Tolerance);	
+	ButterflyCondition2 = (bc_of_ab  >= Level_382 - Tolerance) AND (bc_of_ab <= Level_886 + Tolerance);	
+	ButterflyCondition3 = (-ad_of_xa >= Level_127 ) AND (-ad_of_xa <= Level_1618);	
+	ButterflyCondition4 = (-ad_of_xa)> Level_1618;	
+	ButterflyCondition5 = (ad_of_xa  >= Level_127 ) AND (ad_of_xa <= Level_1618);	
+	ButterflyCondition6 = (ad_of_xa) > Level_1618;	
+	CompletedButterflyBearishPattern = ButterflyCondition1 AND ButterflyCondition2 AND ButterflyCondition3 ;
+	CompletedButterflyBearishPatternExtended = ButterflyCondition1 AND ButterflyCondition2 AND ButterflyCondition4 ;
+	CompletedButterflyBullishPattern = ButterflyCondition1 AND ButterflyCondition2 AND ButterflyCondition5 ;
+	CompletedButterflyBullishPatternExtended = ButterflyCondition1 AND ButterflyCondition2 AND ButterflyCondition6 ;
+	
+	CompletedButterflyTargetPrice1 = IIf(CompletedButterflyBearishPattern OR
+											   CompletedButterflyBearishPatternExtended ,
+											   D_price - CD * Level_618 , D_price + CD * Level_618) ;
+	CompletedButterflyTargetPrice2 = IIf(CompletedButterflyBearishPattern OR
+											   CompletedButterflyBearishPatternExtended ,
+											   D_price - CD * Level_127 , D_price + CD * Level_127) ;
+	CompletedButterflyTargetPrice3 = IIf(CompletedButterflyBearishPattern OR
+											   CompletedButterflyBearishPatternExtended ,
+											   D_price - CD * Level_1618 , D_price + CD * Level_1618) ;
+	CompletedButterflyTargetPricePct1 = 	(CompletedButterflyTargetPrice1 - LastValue(C))/LastValue(C)*100;
+	CompletedButterflyTargetPricePct2 = 	(CompletedButterflyTargetPrice2 - LastValue(C))/LastValue(C)*100;
+	CompletedButterflyTargetPricePct3 = 	(CompletedButterflyTargetPrice3 - LastValue(C))/LastValue(C)*100;
+/*-----------------------------------------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------------------------------------*/
+	Tolerance = 0.05;
+	CrabCondition1 = (ab_of_xa >= Level_382 - Tolerance) AND (ab_of_xa < Level_618 + Tolerance);	
+	CrabCondition2 = (bc_of_ab >= Level_382 - Tolerance) AND (bc_of_ab <= Level_886 + Tolerance);	
+	CrabCondition3 = (-ad_of_xa >= Level_127 ) AND (-ad_of_xa <= Level_1618 );	
+	CrabCondition4 = (-ad_of_xa) > Level_1618 ;	
+	CrabCondition5 = (ad_of_xa >= Level_127 ) AND (ad_of_xa <= Level_1618 );	
+	CrabCondition6 = (ad_of_xa) > Level_1618 ;	
+	CompletedCrabBearishPattern = CrabCondition1 AND CrabCondition2 AND CrabCondition3 ;
+	CompletedCrabBearishPatternExtended = CrabCondition1 AND CrabCondition2 AND CrabCondition4 ;
+	CompletedCrabBullishPattern = CrabCondition1 AND CrabCondition2 AND CrabCondition5 ;
+	CompletedCrabBullishPatternExtended = CrabCondition1 AND CrabCondition2 AND CrabCondition6 ;
+
+	
+	CompletedCrabTargetPrice1 = IIf(CompletedCrabBearishPattern OR
+											   CompletedCrabBearishPatternExtended ,
+											   D_price - CD * Level_618 , D_price + CD * Level_618) ;
+	CompletedCrabTargetPrice2 = IIf(CompletedCrabBearishPattern OR
+											   CompletedCrabBearishPatternExtended ,
+											   D_price - CD * Level_127 , D_price + CD * Level_127) ;
+	CompletedCrabTargetPrice3 = IIf(CompletedCrabBearishPattern OR
+											   CompletedCrabBearishPatternExtended ,
+											   D_price - CD * Level_1618 , D_price + CD * Level_1618) ;
+	CompletedCrabTargetPricePct1 = 	(CompletedCrabTargetPrice1 - LastValue(C))/LastValue(C)*100;
+	CompletedCrabTargetPricePct2 = 	(CompletedCrabTargetPrice2 - LastValue(C))/LastValue(C)*100;
+	CompletedCrabTargetPricePct3 = 	(CompletedCrabTargetPrice3 - LastValue(C))/LastValue(C)*100;
+/*-----------------------------------------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------------------------------------*/
+	Tolerance = 0.05;
+	GartleyCondition1 = (ab_of_xa >= Level_618 - Tolerance) AND (ab_of_xa < Level_618 + Tolerance);	
+	GartleyCondition2 = (bc_of_ab >= Level_382 - Tolerance) AND (bc_of_ab <= Level_886 + Tolerance);	
+	GartleyCondition3 = (-ad_of_xa > Level_786- Tolerance) AND (-ad_of_xa <= Level_786 + Tolerance);	
+	GartleyCondition4 = -ad_of_xa > Level_786 AND -ad_of_xa < Level_1618;	
+	GartleyCondition5 = (ad_of_xa >= Level_786- Tolerance) AND (ad_of_xa <= Level_786);	
+	GartleyCondition6 = ad_of_xa > Level_786 AND ad_of_xa < Level_1618;	
+	CompletedGartleyBearishPattern = GartleyCondition1 AND GartleyCondition2 AND GartleyCondition3 ;
+	CompletedGartleyBearishPatternExtended = GartleyCondition1 AND GartleyCondition2 AND GartleyCondition4 ;
+	CompletedGartleyBullishPattern = GartleyCondition1 AND GartleyCondition2 AND GartleyCondition5 ;
+	CompletedGartleyBullishPatternExtended = GartleyCondition1 AND GartleyCondition2 AND GartleyCondition6 ;
+
+	CompletedGartleyTargetPrice1 = IIf(CompletedGartleyBearishPattern OR
+											   CompletedGartleyBearishPatternExtended ,
+											   D_price - CD * Level_618 , D_price + CD * Level_618) ;
+	CompletedGartleyTargetPrice2 = IIf(CompletedGartleyBearishPattern OR
+											   CompletedGartleyBearishPatternExtended ,
+											   D_price - CD * Level_127, D_price + CD * Level_127) ;
+	CompletedGartleyTargetPrice3 = IIf(CompletedGartleyBearishPattern OR
+											   CompletedGartleyBearishPatternExtended ,
+											   D_price - CD * Level_1618 , D_price + CD * Level_1618) ;
+	CompletedGartleyTargetPricePct1 = 	(CompletedGartleyTargetPrice1 - LastValue(C))/LastValue(C)*100;
+	CompletedGartleyTargetPricePct2 = 	(CompletedGartleyTargetPrice2 - LastValue(C))/LastValue(C)*100;
+	CompletedGartleyTargetPricePct3 = 	(CompletedGartleyTargetPrice3 - LastValue(C))/LastValue(C)*100;
+/*-----------------------------------------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------------------------------------*/
+	Tolerance = 0.1;
+	BatCondition1 = (ab_of_xa >= Level_382 - Tolerance) AND (ab_of_xa < Level_500 + Tolerance);	
+	BatCondition2 = (bc_of_ab >= Level_382 - Tolerance) AND (bc_of_ab <= Level_886 + Tolerance);	
+	BatCondition3 = (-ad_of_xa >= Level_886- Tolerance) AND (-ad_of_xa <= Level_886);	
+	BatCondition4 = -ad_of_xa > Level_886 AND -ad_of_xa < Level_127;	
+	BatCondition5 = (ad_of_xa >= Level_886- Tolerance) AND (ad_of_xa <= Level_886);	
+	BatCondition6 = ad_of_xa > Level_886 AND ad_of_xa < Level_127;	
+	CompletedBatBearishPattern = BatCondition1 AND BatCondition2 AND BatCondition3 ;
+	CompletedBatBearishPatternExtended = BatCondition1 AND BatCondition2 AND BatCondition4 ;
+	CompletedBatBullishPattern = BatCondition1 AND BatCondition2 AND BatCondition5 ;
+	CompletedBatBullishPatternExtended = BatCondition1 AND BatCondition2 AND BatCondition6 ;
+
+	
+	CompletedBatTargetPrice1 = IIf(CompletedBatBearishPattern OR
+											   CompletedBatBearishPatternExtended ,
+											   D_price - CD * Level_618 , D_price + CD * Level_618) ;
+	CompletedBatTargetPrice2 = IIf(CompletedBatBearishPattern OR
+											   CompletedBatBearishPatternExtended ,
+											   D_price - CD * Level_127 , D_price + CD * Level_127) ;
+	CompletedBatTargetPrice3 = IIf(CompletedBatBearishPattern OR
+											   CompletedBatBearishPatternExtended ,
+											   D_price - CD * Level_1618 , D_price + CD * Level_1618) ;
+	CompletedBatTargetPricePct1 = 	(CompletedBatTargetPrice1 - LastValue(C))/LastValue(C)*100;
+	CompletedBatTargetPricePct2 = 	(CompletedBatTargetPrice2 - LastValue(C))/LastValue(C)*100;
+	CompletedBatTargetPricePct3 = 	(CompletedBatTargetPrice3 - LastValue(C))/LastValue(C)*100;
+/*-----------------------------------------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------------------------------------*/
+	NoValidCompletedPattern = 
+
+		CompletedButterflyBearishPattern ==0 AND CompletedButterflyBullishPattern ==0 AND 
+		CompletedButterflyBearishPatternExtended ==0 AND CompletedButterflyBullishPatternExtended ==0 AND 
+
+		CompletedCrabBearishPattern ==0 AND CompletedCrabBullishPattern ==0 AND 
+		CompletedCrabBearishPatternExtended ==0 AND CompletedCrabBullishPatternExtended ==0 AND
+
+		CompletedGartleyBearishPattern ==0 AND CompletedGartleyBullishPattern ==0 AND 
+		CompletedGartleyBearishPatternExtended ==0 AND CompletedGartleyBullishPatternExtended ==0 AND
+
+		CompletedBatBearishPattern ==0 AND CompletedBatBullishPattern ==0 AND 
+		CompletedBatBearishPatternExtended ==0 AND CompletedBatBullishPatternExtended ==0;
+
+	ShowInvalidCompletedPattern = 0;
+	ShowEliotWavelines =0; 
+		x = y0_5th;
+		y = y0_4th;
+		Bear = y0_5th > y0_4th;
+
+		TextPositionX = y0_5th * -.03;
+		if(Bear == 1)
+			TextPositionX = y0_5th * .01;
+			if(TextPositionX > 1)
+				TextPositionX = 1;
+			if(TextPositionX < -1)
+				TextPositionX = -1;
+
+		TextPositionA = y0_4th * .01;
+		if(Bear == 1)
+			TextPositionA = y0_4th * -.05;
+			if(TextPositionA > 1)
+				TextPositionA = 1;
+			if(TextPositionA < -1.5)
+				TextPositionA = -1.5;
+
+		TextPositionB = y0_3rd * -.03;
+		if(Bear == 1)
+			TextPositionB = y0_3rd * .01;
+			if(TextPositionB > 1)
+				TextPositionB = 1;
+			if(TextPositionB < -1.5)
+				TextPositionB = -1.5;
+
+		TextPositionC = y0_2nd * .01;
+		if(Bear == 1)
+			TextPositionC = y0_2nd * -.05;
+			if(TextPositionC > 1)
+				TextPositionC = 1;
+			if(TextPositionC < -1.5)
+				TextPositionC = -1.5;
+
+		TextPositionD = y0_1st * -.03;
+		if(Bear == 1)
+			TextPositionD = y0_1st * .01;
+			if(TextPositionD > 1)
+				TextPositionD = 1;
+			if(TextPositionD < -1.5)
+				TextPositionD = -1.5;
+
+		TextPositionE = y1_1st * .01;
+		if(Bear == 1)
+			TextPositionE = y1_1st * -.03;
+			if(TextPositionE > 1)
+				TextPositionE = 1;
+			if(TextPositionE < -1.5)
+				TextPositionE = -1.5;
+
+		Color1 = ParamColor("Color XABCD Main Line",colorBlue);
+		ColorUp = ParamColor("Last Leg (DE) Color if up",colorBrightGreen);
+		ColorDown = ParamColor("Last Leg (DE) Color if Down",colorRed);
+
+		ColorXB = ParamColor("Color XB Dashed Line",colorBlack);
+		ColorAC = ParamColor("Color AC Dashed Line",colorBlack);
+		ColorBD = ParamColor("Color BD Dashed Line",colorBlack);
+
+
+	if (ShowInvalidCompletedPattern ==1 OR NoValidCompletedPattern ==0)
+	{
+		PlotText("X",x0_5th , y0_5th +TextPositionX , colorViolet ); 
+		PlotText("A",x0_4th , y0_4th +TextPositionA , colorViolet ); 
+		PlotText("B",x0_3rd , y0_3rd +TextPositionB , colorViolet ); 
+		PlotText("C",x0_2nd , y0_2nd +TextPositionC , colorViolet ); 
+		PlotText("D",x0_1st , y0_1st +TextPositionD , colorViolet ); 
+		PlotText("E",x1_1st , y1_1st +TextPositionE , colorViolet ); 
+
+		Plot (LineArray(x0_5th , y0_5th , x1_5th , y1_5th ),"XA",Color1 ,Linestyle1 + styleNoTitle); 
+		Plot (LineArray(x0_4th , y0_4th , x1_4th , y1_4th ),"AB",Color1 ,Linestyle1 + styleNoTitle); 
+		Plot (LineArray(x0_3rd , y0_3rd , x1_3rd , y1_3rd ),"BC",Color1 ,Linestyle1 + styleNoTitle); 
+		Plot (LineArray(x0_2nd , y0_2nd , x1_2nd , y1_2nd ),"CD",Color1 ,Linestyle1 + styleNoTitle); 
+		Plot (LineArray(x0_1st , y0_1st , x1_1st , y1_1st ),"DE",IIf(y1_2nd > y1_1st,ColorDown ,ColorUp ) ,Linestyle1 + styleNoTitle); 
+ 		Plot (LineArray(x1_1st , y1_1st , x1_0th , y1_0th ),"DE+",colorViolet ,styleLine +styleNoTitle); 
+
+		Plot (LineArray(x0_4th , y0_4th , x1_3rd , y1_3rd ),"AC",ColorAC , styleDashed +styleNoTitle); 
+		Plot (LineArray(x0_3rd , y0_3rd , x1_2nd , y1_2nd ),"BD",ColorBD , styleDashed +styleNoTitle ); 
+		Plot (LineArray(x0_5th , y0_5th , x1_4th , y1_4th ),"XB",ColorXB , styleDashed +styleNoTitle); 
+		Plot (LineArray(x0_5th , y0_5th , x1_2nd , y1_2nd ),"XD",ColorXB , styleDashed +styleNoTitle); 
+	}
+	if (ShowEliotWavelines ==1)
+	{
+		Plot (LineArray(x1_1st , y1_1st , x1_0th , y1_0th ),"1st Top",Color2   ,Linestyle1 + styleNoTitle); 
+		Plot (LineArray(x0_1st , y0_1st , x1_1st , y1_1st ),"1st Top",Color3 ,Linestyle1 + styleNoTitle); 
+		Plot (LineArray(x0_2nd , y0_2nd , x1_2nd , y1_2nd ),"2nd Top",Color3 ,Linestyle1 + styleNoTitle); 
+		Plot (LineArray(x0_3rd , y0_3rd , x1_3rd , y1_3rd ),"3rd Top",Color3 ,Linestyle1 + styleNoTitle); 
+		Plot (LineArray(x0_4th , y0_4th , x1_4th , y1_4th ),"4th Top",Color3 ,Linestyle1 + styleNoTitle); 
+		Plot (LineArray(x0_5th , y0_5th , x1_5th , y1_5th ),"5th Top",Color3 ,Linestyle1 + styleNoTitle); 
+		Plot (LineArray(x0_6th , y0_6th , x1_6th , y1_6th ),"6th Top",Color3 ,Linestyle1 + styleNoTitle); 
+		Plot (LineArray(x0_7th , y0_7th , x1_7th , y1_7th ),"7th Top",Color3 ,Linestyle1 + styleNoTitle); 
+		Plot (LineArray(x0_8th , y0_8th , x1_8th , y1_8th ),"8th Top",Color3 ,Linestyle1 + styleNoTitle); 
+	}
+			printf(WriteIf(NoValidCompletedPattern ,"\nNo valid Completed Harmonic Pattern is available","" ) );
+
+Separator = "\n-------------------------------";
+	if (ShowInvalidCompletedPattern ==1 OR NoValidCompletedPattern ==0)
+	{
+		if (ShowLabels ==0 )
+		{
+			XXDtextPosition = (dx - xx)/2 + xx;
+			YXDtextPosition = (dy - xy)/2 + xy;
+			XXBtextPosition = (bx - xx)/2 + xx;
+			YXBtextPosition = (by - xy)/2 + xy;
+			XACtextPosition = (cx - ax)/2 + ax;
+			YACtextPosition = (cy - ay)/2 + ay;
+			XBDtextPosition = (dx - bx)/2 + bx;
+			YBDtextPosition = (dy - by)/2 + by;
+
+			PlotText(WriteIf(ad_of_xa<0, WriteVal(-ad_of_xa*100,1.2),WriteVal(ad_of_xa*100,1.2) ),XXDtextPosition , YXDtextPosition , colorViolet );
+			PlotText(WriteVal(ab_of_xa*100,1.1),XXBtextPosition , YXBtextPosition , colorViolet );
+			PlotText(WriteVal(bc_of_ab*100,1.1),XACtextPosition , YACtextPosition , colorViolet );
+			PlotText(WriteVal(cd_of_bc*100,1.1),XBDtextPosition , YBDtextPosition , colorViolet );
+		}
+
+		if (ShowSuppRes1 ==0 )
+		{	Plot (LineArray(x0_4th , y0_4th , BarCount , y0_4th ),"SuppResist",Color1 ,Linestyle1 + styleNoTitle); 
+			Plot (LineArray(x0_2nd, y0_2nd, BarCount , y0_2nd),"SuppResist",Color1 ,Linestyle1 + styleNoTitle); 
+			Plot (LineArray(x0_4th , y0_4th , x1_3rd   , y1_3rd,1 ),"AC",ColorXB , styleDashed + styleNoTitle); 
+			PlotText("SR:: "+WriteVal(y0_2nd,1.2),TargetPosition , y0_2nd, colorViolet );
+			PlotText("SR:: "+WriteVal(y0_4th ,1.2),TargetPosition , y0_4th , colorViolet );
+		}
+		if (ShowSuppRes2 ==0 )
+		{	Plot (LineArray(x0_3rd , y0_3rd , BarCount , y0_3rd ),"SuppResist",Color1 ,Linestyle1 + styleNoTitle); 
+			Plot (LineArray(x0_5th , y0_5th , BarCount , y0_5th ),"SuppResist",Color1 ,Linestyle1 + styleNoTitle); 
+			Plot (LineArray(x0_5th , y0_5th , x1_4th , y1_4th ,1 ),"AC",ColorAC , styleDashed + styleNoTitle); 
+			PlotText("SR:: "+WriteVal(y0_5th ,1.2),TargetPosition , y0_5th , colorViolet );
+			PlotText("SR:: "+WriteVal(y0_3rd ,1.2),TargetPosition , y0_3rd , colorViolet );
+		}
+/*-----------------------------------------------------------------------------------------------------*/
+	if (ShowAnalysisOnMainScreen  ==0 )
+	{		if(CompletedButterflyBullishPattern)
+			{	GfxSetTextColor(colorGreen); 
+				GfxTextOut("Completed Butterfly Bullish (Buy)", 300 , 15); 
+			}
+			if(CompletedButterflyBearishPattern )
+			{	GfxSetTextColor(colorRed); 
+				GfxTextOut("Completed Butterfly Bearish (Sell)", 300 , 15); 
+			}
+			if(CompletedButterflyBullishPatternExtended)
+			{	GfxSetTextColor(colorGreen); 
+				GfxTextOut("Completed Butterfly Bullish Extended (Buy)", 300 , 15); 
+			}
+			if(CompletedButterflyBearishPatternExtended )
+			{	GfxSetTextColor(colorRed); 
+				GfxTextOut("Completed Butterfly Bearish Extended (Sell)", 300 , 15); 
+			}
+			if(CompletedButterflyBullishPattern OR CompletedButterflyBearishPattern 
+						OR CompletedButterflyBullishPatternExtended OR CompletedButterflyBearishPatternExtended)
+			{	PlotText("T1: "+WriteVal(CompletedButterflyTargetPrice1,1.2),TargetPosition , CompletedButterflyTargetPrice1, colorViolet );
+				PlotText("T2: "+WriteVal(CompletedButterflyTargetPrice2,1.2),TargetPosition , CompletedButterflyTargetPrice2, colorViolet );
+				PlotText("T3: "+WriteVal(CompletedButterflyTargetPrice3,1.2),TargetPosition , CompletedButterflyTargetPrice3, colorViolet );
+			}
+
+	}
+			printf("\n");
+			printf(WriteIf(CompletedButterflyBullishPattern ,Separator +"\nCompleted Butterfly Bullish ","" ));
+			printf(WriteIf(CompletedButterflyBearishPattern ,Separator +"\nCompleted Butterfly Bearish ","" ));
+			printf(WriteIf(CompletedButterflyBullishPatternExtended ,Separator +"\nCompleted Butterfly Bullish(Extended) ","" ));
+			printf(WriteIf(CompletedButterflyBearishPatternExtended ,Separator +"\nCompleted Butterfly Bearish(Extended) ","" ));
+			printf(WriteIf(CompletedButterflyBullishPattern 
+								OR CompletedButterflyBearishPattern 
+								OR CompletedButterflyBullishPatternExtended 
+								OR CompletedButterflyBearishPatternExtended 
+								,"\nClosing Price: "+WriteVal(LastValue(C),1.2)+"\nTarget Price:"
+					+"\n1-    "+WriteVal(CompletedButterflyTargetPrice1,1.2 )  + " ("
+					+WriteVal(CompletedButterflyTargetPricePct1,1.2) +"%%) "
+					+(WriteIf(CompletedButterflyTargetPricePct1 > 0	AND CompletedButterflyBearishPattern , " Price Excceded Target", ""))
+					+(WriteIf(CompletedButterflyTargetPricePct1 > 0	AND CompletedButterflyBearishPatternExtended , " Price Excceded Target", ""))
+					+(WriteIf(CompletedButterflyTargetPricePct1 < 0	AND CompletedButterflyBullishPattern , " Price Excceded Target", ""))
+					+(WriteIf(CompletedButterflyTargetPricePct1 < 0	AND CompletedButterflyBullishPatternExtended , " Price Excceded Target", ""))
+					+"\n2-    "+WriteVal(CompletedButterflyTargetPrice2,1.2)  + " ( "
+					+WriteVal(CompletedButterflyTargetPricePct2,1.2) +"%%) "
+					+(WriteIf(CompletedButterflyTargetPricePct2 > 0	AND CompletedButterflyBearishPattern , " Price Excceded Target", ""))
+					+(WriteIf(CompletedButterflyTargetPricePct2 > 0	AND CompletedButterflyBearishPatternExtended , " Price Excceded Target", ""))
+					+(WriteIf(CompletedButterflyTargetPricePct2 < 0	AND CompletedButterflyBullishPattern, " Price Excceded Target ", ""))
+					+(WriteIf(CompletedButterflyTargetPricePct2 < 0	AND CompletedButterflyBullishPatternExtended , " Price Excceded Target", ""))
+					+"\n3-    "+WriteVal(CompletedButterflyTargetPrice3,1.2 ) + " ( "
+					+WriteVal(CompletedButterflyTargetPricePct3,1.2) +"%%) "
+					+(WriteIf(CompletedButterflyTargetPricePct3 > 0	AND CompletedButterflyBearishPattern , " Price Excceded Target", ""))
+					+(WriteIf(CompletedButterflyTargetPricePct3 > 0	AND CompletedButterflyBearishPatternExtended , " Price Excceded Target", ""))
+					+(WriteIf(CompletedButterflyTargetPricePct3 < 0	AND CompletedButterflyBullishPattern, " Price Excceded Target", ""))
+					+(WriteIf(CompletedButterflyTargetPricePct3 < 0	AND CompletedButterflyBullishPatternExtended , " Price Excceded Target ", "")),""));
+
+/*-----------------------------------------------------------------------------------------------------*/
+	if (ShowAnalysisOnMainScreen  ==0 )
+	{		if(CompletedCrabBullishPattern)
+			{	GfxSetTextColor(colorGreen); 
+				GfxTextOut("Completed Crab Bullish (Buy)", 300 , 15); 
+			}
+			if(CompletedCrabBearishPattern )
+			{	GfxSetTextColor(colorRed); 
+				GfxTextOut("Completed Crab Bearish (Sell)", 300 , 15); 
+			}
+			if(CompletedCrabBullishPatternExtended)
+			{	GfxSetTextColor(colorGreen); 
+				GfxTextOut("Completed Crab Bullish Extended (Buy)", 300 , 15); 
+			}
+			if(CompletedCrabBearishPatternExtended )
+			{	GfxSetTextColor(colorRed); 
+				GfxTextOut("Completed Crab Bearish Extended (Sell)", 300 , 15); 
+			}
+			if(CompletedCrabBullishPattern OR CompletedCrabBearishPattern 
+						OR CompletedCrabBullishPatternExtended OR CompletedCrabBearishPatternExtended)
+			{	PlotText("T1: "+WriteVal(CompletedCrabTargetPrice1,1.2),TargetPosition , CompletedCrabTargetPrice1, colorViolet );
+				PlotText("T2: "+WriteVal(CompletedCrabTargetPrice2,1.2),TargetPosition , CompletedCrabTargetPrice2, colorViolet );
+				PlotText("T3: "+WriteVal(CompletedCrabTargetPrice3,1.2),TargetPosition , CompletedCrabTargetPrice3, colorViolet );
+			}
+
+	}
+			printf(WriteIf(CompletedCrabBullishPattern ,Separator +"\nCompleted Crab Bullish ","" ));
+			printf(WriteIf(CompletedCrabBearishPattern ,Separator +"\nCompleted Crab Bearish ","" ));
+			printf(WriteIf(CompletedCrabBullishPatternExtended ,Separator +"\nCompleted Crab Bullish(Extended) ","" ));
+			printf(WriteIf(CompletedCrabBearishPatternExtended ,Separator +"\nCompleted Crab Bearish(Extended) ","" ));
+			printf(WriteIf(CompletedCrabBullishPattern 
+								OR CompletedCrabBearishPattern 
+								OR CompletedCrabBullishPatternExtended 
+								OR CompletedCrabBearishPatternExtended 
+								,"\nClosing Price: "+WriteVal(LastValue(C),1.2)+"\nTarget Price:"
+					+"\n1-    "+WriteVal(CompletedCrabTargetPrice1,1.2 )  + " ("
+					+WriteVal(CompletedCrabTargetPricePct1,1.2) +"%%) "
+					+(WriteIf(CompletedCrabTargetPricePct1 > 0 AND CompletedCrabBearishPattern, " Price Excceded Target", ""))
+					+(WriteIf(CompletedCrabTargetPricePct1 > 0 AND CompletedCrabBearishPatternExtended, " Price Excceded Target", ""))
+					+(WriteIf(CompletedCrabTargetPricePct1 < 0 AND CompletedCrabBullishPattern, " Price Excceded Target", ""))
+					+(WriteIf(CompletedCrabTargetPricePct1 < 0 AND CompletedCrabBullishPatternExtended , " Price Excceded Target", ""))
+					+"\n2-    "+WriteVal(CompletedCrabTargetPrice2,1.2)  + " ( "
+					+WriteVal(CompletedCrabTargetPricePct2,1.2) +"%%) "
+					+(WriteIf(CompletedCrabTargetPricePct2 > 0 AND CompletedCrabBearishPattern, " Price Excceded Target", ""))
+					+(WriteIf(CompletedCrabTargetPricePct2 > 0 AND CompletedCrabBearishPatternExtended, " Price Excceded Target", ""))
+					+(WriteIf(CompletedCrabTargetPricePct2 < 0 AND CompletedCrabBullishPattern, " Price Excceded Target", ""))
+					+(WriteIf(CompletedCrabTargetPricePct2 < 0 AND CompletedCrabBullishPatternExtended , " Price Excceded Target", ""))
+					+"\n3-    "+WriteVal(CompletedCrabTargetPrice3,1.2 ) + " ( "
+					+WriteVal(CompletedCrabTargetPricePct3,1.2) +"%%) "
+					+(WriteIf(CompletedCrabTargetPricePct3 > 0 AND CompletedCrabBearishPattern, " Price Excceded Target", ""))
+					+(WriteIf(CompletedCrabTargetPricePct3 > 0 AND CompletedCrabBearishPatternExtended, " Price Excceded Target", ""))
+					+(WriteIf(CompletedCrabTargetPricePct3 < 0 AND CompletedCrabBullishPattern , " Price Excceded Target", ""))
+					+(WriteIf(CompletedCrabTargetPricePct3 < 0 AND CompletedCrabBullishPatternExtended, " Price Excceded Target ", "")),""));
+
+/*-----------------------------------------------------------------------------------------------------*/
+	if (ShowAnalysisOnMainScreen  ==0 )
+	{		if(CompletedBatBullishPattern)
+			{	GfxSetTextColor(colorGreen); 
+				GfxTextOut("Completed Bat Bullish (Buy)", 300 , 15); 
+			}
+			if(CompletedBatBearishPattern )
+			{	GfxSetTextColor(colorRed); 
+				GfxTextOut("Completed Bat Bearish (Sell)", 300 , 15); 
+			}
+			if(CompletedBatBullishPatternExtended)
+			{	GfxSetTextColor(colorGreen); 
+				GfxTextOut("Completed Bat Bullish Extended (Buy)", 300 , 15); 
+			}
+			if(CompletedBatBearishPatternExtended )
+			{	GfxSetTextColor(colorRed); 
+				GfxTextOut("Completed Bat Bearish Extended (Sell)", 300 , 15); 
+			}
+			if(CompletedBatBullishPattern OR CompletedBatBearishPattern 
+						OR CompletedBatBullishPatternExtended OR CompletedBatBearishPatternExtended)
+			{	PlotText("T1: "+WriteVal(CompletedBatTargetPrice1,1.2),TargetPosition , CompletedBatTargetPrice1, colorViolet );
+				PlotText("T2: "+WriteVal(CompletedBatTargetPrice2,1.2),TargetPosition , CompletedBatTargetPrice2, colorViolet );
+				PlotText("T3: "+WriteVal(CompletedBatTargetPrice3,1.2),TargetPosition , CompletedBatTargetPrice3, colorViolet );
+			}
+
+	}
+			printf(WriteIf(CompletedBatBullishPattern ,Separator +"\nCompleted Bat Bullish ","" ));
+			printf(WriteIf(CompletedBatBearishPattern ,Separator +"\nCompleted Bat Bearish ","" ));
+			printf(WriteIf(CompletedBatBullishPatternExtended ,Separator +"\nCompleted Bat Bullish(Extended) ","" ));
+			printf(WriteIf(CompletedBatBearishPatternExtended ,Separator +"\nCompleted Bat Bearish(Extended) ","" ));
+			printf(WriteIf(CompletedBatBullishPattern 
+								OR CompletedBatBearishPattern 
+								OR CompletedBatBullishPatternExtended 
+								OR CompletedBatBearishPatternExtended 
+								,"\nClosing Price: "+WriteVal(LastValue(C),1.2)+"\nTarget Price:"
+					+"\n1-    "+WriteVal(CompletedBatTargetPrice1,1.2 )  + " ("
+					+WriteVal(CompletedBatTargetPricePct1,1.2) +"%%) "
+					+(WriteIf(CompletedBatTargetPricePct1 > 0 AND CompletedBatBearishPattern, " Price Excceded Target", ""))
+					+(WriteIf(CompletedBatTargetPricePct1 > 0 AND CompletedBatBearishPatternExtended, " Price Excceded Target", ""))
+					+(WriteIf(CompletedBatTargetPricePct1 < 0 AND CompletedBatBullishPattern, " Price Excceded Target", ""))
+					+(WriteIf(CompletedBatTargetPricePct1 < 0 AND CompletedBatBullishPatternExtended , " Price Excceded Target", ""))
+					+"\n2-    "+WriteVal(CompletedBatTargetPrice2,1.2)  + " ( "
+					+WriteVal(CompletedBatTargetPricePct2,1.2) +"%%) "
+					+(WriteIf(CompletedBatTargetPricePct2 > 0 AND CompletedBatBearishPattern, " Price Excceded Target", ""))
+					+(WriteIf(CompletedBatTargetPricePct2 > 0 AND CompletedBatBearishPatternExtended, " Price Excceded Target", ""))
+					+(WriteIf(CompletedBatTargetPricePct2 < 0 AND CompletedBatBullishPattern, " Price Excceded Target ", ""))
+					+(WriteIf(CompletedBatTargetPricePct2 < 0 AND CompletedBatBullishPatternExtended , " Price Excceded Target ", ""))
+					+"\n3-    "+WriteVal(CompletedBatTargetPrice3,1.2 ) + " ( "
+					+WriteVal(CompletedBatTargetPricePct3,1.2) +"%%) "
+					+(WriteIf(CompletedBatTargetPricePct3 > 0 AND CompletedBatBearishPattern, " Price Excceded Target", ""))
+					+(WriteIf(CompletedBatTargetPricePct3 > 0 AND CompletedBatBearishPatternExtended, " Price Excceded Target", ""))
+					+(WriteIf(CompletedBatTargetPricePct3 < 0 AND CompletedBatBullishPattern, " Price Excceded Target", ""))	
+					+(WriteIf(CompletedBatTargetPricePct3 < 0 AND CompletedBatBullishPatternExtended , " Price Excceded Target", "")),""));
+
+/*-----------------------------------------------------------------------------------------------------*/
+	if (ShowAnalysisOnMainScreen  ==0 )
+	{		if(CompletedGartleyBullishPattern)
+			{	GfxSetTextColor(colorGreen); 
+				GfxTextOut("Completed Gartley Bullish (Buy)", 300 , 15); 
+			}
+			if(CompletedGartleyBearishPattern )
+			{	GfxSetTextColor(colorRed); 
+				GfxTextOut("Completed Gartley Bearish (Sell)", 300 , 15); 
+			}
+			if(CompletedGartleyBullishPatternExtended)
+			{	GfxSetTextColor(colorGreen); 
+				GfxTextOut("Completed Gartley Bullish Extended (Buy)", 300 , 15); 
+			}
+			if(CompletedGartleyBearishPatternExtended )
+			{	GfxSetTextColor(colorRed); 
+				GfxTextOut("Completed Gartley Bearish Extended (Sell)", 300 , 15); 
+			}
+			if(CompletedGartleyBullishPattern OR CompletedGartleyBearishPattern 
+						OR CompletedGartleyBullishPatternExtended OR CompletedGartleyBearishPatternExtended)
+			{	PlotText("T1: "+WriteVal(CompletedGartleyTargetPrice1,1.2),TargetPosition , CompletedGartleyTargetPrice1, colorViolet );
+				PlotText("T2: "+WriteVal(CompletedGartleyTargetPrice2,1.2),TargetPosition , CompletedGartleyTargetPrice2, colorViolet );
+				PlotText("T3: "+WriteVal(CompletedGartleyTargetPrice3,1.2),TargetPosition , CompletedGartleyTargetPrice3, colorViolet );
+			}
+
+	}
+			printf(WriteIf(CompletedGartleyBullishPattern ,Separator +"\nCompleted Gartley Bullish ","" ));
+			printf(WriteIf(CompletedGartleyBearishPattern ,Separator +"\nCompleted Gartley Bearish ","" ));
+			printf(WriteIf(CompletedGartleyBullishPatternExtended ,Separator +"\nCompleted Gartley Bullish(Extended) ","" ));
+			printf(WriteIf(CompletedGartleyBearishPatternExtended ,Separator +"\nCompleted Gartley Bearish(Extended) ","" ));
+			printf(WriteIf(CompletedGartleyBullishPattern 
+								OR CompletedGartleyBearishPattern 
+								OR CompletedGartleyBullishPatternExtended 
+								OR CompletedGartleyBearishPatternExtended 
+								,"\nClosing Price: "+WriteVal(LastValue(C),1.2)+"\nTarget Price:"
+					+"\n1-    "+WriteVal(CompletedGartleyTargetPrice1,1.2 )  + " ("
+					+WriteVal(CompletedGartleyTargetPricePct1,1.2) +"%%) "
+					+(WriteIf(CompletedGartleyTargetPricePct1 > 0 AND CompletedGartleyBearishPattern , " Price Excceded Target", ""))
+					+(WriteIf(CompletedGartleyTargetPricePct1 > 0 AND CompletedGartleyBearishPatternExtended , " Price Excceded Target", ""))
+					+(WriteIf(CompletedGartleyTargetPricePct1 < 0 AND CompletedGartleyBullishPattern , " Price Excceded Target", ""))
+					+(WriteIf(CompletedGartleyTargetPricePct1 < 0 AND CompletedGartleyBullishPatternExtended , " Price Excceded Target", ""))
+					+"\n2-    "+WriteVal(CompletedGartleyTargetPrice2,1.2)  + " ( "
+					+WriteVal(CompletedGartleyTargetPricePct2,1.2) +"%%) "
+					+(WriteIf(CompletedGartleyTargetPricePct2 > 0 AND CompletedGartleyBearishPattern , " Price Excceded Target", ""))
+					+(WriteIf(CompletedGartleyTargetPricePct2 > 0 AND CompletedGartleyBearishPatternExtended , " Price Excceded Target", ""))
+					+(WriteIf(CompletedGartleyTargetPricePct2 < 0 AND CompletedGartleyBullishPattern, " Price Excceded Target", ""))
+					+(WriteIf(CompletedGartleyTargetPricePct2 < 0 AND CompletedGartleyBullishPatternExtended , " Price Excceded Target", ""))
+					+"\n3-    "+WriteVal(CompletedGartleyTargetPrice3,1.2 ) + " ( "
+					+WriteVal(CompletedGartleyTargetPricePct3,1.2) +"%%) "	
+					+(WriteIf(CompletedGartleyTargetPricePct3 > 0 AND CompletedGartleyBearishPattern , " Price Excceded Target", ""))
+					+(WriteIf(CompletedGartleyTargetPricePct3 > 0 AND CompletedGartleyBearishPatternExtended , " Price Excceded Target", ""))
+					+(WriteIf(CompletedGartleyTargetPricePct3 < 0 AND CompletedGartleyBullishPattern, " Price Excceded Target", ""))
+					+(WriteIf(CompletedGartleyTargetPricePct3 < 0 AND CompletedGartleyBullishPatternExtended , " Price Excceded Target", "")),""));
+/*-----------------------------------------------------------------------------------------------------*/
+
+	}
+
+
+_SECTION_END(); //Eof Completed Harmonic Trader
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+_SECTION_BEGIN("Developing Harmonic Trader");
+
+ 	Level_236 = 0.236;
+ 	Level_382 = 0.382;
+ 	Level_500 = 0.500;
+ 	Level_618 = 0.618;
+ 	Level_786 = 0.786;
+ 	Level_886 = 0.886;
+ 	Level_127 = 1.27;
+ 	Level_1618 = 1.618;
+
+	xa = Wave_4th ;	ab = Wave_3rd ;	bc = Wave_2nd ;	Cd = Wave_1st ; ad = y1_1st - y1_4th ; 
+	A_price = y1_4th; 
+	D_price = Y1_1st;
+	ab_of_xa = ab/xa ;
+	bc_of_ab = bc/ab ;
+	Cd_of_bc = Cd/bc ;
+	ad_of_xa = ad/xa ;
+	showlengthXABCD = ParamToggle("Show Side Length of XABCD ", "Yes|No" );
+	if (showlengthXABCD ==0)
+	{
+		printf(Separator);
+		printf("\nDeveloping Pattern info:" );
+		printf("\nXA = "+xa );
+		printf("\nAB = "+ab + "  ("+WriteVal(ab_of_xa,1.2)+"%% of XA)");
+		printf("\nBC = "+bc + "  ("+WriteVal(bc_of_ab,1.2)+"%% of AB)");
+		printf("\nCD = "+Cd + "  ("+WriteVal(Cd_of_bc,1.2)+"%% of BC)");
+		printf("\nAD = "+Cd + "  ("+WriteVal(ad_of_xa,1.2)+"%% of XA)");
+	}
+
+/*-----------------------------------------------------------------------*/
+
+	LastSwingDays = x1_0th - x1_1st;
+	HighSwing  = y1_1st ;
+	if(LastSwingDays == 0)
+		HighSwing  = y1_2nd ;
+	LowSwing  =  y1_0th  = LastValue(L);
+	if(LowSwing > HighSwing)
+		LowSwing  =  y1_0th  = LastValue(H) ;
+	if(LastSwingDays == 0 AND LowSwing < HighSwing )
+		LowSwing  =  y1_1st = LastValue(L);
+	if(LastSwingDays == 0 AND LowSwing > HighSwing )
+		LowSwing  =  y1_1st = LastValue(H);
+
+	Wave1 = y1_1st - y1_2nd 	;
+	if(LastSwingDays == 0)		
+		Wave1 = y1_2nd - y0_2nd 	;
+
+	wave0 = IIf(LowSwing > HighSwing, HighSwing-LowSwing, LowSwing - HighSwing ) ;
+
+	if(LastSwingDays == 0)
+		LastSwingDays = x1_1st- x1_2nd ;
+
+	LastSwingDays = LastSwingDays + 1;
+	FiboValue = wave0 / Wave1 *100;
+	LastSwingPct  = (LowSwing -HighSwing)/HighSwing*100;
+
+		XX = x0_4th;
+		XY = y0_4th;
+		AX = x0_3rd;
+		AY = y0_3rd;
+		BX = x0_2nd;
+		BY = y0_2nd;
+		CX = x0_1st;
+		CY = y0_1st;
+		DX = x1_1st;
+		DY = y1_1st;
+
+	Tolerance = 0.1;
+	ButterflyCondition1 = (ab_of_xa >=	 Level_786 - Tolerance) AND (ab_of_xa <= Level_786 + Tolerance);	
+	ButterflyCondition2 = (bc_of_ab >= Level_382 - Tolerance) AND (bc_of_ab <= Level_886 + Tolerance);	
+	ButterflyCondition3 = (ad_of_xa >= Level_236 - 0) AND (ad_of_xa <= Level_1618 );	
+	ButterflyCondition4 = ad_of_xa > Level_1618 ;	
+	ButterflyCondition5 = (-ad_of_xa >= Level_382 - Tolerance) AND (-ad_of_xa <= Level_1618 );	
+	ButterflyCondition6 = -ad_of_xa > Level_1618 ;	
+	DevelopingButterflyBearishPattern = ButterflyCondition1 AND ButterflyCondition2 AND ButterflyCondition3 ;
+	DevelopingButterflyBearishPatternExtended = ButterflyCondition1 AND ButterflyCondition2 AND ButterflyCondition4 ;
+	DevelopingButterflyBullishPattern = ButterflyCondition1 AND ButterflyCondition2 AND ButterflyCondition5 ;
+	DevelopingButterflyBullishPatternExtended = ButterflyCondition1 AND ButterflyCondition2 AND ButterflyCondition6 ;
+
+	DevelopingButterflyTargetPrice1 = IIf(DevelopingButterflyBearishPattern ,
+												xa * Level_127 + A_price  , 
+												A_price - xa * Level_127) ;
+	DevelopingButterflyTargetPrice2 = IIf(DevelopingButterflyBearishPattern ,
+												xa * Level_1618 + A_price , 
+												A_price - xa * Level_1618)  ;
+	DevelopingButterflyTargetPrice3 = IIf(DevelopingButterflyBearishPatternExtended ,
+												D_price - CD * Level_618,
+												CD * Level_618 + D_price); 
+	DevelopingButterflyTargetPrice4 = IIf(DevelopingButterflyBearishPatternExtended ,
+												D_price - CD * Level_127,
+												CD * Level_127+ D_price); 
+	DevelopingButterflyTargetPrice5 = IIf(DevelopingButterflyBearishPatternExtended ,
+												D_price - CD * Level_1618,
+												CD * Level_1618 + D_price); 
+	DevelopingButterflyTargetPricePct1 = 	(DevelopingButterflyTargetPrice1 - LastValue(C))/LastValue(C)*100;
+	DevelopingButterflyTargetPricePct2 = 	(DevelopingButterflyTargetPrice2 - LastValue(C))/LastValue(C)*100;
+	DevelopingButterflyTargetPricePct3 = 	(DevelopingButterflyTargetPrice3 - LastValue(C))/LastValue(C)*100;
+	DevelopingButterflyTargetPricePct4 = 	(DevelopingButterflyTargetPrice4 - LastValue(C))/LastValue(C)*100;
+	DevelopingButterflyTargetPricePct5 = 	(DevelopingButterflyTargetPrice5 - LastValue(C))/LastValue(C)*100;
+
+/*-----------------------------------------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------------------------------------*/
+	Tolerance = 0.05;
+	CrabCondition1 = (ab_of_xa >= Level_382 - Tolerance) AND (ab_of_xa < Level_618 + Tolerance);	
+	CrabCondition2 = (bc_of_ab >= Level_382 - 0.1) AND (bc_of_ab <= Level_886 + 0.1);	
+	CrabCondition3 = (ad_of_xa > Level_786 - 0.1) AND (ad_of_xa < Level_1618 );	
+	CrabCondition4 = ad_of_xa > Level_1618;	
+	CrabCondition5 = (-ad_of_xa >= Level_786 - Tolerance) AND (-ad_of_xa <= Level_1618 );	
+	CrabCondition6 = -ad_of_xa > Level_1618;	
+	DevelopingCrabBearishPattern = CrabCondition1 AND CrabCondition2 AND CrabCondition3 ;
+	DevelopingCrabBearishPatternExtended = CrabCondition1 AND CrabCondition2 AND CrabCondition4 ;
+	DevelopingCrabBullishPattern = CrabCondition1 AND CrabCondition2 AND CrabCondition5 ;
+	DevelopingCrabBullishPatternExtended = CrabCondition1 AND CrabCondition2 AND CrabCondition6 ;
+	DevelopingCrabTargetPrice1 = IIf(DevelopingCrabBearishPattern ,
+											xa * Level_127 + A_price  , 
+											A_price - xa * Level_127) ;
+	DevelopingCrabTargetPrice2 = IIf(DevelopingCrabBearishPattern ,
+											xa * Level_1618 + A_price , 
+											A_price - xa * Level_1618)  ;
+	DevelopingCrabTargetPrice3 = IIf(DevelopingCrabBearishPatternExtended ,
+											D_price - CD * Level_618,
+											CD * Level_618+ D_price); 
+	DevelopingCrabTargetPrice4 = IIf(DevelopingCrabBearishPatternExtended ,
+											D_price - CD * Level_127 ,
+											CD * Level_127 + D_price); 
+	DevelopingCrabTargetPrice5 = IIf(DevelopingCrabBearishPatternExtended ,
+											D_price - CD * Level_1618,
+											CD * Level_1618 + D_price); 
+	DevelopingCrabTargetPricePct1 = 	(DevelopingCrabTargetPrice1 - LastValue(C))/LastValue(C)*100;
+	DevelopingCrabTargetPricePct2 = 	(DevelopingCrabTargetPrice2 - LastValue(C))/LastValue(C)*100;
+	DevelopingCrabTargetPricePct3 = 	(DevelopingCrabTargetPrice3 - LastValue(C))/LastValue(C)*100;
+	DevelopingCrabTargetPricePct4 = 	(DevelopingCrabTargetPrice4 - LastValue(C))/LastValue(C)*100;
+	DevelopingCrabTargetPricePct5 = 	(DevelopingCrabTargetPrice5 - LastValue(C))/LastValue(C)*100;
+
+
+	
+/*-----------------------------------------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------------------------------------*/
+	Tolerance = 0.05;
+	GartleyCondition1 = (ab_of_xa >= Level_618 - Tolerance) AND (ab_of_xa < Level_618 + Tolerance);	
+	GartleyCondition2 = (bc_of_ab >= Level_382 - 0.1) AND (bc_of_ab <= Level_886 + 0.1);	
+	GartleyCondition3 = (ad_of_xa > Level_236 - 0) AND (ad_of_xa < Level_786);	
+	GartleyCondition4 = ad_of_xa > Level_786 AND ad_of_xa < Level_1618;	
+	GartleyCondition5 = (-ad_of_xa >= Level_382 - Tolerance) AND (-ad_of_xa <= Level_786);	
+	GartleyCondition6 = -ad_of_xa > Level_786 AND -ad_of_xa < Level_1618 ;	
+	DevelopingGartleyBearishPattern = GartleyCondition1 AND GartleyCondition2 AND GartleyCondition3 ;
+	DevelopingGartleyBearishPatternExtended = GartleyCondition1 AND GartleyCondition2 AND GartleyCondition4 ;
+	DevelopingGartleyBullishPattern = GartleyCondition1 AND GartleyCondition2 AND GartleyCondition5 ;
+	DevelopingGartleyBullishPatternExtended = GartleyCondition1 AND GartleyCondition2 AND GartleyCondition6 ;
+	DevelopingGartleyTargetPrice1 = IIf(DevelopingGartleyBearishPattern ,
+											xa * Level_786+ A_price  , 
+											A_price - xa * Level_786) ;
+	DevelopingGartleyTargetPrice3 = IIf(DevelopingGartleyBearishPatternExtended ,
+											D_price - CD * Level_618,
+											CD * Level_618 + D_price); 
+	DevelopingGartleyTargetPrice4 = IIf(DevelopingGartleyBearishPatternExtended ,
+											D_price - CD * Level_127,
+												CD * Level_127+ D_price); 
+	DevelopingGartleyTargetPrice5 = IIf(DevelopingGartleyBearishPatternExtended ,
+											D_price - CD * Level_1618,
+											CD * Level_1618 + D_price); 
+	DevelopingGartleyTargetPricePct1 = 	(DevelopingGartleyTargetPrice1 - LastValue(C))/LastValue(C)*100;
+	DevelopingGartleyTargetPricePct3 = 	(DevelopingGartleyTargetPrice3 - LastValue(C))/LastValue(C)*100;
+	DevelopingGartleyTargetPricePct4 = 	(DevelopingGartleyTargetPrice4 - LastValue(C))/LastValue(C)*100;
+	DevelopingGartleyTargetPricePct5 = 	(DevelopingGartleyTargetPrice5 - LastValue(C))/LastValue(C)*100;
+
+
+/*-----------------------------------------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------------------------------------*/
+	Tolerance = 0.05;
+	BatCondition1 = (ab_of_xa >= Level_382 - Tolerance) AND (ab_of_xa < Level_500 + Tolerance);	
+	BatCondition2 = (bc_of_ab >= Level_382 - 0.1) AND (bc_of_ab <= Level_886 + 0.1);	
+	BatCondition3 = (ad_of_xa> Level_236 - 0) AND (ad_of_xa < Level_886);	
+	BatCondition4 = ad_of_xa > Level_886  AND ad_of_xa < Level_1618;	
+	BatCondition5 = (-ad_of_xa >= Level_382 - Tolerance) AND (-ad_of_xa <= Level_886);	
+	BatCondition6 = -ad_of_xa > Level_886  AND -ad_of_xa < Level_1618 ;	
+	DevelopingBatBearishPattern = BatCondition1 AND BatCondition2 AND BatCondition3 ;
+	DevelopingBatBearishPatternExtended = BatCondition1 AND BatCondition2 AND BatCondition4 ;
+	DevelopingBatBullishPattern = BatCondition1 AND BatCondition2 AND BatCondition5 ;
+	DevelopingBatBullishPatternExtended = BatCondition1 AND BatCondition2 AND BatCondition6 ;
+	DevelopingBatTargetPrice1 = IIf(DevelopingBatBearishPattern ,
+											xa * Level_886+ A_price  , 
+											A_price - xa * Level_886) ;
+	DevelopingBatTargetPrice3 = IIf(DevelopingBatBearishPatternExtended ,
+										D_price - CD * Level_618 ,
+										CD * Level_618 + D_price); 
+	DevelopingBatTargetPrice4 = IIf(DevelopingBatBearishPatternExtended ,
+										D_price - CD * Level_127,
+										CD * Level_127+ D_price); 
+	DevelopingBatTargetPrice5 = IIf(DevelopingBatBearishPatternExtended ,
+										D_price - CD * Level_1618,
+										CD * Level_1618+ D_price); 
+	DevelopingBatTargetPricePct1 = 	(DevelopingBatTargetPrice1 - LastValue(C))/LastValue(C)*100;
+	DevelopingBatTargetPricePct3 = 	(DevelopingBatTargetPrice3 - LastValue(C))/LastValue(C)*100;
+	DevelopingBatTargetPricePct4 = 	(DevelopingBatTargetPrice4 - LastValue(C))/LastValue(C)*100;
+	DevelopingBatTargetPricePct5 = 	(DevelopingBatTargetPrice5 - LastValue(C))/LastValue(C)*100;
+
+
+	NoValidDevelopingPattern = 
+
+		DevelopingButterflyBearishPattern ==0 AND DevelopingButterflyBullishPattern ==0 AND 
+		DevelopingButterflyBearishPatternExtended ==0 AND DevelopingButterflyBullishPatternExtended ==0 AND 
+
+		DevelopingCrabBearishPattern ==0 AND DevelopingCrabBullishPattern ==0 AND 
+		DevelopingCrabBearishPatternExtended ==0 AND DevelopingCrabBullishPatternExtended ==0 AND
+
+		DevelopingGartleyBearishPattern ==0 AND DevelopingGartleyBullishPattern ==0 AND 
+		DevelopingGartleyBearishPatternExtended ==0 AND DevelopingGartleyBullishPatternExtended ==0 AND
+
+		DevelopingBatBearishPattern ==0 AND DevelopingBatBullishPattern ==0 AND 
+		DevelopingBatBearishPatternExtended ==0 AND DevelopingBatBullishPatternExtended ==0;
+
+		ShowInvalidDevelopingPattern = ParamToggle("Show Also Invalid Pattern", "Show Pattern|Hide Pattern" );
+		x = y0_4th;
+		y = y0_3rd;
+		Bear = y0_4th > y0_3rd;
+		TextPositionX = y0_4th * -.03;
+		if(Bear == 1)
+			TextPositionX = y0_4th * .01;
+			if(TextPositionX > 1)
+				TextPositionX = 1;
+			if(TextPositionX < -1)
+				TextPositionX = -1;
+
+		TextPositionA = y0_3rd * .01;
+		if(Bear == 1)
+			TextPositionA = y0_3rd * -.05;
+			if(TextPositionA > 1)
+				TextPositionA = 1;
+			if(TextPositionA < -1.5)
+				TextPositionA = -1.5;
+
+		TextPositionB = y0_2nd * -.03;
+		if(Bear == 1)
+			TextPositionB = y0_2nd * .01;
+			if(TextPositionB > 1)
+				TextPositionB = 1;
+			if(TextPositionB < -1.5)
+				TextPositionB = -1.5;
+
+		TextPositionC = y0_1st * .01;
+		if(Bear == 1)
+			TextPositionC = y0_1st * -.05;
+			if(TextPositionC > 1)
+				TextPositionC = 1;
+			if(TextPositionC < -1.5)
+				TextPositionC = -1.5;
+
+		TextPositionD = y1_1st * -.03;
+		if(Bear == 1)
+			TextPositionD = y1_1st * .01;
+			if(TextPositionD > 1)
+				TextPositionD = 1;
+			if(TextPositionD < -1.5)
+				TextPositionD = -1.5;
+
+		Color1 = ParamColor("Color XABCD Main Line",colorGreen);
+		ColorXB = ParamColor("Color XB Dashed Line",colorBlack);
+		ColorAC = ParamColor("Color AC Dashed Line",colorBlack);
+		ColorBD = ParamColor("Color BD Dashed Line",colorBlack);
+	if (ShowInvalidDevelopingPattern ==0 OR NoValidDevelopingPattern ==0)
+	{
+
+ 		plus = 0;
+		if(ShowInvalidCompletedPattern ==1 OR NoValidCompletedPattern ==0)	
+			plus = 0;
+		else 
+		{
+
+			PlotText("X",x0_4th , y0_4th +TextPositionX , colorViolet ); 
+			PlotText("A",x0_3rd , y0_3rd +TextPositionA , colorViolet ); 
+			PlotText("B",x0_2nd , y0_2nd +TextPositionB , colorViolet ); 
+			PlotText("C",x0_1st , y0_1st +TextPositionC , colorViolet ); 
+			PlotText("D",x1_1st , y1_1st +TextPositionD , colorViolet ); 
+
+		}
+
+		Plot (LineArray(x0_4th + plus , y0_4th , x1_4th + plus , y1_4th ),"XA Top",Color1 ,Linestyle1 + styleNoTitle); 
+		Plot (LineArray(x0_3rd + plus , y0_3rd , x1_3rd + plus , y1_3rd ),"AB",Color1 ,Linestyle1 + styleNoTitle); 
+		Plot (LineArray(x0_2nd + plus , y0_2nd , x1_2nd + plus , y1_2nd ),"BC",Color1,Linestyle1 + styleNoTitle); 
+		Plot (LineArray(x0_1st + plus , y0_1st , x1_1st + plus , y1_1st ),"CD",Color1 ,Linestyle1 + styleNoTitle); 
+		Plot (LineArray(x1_1st + plus , y1_1st , x1_0th + plus , y1_0th ),"DE",colorViolet ,styleLine + styleNoTitle); 
+
+		Plot (LineArray(x0_4th         , y0_4th , x1_3rd       , y1_3rd ),"XB",ColorXB , styleDashed + styleNoTitle); 
+	}
+	printf(WriteIf(NoValidDevelopingPattern ,"\n\nNo valid Developing Harmonic Pattern is available","" ) );
+
+	HeaderTextPosition = 15;
+	XXBtextPosition = (bx - xx)/2 + xx;
+	YXBtextPosition = (by - xy)/2 + xy ;
+	XACtextPosition = (cx - ax)/2 + ax;
+	YACtextPosition = (cy - ay)/2 + ay;
+	XBDtextPosition = (dx - bx)/2 + bx;
+	YBDtextPosition = (dy - by)/2 + by;
+	XXDtextPosition = (dx - xx)/2 + xx;
+	YXDtextPosition = (dy - xy)/2 + xy;
+
+	if(NoValidTrend >= 2 OR NoValidTrend == 1 AND _x0_5th == 0 )
+	{	GfxSetTextColor(colorRed); 
+		GfxTextOut("No Valid Pattern or Trend ", 300 , 15); 
+	}
+
+	if (ShowAnalysisOnMainScreen  ==0 )
+	{	if(NoValidCompletedPattern ==1 AND NoValidDevelopingPattern ==1)
+		{	GfxSetTextColor(colorRed); 
+			GfxTextOut("No Valid Pattern or Trend", 300 , 15); 
+		}
+	}
+	if (ShowInvalidDevelopingPattern ==0 OR NoValidDevelopingPattern ==0)
+	{
+		if (ShowLabels ==0 )
+		{
+			PlotText(WriteVal(ab_of_xa*100,1.1),XXBtextPosition , YXBtextPosition , colorViolet );
+			PlotText(WriteVal(bc_of_ab*100,1.1),XACtextPosition , YACtextPosition , colorViolet );
+			PlotText(WriteVal(cd_of_bc*100,1.1),XBDtextPosition , YBDtextPosition , colorViolet );
+		}
+/*-----------------------------------------------------------------------------------------------------*/
+			printf(WriteIf(DevelopingButterflyBullishPattern ,Separator +"\nDeveloping Butterfly Bullish (Sell)","" ));
+			printf(WriteIf(DevelopingButterflyBearishPattern ,Separator +"\nDeveloping Butterfly Bearish (Buy)","" ));
+			printf(WriteIf(DevelopingButterflyBullishPatternExtended ,Separator +"\nDeveloping Butterfly Bullish(Extended) (Buy)","" ));
+			printf(WriteIf(DevelopingButterflyBearishPatternExtended ,Separator +"\nDeveloping Butterfly Bearish(Extended) (Sell)","" ));
+			printf(WriteIf(DevelopingButterflyBullishPattern 
+						  OR DevelopingButterflyBearishPattern 
+								,"\nClosing Price: "+WriteVal(LastValue(C),1.2)+"\nTarget Price:"
+					+"\n1-    "+WriteVal(DevelopingButterflyTargetPrice1,1.2 )  + " ("
+					+WriteVal(DevelopingButterflyTargetPricePct1,1.2) +"%%) ",""));
+					printf(WriteIf(LastValue(C) < DevelopingButterflyTargetPrice1 AND DevelopingButterflyBullishPattern ,
+							 " Price Excceded Target", ""));					
+					printf(WriteIf(LastValue(C) > DevelopingButterflyTargetPrice1 AND DevelopingButterflyBearishPattern ,
+							 " Price Excceded Target", ""));
+
+			printf(WriteIf(DevelopingButterflyBullishPattern 
+						  OR DevelopingButterflyBearishPattern 
+					,"\n2-    "+WriteVal(DevelopingButterflyTargetPrice2,1.2 )  + " ("
+					+WriteVal(DevelopingButterflyTargetPricePct2,1.2) +"%%) ",""));
+					printf(WriteIf(LastValue(C) < DevelopingButterflyTargetPrice2 AND DevelopingButterflyBullishPattern ,
+							 " Price Excceded Target", ""));					
+					printf(WriteIf(LastValue(C) > DevelopingButterflyTargetPrice2 AND DevelopingButterflyBearishPattern ,
+							 " Price Excceded Target", ""));
+			printf(WriteIf(DevelopingButterflyBullishPatternExtended 
+								OR DevelopingButterflyBearishPatternExtended 
+								,"\nClosing Price: "+WriteVal(LastValue(C),1.2)+"\nTarget Price:"
+					+"\n1-    "+WriteVal(DevelopingButterflyTargetPrice3,1.2 )  + " ("
+					+WriteVal(DevelopingButterflyTargetPricePct3,1.2) +"%%) "
+					+WriteIf(LastValue(C) < DevelopingButterflyTargetPrice3 AND DevelopingButterflyBearishPatternExtended ,
+							 " Price Excceded Target", "")
+					+WriteIf(LastValue(C) > DevelopingButterflyTargetPrice3 AND DevelopingButterflyBullishPatternExtended ,
+							 " Price Excceded Target", "")
+					+"\n2-    "+WriteVal(DevelopingButterflyTargetPrice4,1.2)  + " ( "
+					+WriteVal(DevelopingButterflyTargetPricePct4,1.2) +"%%) "
+					+WriteIf(LastValue(C) < DevelopingButterflyTargetPrice4 AND DevelopingButterflyBearishPatternExtended ,
+							 " Price Excceded Target", "")
+					+WriteIf(LastValue(C) > DevelopingButterflyTargetPrice4 AND DevelopingButterflyBullishPatternExtended ,
+							 " Price Excceded Target", "")
+					+"\n3-    "+WriteVal(DevelopingButterflyTargetPrice5,1.2 ) + " ( "
+					+WriteVal(DevelopingButterflyTargetPricePct5,1.2) +"%%) "
+					+WriteIf(LastValue(C) < DevelopingButterflyTargetPrice5 AND DevelopingButterflyBearishPatternExtended ,
+							 " Price Excceded Target", "")
+					+WriteIf(LastValue(C) > DevelopingButterflyTargetPrice5 AND DevelopingButterflyBullishPatternExtended ,
+							 " Price Excceded Target", ""),""));
+/*-------------------------------------------*/
+
+
+	if (ShowSuppRes1 ==0 )
+	{	Plot (LineArray(x0_4th + plus , y0_4th , BarCount , y0_4th ),"SuppResist",Color1 ,Linestyle1 + styleNoTitle); 
+		Plot (LineArray(x0_2nd + plus , y0_2nd , BarCount , y0_2nd ),"SuppResist",Color1 ,Linestyle1 + styleNoTitle); 
+		Plot (LineArray(x0_4th        , y0_4th , x1_3rd   , y1_3rd,1 ),"XB",ColorXB , styleDashed + styleNoTitle); 
+		PlotText("SR:: "+WriteVal(y0_2nd,1.2),TargetPosition , y0_2nd, colorViolet );
+		PlotText("SR:: "+WriteVal(y0_4th ,1.2),TargetPosition , y0_4th , colorViolet );
+	}
+
+	if(y1_1st > y1_3rd AND y1_2nd < y1_1st OR y1_1st < y1_3rd AND y1_2nd > y1_1st OR ShowSuppRes1 ==1)
+		Plot (LineArray(x0_2nd + plus  , y1_3rd , x1_1st+ plus , y1_1st ),"BD",ColorBD, styleDashed + styleNoTitle); 
+
+	if(y1_1st < y1_3rd AND y1_2nd > y1_1st OR y1_1st > y1_3rd AND y1_2nd < y1_1st OR ShowSuppRes2 ==1)
+		Plot (LineArray(x0_3rd , y0_3rd , x1_2nd , y1_2nd ),"AC",ColorAC , styleDashed + styleNoTitle); 
+
+	if(y1_1st <= y1_3rd AND y1_5th <= y1_3rd AND y1_1st < y1_2nd  OR y1_1st >= y1_3rd AND y1_5th >= y1_3rd AND y1_1st > y1_2nd )
+	{	Plot (LineArray(x0_4th , y0_4th , x1_1st , y1_1st ),"XD",ColorXB , styleDashed +styleNoTitle); 
+		if(ShowLabels ==0  )
+		PlotText(WriteIf(ad_of_xa<0, WriteVal(-ad_of_xa*100,1.2),WriteVal(ad_of_xa*100,1.2) ),XXDtextPosition , YXDtextPosition , colorViolet );
+	}
+
+	if (ShowSuppRes2 ==0 )
+	{	Plot (LineArray(x0_3rd + plus , y0_3rd , BarCount , y0_3rd ),"SuppResist",Color1 ,Linestyle1 + styleNoTitle); 
+		Plot (LineArray(x0_1st + plus , y0_1st , BarCount , y0_1st ),"SuppResist",Color1 ,Linestyle1 + styleNoTitle); 
+		Plot (LineArray(x0_3rd , y0_3rd , x1_2nd , y1_2nd,1 ),"AC",ColorAC , styleDashed + styleNoTitle); 
+		PlotText("SR:: "+WriteVal(y0_1st ,1.2),TargetPosition , y0_1st , colorViolet );
+		PlotText("SR:: "+WriteVal(y0_3rd ,1.2),TargetPosition , y0_3rd , colorViolet );
+	}
+	if (ShowAnalysisOnMainScreen  ==0 )
+	{		if(DevelopingButterflyBullishPattern)
+			{	GfxSetTextColor(colorRed); 
+				GfxTextOut("Developing Butterfly Bullish (Sell)", 300 , 15); 
+			}
+			if(DevelopingButterflyBearishPattern )
+			{	GfxSetTextColor(colorGreen); 
+				GfxTextOut("Developing Butterfly Bearish (Buy)", 300 , 15); 
+			}
+			if(DevelopingButterflyBullishPatternExtended)
+			{	GfxSetTextColor(colorGreen); 
+				GfxTextOut("Developing Butterfly Bullish Extended (Buy)", 300 , 15); 
+			}
+			if(DevelopingButterflyBearishPatternExtended )
+			{	GfxSetTextColor(colorRed); 
+				GfxTextOut("Developing Butterfly Bearish Extended (Sell)", 300 , 15); 
+			}
+			if(DevelopingButterflyBullishPattern OR DevelopingButterflyBearishPattern )
+				PlotText("T1: "+WriteVal(DevelopingButterflyTargetPrice1,1.2),TargetPosition , DevelopingButterflyTargetPrice1, colorViolet );
+			if(DevelopingButterflyBullishPattern OR DevelopingButterflyBearishPattern )
+				PlotText("T2: "+WriteVal(DevelopingButterflyTargetPrice2,1.2),TargetPosition , DevelopingButterflyTargetPrice2, colorViolet );
+			if(DevelopingButterflyBullishPatternExtended OR DevelopingButterflyBearishPatternExtended )
+			{	PlotText("T1: "+WriteVal(DevelopingButterflyTargetPrice3,1.2),TargetPosition , DevelopingButterflyTargetPrice3, colorViolet );
+				PlotText("T2: "+WriteVal(DevelopingButterflyTargetPrice4,1.2),TargetPosition , DevelopingButterflyTargetPrice4, colorViolet );
+				PlotText("T3: "+WriteVal(DevelopingButterflyTargetPrice5,1.2),TargetPosition , DevelopingButterflyTargetPrice5, colorViolet );
+			}
+
+	}
+/*-----------------------------------------------------------------------------------------------------*/
+			printf(WriteIf(DevelopingCrabBullishPattern ,Separator +"\nDeveloping Crab Bullish (Sell)","" ));
+			printf(WriteIf(DevelopingCrabBearishPattern ,Separator +"\nDeveloping Crab Bearish (Buy)","" ));
+			printf(WriteIf(DevelopingCrabBullishPatternExtended ,Separator +"\nDeveloping Crab Bullish(Extended) (Buy)","" ));
+			printf(WriteIf(DevelopingCrabBearishPatternExtended ,Separator +"\nDeveloping Crab Bearish(Extended) (Sell)","" ));
+			printf(WriteIf(DevelopingCrabBullishPattern 
+						  OR DevelopingCrabBearishPattern 
+								,"\nClosing Price: "+WriteVal(LastValue(C),1.2)+"\nTarget Price:"
+					+"\n1-    "+WriteVal(DevelopingCrabTargetPrice1,1.2 )  + " ("
+					+WriteVal(DevelopingCrabTargetPricePct1,1.2) +"%%) ",""));
+					printf(WriteIf(LastValue(C) < DevelopingCrabTargetPrice1 AND DevelopingCrabBullishPattern ,
+							 " Price Excceded Target", ""));					
+					printf(WriteIf(LastValue(C) > DevelopingCrabTargetPrice1 AND DevelopingCrabBearishPattern ,
+							 " Price Excceded Target", ""));
+			printf(WriteIf(DevelopingCrabBullishPattern 
+						  OR DevelopingCrabBearishPattern 
+					,"\n2-    "+WriteVal(DevelopingCrabTargetPrice2,1.2 )  + " ("
+					+WriteVal(DevelopingCrabTargetPricePct2,1.2) +"%%) ",""));
+					printf(WriteIf(LastValue(C) < DevelopingCrabTargetPrice2 AND DevelopingCrabBullishPattern ,
+							 " Price Excceded Target", ""));					
+					printf(WriteIf(LastValue(C) > DevelopingCrabTargetPrice2 AND DevelopingCrabBearishPattern ,
+							 " Price Excceded Target", ""));
+			printf(WriteIf(DevelopingCrabBullishPatternExtended 
+								OR DevelopingCrabBearishPatternExtended 
+								,"\nClosing Price: "+WriteVal(LastValue(C),1.2)+"\nTarget Price:"
+					+"\n1-    "+WriteVal(DevelopingCrabTargetPrice3,1.2 )  + " ("
+					+WriteVal(DevelopingCrabTargetPricePct3,1.2) +"%%) "
+					+WriteIf(LastValue(C) < DevelopingCrabTargetPrice3 AND DevelopingCrabBearishPatternExtended ,
+							 " Price Excceded Target", "")
+					+WriteIf(LastValue(C) > DevelopingCrabTargetPrice3 AND DevelopingCrabBullishPatternExtended ,
+							 " Price Excceded Target", "")
+					+"\n2-    "+WriteVal(DevelopingCrabTargetPrice4,1.2)  + " ( "
+					+WriteVal(DevelopingCrabTargetPricePct4,1.2) +"%%) "
+					+WriteIf(LastValue(C) < DevelopingCrabTargetPrice4 AND DevelopingCrabBearishPatternExtended ,
+							 " Price Excceded Target", "")
+					+WriteIf(LastValue(C) > DevelopingCrabTargetPrice4 AND DevelopingCrabBullishPatternExtended ,
+							 " Price Excceded Target", "")
+					+"\n3-    "+WriteVal(DevelopingCrabTargetPrice5,1.2 ) + " ( "
+					+WriteVal(DevelopingCrabTargetPricePct5,1.2) +"%%) "
+					+WriteIf(LastValue(C) < DevelopingCrabTargetPrice5 AND DevelopingCrabBearishPatternExtended ,
+							 " Price Excceded Target", "")
+					+WriteIf(LastValue(C) > DevelopingCrabTargetPrice5 AND DevelopingCrabBullishPatternExtended ,
+							 " Price Excceded Target", ""),""));
+/*-------------------------------------------*/
+	if (ShowAnalysisOnMainScreen  ==0 )
+	{	if(DevelopingCrabBullishPattern)
+			{	GfxSetTextColor(colorRed); 
+				GfxTextOut("Developing Crab Bullish (Sell)", 300 , 15); 
+				HeaderTextPosition = 30;
+			}
+			if(DevelopingCrabBearishPattern )
+			{	GfxSetTextColor(colorGreen); 
+				GfxTextOut("Developing Crab Bearish (Buy)", 300 , 15); 
+				HeaderTextPosition = 30;
+			}
+			if(DevelopingCrabBullishPatternExtended)
+			{	GfxSetTextColor(colorGreen); 
+				GfxTextOut("Developing Crab Bullish Extended (Buy)", 300 , 15); 
+			}
+			if(DevelopingCrabBearishPatternExtended )
+			{	GfxSetTextColor(colorRed); 
+				GfxTextOut("Developing Crab Bearish Extended (Sell)", 300 , 15); 
+			}
+			if(DevelopingCrabBullishPattern OR DevelopingCrabBearishPattern )
+				PlotText("T1: "+WriteVal(DevelopingCrabTargetPrice1,1.2),TargetPosition , DevelopingCrabTargetPrice1, colorViolet );
+			if(DevelopingCrabBullishPattern OR DevelopingCrabBearishPattern )
+				PlotText("T2: "+WriteVal(DevelopingCrabTargetPrice2,1.2),TargetPosition , DevelopingCrabTargetPrice2, colorViolet );
+			if(DevelopingCrabBullishPatternExtended OR DevelopingCrabBearishPatternExtended )
+			{	PlotText("T1: "+WriteVal(DevelopingCrabTargetPrice3,1.2),TargetPosition , DevelopingCrabTargetPrice3, colorViolet );
+				PlotText("T2: "+WriteVal(DevelopingCrabTargetPrice4,1.2),TargetPosition , DevelopingCrabTargetPrice4, colorViolet );
+				PlotText("T3: "+WriteVal(DevelopingCrabTargetPrice5,1.2),TargetPosition , DevelopingCrabTargetPrice5, colorViolet );
+			}
+
+	}
+/*-----------------------------------------------------------------------------------------------------*/
+			printf(WriteIf(DevelopingGartleyBullishPattern ,Separator +"\nDeveloping Gartley Bullish (Sell)","" ));
+			printf(WriteIf(DevelopingGartleyBearishPattern ,Separator +"\nDeveloping Gartley Bearish (Buy)","" ));
+			printf(WriteIf(DevelopingGartleyBullishPatternExtended ,Separator +"\nDeveloping Gartley Bullish(Extended) (Buy)","" ));
+			printf(WriteIf(DevelopingGartleyBearishPatternExtended ,Separator +"\nDeveloping Gartley Bearish(Extended) (Sell)","" ));
+			printf(WriteIf(DevelopingGartleyBullishPattern 
+						  OR DevelopingGartleyBearishPattern 
+								,"\nClosing Price: "+WriteVal(LastValue(C),1.2)+"\nTarget Price:"
+					+"   "+WriteVal(DevelopingGartleyTargetPrice1,1.2 )  + " ("
+					+WriteVal(DevelopingGartleyTargetPricePct1,1.2) +"%%) ",""));
+					printf(WriteIf(LastValue(C) < DevelopingGartleyTargetPrice1 AND DevelopingGartleyBullishPattern ,
+							 " Price Excceded Target", ""));					
+					printf(WriteIf(LastValue(C) > DevelopingGartleyTargetPrice1 AND DevelopingGartleyBearishPattern ,
+							 " Price Excceded Target", ""));
+/*-------------------------------------------*/
+	if (ShowAnalysisOnMainScreen  ==0 )
+	{	if(DevelopingGartleyBullishPattern)
+			{	GfxSetTextColor(colorRed); 
+				GfxTextOut("Developing Gartley Bullish (Sell)", 300 , HeaderTextPosition ); 
+			}
+			if(DevelopingGartleyBearishPattern )
+			{	GfxSetTextColor(colorGreen); 
+				GfxTextOut("Developing Gartley Bearish (Buy)", 300 , HeaderTextPosition ); 
+			}
+			if(DevelopingGartleyBullishPattern OR DevelopingGartleyBearishPattern )
+				PlotText("T: "+WriteVal(DevelopingGartleyTargetPrice1,1.2),TargetPosition , DevelopingGartleyTargetPrice1, colorViolet );
+	}
+/*-----------------------------------------------------------------------------------------------------*/
+			printf(WriteIf(DevelopingBatBullishPattern ,Separator +"\nDeveloping Bat Bullish (Sell)","" ));
+			printf(WriteIf(DevelopingBatBearishPattern ,Separator +"\nDeveloping Bat Bearish (Buy)","" ));
+			printf(WriteIf(DevelopingBatBullishPatternExtended ,Separator +"\nDeveloping Bat Bullish(Extended) (Buy)","" ));
+			printf(WriteIf(DevelopingBatBearishPatternExtended ,Separator +"\nDeveloping Bat Bearish(Extended) (Sell)","" ));
+			printf(WriteIf(DevelopingBatBullishPattern 
+						  OR DevelopingBatBearishPattern 
+								,"\nClosing Price: "+WriteVal(LastValue(C),1.2)+"\nTarget Price:"
+					+"   "+WriteVal(DevelopingBatTargetPrice1,1.2 )  + " ("
+					+WriteVal(DevelopingBatTargetPricePct1,1.2) +"%%) ",""));
+					printf(WriteIf(LastValue(C) < DevelopingBatTargetPrice1 AND DevelopingBatBullishPattern ,
+							 " Price Excceded Target", ""));					
+					printf(WriteIf(LastValue(C) > DevelopingBatTargetPrice1 AND DevelopingBatBearishPattern ,
+							 " Price Excceded Target", ""));
+				
+	}
+/*-------------------------------------------*/
+	if (ShowAnalysisOnMainScreen  ==0 )
+	{	if(DevelopingBatBullishPattern)
+			{	GfxSetTextColor(colorRed); 
+				GfxTextOut("Developing Bat Bullish (Sell)", 300 , HeaderTextPosition ); 
+			}
+			if(DevelopingBatBearishPattern )
+			{	GfxSetTextColor(colorGreen); 
+				GfxTextOut("Developing Bat Bearish (Buy)", 300 , HeaderTextPosition ); 
+			}
+			if(DevelopingBatBullishPattern OR DevelopingBatBearishPattern )
+				PlotText("T: "+WriteVal(DevelopingBatTargetPrice1,1.2),TargetPosition , DevelopingBatTargetPrice1, colorViolet );
+	}
+/*-----------------------------------------------------------------------------------------------------*/
+
+	dispFiboSwing=0;
+	if(dispFiboSwing==1)	
+	{	printf("\n\nLast Swing analysis: ");
+		printf("\nLength (Bars) = "+LastSwingDays );
+		printf("\nFiboValue  = "+WriteVal(FiboValue,1.2)  );
+		printf("\nPct  = "+ WriteVal(LastSwingPct,1.2)+"%%");
+	}
+/*-----------------------------------------------------------------------------------------------------*/
+
+_SECTION_END(); //Eof Developing Harmonic Trader
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	Filter = 1 ;//BuyBBand  OR sellBBand ;
+
+	P  =  ((H + L + C) / 3);
+	R1  =  ((2 * P) - L);
+	S1  =  ((2 * P)  - H);
+	R2  =  ((P - S1) + R1);
+	S2  =  (P - (R1 - S1));
+	AddTextColumn( FullName(), "Name");
+	AddColumn( Close, "Close" );
+	AddTextColumn(WriteVal(ZigzagChange,1.0)+WriteIf(FindLastTrueHiLow,"N","Y")+WriteIf(ReReadPattern ,"N","Y") , "Zig" );
+//	AddColumn( Date() , "date" );
+//FindLastTrueHiLow = ParamToggle("Find Last True Hi Low ", "Yes|No" );
+//ReReadPattern = ParamToggle("Re-Read Pattern ", "Yes|No" );
+
+AddTextColumn(
+					WriteIf(DevelopingButterflyBullishPattern ,"S Butter Fly Bull", 
+					WriteIf(DevelopingButterflyBearishPattern ,"B Butter Fly Bear",
+					WriteIf(DevelopingButterflyBullishPatternExtended ,"B Butter Fly Bull Extended",
+					WriteIf(DevelopingButterflyBearishPatternExtended  ,"S Butter Fly Bear Extended",
+
+					WriteIf(DevelopingGartleyBullishPattern ,"S Gartley Bull", 
+					WriteIf(DevelopingGartleyBearishPattern ,"B Gartley Bear",
+					WriteIf(DevelopingBatBullishPattern ,"S Bat Bull", 
+					WriteIf(DevelopingBatBearishPattern ,"B Bat Bear",
+					WriteIf(DevelopingCrabBullishPattern ,"S Crab Bull", 
+					WriteIf(DevelopingCrabBearishPattern ,"B Crab Bear",
+					WriteIf(DevelopingCrabBullishPatternExtended ,"B Crab Bull Extended",
+					WriteIf(DevelopingCrabBearishPatternExtended ,"S Crab Bear Extended",
+					"")))))))))))),"Developing Gartley",1.2,
+					IIf(
+					DevelopingButterflyBullishPattern OR DevelopingButterflyBearishPatternExtended  OR
+					DevelopingCrabBearishPatternExtended OR DevelopingCrabBullishPattern OR 
+					DevelopingGartleyBullishPattern OR DevelopingGartleyBearishPatternExtended OR
+					DevelopingBatBullishPattern OR DevelopingBatBearishPatternExtended ,colorRed,colorGreen));
+
+	AddTextColumn(
+					WriteIf(CompletedButterflyBullishPattern ,"B Butter Fly Bull", 
+					WriteIf(CompletedButterflyBearishPattern ,"S Butter Fly Bear",
+					WriteIf(CompletedButterflyBullishPatternExtended ,"B Butter Fly Bull Extended",
+					WriteIf(CompletedButterflyBearishPatternExtended  ,"S Butter Fly Bear Extended",
+
+					WriteIf(CompletedCrabBullishPattern ,"B Crab Bull", 
+					WriteIf(CompletedCrabBearishPattern ,"S Crab Bear",
+					WriteIf(CompletedCrabBullishPatternExtended ,"B Crab Bull Extended",
+					WriteIf(CompletedCrabBearishPatternExtended ,"S Crab Bear Extended",
+
+					WriteIf(CompletedGartleyBullishPattern ,"B Gartley Bull", 
+					WriteIf(CompletedGartleyBearishPattern ,"S Gartley Bear",
+					WriteIf(CompletedGartleyBullishPatternExtended ,"B Gartley Bull Extended",
+					WriteIf(CompletedGartleyBearishPatternExtended ,"S Gartley Bear Extended",
+
+					WriteIf(CompletedBatBullishPattern ,"B Bat Bull", 
+					WriteIf(CompletedBatBearishPattern ,"S Bat Bear",
+					WriteIf(CompletedBatBullishPatternExtended ,"B Bat Bull Extended",
+					WriteIf(CompletedBatBearishPatternExtended ,"S Bat Bear Extended",
+					"")))))))))))))))),"Completed Gartley",1.2,
+					IIf(
+					CompletedButterflyBullishPattern OR CompletedButterflyBearishPatternExtended  OR
+					CompletedCrabBullishPattern OR CompletedCrabBearishPatternExtended OR
+					CompletedGartleyBullishPattern OR CompletedGartleyBearishPatternExtended OR
+					CompletedBatBullishPattern OR CompletedBatBearishPatternExtended ,colorRed,colorGreen));
+
+_SECTION_BEGIN("Basic Chart");
+if(BringPatternToFront ==0)
+{
+Plot( C, "Close", ParamColor("Color", colorBlack ),ParamStyle("Style") | GetPriceStyle() ); 
+}
+_SECTION_END(); //Eof Basic Chart
+

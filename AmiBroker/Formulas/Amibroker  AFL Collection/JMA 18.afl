@@ -1,0 +1,8 @@
+_SECTION_BEGIN("JMA");
+
+Plot( JurikJMA( Close, 4, 0), _DEFAULT_NAME(), IIf(JurikJMA( Close, 4, 0)> Ref(JurikJMA( Close, 4, 0),-1),colorBlue,colorBrown), ParamStyle("Style") );
+piv = (H+C+L)/3;
+m = MA(piv,3);
+Plot (m,"ma",IIf(m> Ref(m,-1),colorBlue,colorBrown),styleLine);
+Plot(C,"cl",colorWhite,styleThick);
+_SECTION_END();

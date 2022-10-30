@@ -1,0 +1,141 @@
+_SECTION_BEGIN("Pivot Points");
+
+ //---------------------------------------------------------------------------
+ // This section gets whether they want pivot level for intraday or thier eod 
+ //---------------------------------------------------------------------------
+
+ _N(ioreod =ParamList("Pivot Levels for ", "Intraday|EOD"));
+
+ if (ioreod=="Intraday") 
+ {
+ yh = TimeFrameGetPrice( "H", inDaily, -1 );
+ yl = TimeFrameGetPrice( "L", inDaily, -1 );
+ yc = TimeFrameGetPrice( "C", inDaily, -1 );
+ }
+ else
+ {
+ yh = TimeFrameGetPrice( "H", inDaily, 0 );
+ yl = TimeFrameGetPrice( "L", inDaily, 0 );
+ yc = TimeFrameGetPrice( "C", inDaily, 0 );
+ }
+
+ //---------------------------------------------------------------------------
+ // To calculate the Pivot Levels 
+ //---------------------------------------------------------------------------
+
+ to = TimeFrameGetPrice( "O", inDaily, 0 );
+ pivot = (yh + yl + yc) / 3;
+ range = yh - yl;
+ _N(pist =ParamList("Select Pivot Type ", "Classical Pivot|Woodie Pivot|Caramilla Pivot|Fibonacci Pivot"));
+
+ if (pist =="Classical Pivot" )
+ {
+ r1 = (2 * pivot) - yl ;
+ s1 = (2 * pivot) - yh ;
+ r2 = pivot - s1 + r1;
+ s2 = pivot - (r1 - s1) ;
+ r3 = 2 * (pivot - yl) + yh ;
+ s3 = yl - (2 * (yh - pivot));
+ }
+
+ else if(pist =="Woodie Pivot" )
+ {
+ pivot = (yh + yl + yc + to) / 4;
+ r1 = (2 * pivot) - yl;
+ r2 = pivot + range;
+ r3 = yh + 2 * (pivot - yl);
+ r4 = r3 + range;
+ s1 = (2 * pivot) - yh;
+ s2 = pivot - range;
+ s3 = yl - 2 * (yh - pivot);
+ s4 = S3 - range;
+ }
+
+ else if(pist =="Caramilla Pivot" )
+ {
+ r4 = yc + range * 1.1/2;
+ r3 = yc + range * 1.1/4;
+ r2 = yc + range * 1.1/6;
+ r1 = yc + range * 1.1/12;
+ s1 = yc - range * 1.1/12;
+ s2 = yc - range * 1.1/6;
+ s3 = yc - range * 1.1/4;
+ s4 = yc - range * 1.1/2;
+ }
+
+ else 
+ {
+ r3 = pivot + 1.000 * (yh - yl);
+ r2 = pivot + 0.618 * (yh - yl);
+ r1 = pivot + 0.382 * (yh - yl); 
+ s1 = pivot - 0.382 * (yh - yl); 
+ s2 = pivot - 0.618 * (yh - yl); 
+ s3 = pivot - 1.000 * (yh - yl);
+ }
+Plot(Close,"",colorGreen,styleCandle);
+ //---------------------------------------------------------------------------
+ // To Plot Pivot Levels in the screen 
+ //---------------------------------------------------------------------------
+
+ _N(dsr =ParamList("Draw Intraday Pivot Levels ", "None|Both|Support|Resistance"));
+
+ if (dsr =="Support" OR dsr == "Both")
+ {
+ Plot(pivot, "\n Pivot - ",colorGreen,1);
+ Plot(r1, "Resistance 1 - ",colorDarkRed,1);
+ Plot(r2, "Resistance 2 - ",colorDarkRed,1);
+ Plot(r3, "Resistance 3 - ",colorDarkRed,1);
+ Plot((pivot+r1)/2, "Mid Value of R1 & Pivot ",colorLightBlue,1);
+ Plot((r3+r2)/2, "Mid Value of R2 & R3 - ",colorLightBlue,1);
+ Plot((r1+r2)/2, "Mid Value of R1 & R2 - ",colorLightBlue,1);
+ }
+
+ if( dsr == "Resistance" OR dsr == "Both")
+ {
+ Plot(pivot, "\n Pivot - ",colorGreen,1);
+ Plot(s3, "Support 2 - ",colorDarkGreen,1);
+ Plot(s2, "Support 2 - ",colorDarkGreen,1);
+ Plot(s1, "Support 1 - ",colorDarkGreen,1);
+ Plot((s3+s2)/2, "Mid Value of S2 & S3 ",colorWhite,1);
+ Plot((s1+s2)/2, "Mid Value of S1 & S2 - ",colorWhite,1);
+ Plot((pivot+s1)/2, "Mid Value of S1 & Pivot ",colorWhite,1);
+ }
+
+ //---------------------------------------------------------------------------
+ // Printing the pivot level in interpretation window
+ //---------------------------------------------------------------------------
+
+
+ printf(Name()+ "\n\nResistance - 3 | %g\nResistance - 2 | %g\nResistance - 1 | %g\n" + 
+ "Pivot | %g\nSupport - 1 | %g\nSupport - 2 | %g\nSupport - 3 | %g",
+ r3,r2,r1,pivot,s1,s2,s3);
+
+
+ //---------------------------------------------------------------------------
+ // This section is for Exploration 
+ //---------------------------------------------------------------------------
+
+ Filter = 1;
+ AddColumn(r3,"Resistance 3");
+ AddColumn(r2,"Resistance 2");
+ AddColumn(r1,"Resistance 1");
+ AddColumn(Pivot,"Pivot");
+ AddColumn(s1,"Support 1");
+ AddColumn(s2,"Support 2");
+ AddColumn(s3,"Support 3");
+
+ //---------------------------------------------------------------------------
+ // Add Pivot levels along with the title
+ //---------------------------------------------------------------------------
+
+ _N(Title = EncodeColor(colorBrown)+ StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g(%.1f%%)\n"+
+ EncodeColor(4)+"Resistance 3 -=- %g ::::: Resistance 2 -=- %g ::::: Resistance 1 -=- %g :::::"+
+ EncodeColor(colorGreen)+" Pivot -=- %g"+
+ EncodeColor(29)+"\nSupport 1 -=- %g ::::: Support 2 -=- %g ::::: Support 3 -=- %g\n ",
+ O, H, L, C,SelectedValue( ROC( C, 1 ) ),r3,r2,r1,pivot,s1,s2,s3));
+
+ //---------------------------------------------------------------------------
+ // End of Pivot Point 
+ //---------------------------------------------------------------------------
+
+ _SECTION_END();

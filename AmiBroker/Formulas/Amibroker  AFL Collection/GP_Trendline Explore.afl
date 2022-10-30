@@ -1,0 +1,102 @@
+/*
+
+        Exploration for trend line crossover
+
+        This exploration uses the trend line plotting indicator to plot the
+        most recent two trend lines, and if the most recent is upwards, to
+        check for a crossover above the previous downtrend line by a set
+        percentage.
+
+        See comments in the indicator AFL file for details of the parameters.
+        The only different one here is the number of days ago to allow for
+        signalling a crossover (ie. how many days ago it can have occurred
+        to still be signalled here). A value of zero means it must have been
+        signalled on the most-recent bar.
+
+        Default parameters are intended to be suitable for relatively
+        long-term trend changes. For shorter-term changes, a lower value of
+        the peak/trough change percentage should be used. Experiment with the
+        parameter in the indicator to find a value suitable for the time
+        frame of interest.
+
+        To install this script:
+
+          - Place this file in the AmiBroker AFL folder
+          - Open the Automatic Analysis window
+          - Select Load and then select this file
+
+        Note: I have a separate folder under the AFL folder called "Backtests"
+              for storing back test and exploration AFL files, to keep them
+              separate from the indicator files.
+
+        To use in Automatic Analysis window:
+
+          - Select Applies To (eg. Watchlist containing ASX200 stocks)
+          - Set Range to 'n' last days with 'n' = 1
+          - Set Parameters
+          - Select Explore
+
+        Note: unlike the back test, this will only show actual crossover buys.
+              Buys generated in the back test from a previous upward-sloping
+              trend line being extended will not be signalled here.
+
+              these instructions apply to AmiBroker 4.60. There are slight
+              differences with later versions.
+
+		Last change: WS 23/07/2005 2:37:58 PM
+*/                                                                                            
+
+GP_tlineUp1[0] = 0;            //  Parameters required by plugin DLL
+GP_tlineUp2[0] = 0;
+GP_tlineDown1[0] = 0;
+GP_tlineDown2[0] = 0;
+GP_closeAbove[0] = 0;
+GP_aboveIx = -1;
+GP_yover = -1;
+GP_recentPeak = -1;
+GP_changeAtr[0] = 0;
+
+
+overAgo = Param("1. Max Days Ago?", 0, 0, 100, 1);
+tchg = Param("2. Peak/Trough Change? (%)", 20, 1, 200, 1);
+closeOver = Param("3. Close Above? (%)", 3, 0, 50, 1);
+endEma = Param("4. Test EMA Period?", 30, 2, 100, 1);
+
+Bottom = IIf(Close < Open, Close, Open);    //  Bottom of open/close array
+Top = IIf(Close > Open, Close, Open);       //  Top of open/close array
+
+GP_changeAtr = 1+5*(ATR(3)/Close);
+eend = EMA(Close, endEma*(int(LastValue(GP_changeAtr)))); //  EMA period for end direction
+
+startIx = BarCount-1;
+isUp = LastValue(LinRegSlope(eend, 2)) >= 0; //  Slope of EMA on last day
+tline = 0;
+doTest = 0;
+testIx = -1;
+lineCnt = 2;
+
+Filter = 0;
+
+fit = GP_DrawTrendLines(Bottom, Top, lineCnt, startIx, 0, tchg, 0, closeOver, overAgo, isUp, Prefs(24));
+
+if (fit >= 0) {
+    Filter = 1;
+    fit = 100/(1+100*fit);
+    }
+
+upAmt = 0;
+if (Filter == 1 AND GP_aboveIx >= 0 AND GP_aboveIx < BarCount AND GP_yover > 0)
+    upAmt = (Close[GP_aboveIx] - GP_yover) / GP_yover;
+
+AddColumn(Close, "Close", 1.3);
+AddColumn(Volume, "Volume", 1.0);
+if (GP_aboveIx > 0 AND GP_aboveIx < BarCount)
+    AddColumn(Close[GP_aboveIx], "CloseOver", 1.3);
+else
+    AddColumn(0, "CloseOver", 1.0);
+AddColumn(GP_yover, "TrendCross", 1.3);
+AddColumn(upAmt*100, "UpPercent", 1.3);
+AddColumn(fit, "LineFit", 1.3);
+
+//--------------------------------------------------------------------------
+//--------------------------------------------------------------------------

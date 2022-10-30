@@ -1,0 +1,118 @@
+_SECTION_BEGIN("CARMILLA v2.1");
+SetChartOptions(0,chartShowArrows|chartShowDates);  
+//Unlike floor pivots,we also call them classic pivots, there is no pivot but 8 levels in Camarilla eq.
+PTF = ParamList("Time Frame",List = "Hourly,4 Hour,Daily,Weekly",2);  
+TF = IIf(PTF == "Hourly",inHourly, IIf(PTF == "4 Hour",inHourly*4, IIf(PTF == "Daily",inDaily, 
+IIf(PTF == "Weekly",inWeekly,0))));
+Today = LastValue(Day());
+Ho =TimeFrameGetPrice( "H", tf, -1, expandFirst) ; 
+Lo = TimeFrameGetPrice( "L", tf, -1, expandFirst) ;
+Co = TimeFrameGetPrice( "C", tf, -1, expandFirst) ;
+
+Range=Ho-Lo;
+
+H4=Co+1.1* RANGE/2 ;    
+H3=Co+1.1*RANGE/4;
+H2=Co+1.1*RANGE/6;
+H1=Co+1.1* RANGE/12;
+
+L1=Co-1.1*RANGE/12;
+L2=Co-1.1*RANGE/6;
+L3=Co-1.1*RANGE/4;
+L4=Co-1.1*RANGE/2;
+
+//I use 2 more levels to take care of gap-ups AND gap downs-
+H5=Co+1.1*range;
+L5=Co-1.1*range;
+Plot(C,"",41,8+16|styleNoLabel);
+Plot(C,"",31,64);
+
+//Plot(IIf(Today == Day(), H5, Null),"", colorDarkGreen,styleDots|styleNoLabel|styleNoRescale );
+Plot(IIf(Today == Day(), H4, Null),"", colorGreen,styleThick|styleNoLabel|styleNoRescale );
+Plot(IIf(Today == Day(), H3, Null),"", colorLime,styleLine|styleNoLabel|styleNoRescale );
+Plot(IIf(Today == Day(), H2, Null),"", colorLime,styleDashed|styleNoLabel|styleNoRescale );
+Plot(IIf(Today == Day(), H1, Null),"", colorOrange,styleLine|styleNoLabel|styleNoRescale );
+
+Plot(IIf(Today == Day(), L1, Null),"", colorRed,styleLine|styleNoLabel|styleNoRescale );
+Plot(IIf(Today == Day(), L2, Null),"", colorLightOrange,styleDashed|styleNoLabel|styleNoRescale );
+Plot(IIf(Today == Day(), L3, Null),"", colorLightOrange,styleLine|styleNoLabel|styleNoRescale );
+Plot(IIf(Today == Day(), L4, Null),"", colorRed,styleThick|styleNoLabel|styleNoRescale );
+//Plot(IIf(Today == Day(), L5, Null),"", colorDarkRed,styleDots|styleNoLabel|styleNoRescale );
+
+Plot(IIf(Today == Day(), HO, Null),"yH",7,8+16);
+
+Plot(IIf(Today == Day(), LO, Null),"yL",7,8+16);
+C11=ParamColor("Text col",colorTan );
+numbars = LastValue(Cum(Status("barvisible")));
+fraction= IIf(StrRight(Name(),3) == "", 3.2, 3.2);
+hts  = Param ("Text Shift", -50,-100,100,10);
+
+PlotText("Y'high = " + WriteVal(Ho,fraction),
+LastValue(BarIndex())-(numbars/hts+30),LastValue (Ho,1) , 7);
+PlotText("Y'low = " + WriteVal(lO,fraction),
+LastValue(BarIndex())-(numbars/hts+30),LastValue (lO,1) , 7);
+
+
+PlotText("H4 = " + WriteVal(h4,fraction),
+LastValue(BarIndex())-(numbars/hts),LastValue (h4,1) , C11);
+PlotText("H3  = " + WriteVal(h3,fraction),
+LastValue(BarIndex())-(numbars/hts),LastValue (h3,1) , C11);
+PlotText("H2  = " + WriteVal(H2,fraction),
+LastValue(BarIndex())-(numbars/hts),LastValue (H2,1) , C11);
+PlotText("H1 = " + WriteVal(H1,fraction),
+LastValue(BarIndex())-(numbars/hts),LastValue (H1,1) , C11);
+
+PlotText("L4 = " + WriteVal(l4,fraction),
+LastValue(BarIndex())-(numbars/hts),LastValue (l4,1) , C11);
+PlotText("L3 = " + WriteVal(l3,fraction),
+LastValue(BarIndex())-(numbars/hts),LastValue (l3,1) ,C11);
+PlotText("L2  = " + WriteVal(L2,fraction),
+LastValue(BarIndex())-(numbars/hts),LastValue (L2,1) , C11);
+PlotText("L1 = " + WriteVal(L1,fraction),
+LastValue(BarIndex())-(numbars/hts),LastValue (L1,1) , C11);
+
+sce0b=Cross(C,L1)OR Cross(C,H1);
+sce1b=Cross(C,L2)OR Cross(C,H2);
+sce2b=Cross(C,L3)OR Cross(C,H3);
+sce3b=Cross(C,L4)OR Cross(C,H4);
+
+sce0s=Cross(L1,C)OR Cross(H1,C);
+sce1s=Cross(L2,C)OR Cross(H2,C);
+sce2s=Cross(L3,C)OR Cross(H3,C);
+sce3s=Cross(L4,C)OR Cross(H4,C);
+
+COND=TimeNum()>101000;
+EXIT=Cross(TimeNum(),152000);
+Buy=COND AND (sce1b OR sce2b OR sce3b OR sce0b) ;
+Sell=COND AND(sce1s OR  sce2s OR sce3s OR sce0s);
+
+PlotShapes(shapeSmallUpTriangle*Buy,colorSeaGreen,0,L,-10);
+PlotShapes(shapeSmallDownTriangle*Sell,colorOrange,0,H,-10);
+
+PlotShapes(shapeDigit0*sce0b,colorSeaGreen,0,L,-10);
+PlotShapes(shapeDigit1*sce1b,colorSeaGreen,0,L,-10);
+PlotShapes(shapeDigit2*sce2b,colorSeaGreen,0,L,-10);
+PlotShapes(shapeDigit3*sce3b,colorSeaGreen,0,L,-10);
+PlotShapes(shapeDigit0*sce0s,colorOrange,0,H,10);
+PlotShapes(shapeDigit1*sce1s,colorOrange,0,H,10);
+PlotShapes(shapeDigit2*sce2s,colorOrange,0,H,10);
+PlotShapes(shapeDigit3*sce3s,colorOrange,0,H,10);
+PlotShapes(shapeCircle*EXIT,colorYellow,0,C,0);
+
+Title = EncodeColor(colorWhite)+ "CARMILLA v1 ("+ptf+")" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"\n" +EncodeColor(colorGreen) +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+
+"Cl-"+C+"  "+ "Vol= "+ WriteVal(V)+"\n\n"+ 
+EncodeColor(colorSeaGreen)+
+WriteIf (sce1b, "BUY  at "+C+"","")+
+WriteIf (sce2b, "BUY  at "+C+"","")+
+WriteIf (sce3b, "BUY  at "+C+"","")+
+EncodeColor(colorOrange)+ 
+WriteIf (sce1s, "SELL  at "+C+"","")+
+WriteIf (sce2s, "SELL  at "+C+"","")+
+WriteIf (sce3s, "SELL  at "+C+"","")+
+
+WriteIf(EXIT,"CLOSE POSITION at "+C+"","");
+
+NewDay = IIf(Day() != Ref(Day(), -1) OR BarIndex() == LastValue(BarIndex()), 1, 0);
+Plot(NewDay, "", 47, 2 + 32768 + 4096, Minvalue = 0, Maxvalue = 1);
+_SECTION_END();

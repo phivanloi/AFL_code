@@ -1,0 +1,78 @@
+_SECTION_BEGIN("shiree FPSR");
+
+// Get Previous Day's close, Low and High
+Prev_Close = TimeFrameGetPrice( "C", inDaily, -1, expandFirst) ;
+Prev_Low = TimeFrameGetPrice( "L", inDaily, -1, expandFirst) ;
+Prev_High = TimeFrameGetPrice( "H", inDaily, -1, expandFirst) ;
+Today = LastValue(Day( ) );
+
+
+//////////////////////////////30 MT STRATEGY /////////////////////////////////////////////////////////////
+BS=(Prev_High-Prev_Low)/3;
+
+
+Y=R30=Prev_Close+BS;
+X=S30=Prev_Close-BS;
+
+BSColor = colorBlue;
+//Plot(X,"",colorBlue,styleThick|styleNoLabel);
+//Plot(Y,"",colorBlue,styleThick|styleNoLabel);
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorPink ), styleNoTitle | styleCandle|styleNoLabel); 
+Show_Prev = ParamToggle( "Display Pivots", "No|Yes", 1);
+////////////////////// FPSR AS BUNCH OF LINES/////////////////////////////////////////////////////////////
+XY=Y-X;
+Z1=X+0.005*XY;
+Z2=X+0.01*XY;
+Z3=X+0.015*XY;
+Z4=X+0.02*XY;
+Z5=X+0.025*XY;
+Z6=X+0.03*XY;
+Z7=X+0.035*XY;
+Z8=X+0.04*XY;
+Z9=X+0.045*XY;
+Z0=X+0.05*XY;
+Z11=Y-0.005*XY;
+Z12=Y-0.01*XY;
+Z13=Y-0.015*XY;
+Z14=Y-0.02*XY;
+Z15=Y-0.025*XY;
+Z16=Y-0.03*XY;
+Z17=Y-0.035*XY;
+Z18=Y-0.04*XY;
+Z19=Y-0.045*XY;
+Z20=Y-0.05*XY;
+
+
+//ColorR=ColorRGB(150,20,100);
+ColorXY=ParamColor("XY", colorYellow);
+////////////////////////////////////////////////////////////////////////////
+if(Show_Prev)
+{
+Plot(IIf(Today == Day(),Z1, Null), "Z1", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z2, Null),"Z2", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z3, Null),"Z3", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z4, Null),"Z4", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z5, Null),"Z5", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z6, Null),"Z6", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z7, Null),"Z7", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z8, Null),"Z8", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z9, Null),"Z9", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z0, Null),"Z0", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+
+Plot(IIf(Today == Day(),Z11, Null),"Z11", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z12, Null),"Z12", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z13, Null),"Z13", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z14, Null),"Z14", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z15, Null),"Z15", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z16, Null),"Z16", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z17, Null),"Z17", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z18, Null),"Z18", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z19, Null),"Z19", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),Z20, Null),"Z20", ColorXY,styleLine|styleThick|styleNoRescale|styleNoLabel);}
+
+_SECTION_END();

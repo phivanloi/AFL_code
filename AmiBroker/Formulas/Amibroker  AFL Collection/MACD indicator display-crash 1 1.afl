@@ -1,0 +1,15 @@
+_SECTION_BEGIN("MACD indicator display");
+r1 = Param( "Fast avg", 12, 2, 200, 1 ); 
+r2 = Param( "Slow avg", 26, 2, 200, 1 ); 
+r3 = Param( "Signal avg", 9, 2, 200, 1 ); 
+
+mm = MACD(r1, r2); 
+ms = Signal(r1, r2, r3); 
+mh = mm-ms; 
+mc = IIf(mh>Ref(mh,-1),IIf(mh > 0,27,41),IIf(mh > 0,43,32)); 
+
+Plot(mm,StrFormat(_SECTION_NAME()+"(%g,%g)", r1 ,r2),12,4); 
+Plot(ms," Signal" + _PARAM_VALUES(),11); 
+Plot(mh,"MACDHistogram",mc,6|styleNoTitle|32768|4096); 
+Plot(mh,"MACDHistogram",mc,5|styleNoTitle|32768|4096); 
+_SECTION_END();

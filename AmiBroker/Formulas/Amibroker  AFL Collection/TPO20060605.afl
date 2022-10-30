@@ -1,0 +1,870 @@
+_SECTION_BEGIN("TPO20060605");
+
+Version(4.77);
+
+
+
+//Edit starttime and endTradingday===================================================
+
+starttime=093000;
+endTradingday=161500;
+
+//===================================================================================
+
+
+SetChartBkColor(ParamColor("Chart Background",colorLightYellow));
+
+Plot(C,"",ParamColor("Bar colour",colorLightGrey),styleBar);
+
+SetBarsRequired(11000,11000);
+
+function Slot(price,tick)
+{
+// used in Market Profile for allocating the right price slot
+result=floor(price/tick)*tick;
+  return result;
+}
+
+procedure BarIndexvalue(starttime,endtime,endTradingDay,Maxdays)
+{
+SetBarsRequired(10000,-1);
+
+global endbar;
+global startbar;
+global startdate;
+global enddate;
+
+
+Trading_day=IIf(Now(4)>=starttime AND Now(4)<=endTradingDay AND Now(9) != 7 AND Now(9)!= 1,1,0); 
+TimeFrameSet(inDaily);
+startdate=LastValue(Ref(DateNum(),-Maxdays));
+enddate=ValueWhen(TimeNum()==endtime,DateNum(),1);
+enddate=LastValue(enddate);
+TimeFrameRestore();
+startdate=TimeFrameExpand(startdate,inDaily);
+enddate=TimeFrameExpand(enddate,inDaily);
+startbar=LastValue(ValueWhen(DateNum()==startdate AND TimeNum()==starttime,BarIndex(),1));
+endbar=LastValue(ValueWhen(DateNum()==enddate AND TimeNum()==endtime,BarIndex(),1));
+
+}
+
+TPOtoday=ParamToggle("TPO for current day","Off|On",0);
+TPOHistorical=ParamToggle("TPO: completed trading days", "Off | 1 m..3m..5 m..and 15 m");
+TPOdisplay=ParamToggle("TPO display", "Default | +",0);
+Maxdays=Param("TPO...V x P: Up to 22 days ago", 3,3,22,1); //TPO Calculated AND Plotted
+VP_currentDay =ParamToggle("V x P real time","Off | On; better used on 1m chart",0);
+MaxVPdays=Param("V x P real time: number of days",1,1,10,1);
+Volume_Profile =ParamToggle("V x P to 22 days ago.","Off. Always off during mkt hours | On. Do a scan first",0);
+Volume_Text=ParamToggle("V x P analysis","Off. Always off during mkt hours  | On; Do a scan first",0);
+histowidth=Param("Histogram scaling",1500,500,5000,100);
+
+
+if(TPOdisplay==0)
+{
+TPOtext= "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`~!@#$%^&*()_+][}{;:.<>\|0" ;
+TPOcolor=colorBlack;
+}
+else
+{
+TPOtext= "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" ;
+TPOcolor=colorGreen;
+}
+
+TPOVOlume=">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
+
+
+MaxdaysVolProfile=23;	//Calculated elsewhere and retrieved
+
+Lo=999999;
+Hi=0;
+SetInterval=2;
+
+
+endtime=161500-(Interval()/60)*100;
+endtime30m=endTradingday-1500;
+PeakTPOLength=0;
+PeakTPOrow=0;
+
+
+Hiday=0;
+Loday=999999;
+
+Tick=IIf(Name()=="ES #F" OR Name()=="NQ #F", 0.25,IIf(Name()=="YM #F", 2.5,IIf(Name()=="AB #F", 20,1.0)));
+
+Trading_day=IIf(Now(4)>=starttime AND Now(4)<=endTradingDay AND Now(9) !=7 AND Now(9)!= 1,1,0); 
+Trading_day=LastValue(Trading_day);
+
+
+TimeFrameSet(inDaily);
+z=EndValue(BarIndex());
+hi=H;
+Lo=L;
+if(Trading_day==1)
+	{
+		Hi[z]=H[z-1];
+		Lo[z]=L[z-1];
+	}
+TimeFrameRestore();
+Hi=TimeFrameExpand(Hi,inDaily, expandFirst);
+Lo=TimeFrameExpand(Lo,inDaily, expandFirst);
+
+	
+firstbar=TimeNum()==starttime;
+
+BarInt=Interval()/60;
+Title=Name()+ " " + Interval()/60 +"m"+" " +"Y_High" + " " + Hi+ " " + "Y_Low"+ " " + Lo+" " + "Open: "+O+" " +"High: " +H+" " +"Low: "+L+" " +"Close: " +C;
+
+HiLo=ParamToggle("Hi Lo"," Off|On ",0);
+if(HiLo==1)
+{
+Plot(Hi,"Y_High",colorBlue, styleStaircase| styleThick ); 
+Plot(Lo,"Y_Low",colorRed, styleStaircase| styleThick ); 
+//Plot(Cv,"Y_C",11,styleLine | styleNoRescale);
+}
+
+Firstbarofday=ParamToggle("Show First bar of day", " No|Yes ",0);
+if(Firstbarofday==1)
+	{
+		Plot(IIf(Trading_day==1,Null,firstbar),"",colorViolet,styleArea | styleOwnScale | styleNoRescale);
+	}
+BarIndexvalue(starttime,endtime,endTradingDay,Maxdays);
+
+ntime=TimeNum();
+ndate=DateNum();
+
+TimeFrameSet(inDaily);
+z=EndValue(BarIndex());
+maxprice=(ceil(HHV(H,maxdays+1))/tick)*tick; 
+minprice=(floor(LLV(L,Maxdays+1))/tick)*tick;
+if(Trading_day==1)
+	{
+		Maxprice[z]=Maxprice[z-1];
+		Minprice[z]=Minprice[z-1];
+	}
+
+TimeFrameRestore();
+Maxprice=LastValue(TimeFrameExpand(Maxprice,inDaily,expandFirst));
+Minprice=LastValue(TimeFrameExpand(Minprice,inDaily, expandFirst));
+
+
+numprices=LastValue((maxprice-minprice)/tick+1);
+
+
+if(TPOHistorical==1)
+{
+
+TPOTimeFrame=Setinterval*in15Minute;
+
+TimeFrameSet(TPOTimeFRame);
+Hi30m=H;
+Lo30m=L;
+BarID30m=BarsSince(Day() != Ref(Day(),-1));
+Maxnumbar30m=LastValue(HHV(BarID30m,721));
+TimeFrameRestore();
+Hi30m=TimeFrameExpand(Hi30m,TPOTimeFrame, expandFirst);
+Lo30m=TimeFrameExpand(Lo30m,TPOTimeFrame, expandFirst);
+Maxnumbar30m=TimeFrameExpand(Maxnumbar30m,TPOTimeFrame);
+BarID30m=TimeFrameExpand(BarId30m,TPOTimeFrame,expandFirst);
+
+
+
+
+osInitialize();
+TPO=osTabCreate();
+	
+
+osTabAddColumn("Price",1,TPO);
+
+for (i=1; i<=Maxdays+1; i++)
+	{
+		osTabAddColumn("day" + NumToStr(i,1.0),2,TPO,88);
+	}
+
+for (i=0; i<numprices; i++)
+	{	
+			for (j=1;j<=Maxdays+1; j++)
+			{
+				osTabSetString("" ,i,j,TPO);
+								
+			}
+	}
+	
+
+
+//setup prices in column 1 
+    i=0;
+	j=Maxprice;
+	while (j>=Minprice)
+		{  
+			osTabSetNumber(j,i,0,TPO);
+			j=j-tick;
+          i=i+1;
+		}      
+
+nday=Maxdays+1;
+it=1; 
+
+
+
+for (barid=startbar; barid<=endbar; barid++)
+			{
+									
+			if( ndate[barid]>ndate[barid-1] AND it != 1) 
+
+					{	
+						
+						nday=nday-1;
+					}
+
+					it=it+1;	
+						
+					if(ntime[barid]>=starttime AND ntime[barid]<=endtime AND barid30m[barid] != barid30m[barid-1]  )
+						{
+						 
+						numstick=(slot(Hi30m[barid],tick)-slot(Lo30m[barid],tick))/tick+1;
+							Hi=slot(Hi30m[barid],tick);
+							Lo=slot(Lo30m[barid],tick);
+																
+							j=Hi;
+							while(j>=Lo)
+								{
+									row=(Maxprice-j)/tick;
+									CellTPO=osTabGet(row,nday,TPO);
+									y=BarID30m[barid];
+									TPOSubset=	StrMid(TPOtext,y,1);
+									CellTPO=CellTPO+ TPOSubset;
+									
+									osTabSetString(CellTPO,row,nday,TPO);
+										if (StrLen(CellTPO)>PeakTPOLength[nday] )
+										 { 
+												PeakTPOLength[nday] = StrLen(CellTPO); 
+												PeakTPOrow[nday]=row;
+										 }
+										
+											
+									j=j-tick;
+								}
+						
+						}	
+						if(nday<=Maxdays) 
+							{ 
+								//TPOLength=PeakTPOLength[nday];
+							 	TPOprice[nday]=osTabGet(PeakTPOrow[nday],0,TPO); 
+							}
+						if (Lo<LoDay[nday])
+										 { 
+												LoDay[nday] = Lo; 
+												MinRow[nday]=(Maxprice-Lo)/tick;
+
+										 }
+						if (Hi>HiDay[nday])
+										 { 
+												HiDay[nday] = Hi; 
+												Maxrow[nday]=(Maxprice-Hi)/tick;
+										 }
+						
+
+			}
+
+
+ntime=TimeNum();
+
+ndate=DateNum();
+nday=Maxdays+1;
+
+
+it=1; 
+for (barid=startbar; barid<endbar-1; barid++)
+			{
+					
+				
+			if( ndate[barid]>ndate[barid-1] AND it != 1) 
+
+					{	
+						
+						nday=nday-1;
+						
+					}
+					it=it+1;	
+					
+				
+
+
+
+				
+			  if (ntime[barid] == 111500)
+				{
+					for (i=0; i<numprices; i++)
+						{		  
+							Text=osTabGet(i,nday,TPO);
+							price=osTabGet(i,0,TPO);
+							if(StrLen(Text)==PeakTPOLength[nday]) {Text=Text+"  <<";}
+							PlotText(Text,barid,price,TPOcolor);
+									
+						}
+				}
+				
+
+		}
+
+
+
+
+
+osTabDelete(TPO);
+}
+MaxdaysVolProfile=23;
+
+
+if((Volume_Profile==1 OR Volume_Text==1) AND trading_day==0)
+{
+pricetable=osTabCreate();
+
+	
+		osTabAddColumn("Prices",1,pricetable);
+
+		osTabAddColumn("day0",1,Pricetable);
+
+
+
+
+	for (i=1; i<=MaxdaysVolProfile; i++)
+	{
+		osTabAddColumn("day" + NumToStr(i,1.0),1,pricetable);
+		
+	}
+
+osTabImport("pricetable.txt",",",pricetable);
+//osTabExport("pricetest.txt",",",pricetable);
+
+
+
+
+SetForeign("~Volume_Profile");
+Openprice=O;
+Closeprice=C;
+POC=H;
+VWAP=floor(L)+round(frac(L)/tick)*tick;
+VolumeAbovePOC=V;
+RestorePriceArrays();
+
+SetForeign("~Volume_Profile_2");
+UVAvol=O;
+LVAVol=C;
+ExactTreshold=H;
+VolumeBelowPOC=V;
+Peakvol=OI;
+RestorePriceArrays();
+printf("Volume above POC  "); printf(NumToStr(VolumeAbovePOC,1.3));
+printf("\n");
+printf("Volume below POC  "); printf("\n");
+printf(NumToStr(VolumeBelowPOC,1.3));
+printf("\n");
+printf("Exact Treshold");
+printf("\n");
+printf(NumToStr(ExactTreshold ,1.3));
+printf("\n");
+printf("Peak Volume");
+printf("\n");
+printf(NumToStr(Peakvol ,1.3));
+printf("\n");
+printf("POC ");
+printf(NumToStr(POC,1.2));
+printf("\n");
+printf("UVA ");
+printf(NumToStr(UVAVol,1.2));
+printf("\n");
+printf("LVA ");
+printf(NumToStr(LVAVol,1.2));
+printf("\n");
+printf("VWAP ");
+printf(NumToStr(VWAP,1.2));
+
+PlotShapes(IIf(TimeNum()==starttime,shapeSquare,shapeNone),colorYellow,0,O,0);
+PlotShapes(IIf(TimeNum()==endtime,shapeStar,shapeNone),colorViolet,0,C,0);
+
+
+
+nday=Maxdays+1;
+
+TimeFrameSet(inDaily);
+z=EndValue(BarIndex());
+maxprice=(ceil(HHV(H,MaxdaysVolProfile))/tick)*tick; 
+minprice=(floor(LLV(L,MaxdaysVolProfile))/tick)*tick;
+if(Trading_day==1)
+	{
+		Maxprice[z]=Maxprice[z-1];
+		Minprice[z]=Minprice[z-1];
+	}
+
+TimeFrameRestore();
+Maxprice=LastValue(TimeFrameExpand(Maxprice,inDaily,expandFirst));
+Minprice=LastValue(TimeFrameExpand(Minprice,inDaily, expandFirst));
+
+
+
+numprices=LastValue((maxprice-minprice)/tick+1);
+
+it=1; 
+if(Volume_Text==1)
+{
+for (barid=startbar; barid<=endbar; barid++)
+			{
+				
+				
+			if( ndate[barid]>ndate[barid-1] AND it != 1) 
+				
+
+					{	
+						
+						nday=nday-1;
+						
+					}
+					it=it+1;	
+					
+				
+			
+
+
+			
+				
+			  if (ntime[barid] == 094500)
+				{
+					for (i=0; i<numprices; i++)
+						{		  
+							
+							
+							Text=NumToStr(osTabGet(i,nday,pricetable),1.0);
+							price=osTabGet(i,0,pricetable);
+							if(price==POC[barid]) 
+								{
+									Colorbkgnd=colorAqua;
+								} 
+							else 
+								{ 
+									
+									if(price==VWAP[barid]) 
+										{
+											Colorbkgnd=colorYellow;
+										}
+									 else 	
+										{
+											if(price==UVAvol[barid] OR price==LVAvol[barid]) 
+											{
+												colorbkgnd=ColorRGB(255,0,255);
+											}
+											else
+											{ 
+												Colorbkgnd=colorWhite;
+											}
+										}
+								}
+					
+							  if(text !="0") {PlotText(Text,barid,price,colorBlack,colorbkgnd);}
+														
+						}
+				}
+				if (ntime[barid] == 103000)
+				{
+					
+				
+					for (i=0; i<numprices; i++)
+						{		  
+							if(nday%2) {Color=colorBlue;} else {Color=colorRed;}
+							Text=osTabGet(i,nday,PriceTable);
+							text=round(Text/(histowidth));
+							if(text>110) {text=110;}
+							Text=StrMid(TPOVolume,0,text);
+							price=osTabGet(i,0,PriceTable);
+							PlotText(Text,barid,price,color);
+									
+						}
+				
+
+				}
+
+
+
+		}
+}
+else
+{
+
+for (barid=startbar; barid<=endbar; barid++)
+			{
+				
+				
+			if( ndate[barid]>ndate[barid-1] AND it != 1) 
+				
+
+					{	
+						
+						nday=nday-1;
+						
+					}
+					it=it+1;	
+					
+				
+			
+
+
+			
+				
+			  if (ntime[barid] == 093000)
+				{
+					
+				
+					for (i=0; i<numprices; i++)
+						{		  
+							
+							Text=osTabGet(i,nday,PriceTable);
+							if(nday%2) {Color=colorBlue;} else {Color=colorRed;}
+							text=round(Text/histowidth);
+							if(text>110) {text=110;}
+							Text=StrMid(TPOVolume,0,text);
+							price=osTabGet(i,0,PriceTable);
+							PlotText(Text,barid,price,color);
+									
+						}
+				
+
+				}
+				
+
+		}
+
+
+}
+
+
+osTabDelete(pricetable);
+
+}
+
+if (TPOtoday==1)
+{
+
+TimeFrameSet(inDaily);
+maxprice=(ceil(HHV(H,maxdays+1))/tick)*tick; 
+minprice=(floor(LLV(L,Maxdays+1))/tick)*tick;
+TimeFrameRestore();
+Maxprice=LastValue(TimeFrameExpand(Maxprice,inDaily,expandFirst));
+Minprice=LastValue(TimeFrameExpand(Minprice,inDaily, expandFirst));
+
+
+numprices=LastValue((maxprice-minprice)/tick+1);
+
+
+
+
+
+TPOTimeFrame=Setinterval*in15Minute;
+
+TimeFrameSet(TPOTimeFRame);
+Hi30m=H;
+Lo30m=L;
+BarID30m=BarsSince(TimeNum()<Ref(TimeNum(),-1)); 
+Maxnumbar30m=LastValue(HHV(BarID30m,721));
+TimeFrameRestore();
+Hi30m=TimeFrameExpand(Hi30m,TPOTimeFrame, expandFirst);
+Lo30m=TimeFrameExpand(Lo30m,TPOTimeFrame, expandFirst);
+Maxnumbar30m=TimeFrameExpand(Maxnumbar30m,TPOTimeFrame);
+BarID30m=TimeFrameExpand(BarId30m,TPOTimeFrame,expandFirst);
+
+ntime=TimeNum();
+
+
+osInitialize();
+TPO1day=osTabCreate();
+	
+
+osTabAddColumn("Price",1,TPO1day);
+osTabAddColumn("day0",2,TPO1day,88);
+
+for (i=0; i<numprices; i++)
+	{	
+  		osTabSetString("" ,i,1,TPO1day);
+	}
+	
+
+
+//setup prices in column 1 
+    i=0;
+	j=Maxprice;
+	while (j>=Minprice)
+		{  
+			osTabSetNumber(j,i,0,TPO1day);
+			j=j-tick;
+          i=i+1;
+		}      
+
+nday=1;
+
+ndate=DateNum();
+endbar=LastValue(BarIndex());
+startbar=LastValue(ValueWhen(TimeNum()==starttime,BarIndex(),1));
+
+for (barid=startbar; barid<=endbar; barid++)
+			{
+									
+				if(ntime[barid]>=starttime AND ntime[barid]<=endtime AND barid30m[barid] != barid30m[barid-1]  )
+						{
+						 
+						numstick=(slot(Hi30m[barid],tick)-slot(Lo30m[barid],tick))/tick+1;
+							Hi=slot(Hi30m[barid],tick);
+							Lo=slot(Lo30m[barid],tick);
+																
+							j=Hi;
+							while(j>=Lo)
+								{
+									row=(Maxprice-j)/tick;
+									CellTPO=osTabGet(row,nday,TPO1day);
+									y=BarID30m[barid];
+									TPOSubset=	StrMid(TPOtext,y,1);
+									CellTPO=CellTPO+ TPOSubset;
+									
+									osTabSetString(CellTPO,row,nday,TPO1day);
+																				
+									j=j-tick;
+								}
+						
+						}	
+							
+
+			}
+
+
+//osTabExport("TPO1day.txt",",",TPO1day);
+
+for (barid=startbar; barid<endbar-1; barid++)
+			{
+					
+				if (ntime[barid] == 093000)
+				{
+					for (i=0; i<numprices; i++)
+						{		  
+							
+							Text=osTabGet(i,nday,TPO1day);
+							price=osTabGet(i,0,TPO1day);
+							PlotText(Text,barid,price,colorBlue);
+									
+						}
+				}
+				
+
+		}
+
+
+
+
+osTabDelete(TPO1day);
+
+}
+Previous_Values=ParamToggle("Previous values","Off | On; Do scan first",0);
+if(Previous_values==1)
+{
+SetForeign("~Volume_Profile");
+//Openprice=TimeFrameGetPrice("O",inDaily,-1);
+//Closeprice=TimeFrameGetPrice("C",inDaily,-1);
+POC=TimeFrameGetPrice("H",inDaily,-1);
+L=floor(L)+round(frac(L)/tick)*tick;
+VWAP=TimeFrameGetPrice("L",inDaily,-1);
+VolumeAbovePOC=TimeFrameGetPrice("V",inDaily,-1);
+RestorePriceArrays();
+
+SetForeign("~Volume_Profile_2");
+UVAvol=TimeFrameGetPrice("O",inDaily,-1);
+LVAVol=TimeFrameGetPrice("C",inDaily,-1);
+ExactTreshold=TimeFrameGetPrice("H",inDaily,-1);
+VolumeBelowPOC=TimeFrameGetPrice("V",inDaily,-1);
+Peakvol=TimeFrameGetPrice("I",inDaily,-1);
+RestorePriceArrays();
+UVAvol=IIf(UVAvol==0,Null,UVAvol);
+LVAvol=IIf(LVAvol==0,Null,LVAvol);
+POC=IIf(POC==0,Null,POC);
+VWAP=IIf(VWAP==0,Null,VWAP);
+
+Plot(UVAvol,"UVA",11,styleDots | styleNoRescale);
+Plot(LVAvol,"LVA",11,styleDots | styleNoRescale);
+Plot(POC,"POC",colorTurquoise,styleDots | styleNoRescale);
+Plot(VWAP,"VWAP",colorGreen,styleDots | styleNoRescale);
+PlotShapes(IIf(TimeNum()==starttime,shapeSquare,shapeNone),colorYellow,0,O,0);
+PlotShapes(IIf(TimeNum()==endtime,shapeStar,shapeNone),colorViolet,0,C,0);
+
+}
+Latest_Values=ParamToggle("Current values","Off | On; Do a scan first",0);
+if(Latest_values==1)
+{
+SetForeign("~Volume_Profile");
+//Openprice=TimeFrameGetPrice("O",inDaily,0);
+//Closeprice=TimeFrameGetPrice("C",inDaily,0);
+POC=TimeFrameGetPrice("H",inDaily,0);
+L=floor(L)+round(frac(L)/tick)*tick;
+VWAP=TimeFrameGetPrice("L",inDaily,0);
+VolumeAbovePOC=TimeFrameGetPrice("V",inDaily,0);
+RestorePriceArrays();
+
+SetForeign("~Volume_Profile_2");
+UVAvol=TimeFrameGetPrice("O",inDaily,0);
+LVAVol=TimeFrameGetPrice("C",inDaily,0);
+ExactTreshold=TimeFrameGetPrice("H",inDaily,0);
+VolumeBelowPOC=TimeFrameGetPrice("V",inDaily,0);
+Peakvol=TimeFrameGetPrice("I",inDaily,0);
+RestorePriceArrays();
+
+UVAvol=IIf(UVAvol==0,Null,UVAvol);
+LVAvol=IIf(LVAvol==0,Null,LVAvol);
+POC=IIf(POC==0,Null,POC);
+VWAP=IIf(VWAP==0,Null,VWAP);
+
+
+Plot(UVAvol,"UVA",11,styleDots | styleNoRescale);
+Plot(LVAvol,"LVA",11,styleDots | styleNoRescale);
+Plot(POC,"POC",colorTurquoise,styleDots | styleNoRescale);
+Plot(VWAP,"VWAP",colorGreen,styleDots | styleNoRescale);
+PlotShapes(IIf(TimeNum()==starttime,shapeSquare,shapeNone),colorYellow,0,O,0);
+PlotShapes(IIf(TimeNum()==endtime,shapeStar,shapeNone),colorViolet,0,C,0);
+
+}
+
+
+
+if(VP_currentDay==1 )
+{
+
+
+
+TimeFrameSet(inDaily);
+z=EndValue(BarIndex());
+maxprice=(ceil(HHV(H,MaxVPdays+1))/tick)*tick; 
+minprice=(floor(LLV(L,MaxVPdays+1))/tick)*tick;
+TimeFrameRestore();
+Maxprice=LastValue(TimeFrameExpand(Maxprice,inDaily,expandFirst));
+Minprice=LastValue(TimeFrameExpand(Minprice,inDaily, expandFirst));
+
+numprices=LastValue((maxprice-minprice)/tick+1);
+
+osInitialize();
+
+
+	PriceTable2=osTabCreate();
+	osTabAddColumn("Prices",1,PriceTable2);
+		
+
+	for (i=1;i<=maxVPdays;i++)
+	{
+		osTabAddColumn("day" + NumToStr(i,1.0),1,PriceTable2);
+	}
+
+	for (i=0; i<numprices; i++)
+	{	
+			for (j=1;j<=MaxVPdays; j++)
+			{
+				osTabSetNumber(0,i,j,PriceTable2);
+			}
+	}
+ //setup prices in column 1 
+    i=0;
+	j=Maxprice;
+	while (j>=Minprice )
+		{  
+			osTabSetNumber(j,i,0,PriceTable2);
+			j=j-tick;
+          i=i+1;
+		}      
+TimeFrameSet(in1Minute);
+
+
+ndate=DateNum();
+endbar=LastValue(BarIndex());
+startbar=LastValue(ValueWhen(TimeNum()==starttime,BarIndex(),MaxVPdays));
+
+ndate=DateNum();
+nday=MaxVPdays;
+it=1; 
+
+		for (barid=startbar; barid<=endbar; barid++)
+			{
+					
+				if( ndate[barid]>ndate[barid-1] AND it != 1) 
+
+					{	
+						nday=nday-1;
+					}
+					
+
+					it=it+1;	
+						
+						numstick=(slot(H[barid],tick)-slot(L[barid],tick))/tick+1;
+							Vol=V[barid]/numstick;
+							Hi=slot(H[barid],tick);
+							Lo=slot(L[barid],tick);
+
+							
+							
+							j=Hi;
+							while(j>=Lo)
+								{
+									row=(Maxprice-j)/tick;
+									Cellvol=osTabGet(row,nday,PriceTable2);
+									Cellvol=Cellvol+Vol;
+									osTabSetNumber(Cellvol,row,nday,PriceTable2);
+									j=j-tick;
+								}
+						
+						
+						
+			}
+
+numprices=LastValue((maxprice-minprice)/tick+1);
+it=1;
+nday=MaxVPdays;
+
+for (barid=startbar; barid<=endbar; barid++)
+			{
+				
+				
+			if( ndate[barid]>ndate[barid-1] AND it != 1) 
+				
+
+					{	
+						
+						nday=nday-1;
+						
+					}
+					it=it+1;	
+					
+				
+			
+
+
+			
+				
+			  if (ntime[barid] == 093000)
+				{
+					
+				
+					for (i=0; i<numprices; i++)
+						{		  
+							if(nday%2) {Color=colorGreen;} else {Color=colorRed;}
+							Text=osTabGet(i,nday,PriceTable2);
+							text=round(Text/histowidth);
+							if(text>110) {text=110;}
+							Text=StrMid(TPOVolume,0,text);
+							price=osTabGet(i,0,PriceTable2);
+							PlotText(Text,barid,price,color);
+									
+						}
+				
+
+				}
+				
+
+		}
+
+osTabDelete(PriceTable2);
+}
+
+
+
+_SECTION_END();

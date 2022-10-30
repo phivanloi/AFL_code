@@ -1,0 +1,3 @@
+LinRegO = (LinearReg(C,13)/Ref(LinearReg(C,13),-13))-1;
+
+Plot( LinRegO , "LinReg Oscillator", ParamColor("color", colorCycle ), ParamStyle("Style") );

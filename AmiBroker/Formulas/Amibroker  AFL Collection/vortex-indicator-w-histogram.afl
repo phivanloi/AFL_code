@@ -1,0 +1,29 @@
+// Vortex Indicator 
+// S&C Traders Tips Jan 2010 
+period = Param("Period", 14, 2 ); 
+
+VMP = Sum( abs( H - Ref( L, -1 ) ), period ); 
+VMM = Sum( abs( L - Ref( H, -1 ) ), period ); 
+STR = Sum( ATR( 1 ), period ); 
+
+VIP = VMP / STR; 
+VIM = VMM / STR; 
+
+//Plot( VIP, "VI"+period+"+", colorBlue); 
+//Plot( VIM, "VI"+period+"-", colorRed );
+
+
+Hist      = VIP - VIM;
+HistPrev  = Ref(Hist,-1);
+
+Color = IIf(Hist>HistPrev,colorBrightGreen,IIf(hist<HistPrev,colorRed,colorAqua));
+
+Plot( Hist*1.02, "", color, styleDots+styleNoLine+styleNoLabel);
+Plot( Hist*1.01, "", color, styleDots+styleNoLine+styleNoLabel);
+
+Plot(0.0,"",colorBlack,styleLine,styleThick);
+
+Color = IIf(Hist>0,colorBrightGreen,IIf(hist<0,colorRed,colorBlue));
+
+
+Plot( Hist, "", color, styleHistogram+styleOwnScale+styleThick );

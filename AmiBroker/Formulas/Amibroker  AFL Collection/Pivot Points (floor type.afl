@@ -1,0 +1,35 @@
+/*Pivot Points (floor type)*/
+
+/*Graph section*/
+pp=((H+L+C)/3);
+r1=((2*pp)-L);
+r2=(pp+(H-L));
+r3=(H+(2*(pp-L)));
+s1=((2*pp)-H);
+s2=((pp-H)+L);
+s3=(L-(2*(H-pp)));
+Plot(pp,"Pivot point",ParamColor("Pivot Point",colorGold),styleNoLine);
+Plot(r1,"R1",ParamColor("R1",colorRed),styleDots+styleNoLine);
+Plot(r2,"R2",ParamColor("R2",colorRed),styleDots+styleNoLine);
+Plot(r3,"R3",ParamColor("R3",colorRed),styleDots+styleNoLine);
+Plot(s1,"S1",ParamColor("S1",colorLime),styleDots+styleNoLine);
+Plot(s2,"S2",ParamColor("S2",colorLime),styleDots+styleNoLine);
+Plot(s2,"S2",ParamColor("S3",colorLime),styleDots+styleNoLine);
+
+/*Exploration section*/
+Filter=V>0;
+AddColumn(r3,"R3",1.2,colorBlack,colorGold);
+AddColumn(r2,"R2",1.2,colorBlack,colorGold);
+AddColumn(r1,"R1",1.2,colorBlack,colorGold);
+AddColumn(pp,"Pivot",1.2,colorBlack,colorLavender);
+AddColumn(s1,"S1",1.2,colorBlack,colorLime);
+AddColumn(s2,"S2",1.2,colorBlack,colorLime);
+AddColumn(s3,"S3",1.2,colorBlack,colorLime);
+
+/*
+
+Usage Notes:
+1. To overlay the pivot point and support/resistance levels over price chart, just drag and drop.
+2. To calculate pivot point and support/resistance levels in a tabulated form, just run an exploration. 
+
+*/

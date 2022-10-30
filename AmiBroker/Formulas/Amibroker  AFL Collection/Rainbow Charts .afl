@@ -1,0 +1,33 @@
+/* Rainbow Charts */
+/* July 1997 TASC Traders Tips*/
+/* coded by Anthony Faragasso*/
+
+MaxGraph = 15;
+
+Graph0 = Close;
+Graph1 = MA(C,2);
+Graph2 = MA(MA(C,2),2);
+Graph3 = MA(MA(MA(C,2),2),2);
+Graph4 = MA(MA(MA(MA(C,2),2),2),2);
+Graph5 = MA(MA(MA(MA(MA(C,2),2),2),2),2);
+Graph6 = MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2);
+Graph7 = MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2);
+Graph8 = MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2),2);
+Graph9 = MA(MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2),2),2);
+Graph10 = MA(MA(MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2),2),2),2);
+
+Graph0Style =128;
+Graph1Style=Graph2Style=Graph3Style=Graph4Style=Graph5Style=Graph6Style=Graph7Style=Graph8Style=Graph9Style=Graph10Style = 1;
+Graph0Color = 2;
+Graph1Color = 3;
+Graph2Color = 5;
+Graph3Color =7;
+Graph4Color = 6;
+Graph5Color =15;
+Graph6Color = 8;
+Graph7Color =16;
+Graph8Color = 10;
+Graph9Color = 11;
+Graph10Color = 12;
+
+Title=Name() + "  Rainbow Charts " + " Today's Close : " +"(" +WriteVal(Close,format=1.2)+")" +" Change from Previous : " +"("+WriteVal(Close - Ref(Close,-1)) +")";

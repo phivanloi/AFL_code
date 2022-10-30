@@ -1,0 +1,6 @@
+Combo = E_TSKPCOMBO(Open,High,Low,Close,Volume);
+PlotShapes( 
+IIf( Combo>0, shapeUpArrow, IIf(combo<0,shapeDownArrow,shapeNone)), 
+IIf(combo>0,colorBlue,colorRed),
+0,
+IIf( Combo>0, Low, High ) ); 

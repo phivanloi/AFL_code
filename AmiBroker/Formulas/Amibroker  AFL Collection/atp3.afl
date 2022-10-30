@@ -1,0 +1,22 @@
+DayChange = Day() != Ref(Day(), -1);
+AvgTradePrice = Null;
+CurDayBars = 0;
+CurDayCloseSum = 0;
+
+for (i = 0; i < BarCount; i++)
+{
+        if (DayChange[i])
+        {
+                CurDayCloseSum = C[i];
+                CurDayBars = 1;
+        }
+        else
+        {
+                CurDayCloseSum = CurDayCloseSum + C[i];
+                CurDayBars++;           
+        }
+        AvgTradePrice[i] = CurDayCloseSum / CurDayBars; 
+}
+Plot(C,"",IIf(C>O,colorRed,colorGreen),styleCandle);
+Plot(AvgTradePrice, "AvgTradePrice", 10, 1);
+PlotShapes(shapeCircle * DayChange, colorBlue, 0, C, 0);

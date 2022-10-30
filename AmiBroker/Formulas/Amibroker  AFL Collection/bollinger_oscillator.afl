@@ -1,0 +1,3 @@
+/* Bollinger Oscillator	*/
+
+Graph0 = ( Close - MA( Close, 14 ) )/ StDev( Close, 14); 

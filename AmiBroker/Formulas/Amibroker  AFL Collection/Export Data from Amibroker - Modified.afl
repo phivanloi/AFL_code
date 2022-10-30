@@ -1,0 +1,37 @@
+fmkdir( "C:\\SaveData" );
+//Buy = ( (DateNum() >= 1001225) AND (DateNum() <= 1060716) );
+//if we want to oexport data for a single Day, we modify the Second line like this
+Buy = ( (DateNum() == 1070129));
+
+for( i = 0; i < BarCount; i++ )
+if( Buy[i] )
+{
+  fh = fopen( "C:\\SaveData\\"+Name()+".csv", "a"); 
+  if( fh ) 
+   { 
+     y = Year(); 
+     m = Month(); 
+     d = Day(); 
+     r = Hour();
+     e = Minute();
+   
+   for( i = 0; i < BarCount; i++ )
+   if( Buy[i] )
+
+   { 
+      fputs( Name() + "," , fh );
+      ds = StrFormat("%02.0f%02.0f%02.0f,", 
+                     m[ i ], d[ i ], y[ i ] ); 
+      fputs( ds, fh ); 
+     
+      ts = StrFormat("%02.0f:%02.0f,", 
+                     r[ i ],e[ i ]); 
+      fputs( ts, fh ); 
+
+      qs = StrFormat("%.2f,%.2f,%.2f,%.2f,%.0f\n", 
+                     O[ i ],H[ i ],L[ i ],C[ i ],V[ i ] ); 
+      fputs( qs, fh );
+   }
+      fclose( fh );
+   }
+}

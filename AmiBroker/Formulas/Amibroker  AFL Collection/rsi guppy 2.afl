@@ -1,0 +1,32 @@
+_SECTION_BEGIN("rsi guppy");
+r = RSI(Param("rsi",5,4,39,1)); 
+Plot (EMA(r,3),"rsi",colorWhite,styleLine);
+Plot (EMA(r,5),"",colorBlue,styleLine);
+Plot (EMA(r,8),"",colorBlue,styleLine+styleNoLabel);
+Plot (EMA(r,10),"",colorBlue,styleLine+styleNoLabel);
+Plot (EMA(r,12),"",colorBlue,styleLine+styleNoLabel);
+Plot (EMA(r,15),"",colorBlue,styleLine+styleNoLabel);
+
+Plot (EMA(r,25),"",colorYellow,styleLine);
+Plot (EMA(r,30),"",colorRed,styleLine+styleNoLabel);
+Plot (EMA(r,35),"",colorRed,styleLine+styleNoLabel);
+Plot (EMA(r,40),"",colorRed,styleLine+styleNoLabel);
+Plot (EMA(r,45),"",colorRed,styleLine+styleNoLabel);
+Plot (EMA(r,50),"",colorRed,styleLine+styleNoLabel);
+Plot (EMA(r,50),"",colorRed,styleLine);
+_SECTION_END();
+
+Buy = EMA(r,3) > EMA(r,5);
+Short = EMA(r,3) < EMA(r,5);
+Sell = EMA(r,3) < Ref(EMA(r,3),-2);
+Cover = EMA(r,3) > Ref(EMA(r,3),-2);;
+
+Buy = ExRem(Buy,Short);
+Short = ExRem(Short,Buy);
+Sell = ExRem(Sell,Cover);
+Cover = ExRem(Cover,Sell);
+
+PlotShapes(Buy*shapeUpTriangle,colorYellow);
+PlotShapes(Short*shapeDownTriangle,colorYellow);
+PlotShapes(Cover*shapeSmallUpTriangle,colorGreen);
+PlotShapes(Sell*shapeSmallDownTriangle,colorRed);

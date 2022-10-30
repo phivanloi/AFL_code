@@ -1,0 +1,51 @@
+_SECTION_BEGIN("PRICE"); pricefield = ParamField("Price Field", 3); 
+Color = ParamColor("color",colorBlack); 
+style = ParamStyle("style",styleCandle,maskAll); 
+arrows = ParamToggle("Display arrows", "No|Yes",1); 
+Plot(pricefield,"Price",Color,style);
+_SECTION_END();
+ 
+
+_SECTION_BEGIN("EMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 8, 2, 200, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), 5, ParamStyle("Style") ); 
+_SECTION_END();
+
+_SECTION_BEGIN("EMA1");
+P = ParamField("Price field",3);
+Periods = Param("Periods", 13-10, 2, 200, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), 4, ParamStyle("Style") ); 
+_SECTION_END();
+
+_SECTION_BEGIN("EMA2");
+P = ParamField("Price field",3);
+Periods = Param("Periods", 21-20, 2, 200, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), 6, ParamStyle("Style") ); 
+_SECTION_END();
+
+_SECTION_BEGIN("MA3");
+P = ParamField("Price field",3);
+Periods = Param("Periods", 30-30, 2, 200, 1, 10 );
+Plot( MA( P, Periods ), _DEFAULT_NAME(), 7 , ParamStyle("Style") ); 
+_SECTION_END();
+
+
+Buy = Cross( EMA(Close,8), MA(Close,30) );
+Sell = Cross( MA(Close,30), EMA(Close,8) );
+S = Sell;
+B = Buy;
+
+
+//AlertIf (S, "SOUND C:\\Windows\\Media\\Ding.wav", "Sell alert", 2 );
+
+//AlertIf (B, "SOUND C:\\Windows\\Media\\Ding.wav", "Buy  alert", 2 );
+
+AlertIf (S, "Sell", "Sell at: "+C+" Alert",0, 1+2+4+8,1 ); 
+AlertIf (B, "Buy", "Buy at: "+C+" Alert",0, 1+2+4+8,1 );
+if(arrows) 
+{ 
+  PlotShapes((Buy*36)+(Sell*37),IIf(Buy,colorGreen,colorRed) ); 
+  PlotShapes((Buy*5)+(Sell*6),IIf(Buy,colorGreen,colorRed) ); 
+
+}

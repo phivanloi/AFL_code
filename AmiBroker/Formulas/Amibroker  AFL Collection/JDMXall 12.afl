@@ -1,0 +1,14 @@
+_SECTION_BEGIN("JDMXall");
+//SetBarsRequired(10000, 0); 
+
+
+Length=Param( "Length ", 14, 0, 100);
+ad1 = JurikDMX( Length)-Ref(JurikDMX( Length),-1);
+
+
+
+Plot( ad1, "diff ", IIf(ad1 > 10, colorGreen,IIf(ad1 < -10,colorRed,colorGrey40)), styleThick );
+Plot (10,"",colorGreen);
+Plot (0,"",colorDarkGrey);
+Plot (-10,"",colorRed);
+_SECTION_END();

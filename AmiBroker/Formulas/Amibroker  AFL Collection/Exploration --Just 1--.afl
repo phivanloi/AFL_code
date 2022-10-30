@@ -1,0 +1,73 @@
+_SECTION_BEGIN("MACD Exploration");
+r1 = Param( "Fast avg", 15, 2, 200, 1 );
+r2 = Param( "Slow avg", 30, 2, 200, 1 );
+r3 = Param( "Signal avg", 12, 2, 200, 1 );
+Z=Param("zig",0.6,0,10,0.1);
+periods = Param( "Periods", 25, 1, 200, 1 );
+Ksmooth = Param( "%K avg", 5, 1, 200, 1 );
+Dsmooth = Param( "%D avg", 5, 1, 200, 1 );
+Volume_1=Param("V",10,1,100,1);
+StochK1 = Param("StochK1",5,1,100,1);
+StochK2 = Param("StochK2",35,1,100,1);
+
+StochK3 = Param("StochK3",95,1,100,1);
+StochK4 = Param("StochK4",65,1,100,1);
+
+A1 = StochK( periods , Ksmooth) - StochD( periods , Ksmooth, DSmooth );
+A2 = StochD( periods , Ksmooth, DSmooth ) - StochK( periods , Ksmooth);
+
+Cond1 = Cross(MACD(r1,r2),Signal(r1,r2,r3));
+
+Cond3 = A1>0;
+Cond5 = StochK( periods , Ksmooth)>StochK1;
+Cond7 = StochK( periods , Ksmooth)<StochK2;
+
+
+Cond9 = Zig(C,z)>Ref(Zig(C,z),-1);
+
+Cond11 = V>Ref(V*(1+(Volume_1/100)),-1);
+
+
+
+
+Buy = Cond1 AND Cond3 AND Cond5 AND Cond7 AND Cond9 AND Cond11;
+
+Cond2 = Cross(Signal(r1,r2,r3),MACD(r1,r2));
+
+Cond4 = A2>0;
+Cond6 = StochK( periods , Ksmooth)>StochK4;
+Cond8 = StochK( periods , Ksmooth)<StochK3;
+
+Cond10 = Zig(C,z)<Ref(Zig(C,z),-2);
+
+Cond12 = V>Ref(V*(1+(Volume_1/100)),-1);
+
+
+
+Sell = Cond2 AND Cond4 AND Cond6 AND Cond8 AND Cond10 AND Cond12;
+
+Trigger = WriteIf(Buy, "Buy", "") + WriteIf(Sell, "Sell", "");
+
+_N(Title = StrFormat("{{NAME}} {{DATE}} {{INTERVAL}}: O=%1.2f, H=%1.2f, L=%1.2f, C=%1.2f, V=%1.0f\n{{VALUES}}", O, H, L, C, V));
+
+BG = IIf(Buy, colorPaleGreen, IIf(Sell, colorPink, colorDefault));
+FG = IIf(Buy, colorDarkGreen, IIf(Sell, colorDarkRed, colorDefault));
+
+Filter = Buy OR Sell;
+AlertIf(Buy, "SOUND C:\\Windows\\Media\\Siren.wav", "Buy",1,1,100 );
+AlertIf(Sell, "SOUND C:\\Windows\\Media\\SOUND4.wav", "Sell",2,1,100);
+SetOption("NoDefaultColumns", True);
+
+AddTextColumn(Name(), "Symbol", 77, FG, BG, 75);
+AddColumn(DateTime(), "Date", formatDateTime, FG, BG,1);
+AddColumn(TimeNum() ,"Time",1, FG, BG,75);
+AddColumn(V/Ref(V,-1)*100,"Increase in Vol",1, FG, BG, 40);
+AddColumn( C, "Close",0, FG, BG, 55);
+AddColumn( H, "High", 0, FG, BG, 55);
+AddColumn(V, "Volume",1, FG, BG, 55);
+AddColumn(Ref(V,-1),"P-Vol",1, FG, BG, 55);
+
+AddColumn( Buy, "Buy", 1);
+AddColumn( Sell, "Sell", 1);
+SetSortColumns( -3 );
+_SECTION_END(); 

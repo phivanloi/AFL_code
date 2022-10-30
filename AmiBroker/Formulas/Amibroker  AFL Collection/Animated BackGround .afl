@@ -1,0 +1,10 @@
+// http://amibrokertraders.blogspot.com //
+//====================
+
+for( i = 1; i < BarCount; i++ ) 
+z = (GetPerformanceCounter()/100)%256; 
+anim=ColorHSB( ( i + z ) % 256, 255, 100 );
+SetChartBkColor(anim);
+RequestTimedRefresh(1); 
+
+//====================

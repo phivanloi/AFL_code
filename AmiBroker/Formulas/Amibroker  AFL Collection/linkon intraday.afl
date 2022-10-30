@@ -1,0 +1,6 @@
+Buy = 	EMA(  Close , 9 ) > Ref( EMA(  Close , 9 ) , -1 )
+		AND EMA(  Close , 21 ) > Ref( EMA(  Close , 21 ) , -1 )
+		AND EMA(  Close , 50 ) > Ref( EMA(  Close , 50 ) , -1 )
+		AND EMA(  Close , 9 ) > Ref( EMA(  Close , 21 ) , -1 )
+		AND ADX( 14 ) > Ref( ADX( 14 ) , -1 )
+		AND RSI( 5 ) > Ref( RSI( 5 ) , -1 );

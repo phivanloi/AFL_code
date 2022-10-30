@@ -1,0 +1,37 @@
+Se = Param("Sensitivity",21,0.1,144,0.1);
+
+Nw1 = Cum(1);
+
+B = IIf(Outside() AND Ref(H,-1)>Ref(H,-2),H,IIf(Outside() AND Ref(L,-1)<Ref(L,-2),L,IIf((Outside() OR Inside()) AND 
+C>O,H,IIf((Outside() OR Inside()) AND O>C,L,IIf(H>Ref(H,-1),H,IIf(L<Ref(L,-1),L,IIf(Ref(H,-1)>Ref(H,-2),H,IIf(Ref(L,-1)<Ref(L,-2),L,C))))))));
+
+Ind = IIf(LastValue(PeakBars(B,Se,1))<LastValue(TroughBars(B,Se,1)),1,0);
+
+Indt = IIf(Ind,LastValue(Peak(B,Se,2))>LastValue(Peak(B,Se,1)),LastValue(Trough(B,Se,1))>LastValue(Trough(B,Se,2)));
+
+Slp = IIf(Indt,IIf(Ind,LastValue(Peak(B,Se,2)-Peak(B,Se,1)),LastValue(Trough(B,Se,1)-Trough(B,Se,2))),
+IIf(Ind==0,LastValue(Peak(B,Se,2)-Peak(B,Se,1)),LastValue(Trough(B,Se,1)-Trough(B,Se,2))));
+
+Slps = IIf(Indt,IIf(Slp<0,IIf(Ind,LastValue(Peak(B,Se,3)-Peak(B,Se,1)),LastValue(Trough(B,Se,1)-Trough(B,Se,3))),0),
+IIf(Slp<0,IIf(Ind==0,LastValue(Peak(B,Se,3)-Peak(B,Se,1)),LastValue(Trough(B,Se,1)-Trough(B,Se,3))),0));
+
+Days = IIf(Indt,IIf(Ind,LastValue(PeakBars(B,Se,2)-PeakBars(B,Se,1)),LastValue(TroughBars(B,Se,2)-TroughBars(B,Se,1))),
+IIf(Ind==0,LastValue(PeakBars(B,Se,2)-PeakBars(B,Se,1)),LastValue(TroughBars(B,Se,2)-TroughBars(B,Se,1))));
+
+Dayss = IIf(Indt,IIf(Ind,LastValue(PeakBars(B,Se,3)-PeakBars(B,Se,1)),LastValue(TroughBars(B,Se,3)-TroughBars(B,Se,1))),
+IIf(Ind==0,LastValue(PeakBars(B,Se,3)-PeakBars(B,Se,1)),LastValue(TroughBars(B,Se,3)-TroughBars(B,Se,1))));
+
+Inc = IIf(Slp/IIf(Days==0,1000,Days)>0,Slp/IIf(Days==0,1000,Days),IIf(Slps/IIf(Dayss==0,1000,Dayss)>0,Slps/IIf(Dayss==0,1000,Dayss),0));
+
+NW = IIf(Indt,Inc*IIf(Ind,PeakBars(B,Se,1),TroughBars(B,Se,1)),Inc*IIf(Ind==0,PeakBars(B,Se,1),TroughBars(B,Se,1)));
+
+Tl = IIf(Indt,IIf(Ind,IIf(LastValue(Peak(B,Se,1))-NW>LastValue(Peak(B,Se,1)),LastValue(Peak(B,Se,1)),LastValue(Peak(B,Se,1))-NW),
+IIf(LastValue(Trough(B,Se,1))+NW<LastValue(Trough(B,Se,1)),LastValue(Trough(B,Se,1)),LastValue(Trough(B,Se,1))+NW)),
+IIf(Ind==0,IIf(LastValue(Peak(B,Se,1))-NW>LastValue(Peak(B,Se,1)),LastValue(Peak(B,Se,1)),LastValue(Peak(B,Se,1))-NW),
+IIf(LastValue(Trough(B,Se,1))+NW<LastValue(Trough(B,Se,1)),LastValue(Trough(B,Se,1)),LastValue(Trough(B,Se,1))+NW)));
+
+x = IIf(Indt,ValueWhen(NW1>=LastValue(ValueWhen(IIf(Ind,PeakBars(B,Se,1),TroughBars(B,Se,1))==1,NW1,1)),IIf(Tl<0,0,Tl),1),
+ValueWhen(NW1>=LastValue(ValueWhen(IIf(Ind==0,PeakBars(B,Se,1),TroughBars(B,Se,1))==1,NW1,1)),IIf(Tl<0,0,Tl),1));
+
+Plot(x, "",4);
+Plot(C, "", colorRose, styleCandle);

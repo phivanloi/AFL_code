@@ -1,0 +1,151 @@
+_SECTION_BEGIN("Price ADX");
+ function PercentR( periods )
+ { return -100 * ( HHV( H, periods ) - C )/( HHV( H, periods ) - LLV( L, periods
+ ) ); }
+ range = Param("Periods", 14, 2, 200, 1 );
+ ADX(range);
+ PDI(range) ;
+ MDI(range);
+ Plot( C, "Close", IIf( PDI(range) > MDI(range), ParamColor("Up Color", colorLime), ParamColor("Down Color", colorRed ) ), styleCandle|styleThick,styleNoTitle |
+ ParamStyle("Style") | GetPriceStyle() );
+ Bull_Trend=(PercentR( Param("Periods", 14, 2, 100 ) )> -30);
+ Bear_Trend=(PercentR( Param("Periods", 14, 2, 100 ) )< -70);
+ _SECTION_END();
+
+ //////////////// pivot section begins
+ _SECTION_BEGIN("Price");
+ SetChartOptions(0,chartShowArrows|chartShowDates);
+ _N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) )); 
+ Plot( C, _DEFAULT_NAME(), colorYellow , styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+ _SECTION_END();
+ _SECTION_BEGIN("pivots mw");
+ SetChartBkColor(2) ;
+ k=IIf(ParamList("select type","daily|next day")=="daily",-1,0);
+ k1=-1;
+ TimeFrameSet(inDaily);
+ day_h= LastValue(Ref(H,K));
+ day_l= LastValue(Ref(L,K));
+ day_c= LastValue(Ref(C,K));
+ TimeFrameRestore();
+
+
+ /*--------------------------------------*/
+ // day
+ DH=Day_h;
+ DL=Day_L;
+ DC=Day_C;
+
+ // DAY PIVOT Calculation
+ pd = ( DH+ DL + DC )/3;
+ sd1 = (2*pd)-DH;
+ rd1 = (2*pd)-DL;
+ dp=pd;
+
+ ppl = ParamToggle("Plot Pivot Levels","Off|On",1);
+ numbars = LastValue(Cum(Status("barvisible")));
+ fraction= IIf(StrRight(Name(),3) == "", 3.2, 3.2);
+ hts = Param("slide all",33,-1000,1000,1);
+
+
+ {
+ if(ppl==1) {
+ Plot(pd,"",colorGold,styleLine|styleDashed|styleNoRescale);
+ Plot(sd1,"",ColorRGB(73,123,201),styleDashed|styleNoRescale);
+ Plot(rd1,"",ColorRGB(150,60,39),styleDashed|styleNoRescale);
+
+
+ i=1;
+
+ PlotText(" Pivot = " + WriteVal(pd,fraction), LastValue(BarIndex())-(numbars/Hts), dp, colorGold);
+ PlotText(" R1 = " + WriteVal(rd1,fraction), LastValue(BarIndex())-(numbars/Hts), rd1 , ColorRGB(150,60,39));
+ PlotText(" S1 = " + WriteVal(sd1,fraction), LastValue(BarIndex())-(numbars/Hts), sd1 , ColorRGB(73,123,201));
+
+ }}
+
+ //--end----------------------------------------------------------------------------
+ _SECTION_END();
+
+ /*--------------------------------------*/
+ //////////////pivot section ends
+
+
+ ////////////////////15 min pivot begins
+
+
+ SetChartOptions(0,chartShowArrows|chartShowDates);
+ _N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g,
+ Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +"
+ {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+
+ Plot( C, "Close", ParamColor("Color", colorYellow ), styleNoTitle |
+ ParamStyle("Style") | GetPriceStyle() );
+
+ H1=SelectedValue( TimeFrameGetPrice( "H", in5Minute, -1 ));
+ L1=SelectedValue(TimeFrameGetPrice( "L", in5Minute, -1 ));
+ C1=SelectedValue(TimeFrameGetPrice( "C", in5Minute, -1 ));
+
+ /*PIVOT Calculation*/
+ p = ( H1+ L1 + C1 )/3;
+ s1 = (2*p)-H1;
+ r1 = (2*p)-L1;
+ s2 = p -(H1 - L1);
+ s3 = S1 - (H1-L1);
+ r2 = p +(H1 - L1);
+ r3 = R1 +(H1-L1);
+ ///////////////////////////////////////IF WE WANT LINES THEN REMOVE THE // FROM BELOW AND LINES WOULD COME ON CHART///////////////
+ /////////Plot (p,"Pivot",25,1);
+ //////////Plot (r1,"R1",12,1);
+ //////////Plot (r2,"R2",12,1);
+ ///////////Plot (r3,"R3",12,1);
+ /////////Plot (s1,"S1",3,1);
+ //////////Plot (s2,"S2",3,1);
+ /////////////Plot (s3,"S3",3,1);
+
+ ////////////////////////////////////////////////////////////////Titles///////////////////
+ Title = EncodeColor(colorOrange)+ Date() + " Close = " + EncodeColor(colorRed) +Close +
+ EncodeColor(colorOrange) + " Open = " + EncodeColor(colorPink) + O +
+ EncodeColor(colorOrange) + " High = " + EncodeColor(5) + H +
+ EncodeColor(colorOrange) + " Low = " + EncodeColor(colorRed) + L + "\n\n"+
+ EncodeColor(colorGreen) + "Works on 15 min only, When the high low difference is 20 points gap & touching at any of the 3 lines, take the mouse click next candle for targets" +"\n\n"+
+
+ EncodeColor(colorRed) + "Buy at= " + EncodeColor(colorPink) + R1 +
+ EncodeColor(colorRed) + " T1 = " + EncodeColor(colorPink) + R2 +
+ EncodeColor(colorRed) + " T2 = " + EncodeColor(colorPink) + R3 +
+ EncodeColor(colorOrange) + "Stop Loss= " + EncodeColor(colorPink) + P + "\n\n"+
+
+ EncodeColor(colorGreen) + "Sell below= " + EncodeColor(colorPink) + S1 +
+ EncodeColor(colorGreen) + " T1= " + EncodeColor(colorPink) + S2 +
+ EncodeColor(colorGreen) + " T2= " + EncodeColor(colorPink) + S3 +
+ EncodeColor(colorOrange) + "Stop Loss= " + EncodeColor(colorPink) + P + "\n\n"+
+
+
+
+ _SECTION_END();
+ ////////////////////////Reply With Quote/*--------------------------------------*/
+
+ /////////////////15 min pivot ends
+
+ _SECTION_BEGIN("Display");
+ Display= ParamToggle("Display","Off|On",1);
+ if(Display==1)
+ {
+ x=Param("xposn",0,0,1000,1);
+ y=Param("yposn",569,0,1000,1);
+
+ _SECTION_END();}
+
+
+ _SECTION_BEGIN("Background Color");
+ BKswitch = ParamToggle("Background Color","On,Off");
+
+ OUTcolor = ParamColor("Outer Panel Color",ColorRGB(25,25,25));
+ INUPcolor = ParamColor("Inner Panel Upper",ColorRGB(23,25,23));
+ INDNcolor = ParamColor("Inner Panel Lower",ColorRGB(23,25,23));
+ TitleColor = ParamColor("Title Color ",ColorRGB(23,25,23));
+
+ if (NOT BKswitch)
+ {
+ SetChartBkColor(OUTcolor); // color of outer border
+ SetChartBkGradientFill(INUPcolor,INDNcolor,TitleColor); // color of inner panel
+ }
+ _SECTION_END();

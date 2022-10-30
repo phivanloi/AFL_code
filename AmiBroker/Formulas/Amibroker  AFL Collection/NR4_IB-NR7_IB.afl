@@ -1,0 +1,55 @@
+_SECTION_BEGIN("NR4_IB-NR7_IB");
+//I modified a afl got from afl library in ami site to get NR4 AND NR7 days/stocks having that Status on the last trading Day. I wanted to get it from intraday data> hence I used TimeFrameSet function as below.
+TimeFrameSet(inDaily);
+
+NR1_Scan = ParamToggle("Scan NR1?", "No|Yes", 1);
+NR4_Scan = ParamToggle("Scan NR4?", "No|Yes", 1);
+NR7_Scan = ParamToggle("Scan NR7?", "No|Yes", 1);
+
+/*MinVR = Param("Min Volatility_Ratio", 0.5, 0.1, 1, 0.1);*/
+
+NR1 = Inside() OR (Ref(H, -1)==H AND Ref(L, -1)<L) OR (Ref(H, -1)>H AND Ref(L, -1)==L);
+
+NR4 = (H - L) < Ref(LLV(H-L,3),-1);
+NR7= (H - L) < Ref(LLV(H-L,6),-1);
+
+NR4_IB = (H - L) < Ref(LLV(H-L,3),-1) AND H<Ref(H,-1) AND L>Ref(L,-1);//LAST Day IS IB ALSO
+NR7_IB = (H - L) < Ref(LLV(H-L,6),-1) AND H<Ref(H,-1) AND L>Ref(L,-1);//LAST Day IS IB ALSO
+
+
+
+
+/*Volatility_Ratio = StDev(log(C/Ref(C,-1)),5)/StDev(log(C/Ref(C,-1)),99);*/
+
+
+
+/**********************************
+The Explorer
+- Run the Analysis
+***********************************/
+/*Filter = Volatility_Ratio>=MinVR AND (NR7 OR NR4 OR NR1);*/
+//Filter = (NR7 OR NR4 OR NR1 OR NRI4 OR NRI4 OR NRI7);
+Filter = (NR4_IB OR NR7_IB);
+
+Buy = Filter; 
+//if (NR1_Scan) AddTextColumn(WriteIf(NR1, "Yes", "-"), "NR1", 1.0, colorDefault,IIf(NR1,colorGreen,Null), 40); 
+//if (NR4_Scan) AddTextColumn(WriteIf(NR4, "Yes", "-"), "NR4", 1.0, colorDefault,colorDefault, 40); 
+//if (NR7_Scan) AddTextColumn(WriteIf(NR7, "Yes", "-"), "NR7", 1.0, colorDefault,colorDefault, 40);
+
+//AddColumn( IIf(NR11,1,Null) ,"NR11",1.0,colorWhite,IIf(NRI4,colorGreen,Null),40);
+//AddColumn( IIf(NR4,4,Null) ,"NR4",1.0,colorBlack,IIf(NR4,colorYellow,Null),40);
+//AddColumn( IIf(NR7,7,Null) ,"NR7",1.0,colorBlack,IIf(NR7,colorYellow,Null),40);
+AddColumn( IIf(NR4_IB,40,Null) ,"NR4_IB",1.0,colorWhite,IIf(NR4_IB,colorBlack,Null),60);
+AddColumn( IIf(NR7_IB,70,Null) ,"NR7_IB",1.0,colorWhite,IIf(NR7_IB,colorBlack,Null),60);
+
+
+VV=V/Ref(V,-1);
+
+AddColumn( IIf(VV>1,VV,Null) ,"VV",1.2,colorWhite,colorBlue,40);
+
+
+
+ 
+/*AddColumn( Volatility_Ratio, "Vol Ratio",1.4, colorDefault,colorDefault, 80 );*/
+TimeFrameRestore();
+_SECTION_END();

@@ -1,0 +1,9 @@
+var0 = MA(High, 20);
+var1 = MA(Low, 20);
+var2 = MA(Close, 50);
+
+green = IIf((var0 > Ref(var0,-1) AND var1 > Ref(var1,-1) AND Close > var1) AND ((var0 > var2 AND var1 > var2) OR Close > var2),1,0);
+red = IIf((var0 < Ref(var0,-1) AND var1 < Ref(var1,-1) AND Close < var0)AND ((var0<var2 AND var1<var2) OR Close < var2),-1,0);
+
+Plot(green, "", colorLime, styleHistogram);
+Plot(red, "", colorRed, styleHistogram);

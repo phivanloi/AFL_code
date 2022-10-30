@@ -1,0 +1,6 @@
+ttfhigh = IIf((H+C)/2 > Ref(H,-1), 1,0);
+ttflow = IIf((H+L)/2 < Ref(L,-1), -1,0);
+
+ttftrend = ttfhigh + ttflow;
+
+Plot(ttftrend, "",4);

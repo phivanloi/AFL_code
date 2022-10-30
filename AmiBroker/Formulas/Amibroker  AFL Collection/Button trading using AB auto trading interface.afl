@@ -1,0 +1,150 @@
+// Barrys buttton trading 
+// Written by Barry Scarborough 20 May 2008
+
+_SECTION_BEGIN("Button trading"); 
+EnableTextOutput(False);
+SetChartOptions(0, chartShowDates); 
+RequestTimedRefresh(1);
+Filename = StrLeft(_DEFAULT_NAME(),StrLen(_DEFAULT_NAME())-2);
+_N(Title = Filename + StrFormat(" - {{DATE}} \nOpen %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+
+VarPfx = "Btn1"; // some var that reflects the trading file
+
+// ####  Parameters   ########################################################################################################
+AutoTrade	= ParamToggle("Auto trade", "Off|Running");
+Contracts	= Param("Num contracts", 1, 1, 1000, 1);
+typeOrder = ParamList("Order type", "MKT,STP");
+BuyOrder  	= ParamTrigger("Place Buy order","Buy");
+SellOrder = ParamTrigger("Place Sell order","Sell");
+CloseAll  = ParamTrigger("Close all positions","Close all");
+CancelAll = ParamTrigger("Cancel all orders","Cancel all");
+Reset		= ParamTrigger("Reset", "Reset"); 
+
+
+// ####  Place your timing system here #######################################################################################
+
+// calc MACD
+myMACD = MACD(); 		// calculate the macd
+mySig = Signal();		// calculate the signal
+// macd buy and sell conditions
+upMacd = myMACD > mysig; // buy condition is the macd line above the signal line
+dnMacd = mySig  > myMACD; // sell condition is the macd line below the signal line
+
+Buy = Sell = Short = Cover = 0; // make sure all arrays are set false
+Buy  = Cover = upMACD; 
+Sell = Short = dnMACD;  
+
+// ####  Plot indicators and shapes  ##########################################################################################
+Plot(myMACD, "\nMACD",colorRed,styleThick|styleLeftAxisScale); // plot the macd line
+Plot(mySig,"\nSignal",colorBlack,styleDashed|styleLeftAxisScale); // plot the macd signal line
+
+PlotShapes(Buy * shapeUpArrow, colorGreen,0,Low, 2);
+PlotShapes(Sell * shapeDownArrow, colorRed,0,High, 2);
+ 
+// ####  Static vars reset   ##################################################################################################
+if( reset OR Nz(StaticVarGet(varPfx  + "Init") == False) )
+{
+	StaticVarSetText(varPfx  + "orderID", "");
+	StaticVarSetText(VarPfx + "lastTrade", ""); 
+	StaticVarSet(VarPfx + "numPositions", 0);
+	_TRACE("# init, " + NumToStr(StaticVarGet(varPfx  + "num"), 1.0));
+}
+
+// ####  functions  ###########################################################################################################
+
+function fSayOnce( text ) 
+{ 
+   	if( StaticVarGetText(VarPfx + "lastsaidtext") != text ) 
+	{ 
+      	Say( text ); 
+      	StaticVarSetText(VarPfx + "lastsaidtext", text ); 
+		if(DebugOn) 	_TRACE("#, SayOnce Text =" + text + "\n");
+   } 
+} 
+
+// ####  Trading section ########################################################################################################
+
+if(autotrade) 
+{
+	ibc = GetTradingInterface("IB");
+	ConnectedStatus = ibc.IsConnected();	// get the connection status, 2 is OK
+
+	// this is where the trade processing is done
+	if( ConnectedStatus == 2 OR ConnectedStatus == 3) // connected to TWS with no error messages
+	{
+		OrderID = StaticVarGetText(VarPfx + "OrderID");
+		OrderStatus = ibc.GetStatus( OrderID, True );
+		oldNumPositions = StaticVarGet(VarPfx + "numPositions");
+		numPositions  = ibc.GetPositionSize(Name()); 
+		StaticVarSet(VarPfx + "numPositions", numPositions  );
+		LastTrade = StaticVarGetText(VarPfx + "lastTrade"); 
+		_TRACE("# buy, positions = " + NumToStr(numPositions, 1.0) + ", last trade = " + LastTrade + ", OID = " + OrderID);
+
+		if(  ( LastTrade == "Buy" AND numPositions  > oldNumPositions ) 	OR 
+			 ( LastTrade == "Sell" AND numPositions  < oldNumPositions ) 	OR 
+			 ( LastTrade == "Close" AND numPositions  == 0) 				    )
+		{
+			fSayOnce("Filled");
+			OrderID = StaticVarSetText(VarPfx + OrderID, "");
+		}
+		else if (OrderStatus == "Cancelled")
+			OrderID = StaticVarSetText(VarPfx + OrderID, "");
+			
+		if( BuyOrder )
+	   {
+			fSayOnce("buy");
+ 	      	OrderID = ibc.PlaceOrder( Name(), "Buy", Contracts, typeOrder, 0, LastValue(C), "GTC", True);
+ 	      	StaticVarSetText(VarPfx + "OrderID", OrderID);
+			StaticVarSetText(VarPfx + "lastTrade", "Buy"); 
+			_TRACE("# buy, positions = " + NumToStr(numPositions, 1.0));
+	   }
+
+		if( SellOrder )
+		{
+			fSayOnce("sell");
+			OrderID = ibc.PlaceOrder( Name(), "Sell", Contracts, typeOrder , 0, LastValue(C), "GTC", True);
+			StaticVarSetText(VarPfx + "OrderID", OrderID);
+			StaticVarSetText(VarPfx + "lastTrade", "Sell"); 
+			_TRACE("# sell, positions = " + NumToStr(numPositions, 1.0));
+		}
+		else if( CloseAll  )
+		{
+			fSayOnce("close all");
+			ibc.CancelAllPendingOrders( );
+			ibc.CloseAllOpenPositions();
+			StaticVarSetText(VarPfx + "lastTrade", "Close"); 
+			_TRACE("# close, positions = " + NumToStr(numPositions, 1.0));
+		}
+		else if( CancelAll )
+		{
+			fSayOnce("cancel all");
+			ibc.CancelAllPendingOrders( );
+			_TRACE("# cancel, ");
+		}
+		LastTWSMsg = ibc.getLastError( 0 );
+
+	// the following will display in the interprettion window
+		printf("Order type: " + LastTrade +
+		"\nOrder Status: " + OrderStatus + 
+		"\nOrder ID: " + StaticVarGetText(VarPfx + "OrderID") + 
+		"\nNum positions: " + NumToStr(ibc.GetPositionSize( Name() ),1.0,False) +
+		"\nLast TWS Msg: " + LastTWSMsg );
+	}
+	else // ConnectedStatus == 0 OR ConnectedStatus == 1, lost connection
+	{
+		// handle commection errors 
+		if(ConnectedStatus == 0) stat = "Not Connected."; else if(ConnectedStatus == 1) stat = "Lost Connection.";
+		SetChartBkColor( colorYellow);		
+	// the following will display in the interprettion window
+		printf("\nTWS Status: " + stat + "\n"); 
+	}
+} // end auto trading loop
+else
+{
+	SetChartBkColor( colorPink);
+	// the following will display in the interprettion window
+	printf("\n1. Autotrading is turned off\n" +
+	"2. TWS not started." );
+}
+
+_SECTION_END();

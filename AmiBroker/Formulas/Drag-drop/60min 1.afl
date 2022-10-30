@@ -1,0 +1,11 @@
+_SECTION_BEGIN("60min");
+TimeFrameRestore();
+TimeFrameSet(inHourly);
+Name() == "VN30F1M" ;
+Title = EncodeColor(colorYellow) +Name() + " - " + Interval(2) + EncodeColor(colorWhite) + " - " + Date() + " - " + "Thu " + (DayOfWeek()+1) + "   ||   "
++EncodeColor(colorWhite) +"Open-"+ O + "  "+"High-"+ H + "  "+ "Low-"+ L +"  "+ 
+ "\n" + "Close-"+C+"  "+ "Volume= "+ WriteVal(V) + "   ||   " +  "VDaily% = " + ROC(V,1) + "  " + "MA20 = " + V/MA(V,20)  + "  " + 
+  // WriteIf( , "Long", "Short")
+ "\n"+ "Spread VN30 =" + (C - Foreign("VN30INDEX", "C", True)) + "  " + "Candle Spread =" + (H -L) ; 
+Plot(C,"\nPrice",IIf(C>O,ParamColor("Wick UP Color", colorCustom9),IIf(C<=O,ParamColor("Wick Down Color", colorCustom5),colorLightGrey)),64,0,0,0,0);
+_SECTION_END();

@@ -1,0 +1,21 @@
+_SECTION_BEGIN("Signal 02");
+Buy  = C > j1;
+Sell = C < j1;
+
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+Short = Sell;
+Cover = Buy;
+
+Short = ExRem(Short,Cover);
+Cover = ExRem(Cover,Short);
+
+//Position size fixed 100 units
+SetPositionSize(100,4);
+SetTradeDelays(1,1,1,1);
+
+PlotShapes(shapeUpArrow * Ref(Buy,-1), colorBlue,0, L,-10);
+PlotShapes(shapeDownArrow * Ref(Short,-1), colorRed,0, H, -10);
+
+_SECTION_END();

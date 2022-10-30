@@ -1,0 +1,20 @@
+_SECTION_BEGIN("buaya AC");
+AOSlowMA=MA( Avg ,34);
+AOFastMA=MA( Avg,5);
+
+AO = AOFastMA - AOSlowMA;
+
+AC = AO - MA(AO,5);
+
+barcolor= IIf(AC <= Ref(AC,-1),colorRed,colorBlue); 
+               
+Graph0=AC;
+Graph0Style=2+5;
+Graph0BarColor=barcolor;
+
+/* the following is to put the 5 period signal line on the oscillator if you
+choose*/
+
+/*Graph1=Wilders(SlowMA-FastMA,5);
+Graph1Style=4+1;*/
+_SECTION_END();

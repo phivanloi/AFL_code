@@ -1,0 +1,31 @@
+/* William Blau's "Ergodic SMI" */
+
+f0 = Param("StochMtn",8,1,1000,1);
+f1 = Param("EMA 1",3,1,1000,1);
+f2 = Param("EMA 2",1,1,1000,1);
+f3 = Param("Signal",4,1,1000,1);
+
+StMtm = Close - 0.5*(IIf(f0==1,H,HHV(Close,f0))+IIf(f0==1,L,LLV(Close,f0)));
+Numer = EMA(EMA(StMtm,f1),f2);
+Denom = 0.5 *
+EMA(EMA(IIf(f0==1,H,HHV(Close,f0))-IIf(f0==1,L,LLV(Close,f0)),f1),f2);
+
+SMI = 100*(Numer / Denom);
+SMI_SignalLine = 100*(MA(Numer,f3) / MA(Denom,f3));
+
+Plot(SMI,"SMI("+f0+","+f1+","+f2+")",colorYellow,styleLine);
+Plot(SMI_SignalLine ,"SMI SignalLine ("+f3+")",colorBlue,styleLine);
+
+VarLowExtreme = LLV(SMI,10);
+Plot(VarLowExtreme,"",colorGreen,styleThick);
+
+VarLowExtreme2 = LLV(SMI,50);
+Plot(VarLowExtreme2,"",colorDarkGreen,styleDots);
+
+VarHighExtreme = HHV(SMI,10);
+Plot(VarHighExtreme,"",colorRed,styleThick);
+
+VarHighExtreme2 = HHV(SMI,50);
+Plot(VarHighExtreme2,"",colorDarkRed,styleDots);
+
+Title = "Ergodic SMI";

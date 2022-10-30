@@ -1,0 +1,101 @@
+_SECTION_BEGIN("1 Day Percentage Loss");
+//  1 Day Percentage Loss
+//  by MarketMonk777
+//  last rev date: 7-15-06
+//  see descriptions for all Variables and Column Headings at bottom of code
+
+//  --------  Parameter Variables for Exploration 
+WLF = ParamToggle ("Add Results to a Watchlist?", "Yes|No") ;   			// select whether to add results to watchlist or not
+WLN = Param("Set Watchlist Number", 12, 6, 40,1);     						// sets the watchlist number
+HCV = Param("High close value ", 100, 5, 300, 0.5);							// sets the high close value
+LCV	= Param("Low close value " , 10, 1, 10, 0.25);							// sets the low close value
+VP = Param("Period for Avg Vol " , 50, 10, 240, 1);							// sets the period for the average volume calculation
+MAV = Param("Stock minimum Avg Vol " , 250000, 5000, 1000000, 5000);		// sets the minimum average volume required
+MC = Param("Minimum Change from Yesterday ", -5, -75, 0, 1);            // Input minimum change from yesterday's close
+
+// ----- Initialization of parameters
+PCY = ( (C - Ref(C,-1)) / Ref(C,-1) ) * 100;                            // formula to calculate the close as a % from the prior close
+
+// --------------------- Filter Section
+My_Conditions = Close <= HCV AND Close >= LCV AND MA( Volume, VP ) >= MAV ;	   // collects the basic variables in one statement
+Filter = My_Conditions AND PCY <= MC;						                  // collects the conditions that will be filtered for
+Buy = Filter;																		// added so this will run as a scan as well as an exploration
+
+// ---------------------- Watchlist Section
+Add = IIf( WLF==1 , Filter , 0 ) ;												// checks to see if results should go to a watchlist
+if( LastValue( Add ) )						
+{  CategoryAddSymbol( "", categoryWatchlist, WLN ); }						
+
+
+//  --------------------  Display Results Section 
+
+// Comment out (or remove) the next 2 lines of code if you are not getting your data from TC2005
+// Display the name of the industry from the TC2005 DB (note spaces were added to force left justification)
+AddTextColumn(IndustryID(1)+"                                      " ,"Industry              ", 25.0, colorWhite, colorBlue,160);	
+AddTextColumn(GetBaseIndex()+"  " ,"MG Ind #", 10.0, colorWhite, colorBlue,60);					// Display the MG Ind # from the TC2005 DB
+
+// Today's Close
+AddColumn(C, "Close", 2.2,  colorBlue, colorYellow,50);										// adds a column for today's close
+AddColumn(PCY, "%DfYC" ,3.1, colorWhite,colorDarkGreen,50); 	                     		// adds a column for the close as a % from the Yesterday's close
+
+//  % of 1 Day, 21 Day, and 250 Day Range
+P1TR = ( (C - L) / (H - L) ) * 100 ; 																// formula to calculate the close % of today's range
+R1 = (255 - ( (P1TR/100)*255 ) );																	// Red Color component
+G1 = (P1TR/100)*255;																					// Green Color component
+AddColumn(P1TR, "% 1DR", 3.1,  colorBlack, ColorRGB(R1,G1,0), 50);							// Display the % of today's range that the close was at
+
+HH = HHV(H,21);																						// Highest High over last 21 days
+LL = LLV(Low,21);																						// Lowest Low over last 21 days
+P21DR = ( (Close - LL) / (HH - LL) ) * 100;														// Calculate where the close is in relation to this 21 day range
+R21 = (255 - ( (P21DR/100)*255 ) );																// Red Color component
+G21 = (P21DR/100)*255;																				// Green Color component
+AddColumn(P21DR, "%21DR", 3.1, colorBlack, ColorRGB(R21,G21,0), 60);							// Display this value (% of 21 Day Range)
+
+HH250 = HHV(H,250);																					// Highest High over last 250 days
+LL250 = LLV(L,250);																					// Lowest Low over last 250 days
+P250DR = ( (Close - LL250) / (HH250 - LL250) ) * 100;											// Calculate where the close is in relation to this 250 day range
+R250 = (255 - ( (P250DR/100)*255 ) );																// Red Color component
+G250 = (P250DR/100)*255;																			// Green Color component
+AddColumn(P250DR, "%250DR", 3.1, colorBlack, ColorRGB(R250,G250,0), 60);					// Display this value (% of 250 Day Range)
+
+// Display various trading range values
+AddColumn(H-L, "T R", 2.2, colorWhite, colorDarkRed,50);										// adds a column for today's range
+AddColumn(ATR(5), "5d ATR ", 2.2, colorWhite, colorDarkRed,60);								// adds a column for 5 day ATR
+AddColumn(ATR(21), "21d ATR", 2.2, colorWhite, colorDarkRed,60);								// adds a column for 21 day ATR
+
+// Display ADX Component
+AddColumn( MDI(14),"- DI 14", 3.2, colorBlack,colorAqua,50);									// 14 day -DI (ADX neg component) value
+
+// Display volume information
+AddColumn(V, "Volume",8.0, colorYellow, colorDarkGreen,70);									// adds a column for today's volume
+AddColumn( MA(V,VP), WriteVal(VP, 2.0)+ "DA Vol", 8.0, colorWhite, colorBlue,70);			// adds a column for the average volume	
+AddColumn( (V/Ref(MA(V,VP),-1))*100,"V%",3.0, colorLightYellow, colorDarkGrey,40);       // adds a column for what today's volume is as a % of the average
+
+// Commented out the following 3 lines as I don't feel I need them but want to keep them so as to be able to add them back in by removing the 2 dashes
+//AddColumn(C-O, "DfO", 3.2, colorBlack,colorYellow,50);										// adds a column for the close net change from the open
+//AddColumn(((C-O)/O)*100,  "%C f O ", 3.1, colorWhite,colorBlue,50);						// adds a column for the close as a % from the open
+//AddColumn( C - Ref(C,-1) , "D f YC", 3.2,  colorGold, colorDarkBlue,50);					// adds a column for the close net change from the prior close
+
+
+
+/*
+Description of Variables AND Column Headings  (May not be up to date)
+WLF			Watchlist Flag
+WLN			Watchlist Number
+HCV			High Closing Value
+LCV			Low Closing Value
+VP			Volume Period
+MAV			Minimum Average Volume
+MC			Minimum Change
+PCY			Percent Change (from) Yesterday
+P1TR		Percent Change (of) Today's Range
+%DfYC		Percent Delta from Yesterday's Close
+T R			Today's Range
+C% TR		Close % (of) Today's Range
+DfO			Delta from Open
+%C f O		% Close from Open
+D f YC		Delta from Yesterday's Close
+
+
+/*
+_SECTION_END();

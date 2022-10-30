@@ -1,0 +1,286 @@
+_SECTION_BEGIN("Multiple Ribbon ");
+// You plot a Ribbon by calling the function as follows: MultiRibbon("Color", "Ribbon Number", "Name To Display");
+// The "Ribbon Number" is simply the order of the ribbon, starting with 1 as the bottom Ribbon. You can add as many 
+// ribbons as you want, until you run out of chart space. Just keep track of the 'Serial Number' (Ribbon Number). :-)
+
+"ATR exit = Yellow arrow";
+"Kol meet=Blue Triangle ";
+
+RibbonThickness	= Param("Ribbon Thickness", 4, 1, 5, 0.1);
+Font				= ParamList("Font:","Arial|Calibri|Futura|Tahoma|Times New Roman");
+"";
+function GfxConvertBarToPixelX(Bar) 
+{ 
+ lvb = Status("lastvisiblebar"); fvb = Status("firstvisiblebar"); 
+ pxchartleft = Status("pxchartleft"); pxchartwidth = Status("pxchartwidth"); 
+ return pxchartleft + Bar  * pxchartwidth / (Lvb - fvb + 1); 
+} 
+
+procedure MultiRibbon(RibbonColor, Position, Label)
+{
+ LineColor	= colorLightGrey;
+ Position	= RibbonThickness * Position;
+ x2 = Status("pxchartright");
+ y2 = Status("pxchartbottom");
+
+ RibbonColor = IIf(GfxConvertBarToPixelX(BarIndex()-Status("firstvisiblebarindex")) > y2/1.5 * (RibbonThickness/100) * 18 , RibbonColor, colorYellow);
+
+ Plot(0, "", LineColor, styleOwnScale | styleNoLabel, 0, 100);
+ Plot(Position, "", LineColor, styleOwnScale | styleNoLabel, 0, 100);
+ Plot(Position, "", RibbonColor, styleArea | styleOwnScale | styleNoLabel, 0, 100);
+
+ GfxSetTextColor(colorBlack); 
+ GfxSelectFont(Font, y2/1.5 * (RibbonThickness/100), 400); 
+ GfxDrawText(Label, 8, y2 * 1.001 -(y2 * Position/100) , y2/1.5 * (RibbonThickness/100) * 17, y2, 2 + 32 + 256);
+ 
+}
+
+//============================================candle sticks=======================
+Up_MACD_TRIX = Trix( 9 ) > Ref( Trix( 9 ) , -1 )
+AND MACD( 12, 26 ) > Ref( MACD( 12, 26 ) , -1 );
+
+Down_MACD_TRIX =  Trix( 9 ) < Ref( Trix( 9 ) , -1 )
+AND MACD( 12, 26 ) < Ref( MACD( 12, 26 ) , -1 );
+
+Colormacd = IIf(Up_MACD_TRIX,colorLime,IIf(Down_MACD_TRIX,colorRed,colorCustom12)); 
+
+PlotOHLC( Open, High, Low, Close, "", Colormacd, styleCandle ); 
+//----------------------------------------------------------------------------------
+//===================TREND LINES ===============================================
+/*
+per = 15; per = Param( "period", 15, 1, 500, 1);
+
+mm = C;
+
+x = Cum(1);
+lastx = LastValue(x);
+selv = SelectedValue(x);
+
+aaa = LinRegIntercept(mm, per);
+bbb = LinRegSlope(mm, per);
+
+daa = SelectedValue(ValueWhen(x, aaa, 1));
+dbb = SelectedValue(ValueWhen(x, bbb, 1));
+
+xx = IIf(x > selv - per AND x <= selv, x - (selv - per),Null);
+
+yy = daa + dbb * xx;
+
+dhh = abs(H - yy);
+dll = abs(L - yy);
+dtt = Max(dhh,dll);
+
+wd = SelectedValue(HHV(dtt,per));
+
+SetChartOptions(0, chartShowDates);
+GraphXSpace = 5;
+
+Plot(C,"",colorWhite,64);
+Plot(yy, "LinReg", colorYellow );
+Plot(yy + wd, "SL if u r SHORT", colorRed, 4 );
+Plot(yy - wd, "SL if u r LONG", colorBrightGreen, 4 );
+*/
+//---------------------------------------------------------------------------------
+//
+//=========================================EMA================================
+//Plot (MA (Close,3),"MA3",colorRed);
+//Plot( EMA( Close,13),"EMA13",colorBlue  ); 
+//Plot( EMA( Close,39),"EMA39",colorGreen  ); 
+//Plot( EMA( Close,50),"EMA50",colorWhite  ); 
+
+Short_trend = IIf(MA (Close,3)>EMA( Close,13), ColorRGB( 35, 126, 88 ), ColorRGB( 163, 71, 84 ) );
+mid_trend  = IIf(EMA( Close,13) > EMA( Close,39), ColorRGB( 35, 126, 88 ), ColorRGB( 163, 71, 84 )  );
+Long_trend = IIf(EMA (Close,39) > EMA (Close, 50),ColorRGB( 35, 126, 88 ), ColorRGB( 163, 71, 84 )  );
+
+//MultiRibbon(Long_trend, 1, "LONG-TREND"); 
+//MultiRibbon(mid_trend, 2, "MID-TREND"); 
+//MultiRibbon(Short_trend, 3, "SHORT-TREND"); 
+//==========================rsi-7=============================================
+RSIcolor=IIf(RSI(7)>50, ColorRGB( 35, 126, 88 ), ColorRGB( 163, 71, 84 ) );
+//MultiRibbon(RSIcolor, 4, "RSI  : "+RSI(7)); 
+//--------------------------------------------------------------------------------------
+//
+//=======================================MACD=====================================
+MACDcolor = IIf(MACD(8,21)>Signal(8,21,9), ColorRGB( 35, 126, 88 ), ColorRGB( 163, 71, 84 )  );
+//MultiRibbon(MACDcolor, 5, "MACD  : "+MACD(8,21)); 
+//---------------------------------------------------------------------------------------
+
+//=====================================trix============================================
+Trixcolor=IIf(Trix( 9 ) > Ref( Trix( 9 ) , -1 ),ColorRGB( 35, 126, 88 ), ColorRGB( 163, 71, 84 ) );
+//MultiRibbon(Trixcolor, 6, "TRIX : "+Trix(9));
+//=============================BB============================================
+
+
+A1=EMA(C,12)-EMA(C,26); 
+BBtop=BBandTop(A1,10,1); 
+BBbot=BBandBot(A1,10,1);
+BBcolor=IIf(a1<0 AND a1>Ref(a1,-1),ColorRGB( 35, 126, 88 ),IIf(a1>0 AND a1>Ref(a1,-1),ColorRGB( 35, 126, 88 ),IIf(a1>0 AND a1<Ref(a1,-1),ColorRGB( 163, 71, 84 ),ColorRGB( 163, 71, 84 ))));
+//MultiRibbon(BBcolor, 7, "BIlinger Band  : "); 
+ 
+
+
+
+
+//=======================ATR exit==========================================
+_SECTION_BEGIN("ATRtrading");
+//SetChartBkColor( colorBlack ) ;
+period = Param("Period", 13, 1, 240, 1);
+mult = Param("Multiplier", 1.7, 1, 240, 0.1);
+  
+f=ATR(period);
+
+VS[0] = Close[0];
+trend[0] = 0;
+HighC[0]=0;
+Lowc[0]=0;
+
+for( i = period+1; i < BarCount; i++ )
+{
+ 
+vs[i] = vs[i-1];
+trend[i] = trend[i-1];
+highC[i] = HighC[i-1];
+lowc[i] = lowc[i-1];
+
+if ((trend[i]>=0) && ( C[i] <VS[i] ))
+{
+trend[i] =-1;
+HighC[i] = C[i];
+lowc[i] = C[i];
+}
+
+if ((trend[i]<=0) && (C[i] >VS[i]))
+{
+trend[i]=1;
+HighC[i] = C[i];
+lowc[i] = C[i];
+}
+
+if (trend[i]==-1)
+{
+if (C[i]<lowc[i]) lowc[i] = C[i];
+VS[i]= lowc[i]+ (mult*f[i]);
+}
+
+
+if (trend[i]==1)
+{
+if (C[i]>HighC[i]) HighC[i] = C[i];
+VS[i]= HighC[i]-(mult*f[i]);
+}
+
+}
+
+
+ATRBuy=Cross(Trend,0);
+ATRSell=Cross(0, Trend);
+
+//Plot(VS, "Vol Stop",IIf(trend==1,10,11 ),styleThick);
+
+shape = ATRBuy * shapeUpArrow + ATRSell * shapeDownArrow;
+//
+WriteIf(trend > 0, "ATR says : UP Trend","ATR says DOWN Trend") ;
+//
+PlotShapes( shape, IIf( ATRBuy, colorYellow, colorYellow ), 0, IIf( ATRBuy, Low-f, High+f));
+_SECTION_END();
+
+//=================================Kolkata meet ===================
+
+_SECTION_BEGIN("Kolkata Meet - Bands");
+//..........................................................................
+
+a = Param("Angle Degrees",30,15,90,15);
+n = Param("Slope_Bars",5,10,50,1);
+
+a    = (22 / 7) * (a / 180);
+
+Num = NumL = NumH = 0;
+Den = 0;
+
+for (i = 1;i < n+1;i++)
+{
+	Num  = Num  + sin(i * a) * Ref(C,-i-1);
+	NumL = NumL + sin(i * a) * Ref(L,-i-1);
+	NumH = NumH + sin(i * a) * Ref(H,-i-1);
+	Den = Den + sin(i * a);
+}
+
+j  = Num/Den;
+jL = NumL/Den;
+jH = NumH/Den;
+
+
+_SECTION_END();
+
+_SECTION_BEGIN("Signal 04");
+Buy  = C > jH;
+Sell = C < jL;
+
+Buy  = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+Short = Sell;
+Cover = Buy;
+
+Short = ExRem(Short,Cover);
+Cover = ExRem(Cover,Short);
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("Plot Arrows");
+//Position size fixed 100 units
+SetPositionSize(100,4);
+SetTradeDelays(1,1,1,1);
+
+
+PlotShapes(shapeUpTriangle * Buy, colorBlue,0, L,-20);
+PlotShapes(shapeDownTriangle * Short, colorBlue,0, H, -20);
+
+//==================interpretation============================
+
+WriteIf(EMA( Close,13)>EMA( Close,39),"EMA says : UP TREND \n EMA -50 SL of "+ WriteVal(EMA(Close,50)),"EMA says : DOWN TREND \n  EMA "+ WriteVal(EMA(Close,50)));
+WriteIf (Trix( 9 ) > Ref( Trix( 9 ) , -1 ),"\n TRIX =" + WriteVal(Trix( 9 ))+ " : UP","\n TRIX =" + WriteVal(Trix( 9 ))+"   : DOWN");
+WriteIf (MACD( 12, 26 ) > Ref( MACD( 12, 26 ) , -1 ), "MACD ="+ WriteVal(MACD( 12, 26 ))+ " : UP","MACD ="+ WriteVal(MACD( 12, 26 ))+ " : DOWN");
+WriteIf(ADX( 9 ) > Ref( ADX( 9 ) , -1 ),"ADX ="+WriteVal (ADX(9))+"   :TREND-ING","ADX ="+WriteVal (ADX(9))+"   : ----");
+WriteIf (RSI( 7 ) > Ref( RSI(7) , -1 ), "RSI ="+ WriteVal(RSI( 7))+ " : UP","RSI ="+ WriteVal(RSI( 7))+ " : DOWN");
+WriteIf (CCI( 10 ) > Ref( CCI(10) , -1 ), "CCI ="+ WriteVal(CCI( 10))+ " : UP","CCI ="+ WriteVal(CCI( 10))+ " : DOWN");
+WriteIf(StochK( 14)< Ref (StochK( 14),1) ,"stochastic ="+WriteVal (StochK(14))+" : UP " ,"stochastic ="+WriteVal (StochK( 14))+" : DOWN ");
+"";
+WriteIf (Close > SAR( 0.02, 0.2 ),"SAR says : go LONG at "+Close+" \n with a Stop-Loss = " + WriteVal(  SAR( 0.02, 0.2 )),"SAR says : go Short at "+Close+"\n with a Stop-Loss = " + WriteVal(  SAR( 0.02, 0.2 )));
+
+//===========================================RSI cross------------------
+
+RS7 = RSI (7);
+RS21 = RSI (21);
+em13_RS21= EMA(RSI(21),13);
+em39_RS39= EMA(RSI(21),39);
+em5_rs7 = EMA(RSI(7),5);
+em5_rsi21 = EMA(RSI(21),5);
+
+RSIEMABuy =Cross(rs21, em5_rsi21)
+AND Trix( 9 ) > Ref( Trix( 9 ) , -1 );
+//AND em13_RS21 > em39_RS39;
+
+
+RSIEMAShort = Cross(em5_rsi21,RS7)
+AND Trix( 9 ) < Ref( Trix( 9 ) , -1 );
+//AND em13_RS21 < em39_RS39;;
+
+PlotShapes(shapeUpArrow * RSIEMABuy, colorGreen,0, L,-20);
+PlotShapes(shapeDownArrow * RSIEMAShort, colorRed,0, H, -20);
+//====================BB==============================
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 9, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Style = ParamStyle("Style");
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), colorYellow, Style ); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), colorYellow, Style ); 
+_SECTION_END();
+//---------------------------------------------------------------
+
+//=======================MA4,5====================================
+Plot( MA( Close, 4 ), "", colorBlue, styleThick ); 
+Plot( MA( Close,5 ), "", colorGreen, styleThick ); 
+//--------------------------------------------------

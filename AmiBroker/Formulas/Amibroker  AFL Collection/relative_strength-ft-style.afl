@@ -1,0 +1,33 @@
+/*	Relative Strength - FT Style.afl	-	Ken Close, with change by Bill Barnard, 1/20/06	*/
+
+
+SLPIK=Foreign("SLPIX","C");
+SHPIK=Foreign("SHPIX","C");
+
+Pr=24;
+Pr2=44;
+
+//	start change by BB
+
+num1 = IIf(IsEmpty(SLPIK[BarCount - 1]), 1, LastValue(Cum(NOT IsEmpty(SLPIK))));
+num2 = IIf(IsEmpty(SHPIK[BarCount - 1]), 1, LastValue(Cum(NOT IsEmpty(SHPIK))));
+mutualMax = Min(num1, num2);
+startIndex = BarCount - mutualMax;
+si = startIndex;
+StartPLong = SLPIK[si];
+StartPShort = SHPIK[si];
+
+//StartPLong=SLPIK[5];
+//StartPShort=SHPIK[5];
+
+//	end change by BB
+
+RS1=SLPIK/StartPLong;
+Rs2=SHPIK/StartPShort;
+RS=(RS1/Rs2)*10;
+
+ShortSma=MA(RS,Pr);
+LongSMA =MA(RS,Pr2);
+Plot(ShortSma,"",6,4);
+Plot(LongSMA,"",11,4);
+Plot(RS,"RS",colorYellow,4);

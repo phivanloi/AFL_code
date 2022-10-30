@@ -1,0 +1,124 @@
+_SECTION_BEGIN("Ultimate Trend Cycle");
+
+SetChartBkColor(colorBlack);
+aa=(H+L+2*C)/4;
+A=EMA(aa,13);
+B=EMA(aa,39);
+A1=EMA(aa,23);
+B1=EMA(aa,70);
+D1=A1/B1;
+K2=EMA(D1,3);
+D=A/B;
+K1=EMA(D,3);
+K=ROC(K1,1);
+K3=EMA(EMA(ROC(K2,1)*50,3),3);
+ifish=EMA(EMA(EMA(EMA(EMA(K,3),3),3),3),3)*60;
+Color=IIf(ifish>0,IIf(ifish>Ref(ifish,-1),colorDarkGreen,colorYellow),IIf(ifish>Ref(ifish,-1),colorBlue,colorRed));
+Plot(ifish,"Ultimate Trend Cycle Force Index Ribbon",Color,styleHistogram | styleThick, maskHistogram);
+Plot(K3,"",colorGreen,styleLine);
+Plot(Ref(K3,-1),"",colorRed,styleLine);
+_SECTION_END();
+/////////////////////////////////////////////////////////////////////////////////////
+_SECTION_BEGIN("DOTS For CCI_Ozel");
+
+a1=EMA(CCI(5),3);
+a2=EMA(CCI(10),3);
+a3=EMA(CCI(15),3);
+b1=StDev(a1,5);
+b2=StDev(a2,10);
+b3=StDev(a3,15);
+RMOV=((a1*b1)+(a2*b2)+(a3*b3))/(b1+b2+b3);
+K1=EMA(EMA(EMA(RMOV,3),3),3);
+
+PlotShapes(IIf(K1 > 0,shapeSmallCircle,shapeNone),colorBrightGreen,0,0,0); 
+PlotShapes(IIf(K1 <= 0,shapeSmallCircle,shapeNone),colorRed,0,0,0);
+
+_SECTION_END();
+/////////////////////////////////////////////////////////////////////////////////////
+_SECTION_BEGIN("Trend Direction and Force Index Ribbon");
+MMA=EMA(C,15);
+SMMA=EMA(MMA,15);
+IMPETMMA=MMA - Ref(MMA,-1);
+IMPETSMMA=SMMA - Ref(SMMA,-1);
+DIVMA= abs(MMA - SMMA);
+AVERIMPET= (IMPETMMA+IMPETSMMA)/2;
+K1=DIVMA;
+K2=AVERIMPET*AVERIMPET*AVERIMPET;
+TDF= K1*K2;
+NTDF1=EMA(TDF/HHV(abs(TDF),15*3),3)*100;
+NTDF=EMA(NTDF1,3);
+Bull_Trend=NTDF>4;
+Bear_Trend=NTDF<=-4;
+Ribbon_kol=IIf(Bull_Trend,colorGreen, IIf(Bear_Trend,colorRed, colorOrange));
+Plot(2, "", Ribbon_kol, styleOwnScale|styleArea|styleNoLabel, -0.5,100);
+
+_SECTION_END();
+/////////////////////////////////////////////////////////////////////////////////////
+
+_SECTION_BEGIN("StochRSI_Special");
+x=(( RSI(21) - LLV(RSI(21) ,21)) / ((HHV(RSI(21 ) ,21)) - LLV(RSI(21),21)))*100;
+Value1=0.1*((x)-50);
+Value2=WMA(Value1,7);
+KK=(exp(Value2)-1)/(exp(Value2)+1);
+
+Plot(0,"",IIf(EMA(KK,3)>0.50,colorBrightGreen,colorRed) ,4+styleNoLabel);
+
+_SECTION_END();
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+_SECTION_BEGIN("Coppock Trade Signal v1.1");
+
+//PARAMETERS:
+ROC1Periods		=Param("ROC1 periods",14,2,200,1,0);
+ROC2Periods		=Param("ROC2 periods",11,2,200,1,0);
+WMAPeriods			=Param("WMA periods",10,2,200,1,0);
+CoppockCurve		=ParamToggle("Use Coppock curve","No|Yes",0);
+CoppockBar			=ParamToggle("Use Coppock bar","No|Yes",1);
+ColBull			=ParamColor("Bull color",colorBlue);
+ColBear			=ParamColor("Bear color",colorRed);
+UseTradeSignal	=ParamToggle("Use trade signal","No|Yes",1);
+CoppockFilter		=Param("Coppock filter",20,2,200,1,0);
+ColBuy				=ParamColor("Buy color",colorBrightGreen);
+ColSell			=ParamColor("Sell color",colorDarkRed);
+ColBg				=ParamToggle("Show background color","No|Yes",1);
+
+//MAIN:
+Coppock=WMA((ROC(C,ROC1Periods)+ROC(C,ROC2Periods)),WMAPeriods);
+InitialCalculationLength=Max(ROC1Periods,ROC2Periods)+WMAPeriods;
+for(i=0;i<BarCount;i++)
+{
+	if(i<InitialCalculationLength) //initial zero
+	{
+		Coppock[i]=0.0;
+		if(UseTradeSignal){Buy=0; Sell=0;}
+	}
+}
+LastCoppock1=Ref(Coppock,-1);
+LastCoppock2=Ref(Coppock,-2);
+TradeStatus=IIf(Coppock>0,IIf(Coppock>LastCoppock1,ColBull,IIf(Coppock<LastCoppock1,ColBear,IIf(Coppock==LastCoppock1
+&& LastCoppock1>LastCoppock2,ColBull,ColBear))),
+			 
+IIf(Coppock>LastCoppock1,ColBull,IIf(Coppock<LastCoppock1,ColBear,IIf(Coppock==LastCoppock1
+&& LastCoppock1>LastCoppock2,ColBull,ColBear))));
+StyleTitle=IIf(CoppockCurve && CoppockBar,styleNoTitle,0);
+StyleLabel=IIf(CoppockCurve && CoppockBar,styleNoLabel,0);
+if(CoppockCurve)
+Plot(Coppock,"",TradeStatus,styleLine|styleThick|StyleTitle|styleNoDraw);
+if(CoppockBar)
+Plot(Coppock,"",TradeStatus,styleHistogram|styleNoDraw);
+if(UseTradeSignal)
+{
+	CoppockIsBuy=TradeStatus==ColBull;
+	CoppockIsSell=TradeStatus==ColBear;
+	CoppockBuyValue=ValueWhen(CoppockIsBuy,Coppock,1);
+	CoppockSellValue=ValueWhen(CoppockIsSell,Coppock,1);
+	Buy=!Ref(CoppockIsBuy,-1) && Coppock<0 && CoppockIsBuy &&
+	abs(CoppockBuyValue)>=CoppockFilter;
+	Sell=!Ref(CoppockIsSell,-1) && Coppock>0 && CoppockIsSell &&
+	abs(CoppockSellValue)>=CoppockFilter;
+	PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),ColBuy,0,0);
+	PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),ColSell,0,0);
+}
+if(ColBg)
+
+_SECTION_END();

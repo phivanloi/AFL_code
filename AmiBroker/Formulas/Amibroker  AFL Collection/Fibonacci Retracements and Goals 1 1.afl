@@ -1,0 +1,67 @@
+_SECTION_BEGIN("AA - Fibonacci Retracements and Goals");
+///////////////////////////////////////////////////
+// **************** Parameters ********************
+//
+Period = Param("Period", 1, 1, 50);
+ShowExt = ParamToggle("Show Extension ?", "No|Yes"); 
+///////////////////////////////////////////////////
+// **************** Calculations *****************
+//
+Period = Period*(13*.618);
+
+Hhb = LastValue(Ref(HHVBars(H, Period), -1))+1;
+Llb = LastValue(Ref(LLVBars(L, Period), -1))+1;
+Hv = LastValue(Ref(HHV(H, Period), -1));
+Lv = LastValue(Ref(LLV(L, Period), -1));
+
+Range = (Hv - Lv);
+LText = "0 %, 21.4 %, 38.2 %, 50 %, 61.8 %, 78.6 %, 100 %, 1.618 %, 1.72 %, 200 %";
+if(Hhb > Llb)
+{
+	Levels[0] = Lv;
+	Levels[1]= (Range *.214)+Levels[0];
+	Levels[2]= (Range *.382)+Levels[0];
+	Levels[3]= (Range *.5)+Levels[0];
+	Levels[4]= (Range *.618)+Levels[0];
+	Levels[5]= (Range *.786)+Levels[0];
+	Levels[6]= Hv;
+	Levels[7]= (Range *.618)+Levels[6];
+	Levels[8]= (Range *.72)+Levels[6];
+	Levels[9]= (Range )+Levels[6];
+	x0 = BarCount - 1 - Llb;
+	x1 = BarCount - 1 - Hhb;
+}
+else
+{
+	Levels[0]= Hv;
+	Levels[1]= Levels[0]- (Range *.214);
+	Levels[2]= Levels[0]- (Range *.382);
+	Levels[3]= Levels[0]- (Range *.5);
+	Levels[4]= Levels[0]- (Range *.618);
+	Levels[5]= Levels[0]- (Range *.786);
+	Levels[6]= Lv;
+	Levels[7]= Levels[6]- (Range *.618);
+	Levels[8]= Levels[6]- (Range *.72);
+	Levels[9]= Levels[6]- (Range );
+	x0 = BarCount - 1 - Hhb;
+	x1 = BarCount - 1 - Llb;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// **************************** Plotting Area ********************************
+//
+Plot(C, "", IIf(MACD(9,34) > Ref(MACD(9,34),-1), colorBrightGreen, colorRed), ParamStyle("Price Style", styleBar, maskPrice));
+for(i=0; i<10; i++)
+{
+	if(i!=6)
+		x = x0;
+	else
+		x = x1;
+	if(i<7 OR ShowExt)
+	{
+		Plot(LineArray(x, Levels[i], BarCount, Levels[i]), "", i+2, styleDots);
+		PlotText(StrExtract(LText, i), BarCount, Levels[i], i+2);
+	}
+}
+//Title = FullName()+" - "+Name()+"\nO:"+O+", H:"+H+", L:"+L+", C:"+C;
+_SECTION_END();

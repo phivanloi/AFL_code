@@ -1,0 +1,10 @@
+ShowAuthorName = ParamToggle("Show Author Name", "Yes|No" );
+if (ShowAuthorName ==0)
+{	GfxSelectFont("ARIAL", 16, 800 ); 
+	GfxSetBkMode(1); 
+	GfxSetTextColor(colorYellow); 
+	GfxTextOut("Sultanji V 0.1", 5 , 10); 
+}
+SetChartBkGradientFill( ParamColor("Bg Top Color", colorBlack),
+							ParamColor("Bg Bottom Color", colorBlack),
+							ParamColor("Title Block Color",colorBlack));

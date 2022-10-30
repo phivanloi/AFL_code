@@ -1,0 +1,27 @@
+_SECTION_BEGIN("Fibonacci Retracements");
+ //Fibonacci Retracement Lines
+
+H52 = Ref(HHV(H,60),-1);
+L52 = Ref(LLV(L,60),-1);
+L52bar = LastValue( BarsSince(L==L52));
+H52bar=LastValue(BarsSince(H==H52));
+change = H52-L52;
+Retrace38 = H52 - change*0.382;
+Retrace50 = H52 - Change*0.50;
+Retrace62 = H52 - Change*0.618;
+Retrace100 = H52 - Change*1;
+
+Plot(C,"price",colorBlack,styleCandle);
+Plot(IIf(BarIndex()>=(BarCount-1- H52bar), H52, Null), "H52", 
+colorRed,styleLine);
+Plot(IIf(BarIndex()>=(BarCount-1- H52bar), Retrace38, Null), "Retr 
+38%", colorYellow,styleLine);
+Plot(IIf(BarIndex()>=(BarCount-1- H52bar), Retrace50, Null), "Retr 
+50%", colorBlue,styleLine);
+Plot(IIf(BarIndex()>=(BarCount-1- H52bar), Retrace62, Null), "Retr 
+62%", colorGreen,styleLine);
+Plot(IIf(BarIndex()>=(BarCount-1- H52bar), Retrace100, Null), "Retr 
+100%", colorRed,styleLine);
+
+GraphXSpace=5;
+_SECTION_END();

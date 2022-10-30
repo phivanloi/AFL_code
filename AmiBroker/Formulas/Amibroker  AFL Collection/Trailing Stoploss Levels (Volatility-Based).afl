@@ -1,0 +1,25 @@
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );
+_N( Title = StrFormat( "{{NAME}} - " + SectorID( 1 ) + " - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", colorRose, styleCandle | styleNoTitle | ParamStyle( "Style" ) | GetPriceStyle() );
+
+if ( ParamToggle( "Tooltip shows", "All Values|Only Prices" ) )
+{
+    ToolTip = StrFormat( "Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: " + NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 ) ) );
+}
+
+pds1 = Param("ATR Lookback", 10,2,150,1);
+mult = Param("ATR MUltiplier", 3.0,1.0,20.0,1.0);
+Pds2 = Param("Periods Lookback", 20,2,150,1);
+
+//{Volatility Stop (Long)}
+PrelimStopLong = HHV(H,Pds1) - ATR(Pds1)*Mult;
+ActualStopLong = HHV(PrelimStopLong,Pds2);
+//{Volatility Stop (Short)}
+PrelimStopShort = LLV(L,Pds1) + ATR(Pds1)*Mult;
+ActualStopShort = LLV(PrelimStopShort,Pds2);
+
+Plot(PrelimStopLong, "PrelimStopLong", colorGreen, styleDashed);
+Plot(ActualStopLong, "ActualStopLong", colorGreen, styleThick);
+
+Plot(PrelimStopShort , "PrelimStopShort", colorRed, styleDashed);
+Plot(ActualStopShort , "ActualStopShort", colorRed, styleThick);

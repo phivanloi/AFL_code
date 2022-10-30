@@ -1,0 +1,19 @@
+//-- Begin of Script -----
+pds = Param( "Periods", 3, 2, 200);
+OB = Param( "OB Level", -15, -49, 0);
+OS = Param( "OS Level", -85, -100, -51);
+
+WR = ((HHV(H,pds) - C) /(HHV (H,pds) -LLV (L,pds))) *-100;
+
+
+_N(Title = StrFormat("{{NAME}}- W%%R(%g)= %g", pds, WR));
+
+
+Plot( WR, "", ParamColor( "Color", colorBrown ), ParamStyle("Style"));
+Plot(OB,"",colorBlack);
+Plot(OS,"",colorBlack);
+
+PlotOHLC( WR,WR,-50,V, "", colorBrown, styleCloud | styleClipMinMax, OS, OB ); 
+
+
+//-- End of Script -----

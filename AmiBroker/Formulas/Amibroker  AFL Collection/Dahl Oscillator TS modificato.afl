@@ -1,0 +1,20 @@
+/*Dahl Oscillator TS modificato (TEMA)
+
+*/ 
+P=14;Q=34;R=9;AV=6;
+p = Optimize("Period",P,3,25,1); 
+q = Optimize("Q ",Q,20,36,2); 
+//r = Optimize("R lookback",R,5,25,1); 
+Av = Optimize("S Average",AV,2,30,2); 
+
+M=MA(C,q);
+Dahl = TEMA(	( M - Ref(M,-p)- LLV (M - Ref(M,-p),r) )/(HHV(M - Ref(M,-p),r)-(LLV(M - Ref(M,-p),r))),r)*100 ;
+
+Buy = Cover = Cross (dahl, MA(Dahl,av));
+Short = Sell = Cross (MA(Dahl,av), dahl);
+
+
+GraphXSpace=2;
+Plot(Dahl,"Dahl",4,4); 
+Plot(MA(Dahl,av),"Avg",7,4); 
+//===========================end Dahl oscillator

@@ -1,0 +1,32 @@
+//berikut indicator saya namankan SAT-ADOBOS(Acc& Dist-Overbought& Sold
+
+_SECTION_BEGIN( "SAT-ADOBOS" );
+line1=H-L;
+line2=IIf(line1=0,1,line1) ;
+ad=((C-L)-(H- C))/line2;
+line3=ad*V;
+line4=Sum(line3, 5)/Sum(V, 5);
+line5=MA(line4, 3);
+Plot(line5, "SAT-ADOBOS" ,colorLime , styleHistogram| styleThick) ;
+uptrend=StochK( 5)>30;
+downtrend=StochK( 5)<40;
+Plot( 4, "Trend",IIf( uptrend, colorGreen, IIf( downtrend, colorRed, 0 )),styleOwnScale| styleArea| styleNoLabel, -0.5, 100 );
+
+/* Pak Eco yg ahli warna-warni mungin bisa membantu nya or tman se-oprekan
+strategy trading yg Saya menggunakan 2 kekuatan Oscilator pertama kekuatan A/D kedua kekuatan Harga dan disini
+A/D ini telah saya kombinasikan dgn stochastic sbg ribbon 
+bila kondisi dalam Acc Histo naik dan di dukung Oleh ribbon stoch menjadi Hijau dpt dikatakan Buy Signal dan sebaliknya.
+kunci dari A/D ini terdapat bilamana nilai bar Hari ini > or < dari pd nilai bar Hari kemarin berarti ada progress kenaikan / penurunan.
+
+Ok.... sekarang bgm Caranya untuk buat Histogramnya menjadi waran warni , bila 
+berada di bawah merah dan di atas Hijau.
+dan agar lebih jelas dibaca klu bs di buat dgn metode sbb :
+bila kondisi dlm Acc dan nilai bar Hari ini > dari bar kemarin MAka bar Hari ini Hijau terang.
+dan bila kondisi dlm Acc dan nilai bar Hari ini < dari bar kemarin MAka bar Hari ini Hijau gelap.
+begitu juga sebaliknya saat terjadi distribusi berarti histo berada di bawah.
+bila kondisi dlm Dist dan nilai bar Hari ini > dari bar kemarin MAka bar Hari ini merah terang.
+dan bila kondisi dlm Dist dan nilai bar Hari ini < dari bar kemarin MAka bar Hari ini merah tua.
+itu dapat diartikan kondisi bearish menuju ke bulish dan sebaliknya.
+*/
+
+_SECTION_END( );

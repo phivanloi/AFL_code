@@ -1,0 +1,98 @@
+GraphXSpace = 8;
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartLogarithmic | chartWrapTitle );
+_N( Title = StrFormat( "{{NAME}} - " + SectorID( 1 ) + " - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+_SECTION_BEGIN("RMO");
+Len1 = Optimize("Len1", 2, 2, 11, 1);
+Len2 = Optimize("Len2", 10, 2, 21, 1);
+Len3 = Optimize("Len3", 30, 2, 50, 1);
+Len4 = 81;
+
+//Indicators
+MAz = Cum(0); //I believe MAz = 0; would be same as well.
+MAy = C;
+for (i = 1; i <= Len2; i++)
+{
+MAy = MA(MAy, Len1);
+MAz = MAz + MAy;
+}
+
+STzero = IIf(HHV(C, Len2) - LLV(C, Len2)==0 ,0.00001,HHV(C, Len2) - LLV(C, Len2)); //just to avoid dividing be zero
+
+
+SwingTrd1 =100 * ((C - (MAz / Len2)) / STzero);
+SwingTrd2=
+EMA(SwingTrd1,Len3 );
+SwingTrd3=
+EMA(SwingTrd2,Len3 );
+RMO= EMA(SwingTrd1,Len4 );
+Buy=Cross(SwingTrd2,SwingTrd3);
+Sell=Cross(SwingTrd3,SwingTrd2);
+Bull_Trend=EMA(SwingTrd1,Len4)>0;
+Bear_Trend=EMA(SwingTrd1,Len4)<0;
+Ribbon_kol=IIf(Bull_Trend,colorGreen, IIf(Bear_Trend,colorRed, colorBlack));
+Plot(1, "", Ribbon_kol, styleOwnScale|styleArea|styleNoLabel, -0.5,100);
+Impulse_UP= EMA(SwingTrd1,Len3 ) > 0;
+Impulse_Down= EMA(SwingTrd1,Len4) < 0;
+bar_kol=IIf(impulse_UP, colorBlue, IIf(impulse_Down, colorRed,IIf(Bull_Trend, colorRed, colorBlue)));
+Plot(Close,"",bar_kol,styleBar | styleThick );
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, colorBlue, colorRed ),0, IIf( Buy, Low, High ) );
+Buy = ExRem( Buy, Sell );
+Sell = ExRem( Sell, Buy );
+//pos = IIf(SwingTrd2>Ref(SwingTrd2,-1),colorBrightGreen,IIf(SwingTrd2<Ref(SwingTrd2,-1),colorRed,colorLightGrey));
+//Plot(6,"",pos,styleArea | styleOwnScale | styleNoLabel, 0, 100 );
+_SECTION_END();
+
+
+//RMO EXPLORATIONS - INTRADAY
+_SECTION_BEGIN("RMO Explorer");
+
+New_Bullish = IIf(RMO > 0 AND Ref(RMO, -1) <= 0,1,0);
+New_Bearish = IIf(RMO < 0 AND Ref(RMO, -1) >= 0,1,0);
+New_Buy_Arrow = IIf(Cross(SwingTrd2,SwingTrd3),1,0) AND RMO >0;
+New_Sell_Arrow = IIf(Cross(SwingTrd3,SwingTrd2),1,0) AND RMO <0;
+New_Blue_Bar = IIf(Cross(SwingTrd2,0),1,0) AND RMO >0;
+New_Red_Bar = IIf(Cross(0,SwingTrd2),1,0) AND RMO <0;
+Old_Bullish = IIf(RMO > 0 AND Ref(RMO, -1) > 0,1,0);
+Old_Bearish = IIf(RMO < 0 AND Ref(RMO, -1) < 0,1,0);
+New_Buy_Bar = IIf(Ref(New_Buy_Arrow,-1) AND C > Ref(H,-1), 1, 0);
+New_Sell_Bar = IIf(Ref(New_Sell_Arrow,-1) AND C < Ref(L,-1), 1, 0);
+P_Buy = (Ref(RMO,-1) > 0) AND (Ref(New_Blue_Bar,-1) > 0);
+P_Sell= (Ref(RMO,-1) < 0) AND (Ref(New_Red_Bar,-1) > 0);
+CBR = RMO;
+CBS2= SwingTrd2;
+CBS3= SwingTrd3;
+PBR = Ref(RMO,-1);
+PBS2= Ref(SwingTrd2,-1);
+PBS3= Ref(SwingTrd3,-1);
+New3CBuy = ((CBR > 0) AND (CBS2 >0) AND (CBS2 > CBS3) AND ((PBR <= 0) AND (PBS2 <=0) AND (PBS2 <= PBS3)));
+New3CSell= ((CBR < 0) AND (CBS2 <0) AND (CBS2 < CBS3) AND ((PBR >= 0) AND (PBS2 >=0) AND (PBS2 >= PBS3)));
+New_Arrow_New_Bar_Buy = ((CBR > 0) AND (CBS2 >0) AND (CBS2 > CBS3) AND ((PBS2 <=0) AND (PBS2 <= PBS3)));
+New_Arrow_New_Bar_Sell= ((CBR < 0) AND (CBS2 <0) AND (CBS2 < CBS3) AND ((PBS2 >=0) AND (PBS2 >= PBS3)));
+B1=New_Buy_Bar;
+S1=New_Sell_Bar;
+B2=New3CBuy;
+S2=New3CSell;
+B3=New_Buy_Arrow;
+S3=New_Sell_Arrow;
+B4=New_Buy_Arrow;
+S4=New_Sell_Arrow;
+B5=New_Blue_Bar;
+S5=New_Red_Bar;
+B6=New_Bullish;
+S6=New_Bearish;
+Buy= (B1 OR B2 OR B3 OR B4 OR B5 OR B6) ;
+Sell= (S1 OR S2 OR S3 OR S4 OR S5 OR S6);
+Filter=Buy OR Sell;
+SetOption("NoDefaultColumns", True );
+AddTextColumn(Name(),"Security",1.2,colorDefault,colorDefault,90);
+AddColumn( DateTime(), "Date", formatDateTime, colorDefault,colorDefault,100);
+AddColumn(IIf(B1,66,IIf(S1,83,32)),"New Trade Bar", formatChar, colorWhite, bkcolor =IIf(B1, colorGreen,IIf(S1,colorRed,colorDefault)));
+AddColumn(IIf(B2,66,IIf(S2,83,32)),"New3C", formatChar, colorWhite, bkcolor =IIf(B2, colorGreen,IIf(S2,colorRed,colorDefault)));
+AddColumn(IIf(B3,66,IIf(S3,83,32)),"New Arrow+Bar", formatChar, colorWhite, bkcolor =IIf(B3, colorGreen,IIf(S3,colorRed,colorDefault)));
+AddColumn(IIf(B4,66,IIf(S4,83,32)),"New Arrow", formatChar, colorWhite, bkcolor =IIf(B4, colorGreen,IIf(S4,colorRed,colorDefault)));
+AddColumn(IIf(B5,66,IIf(S5,83,32)),"New Bar", formatChar, colorWhite, bkcolor =IIf(B5, colorGreen,IIf(S5,colorRed,colorDefault)));
+AddColumn(IIf(B6,66,IIf(S6,83,32)),"New RMO", formatChar, colorWhite, bkcolor =IIf(B6, colorGreen,IIf(S6,colorRed,colorDefault)));
+AlertIf( Buy, "SOUND C:\\Windows\\Media\\chimes.wav", "Audio alert", 1, 1+8 );
+AlertIf( Sell, "SOUND C:\\Windows\\Media\\ding.wav", "Audio alert", 2, 1+8 );
+_SECTION_END();

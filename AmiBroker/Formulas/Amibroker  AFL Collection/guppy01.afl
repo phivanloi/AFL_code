@@ -1,0 +1,27 @@
+//  Guppy MMA   7/26/2006
+SetChartOptions(2,chartShowDates);
+
+
+st3	= EMA(C,3);
+st5	= EMA(C,5);
+st8	= EMA(C,8);
+st10	= EMA(C,10);
+st12	= EMA(C,12);
+st15	= EMA(C,15);
+Lt23	= EMA(C,23);
+Lt30	= EMA(C,30);
+Lt35	= EMA(C,35);
+Lt40	= EMA(C,30);
+Lt50	= EMA(C,50);
+
+Plot(st3,"3",colorGreen,1);
+Plot(st5,"5",colorYellow,1);
+Plot(st8,"8",colorRed,1);
+Plot(st10,"10",colorBlue,1);
+Plot(st12,"12",colorBlue,1);
+Plot(st15,"15",colorBlue,1);
+Plot(Lt23,"23",colorWhite,1);
+Plot(Lt30,"30",colorRed,1);
+Plot(Lt35,"35",colorRed,1);
+Plot(Lt40,"40",colorRed,1);
+Plot(Lt50,"50",colorBlack,1);

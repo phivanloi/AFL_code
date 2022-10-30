@@ -1,0 +1,27 @@
+_SECTION_BEGIN("plot ema of rsi1");
+
+
+
+r = Optimize("rsi",39,1,39,1);
+slow_per = Optimize("smaller period",3,1,39,1);
+fast_per = Optimize("bigger",27,1,50,1);
+
+f = EMA(RSI(r),slow_per);
+
+
+Buy = Cross (EMA(RSI(r),slow_per),EMA(RSI(r),fast_per));
+Sell= f < Ref(f,-2);
+
+Plot (EMA(RSI(r),slow_per),"slow rsi",colorBlue,styleThick);
+Plot (EMA(RSI(r),fast_per),"fast rsi",colorRed,styleThick);
+
+
+Short = Cross (EMA(RSI(r),fast_per),EMA(RSI(r),slow_per));
+
+Cover =  f > Ref(f,-2);
+
+PlotShapes(Buy*shapeUpTriangle,colorYellow);
+PlotShapes(Short*shapeDownTriangle,colorYellow);
+PlotShapes(Sell*shapeHollowSmallDownTriangle,colorRed);
+PlotShapes(Cover*shapeHollowSmallUpTriangle,colorGreen);
+_SECTION_END();

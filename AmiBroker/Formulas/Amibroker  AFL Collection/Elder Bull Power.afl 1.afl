@@ -1,0 +1,7 @@
+_SECTION_BEGIN("Elder Bull Power.afl");
+Graph0Style = styleLine;
+Graph1Style=2;
+Graph0Color=12;
+Graph1Color=5;
+Graph0 = High - EMA(Close,13);
+_SECTION_END();

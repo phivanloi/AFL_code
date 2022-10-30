@@ -1,0 +1,48 @@
+// Original code By Barry Scarborough, Thanks to Barry.
+
+// Modified By MSR Murthy to make it as an EOD data source, as he could not find one. 
+// Modified version exports EOD data to NinjaTrader compatible format with .txt file extention.
+// Makes one file with the first 9 characters of each symbol with facility for symbol renaming.
+
+// Select your symbols to export with the "Apply to" filter in Automatic Analysis (AA) window. 
+// Make sure the chart is on the period (timeframe) of your interest 
+// Select the same timeframe period you want to save as using the AA "Settings"
+// Press Scan button and the OHLCV data is exported to E:\OHLC
+
+// To DO : "Range Selection" as given in AA to be made functional instead of n_Last_Quotes
+
+n_Last_Quotes = Param( "n Last Quotations", 1, 1, 900, 1);
+
+FromBarCount = LastValue(BarCount)-n_Last_Quotes;
+fmkdir("E:\\OHLC\\"); // created a new directory 
+
+lname = Name(); 
+if (lname == "BAJAJ-AUTO") lname = "BAJAJAUTO";
+if (lname == "NIFTY") lname = "_NSEI";
+if (lname == "JUNIOR") lname = "_NSMIDCP";
+if (lname == "BANKNIFTY") lname = "_NSEBANK";
+if (lname == "CNXIT") lname = "_CNXIT";
+
+lname = StrLeft(lname,9);
+
+fh = fopen( "E:\\OHLC\\" + lname + ".txt", "w"); 
+if( fh ) 
+{ 	
+for( i = BarCount-n_Last_Quotes; i <BarCount; i++ )
+		{ 
+			if (i>0)
+				{ 		  	
+					y = Year(); 
+ 		  			m = Month(); 
+		   		d = Day(); 
+   				ds = StrFormat("%02.0f%02.0f%02.0f;", y[ i ], m[ i ], d[ i ] ); 
+   	   		fputs( ds, fh ); 
+      			qs = StrFormat("%.2f;%.2f;%.2f;%.2f;%.0f\n", O[ i ],H[ i ],L[ i ],C[ i],V[ i ] ); 
+      			fputs( qs, fh ); 
+				}
+		}
+	
+   fclose( fh ); 
+} 
+
+Buy = 1;

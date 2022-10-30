@@ -1,0 +1,30 @@
+//Plot (Close,"close",colorWhite,styleThick);
+piv = (O+L+H+C)/4;
+Plot(L,"",colorRed,styleLine);
+Plot(H,"",colorGreen,styleLine);
+
+_SECTION_BEGIN("JMA");
+Length=Param( "Length ", 10, 0, 500);
+Phase=Param( "Phase", 0, -100, 100);
+
+//Plot( JurikJMA( Close, Length, Phase), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+Plot( JurikJMA( piv, 5, 0), _DEFAULT_NAME(), IIf(JurikJMA( piv, 7, 0) > Ref(JurikJMA( piv, 7, 0),-1),colorBrightGreen,colorRed), styleThick );
+
+_SECTION_END();
+
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), Color, Style ); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), Color, Style ); 
+_SECTION_END();
+
+_SECTION_BEGIN("JMA1");
+Length=Param( "Length ", 10, 0, 500);
+Phase=Param( "Phase", 0, -100, 100);
+
+Plot( JurikJMA( Close, Length, Phase), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+_SECTION_END();

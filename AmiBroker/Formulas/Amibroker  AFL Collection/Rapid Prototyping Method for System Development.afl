@@ -1,0 +1,28 @@
+// Rapid Prototyping Method for Trading System Development
+// Idea from "The Breakout Bulletin March 2005" by Mike Bryant
+// AFL coding by mmike
+
+SetTradeDelays(1,1,1,1);
+
+Cond1 = C-Ref(C,-1);
+Cond2 = C-Ref(C,-2);
+Cond3 = C-Ref(C,-5);
+Cond4 = C-Ref(C,-10);
+Cond5 = C-MA(C,5);
+Cond6 = C-MA(C,25);
+Cond7 = C-MA(C,45);
+
+
+w1 = Optimize("w1",1,-1,1,1);
+w2 = Optimize("w2",-1,-1,1,1);
+w3 = Optimize("w3",-1,-1,1,1);
+w4 = Optimize("w4",1,-1,1,1);
+w5 = Optimize("w5",0,-1,1,1);
+w6 = Optimize("w6",0,-1,1,1);
+w7 = Optimize("w7",0,-1,1,1);
+
+
+Buy = w1*Cond1>=0 AND w2*Cond2>=0 AND w3*Cond3>=0 AND w4*Cond4>=0 AND w5*Cond5>=0 AND w6*Cond6>=0 AND w7*Cond7>=0;
+Sell = w1*Cond1<=0 AND w2*Cond2<=0 AND w3*Cond3<=0 AND w4*Cond4<=0 AND w5*Cond5<=0 AND w6*Cond6<=0 AND w7*Cond7<=0;
+Short = Sell; 
+Cover = Buy;

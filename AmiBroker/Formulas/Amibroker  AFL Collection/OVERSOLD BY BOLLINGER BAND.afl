@@ -1,0 +1,9 @@
+/* Create date: 12 Apr 2011
+The Close Price of the current bar is less than the  Bolinger Band (Bottom)-3% of the current bar */
+
+Filter = Close < BBandBot( Close, 20, 2 ) * 0.99;
+AddColumn( Close, "Close  " );
+AddColumn( Open, "Open  " );
+AddColumn( High, "High  " );
+AddColumn( Low, "Low  " );
+AddColumn( Volume, "Volume      " );

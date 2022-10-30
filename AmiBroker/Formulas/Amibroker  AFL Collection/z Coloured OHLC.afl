@@ -1,0 +1,13 @@
+//============================================candle sticks=======================
+Up_MACD_TRIX = MACD( 3, 11 ) > Signal(3,11,16);
+
+Down_MACD_TRIX =  MACD( 3, 11 ) < Signal(3,11,16);
+
+Colormacd = IIf(Up_MACD_TRIX,colorLime,IIf(Down_MACD_TRIX,colorRed,colorCustom12)); 
+
+
+//PlotOHLC( Open, High, Low, Close, "", Colormacd, styleBar ); 
+
+//PlotOHLC( 1.01*Open, 1.01*High, 1.01*Low, 1.01*Close, "", Colormacd, styleCandle ); 
+PlotOHLC( Open, High, Low, Close, "", Colormacd, styleCandle ); 
+

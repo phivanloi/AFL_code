@@ -1,0 +1,67 @@
+// General-purpose MC part  
+HowManyMCSteps = 20000; // adjust that to change the number of MC tests 
+
+PositionScore = 100 * mtRandomA(); 
+// that is single-line that causes random picking of signals 
+
+Step = Optimize("Step", 1, 1, HowManyMCSteps , 1 ); 
+// this is dummy variable, not used below 
+
+// The trading system itself 
+// ( you may enter your own system below instead of one from the article ) 
+
+NumPos = 8; // maximum number of open positions 
+SetOption("MaxOpenPositions", NumPos ); 
+SetPositionSize( GetOption("InitialEquity") / NumPos, spsValue ); 
+// as in the article - no compounding of profits 
+// SetPositionSize( 100 / NumPos, spsPercentOfEquity ); 
+// uncomment this for compounding profits 
+
+// signals 
+s = Signal( 12, 26, 9 ); 
+m = MACD( 12, 26 ); 
+Buy = Cross( s, m ); 
+Sell = Cross( m, s ); 
+
+SetTradeDelays( 1, 1, 1, 1 ); // trade with one bar delay on open price 
+BuyPrice = Open; 
+SellPrice = Open;
+// General-purpose MC part 
+HowManyMCSteps = 20000; // adjust that to change the number of MC tests 
+
+PositionScore = 100 * mtRandomA(); 
+// that is single-line that causes random picking of signals 
+
+Step = Optimize("Step", 1, 1, HowManyMCSteps , 1 ); 
+// this is dummy variable, not used below 
+
+// The trading system itself 
+// ( you may enter your own system below instead of one from the article ) 
+
+NumPos = 8; // maximum number of open positions 
+SetOption("MaxOpenPositions", NumPos ); 
+SetPositionSize( GetOption("InitialEquity") / NumPos, spsValue ); 
+// as in the article - no compounding of profits 
+// SetPositionSize( 100 / NumPos, spsPercentOfEquity ); 
+// uncomment this for compounding profits 
+
+// signals 
+s = Signal( 12, 26, 9 ); 
+m = MACD( 12, 26 ); 
+Buy = Cross( s, m ); 
+Sell = Cross( m, s ); 
+
+SetTradeDelays( 1, 1, 1, 1 ); // trade with one bar delay on open price 
+BuyPrice = Open; 
+SellPrice = Open;
+
+
+Plot(C,"",47,64);
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+//Short=ExRem(Short,Cover);
+//Cover=ExRem(Cover,Short);
+PlotShapes(Buy*shapeUpArrow,colorGreen,0,L);
+PlotShapes(Sell*shapeDownArrow,colorRed,0,H);
+//PlotShapes(IIf(Short, shapeHollowDownArrow, shapeNone),colorPink, 0, L, -10);
+//PlotShapes(IIf(Cover, shapeHollowUpArrow, shapeNone),colorSeaGreen, 0,H, -10);

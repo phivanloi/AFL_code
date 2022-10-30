@@ -1,0 +1,116 @@
+_SECTION_BEGIN("Chart Settings");
+ SetChartOptions(0,chartShowArrows|chartShowDates);
+ SetChartBkColor(ParamColor("Outer Panel",colorPaleBlue)); 
+ SetChartBkGradientFill(ParamColor("Upper Chart",colorBlack),ParamColor("Lower Chart",colorBlack));
+ _SECTION_END();
+ Plot(C,"",colorWhite,styleBar|styleThick);
+ xx = Cum(1);
+ nbar=Param("DIRENÇ GÜN",1,1,200,1);
+ nbar1=Param("DESTEK GÜN",1,1,200,1);
+
+
+
+
+ PHigh =H > Ref(HHV(H,nbar),-1) AND Ref(HHV(H,nbar),nbar) <= H;
+ PLow = L < Ref(LLV(L,nbar1),-1) AND Ref(LLV(L,nbar1),nbar1) >= L;
+ ACID=Param("DESTEK CIZGI AÇISI ",0,-180,180,1);
+ ACIH=Param("DIRENÇ CIZGI AÇISI",0,-180,180,1);
+
+ Pi = 3.14159265; 
+ Rtd = 180 / Pi;
+ Dtr = 1 / Rtd;
+
+
+ startval_L = ValueWhen(PLow,L,1); 
+ endval_L = ValueWhen(PLow,L,0); 
+ startbar_L = ValueWhen(PLow,xx,1); 
+ endbar_L = ValueWhen(PLow,xx,0); 
+ aa_L = (endval_L-startval_L)/(endbar_L-startbar_L);
+ bb_L = startval_L;
+
+ aa_L=aa_L*(ACID*DTR);
+
+ trendline_L = aa_L * (xx - startbar_L) + bb_L;
+ dtrendline_L = trendline_L - Ref(trendline_L,-1);
+ startval_L_extend = ValueWhen(PLow,L,2); 
+ endval_L_extend = ValueWhen(PLow,L,1); 
+ startbar_L_extend = ValueWhen(PLow,xx,2); 
+ endbar_L_extend = ValueWhen(PLow,xx,1); 
+ aa_L_extend = (endval_L_extend-startval_L_extend)/(endbar_L_extend-startbar_L_extend);
+ bb_L_extend = startval_L;
+
+
+ aa_L_extend=aa_L_extend*(ACID*DTR);
+
+
+ trendline_L_extend = aa_L_extend * (xx - startbar_L) + endval_L_extend; 
+ dtrendline_L_extend = trendline_L_extend - Ref(trendline_L_extend,-1);
+ dtrendline_L_extend = IIf(PLow,Ref(dtrendline_L,-1),dtrendline_L_extend);
+ startval_L_extend2 = ValueWhen(PLow,L,3); 
+ endval_L_extend2 = ValueWhen(PLow,L,2); 
+ startbar_L_extend2 = ValueWhen(PLow,xx,3); 
+ endbar_L_extend2 = ValueWhen(PLow,xx,2); 
+ aa_L_extend2 = (endval_L_extend2-startval_L_extend2)/(endbar_L_extend2-startbar_L_extend2);
+ bb_L_extend2 = endval_L_extend2;
+
+ aa_L_extend2=aa_L_extend2*(ACID*DTR);
+
+ trendline_L_extend2 = aa_L_extend2 * (xx - endbar_L_extend2) + endval_L_extend2; 
+ dtrendline_L_extend2 = trendline_L_extend2 - Ref(trendline_L_extend2,-1);
+ dtrendline_L_extend2 = IIf(PLow,Ref(dtrendline_L_extend,-1),dtrendline_L_extend2);
+ startval_H = ValueWhen(PHigh,H,1); 
+ endval_H = ValueWhen(PHigh,H,0); 
+ startbar_H = ValueWhen(PHigh,xx,1); 
+ endbar_H = ValueWhen(PHigh,xx,0); 
+ aa_H = (endval_H-startval_H)/(endbar_H-startbar_H);
+ bb_H = startval_H;
+
+
+ aa_H =aa_H *(ACIH*DTR);
+
+
+ trendline_H = aa_H * (xx - startbar_H) + bb_H; 
+
+ dtrendline_H = trendline_H - Ref(trendline_H,-1);
+ startval_H_extend = ValueWhen(PHigh,H,2); 
+ endval_H_extend = ValueWhen(PHigh,H,1); 
+ startbar_H_extend = ValueWhen(PHigh,xx,2); 
+ endbar_H_extend = ValueWhen(PHigh,xx,1); 
+ aa_H_extend = (endval_H_extend-startval_H_extend)/(endbar_H_extend-startbar_H_extend);
+ bb_H_extend = startval_H;
+
+ aa_H_extend =aa_H_extend *(ACIH*DTR);
+
+ trendline_H_extend = aa_H_extend * (xx - startbar_H) + endval_H_extend; 
+ dtrendline_H_extend = trendline_H_extend - Ref(trendline_H_extend,-1);
+ dtrendline_H_extend = IIf(PHigh,Ref(dtrendline_H,-1),dtrendline_H_extend);
+ startval_H_extend2 = ValueWhen(PHigh,H,3); 
+ endval_H_extend2 = ValueWhen(PHigh,H,2); 
+ startbar_H_extend2 = ValueWhen(PHigh,xx,3); 
+ endbar_H_extend2 = ValueWhen(PHigh,xx,2); 
+
+ aa_H_extend2 = (endval_H_extend2-startval_H_extend2)/(endbar_H_extend2-startbar_H_extend2);
+ bb_H_extend2 = endval_H_extend2;
+
+
+ aa_H_extend2 =aa_H_extend2*(ACIH*DTR);
+
+ trendline_H_extend2 = aa_H_extend2 * (xx - endbar_H_extend2) + endval_H_extend2; 
+
+ dtrendline_H_extend2 = trendline_H_extend2 - Ref(trendline_H_extend2,-1);
+ dtrendline_H_extend2 = IIf(PHigh,Ref(dtrendline_H_extend,-1),dtrendline_H_extend2);
+
+ trendline_L_extend2 = IIf(BarsSince(Plow) <= nbar,trendline_L_extend2,Null);
+ trendline_H_extend2 = IIf(BarsSince(PHigh) <= nbar,trendline_H_extend2,Null);
+ GraphXSpace = 5;
+ SetChartOptions(0, chartShowDates);
+
+
+ //Plot(trendline_L, "", colorBrightGreen,styleLine);
+ Plot(IIf(BarsSince(Plow) <= nbar,trendline_L_extend,Null), "", colorLightGrey,styleNoLine | styleDots | styleThick);
+ Plot(IIf(BarsSince(Plow) > nbar,trendline_L_extend,Null), "",colorBrightGreen, styleNoLine | styleDots | styleThick);
+ Plot(IIf(BarsSince(Plow) <= nbar,trendline_L_extend2,Null), "",colorDarkGreen,styleNoLine | styleDots| styleThick);
+ //Plot(trendline_H, "", colorRed,styleLine);
+ Plot(IIf(BarsSince(PHigh) <= nbar,trendline_H_extend,Null), "", colorLightGrey, styleNoLine | styleDots | styleThick);
+ Plot(IIf(BarsSince(PHigh) > nbar,trendline_H_extend,Null), "",colorOrange, styleNoLine | styleDots | styleThick);
+ Plot(IIf(BarsSince(PHigh) <= nbar,trendline_H_extend2,Null), "",colorOrange, styleNoLine | styleDots | styleThick); 

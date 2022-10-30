@@ -1,0 +1,20 @@
+// ROC +6/-6 Crossover ***Non-optimized***
+
+//Enters long/short when the price rate of change goes below/above the +6/-6 levels.
+
+pds=12;
+
+p1=ROC(C,pds);
+
+Buy=  Ref(p1,-1) < -6 AND p1 >= -6;
+Sell= Ref(p1,-1) >  6 AND p1 <=  6;
+Short=Ref(p1,-1) >  6 AND p1 <=  6;
+Cover=Ref(p1,-1) < -6 AND p1 >= -6;
+
+Filter= Buy OR Sell OR Short OR Cover;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); Short=ExRem(Short,Cover); Cover=ExRem(Cover,Short);
+
+AddColumn(Buy,"Buy");
+AddColumn(Sell,"Sell");
+AddColumn(Short,"Short");
+AddColumn(Cover,"Cover");

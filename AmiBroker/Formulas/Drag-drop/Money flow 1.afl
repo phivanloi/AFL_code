@@ -1,0 +1,604 @@
+// Downloaded From https://www.WiseStockTrader.com
+// GO WHERE THE MONEY GOES #2
+// MALANG, INDONESIA 27 FEB 2022
+// ARIES CAHYO BUWONO
+
+_SECTION_BEGIN("GO WHERE THE MONEY GOES #2");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+gxs=Param("GRAPH spaceing",10,5,50,5);        
+GraphXSpace = gxs; 
+ SetChartBkColor(ParamColor("Outer panel",colorBlack)); // color of outer border 
+    SetChartBkGradientFill( ParamColor("Inner panel upper",colorBlack),ParamColor("Inner panel lower",colorBlack));
+
+
+
+
+
+hargadown=C < Ref(C ,-1);
+hargaup = C > Ref(C,-1);
+hargatidakberubah = C  == Ref(C ,-1);
+slisih = C - Ref(C,-1);
+colour = IIf(hargadown,colorRed,IIf(hargaup,colorBrightGreen,IIf(hargatidakberubah,colorViolet,colorIndigo)));
+colsel = IIf(slisih > 0 ,colorAqua,IIf(slisih < 0 ,colorDarkTeal,IIf(slisih == 0 ,colorBlue,colorDarkBlue)));
+volumenaik = V > Ref(V,-1);
+volumeturun= V < Ref(V,-1);
+volumebeli = C - L;
+volumejual= H - C ;
+persentasebeli = 100 * volumebeli/(volumebeli+volumejual) ;
+persentasejual = 100 * volumejual/(volumebeli+volumejual) ;
+volumestop  = volumebeli == volumejual;
+_SECTION_END();
+
+
+
+
+// VOLUME BELI
+acc1  = volumebeli > volumejual AND volumenaik AND hargaup AND persentasebeli == 100 ;//1 colorWhite
+acc2 = volumebeli > volumejual AND  volumeturun AND  hargaup AND persentasebeli == 100 ; //2 colorAqua
+acc3 = volumebeli > volumejual AND volumenaik AND hargaup ; //3 colorGreen 
+acc4 = volumebeli > volumejual AND  volumeturun AND  hargaup ;//4 colorGreen
+acc5 = volumebeli > volumejual AND volumenaik AND hargadown ;//5 colorGreen
+acc6 = volumebeli > volumejual AND volumeturun AND hargadown ;//6 colorGreen
+acc7 = volumebeli > volumejual  AND  volumeturun AND hargatidakberubah ;//7 colorGreen
+acc8 = volumebeli > volumejual  AND  volumenaik AND hargatidakberubah ;//8 colorGreen
+
+//VOLUME JUAL
+dist1 = volumejual > volumebeli  AND  volumenaik AND hargaup ;//9 colorGrey50
+dist2  = volumejual > volumebeli AND  volumeturun AND  hargaup ;//10 colorGrey50
+dist3 = volumejual > volumebeli AND  volumenaik AND  hargadown AND persentasejual== 100 ; //11 colorDarkGrey
+dist4 = volumejual > volumebeli AND  volumeturun AND hargadown AND persentasejual== 100;//12 colorGrey40
+dist5 = volumejual > volumebeli AND  volumenaik AND  hargadown ;//13 colorGrey50
+dist6 = volumejual > volumebeli AND  volumeturun AND hargadown ;//14 colorGrey50
+dist7 = volumejual > volumebeli  AND  volumeturun AND hargatidakberubah ;//15 colorGrey50
+dist8 = volumejual > volumebeli  AND  volumenaik AND hargatidakberubah  ;//16 colorGrey50
+  
+  
+// volume telah berhenti  
+TANDA2BEARISH = volumestop AND hargatidakberubah  AND  volumeturun ;//17 colorOrange
+BEARISHBERLANJUT = volumestop AND hargatidakberubah  AND  volumenaik;//18 colorDarkRed
+AKHIRDARITRENDBERISHSUDAHDEKAT = volumestop AND hargadown  AND  volumeturun ;//19 colorLightBlue
+KEKUATANBULLISHTERLIHATATAUCUMAJEBAKANBANDAR  = volumestop AND hargaup  AND  volumenaik ;//20 colorYellow
+MUNGKINAKANBEARISHBESOK = volumestop AND hargaup  AND  volumeturun ;//21 colorViolet
+MUNGKINAKANBULLISHBESOK =volumestop AND hargadown AND volumenaik ;//22 colorLightYellow
+
+
+WARNA=
+// VOLUME BELI
+IIf(acc1 ,colorGold,//1
+IIf(acc2,colorGold,//2
+IIf(acc3,colorOrange,//3
+IIf(acc4 ,colorOrange,//4
+IIf(acc5,colorWhite,//5
+IIf(acc6 ,colorWhite,//6
+IIf(acc7 ,colorWhite,//7
+IIf(acc8 ,colorWhite,//8
+// VOLUMEJUAL 
+IIf(dist1 ,colorGrey40,//9
+IIf(dist2,colorRed,//10
+IIf(dist3,colorViolet,//11
+IIf(dist4 ,colorViolet,//12
+IIf(dist5,colorGrey40,//13
+IIf(dist6 ,colorGrey50,//14
+IIf(dist7 ,colorGrey50,//15
+IIf(dist8 ,colorDarkGrey,//16
+// VOLUME TELAH BERHENTI
+IIf( TANDA2BEARISH ,colorBlue,//17
+IIf( BEARISHBERLANJUT ,colorBlue,//18
+IIf(AKHIRDARITRENDBERISHSUDAHDEKAT,colorBlue,//19
+IIf(KEKUATANBULLISHTERLIHATATAUCUMAJEBAKANBANDAR ,colorBlue,//20
+IIf( MUNGKINAKANBEARISHBESOK ,colorBlue,//21
+IIf(MUNGKINAKANBULLISHBESOK ,colorBlue,colorBlueGrey))))))))))))))))))))));//22
+
+
+
+_SECTION_END();
+
+
+Buy = acc1 + acc2 + acc3 + acc4 + acc5+ acc6 + acc7 + acc8 ;
+Sell = dist1 + dist2 + dist3 + dist4 + dist5 + dist6 + dist7 + dist8 ;
+
+
+Plot(C,"", WARNA,styleCandle|styleOwnScale );
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("BUY AND SELL HULLMA");
+
+BUYANDSELLHULL = ParamToggle( "HULL BUY AND SELL", "Show|Hide", 1 );
+
+if( BUYANDSELLHULL == 1 )
+{
+ 
+ periode = Param("period",20,0,200,4);
+ volumebeli = C - L;
+volumejual= H - C ;
+ hullvolumebeli =   WMA(2*WMA(volumebeli,periode/2)-WMA(volumebeli,periode),4);
+hullvolumejual =   WMA(2*WMA(volumejual,periode/2)-WMA(volumejual,periode),4);
+warnahullMcrossup = 
+PlotOHLC(Min(hullvolumebeli,hullvolumejual), Min(hullvolumebeli,hullvolumejual),Max(hullvolumebeli,hullvolumejual),Max(hullvolumebeli,hullvolumejual),"",
+IIf(Ref(hullvolumebeli,1) >= Ref(hullvolumejual,1), colorBlueGrey, colorLightOrange),styleCloud|styleOwnScale|styleDots|styleNoLabel);_SECTION_BEGIN( "VOLUME BUY AND SELL " );
+
+}
+_SECTION_END();
+
+
+
+
+_SECTION_BEGIN( "Buy & Sell Dashboard" );
+
+messageboard = ParamToggle( " Dashboard Buy & Sell", "Show|Hide", 1 );
+
+if( messageboard == 1 )
+{
+   
+volumebeli = C-L;
+volumejual= H-C;
+persentasebeli = 100 * volumebeli/(volumebeli+volumejual) ;
+persentasejual = 100 * volumejual/(volumebeli+volumejual) ;
+    GfxSelectFont( "rial", 13, 100 );
+    GfxSetBkMode( 1 );
+    GfxSetTextColor( colorWhite );
+
+
+    pxHeight = Status( "pxchartheight" ) ;
+    xx = Status( "pxchartwidth" );
+
+    x = Param( "x", 791, 1, 1200, 1 );
+    x2 = x + 95;
+    y = Param( "y", 638, 50, 2000, 1 );
+ 
+    GfxSelectSolidBrush( colorDarkOliveGreen ); // this is the box background color
+    GfxSelectPen( colorDarkOliveGreen, 1 ); // broader color
+    GfxRoundRect( x, y - 98, x2  + 90, y - 50 , 7, 7 ) ;
+    GfxTextOut( ( "volume Beli" + "" ), x + 5, y - 95 );
+    GfxTextOut( ( " "), x + 27, y - 90 );
+    GfxTextOut( ( "" +WriteVal(persentasebeli,format=1.0 ))+"%", x + 10, y - 75 ) ; // The text format location
+
+    GfxSelectSolidBrush( colorDarkGrey );
+    GfxSelectPen( colorDarkGrey, 1 ); // broader color
+    GfxRoundRect( x + 92, y - 98, x2 + 90, y - 50 , 7, 7 ) ;
+    GfxTextOut( ( "Result" ), x + 13 + 96, y - 95 );
+    GfxTextOut( ( " " ), x + 27 + 90, y - 95 );
+    GfxTextOut( ( "" + WriteVal(C - Ref(C,-1) ,format=1.0)), x + 5 + 96, y - 75 ) ; // The text format location
+
+    GfxSelectSolidBrush( colorIndigo );
+    GfxSelectPen( colorIndigo, 1 ); // broader color
+    GfxRoundRect( x + 90 + 92, y - 98, x2 + 100 + 100, y - 50 , 7, 7 ) ;
+    GfxTextOut( ( "Close" ), x + -5 + 95 + 95, y - 95 );
+    GfxTextOut( ( " " ), x + 27 + 90 + 90, y - 95 );
+    GfxTextOut( ( "" + WriteVal(C ,format=1.0)), x + 1 + 90 + 100, y - 75 ) ; // The text format location
+
+    GfxSelectSolidBrush( colorDarkRed);
+    GfxSelectPen( colorDarkRed, 1 ); // broader color
+    GfxRoundRect( x + 90 + 99+ 92, y - 98, x2 + 98 + 99 + 90, y - 50 , 7, 7 ) ;
+    GfxTextOut( ( "volume Jual" + "" ), x + 30 + 86 + 86 + 86, y - 95 );
+    GfxTextOut( ( " " ), x + 27 + 90 + 90 + 90, y - 95 );
+    GfxTextOut( ( ""  + WriteVal(persentasejual,format=1.0 ))+"%", x + 20 + 90 + 90 + 90, y - 75 ) ; // The text format location
+_SECTION_END();
+}
+_SECTION_END();
+
+
+_SECTION_BEGIN( "Dashboard price" );
+
+messageboard = ParamToggle( "price Dashboard ", "Show|Hide", 1 );
+
+if( messageboard == 1 )
+{
+strongopen = (O-Ref(C,-1))/Ref(C,-1)*100;
+strongclose = (C- Ref(C,-1))/Ref(C,-1)*100;
+stronghigh =(H-Ref(C,-1))/Ref(C,-1)*100;
+stronglow = (L-Ref(C,-1))/Ref(C,-1)*100;
+
+
+    GfxSelectFont( "rial", 13, 100 );
+    GfxSetBkMode( 1 );
+    GfxSetTextColor( colorWhite );
+
+
+    pxHeight = Status( "pxchartheight" ) ;
+    xx = Status( "pxchartwidth" );
+
+    x = Param( "x", 1, 1, 1200, 1 );
+    x2 = x + 95;
+    y = Param( "y", 638, 50, 2000, 1 );
+
+    GfxSelectSolidBrush( colorDarkOliveGreen ); // this is the box background color
+    GfxSelectPen( colorDarkOliveGreen, 1 ); // broader color
+    GfxRoundRect( x, y - 98, x2  + 90, y - 50 , 7, 7 ) ;
+    GfxTextOut( ( "Open" + "" ), x + 20, y - 95 );
+    GfxTextOut( ( " "), x + 27, y - 90 );
+    GfxTextOut( ( "" +WriteVal(strongopen)+" %"), x + 7, y - 75 ) ; // The text format location
+
+    GfxSelectSolidBrush( colorDarkGrey );
+    GfxSelectPen( colorDarkGrey, 1 ); // broader color
+    GfxRoundRect( x + 92, y - 98, x2 + 90, y - 50 , 7, 7 ) ;
+    GfxTextOut( ( "Close" ), x + 13 + 96, y - 95 );
+    GfxTextOut( ( " " ), x + 27 + 90, y - 95 );
+    GfxTextOut( ( "" + WriteVal(strongclose)+" %"), x + 5+ 96, y - 75 ) ; // The text format location
+
+    GfxSelectSolidBrush( colorIndigo );
+    GfxSelectPen( colorIndigo, 1 ); // broader color
+    GfxRoundRect( x + 90 + 92, y - 98, x2 + 100 + 100, y - 50 , 7, 7 ) ;
+    GfxTextOut( ( "High" ), x + 20 + 95 + 95, y - 95 );
+    GfxTextOut( ( " " ), x + 27 + 90 + 90, y - 95 );
+    GfxTextOut( ( "" + WriteVal(stronghigh)+" %"), x + 7 + 90 + 100, y - 75 ) ; // The text format location
+
+    GfxSelectSolidBrush( colorDarkRed);
+    GfxSelectPen( colorDarkRed, 1 ); // broader color
+    GfxRoundRect( x + 90 + 99+ 92, y - 98, x2 + 98 + 99 + 90, y - 50 , 7, 7 ) ;
+    GfxTextOut( ( "Low" ), x + 50 + 86 + 86 + 86, y - 95 );
+    GfxTextOut( ( " " ), x + 27 + 90 + 90 + 90, y - 95 );
+    GfxTextOut( ( ""  + WriteVal(stronglow)+" %"), x + 20 + 90 + 90 + 90, y - 75 ) ; // The text format location
+
+}
+_SECTION_END();
+
+
+_SECTION_BEGIN("HHV DAN LLV PRICE " );
+high30thn=HHV(High,7200);
+low30thn=LLV(Low,7200);
+
+High2400 = HHV(High,2400);
+Low2400 = LLV(Low,2400);
+
+High1200 = HHV(High,1200);
+Low1200 = LLV(Low,1200);
+
+High720 = HHV(High,720);
+Low720 = LLV(Low,720);
+
+High480= HHV(High,480);
+Low480 = LLV(Low,480);
+
+
+High52 = HHV(High,260);
+Low52 = LLV(Low,260);
+
+High240=HHV(High,240);
+low240=LLV(Low,240);
+
+High180=HHV(High,180);
+low180=LLV(Low,180);
+
+High120=HHV(High,120);
+low120=LLV(Low,120);
+
+
+High60=HHV(High,60);
+low60=LLV(Low,60);
+
+high55=HHV(High,55);
+low55=LLV(Low,55);
+
+high50=HHV(High,50);
+low50=LLV(Low,50);
+
+high45=HHV(High,45);
+low45=LLV(Low,45);
+
+high40=HHV(High,40);
+low40=LLV(Low,40);
+
+high35=HHV(High,35);
+low35=LLV(Low,35);
+
+high30=HHV(High,30);
+low30=LLV(Low,30);
+
+high25=HHV(High,25);
+low25=LLV(Low,25);
+
+high20=HHV(High,20);
+low20=LLV(Low,20);
+
+high15=HHV(High,15);
+low15=LLV(Low,15);
+
+high10=HHV(High,10);
+low10=LLV(Low,10);
+
+high5=HHV(High,5);
+low5=LLV(Low,5);
+
+high1=HHV(High,1);
+low1=LLV(Low,1);
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("HHV DAN LLV FOREIGN FLOW " );
+high30thnvolume=HHV(V,7200);
+low30thnvolume =LLV(V,7200);
+
+High2400volume = HHV(V,2400);
+Low2400volume = LLV(V,2400);
+
+High1200volume = HHV(V,1200);
+Low1200volume = LLV(V,1200);
+
+High720volume = HHV(V,720);
+Low720volume = LLV(V,720);
+
+High480volume = HHV(V,480);
+Low480volume = LLV(V,480);
+
+
+High52volume = HHV(V,260);
+Low52volume = LLV(V,260);
+
+High240volume =HHV(V,240);
+low240volume =LLV(V,240);
+
+High180volume =HHV(V,180);
+low180volume =LLV(V,180);
+
+High120volume =HHV(V,120);
+low120volume =LLV(V,120);
+
+
+High60volume =HHV(V,60);
+low60volume =LLV(V,60);
+
+high55volume =HHV(V,55);
+low55volume =LLV(V,55);
+
+high50volume =HHV(V,50);
+low50volume =LLV(V,50);
+
+high45volume =HHV(V,45);
+low45volume =LLV(V,45);
+
+high40volume =HHV(V,40);
+low40volume =LLV(V,40);
+
+high35volume =HHV(V,35);
+low35volume =LLV(V,35);
+
+high30volume =HHV(V,30);
+low30volume =LLV(V,30);
+
+high25volume =HHV(V,25);
+low25volume=LLV(V,25);
+
+high20volume=HHV(V,20);
+low20volume =LLV(V,20);
+
+high15volume =HHV(V,15);
+low15volume =LLV(V,15);
+
+high10volume =HHV(V,10);
+low10volume=LLV(V,10);
+
+high5volume =HHV(V,5);
+low5volume=LLV(V,5);
+
+high1volume=HHV(V,1);
+low1volume =LLV(V,1);
+
+_SECTION_END();
+
+
+_SECTION_BEGIN( "TAKE PROFIT AND STOP LOSS CONTROL" );
+
+lembar1 = Param("lembar buy1",0,0, 1000000, 1);
+Rp1 = Param("price buy1", 0, 0, 10000000, 2);
+lembar2 = Param("lembar buy2", 0, 0, 1000000, 3);
+Rp2 = Param("price buy2", 0, 0, 10000000, 4);
+lembar3 = Param("lembar buy3", 0, 0, 1000000, 5);
+Rp3 = Param("price buy3", 0, 0, 10000000, 6);
+lembar4 = Param("lembar buy4", 0, 0, 1000000, 7);
+Rp4 = Param("price buy4", 0, 0, 10000000, 8);
+lembar5 = Param("lembar buy5", 0, 0, 1000000, 9);
+Rp5 = Param("price buy5", 0, 0, 10000000, 10);
+lembar6 = Param("lembar buy6", 0, 0, 1000000, 11);
+Rp6 = Param("price buy6", 0, 0, 10000000, 12);
+lembar7 = Param("lembar buy7", 0, 0, 1000000, 13);
+Rp7 = Param("price buy7", 0, 0, 10000000, 14);
+lembar8 = Param("lembar buy8", 0, 0, 1000000, 15);
+Rp8 = Param("price buy8", 0, 0, 10000000, 16);
+lembar9 = Param("lembar buy9", 0, 0, 1000000, 17);
+Rp9= Param("price buy9", 0, 0, 10000000, 18);
+lembar10 = Param("lembar buy10", 0, 0, 1000000, 19);
+Rp10 = Param("price buy10", 0, 0, 10000000, 20);
+totalbeli1 = lembar1 * Rp1;
+totalbeli2 = lembar2 * Rp2;
+totalbeli3 = lembar3 * Rp3;
+totalbeli4 = lembar4 * Rp4;
+totalbeli5 = lembar5 * Rp5;
+totalbeli6 = lembar6 * Rp6;
+totalbeli7 = lembar7 * Rp7;
+totalbeli8 = lembar8 * Rp8;
+totalbeli9= lembar9 * Rp9;
+totalbeli10 = lembar10 * Rp10;
+
+
+
+
+estamp = 10000 ;
+feebeli = 0.00149;
+feejual = 0.00249 ;
+averagestock = (lembar1 + lembar2 + lembar3 + lembar4 + lembar5 + lembar6 + lembar7 + lembar8 + lembar9 + lembar10) ;
+averageprice = (totalbeli1 + totalbeli2 + totalbeli3 + totalbeli4 +  totalbeli5 +  totalbeli6 +  totalbeli7 +  totalbeli8 +  totalbeli9 +  totalbeli10)/averagestock  ;
+profit = (C - averageprice)*averagestock;
+averagestock = (lembar1 + lembar2 + lembar3 + lembar4 + lembar5 + lembar6 + lembar7 + lembar8 + lembar9 + lembar10) ;
+averageprice = (totalbeli1 + totalbeli2 + totalbeli3 + totalbeli4 +  totalbeli5 +  totalbeli6 +  totalbeli7 +  totalbeli8 +  totalbeli9 +  totalbeli10)/averagestock  ;
+totalbeli = (totalbeli1 + totalbeli2 + totalbeli3 + totalbeli4 +  totalbeli5 +  totalbeli6 +  totalbeli7 +  totalbeli8 +  totalbeli9 +  totalbeli10)* feebeli;
+totalbelisaja = (totalbeli1 + totalbeli2 + totalbeli3 + totalbeli4 +  totalbeli5 +  totalbeli6 +  totalbeli7 +  totalbeli8 +  totalbeli9 +  totalbeli10);
+totaljual = (totalbelisaja + profit) * feejual;
+totaljualbeli = totalbeli + totaljual ;
+feebeli1 =feebeli * totalbelisaja  ;
+feejual2 =totaljual ;
+e3 =(averageprice * averagestock);//modal awal
+c1= (C - averageprice)*averagestock  ;//profit
+g6= (e3 + c1)- totaljualbeli  ;//modal sekarang-fee sekuritas
+modaldikurangifee = (e3 + c1 -  totaljualbeli)  ;
+c2= (C - averageprice)*averagestock -  totaljualbeli ;// NET profit
+percentageprofitloss =(c1 / e3) * 100;
+percentageNETprofit =(c2 / e3) * 100;
+
+tp =averageprice + (averageprice *0.05) ;// Take profit 5%
+sl = averageprice - ( averageprice *0.05) ;//Stop Loss 5%
+tp1 =averageprice + (averageprice *0.15) ;//Take profit 15%
+tp2 =averageprice + (averageprice *0.25) ;//Take profit 25%
+
+
+_SECTION_END();
+
+
+//EXPLORATION
+_SECTION_BEGIN("EXPLORATION");
+
+
+
+Hullma = WMA(2*WMA(C,20/2)-WMA(C,20),4);//hull20
+BuySellLetter = IIf( Buy, colorBlack, IIf( Sell, colorRed, colorDefault ) );
+BuySellBG		= IIf( Buy, colorPaleGreen, IIf( Sell, colorDarkRed, colorDefault ) );
+bull            =IIf(  C > Hullma, colorDarkGreen, IIf(  C < Hullma, colorRed, colorDefault ) );
+bear            =IIf( C > Hullma, colorPaleGreen, IIf( C < Hullma, colorDarkRed, colorDefault ) ); 
+Clog			= ( 100 * ( C - Ref( C, -3 ) ) / Ref( C, -3 ) );
+MaturedSince	= IIf( GroupID( 1 ) == "Z", Ref( C, -10 ), Ref( C, -3 ) );
+sYield 		= IIf( Buy, C - HHV( O, 15 ), C - MaturedSince );
+Ypercent		= ( sYield / MaturedSince ) * 100 ;
+YpcStr			= NumToStr( Ypercent, 12.2 ) + " %";
+Yrate			= Ypercent / IIf( GroupID( 1 ) == "Z", 11, 4 );
+YrateStr		= NumToStr( Yrate, 12.2 ) + " %" ;
+Strength 		= acc1 + acc2 + acc3 + acc4 + acc5+ acc6 + acc7 + acc8 ;
+Trade 			= WriteIf(  Buy == True, "Trade", WriteIf( Sell == True, "Trade", "" ) );
+Trend 			= WriteIf(  bull == True, "Bulls", WriteIf( bear == True, "Bears", "" ) );
+
+Filter= (1);
+AddColumn( IIf( GroupID( 1 ) == "Z", Ref( C, -10 ), Ref( C, -3 ) ), "Start Price", 3.2, colorBlue, colorDefault, -1 );
+AddColumn( C, "Close", 3.2, colorBlue, colorDefault, -1 );
+AddColumn( V, "Total Vol.", 8 ) ;
+AddColumn( Strength, "Strength", 1, colorRed, colorDefault, 40 );
+AddTextColumn( Trade, "Trade", 1, BuySellLetter,  BuySellBG, -1 );
+AddColumn( sYield, "Avg.Yield", 1.2, IIf( Buy, colorLightGrey, IIf( sYield < 0, colorRed, colorGreen ) ), colorDefault, -1 );
+AddTextColumn( YpcStr, "Yield %", 1, IIf( Buy, colorLightGrey, IIf( Ypercent < 0, colorRed, colorGreen ) ), colorDefault, -1 );
+AddTextColumn( YrateStr, "Yield rate", 1, IIf( Buy, colorLightGrey, IIf( Yrate < 0, colorRed, colorGreen ) ), colorDefault, -1 );
+AddColumn( round( ROC( Close, 4 )*100 ) / 100, "ROC(4)", 1.2, colorDefault, colorDefault, -1 );
+
+
+
+Title=""+
+
+WriteIf (volumebeli > volumejual AND volumenaik AND persentasebeli == 100 ,EncodeColor(colorGold)+"AKUMULASI... KEKUATAN BELI 100 % DENGAN VOLUME BERTAMBAH BANYAK  ",//1
+WriteIf (volumebeli > volumejual AND  volumeturun AND  hargaup AND persentasebeli == 100,EncodeColor(colorGold)+ "AKUMULASI...KEKUATAN BELI 100 % DENGAN VOLUME SEMAKIN SEDIKIT    ",//2
+WriteIf (volumebeli > volumejual AND volumenaik AND hargaup  ,EncodeColor(colorOrange)+"AKUMULASI.. DENGAN VOLUME LEBIH BESAR DARI KEMAREN    ",//3
+WriteIf (volumebeli > volumejual AND  volumeturun AND  hargaup ,EncodeColor(colorOrange)+ "AKUMULASI..DENGAN VOLUME LEBIH KECIL DARI KEMAREN   ",//4
+WriteIf ( volumebeli > volumejual AND volumenaik AND hargadown,EncodeColor(colorWhite)+"AKUMULASI.. TANDA 2 BULLISH KEMAMPUAN BELI MARKET SEMAKIN  KUAT...BUTUH CANDLESTICK KONFIRMASI   ",//5
+WriteIf ( volumebeli > volumejual AND volumeturun AND hargadown,EncodeColor(colorWhite)+"AKUMULASI.. KETIKA HARGA TURUN HARI INI   ",//6
+WriteIf (volumebeli > volumejual  AND  volumeturun AND hargatidakberubah ,EncodeColor(colorWhite)+"AKUMULASI... SEMAKIN SEDIKIT DAN SILENTLY      ",//7
+WriteIf (volumebeli > volumejual  AND  volumenaik AND hargatidakberubah ,EncodeColor(colorWhite)+"AKUMULASI... SEMAKIN BANYAK DAN SILENTLY    ",//8
+
+
+
+WriteIf (volumejual > volumebeli  AND  volumenaik AND hargaup ,EncodeColor(colorGrey50)+"DISTRIBUSI... DENGAN VOLUME SEMAKIN BANYAK    ",//9
+WriteIf (volumejual > volumebeli AND  volumeturun AND  hargaup ,EncodeColor(colorRed)+ "TAKE PROFIT ",//10
+WriteIf (volumejual > volumebeli AND  volumenaik AND  hargadown AND persentasejual== 100 ,EncodeColor(colorWhite)+ "DISTRIBUSI PENUH DENGAN VOLUME SEMAKIN BANYAK    ",//11
+WriteIf ( volumejual > volumebeli AND  volumeturun AND hargadown AND persentasejual== 100 ,EncodeColor(colorWhite)+"DISTRIBUSI PENUH DENGAN VOLUME SEMAKIN SEDIKIT ",//12 
+WriteIf (volumejual > volumebeli AND  volumenaik AND  hargadown  ,EncodeColor(colorGrey50)+ "DISTRIBUSI DENGAN VOLUME SEMAKIN BANYAK    ",//13
+WriteIf ( volumejual > volumebeli AND  volumeturun AND hargadown ,EncodeColor(colorGrey50)+"DISTRIBUSI  DENGAN VOLUME EMAKIN SEDIKIT ",//14 
+WriteIf (volumejual > volumebeli  AND  volumeturun AND hargatidakberubah ,EncodeColor(colorGrey50)+"  DISTRIBUSI DENGAN VOLUME EMAKIN SEDIKIT,      ",//15
+WriteIf (volumejual > volumebeli  AND  volumenaik AND hargatidakberubah ,EncodeColor(colorGrey50)+"  DISTRIBUSI SILENTLY...BESOK BULLISH...MUNGKIN  ",//16
+
+
+
+
+WriteIf (  volumestop AND hargatidakberubah  AND  volumeturun ,EncodeColor(colorBlue)+"VOLUME TELAH BERHENTI    ",//17
+WriteIf (  volumestop AND hargatidakberubah  AND  volumenaik ,EncodeColor(colorBlue)+"VOLUME TELAH BERHENTI    ",//18
+WriteIf (  volumestop AND hargadown  AND  volumeturun ,EncodeColor(colorBlue)+"VOLUME TELAH BERHENTI      ",//19
+WriteIf (  volumestop AND hargaup  AND  volumenaik ,EncodeColor(colorBlue)+"VOLUME TELAH BERHENTI      ",//20
+WriteIf (  volumestop AND hargaup  AND  volumeturun ,EncodeColor(colorBlue)+"VOLUMEVOLUME TELAH BERHENTI        ",//21
+WriteIf (volumestop AND hargadown AND volumenaik,EncodeColor(colorBlue)+"VOLUME TELAH BERHENTI     ",""))))))))))))))))))))))+"\n"+//22
+
+
+
+WriteIf(High > Ref(high30thn,-1),EncodeColor(colorGold)+"HIGH PRICE All THE TIME    ",
+WriteIf(Low < Ref(low30thn,-1),EncodeColor(colorRed)+"LOW PRICE All THE TIME ",
+WriteIf(High > Ref(High1200,-1),EncodeColor(colorGold)+"HIGH PRICE 5 TAHUN         : ",
+WriteIf(Low < Ref(Low1200,-1),EncodeColor(colorRed)+"LOW PRICE 5 TAHUN     : ",
+WriteIf(High > Ref(High720,-1),EncodeColor(colorGold)+"HIGH PRICE 3 TAHUN          : ",
+WriteIf(Low < Ref(Low720,-1),EncodeColor(colorRed)+"LOW PRICE 3 TAHUN     : ",
+WriteIf(High > Ref(High52,-1),EncodeColor(colorGold)+"HIGH PRICE 52 WEEK         : ",
+WriteIf(Low < Ref(Low52,-1),EncodeColor(colorRed)+"LOW PRICE 52WEEK      : ",
+WriteIf(High > Ref(High180,-1),EncodeColor(colorGold)+"HIGH PRICE 9 BULAN          : ",
+WriteIf(Low < Ref(low180,-1),EncodeColor(colorRed)+"LOW PRICE 9 BULAN      : ",
+WriteIf(High > Ref(High120,-1),EncodeColor(colorGold)+"HIGH PRICE 6 BULAN          : ",
+WriteIf(Low < Ref(low120,-1),EncodeColor(colorRed)+"LOW PRICE 6 BULAN      : ",
+WriteIf(High > Ref(High60,-1),EncodeColor(colorGold)+"HIGH PRICE 3 BULAN          : ",
+WriteIf(Low < Ref(low60,-1),EncodeColor(colorRed)+"LOW PRICE 3 BULAN      : ",
+WriteIf(High > Ref(High55,-1),EncodeColor(colorGold)+"HIGH PRICE 11 MINGGU     : ",
+WriteIf(Low < Ref(low55,-1),EncodeColor(colorRed)+"LOW PRICE 11 MINGGU : ",
+WriteIf(High > Ref(High50,-1),EncodeColor(colorGold)+"HIGH PRICE10 MINGGU     : ",
+WriteIf(Low < Ref(low50,-1),EncodeColor(colorRed)+"LOW PRICE 10 MINGGU : ",
+WriteIf(High > Ref(High45,-1),EncodeColor(colorGold)+"HIGH PRICE 9 MINGGU     : ",
+WriteIf(Low < Ref(low45,-1),EncodeColor(colorRed)+"LOW PRICE 9 MINGGU : ",
+WriteIf(High > Ref(High40,-1),EncodeColor(colorGold)+"HIGH PRICE 2 BULAN        : ",
+WriteIf(Low < Ref(low40,-1),EncodeColor(colorRed)+"LOW PRICE 2 BULAN    : ",
+WriteIf(High > Ref(High35,-1),EncodeColor(colorGold)+"HIGH PRICE 7 MINGGU      : ",
+WriteIf(Low < Ref(low35,-1),EncodeColor(colorRed)+"LOW PRICE 7 MINGGU  : ",
+WriteIf(High > Ref(High30,-1),EncodeColor(colorGold)+"HIGH PRICE 6 MINGGU      : ",
+WriteIf(Low < Ref(low30,-1),EncodeColor(colorRed)+"LOW PRICE 6 MINGGU  : ",
+WriteIf(High > Ref(High25,-1),EncodeColor(colorGold)+"HIGH PRICE 5 MINGGU      : ",
+WriteIf(Low < Ref(low25,-1),EncodeColor(colorRed)+"LOW PRICE 5 MINGGU   : ",
+WriteIf(High > Ref(High20,-1),EncodeColor(colorGold)+"HIGH PRICE 1 BULAN          : ",
+WriteIf(Low < Ref(low20,-1),EncodeColor(colorRed)+"LOW PRICE 1 BULAN      : ",
+WriteIf(High > Ref(High15,-1),EncodeColor(colorGold)+"HIGH PRICE 3 MINGGU       : ",
+WriteIf(Low < Ref(low15,-1),EncodeColor(colorRed)+"LOW PRICE 3 MINGGU   : ",
+WriteIf(High > Ref(High10,-1),EncodeColor(colorGold)+"HIGH PRICE 2 MINGGU       : ",
+WriteIf(Low < Ref(low10,-1),EncodeColor(colorRed)+"LOW PRICE 2 MINGGU   : ",
+WriteIf(High > Ref(High5,-1),EncodeColor(colorGold)+"HIGH PRICE 1 MINGGU       : ",
+WriteIf(Low < Ref(low5,-1),EncodeColor(colorRed)+"LOW PRICE 1 MINGGU   : ",
+WriteIf(High > Ref(High1,-1),EncodeColor(colorGold)+"HIGH PRICE 1 HARI      : ",
+WriteIf(Low < Ref(low1,-1),EncodeColor(colorRed)+"LOW PRICE 1 HARI   : ",""))))))))))))))))))))))))))))))))))))))+ 
+WriteIf(Volume > Ref(high30thnvolume,-1),EncodeColor(colorGold)+"HIGH VOLUME All THE TIME    ",
+WriteIf(Volume < Ref(low30thnvolume,-1),EncodeColor(colorRed)+"LOW VOLUME All THE TIME ",
+WriteIf(Volume > Ref(High1200volume,-1),EncodeColor(colorGold)+"HIGH VOLUME 5 TAHUN         : ",
+WriteIf(Volume < Ref(Low1200volume,-1),EncodeColor(colorRed)+"LOW VOLUME 5 TAHUN     : ",
+WriteIf(Volume > Ref(High720volume,-1),EncodeColor(colorGold)+"HIGH VOLUME 3 TAHUN          : ",
+WriteIf(Volume < Ref(Low720volume,-1),EncodeColor(colorRed)+"LOW VOLUME 3 TAHUN     : ",
+WriteIf(Volume > Ref(High52volume,-1),EncodeColor(colorGold)+"HIGH VOLUME 52 WEEK         : ",
+WriteIf(Volume < Ref(Low52volume,-1),EncodeColor(colorRed)+"LOW VOLUME 52WEEK      : ",
+WriteIf(Volume > Ref(High180volume,-1),EncodeColor(colorGold)+"HIGH VOLUME 9 BULAN          : ",
+WriteIf(Volume < Ref(low180volume,-1),EncodeColor(colorRed)+"LOW VOLUME 9 BULAN      : ",
+WriteIf(Volume > Ref(High120volume,-1),EncodeColor(colorGold)+"HIGH VOLUME 6 BULAN          : ",
+WriteIf(Volume < Ref(low120volume,-1),EncodeColor(colorRed)+"LOW VOLUME 6 BULAN      : ",
+WriteIf(Volume > Ref(High60volume,-1),EncodeColor(colorGold)+"HIGH VOLUME 3 BULAN          : ",
+WriteIf(Volume < Ref(low60volume,-1),EncodeColor(colorRed)+"LOW VOLUME 3 BULAN      : ",
+WriteIf(Volume > Ref(High55volume,-1),EncodeColor(colorGold)+"HIGH VOLUME 11 MINGGU     : ",
+WriteIf(Volume < Ref(low55volume,-1),EncodeColor(colorRed)+"LOW VOLUME 11 MINGGU : ",
+WriteIf(Volume > Ref(High50volume,-1),EncodeColor(colorGold)+"HIGH VOLUME 10 MINGGU     : ",
+WriteIf(Volume < Ref(low50volume,-1),EncodeColor(colorRed)+"LOW VOLUME 10 MINGGU : ",
+WriteIf(Volume > Ref(High45volume,-1),EncodeColor(colorGold)+"HIGH VOLUME 9 MINGGU     : ",
+WriteIf(Volume < Ref(low40volume,-1),EncodeColor(colorRed)+"LOW VOLUME 9 MINGGU : ",
+WriteIf(Volume > Ref(high40volume,-1),EncodeColor(colorGold)+"HIGH VOLUME 2 BULAN        : ",
+WriteIf(Volume < Ref(low40volume,-1),EncodeColor(colorRed)+"LOW VOLUME 2 BULAN    : ",
+WriteIf(Volume > Ref(high35volume,-1),EncodeColor(colorGold)+"HIGH VOLUME 7 MINGGU      : ",
+WriteIf(Volume < Ref(low30volume,-1),EncodeColor(colorRed)+"LOW VOLUME 7 MINGGU  : ",
+WriteIf(Volume > Ref(High30volume,-1),EncodeColor(colorGold)+"HIGH VOLUME 6 MINGGU      : ",
+WriteIf(Volume < Ref(low30volume,-1),EncodeColor(colorRed)+"LOW VOLUME 6 MINGGU  : ",
+WriteIf(Volume > Ref(high25volume,-1),EncodeColor(colorGold)+"HIGH VOLUME 5 MINGGU      : ",
+WriteIf(Volume < Ref(low25volume,-1),EncodeColor(colorRed)+"LOW VOLUME 5 MINGGU   : ",
+WriteIf(Volume > Ref(high20volume,-1),EncodeColor(colorGold)+"HIGH VOLUME 1 BULAN          : ",
+WriteIf(Volume < Ref(low20volume,-1),EncodeColor(colorRed)+"LOW VOLUME 1 BULAN      : ",
+WriteIf(Volume > Ref(high15volume,-1),EncodeColor(colorGold)+"HIGH VOLUME 3 MINGGU       : ",
+WriteIf(Volume < Ref(low15volume,-1),EncodeColor(colorRed)+"LOW VOLUME 3 MINGGU   : ",
+WriteIf(Volume > Ref(high10volume,-1),EncodeColor(colorGold)+"HIGH VOLUME 2 MINGGU       : ",
+WriteIf(Volume < Ref(low10volume,-1),EncodeColor(colorRed)+"LOW VOLUME 2 MINGGU   : ",
+WriteIf(Volume > Ref(high5volume,-1),EncodeColor(colorGold)+"HIGH VOLUME 1 MINGGU       : ",
+WriteIf(Volume < Ref(low5volume,-1),EncodeColor(colorRed)+"LOW VOLUME 1 MINGGU   : ",
+WriteIf(Volume > Ref(high1volume,-1),EncodeColor(colorGold)+"HIGH VOLUME 1 HARI      : ",
+WriteIf(Volume < Ref(low1volume,-1),EncodeColor(colorRed)+"LOW VOLUME 1 HARI   : ",""))))))))))))))))))))))))))))))))))))))+"\n"+
+WriteIf(c1 > Ref(0,-1),EncodeColor(colorBrightGreen),EncodeColor(colorRed))+"PROFIT                                   : "+WriteIf(c1 > Ref(0,-1),EncodeColor(colorBrightGreen),EncodeColor(colorRed))+ WriteVal(c1 ,format=1.0 )+
+WriteIf(c1 > Ref(0,-1),EncodeColor(colorBrightGreen),EncodeColor(colorRed))+"        "+WriteIf(c1 > Ref(0,-1),EncodeColor(colorBrightGreen),EncodeColor(colorRed))+ WriteVal(percentageprofitloss ,format=1.2 )+"%"  +"\n"+
+
+EncodeColor(colorWhite)+"STOP LOSS                           : "+ WriteVal(sl ,format=1.0   )+"\n"+
+EncodeColor(colorWhite)+"TAKE PROFIT                        : "+ WriteVal(tp ,format=1.0   )+"\n"+
+EncodeColor(colorWhite)+"TAKE PROFIT 2                     : "+ WriteVal(tp1 ,format=1.0   )+"\n"+
+EncodeColor(colorWhite)+"TAKE PROFIT 3                     : "+ WriteVal(tp2 ,format=1.0   )+"\n"+
+WriteIf (C >= tp2 ,EncodeColor(colorBrightGreen)+"TAKE PROFIT 3 TELAH TERCAPAI ",//1
+WriteIf (C >= tp1 ,EncodeColor(colorBrightGreen)+"TAKE PROFIT 2 TELAH TERCAPAI ",//2
+WriteIf (C >= tp ,EncodeColor(colorBrightGreen)+"TAKE PROFIT 1 TELAH TERCAPAI ",//3
+WriteIf ( C <=  sl,EncodeColor(colorRed)+ "STOP LOSS SUDAH TERTABRAK ",""))));//4

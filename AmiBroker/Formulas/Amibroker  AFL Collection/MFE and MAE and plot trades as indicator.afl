@@ -1,0 +1,316 @@
+_TRACE("ABTEST: Name() " + Name() );
+
+
+
+
+/*
+function PlotTrades(tradeDate,tradeType){
+
+}
+*/
+
+/* returns a array with following detals
+trades[0]=Date
+trades[1]=type Of trade executed
+0	= Buy
+1	= Sell
+2	= Short
+3	= Cover
+
+trades[3]=price
+
+All trades should be in a txt file with the folowing format identified by TradesFile
+The format of data should be like following
+PRGX,SLD,100,17.73,15:40:54,20070731,ISLAND,DU27808,,,DEMO,
+
+*/
+
+
+function extractTrades(symbolName){
+
+fh = fopen( TradesFile  , "r"); 
+	if(fh){
+		while( ! feof( fh ) ) 
+		   { 
+ 				currentRow=fgets( fh );
+				if(StrExtract(  currentRow, 0) == symbolName){
+     		 		//printf(currentRow );    
+  		 			} 
+			}
+	} 
+	else { 
+		
+   		printf("ERROR: file can not be found " + TradesFile + " does NOT exist)"); 
+	}
+
+return True;
+}
+
+//extractTrades(Name());
+
+function Date_To_Num(aaaammdd)
+{
+	
+   dd_ = StrToNum(StrRight(aaaammdd,2));
+//printf(WriteVal(dd_) + " "  );
+   mm_ = StrToNum(StrMid(aaaammdd,4,2));
+//printf(WriteVal(mm_) + " "  );
+   aa_ = StrToNum(StrLeft(aaaammdd,4));
+//printf(WriteVal(aa_) + " " + "\n" );
+
+   Date_Num = (10000 * (aa_ - 1900)) + (100 * mm_) + dd_;
+   RESULT = Date_Num;
+
+   return RESULT;
+}
+
+function Time_To_Num(strTime) // format for time is hh:mm:ss
+{
+
+/*
+//do something to raise alert  if length does not match
+????PopupWindow("Current time is: " + Now(),"Alert", 2,
+640*mtRandom(), 480*mtRandom());
+*/
+   hh_t = StrToNum(StrLeft(strTime,2));
+//printf(WriteVal( hh_t ) + " "  );
+   mm_t = StrToNum(StrMid(strTime,3,2));
+//printf(WriteVal( mm_t ) + " "  );
+   ss_t = StrToNum(StrRight(strTime,2));
+//printf(WriteVal( ss_t ) + " "  + "\n"  );
+   
+   Time_Num = 10000 * hh_t + 100 * mm_t + ss_t;
+   RESULT = Time_Num;
+
+   return RESULT;
+}
+
+
+
+// PARAMETER DEFINITION
+TradesFile=ParamStr( "Directory of trades", "C:\\Program Files\\Amibroker\\TWSTrades\\TWSTrades1070829.csv" );
+TradeType=ParamList("Instrument Type" ,"Stocks|Forex");
+forexSymbol=ParamList("Symbol to test" ,"EUR.USD-IDEALPRO-CASH|GBP.USD-IDEALPRO-CASH|USD.JPY-IDEALPRO-CASH|USD.CAD-IDEALPRO-CASH|USD.CHF-IDEALPRO-CASH|AUD.USD-IDEALPRO-CASH");
+StockSymbol=ParamStr( "Name of symbol", "" );
+
+ShortOrLong=ParamList("Trade Direction" ,"Short|Long");
+
+EntryPrice=Param("Entry Price",0,0,1000);
+ExitPrice=Param("Exit Price",0,0,1000);
+
+EntryDate=ParamDate( "Entry Date","2007-09-07",0 );
+ExitDate=ParamDate( "Exit Date","2007-09-07" ,0);
+
+
+EntryTime=ParamTime("Entry Time","07:08:07",0);
+ExitTime=ParamTime("Exit Time","08:08:07",0);
+
+if(TradeType=="Stocks"){
+stockname=stockSymbol;
+
+SetOption( "FuturesMode", False );
+}
+else{
+stockname=forexSymbol;
+SetOption( "FuturesMode", True );
+
+}
+
+
+
+
+
+
+
+//STOCKNAME="EUR.USD-IDEALPRO-CASH";
+
+//STOCKNAME="GBP.USD-IDEALPRO-CASH";
+
+// custom backtester code
+/* First we need to enable custom backtest procedure and
+** tell AmiBroker to use current formula
+*/
+
+SetCustomBacktestProc("");
+
+/* Now custom-backtest procedure follows */
+if( Status("action") == actionPortfolio  ) // check if we are inside a backtester
+{
+// retrieve the interface to portfolio backtester
+bo = GetBacktesterObject();
+
+
+
+ 
+bo.PreProcess(); // initialize the backtester
+
+	for( bar=0;bar<BarCount;bar++){  // loop thro all the bars
+		
+		
+			for (sig = bo.GetFirstSignal(bar); sig; sig = bo.GetNextSignal(bar))
+				{ // Loop through all signals at this bar
+					if (sig.IsEntry() && sig.IsLong()) // Process long entries
+							{
+								bo.EnterTrade(bar, sig.Symbol, True, EntryPrice ,sig.possize); 
+								
+							}
+							
+					else
+						{
+						if (sig.IsExit() && sig.IsLong()) // Process long exits
+							{
+								bo.ExitTrade(bar, sig.Symbol,Exitprice);
+								
+							}
+						}
+
+
+					if (sig.IsEntry() && !sig.IsLong()) // Process short entries. WATCH IT SAYS NOT ISLONG.
+							{
+								bo.EnterTrade(bar, sig.Symbol, True, EntryPrice ,sig.possize); 
+								
+							}
+
+					else
+						{
+						if (sig.IsExit() && !sig.IsLong()) // Process short  exits
+							{
+								bo.ExitTrade(bar, sig.Symbol,Exitprice);
+									
+							}
+						}
+
+
+					
+
+
+				}// End of for loop over signals at this bar
+			bo.HandleStops(bar); // Handle programmed stops at this bar
+	
+
+			for (trade = bo.GetFirstOpenPos(); trade; trade = bo.GetNextOpenPos())
+				{ // Loop through all open positions
+					if (trade.GetProfit() >= trade.GetEntryValue()) // If time to scale-in
+						{
+							scaleSize = trade.GetEntryValue() / 2; // Scale-in the trade
+							bo.ScaleTrade(bar, trade.Symbol, True, trade.GetPrice(bar, "C"), scaleSize);
+						}
+				} // End of for loop over trades at this bar
+			bo.UpdateStats(bar, 1); // Update MAE/MFE stats for bar
+			bo.UpdateStats(bar, 2); // Update stats at bar's end
+		} // End of for loop over bars
+	
+
+// pull custom metrics for backtester
+// iterate through closed trades first
+for( trade = bo.GetFirstTrade(); trade; trade = bo.GetNextTrade() )
+{// go thro each trade
+	trade.AddCustomMetric("MAE $", StrFormat( "%.4f", 100 * trade.GetMAE() /trade.EntryPrice ) );
+	trade.AddCustomMetric("MFE $", StrFormat( "%.4f", 100 * trade.GetMFE() /trade.EntryPrice ) );
+	}// end of iterating thro trades
+	//bo.ListTrades(); this is not needed for custom advanced  backtester
+// end of pulling custom metrics
+
+bo.PostProcess(); // Do post-processing
+
+}// end of check for inside backtester
+
+
+// end of custom backtester
+
+
+
+
+// Check time bars only on a intraday chart. dont mark it on a daily chart as it will not return any trades
+
+if (Interval()< 86400)
+{
+	CheckEntryTime=  TimeNum()>=EntryTime AND Ref(TimeNum(),-1)<EntryTime;
+	CheckExitTime=TimeNum()>=ExitTime AND Ref(TimeNum(),-1)<ExitTime;
+}
+else
+{
+	CheckEntryTime=True;
+	CheckExitTime=True;
+}
+_TRACE("ABTest: "+ GetChartID()  +  " DIRECTION OF TRADE "   + ShortOrLong + "name " +  Name());
+if(ShortOrLong=="Long"){
+	_TRACE("ABTEST: Name() "  );
+	// BUY SELL STUFF
+
+	Buy=Name()==STOCKNAME AND BarIndex()==ValueWhen(DateNum()==EntryDate AND CheckEntryTime, BarIndex());	
+	Sell=Name()==STOCKNAME  AND BarIndex()==ValueWhen(DateNum()==ExitDate AND CheckExitTime , BarIndex());
+	
+	//_TRACE("ABTest: "+ GetChartID()  +  "VALUE OF BAR ENTRY" +  WriteVal(ValueWhen(DateNum()==EntryDate AND CheckEntryTime , BarIndex())));
+//_TRACE("ABTest: "+ GetChartID()  +  "VALUE OF BAR EXIT " + WriteVal(ValueWhen(DateNum()==ExitDate AND CheckExitTime, BarIndex())));
+//_TRACE("ABTest: "+ GetChartID()  +  "VALUE STOCKNAME " + STOCKNAME );
+//_TRACE("ABTest: "+ GetChartID()  +  "Name() " + Name() );
+//	Sell=Sellcondition;
+
+	
+	Short=False;
+	Cover=False;
+}
+
+else
+ { // it has to be a short position.
+	Buy=False;
+	Sell=False;
+_TRACE("ABTest: "+ GetChartID()  +  "VALUE OF BAR ENTRY" + WriteVal(ValueWhen(DateNum()==EntryDate AND CheckEntryTime, DateNum())));
+_TRACE("ABTest: "+ GetChartID()  +  "VALUE OF BAR EXIT " + WriteVal(ValueWhen(DateNum()==ExitDate AND CheckExitTime ,  DateNum())));
+_TRACE("ABTest: "+ GetChartID()  +  "VALUE STOCKNAME " + STOCKNAME );
+_TRACE("ABTest: "+ GetChartID()  +  "Name() " + Name() );
+	Short=Name()==STOCKNAME AND BarIndex()==ValueWhen(DateNum()==EntryDate AND CheckEntryTime, BarIndex());
+	Cover=Name()==STOCKNAME  AND BarIndex()==ValueWhen(DateNum()==ExitDate AND CheckExitTime , BarIndex());
+}
+
+PlotShapes( IIf(Buy OR Short, shapeSmallCircle, shapeNone),colorBrightGreen, 0, EntryPrice, 0 );
+PlotShapes( IIf( Sell OR Cover, shapeSmallCircle, shapeNone),colorRed, 0 ,ExitPrice, 0 );
+
+
+
+
+FirstVisibleBar = Status( "FirstVisibleBar" );
+Lastvisiblebar = Status("LastVisibleBar");
+minYValue=Status("axisminy");
+maxYValue=Status("axismaxy");
+for( b = Firstvisiblebar; b <= Lastvisiblebar AND b < BarCount; b++)
+{
+	if( Buy[b] OR Short[b]) 
+	{
+		/* this is to determine which location to print the entry and exit prices ie if there is more space above, then print is above or print it below 
+	 */
+		
+		Point2print=maxYValue+ minYValue -EntryPrice[b];
+		if(Buy[b]==True) entryText="Long Entry \n";
+		if(Short[b]==True) entryText="Short Entry \n";
+		
+		PlotText( entryText +NumToStr(EntryPrice[b],1.5),b,Point2print,colorBrightGreen);
+		_TRACE("ABTest: "+ GetChartID()  +  "minYValue " + minYValue );
+		_TRACE("ABTest: "+ GetChartID()  +  "maxYValue " + maxYValue );
+		_TRACE("ABTest: "+ GetChartID()  +  "BuyPrice[b] " + EntryPrice[b] );
+		_TRACE("ABTest: "+ GetChartID()  +  "Point2print " + Point2print );
+		
+	}
+	else if ( Sell[b] OR Cover[b] ) 
+		{
+		/* this is to determine which location to print the entry and exit prices ie if there is more space above, then print is above or print it below 
+	 */
+		if(Sell[b]==True) entryText="Long Exit \n";
+		if(Cover[b]==True) entryText="Short Exit \n";
+		Point2print=maxYValue+ minYValue -SellPrice[b];
+		PlotText(entryText +NumToStr(SellPrice[b],1.5),b,Point2print,colorRed);
+		}
+		
+		else if ( Short[b] ) 
+		{
+		/* this is to determine which location to print the entry and exit prices ie if there is more space above, then print is above or print it below 
+	 */
+		
+		Point2print=maxYValue+ minYValue -SellPrice[b];
+		PlotText("\n Sell\n "+NumToStr(SellPrice[b],1.5),b,Point2print,colorRed);
+		}
+	
+
+
+}

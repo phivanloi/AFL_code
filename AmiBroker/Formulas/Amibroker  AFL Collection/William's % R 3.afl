@@ -1,0 +1,16 @@
+_SECTION_BEGIN("William's % R");
+function PercentR( periods )
+{
+ return -100 * ( HHV( H, periods ) - C )/( HHV( H, periods ) - LLV( L, periods ) ); 
+}
+wr14 = PercentR( 14 );
+wr34 = PercentR( 34 );
+Plot( wr14,"wr14", colorYellow );
+Plot( wr34,"wr34", 	colorWhite,styleThick );
+Plot( wr34+.5,"", 	colorWhite,styleThick+styleNoLabel );
+Plot( wr34-.5,"", 	colorWhite,styleThick+styleNoLabel );
+Plot(-80,"",colorRed,styleDashed+styleNoLabel);
+Plot(-50,"",colorWhite,styleThick+styleNoLabel);
+Plot(-20,"",colorRed,styleDashed+styleNoLabel);
+
+_SECTION_END();

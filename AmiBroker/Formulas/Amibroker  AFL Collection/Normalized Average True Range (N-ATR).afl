@@ -1,0 +1,2 @@
+Periods = Param("Periods", 14, 2, 100 );
+Plot( 100 * ATR( Periods ) / Close, "NATR"+Periods, colorRed );

@@ -1,0 +1,19 @@
+_SECTION_BEGIN("Show Values at H&L");
+
+n=Param("Values back",20,1,200,1);
+p=Param("zig %",5,1,100,1);
+dist = 0.8*ATR(15);
+
+for( i = 1; i < n; i++ )
+{	
+	PlotText(""+LastValue(Peak(H,p,i),True),BarCount-3-LastValue(PeakBars(H,p,i)),LastValue(dist,True)+LastValue(Peak(H,p,i),False),colorBlack,ColorRGB(225,225,225));
+	PlotText(""+LastValue(Trough(L,p,i),True),BarCount-3-LastValue(TroughBars(L,p,i)),LastValue(Trough(L,p,i),False)-LastValue(dist,True),colorBlack,ColorRGB(225,225,225));
+}
+
+_SECTION_END();
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

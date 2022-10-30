@@ -1,0 +1,64 @@
+// COG timing indicator
+// AFL translation by E.M.Pottasch, 2011
+// from: http://chartstudio.whselfinvest.com/files/COGTiming.ctl
+
+bi=BarIndex();	
+eb=LastValue(bi);	
+period=Param("Period",5,1,10,1);	
+bars=Param("Lookback Period",100,50,500,1);
+sv=ParamToggle("Use Selected Value","Off|On",1);
+level1=4;
+level2=8;
+ul1=ul2=ll1=ll2=Null;
+oo=hh=ll=cc=Null;
+ 
+if (sv)
+{
+	eb=SelectedValue(bi);
+	bb=Max(0,eb-bars);
+}
+else
+{
+	bb=Max(0,eb-bars);
+}
+for(i=bb+period-1;i<=eb;i++)
+{
+	ul1[i]=level1;
+	ul2[i]=level2;
+	ll1[i]=-level1;
+	ll2[i]=-level2;
+	am=0;
+	ar=0;
+	for(j=i-period+1;j<=i;j++)
+	{
+		am=am+(High[j]+Low[j])/2;
+		ar=ar+(High[j]-Low[j])/5;
+	}
+	am=am/period;
+	ar=ar/period;
+	if(ar!=0)
+	{
+		oo[i]=(Open[i]-am)/ar;
+		hh[i]=(High[i]-am)/ar;
+		ll[i]=(Low[i]-am)/ar;
+		cc[i]=(Close[i]-am)/ar;
+	}
+	else
+	{
+		oo[i]=0;
+		hh[i]=0;
+		ll[i]=0;
+		cc[i]=0;
+	}
+}
+C=cc;O=oo;H=hh;L=ll;
+Plot(C,"",colorBlack,styleLine | styleThick);
+//PlotOHLC(O,H,L,C,"",colorWhite,styleCandle);
+//Plot(cc,"Close",colorWhite,styleThick);
+//Plot(oo,"\nOpen",colorLightGrey,styleLine);
+//Plot(hh,"\nHigh",colorRed,styleLine);
+//Plot(ll,"\nLow",colorRed,styleLine);
+Plot(ul1,"\nUpper Level 1",colorRed,styleDashed);
+Plot(ul2,"\nUpper Level 2",colorRed,styleLine);
+Plot(ll1,"\nLower Level 1",colorGreen,styleDashed);
+Plot(ll2,"\nLower Level 2",colorGreen,styleLine);

@@ -1,0 +1,3 @@
+function HullDEMA(series, p) {
+	return DEMA( 2*DEMA(series,int(p/2))- DEMA(series,p),int(sqrt(p)));
+}

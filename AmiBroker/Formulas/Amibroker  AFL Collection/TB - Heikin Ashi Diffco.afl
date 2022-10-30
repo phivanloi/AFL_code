@@ -1,0 +1,34 @@
+//|------------------------------------------------------------------
+//|Tradingbasis.com - Heikin Ashi Indicator (HaDiffCO indicator)
+//|Version:1.0   14-January-2005
+//|Copyright © 2005, Tradingbasis.com
+//|http://www.tradingbasis.com
+//|e-mail: support@tradingbasis.com
+//|------------------------------------------------------------------
+SetChartOptions(0,chartShowDates|chartWrapTitle,chartGrid0);
+
+_SECTION_BEGIN("Main Parameters");
+per = Param("Average Period", 3, 3, 50, 1 );
+_SECTION_END();
+
+_SECTION_BEGIN("Styles");
+HAstyle = ParamStyle("Ha Diffco",styleThick);
+HADiffcostyle = ParamStyle("Average HA Diffco",styleThick);
+_SECTION_END();
+
+_SECTION_BEGIN("Colors");
+colorHA = ParamColor("HA Diffco",colorBrightGreen);
+colorMA = ParamColor("Average HA Diffco",colorLightGrey);
+_SECTION_END();
+
+
+HaClose = (O+H+L+C)/4;
+HaOpen = AMA( Ref( HaClose, -1 ), 0.5 );
+HaHigh = Max( H, Max( HaClose, HaOpen ) );
+HaLow = Min( L, Min( HaClose, HaOpen ) );
+HaDiffCO = HaClose - HaOpen;
+
+Plot( HaDiffCo, "HaDiffCO", colorHA,HAstyle);
+Plot( MA( HaDiffCo, per ), "MA("+per+")",colorMA,HADiffcostyle); 
+
+Title = "Tradingbasis.com - Heikin Ashi Diffco"+ " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor() + "  - " + Date() +" - " +EncodeColor(ColorHA)+"HaDiffCO = "+WriteVal(HaDiffCO,1.2)+", "+EncodeColor(ColorMA)+"MA = "+WriteVal(MA(HaDiffCo,per),1.2)+" ";

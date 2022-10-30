@@ -1,0 +1,13 @@
+_SECTION_BEGIN("TenTwentyValue");
+TenTwentyValue = HHV(H,20)-LLV(L,20);
+
+_SECTION_END();
+
+Cond1 = H > MA( Close, 10)AND C > MA(Close,10) AND  PDI(3) > MDI(3) AND (TenTwentyValue < (MA(Close,20)* .19)) AND Close >9.95 AND V >2000;
+Cond2 = Volume > Ref( Volume, -1 ) AND MFI(14)>29;
+
+Cond3 = H > MA( Close, 50) AND C > MA(Close,50) AND  PDI(3) > MDI(3) AND (TenTwentyValue < (MA(Close,20)* .19)) AND Close >9.95 AND V >2000;
+Buy = (Cond1 AND Cond2) OR (Cond2 AND Cond3);
+
+Sell= Close <MA (Close,20) AND MDI(5) > PDI(5);
+

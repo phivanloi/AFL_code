@@ -1,0 +1,166 @@
+_SECTION_BEGIN("stock scan");
+// find stocks with the narroest range
+DayH = TimeFrameGetPrice("H", inDaily);  
+DayL = TimeFrameGetPrice("L", inDaily); 
+Day0range = DayH-DayL;
+
+DayH1 = TimeFrameGetPrice("H1", inDaily, -1); 
+DayL1 = TimeFrameGetPrice("L1", inDaily, -1); 
+Day1range = DayH1 - DayL1;
+
+DayH2 = TimeFrameGetPrice("H2", inDaily, -2); 
+DayL2 = TimeFrameGetPrice("L2", inDaily, -2); 
+Day2range = DayH2 - DayL2;
+
+DayH3 = TimeFrameGetPrice("H3", inDaily, -3); 
+DayL3 = TimeFrameGetPrice("L3", inDaily, -3); 
+Day3range = DayH3 - DayL3;
+
+DayH4 = TimeFrameGetPrice("H4", inDaily, -4); 
+DayL4 = TimeFrameGetPrice("L4", inDaily, -4); 
+Day4range = DayH4 - DayL4;
+
+
+DayH5 = TimeFrameGetPrice("H5", inDaily, -5); 
+DayL5 = TimeFrameGetPrice("L5", inDaily, -5); 
+Day5range = DayH5 - DayL5;
+
+
+DayH6 = TimeFrameGetPrice("H6", inDaily, -6); 
+DayL6 = TimeFrameGetPrice("L6", inDaily, -6); 
+Day6range = DayH6 - DayL6;
+
+DayC = TimeFrameGetPrice("C", inDaily );//close 
+
+Filter =  Day0range < Day1range AND Day0range < Day2range AND Day0range < Day3range AND Day0range < Day4range AND Day0range < Day5range AND Day0range < Day6range;
+AddColumn(Open,"open");
+AddColumn(High,"High");
+AddColumn(Low,"low");   
+AddColumn(Close,"close");
+AddColumn (Day0range,"range today");
+AddColumn (Day1range,"day -1");
+AddColumn (Day2range,"day -2");
+AddColumn (Day3range,"day -3");
+AddColumn (Day4range,"day -4");
+AddColumn (Day5range,"day -5");
+AddColumn (Day6range,"day -6");
+/*
+TimeFrameSet( inDaily );
+
+R6 = (DayH / DayL) * DayC * 1.002;
+R5 = (DayH / DayL) * DayC;
+R4 = (((DayH / DayL) + 0.83) / 1.83) * DayC;
+R3 = ( ( (DayH / DayL) + 2.66) / 3.66) * DayC;
+R2 = ( ( (DayH / DayL) + 4.5) / 5.5) * DayC;
+R1 = ( ( (DayH / DayL) + 10) / 11) * DayC;
+ 
+S1 = (2- ( ( (DayH / DayL) + 10) / 11)) * DayC;
+S2 = (2-( (DayH / DayL) + 4.5) / 5.5) * DayC;
+S3 = (2-(( DayH / DayL) + 2.66) / 3.66) * DayC;
+S4 = (2-( (DayH / DayL) + 0.83) / 1.83) * DayC;
+S5 = (2-( DayH / DayL)) * DayC;
+S6 = (2-( DayH / DayL)) * DayC * 0.998;
+TimeFrameRestore();
+*/
+
+
+Prev_Close = TimeFrameGetPrice( "C", inDaily ) ;
+Prev_Low = TimeFrameGetPrice( "L", inDaily) ;
+Prev_High = TimeFrameGetPrice( "H", inDaily) ;
+Today = LastValue(Day( ) );
+
+
+//////////////////////////////30 MT STRATEGY /////////////////////////////////////////////////////////////
+BS=(Prev_High-Prev_Low)/3;
+
+
+Y=R30=Prev_Close+BS;
+X=S30=Prev_Close-BS;
+tgt_up = y*1.01;
+tgt_dn = x*0.99;
+AddColumn (y,"Buy above");
+AddColumn (X,"Stoploss");
+AddColumn (tgt_up,"target");
+AddColumn (x,"Sell below");
+AddColumn (y,"Stoploss");
+AddColumn (tgt_dn,"target");
+
+/*
+AddColumn (R4,"Buy above");
+AddColumn (R3,"Stoploss");
+AddColumn (R5,"target");
+AddColumn (s4,"Sell below");
+AddColumn (s3,"Stoploss");
+AddColumn (s5,"target");
+
+*/
+
+Plot (C,"",colorWhite,styleCandle);
+_SECTION_END();
+_SECTION_END();
+
+
+_SECTION_BEGIN("Fibo for all bars");
+
+TimeFrameSet( inDaily ); 
+DH=Ref(H,-1); 
+DL=Ref(L,-1);
+DC=Ref(C,-1);
+
+
+pd = (O+ DH+ DL + DC )/4;
+sd1 = (2*pd)-DH;
+sd2 = pd -(DH - DL);
+sd3 = Sd1 - (DH-DL); 
+rd1 = (2*pd)-DL;
+rd2 = pd +(DH -DL);
+rd3 = rd1 +(DH-DL);
+
+H4 =  (dH - dL) * 1.1 / 2 + dC;
+H3 = (dH - dL) * 1.1 / 4 + dC;
+h2 = (dH - dL) * 1.1 / 6 + dC;
+H1 = (dH - dL) * 1.1 / 12 + dC;
+L1 = dC - (dH - dL) * 1.1 / 12;
+L2 = dC - (dH - dL) * 1.1 / 6;
+L3 = dC - (dH - dL) * 1.1 / 4;
+L4 = dC - (dH - dL) * 1.1 / 2 ;
+
+
+
+//Plot (pd,"Pivot",colorBlue,styleDots);
+//Plot (rd1," R1 ",35,styleDots);
+//Plot (rd2," R2 ",35,styleDots);
+//Plot (rd3," R3 ",35,styleDots);
+
+//Plot (sd1," S1 ",4,styleDots);
+//Plot (Sd2," S2 ",4,styleDots);
+//Plot (Sd3," S3 ",4,8+16);
+/*
+style = IIf(ParamList("Chart style", "styleCandle|styleBar")=="styleCandle",64,128+4);
+Plot (C,Date ()+" close",1,style); //ENABLE THIS TO HAVE CANDLES AS WELL
+*/
+TimeFrameRestore();
+
+tgt_up = H4*5/1000 + H4;
+tgt_up2 = H4*10/1000 + H4;
+tgt_dn = L4-L4*5/1000;
+tgt_dn2 = L4-L4*10/1000;
+
+Title = EncodeColor(colorWhite)+ "LINKON'S PIVOT TRADING SYSTEM" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "
+//+ WriteIf(Col_action==colorGreen, EncodeColor(colorGreen)+"stay LONG","")+ WriteIf(Col_action==colorRed, EncodeColor(colorRed)+"stay SHORT","")+  WriteIf(Col_action==colorBlack, EncodeColor(colorYellow)+"No Trend","")+"\n"
++ "Vol= "+ WriteVal(V) +WriteIf ( V > MA(V,26) ,EncodeColor(colorGreen)+"  UP "+ (V/MA(V,26))*100 + " %", EncodeColor(colorRed)+"  DOWN "+ (V/MA(V,26))*100 + " %")
++ EncodeColor(colorGreen)+   "\n H4 : "+ EncodeColor(colorWhite)+H4+ EncodeColor(colorGreen)+   "    tgt : "+ EncodeColor(colorWhite)+tgt_up +EncodeColor(colorGreen)+   "    tgt2 : "+ EncodeColor(colorWhite)+tgt_up2 
++ EncodeColor(colorGreen)+   "\n H3 : "+ EncodeColor(colorWhite)+H3 
++ EncodeColor(colorGreen)+   "\n H2 : "+ EncodeColor(colorWhite)+H2 
++ EncodeColor(colorGreen)+   "\n H1 : "+ EncodeColor(colorWhite)+H1+ EncodeColor(colorGreen)+   "`            Hi: "+ EncodeColor(colorWhite)+H
++ EncodeColor(colorBlue)+   "\n Pivot : "+ EncodeColor(colorWhite)+pd + EncodeColor(colorYellow)+   "`   Op: "+ EncodeColor(colorWhite)+O+ EncodeColor(colorAqua)+   "Cl: "+ EncodeColor(colorBrightGreen)+C
++ EncodeColor(colorRed)+   "\n L1 : "+ EncodeColor(colorWhite)+L1+ EncodeColor(colorRed)+   "`            Lo: "+ EncodeColor(colorWhite)+L
++ EncodeColor(colorRed)+   "\n L2 : "+ EncodeColor(colorWhite)+L2
++ EncodeColor(colorRed)+   "\n L3 : "+ EncodeColor(colorWhite)+L3
++ EncodeColor(colorRed)+   "\n L4 : "+ EncodeColor(colorWhite)+L4+ EncodeColor(colorRed)+      "     tgt : "+ EncodeColor(colorWhite)+tgt_dn + EncodeColor(colorRed)+      "     tgt2 : "+ EncodeColor(colorWhite)+tgt_dn2
+;
+
+_SECTION_END();
+
+Plot(6, "", IIf(PDI(7) > MDI(7) AND PDI(7) > 30,colorGreen,IIf (MDI(7) > PDI(7) AND MDI(7) > 30,colorRed,colorYellow)), styleOwnScale| styleArea|styleNoLabel,-0.5,100);

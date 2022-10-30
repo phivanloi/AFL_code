@@ -1,0 +1,17 @@
+Title = "127-3 DSS" + "   "  +  FullName() + "   "  +  Date( ) ;
+
+Slw = 4;  Pds = 4;
+
+A = EMA((Close-LLV(Low,Pds))/(HHV(H,pds)-LLV(L,Pds)),Slw)*100;
+
+DSS = EMA((A-LLV(A,pds))/(HHV(A,Pds)-LLV(A,Pds)),Slw)*100;
+
+MaxGraph = 10;
+Graph0 = DSS; Graph0Color = 2;    Graph2 = DSS; 
+Overbought = 80;  Oversold =  20; 
+
+Graph2BarColor = IIf (Graph2 > overbought, 4, 
+                                   IIf (Graph2 < oversold,5,6));
+
+Buy = Cross (DSS, 20);
+Sell = Cross (80,DSS);

@@ -1,0 +1,26 @@
+n=Param("n",6,3,20,1);// Calibrate the Zig percentage
+Var1=C;
+z=Zig(Var1,n);
+PeakCondition=PeakBars(Var1,n)==0;
+p1=ValueWhen(PeakCondition,Var1,1);
+p2=ValueWhen(PeakCondition,Var1,2);
+TroughCondition=TroughBars(Var1,n)==0;
+t1=ValueWhen(TroughCondition,Var1,1);
+t2=ValueWhen(TroughCondition,Var1,2);
+d=IIf(BarsSince(PeakCondition)<BarsSince(TroughCondition),(p1-t1)/(p2-t1),(p1-t1)/(p1-t2));
+Plot(d,"d",colorWhite,1);
+// Create the main Fibonacci sequence
+d0=2/(sqrt(5)+1);
+n0=2;
+for(i=d0^(-n0);i>=d0^n0;i=i*d0)
+{
+fib=i;
+Plot(fib,"",colorBlue,1);
+}
+Plot(0.5,"",colorBlue,1);
+Plot(Var1,"Var1",1,8+styleLeftAxisScale);
+Plot(z,"",colorYellow,styleLeftAxisScale);
+// Calculation of the current Fibonacci ratio
+LVar1=LastValue(Var1);
+d1=IIf(BarsSince(PeakCondition)<BarsSince(TroughCondition),(p1-LVar1)/(p1-t1),(LVar1-t1)/(p1-t1));
+Plot(d1,"The current Fib ratio is ",colorRed,styleNoLine);

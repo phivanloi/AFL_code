@@ -1,0 +1,67 @@
+_SECTION_BEGIN("NICK MA Swing"); 
+
+DayH = TimeFrameGetPrice("H", in15Minute*2, -1);// yesterdays high 
+DayL = TimeFrameGetPrice("L", in15Minute*2, -1);//low 
+DayC = TimeFrameGetPrice("C", in15Minute*2, -1);//close
+DayO = TimeFrameGetPrice("O", in15Minute*2 );//open today
+
+R6 = (DayH / DayL) * DayC * 1.002;
+R5 = (DayH / DayL) * DayC;
+R4 = (((DayH / DayL) + 0.83) / 1.83) * DayC;
+R3 = ( ( (DayH / DayL) + 2.66) / 3.66) * DayC;
+R2 = ( ( (DayH / DayL) + 4.5) / 5.5) * DayC;
+R1 = ( ( (DayH / DayL) + 10) / 11) * DayC;
+ 
+S1 = (2- ( ( (DayH / DayL) + 10) / 11)) * DayC;
+S2 = (2-( (DayH / DayL) + 4.5) / 5.5) * DayC;
+S3 = (2-(( DayH / DayL) + 2.66) / 3.66) * DayC;
+S4 = (2-( (DayH / DayL) + 0.83) / 1.83) * DayC;
+S5 = (2-( DayH / DayL)) * DayC;
+S6 = (2-( DayH / DayL)) * DayC * 0.998;
+Col_bar = IIf(StochK(14) > Ref(StochK(14),-1),colorBrightGreen,colorRed);
+Plot(Close,"",col_bar,styleBar+styleThick);
+Plot(s3, "", colorGreen,styleThick);
+Plot(s4, "", colorGreen,styleThick);
+Plot(r3, "", colorRed,styleThick);
+Plot(r4, "", colorRed,styleThick);
+//Plot(r5, "", colorRed,styleDashed);
+//Plot(s5, "", colorRed,styleDashed);
+
+pivot = (DayH+DayL+DayC)/3;
+NW = pivot;
+J = MA(Close,3);
+Plot(j, "", IIf(j > Ref(j,-1),colorBlue,colorYellow),styleThick);
+
+Plot(NW, "", colorWhite,styleThick);
+Buy=Cover=Cross(H,r4);
+Sell=Short=Cross(s4,L);
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+SellPrice=ValueWhen(Sell,L,1);
+BuyPrice=ValueWhen(Buy,H,1);
+Long=Flip(Buy,Sell);
+Shrt=Flip(Sell,Buy );
+_SECTION_END();
+//=================TITLE================================================================================================
+_SECTION_BEGIN("Title");
+if( Status("action") == actionIndicator ) 
+(
+Title = EncodeColor(colorWhite)+ "NICK MA Swing System" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"\n" +EncodeColor(colorYellow) +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+
+"Cl-"+C+"  "+ "Vol= "+ WriteVal(V)+"\n"+ 
+EncodeColor(colorLime)+
+WriteIf (Buy , " GO LONG / Reverse Signal at "+C+"  ","")+
+WriteIf (Sell , " EXIT LONG / Reverse Signal at "+C+"  ","")+"\n"+EncodeColor(colorWhite)+
+WriteIf(Sell , "Total Profit/Loss for the Last Trade Rs."+(C-BuyPrice)+"","")+
+WriteIf(Buy  , "Total Profit/Loss for the Last trade Rs."+(SellPrice-C)+"","")+
+WriteIf(Long AND NOT Buy, "Trade : Long - Entry price Rs."+(BuyPrice),"")+
+WriteIf(shrt AND NOT Sell, "Trade : Short - Entry price Rs."+(SellPrice),"")+"\n"+ 
+WriteIf(Long AND NOT Buy, "Current Profit/Loss Rs."+(C-BuyPrice)+"","")+
+WriteIf(shrt AND NOT Sell, "Current Profit/Loss Rs."+(SellPrice-C)+"",""));
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+_SECTION_END();

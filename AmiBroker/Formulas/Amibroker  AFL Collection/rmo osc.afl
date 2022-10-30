@@ -1,0 +1,53 @@
+//Code Source: http://www.stockmeetingplace.com/forum/viewthread.php?tid=1455
+//AFL Coding: Mubashar Virk, mavirk@gmail.com
+
+
+//Indicators
+
+ST1 = 100 *
+(Close - ((MA(C,2) +
+MA(MA(C,2),2) +
+MA(MA(MA(C,2),2),2) +
+MA(MA(MA(MA(C,2),2),2),2) +
+MA(MA(MA(MA(MA(C,2),2),2),2),2) +
+MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2) +
+MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2) +
+MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2),2) +
+MA(MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2),2),2) +
+MA(MA(MA(MA(MA(MA(MA(MA(MA(MA(C,2),2),2),2),2),2),2),2),2),2)) / 10)) /
+(HHV(C,10) - LLV(C,10));
+
+
+Plot( ST1, "SwingTrade-1", 3, styleThick);
+ST2= EMA( ST1,30);
+Plot( ST2, "SwingTrade-2",colorRed, styleThick);
+ST3= EMA( ST2,30); 
+Plot(ST3, "SwingTrade-3", colorBlue, styleThick);
+
+
+//System Section
+
+Buy = Cross(ST2,ST3); //AND ST2 > 0; (you may or may not wish to include final argument in the line)
+Sell = Cross(ST3,ST2); //AND EMA (ST1,81) < 0; (you may or may not wish to include final argument in the line)
+
+//Eploration Section
+
+//Bullish Trend
+BT= EMA( ST1,81) > 0;
+
+//BearishTrend
+Brt=EMA( ST1,81) <0;
+
+T_status=	WriteIf(BT, "Bulllish", WriteIf(Brt, "Bearish", "Neutral"));
+
+// Set the background color for Impulse Status Column
+T_Col=IIf(BT, colorGreen, IIf(Brt, colorRed, colorLightGrey));
+
+
+
+Filter = Buy OR Sell;
+AddColumn (Buy, "Buy", 1);
+AddColumn (Sell, "Sell", 1);
+AddColumn (C, "Close", 1.2);
+AddColumn (V, "Volume", 1);
+AddTextColumn(T_Status, "Trend Status", 1, colorWhite, T_Col);

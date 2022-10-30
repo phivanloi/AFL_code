@@ -1,0 +1,7 @@
+tgt = 100;
+a = CCI(20) < -tgt;
+b = CCI(20) > tgt;
+state = IIf(a>b,-1,IIf(a==b,0,1));
+Color = IIf(state == 0, colorWhite, IIf(state == 1, colorLime, IIf(state == -1, colorRed, 0)));
+
+Plot(CCI(20), "",Color, styleHistogram, styleThick);

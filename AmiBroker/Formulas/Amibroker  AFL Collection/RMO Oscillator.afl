@@ -1,0 +1,31 @@
+/*Len1 = Optimize("Len1", 2, 2, 11, 1);
+Len2 = Optimize("Len2", 10, 2, 21, 1);
+Len3 = Optimize("Len3", 30, 2, 50, 1);
+*/
+
+
+Len1 = Param("ma_len1",2,2,40,1);
+Len2 = Param("sum_len2",10,2,40,1);
+Len3 = Param("ema_len2",30,2,100,1);
+Len4 = 81;
+
+
+//Indicators
+
+
+MAz = Cum(0);
+MAy = C;
+
+
+for (i = 1; i <= Len2; i++)
+{
+MAy = MA(MAy, Len1);
+MAz = MAz + MAy;
+}
+
+ST1 = 100 * (C - (MAz / Len2)) / (HHV(C, Len2) - LLV(C, Len2));
+RMO = EMA(ST1,Len4);
+
+Color = IIf(rmo > 0, colorLime, colorRed);
+
+Plot(rmo, "RMO", Color, styleHistogram | styleThick);

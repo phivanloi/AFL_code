@@ -1,0 +1,11 @@
+_SECTION_BEGIN("AO XTL Price Chart");
+tgt = 100;
+a = CCI(20) < -tgt;
+b = CCI(20) > tgt;
+state = IIf(a>b,-1,IIf(a==b,0,1));
+Color = IIf(state == 0, colorBlue, IIf(state == 1, colorLime, IIf(state == -1, colorRed, 0)));
+
+SetChartOptions( 0, chartShowDates | chartShowArrows | chartWrapTitle );
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", color, styleNoTitle |styleBar );
+_SECTION_END();

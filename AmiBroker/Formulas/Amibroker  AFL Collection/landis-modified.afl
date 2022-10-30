@@ -1,0 +1,24 @@
+_SECTION_BEGIN("LANDIS Color Modified");
+x = ((StochK(9,3)*0.05)+(StochK(182,9)*0.43)+(StochK(34,13)*0.26)+(StochK(34,8)*0.16)+(StochK(21,5)*0.10));
+y = MA(x,15);
+
+Plot(x,"LANDIS", IIf(x > Ref(x,-1), colorGreen,colorRed), styleThick);
+Plot(Y,"3-Week", IIf(y > Ref(y,-1), colorGreen,colorRed), styleThick);
+
+Cond1= Graph0<Graph1 AND Graph0 > Ref (Graph0,-1);
+Cond2= Graph0>Graph1 AND Graph0 < Ref (Graph0,-1);
+colore= IIf(Cond1,colorBrightGreen,IIf(Cond2,colorRed,0));
+PlotShapes(shapeHollowSmallCircle*Cond1,Colore,0,Graph0,-6);
+PlotShapes(shapeHollowSmallCircle*Cond2,Colore,0,Graph0,6);
+
+Buy= Cross (x,Y);
+Sell= Cross (y,x);
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); 
+PlotShapes(shapeUpArrow*Buy,colorBlue);
+PlotShapes(shapeDownArrow*Sell,colorCustom12);
+
+PlotOHLC( x, x, y, y, "", IIf(x > y,colorLime, colorOrange),styleNoLabel|styleCloud );
+PlotGrid(40, colorLightGrey);
+PlotGrid(80, colorLightGrey);
+GraphXSpace=5;
+_SECTION_END();

@@ -1,0 +1,18 @@
+// Short-only MAS system
+LowerCloses = HHV( Close, 5 ) < Ref( LLV( Close, 20 ), -20 );
+PullbackMAS = MA( Close, 35 );
+// check if close was never above MAS during last 15 bars
+NotAbovePullbackMA = Sum( Close > PullbackMAS, 15 ) == 0;
+ClosePullbackMA = ( PullbackMAS - Close ) < 0.01 * Close;
+SetupA = LowerCloses AND NotAbovePullbackMA AND ClosePullbackMA;
+MAPullbackShort = SetupA AND Volume > 200000 AND Close > 15;
+MAPullbackShortYesterday = Ref( MAPullbackShort, -1 );
+ShortTrigger = Low < Ref( Low, -1 );
+StochOK = Ref( StochK() < 80, -1 );
+Short = MAPullbackShortYesterday AND ShortTrigger AND StochOK;
+Cover = 0; // exit only by stop
+// trade on open with one bar delay
+SetTradeDelays(1,1,1,1);
+ShortPrice = CoverPrice = Open;
+// apply 3-day stop
+ApplyStop( stopTypeNBar, stopModeBars, 3, 0 );

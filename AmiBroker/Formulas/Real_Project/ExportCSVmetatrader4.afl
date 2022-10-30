@@ -1,0 +1,21 @@
+void export() {
+
+string file="export_"+Symbol()+"_"+Period()+".csv";
+int f=FileOpen(file,FILE_CSV|FILE_WRITE,",");
+
+if(f<1) {
+Alert("File opening error");
+return(0);
+}
+
+for(int i=0;i<Bars;i++) {
+FileWrite(f,TimeToStr(Time[i],TIME_DATE|TIME_MINUTES),
+Open[i],High[i],Low[i],Close[i]);
+}
+
+Alert("Export "+Symbol()+" finished. Exported: "+Bars+" records");
+
+FileFlush(f);
+FileClose(f);
+
+}

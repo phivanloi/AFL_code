@@ -1,0 +1,30 @@
+//Log Time
+
+s=Param("speed",0,0,0.04,0.0001);
+b=BarCount-1;
+bc=b;
+Hy=Null;Ly=Null;Oy=Null;Cy=Null;
+
+do
+{
+Hx=0;Lx=1000000;
+Cy[bc]=C[b];
+f=int(exp(s*(BarCount-bc+1)));
+b1=b-f;
+
+while (b>b1 AND b>-1)
+{
+if (H[b]>Hx) Hx=H[b];
+if (L[b]<Lx) Lx=L[b];
+b--;
+}
+Hy[bc]=Hx;Ly[bc]=Lx;Oy[bc]=O[b+1];
+bc--;
+
+} while (b>-1);
+
+PlotOHLC(Oy,Hy,Ly,Cy,"",1,styleCandle);
+Plot(Oy,"open",1,styleNoDraw);
+Plot(Hy,"hi",1,styleNoDraw);
+Plot(Ly,"lo",1,styleNoDraw);
+Plot(Cy,"close",1,styleNoDraw);

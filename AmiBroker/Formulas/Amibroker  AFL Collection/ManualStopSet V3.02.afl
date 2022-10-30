@@ -1,0 +1,513 @@
+_SECTION_BEGIN("ManualStopSet V3.02");
+// Manual Stop Set V3.02
+// Created		15/8/06
+// Modified	29/9/06
+// Author		OzFalcon (Michael.S.G.)
+// Purpose		Manualy Enter & Track Trades
+// Type		Indicator
+// Notes		Use Parameters (CTRL-R) to Set & Save
+// Notes		(Buybar is set with Currently Selected Bar)
+
+///////////////////////////////////////////////////////////////////////
+// Initialize AFL
+///////////////////////////////////////////////////////////////////////
+{
+ // Data Path
+ _N(DataPath = "BPTMSS-Data\\");
+
+ // Define Required Global Variables
+ global TrailBarStart,PeakValue,TrailStopValue,EvenStopPS,ProfitStopPS,MaxLossPS;
+ global TurnOver,TitleS,Qty,LeftoverCash,MarketValue,ReturnedCapital,RawCashGain;
+ global CashReturned,StockGain,RequiredGain,EvenStop,TrailPercent,Title_1,Title_2;
+ global DBUY,TBUY,DSELL,TSELL,AlertByte,IDList;
+
+ // Set Core Global Variables
+ SetChartBkColor(47); // LightGrey
+ _N(VersionStr="ManualStopSet V3.02");
+ SetBarsRequired(100000, 100000 );
+ BC = BarCount-1;
+ BNUM = BarIndex();
+ DNUM = DateNum();
+ TNUM = TimeNum();
+ SelectedBar = SelectedValue(BNUM);
+ AlertByte = 2; Title_1=""; Title_2="";Tally=0;
+ printf("SelectedBar:"+SelectedBar+"\n");
+ printf("BarCount:"+BC+"\n");
+
+ // Load ID-List (Trade Lists)
+ // Make sure directory exists.
+ fmkdir(DataPath);
+ // Load ID-List.
+ IDList=""; // Ensure IDList is defined as a string. (If file not exist 1st run).
+ _N(IDListFile = DataPath + "ID-List");
+ fh = fopen( IDListFile, "r"); 
+	if( fh ) 
+		{// If exist, Get list.
+		IDList = fgets(fh);
+		fclose( fh );
+		}
+	else
+		{
+		IDList="<END>,"; // If not exist, Write File when we create a trade.
+		}
+
+ // Determin EOD(0) or IntraDay(1) mode
+ TimeFrame = Interval();
+ EODRT = IIf(TimeFrame>=inDaily,0,1);
+
+ // Set Parameters
+ // MSS Param
+ TradeType = ParamToggle( "A1.Long/Short", "Long|Short",0);
+ HoldingsAdj = Param("A2.HoldingsAdj",0,-100,100,1); //Adj Calc Holdings
+ ProfitStop = Param("A3.ProfitStop",10,0,100,0.01); //Percentage of Cash
+ LossStop = Param("A4.LossStop",5,0,100,0.01); //Percentage of Cash
+ TrailStop = Param("A5.TrailStop",2,0,100,0.01); //Percentage of HH/LL
+ Capital = Param("A6.Capital",5000,0,100000,0.01);
+ CommisionX1 = Param("A6.CommisionX1",27.95,0,50,0.01);
+ MultiTrade = Param("A7.MultiTrade",0,0,10,1); //View/Set Calcs for specific Multi Trade
+ BuyAt = Param("X1.BuyAt",0,0,100,0.01);
+ SellAtP = Param("Y1.SellAt",0,0,100,0.01);
+ CreateTrade = ParamTrigger("Create Trade","<Create>");
+ RemoveTrade = ParamTrigger("Modify Trade<R>","<Remove>");
+ CloseTrade  = ParamTrigger("Modify Trade<C>","<Close>");
+ OpenTrade   = ParamTrigger("Modify Trade<O>","<Re-Open>");
+ // CLA Param
+ DisplayPlot = ParamToggle("DisplayPlot","Single|Multi",0);
+ TitleStyleT = ParamList("DisplayText","Detail/Tally|Tally|Detail|None");
+ TitleSlide  = Param("TitleSlide",0,0,30,1);
+
+ // Set Default BuyBar & BuyAt etc
+ SellAt=SellAtP;
+ BuyBar = SelectedBar; SellBar=BC;
+ if (SellAt == 0) SellAt=C[SellBar];
+ if (BuyAt == 0) BuyAt=O[BuyBar];
+
+}
+///////////////////////////////////////////////////////////////////////
+// End of Initialize
+///////////////////////////////////////////////////////////////////////
+  
+///////////////////////////////////////////////////////////////////////
+// Define Procedures/Functions
+///////////////////////////////////////////////////////////////////////
+procedure RemoveEntry(RemSym)
+{
+	// Remove entry from IDList
+	NewIDList = "";
+	for( i = 0; ( sym = StrExtract( IDList, i ) ) != "<END>"; i++ )
+		{
+		if (sym != RemSym) {NewIDList = NewIDList + sym + ",";}
+		}
+	IDList = NewIDList+"<END>,";
+
+	fh = fopen( IDListFile, "w"); 
+	if( fh ) 
+		{ 
+		fputs( IDList , fh );
+		fclose( fh );
+		}
+}
+
+procedure AddEntry(AddSym)
+{
+	// Add entry to IDList
+	IDList = AddSym + "," + IDList;
+	printf(IDList);
+	fh = fopen( IDListFile, "w"); 
+	if( fh ) 
+		{ 
+		fputs( IDList , fh );
+		fclose( fh );
+		}
+}
+
+procedure DoCalculation(Sym)
+{
+ // All variables should be global
+// printf("Calculating: "+Sym+"\n"); 
+ Turnover = (C*V); //For Display
+ 
+// Manual Flip (If Sell Selected before buy)
+// Mabie should also flip SellAt open/close. 
+if (SellBar < BuyBar)
+		{
+		BuyBar1 = BuyBar;BuyBar=SellBar;SellBar=BuyBar1;
+		BuyAt1 = BuyAt;BuyAt=SellAt;SellAt=BuyAt1;
+		}
+
+ // Calc Holding Stats
+ Avail = Capital-CommisionX1;
+ Qty = (int(Avail/BuyAt))+HoldingsAdj;  
+
+ BuyValue = Qty*BuyAt;
+ MarketValue = Qty*SellAt;
+ RawCashGain = ((Qty*SellAt)-(Qty*BuyAt))*((TradeType*-2)+1); //LongShortFlip
+ CashReturned = (RawCashGain-(CommisionX1*2));
+ LeftoverCash = Capital-(BuyValue)-CommisionX1;
+ ReturnedCapital = Capital + CashReturned;
+ StockGain = ((CashReturned/Capital))*100; // Total Percent Gained
+
+ //Long/Short Program Branch
+ if (TradeType)	
+		{ //Short
+		//Calc Trail Stop
+		Trail_Ref = BC - SellBar;
+		Range_Ref = SellBar - BuyBar+1;
+		PeakValue = LastValue(Ref(LLV(L,Range_Ref),-Trail_Ref));
+		Peak_Ref  = LastValue(Ref(LLVBars(L,Range_Ref),-Trail_Ref));
+		TrailBarStart = SellBar-Peak_Ref;
+		TrailStopValue = PeakValue + (PeakValue * (TrailStop/100));
+		TrailPercent = ((Close[SellBar]/PeakValue)*100)-100;
+		// Calc Even Stop 
+		EvenStopValue = (Qty*BuyAt) - CommisionX1;
+		EvenStopPS = EvenStopValue/Qty;
+		EvenStop = ((EvenStopPS/BuyAt)*100)-100;
+		// Calc Profit Stop
+		ProfitStopCalc = Capital*(ProfitStop/100);
+		ProfitStopValue = Capital - ProfitStopCalc - CommisionX1;
+		ProfitStopPS = ProfitStopValue/Qty;
+		RequiredGain = ((ProfitStopPS/BuyAt)*100)-100;
+		// Calc Loss Stop
+		MaxLossCalc = Capital*(LossStop/100);
+		MaxLossValue = Capital + MaxLossCalc - CommisionX1;
+		MaxLossPS = MaxLossValue/Qty;
+		}
+	else
+		{ //Long
+		//Calc Trail Stop
+		Trail_Ref = BC - SellBar;
+		Range_Ref = SellBar - BuyBar+1;
+		PeakValue = LastValue(Ref(HHV(H,Range_Ref),-Trail_Ref));
+		Peak_Ref  = LastValue(Ref(HHVBars(H,Range_Ref),-Trail_Ref));
+		TrailBarStart = SellBar-Peak_Ref;
+		TrailStopValue = PeakValue - (PeakValue * (TrailStop/100));
+		TrailPercent = 100-((Close[SellBar]/PeakValue)*100);
+		// Calc Even Stop 
+		EvenStopValue = (Qty*BuyAt) + CommisionX1;
+		EvenStopPS = EvenStopValue/Qty;
+		EvenStop = ((EvenStopPS/Buyat)*100)-100;
+		// Calc Profit Stop
+		ProfitStopCalc = Capital*(ProfitStop/100);
+		ProfitStopValue = Capital + ProfitStopCalc + CommisionX1;
+		ProfitStopPS = ProfitStopValue/Qty;
+		RequiredGain = ((ProfitStopPS/BuyAt)*100)-100;
+		// Calc Loss Stop
+		MaxLossCalc = Capital*(LossStop/100);
+		MaxLossValue = Capital - MaxLossCalc + CommisionX1;
+		MaxLossPS = MaxLossValue/Qty;
+		}
+}// End DoCalculation
+
+
+procedure DisplayPlots(Sym)
+{
+ // Plot Vertical Buy Bar. (Blue)
+ // VLine = IIf(BuyBar==BNUM,1,0);
+ // Plot (VLine ,"BuyBar", colorBlue, styleHistogram | styleOwnScale,0,1);
+ 
+ // Plot Vertical Sell Bar. (Blue)
+ // VLine = IIf(SellBar==BNUM,1,0);
+ // Plot (VLine ,"BuyBar", colorBlue, styleHistogram | styleOwnScale,0,1);
+
+ // Plot Horizontal Buy Bar. (Yellow)
+ x0 = Buybar ; y0 = BuyAt;
+ x1 = SellBar ; y1 = y0;
+ Hline = LineArray(x0,y0,x1,y1,0);
+	Plot(HLine ,"BuyPrice",colorYellow,styleLine);
+
+ // Plot Trade Trend (BuyBar to SellBar/SellAT - Blue Dashed Line)
+ x0 = Buybar ; y0 = BuyAt;
+ x1 = Sellbar ; y1 = SellAt;
+// y1 = C[Sellbar];
+ Hline = LineArray(x0,y0,x1,y1,0);
+	Plot(HLine ,"TradeTrend",colorLightBlue,styleDots);
+
+ // Plot Long/Short Trail Stop Trend
+ x0 = TrailBarStart; y0=PeakValue;
+ x1 = SellBar; y1 = C[SellBar];
+ Line = IIf((X1 > X0),LineArray(x0,y0,x1,y1,0),LineArray(x1,y1,x0,y0,0) ); //Reverse
+	Plot(Line,"TrailStop",colorViolet,styleLine);
+
+ // Plot TrailStop Horizontal (ColorViolet)
+ x0 = Buybar  ; y0 = TrailStopValue;
+ x1 = SellBar ; y1=y0;
+ Hline = LineArray(x0,y0,x1,y1,0);
+	Plot(HLine ,"LossStop",colorViolet,styleLine);
+
+ // Plot BreakEven Horizontal (ColorGreen)
+ x0 = Buybar  ; y0 = EvenStopPS;
+ x1 = SellBar ; y1=y0;
+ Hline = LineArray(x0,y0,x1,y1,0);
+	Plot(HLine ,"EvenStop",colorGreen,styleLine);
+
+ // Plot ProfitStop Horizontal (ColorWhite)
+ x0 = Buybar  ; y0 = ProfitStopPS ;
+ x1 = SellBar ; y1=y0;
+ Hline = LineArray(x0,y0,x1,y1,0);
+	Plot(HLine ,"ProfitStop",colorWhite,styleLine);
+
+ // Plot LossStop Horizontal (ColorRed)
+ x0 = Buybar  ; y0 = MaxLossPS;
+ x1 = SellBar ; y1=y0;
+ Hline = LineArray(x0,y0,x1,y1,0);
+	Plot(HLine ,"LossStop",colorRed,styleLine);
+
+}// End DisplayPlots
+
+
+procedure CreateTitleDetail(Sym)
+{
+// Create Title Detail
+_N(BuyDate = StrFormat("%.0f",DNUM[BuyBar]));_N(BuyTime = StrFormat("%.0f",TNUM[BuyBar]));
+_N(SellDate = StrFormat("%.0f",DNUM[SellBar]));_N(SellTime = StrFormat("%.0f",TNUM[SellBar]));
+_N(Title_1 = ""+
+" TimeInterval: " + Interval() + ", TimeFrame: " + WriteIf(EODRT,"IntraDay","EndOfDay") +
+"\n\\c01 FS: " + TitleS + ",\\c29 TradeType: " + WriteIf(TradeType,"Short","Long") +
+"/" + WriteIf(TimeFrame>=inDaily,"EndOfDay","IntraDay") +
+"\n\\c29 BuyBar: \\c31"+ BuyBar+"\\c29  BuyDT: \\c31"+ BuyDate +"/" + BuyTime +
+"\n\\c29 SellBar: \\c31"+ SellBar+"\\c29  SellDT: \\c31"+ SellDate + "/" + SellTime +
+"\n\\c38 Capital \\c01"+Capital+"\\c38 CommisionX1 \\c01"+CommisionX1+
+"\n\\c38 BuyAt \\c01"+BuyAt+"\\c38 SellAt \\c01"+SellAt+"\\c38 Qty \\c01"+Qty+ 
+"\n\\c38 LeftoverCash  \\c01$"+LeftoverCash+
+"\n\\c38 RawMarketValue \\c01$"+MarketValue+ 
+"\n\\c38 ReturnedCapital \\c01$"+ReturnedCapital+
+// "\n\\c38 RawCashGain \\c01$"+RawCashGain+
+"\n \\c38 CashReturned \\c01$"+ CashReturned +
+"\n\\c38 CapitalGain \\c01 "+StockGain+"%"+
+"\n\\c38 RequiredGain \\c01 "+RequiredGain+"%"+ 
+"\n\\c27 EvenStop  :" + Prec(EvenStop,4) + "%, $" + EvenStopPS +
+"\n\\c02 ProfitStop:" + ProfitStop + "%, $" + ProfitStopPS +
+"\n\\c31 LossStop  :" + LossStop + "%, $" + MaxLossPS +
+"\n\\c29 TrailStop :\\c01" + TrailStop + "%, $" + TrailStopValue +
+"\n\\c29 TrailVariance :\\c01" +TrailPercent + "% "+
+"");
+}// End CreateTitle
+
+procedure LoadID(FileName)
+{// Load ID
+printf("loading: '"+FileName+"'\n");
+fh = fopen( FileName, "r"); 
+if( fh ) 
+	{// File open for read
+	TradeType	= StrToNum(fgets( fh )); 
+	TimeFrame	= StrToNum(fgets( fh ));  
+	DBUY		= StrToNum(fgets( fh ));  
+	TBUY		= StrToNum(fgets( fh ));
+	DSELL		= StrToNum(fgets( fh ));  
+	TSELL		= StrToNum(fgets( fh ));      
+	BuyAt		= StrToNum(fgets( fh ));
+	SellAt		= StrToNum(fgets( fh ));
+	HoldingsAdj	= StrToNum(fgets( fh ));
+	ProfitStop	= StrToNum(fgets( fh ));
+	LossStop	= StrToNum(fgets( fh ));
+	TrailStop	= StrToNum(fgets( fh ));
+	Capital	= StrToNum(fgets( fh ));
+	CommisionX1= StrToNum(fgets( fh ));
+	AlertByte	= StrToNum(fgets( fh ));
+	fclose( fh );
+	TitleS="ReadFile"; 
+	}// End file open for read 
+else 
+	{// File not found 
+	printf("File Not Found\n");
+	TitleS="Error";
+	}// End file not found
+}// End Load ID
+
+procedure SaveID(FileName)
+{// Write ID
+printf("saving: '"+FileName+"'\n");
+fh = fopen( FileName, "w"); 
+if( fh ) 
+	{// File open for write 
+	fputs( StrFormat("%.00f\n",TradeType ), fh );
+	fputs( StrFormat("%.00f\n",TimeFrame ), fh );
+	fputs( StrFormat("%.00f\n",DBUY ), fh ); 
+	fputs( StrFormat("%.00f\n",TBUY ), fh ); 
+	fputs( StrFormat("%.00f\n",DSELL ), fh ); 
+	fputs( StrFormat("%.00f\n",TSELL ), fh ); 
+	fputs( StrFormat("%.02f\n",BuyAt ), fh );
+	fputs( StrFormat("%.02f\n",SellAt ), fh );
+	fputs( StrFormat("%.02f\n",HoldingsAdj ), fh ); 
+	fputs( StrFormat("%.02f\n",ProfitStop ), fh ); 
+	fputs( StrFormat("%.02f\n",LossStop ), fh ); 
+	fputs( StrFormat("%.02f\n",TrailStop ), fh );  
+	fputs( StrFormat("%.02f\n",Capital ), fh );  
+	fputs( StrFormat("%.02f\n",CommisionX1 ), fh );
+	fputs( StrFormat("%.00f\n",AlertByte ), fh ); 
+	fclose( fh );
+	TitleS = "SaveFile";
+	}// End File open for write
+}// End WriteID
+///////////////////////////////////////////////////////////////////////
+// End Define Procedures/Functions
+///////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////
+// Start core section.
+///////////////////////////////////////////////////////////////////////
+{
+if (OpenTrade == 1)
+	{// Open trade.
+	AlertIf( 1, "", "Open trade", 0,3 );
+	IDName = Name()+"-"+MultiTrade;
+	TrailName = DataPath + IDName;
+	LoadID(TrailName);
+	SellAt=0;DSELL=0;TSELL=0;
+	SaveID(TrailName);
+	}// End Open trade
+
+if (CloseTrade == 1)
+	{// Close trade.
+	AlertIf( 1, "", "Close trade", 0,3 );
+	IDName = Name()+"-"+MultiTrade;
+	TrailName = DataPath + IDName;
+	LoadID(TrailName);
+	DSELL = DNUM[SelectedBar];TSELL = TNUM[SelectedBar];
+	SellAt=C[SelectedBar];
+	if (SellAtP != 0) {SellAt=SellAtP;} 
+	SaveID(TrailName);
+	}// End Close trade
+
+if (RemoveTrade == 1)
+	{// Remove Entry
+	AlertIf( 1, "", "Remove trade", 0,3 );
+	IDName = Name()+"-"+MultiTrade;
+	RemoveEntry(IDName);
+	}// End Remove Entry	
+
+if (CreateTrade == 1)
+	{// Write Data
+	AlertIf( 1, "", "Write trade", 0,3 );
+	// Set name & add to master index
+	IDName = Name()+"-"+MultiTrade;
+	RemoveEntry(IDName);
+	AddEntry(IDName);
+	TrailName = DataPath + IDName;
+	// Write data to file
+	DBUY = DNUM[BuyBar];	TBUY = TNUM[BuyBar];
+	DSELL = 0; TSELL = 0; SellAT = 0;
+	SaveID(TrailName);
+	}// End Write data
+
+
+
+// Calc & Display
+	IDName = Name()+"-"+MultiTrade;
+	printf("Current: "+IDName+"\n\n");
+
+	// Create Title Tally Header.
+	Title_H1 = "\\c01  ID   PROFIT EVEN  LOSS  TRAIL   CASH     CASH\n";
+	Title_H2 = "SYMBOL  STOP  STOP  STOP  STOP    GAIN$    GAIN%\n";
+	Title_2 = Title_H1+Title_H2;
+
+	if (DisplayPlot == 0)
+		{// DisplayPlot
+		// Plot Price & Volume.
+		Color = IIf(O > C, colorBlack, colorLightYellow);
+		Plot( Close, "Price", color, styleCandle );
+		PlotForeign( GetBaseIndex(), GetBaseIndex(), colorAqua,  styleLine | styleOwnScale); 
+		Plot( Volume, _DEFAULT_NAME(), colorBlueGrey , styleHistogram | styleOwnScale | styleThick  );
+		
+
+		if (StrFind(IDList,Name()) == 0)
+			{// Symbol not found in IDList, use selected.
+			TitleS="NoFile";
+			DoCalculation(Name());
+			DisplayPlots(Name());
+			CreateTitleDetail(Name());
+			}// End Symbol not found
+		else
+			{// Symbol found in IDList. 
+			if (StrFind(IDList,IDName) == 0)
+				{// Exact symbol not found in IDList, use selected.
+				TitleS="NoFile";
+				DoCalculation(Name());
+				DisplayPlots(Name());
+				CreateTitleDetail(Name());
+				}// End Exact symbol not found
+			}// End Symbol found
+		}// End DisplayPlot
+
+	for( i = 0; ( sym = StrExtract( IDList, i ) ) != "<END>"; i++ )
+		{// Loop
+		TrailName = DataPath + sym;
+		symleft = StrLeft(sym, StrFind(sym,"-")-1); CurrentSym = Name();				
+//		printf("SymLeft: "+symleft+" Current: "+CurrentSym+"\n\n");
+
+		// Set Ticker/Trade Environment.
+		SetForeign(symleft);
+		
+		// Load & Do Calculation
+		LoadID(TrailName);
+
+		TimeFrameSet(TimeFrame); // after load 
+
+		BuyBar = LastValue(Cum(DNUM<DBUY))+LastValue(Cum((DNUM==DBUY) AND (TNUM<TBUY)));
+		SellBar = LastValue(Cum(DNUM<DSELL))+LastValue(Cum((DNUM==DSELL) AND (TNUM<TSELL)));
+		if ( (SelectedValue(BNUM) != BC) AND (sym == IDName ) AND (TitleS != "Error"))
+			{SellBar = SelectedValue(BNUM); SellAt = Close[SellBar];printf("Overide @ "+SellBar+" $"+SellAt+"\n");}
+		if (SellBar == 0) {SellBar=BC; SellAt = Close[SellBar];}
+		if (sym == IDName)
+				{// Exact match, Overide Sell Price.
+				if (SellAtP != 0) {SellAt = SellAtP;}
+				}// End Exact match
+		DoCalculation(sym); //Doesn't actualy use passed symbol.
+
+		//Do some other stuff.
+		// Determine Stops from LastBar/SelectedBar LongMode
+		ProfitStopFlag = IIf( C[SellBar] >= ProfitStopPS ,True,False);
+		EvenStopFlag = IIf( C[SellBar] >= EvenStopPS,True,False);
+		LossStopFlag = IIf( C[SellBar] <= MaxLossPS,True,False);
+		TrailStopFlag = IIf(TrailPercent >= TrailStop,True,False);
+
+		// Generate Alerts Strings for Display
+		PSD = WriteIf(ProfitStopFlag,"\\c15ALERT ","\\c01 OK   ");
+		ESD = WriteIf(EvenStopFlag,"\\c15ALERT ","\\c01 OK   ");
+		LSD = WriteIf(LossStopFlag,"\\c15ALERT ","\\c01 OK   ");
+		TSD = WriteIf(TrailStopFlag,"\\c15ALERT ","\\c01 OK   ");
+
+		// Create Title Tally Strings
+		ListAlerts =  PSD + ESD + LSD + TSD; Tally = Tally + CashReturned;
+		Title_2 = Title_2 + " \\c29" + sym + "  " + ListAlerts + 
+		"\\c29$" + StrFormat("%08.2f",CashReturned) + " \\c27" + StrFormat("%+06.2f",StockGain) + "%\n";
+
+		if (sym == IDName)
+				{// Exact match, Create title.
+				CreateTitleDetail(sym);
+				}// End Exact match
+
+		// Select Plot Display
+		if (DisplayPlot == 1) 	{Plot(C,"Close:"+symleft,i+16,styleLine | styleOwnScale);}
+		if ((DisplayPlot == 0) AND (symleft == CurrentSym)) {DisplayPlots(sym);}
+
+		// Cleanup
+		TimeFrameRestore();
+		RestorePriceArrays(); 
+		}// End loop
+// End of Calc & Display
+
+// Dynamic Title
+TSpace = "";
+for( i = 0; i<TitleSlide ; i++ ) {TSpace = TSpace + "\n";}
+
+Title_Header = "\\c31"+ Date()+"\\c29 Sym: \\c31"+Name()+"\\c29 Index: \\c24"+GetBaseIndex()+"\\c01"+
+"\\c38 Open \\c01"+O[SelectedBar]+"\\c38 Hi \\c01"+H[SelectedBar]+"\\c38 Low \\c01"+L[SelectedBar]+
+"\\c38 Close \\c01"+C[SelectedBar]+"\\c38 Volume \\c01"+V[SelectedBar] + "\n" + TSpace;
+
+ if (TitleStyleT == "Detail")
+	{Title = Title_Header + Title_1;}
+ if (TitleStyleT == "Tally")
+	{Title = Title_Header + Title_2 + "\\c01 Tally:$" + Tally + "      " ;}
+ if (TitleStyleT == "Detail/Tally")
+	{Title = Title_Header + Title_1 + "\n" + Title_2 + "\\c01 Tally:$" + Tally + "      " ;}
+ if (TitleStyleT == "None")
+	{Title = Title_Header ;}
+// End Dynamic Title
+
+}
+///////////////////////////////////////////////////////////////////////
+// End Core Section.
+///////////////////////////////////////////////////////////////////////
+_SECTION_END();

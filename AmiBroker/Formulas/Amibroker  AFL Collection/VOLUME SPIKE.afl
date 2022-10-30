@@ -1,0 +1,3 @@
+VM=MA(V,20);
+Filter=(V/VM)>2;
+AddColumn((V/VM)>2,"VolSpike",1.2);

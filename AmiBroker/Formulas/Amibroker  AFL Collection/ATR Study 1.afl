@@ -1,0 +1,131 @@
+_SECTION_BEGIN("ATR Study");
+//* ATR Study:  */
+
+Exclude = MA(V,50)<200 ;
+MaxGraph = 12;
+Graph0 = C;
+Graph0Color = 1;
+Graph0Style = 64;
+
+BuyOffSet = 18;//Optimize("BuyOffSet",18,15,20,1);
+SellOffset = BuyOffSet;//Optimize("SellOffset",2,2,14,2);
+RegLength = 5;//Optimize("RegLength",5, 2,11,2);
+BuyATRPeriod = 2;//Optimize("BuyATRPeriod",2,2,5,1);
+SellATRPeriod = BuyATRPeriod;//Optimize("SellATRPeriod",4,2,11,2);
+ATRMultiplier = 1;//Optimize("ATRMultiplier",1,0.7,1.25,.05);
+
+
+Graph8 = HHV(H-ATRMultiplier*ATR(BuyATRPeriod),BuyOffset);   /* RED */
+Graph9 = LLV(L+ATRMultiplier*ATR(SellATRPeriod),SellOffset);  /*  GREEN */
+
+Graph8Style=Graph9Style = 5;
+Graph9Color=  5;  /* 5 is green */
+Graph8Color = 4;  /* 4 is red */
+
+ticker = 0.0;//Optimize("Tickerk",0,0,1,0.125);
+
+Buy = Cross(C,Graph8) AND C>Graph9 AND LinRegSlope(EMA(C,17),2)>0;
+Sell = Cross(Graph8,C) AND LinRegSlope(C,2)<0;
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+PlotShapes(Buy*shapeUpTriangle,colorYellow);
+PlotShapes(Sell*shapeDownTriangle,colorYellow); 
+
+
+BuyStop = Ref(Graph8,-1)+ ticker;
+BuyPrice = Max(BuyStop,Low);
+SellStop= Ref(Graph8,-1);   //IIf(Cross(Graph8,C),Ref(Graph8,-1),0);
+SellPrice = Min( SellStop, High )- ticker; 
+
+//ApplyStop(2,3,Optimize("TrailingStop",15,0,20,5),1);
+
+Filter=   (Buy OR Sell)      ;      
+NumColumns = 8;
+Column0 =  IIf(Buy==1,1,IIf(Sell==1,-1,0) );
+Column0Format = 1.0;
+Column0Name = "Long/Sell";
+Column1 = C;
+Column1Name = "Close       ";
+Column1Format = 1.2;
+Column2 = MA(V,17);
+Column2Name = "17 Ma Vol   ";
+Column2Format = 1.0;
+Column3 = MA(C,17)/MA(C,50);
+Column3Name = "% 17/50 ";
+Column3Format = 1.2;
+Column3Format = 1.2;
+Column4= MA(C,17);
+Column4Name="17 C ma";
+Column4Format = 1.2;
+Column5= MA(C,50);
+Column5Name="50 C ma";
+Column5Format = 1.2;
+
+Column6= BuyPrice;
+Column6Name="BuyPrice";
+Column6Format = 1.2;
+Column7= SellPrice;
+Column7Name="Sellprice";
+Column7Format = 1.2;
+_SECTION_END();
+
+_SECTION_BEGIN("Boe Tie");
+ 
+/* Boe Tie - AFL Implementation by Geoff Mulhall 12-5-2001 */
+
+dollars = 5000; /* Or whatever you investment is to be - for the bangforbuck calculation */
+maShort = 10;
+maMedium = 20;
+maLong = 30;
+ 
+
+/* Bow Tie conditions - Short term moving average has crossed the medium term moving average sometime in the last 15 days - Add more conditions for more days */ 
+ 
+cond11 = Ref(Cross(MA(Close,maShort),MA(Close,maMedium)),-1) > 0;
+cond12 =  Ref(Cross(MA(Close,maShort),MA(Close,maMedium)),-2) > 0;
+cond13 =  Ref(Cross(MA(Close,maShort),MA(Close,maMedium)),-3) > 0;
+cond14 =  Ref(Cross(MA(Close,maShort),MA(Close,maMedium)),-4) > 0;
+cond15 =  Ref(Cross(MA(Close,maShort),MA(Close,maMedium)),-5) > 0;
+cond16 =  Ref(Cross(MA(Close,maShort),MA(Close,maMedium)),-6) > 0;
+cond17 =  Ref(Cross(MA(Close,maShort),MA(Close,maMedium)),-7) > 0;
+cond18 =  Ref(Cross(MA(Close,maShort),MA(Close,maMedium)),-8) > 0;
+cond19 =  Ref(Cross(MA(Close,maShort),MA(Close,maMedium)),-9) > 0;
+cond110 =  Ref(Cross(MA(Close,maShort),MA(Close,maMedium)),-10) > 0;
+cond111 =  Ref(Cross(MA(Close,maShort),MA(Close,maMedium)),-11) > 0;
+cond112 =  Ref(Cross(MA(Close,maShort),MA(Close,maMedium)),-12) > 0;
+cond113 =  Ref(Cross(MA(Close,maShort),MA(Close,maMedium)),-13) > 0;
+cond114 =  Ref(Cross(MA(Close,maShort),MA(Close,maMedium)),-14) > 0;
+cond115 =  Ref(Cross(MA(Close,maShort),MA(Close,maMedium)),-15) > 0;
+ 
+cond1 = cond11 OR cond12 OR cond13 OR cond14 OR cond15 OR cond16 OR cond17 OR cond18 OR cond19 OR cond110 OR cond111 OR cond112 OR cond113 OR cond114 OR cond115; 
+ 
+/* Moving averages must be in the correct order at the buy signal */
+ 
+cond2 = (MA(Close,maShort) > MA(Close,maMedium)) AND (MA(Close,maMedium) > MA(Close,maLong)); 
+ 
+/* Signal is given when the close crosses above the short term moving average */
+ 
+cond3 = Cross(Close,MA(Close,maShort));
+ 
+Filter =  cond1 AND cond2 AND cond3;
+ 
+Buy = Filter;
+ 
+Sell = 0; 
+ 
+BangForBucks = (dollars/Close) * ATR(200);
+ 
+NumColumns = 3;
+Column0 = Close;
+Column0Format = 3.2;
+Column0Name = "Close";
+Column1 = ATR(maLong);
+Column1Format = 3.4;
+Column1Name = "ATR - maLong";
+Column2 = BangForBucks;
+Column2Format = 3.2;
+Column2Name = "BangForBucks"; 
+
+ 
+_SECTION_END();

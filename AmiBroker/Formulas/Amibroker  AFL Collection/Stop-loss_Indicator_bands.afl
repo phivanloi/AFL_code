@@ -1,0 +1,14 @@
+/* Stop Loss indicator  */
+/* AFL code by Prakash Shenoi */
+
+/* Simple stop-loss bands calculated by ATR periods (Variable) with highest high and lowest Low value 
+over (variable) the preceding periods. Stop loss level for short positions deduced from
+highest high value periods and Stop Loss for longs fm Lowest low value periods. */
+
+pdsshort=Param("pds short",1,10,55);
+pdslong=Param("pds long",1,10,55);
+Ststop=HHV(H,pdsshort)-ATR(pdsshort);
+Lgstop=LLV(L,pdslong)+ ATR(pdslong);
+Plot (Close,"Close",colorBlack,styleCandle);
+Plot (Ststop," SL for shorts ",colorGreen,styleDots|styleNoLine);
+Plot (Lgstop," SL for longs ",colorRed,styleDots|styleNoLine);

@@ -1,0 +1,39 @@
+_SECTION_BEGIN("Chart Display");
+
+SetChartBkGradientFill( ParamColor("Inner panel upper",colorBlack),ParamColor("Inner panel lower",colorBlack));
+
+GraphXSpace = 28;
+SetBarsRequired( 1,1); 
+Param_systemTitle = ParamStr("System Title?","The Volume Bigot");
+if(ParamToggle("Show System Title?","No|Yes",1))
+
+periods = Param("Periods", 34, 1, 200, 1 ) ; 
+
+BulldayVol= ( Sum( IIf( C>=Ref(C,-1), V, 0), periods)) / periods ;
+BeardayVol= ( Sum( IIf( Ref(C,-1)>=C, V, 0), periods)) / periods ;
+
+TheVolumeBigot= 100-(100/(1+(BulldayVol/BearDayVol)))-50;
+
+Plot(TheVolumeBigot," THE VOLUME BIGOT ",28,4+styleNoLabel);
+
+Colour= IIf(TheVolumeBigot>0,8,4);
+Plot( TheVolumeBigot,"",Colour,2);
+
+Plot(0,"",colorGrey50,styleNoLabel); 
+
+Plot(10,"",colorGrey50); Plot(-10,"",colorGrey50);
+Plot(20,"",colorGrey50); Plot(-20,"",colorGrey50);
+_SECTION_END();
+
+_SECTION_BEGIN("Title");
+
+Title = EncodeColor(29)+  Title = Name() + "     " + EncodeColor(32) + Date() +
+"      " + EncodeColor(5) + "{{INTERVAL}}  " +
+	EncodeColor(16)+ "     Open = "+ EncodeColor(46)+ WriteVal(O) + 
+	EncodeColor(16)+ "     High = "+ EncodeColor(46) + WriteVal(H) +
+	EncodeColor(16)+ "      Low = "+ EncodeColor(46)+ WriteVal(L) + 
+	EncodeColor(16)+ "    Close = "+ EncodeColor(46)+ WriteVal(C)+
+	EncodeColor(16)+ "    Volume = "+ EncodeColor(46)+ WriteVal(V,1.0) +
+      "\n" +"\n" +EncodeColor(46)+"THE VOLUME BIGOT" + EncodeColor(52);
+
+_SECTION_END();

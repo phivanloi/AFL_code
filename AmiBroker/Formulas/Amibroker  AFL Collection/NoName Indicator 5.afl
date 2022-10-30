@@ -1,0 +1,4 @@
+Plot(EMA(Close,15),"ema",colorYellow,1);
+Plot(MA(High,40),"mahigh",colorGreen,1);
+Plot(MA(Low,40),"malow",colorRed,1);
+Plot(C,"CLOSE",colorBlue,64);

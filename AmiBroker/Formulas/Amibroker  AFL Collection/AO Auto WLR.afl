@@ -1,0 +1,13 @@
+Se = Param("Sensitivity",21,0.1,144,1);
+B = IIf(Outside() AND Ref(H,-1)>Ref(H,-2),H,IIf(Outside() AND Ref(L,-1)<Ref(L,-2),L,
+IIf((Outside() OR Inside()) AND C>O,H,IIf((Outside() OR Inside()) AND O>C,L,
+IIf(H>Ref(H,-1),H,IIf(L<Ref(L,-1),L,IIf(Ref(H,-1)>Ref(H,-2),H,IIf(Ref(L,-1)<Ref(L,-2),L,C))))))));
+
+Pr = IIf(PeakBars(B,Se,1)<TroughBars(B,Se,1),PeakBars(B,Se,1),TroughBars(B,Se,1));
+Now1 = Cum(1);
+Soc = LinRegSlope(C,LastValue(Pr+1));
+Avrg = LastValue(LinearReg(C,LastValue(Pr+1))+(-LastValue(Soc)*(Pr+1)));
+Tlr = LastValue(Soc)*(Pr+1)+Avrg;
+x = ValueWhen(Now1>=LastValue(ValueWhen(Pr=1,Now1,1)),Tlr,1);
+
+Plot(x, "", 4);

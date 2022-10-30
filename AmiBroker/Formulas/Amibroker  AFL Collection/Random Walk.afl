@@ -1,0 +1,19 @@
+// Compute a Random Walk (drifted or not)
+SetBarsRequired(2000, 2000);
+
+bruit_var = Param( "Bruit variance", 0.2, 0, 10, 0.01 );
+drift = Param( "Drift", 0, 0, 10, 0.001 );
+starting_price = Param( "Starting Price", 50, 0, 500, 0.01 );
+fix_random = ParamToggle("Fix random init.", "Off|On", 0);
+
+// Construct Random Walk
+if (fix_random == 0) rand = Random();
+else rand = Random(1); 
+noise_zeromean=bruit_var*rand - bruit_var/2;
+RandomWalk = starting_price + Cum(noise_zeromean + drift);
+
+// Keep only two decimal digit
+RandomWalk = round(RandomWalk*100)/100;
+
+
+Plot( RandomWalk , "Random Walk", ParamColor( "Color Random Walk", colorCycle ), ParamStyle("Style")  );

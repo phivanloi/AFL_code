@@ -1,0 +1,30 @@
+/* Create date: 04 Jan 2009
+The DI+ of the current bar is greater than the DI+ of 1 bar ago */
+/* Create date: 04 Jan 2009
+The DI- of the current bar is less than the DI- of 1 bar ago */
+Buy = PDI() > Ref( PDI(), -1 )
+AND MDI() < Ref( MDI(), -1 )
+/* Create date: 04 Jan 2009
+The Close Price crosses above the  Bolinger Band (Top) on the current bar */
+
+// AND Cross( Close, BBandTop( Close, 5, 2 ) )
+/* Create date: 04 Jan 2009
+The Volume of the current bar is greater than the Volume (Average) of 5 bars ago */
+
+AND Volume > Ref( MA( Volume, 15 ), -5 )
+/* Create date: 04 Jan 2009
+The MACD of the current bar is greater than the Signal of the current bar */
+
+AND MACD( 12, 26 ) > Signal( 12, 26, 9 )
+/* Create date: 04 Jan 2009
+The MACD of 1 bar ago is greater than the Signal of 1 bar ago */
+
+AND Ref( MACD( 12, 26 ), -1 ) > Ref( Signal( 12, 26, 9 ), -1 )
+
+AND Ref( MACD( 12, 26 ), -2 ) > Ref( Signal( 12, 26, 9 ), -2 )
+
+/* Create date: 04 Jan 2009
+The MACD of the current bar is greater than the MACD of 1 bar ago */
+
+AND MACD( 12, 26 ) > Ref( MACD( 12, 26 ), -1 );
+

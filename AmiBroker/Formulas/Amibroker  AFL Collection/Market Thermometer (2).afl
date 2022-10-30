@@ -1,0 +1,18 @@
+H1 = Ref(H, -1);
+L1 = Ref(L, -1);
+
+T = IIf(H<H1 AND L>L1, 0, IIf(H-H1>L1-L, H-H1, L1-L));
+
+Val1 = H-H1;
+Val2 = L1-L;
+Val = IIf(Val1>Val2, Val1, Val2) ;
+	
+
+Avgval = Median(Val, 22);
+
+color= IIf (Val < Avgval, colorGreen, IIf(Val >= Avgval AND Val < Avgval * 3,
+colorLightBlue, IIf(Val > Avgval * 3, colorRed, colorViolet)));
+
+
+Plot(T, "Market Thermometer", color, styleHistogram | styleThick);
+Plot( EMA( t, 22), "EMA 22", colorTan, styleThick); 

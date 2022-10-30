@@ -1,0 +1,59 @@
+_SECTION_BEGIN("Debu_Pivot4 Intraday");
+
+/* This system cum Exploration is based on PIVOT calculation based on previous day H,L,C value and ploted on the intraday chart when pointer is focused on todays data
+The programme is developed by Debdulal Bhattacharyya(First three lines) The remaining part is taken from
+Formula Name: Pivot Points
+//Author/Uploader: Avi ben a */
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+
+H1=SelectedValue( TimeFrameGetPrice( "H", inDaily, -1 ));
+L1=SelectedValue(TimeFrameGetPrice( "L", inDaily, -1 ));
+C1=SelectedValue(TimeFrameGetPrice( "C", inDaily, -1 ));
+
+// PIVOT Calculation
+p = ( H1+ L1 + C1 )/3;
+s1 = (2*p)-H1;
+r1 = (2*p)-L1;
+s2 = p -(H1 - L1);
+s3 = S1 - (H1-L1);
+r2 = p +(H1 - L1);
+r3 = R1 +(H1-L1);
+
+/* PIVOT mid points
+MIDR1 = (P+R1)/2;
+MIDR2 = (R1+R2)/2;
+MIDR3 = (R2+R3)/2;
+MIDS1 = (P+S1)/2;
+MIDS2 = (S1+S2)/2;
+MIDS3 = (S2+S3)/2; */
+
+
+// Graphs & values plot
+Plot (p,"Pivot",25,1);
+Plot (r1,"R1",12,1);
+Plot (r2,"R2",12,1);
+Plot (r3,"R3",12,1);
+Plot (s1,"S1",3,1);
+Plot (s2,"S2",3,1);
+Plot (s3,"S3",3,1);
+
+//Exploration
+
+b=Cross(C,p)OR Cross(C,r1);
+s=Cross(p,C) OR Cross(s1,C);
+Filter=b OR s;
+AddColumn(IIf(b,C,Null),"Buy",1.2,colorGreen);
+AddColumn(IIf(s,C,Null),"Selll",1.2,colorRed);
+
+
+
+
+
+
+
+
+
+_SECTION_END();
+

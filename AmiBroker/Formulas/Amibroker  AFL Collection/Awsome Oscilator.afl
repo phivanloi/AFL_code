@@ -1,0 +1,22 @@
+center=(H+L)/2;
+t1=Optimize("t1",34,20,50,3); //slow MA param
+t2=Optimize("t2",5,3,10,1); //fast MA param
+awi=MA(center,t2)-MA(center,t1);
+
+Plot(awi,"Awsome",IIf(awi>Ref(awi,-1),colorGreen,colorRed),styleHistogram);
+
+Buy=Cover=
+Cross(awi,0) OR //cross 0
+(awi<0 AND awi>Ref(awi,-1) AND Ref(awi, -BarsSince(awi<Ref(awi,-1)))>LLV(awi,BarsSince(awi>0))) OR //lower high built
+(awi>0 AND awi>Ref(awi,-1)) // awi direction change to positive above 0 level
+;
+Short=Sell=
+Cross(0,awi) OR //cross 0
+(awi>0 AND awi<Ref(awi,-1) AND Ref(awi, -BarsSince(awi>Ref(awi,-1)))<HHV(awi,BarsSince(awi<0))) OR //higher low built
+(awi<0 AND awi<Ref(awi,-1)) // awi direction change to negative below 0 level
+;
+
+Buy=Cover=ExRem(Buy,Sell);
+Sell=Short=ExRem(Short,Cover);
+PlotShapes( IIf( Buy, shapeUpArrow , shapeNone ), colorGreen ); 
+PlotShapes( IIf( Short, shapeDownArrow, shapeNone ), colorRed );

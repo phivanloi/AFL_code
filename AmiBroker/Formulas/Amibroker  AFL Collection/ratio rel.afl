@@ -1,0 +1,39 @@
+////////////////////////////////////////////////////////////
+_SECTION_BEGIN("exploration on relative performance of all stocks");
+//exploration on relative performance of all stocks
+
+basis = C; // ema(C, 9);
+
+perf1 = basis / Ref(basis, -1) * 100 - 100;
+perf5 = basis / Ref(basis, -5) * 100 - 100;
+perf30 = basis / Ref(basis, -60) * 100 - 100;
+perf250 = basis / Ref(basis, -250) * 100 - 100;
+
+VS = (Volume - EMA(V,10))/( EMA(V,10) )*100;
+rv = (Volume/MA(V, 63))*100;
+//AddColumn( (V/Ref(MA(V, 10),-1))* 100,"V%>10 dMA" ,3.0, colorLightYellow, colorIndigo) ;
+//ADR = ( (H-L) + Ref(H-L,-1) + Ref(H-L,-2) + Ref(H-L,-3) + Ref(H-L,-4) + Ref(H-L,-5) + Ref(H-L,-6) +
+//Ref(H-L,-7) + Ref(H-L,-8)+ Ref(H-L,-9) )/10;
+//AddTextColumn( FullName(), "FullName" );
+//AddTextColumn( IndustryID( 1) ," Industry Sector ", 25.0, colorWhite, colorBlue);
+//AddTextColumn( GroupID(6) ," Industry Sector ", 25.0, colorWhite, colorBlue);
+//AddColumn( counter, "counter",1. 2,colorBrown) ;
+//AddTextColumn( MarketID( 2) ," Market ", 25.0, colorWhite, colorBlue);
+Chaikan = ROC( EMA( High-Low, 10), 10);
+//return = ROC(C,250);
+AddColumn (Close, "Close",1.2) ;
+AddColumn (Ref(Close,- 1),"Close- 1",1.2);
+//AddColumn( RS, "RS", 1.3 ,IIf( RS >= 1, colorDarkGreen, colorRed ));
+AddColumn(perf1, "perf1%", 1.2);
+AddColumn(perf5, "perf5%", 1.2);
+AddColumn(perf30, "perf60%", 1.2);
+AddColumn(perf250, "perf250%", 1.2);
+//AddColumn( return, "250 Bar Return", 1.2);
+AddColumn(Volume, "Volume", 1.0);
+AddColumn(MA( V,30),"MA( V30*100", 1.0);
+AddColumn(RV, "RelativeVol" , 1.0);
+AddColumn (VS, "VolSurge",1.2,colorWhite, colorBlue) ;
+AddColumn (Chaikan, "ChaikenVolty" ,1.2,colorYellow ,colorDarkGreen) ;
+// (Volume - EMA(V,10)/MA( V,20)), "VolSurge", 2, colorWhite,colorBlu e);
+Filter = 1;// dummy
+_SECTION_END(); 

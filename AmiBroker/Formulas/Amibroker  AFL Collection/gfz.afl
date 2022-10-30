@@ -1,0 +1,18 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, 
+Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") 
+| GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("smaenvelope");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 17, 2, 300, 1 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+envup = MA(Close,17) + (MA(Close,17)*1.5);
+envdown = MA(Close,17) - (MA(Close,17)*1.5);
+Plot( envup, "envup" + _PARAM_VALUES(), Color, Style ); 
+Plot( envdown, "envdown" + _PARAM_VALUES(), Color, Style ); 
+_SECTION_END(); 

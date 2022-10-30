@@ -1,0 +1,34 @@
+/*
+This AFL Plots a histogram, that shows the distance between TL and SL.
+The color turns Blue when Price (Close) is above the 15 Days EMA and Red when Close is below 15 Days EMA.
+The arrows indicate if the distance between SL and TL is decreasing or increasing 
+Do not consider thearrows as Buy / Sell Signals. 
+
+Insert it below the price chart
+
+Note: This code uses 15 days for SL and 5 days for TL
+*/
+
+_SECTION_BEGIN("DTCO-Saji");
+
+r1 = Param( "Moving Avg", 15, 5, 50, 1 );
+SL_Prd = Param( "No_of_Days for SL", 18, 15, 24, 1 );
+TL_Prd = Param( "No_of_Days for TL", 5, 3, 10, 1 );
+
+
+SL = ( HHV( H, SL_Prd ) + LLV( L, SL_Prd) )/2;
+TL = ( HHV( H, TL_Prd ) + LLV( L, TL_Prd ) )/2;
+
+D = TL - SL;
+
+Up  = D > Ref(D, -1) AND Ref(D,-1) < Ref(D,-2);
+Dn = D < Ref(D, -1) AND Ref(D,-1) > Ref(D,-2);
+
+myShape = Up * shapeUpArrow + Dn * shapeDownArrow ;
+
+Trend = Close - EMA(C,15);
+
+Plot( D, StrFormat(_SECTION_NAME()+"(TL=%g,SL=%g)", TL, SL), IIf(Trend > 0,colorBlue, colorRed ), styleHistogram  );
+PlotShapes(myShape,IIf(Up,colorLightBlue,colorLightGrey));
+
+_SECTION_END();

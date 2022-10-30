@@ -1,0 +1,572 @@
+//Volume Price Analysis AFL - VPA Version 1.2
+//AFL by Karthikmarar. Detailed explanation available at www.vpanalysis.blogspot.com
+//Added Exploration - detailed 241209
+//====================================================================================
+_SECTION_BEGIN("Volume Price Analysis - V.1.2");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+//=======================================================================================
+DTL=Param("Linear regression period",60,10,100,10); 
+wbf=Param("WRB factor",1.5,1.3,2.5,.1);
+nbf=Param("NRB factor",0.7,0.3,0.9,0.1);
+TL=LinRegSlope(MA(C, DTL),2); 
+Vlp=Param("Volume lookback period",30,20,300,10);
+Vrg=MA(V,Vlp);
+St = StDev(Vrg,Vlp); 
+Vp3 = Vrg + 3*st; 
+Vp2 = Vrg + 2*st;;
+Vp1 = Vrg + 1*st;;
+Vn1 = Vrg -1*st; 
+Vn2 = Vrg -2*st; 
+rg=(H-L);
+arg=Wilders(rg,30);
+wrb=rg>(wbf*arg);
+nrb=rg<(nbf*arg); 
+Vl=V<Ref(V,-1) AND V<Ref(V,-2);
+upbar=C>Ref(C,-1);
+dnbar=C<Ref(C,-1); 
+Vh=V>Ref(V,-1) AND Ref(V,-1)>Ref(V,-2);
+Cloc=C-L;
+x=rg/Cloc;
+x1=IIf(Cloc==0,arg,x);
+Vb=V>Vrg OR V>Ref(V,-1);
+ucls=x1<2;
+dcls=x1>2;
+mcls=x1<2.2 AND x1>1.8 ;
+Vlcls=x1>4;
+Vhcls=x1<1.35;
+j=MA(C,5);
+TLL=LinRegSlope(j,40) ;
+Tlm=LinRegSlope(j,15) ;
+tls=LinRegSlope(j,5);
+mp=(H+L)/2;
+_SECTION_END();
+//==========================================================================================
+_SECTION_BEGIN("VSA");
+utbar=wrb AND dcls AND tls>0 ;
+utcond1=Ref(utbar,-1) AND dnbar ;
+utcond2=Ref(utbar,-1) AND dnbar AND V>Ref(V,-1);
+utcond3=utbar AND V> 2*Vrg;
+trbar=Ref(V,-1)>Vrg  AND Ref(upbar,-1) AND Ref(wrb,-1) AND dnbar AND dcls AND wrb AND tll>0 AND H==HHV(H,10);
+Hutbar=Ref(upbar,-1) AND Ref(V,-1)>1.5*Vrg AND dnbar AND dcls AND NOT wrb AND NOT utbar;
+Hutcond=Ref(Hutbar,-1) AND dnbar AND dcls AND NOT utbar;
+tcbar=Ref(upbar,-1) AND H==HHV(H,5)AND dnbar AND (dcls OR mcls) AND V>vrg AND NOT wrb AND NOT Hutbar ;
+Scond1=(utcond1 OR utcond2 OR utcond3) ;
+Scond2=Ref(scond1,-1)==0;
+scond=scond1 AND scond2;
+stdn0= tll<0 AND V>Ref(V,-1) AND Ref(dnbar,-1) AND upbar AND (ucls OR mcls) AND tls<0 AND tlm<0;
+stdn= V>Ref(V,-1) AND Ref(dnbar,-1) AND upbar AND (ucls OR mcls) AND tls<0 AND tlm<0;
+stdn1= tll<0 AND V>(vrg*1.5) AND Ref(dnbar,-1) AND upbar AND (ucls OR mcls)AND tls<0 AND tlm<0;
+stdn2=tls<0 AND Ref(V,-1)<Vrg  AND upbar AND vhcls AND V>Vrg;
+bycond1= stdn OR stdn1;
+bycond= upbar  AND Ref(bycond1,-1);
+stvol= L==LLV(L,5)  AND (ucls OR mcls) AND V>1.5*Vrg AND tll<0;
+ndbar=upbar AND nrb AND Vl  AND dcls ;
+nsbar=dnbar AND nrb AND Vl  AND dcls ;
+nbbar= C>Ref(C,-1) AND Vl AND nrb AND x1<2;
+nbbar= IIf(C>Ref(C,-1) AND V<Ref(V,-1) AND V<Ref(V,-2) AND x1<1.1,1,0);
+lvtbar= vl AND L<Ref(L,-1) AND ucls;
+lvtbar1= V<Vrg AND L<Ref(L,-1) AND ucls AND tll>0 AND tlm>0 AND wrb;
+lvtbar2= Ref(Lvtbar,-1) AND upbar AND ucls;
+dbar= V>2*Vrg AND dcls AND upbar AND tls>0 AND tlm>0 AND NOT Scond1 AND NOT utbar;
+eftup=H>Ref(H,-1) AND L>Ref(L,-1) AND C>Ref(C,-1) AND C>=((H-L)*0.7+L) AND rg>arg AND V>Ref(V,-1);
+eftupfl=Ref(eftup,-1) AND (utbar OR utcond1 OR utcond2 OR utcond3);
+eftdn=H<Ref(H,-1) AND L<Ref(L,-1) AND C<Ref(C,-1) AND  C<=((H-L)*0.25+L) AND rg>arg AND V>Ref(V,-1);
+_SECTION_END();
+//=======================================================================================================================
+_SECTION_BEGIN("Chart");
+Vcolor=IIf(tls>0 AND tlm>0 AND tll>0,colorLime,IIf(tls>0 AND tlm>0 AND tll<0,colorGreen,
+IIf(tls>0 AND tlm<0 AND tll<0,colorPaleGreen,IIf(tls<0 AND tlm<0 AND tll<0,colorRed,IIf(tls<0 AND tlm>0 AND tll>0,colorPaleGreen,
+IIf(tls<0 AND tlm<0 AND tll>0,colorOrange,colorBlue))))));
+GraphXSpace = 5;
+PlotOHLC( Open,  High,  Low,  Close, "", vcolor, styleCandle | styleThick  );
+_SECTION_END();
+//============================================================================================================================
+// commentary
+_SECTION_BEGIN("Commentary");
+Vpc= utbar OR utcond1 OR utcond2 OR utcond3 OR stdn0 OR stdn1 OR stdn2 OR stdn OR lvtbar1 OR Lvtbar OR Lvtbar2 OR Hutbar OR Hutcond OR ndbar OR stvol OR tcbar;
+
+if( Status("action") == actionCommentary ) 
+(
+printf ( "=========================" +"\n"));
+printf ( "VOLUME PRICE ANALYSIS" +"\n");
+printf ( "www.vpanalysis.blogspot.com" +"\n");
+printf ( "=========================" +"\n");
+printf ( Name() + " - " +Interval(2) +  "  - " + Date() +" - " +"\n"+"High-"+H+"\n"+"Low-"+L+"\n"+"Open-"+O+"\n"+
+"Close-"+C+"\n"+ "Volume= "+ WriteVal(V)+"\n");
+WriteIf(Vpc,"=======================","");
+WriteIf(Vpc,"VOLUME ANALYSIS COMMENTARY:\n","");
+
+WriteIf(utbar , "Up-thrusts are designed to catch stops and to mislead as many traders as possible.  
+They are normally seen after there has been weakness in the background. The market makers know that the
+market is weak, so the price is marked up to catch stops, encourage traders to go long in a weak market,
+AND panic traders that are already Short into covering their very good position.","")+
+WriteIf(utcond3,"This upthrust bar is at high volume.This is a sure sign of weakness. One may even seriously 
+consider ending the Longs AND be ready to reverse","")+WriteIf(utbar OR utcond3," Also note that A wide spread 
+down-bar that appears immediately after any up-thrust, tends to confirm the weakness (the market makers are 
+locking in traders into poor positions).
+With the appearance of an upthrust you should 
+certainly be paying attention to your trade AND your stops. On many upthrusts you will find that the market will 
+'test' almost immediately.","")+WriteIf(utcond1 , "A wide spread down bar following a Upthrust Bar.
+This confirms weakness. The Smart Money is locking in Traders into poor positions","");
+WriteIf(utcond2 , "Also here the volume is high( Above Average).This is a sure sign of weakness. The Smart Money is 
+locking in Traders into poor positions","")+WriteIf(stdn, "Strength Bar. The stock has been in a down Trend. An upbar 
+with higher Volume closing near the High is a sign of strength returning. The downtrend is likely to reverse soon. ","")+
+WriteIf(stdn1,"Here the volume is very much above average. This makes this indication more stronger. ","")+ 
+WriteIf(bycond,"The previous bar saw strength coming back. This upbar confirms strength. ","")+
+WriteIf(Hutbar," A pseudo Upthrust. This normally appears after an Up Bar with above average volume. This looks like an upthrust bar
+closing down near the Low. But the Volume is normally Lower than average. this is a sign of weakness.If the Volume is High then weakness 
+increases. Smart Money is trying to trap the retailers into bad position. ","")+
+WriteIf(Hutcond, "A downbar after a pseudo Upthrust Confirms weakness. If the volume is above average the weakness is increased. ","")+
+WriteIf(Lvtbar2,"The previous bar was a successful Test of supply. The current bar is a upbar with higher volume. This confirms strength","")+
+WriteIf(dbar,"A wide range, high volume bar in a up trend closing down is an indication the Distribution is in progress. The smart money
+is Selling the stock to the late Comers rushing to Buy the stock NOT to be Left Out Of a Bullish move. ","")+
+WriteIf(Lvtbar2,"The previous bar was a successful Test of supply. The current bar is a upbar with higher volume. This confirms strength","")+
+WriteIf(tcbar,"The stock has been moving up on high volume. The current bar is a Downbar with high volume. Indicates weakness and probably end of the up move","")+
+WriteIf(eftup,"Effort to Rise bar. This normally found in the beginning of a Markup Phase and is bullish sign.These may be found at the top of an Upmove as the Smart money makes a 
+last effort to move the price to the maximum","")+
+WriteIf(eftdn,"Effort to Fall bar. This normally found in the beginning of a Markdown phase.","")+
+
+WriteIf(nsbar,"No Supply. A no supply bar indicates supply has been removed and the Smart money can markup the price. It is better to wait for confirmation","")+
+WriteIf(stvol,"Stopping Volume. This will be an downbar during a bearish period closing towards the Top accompanied by High volume.
+A stopping Volume normally indicates that smart money is absorbing the supply which is a Indication that they are Bullishon the MArket.
+Hence we Can expect a reversal in the down trend. ","")+
+WriteIf(ndbar, "No Demand
+Brief Description:
+Any up bar which closes in the middle OR Low, especially if the Volume has fallen off, 
+is a potential sign of weakness.
+
+Things to Look Out for:
+if the market is still strong, you will normally see signs of strength in the next few bars, 
+which will most probably show itself as a:
+* Down bar with a narrow spread, closing in the middle OR High. 
+* Down bar on Low Volume.","");
+_SECTION_END();
+_SECTION_BEGIN("Advanced Trend Lines");
+ShowSR   = ParamToggle("Show Vert S/R","No|Yes", 0);
+SRPer    = Param("S/R Percentage", 3, 1);
+SRBack   = Param("S/R Back", 5, 1);
+function GetXSupport(Lo, Percentage, Back)
+{
+ return ((BarCount - 1) - LastValue(TroughBars(Lo, Percentage,Back)));
+}
+function GetYSupport(Lo, Percentage, Back)
+{
+ return (LastValue(Trough(Lo, Percentage, back)));
+}
+
+function GetXResistance(Hi, Percentage, Back)
+{
+ return ((BarCount - 1) -LastValue(PeakBars(Hi, Percentage, Back)));
+}
+function GetYResistance(Hi, Percentage, Back)
+{
+ return (LastValue(Peak(Hi, Percentage, Back)));
+}
+
+if(ShowSR)
+{
+    for(i=1; i<=SRBack; i++)
+    {
+        x0 = GetXSupport(L, SRPer, i);
+        x1 = BarCount-1;
+        y0 = GetYSupport(L, SRPer, i);
+        x = LineArray(x0, y0, x1, y0, 0);
+        Plot(x, "", IIf(LastValue(C) > x, colorGreen, colorRed), styleLine|styleDashed|styleThick);
+        x0 = GetXResistance(H, SRPer, i);
+        y0 = GetYResistance(H, SRPer, i);
+        x = LineArray(x0, y0, x1, y0, 0);
+        Plot(x, "", IIf(LastValue(C) > x, colorGreen, colorRed), styleLine|styleDashed|styleThick);
+
+    }
+}
+
+
+//=========================================================================================
+//ploting the chart shapes
+_SECTION_BEGIN("Indications");
+PlotShapes( shapeSmallSquare*(utbar AND NOT scond) , colorRed, 0, H, 10 );
+PlotShapes(shapeSmallCircle*trbar, colorBlue, 0, H, 20 );
+PlotShapes(shapeSmallDownTriangle*scond, colorRed, 0, H,-20);
+//PlotShapes(shapeSmallSquare*stdn, colorLime, 0, L, -20 );
+PlotShapes(shapeHollowUpArrow*stdn, colorDarkGreen, 0, L, -20 );
+PlotShapes(shapeSmallSquare*stdn1, colorLime, 0, L, -20 );
+PlotShapes(shapeSmallSquare*lvtbar1, colorLime, 0, L, -20 );
+PlotShapes(shapeSmallUpTriangle*lvtbar2, colorDarkYellow, 0, L, -20 );
+PlotShapes(shapeHollowSmallCircle*stvol, colorLime, 0, L, -10 );
+PlotShapes(shapeSmallUpTriangle*bycond, colorLime, 0, L, -20 );
+PlotShapes(shapeSmallSquare*(Hutbar) , colorBlue, 0, H, 10 );
+PlotShapes(shapeSmallDownTriangle*(Hutcond) , colorBlue, 0, H, -20 );
+PlotShapes(shapeSmallDownTriangle*tcbar , colorDarkYellow, 0, H, -20 );
+PlotShapes(shapeSmallUpTriangle*stdn2, colorAqua, 0, L, -20 );
+PlotShapes(shapeSmallSquare*(dbar) , colorBlue, 0, H, 10 );
+PlotShapes(shapeSmallSquare*lvtbar, colorCustom12, 0, L, -20);
+PlotShapes(shapeSmallSquare*(ndbar) , colorBlue, 0, H, 10 );
+PlotShapes(shapeSmallCircle*nsbar, colorLime, 0, L, -20 );
+PlotShapes(shapeSmallCircle*eftup, colorTurquoise, 0, mp, 0 );
+PlotShapes(shapeSmallCircle*eftdn, colorDarkYellow, 0, mp, 0 );
+
+_SECTION_END();
+//======================================================================================================================================================================================
+//TITLE
+_SECTION_BEGIN("Title");
+if( Status("action") == actionIndicator ) 
+(
+Title = EncodeColor(colorBlack)+ "Volume Price Analysis" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorBlack) +
+ "  - " + Date() +" - " +EncodeColor(colorLime)+ "Volume= "+WriteVal(V)+"--"+EncodeColor(colorDarkYellow)+"\n"+
+WriteIf (utbar, " An Upthrust Bar. A sign of weakness. ","")+
+WriteIf (utcond1, " A downbar after an Upthrust. Confirm weakness. ","")+
+WriteIf (utcond2 AND NOT utcond1, " A High Volume downbar after an Upthrust. Confirm weakness.","")+
+WriteIf (utcond3, "This upthrust at very High Voume, Confirms weakness","")+
+WriteIf (stdn1, "Strength seen returning after a down trend. High volume adds to strength. ","")+
+WriteIf (stdn0 AND NOT stdn, "Strength seen returning after a down trend. ","")+
+WriteIf (stdn AND NOT stdn1, "Strength seen returning after a long down trend. ","")+
+WriteIf (Lvtbar, "Test for supply. ","")+
+WriteIf (Lvtbar2, "An Upbar closing near High after a Test confirms strength. ","")+
+WriteIf (bycond, "An Upbar closing near High. Confirms return of Strength. ","")+
+WriteIf (dbar, "A High Volume Up Bar closing down in a uptrend shows Distribution. ","")+
+WriteIf (Hutbar, "Psuedo UpThrust.   A Sign of Weakness. ","")+
+WriteIf (Hutcond, "A Down Bar closing down after a Pseudo Upthrust confirms weakness. ","")+
+WriteIf (Lvtbar1, "Test for supply in a uptrend. Sign of Strength. ","")+
+WriteIf (stdn2, "High volume upbar closing on the high indicates strength. ","")+
+WriteIf (Tcbar, "High volume Downbar after an upmove on high volume indicates weakness. ","")+
+WriteIf (ndbar, "No Demand. A sign of Weakness. ","")+
+WriteIf (nsbar, "No Supply. A sign of Strength. ","")+
+WriteIf (eftup, "Effort to Rise. Bullish sign ","")+
+WriteIf (eftdn, "Effort to Fall. Bearish sign ","")+
+WriteIf (eftupfl, "Effort to Move up has failed. Bearish sign ","")+
+WriteIf (stvol, "Stopping volume. Normally indicates end of bearishness is nearing. ","")+
+("\n Volume: ")+WriteIf(V>Vp2,EncodeColor(colorLime)+"Very High",WriteIf(V>Vp1,EncodeColor(colorLime)+" High",WriteIf(V>Vrg,EncodeColor(colorLime)+"Above Average",
+WriteIf(V<Vrg AND V>Vn1,EncodeColor(colorRed)+"Less than Average",WriteIf(V<Vn1,"Low","")))))+
+(EncodeColor(colorDarkYellow)+"      Spread: ")+WriteIf(rg >(arg*2),EncodeColor(colorLime)+" Wide",WriteIf(rg>arg,EncodeColor(colorLime)+" Above Average",EncodeColor(colorRed)+" Narrow"))+
+(EncodeColor(colorDarkYellow)+"      Close:  ")+WriteIf(Vhcls,EncodeColor(colorLime)+"Very High",WriteIf(ucls,EncodeColor(colorLime)+"High",WriteIf(mcls,EncodeColor(colorDarkYellow)+"Mid",
+WriteIf(dcls,EncodeColor(colorRed)+"Down","Very Low"))))+
+("\n Trend: ")+WriteIf(tls>0,EncodeColor(colorLime)+"  Short Term-UP",EncodeColor(colorRed)+"  Short Term-Down")+
+WriteIf(tlm>0,EncodeColor(colorLime)+"         MID Term-UP",EncodeColor(colorRed)+"        Mid Term-Down")+
+WriteIf(tll>0,EncodeColor(colorLime)+"       Long Term-Up",EncodeColor(colorRed)+"         Long term-Down")); 
+_SECTION_END();
+//============================================================================================================================================================================================
+_SECTION_BEGIN("Exploration");
+
+Lq=V;
+Lqok=Lq>100000;
+
+Filter=  (utbar OR utcond2 OR utcond3 OR stdn OR stdn0 OR stdn1 OR stdn2 OR eftup OR eftdn OR stvol OR Hutbar OR Hutcond
+         OR tcbar OR Lvtbar2 OR dbar OR bycond) AND Lqok;
+tcolor = IIf(stdn OR stdn1, 42,IIf(bycond , colorPaleGreen,IIf(stdn2, colorPaleGreen,  
+        IIf(utbar OR utcond1, 33,IIf(utcond2 OR utcond3, 25,IIf(eftup, colorLime,IIf(eftdn,colorRed,IIf(hutbar,33,
+        IIf(hutcond,colorOrange,IIf(stdn0,42,IIf(stvol,42,IIf(utcond1,colorOrange,
+        IIf(dbar,33,IIf(tcbar,33,colorBlack)))))))))))))); 
+
+AddTextColumn(
+WriteIf (utbar, "Sign of weakness. ",
+WriteIf (utcond1, "Confirmed weakness. ",
+WriteIf (utcond2 AND NOT utcond1, "Confirms weakness.",
+WriteIf (utcond3, "Confirms weakness",
+WriteIf (stdn1, "strength returning. ",
+WriteIf (stdn0 AND NOT stdn, "strength returning. ",
+WriteIf (stdn AND NOT stdn1, "strength returning. ",
+WriteIf (Lvtbar, "Test for supply. ",
+WriteIf (Lvtbar2, "confirms strength. ",
+WriteIf (bycond, "Confirms return of Strength. ",
+WriteIf (dbar, "Distribution. ",
+WriteIf (Hutbar, "Sign of Weakness. ",
+WriteIf (Hutcond, "Confirms weakness. ",
+WriteIf (Lvtbar1, "Sign of Strength. ",
+WriteIf (stdn2, "Indicates strength. ",
+WriteIf (Tcbar, "Indicates weakness. ",
+WriteIf (ndbar, "A sign of Weakness. ",
+WriteIf (stvol, "End of bearishnees near ",
+WriteIf (eftup, "Bullish sign ",
+WriteIf (eftdn, "Bearish sign ",
+WriteIf (eftupfl, "Bearish sign ",""))))))))))))))))))))), "Signal" , 1, colorDefault, tcolor,110);
+
+AddTextColumn(
+WriteIf (utbar, " An Upthrust Bar. ",
+WriteIf (utcond1, " A downbar after an Upthrust. ",
+WriteIf (utcond2 AND NOT utcond1, " A High Volume downbar after an Upthrust.",
+WriteIf (utcond3, "This upthrust at very High Voume.",
+WriteIf (stdn1, "Strength seen returning after a down trend. ",
+WriteIf (stdn0 AND NOT stdn, "Strength seen returning after a down trend. ",
+WriteIf (stdn AND NOT stdn1, "Strength seen returning after a long down trend. ",
+WriteIf (Lvtbar, "Test for supply. ",
+WriteIf (Lvtbar2, "An Upbar closing near High. ",
+WriteIf (bycond, "An Upbar closing near High.",
+WriteIf (dbar, "A High Volume Up Bar closing down in a uptrend. ",
+WriteIf (Hutbar, "Psuedo UpThrust. ",
+WriteIf (Hutcond, "A Down Bar closing down after a Pseudo Upthrust. ",
+WriteIf (Lvtbar1, "Test for supply in a uptrend. ",
+WriteIf (stdn2, "High volume upbar closing on the high. ",
+WriteIf (Tcbar, "High volume Downbar after an upmove on high volume. ",
+WriteIf (ndbar, "No Demand. A sign of Weakness. ",
+WriteIf (stvol, "Stopping volume. ",
+WriteIf (eftup, "Effort to Rise. ",
+WriteIf (eftdn, "Effort to Fall.  ",
+WriteIf (eftupfl, "Effort to Move up has failed. ",""))))))))))))))))))))), "Condition" , 1, colorDefault, tcolor,250);
+ _SECTION_END ();
+
+VP = Param("Period for Avg Vol" , 10, 50, 240, 1);					 // sets the period for the average volume calculation
+VS = (Volume - EMA(V,10))/(EMA(V,10))*100;
+Buy = stdn OR stdn1;
+
+//Filter= utbar OR utcond2 OR utcond3 OR stdn OR stdn0 OR stdn1 OR stdn2;
+Result = WriteIf(Buy,"Buy","Sell");
+AddTextColumn( WriteIf(Buy, "Buy" , "Sell" ) ,   "TRADE" ,  5 ,   IIf(Buy,colorYellow, colorWhite), IIf(Buy, colorDarkGreen, colorRed) );
+AddTextColumn(IndustryID(1) ,"Industry Sector  ", 25.0, colorWhite, colorBlue, 125);     // adds a column for the industry sector 
+AddColumn(C, "Close", 3.2,  colorBlue, colorYellow, 55); 										// adds a column for today's close
+AddColumn(Ref(Close,-1),"Y-Close",1.2, IIf( ROC(Ref(C,-1),1)>=0,colorDarkGreen, colorRed ),50 );
+AddColumn( ROC( Close, 1 ), "ROC(1)", 1.2, IIf( ROC(C, 1 ) >= 0,colorDarkGreen, colorRed));					
+//AddColumn(PCY, "% > Prior C" ,3.1, colorWhite,colorDarkGreen); 								// adds a column for the close as a % from the prior close
+AddColumn(V, "VOLUME",8.0, colorYellow, colorDarkGreen, 75);									// adds a column for today's volume									
+AddColumn( Ref(MA(V,VP),-1), WriteVal(VP, 2.0)+ " dMA", 8.0, colorWhite, colorBlue, 75);	// adds a column for the average volume	
+AddColumn( (V/Ref(MA(V,VP),-1))*100,"V%",4.2, colorLightYellow, colorDarkGrey, 60); 		// adds a column for what today's volume is as a % of the average
+AddColumn (VS, "VolSurge",1.2,colorWhite,colorBlue);
+
+
+//=====================================================================
+//background stock name (works only on Amibroker version 5.00 onwards.
+//=====================================================================
+_SECTION_BEGIN("Name");
+GfxSetOverlayMode(1);
+GfxSelectFont("Tahoma", Status("pxheight")/6 );
+GfxSetTextAlign( 6 );// center alignment
+GfxSetTextColor( ColorRGB( 200, 200, 200 ) );
+//GfxSetTextColor( ColorHSB( 42, 42, 42 ) );
+GfxSetBkMode(0); // transparent
+GfxTextOut( Name(), Status("pxwidth")/2, Status("pxheight")/12 );
+GfxSelectFont("Tahoma", Status("pxheight")/12 );
+GfxTextOut( "VPA", Status("pxwidth")/2, Status("pxheight")/3 );
+GfxSelectFont("Tahoma", Status("pxheight")/36 );
+GfxTextOut( "www.vpanalysis.blogspot.com", Status("pxwidth")/2, Status("pxheight")/2 );
+_SECTION_END();
+
+_SECTION_BEGIN("MarketProfile");
+//------------------------------------------------------------------------------
+//
+//  Formula Name:    Market Profile 
+//
+// Use with 5/15min chart
+// Originial - From AFL library
+// Edited by - Milind / KAKA
+
+//Market Profile 9/12/2009
+
+PlotOHLC(O,H,L,C,"Price",IIf(C>O,colorGreen,colorRed),styleCandle);
+
+
+EnMP2= ParamList("MarketProfile","Solid|Lines|Letters");
+styleLines = ParamStyle("Style", styleLine, maskAll);
+
+Type=ParamList("Type","Price Profile|Volume Profile");
+Period= ParamList("Base","Hourly|Daily|Weekly|Monthly",1);
+
+
+Den = Param("Density", 1, 0.25, 100, 0.25); // Resolution in terms of $
+percent=Param("Value Area", 70, 1, 100, 1);
+ViewTPOCount= ParamToggle("Show TPO Count", "No|Yes",1);
+ViewPOC = ParamToggle("Show POC", "No|Yes",1);
+ViewVALVAH = ParamToggle("Show VAL VAH Line", "No|Yes",1);
+Viewfill = ParamToggle("Show VA Fill", "No|Yes",1);
+Colorpoc=ParamColor("Color POC", colorYellow);
+Colorfill=ParamColor("Color Fill", ColorRGB(20,40,60));
+
+
+EnIB = ParamToggle("Show Initial Balance", "Yes|No");
+IBBars = Param("Initial Balance Bars", 2, 0, 10, 1);
+
+if(Period=="Daily"){
+BarsInDay = BarsSince(Day() != Ref(Day(), -1));
+Bot = TimeFrameGetPrice("L", inDaily, 0);
+Top = TimeFrameGetPrice("H", inDaily, 0);
+Vol = TimeFrameGetPrice("V", inDaily, 0);
+}
+
+if(Period=="Hourly"){
+BarsInDay = BarsSince(Minute() != Ref(Minute(), -1));
+Bot = TimeFrameGetPrice("L", in5Minute, 0);
+Top = TimeFrameGetPrice("H", in5Minute, 0);
+Vol = TimeFrameGetPrice("V", in5Minute, 0);
+}
+
+if(Period=="Weekly"){
+BarsInDay = BarsSince(DayOfWeek() < Ref( DayOfWeek(), -1 ));
+Bot = TimeFrameGetPrice("L", inWeekly, 0);
+Top = TimeFrameGetPrice("H", inWeekly, 0);
+Vol = TimeFrameGetPrice("V", inWeekly, 0);
+}
+
+if(Period=="Monthly" ){
+BarsInDay = BarsSince(Month() != Ref(Month(), -1));
+Bot = TimeFrameGetPrice("L", inMonthly, 0);
+Top = TimeFrameGetPrice("H", inMonthly, 0);
+Vol = TimeFrameGetPrice("V", inMonthly, 0);
+}
+
+CurTop = HHV(H,BarsInDay+1);
+Curbot = LLV(L,BarsInDay+1);
+Range = Highest(Top-Bot);
+TodayRange = Top - Bot;
+
+AveRange = Sum(Top-Bot,30)/30;
+LAveRange = AveRange[BarCount-1];
+
+// Initialization
+baseX = 0;
+baseY = floor(Bot[0]/Den)*Den;
+relTodayRange = 0;
+firstVisBar = Status("firstvisiblebar");
+lastVisBar = Status("lastvisiblebar");
+
+D=.0005;
+total=0;
+totaldn=0;
+totalup=0;
+shiftup=0;
+shiftdn=0;
+startr=0;
+
+for (j=0; j <= 100; j++) {
+  x[j] = 0;
+}
+
+i0 = 0;
+i1 = 0;
+for (i=0; i<BarCount; i++) {
+  if (BarsInDay[i] == 0 AND i < firstVisBar) {
+    i0 = i;
+  }
+  if (BarsInDay[i] == 0 AND i >= lastVisBar) {
+    i1 = i;
+  }
+}
+
+i1 = BarCount-1;
+for (i=i0; i<=i1; i++) {
+  if (BarsInDay[i] == 0) {
+    baseX = i;
+    baseY = floor(Bot[i]/Den)*Den;
+    maxY = floor(Top[i]/Den)*Den;
+    relTodayRange = (maxY-baseY)/Den;
+
+    for (j=0; j <= relTodayRange; j++) {
+      x[j] = 0;
+    }
+  }
+	
+	range_x=lastVisBar-firstVisBar;
+	spread = Param("X Space", 80, 1, 200, 1);
+	tpl = Param("Time Per Letter (mins)", 30, 1, 360, 1);
+	Intervalmin=Interval()/60;
+	flt =Param("First Letter (Bars)", 1, 1, 60, 1);
+	teb=ParamToggle("To Each Bar","No|Yes");
+	Color=Param("Color Threshold",20,1,50,1);
+	stopg=0;
+	stopr=0;
+	new=0;
+	
+	Voloumeunit=Vol[i]/LastValue(BarsInDay);
+
+
+  if (EnMP2 == "Letters") {
+    for (j=0; j<= relTodayRange; j++) {
+      if (L[i] <= baseY+j*Den AND H[i] >= baseY+j*Den) {
+		PlotText(StrExtract(" A , B , C , D , E , F , G , H ,  I  , J , K , L , M , N , O , P , Q , R , S , T , U , V , W , X , Y , Z, a , b , c , d , e , f , g , h , i , j , k , L , m , n ,o , p , q , r , s , t , u , v , w , x , y , z ",
+		IIf(BarsInDay[i]<flt,0,ceil(BarsInDay[i]/(tpl/Intervalmin))-0)), baseX+IIf(teb==1,BarsInDay[i],x[j]*(range_x/spread)), baseY+j*Den, 
+		colorWhite,ColorHSB(10+((ceil(BarsInDay[i]/(tpl/Intervalmin)))*Color),160,140));
+       x[j]++;
+
+      }
+    }
+  }
+	
+  else if (EnMP2 == "Lines" OR EnMP2 == "Solid") {
+    for (j=0; j<= relTodayRange; j++) {
+     if (L[i] <= baseY+j*Den AND H[i] >= baseY+j*Den) {
+		if(Type=="Price Profile"){x[j]=x[j]+1;}
+		else if(Type=="Volume Profile"){x[j]=x[j]+round(V[i]/Voloumeunit);}
+ 	
+	   }
+    }
+  }  
+
+  // Draw Initial Balance after 11am bar is complete
+  if (BarsInDay[i] == IBBars+1 AND EnIB == 0) {
+    Line1 = LineArray(i-2, curtop[i-1],i+7, curtop[i-1],0,True);
+    Plot(Line1,"",colorLightGrey,styleLine+styleDashed|styleNoRescale);
+    Line1 = LineArray(i-2, curbot[i-1],i+7, curbot[i-1],0,True);
+    Plot(Line1,"",colorLightGrey,styleLine+styleDashed|styleNoRescale);
+  }
+
+  // Examine x[j]
+  if ((i < BarCount - 1 AND BarsInDay[i+1] == 0) OR i == BarCount-1) {
+    maxXj = 0;
+	maxj = 0;
+    for (j=0; j<= relTodayRange; j++) {
+      if (maxXj < x[j]) {maxXj = x[j]; maxj = j; StaticVarSet("Maxj",j); new=j;
+	  }
+    }
+	for ( n = 1; n <= relTodayRange; n++ ) {
+       total[n]=x[n]+total[n-1];
+        }
+	Value_area=(total[relTodayRange]*percent)/100;
+
+	for ( a = 1; a <= relTodayRange; a++ )
+	 {
+		if(Maxj-a>0 AND Maxj+a<relTodayRange)
+		{
+			if(MaxXj+total[Maxj+a]-total[Maxj]+total[Maxj-1]-total[Maxj-(a+1)]>=Value_area) {shiftup=a; shiftdn=a; break;}
+	 	}	
+		else if(Maxj-a<1 ) 
+		{
+			if(MaxXj+total[Maxj+a]-total[Maxj]+total[Maxj-1]>=Value_area){shiftup=a; shiftdn=maxj-1; break;}		
+   		}
+		else if(Maxj+a>relTodayRange ) 
+		{
+			if(MaxXj+total[relTodayRange]-total[Maxj]+total[Maxj-1]-total[Maxj-(a+1)] >=Value_area){shiftup=relTodayRange-maxj; shiftdn=a; break;}		
+   		}
+	 }
+
+	Vah = LineArray(baseX, baseY+(maxj+shiftup)*Den, i, baseY+(maxj+shiftup)*Den,0,True);
+	Val = LineArray(baseX, baseY+(maxj-shiftdn)*Den, i, baseY+(maxj-shiftdn)*Den,0,True);
+	poc = LineArray(baseX, baseY+maxj*Den, i, baseY+maxj*Den,0,True);
+	if(ViewVALVAH==1){Plot(Vah,"",ParamColor("Color_VA",  colorLightBlue),styleLine|styleNoRescale);
+	Plot(Val,"",ParamColor("Color_VA",  colorLightBlue),styleLine|styleNoRescale);}
+	if(ViewPOC==1){Plot(poc,"",Colorpoc,styleLine|styleNoRescale);}
+	PlotText(""+(baseY+(maxj+shiftup)*Den),i-5,baseY+(maxj+shiftup)*Den,colorWhite);
+	PlotText(""+(baseY+(maxj-shiftdn)*Den),i-5,baseY+(maxj-shiftdn)*Den,colorWhite);
+	if(ViewTPOCount==1){PlotText(""+total[maxj],basex,bot[i]-(Top[i]-bot[i])*0.05,ParamColor("Color_VAL", colorLavender));
+	PlotText(""+(total[relTodayRange]-total[maxj]),basex,Top[i],ParamColor("Color_VAH", colorLavender));}
+
+
+
+	if(ViewPOC==1){PlotText(""+(baseY+maxj*Den),i-5,baseY+maxj*Den,Colorpoc);}
+  }
+	
+	if (i < BarCount - 1 AND BarsInDay[i+1] == 0 OR i == BarCount-1) {
+	
+	  for  (p = 1; p < relTodayRange+1; p++){
+	  line = LineArray(baseX, baseY+p*Den, baseX+x[p], baseY+p*Den);
+	  line2 = LineArray(baseX, baseY+(p-1)*Den, baseX+x[p-1], baseY+(p-1)*Den);
+
+      if (EnMP2 == "Solid")
+	  {
+	  PlotOHLC( Line,  Line,  Line2, Line2, "",IIf(p>(maxj+shiftup),ParamColor("Color_VAH",  colorLavender),IIf(p<=(maxj+shiftup)AND p>(maxj-shiftdn),ParamColor("Color_VA", colorLightBlue),ParamColor("Color_VAL", colorLavender))) ,styleCloud|styleNoRescale|styleNoLabel);
+	  }
+	  if (EnMP2 == "Lines") 
+	  {
+     Plot(line,"",IIf(p>(maxj+shiftup),ParamColor("Color_VAH", colorLavender),IIf(p<=(maxj+shiftup)AND p>(maxj-shiftdn),ParamColor("Color_VA", colorLightBlue),ParamColor("Color_VAL",  colorLavender))) , styleLines|styleNoLabel);
+     }
+ 	
+   }
+	 if(Viewfill==1){PlotOHLC(Vah,Vah,Val,Val,"",Colorfill,styleCloud|styleNoRescale|styleNoLabel);}
+
+ } 
+}
+
+
+_SECTION_END();
+
+_SECTION_BEGIN("Gradient Backfill");
+SetChartBkGradientFill( ParamColor("BgTop", ColorRGB( 255,255,255 )),
+
+ParamColor("BgBottom", ColorRGB( 255,255,255 )),ParamColor("titleblock",ColorRGB( 255,255,255 ))); 
+_SECTION_END();

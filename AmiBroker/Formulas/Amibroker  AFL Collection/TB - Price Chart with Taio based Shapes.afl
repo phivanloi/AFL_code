@@ -1,0 +1,175 @@
+//|------------------------------------------------------------------
+//|Tradingbasis.com - Price chart with Taio based Shapes
+//|Version:1.0   23-June-2006
+//|Copyright © 2005, Tradingbasis.com
+//|http://www.tradingbasis.com
+//|e-mail: support@tradingbasis.com
+//|------------------------------------------------------------------
+SetChartOptions(0,chartShowDates|chartShowArrows|chartLogarithmic|chartWrapTitle);
+
+#pragma nocache
+#include  <\TBInc\Tradingbasis_f0.afl>  
+AddAlertParam(0,0,0);
+_SECTION_BEGIN("Main Settings");
+Level = Param("Trend Level",50.0,0,90);
+Multiplier = Param("Second Time Frame Multiplier",4,1,30,1);
+_SECTION_END(); 
+
+_SECTION_BEGIN("Signal 1");
+BuySig = ParamList("Buy Signal", List1 = "Off,Taio Top,Taio Valley,Zero Line Cross,Zero Line Bounce,Oversold,Trend Level reached",3); 
+SellSig = ParamList("Sell Signal",List2 = "Off,Taio Top,Taio Valley,Zero Line Cross,Zero Line Bounce,Overbought,Trend Level reached",3);
+BuyShape = Param("Buy Shape Typ",21,0,50,1);
+SellShape = Param("Sell Shape Typ",22,0,50,2);
+Buyshapecolor = ParamColor("Buy Shape Color",colorLime);
+Sellshapecolor = ParamColor("Sell Shape Color",colorRed);
+_SECTION_END(); 
+
+_SECTION_BEGIN("Signal 2");
+BuySig2 = ParamList("Buy Signal", List1sig2 = "Off,Taio Top,Taio Valley,Zero Line Cross,Zero Line Bounce,Oversold,Trend Level reached",4); 
+SellSig2 = ParamList("Sell Signal",List2sig2 = "Off,Taio Top,Taio Valley,Zero Line Cross,Zero Line Bounce,Overbought,Trend Level reached",4);
+BuyShape2 = Param("Buy Shape Typ",13,0,50,1);
+SellShape2 = Param("Sell Shape Typ",14,0,50,2);
+Buyshapecolor2 = ParamColor("Buy Shape Color",colorBlue);
+Sellshapecolor2 = ParamColor("Sell Shape Color",colorYellow);
+_SECTION_END(); 
+
+Taio1up = Taio>Level & Taio>Ref(Taio,-1);
+Taio1dn = Taio<(-Level) & Taio<Ref(Taio,-1);
+
+_SECTION_BEGIN("Automatic Analysis");
+Widecolumns = ParamToggle("Wide columns","No,Yes",1);
+for( i=0; i<10; i++) 
+{
+if( StrExtract(List1, i) == BuySig ) BuySignal = i; 
+if( StrExtract(List2, i) == SellSig ) SellSignal = i;
+if( StrExtract(List1sig2, i) == BuySig2 ) BuySignal2 = i; 
+if( StrExtract(List2sig2, i) == SellSig2 ) SellSignal2 = i;
+}
+_SECTION_END();
+
+Taio2 = TaioTF(Multiplier);
+
+Taio2up = Taio2>=Ref(Taio2,-multiplier); Taio2dn = Taio2<=Ref(Taio2,-multiplier);
+TimeFrameRestore(); 
+
+Overbought = Taio > Level;
+Oversold = Taio < (-Level);
+
+//Tops & valleys
+Top = Ref(Taio,-1) == HHV(Taio,3);
+TopL = Top AND Ref(Taio,-1) >  Level;
+Valley = Ref(Taio,-1)==LLV(Taio,3);
+ValleyL = Valley AND Ref(Taio,-1) < -Level;
+TpVa = IIf(TopL,-1,IIf(ValleyL,1,0));
+
+//Zero line crosses
+ZLCn = Cross(0,Taio);
+ZLCp = Cross(Taio,0);
+ZLC = IIf(ZLCp,1,IIf(ZLCn,-1,Null));
+
+//Zero line bounce
+threshold = 3;
+ZLbn = Ref(Taio,-1)<threshold AND Ref(Taio,-1)>-threshold AND Top;
+ZLbp = Ref(Taio,-1)>-threshold AND Ref(Taio,-1)<threshold AND Valley;
+ZLB = IIf(ZLBp,1,IIf(ZLBn,-1,Null));
+
+//Overbought - Oversold
+Overbought = Taio2>80 AND Taio>80;
+Oversold = Taio2<-80 AND Taio<-80;
+OBOS = IIf(Oversold,1,IIf(Overbought,-1,Null));
+
+//Upper/Lower Level reached
+UpperLevelreached = Cross(Taio,Level);
+LowerLevelreached = Cross(-Level,Taio);
+TrendLevelreached = IIf(UpperLevelreached,1,IIf(LowerLevelreached,-1,Null));
+
+Buy = 
+IIf(BuySignal == 0, Null,
+IIf(BuySignal == 1, TpVa==-1,
+IIf(BuySignal == 2, TpVa== 1,
+IIf(BuySignal == 3, ZLC==1,
+IIf(BuySignal == 4, ZLB==1,
+IIf(BuySignal == 5, Oversold==1,
+IIf(BuySignal == 6, UpperLevelreached==1,Null)))))));
+
+Sell = 
+IIf(SellSignal == 0, Null,
+IIf(SellSignal == 1, TpVa==-1,
+IIf(SellSignal == 2, TpVa== 1,
+IIf(SellSignal == 3, ZLC==-1,
+IIf(SellSignal == 4, ZLB==-1,
+IIf(SellSignal == 5, Overbought==-1,
+IIf(SellSignal == 6, LowerLevelreached==-1,Null)))))));
+
+Buy2 = 
+IIf(BuySignal2 == 0, Null,
+IIf(BuySignal2 == 1, TpVa==-1,
+IIf(BuySignal2 == 2, TpVa== 1,
+IIf(BuySignal2 == 3, ZLC==1,
+IIf(BuySignal2 == 4, ZLB==1,
+IIf(BuySignal2 == 5, Oversold==1,
+IIf(BuySignal2 == 6, UpperLevelreached==1,Null)))))));
+
+Sell2 = 
+IIf(SellSignal2 == 0, Null,
+IIf(SellSignal2 == 1, TpVa==-1,
+IIf(SellSignal2 == 2, TpVa== 1,
+IIf(SellSignal2 == 3, ZLC==-1,
+IIf(SellSignal2 == 4, ZLB==-1,
+IIf(SellSignal2 == 5, Overbought==-1,
+IIf(SellSignal2 == 6, LowerLevelreached==-1,Null)))))));
+
+Filter = NOT GroupID()==253;
+Filter = Filter AND (Buy OR Sell OR Buy2 OR Sell2);
+
+AddAlert(Buy,Audio,Email,BuySig+DefaultAlertText,1,BarComplete);
+AddAlert(Sell,Audio,Email,SellSig+DefaultAlertText,2,BarComplete);
+AddAlert(Buy2,Audio,Email,BuySig2+DefaultAlertText,1,BarComplete);
+AddAlert(Sell2,Audio,Email,SellSig2+DefaultAlertText,2,BarComplete);
+
+if(Widecolumns)
+{
+Adddefaultcolumns(1,1);
+AddColumn(Taio,"Taio",1);
+AddColumn(Taio2,"Taio TF2",1,1,colorWhite,60);
+AddColumn(TpVa,"Taio Top / Valley",1,1,IIf(TpVa==1 OR TpVa==-1,colorLightBlue,colorWhite),0);
+AddColumn(ZLC,"Zero Line Cross",1,1,IIf(ZLCp,colorLime,IIf(ZLCn,colorRed,colorWhite)),90);
+AddColumn(ZLB,"Zero Line Bounce",1,1,IIf(ZLBp,colorLime,IIf(ZLBn,colorRed,colorWhite)),100);
+AddColumn(TrendLevelreached,"Trend Level reached",1,1,IIf(UpperLevelreached,colorLime,IIf(LowerLevelreached,colorRed,colorWhite)),120);
+AddColumn(OBOS,"Overbought/Oversold",1,1,IIf(Oversold,colorLime,IIf(Overbought,colorRed,colorWhite)),120);
+AddColumn(IIf(Taio>Level,BarsSince(Cross(Taio,Level)),IIf(Taio<-Level,BarsSince(Cross(-Level,Taio)),Null)),"Bars since Trendlevel reached",1.0);
+AddTextColumn(FullName(),"Full name",120);
+}
+else
+{
+Adddefaultcolumns(2,1);
+AddColumn(Taio,"Taio",1);
+AddColumn(Taio2,"Taio TF2",1,1,colorWhite,60);
+AddColumn(TpVa,"T/V",1,1,IIf(TpVa==1 OR TpVa==-1,colorLightBlue,colorWhite),40);
+AddColumn(ZLC,"ZLC",1,1,IIf(ZLCp,colorLime,IIf(ZLCn,colorRed,colorWhite)),40);
+AddColumn(ZLB,"ZLB",1,1,IIf(ZLBp,colorLime,IIf(ZLBn,colorRed,colorWhite)),40);
+AddColumn(TrendLevelreached,"TLR",1,1,IIf(UpperLevelreached,colorLime,IIf(LowerLevelreached,colorRed,colorWhite)),40);
+AddColumn(OBOS,"OB/OS",1,1,IIf(Oversold,colorLime,IIf(Overbought,colorRed,colorWhite)),60);
+AddColumn(IIf(Taio>Level,BarsSince(Cross(Taio,Level)),IIf(Taio<-Level,BarsSince(Cross(-Level,Taio)),Null)),"BSTR",1.0);
+AddTextColumn(FullName(),"Full name");
+}
+
+PlotShapes(BuyShape*Buy,BuyShapecolor,0,L,-12);
+PlotShapes(SellShape*Sell,SellShapecolor,0,H,-12);
+PlotShapes(BuyShape2*Buy2,BuyShapecolor2,0,L,-12);
+PlotShapes(SellShape2*Sell2,SellShapecolor2,0,H,-12);
+
+
+#include  <\TBInc\Tradingbasis_1.afl>  
+Title = "Tradingbasis.com - Price Chart with Taio based shapes" + default_title+" ";
+
+Buy   = Cross(C, Study("RE"));
+Sell  = Cross(Study("SU"),C);
+
+Short = Cross(Study("RE"), C);
+Cover = Cross(C,Study("SU"));
+
+AlertIf(Buy,   "", "",1,1 );
+AlertIf(Sell,  "", "",2,1 );
+AlertIf(Short, "", "",3,1 );
+AlertIf(Cover, "", "",4,1 );

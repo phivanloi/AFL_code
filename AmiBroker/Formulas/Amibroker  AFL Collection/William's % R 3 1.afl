@@ -1,0 +1,40 @@
+_SECTION_BEGIN("William's % R"); 
+function PercentR( periods )
+{
+ return -100 * ( HHV( H, periods ) - C )/( HHV( H, periods ) - LLV( L, periods ) ); 
+}
+H34 = HHV(H,34);
+H14 = HHV(H,14);
+L34 = LLV(L,34);
+L14 = LLV (L,14);
+wr14 = PercentR( 14 );
+wr34 = PercentR( 34 );
+Plot( wr14,"wr14", colorYellow );
+Plot( wr34,"wr34", 	colorWhite,styleThick );
+Plot( wr34+.5,"", 	colorWhite,styleThick+styleNoLabel );
+Plot( wr34-.5,"", 	colorWhite,styleThick+styleNoLabel );
+Plot(-80,"",colorRed,styleDashed+styleNoLabel);
+Plot(-50,"",colorWhite,styleThick+styleNoLabel);
+Plot(-20,"",colorRed,styleDashed+styleNoLabel);
+diff14 = round(wr14-Ref(wr14,-1));
+diff34 = round(wr34-Ref(wr34,-1));
+
+
+Title = EncodeColor(colorGreen)+"Highest High of 34 bars = "+H34
++"\n"
++EncodeColor(colorRed)+"Lowest Low of 34 bars = "+L34
++"\n"
+
++EncodeColor(colorWhite) + "W%R34 = " + WriteIf(wr34 > Ref(wr34,-1),EncodeColor(colorGreen)+wr34 + "  Diff of :"+diff34, EncodeColor(colorRed)+wr34+ "  Diff of :"+diff34)
+
++"\n"+"\n"
++EncodeColor(colorGreen)+"Highest High of 14 bars = "+H14
++"\n"
++EncodeColor(colorRed)+"Lowest Low of 14 bars = "+L14
++"\n"
+
++ EncodeColor(colorWhite) + "W%R14 = " + WriteIf(wr14 > Ref(wr14,-1),EncodeColor(colorGreen)+wr14+ "  Diff of :"+diff14, EncodeColor(colorRed)+wr14+" diff of :"+diff14)
++"\n"+"\n"
++ EncodeColor(colorWhite)+"close = "+C
+;
+_SECTION_END();

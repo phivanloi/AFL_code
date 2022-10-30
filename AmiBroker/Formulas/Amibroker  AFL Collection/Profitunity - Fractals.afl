@@ -1,0 +1,17 @@
+Up =
+
+(IIf( High > Ref( High , -1 ), 1 ,0 ) AND
+ IIf( High > Ref( High , -2 ), 1 ,0 ) AND
+ IIf( High > Ref( High , 1 ), 1 ,0 ) AND
+ IIf( High > Ref( High , 2 ), 1 ,0 ));
+
+
+Dn =
+
+(IIf( Low < Ref( Low , -1 ), 1 ,0 ) AND
+ IIf( Low < Ref( Low , -2 ), 1 ,0 ) AND
+ IIf( Low < Ref( Low , 1 ), 1 ,0 ) AND
+ IIf( Low < Ref( Low , 2 ), 1 ,0 ));
+
+Plot(dn, "", colorRed);
+Plot(up, "", colorLime);

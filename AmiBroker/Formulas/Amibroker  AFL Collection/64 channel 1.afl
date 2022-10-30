@@ -1,0 +1,40 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+Plot( C, "Close", IIf(MACD(3,34) > Signal(3,34,9),colorGreen, colorRed), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("64 channel");
+
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+//Plot( C, "Close", ParamColor("Color", Null ), styleNoTitle | styleCandle ); 
+
+P = ParamField("Field");
+Type = ParamList("Type", "Simple,Exponential,Double Exponential,Tripple Exponential,Wilders,Weighted");
+//Periods = Param("Periods", 30, 2, 300 );
+//Displacement = Param("Displacement", 4, -50, 50 );
+//m = 0;
+
+//if( Type == "Simple" ) 
+A = MA( H,6 );
+B = MA( L,6 );
+
+ 					
+x= Ref(A,-4);
+y= Ref(B,-4);
+
+D=.0003;
+
+xb=x-x*D;
+
+yt=y+y*D;
+
+//PlotOHLC( 0,xt,xb,xb ,"",ColorRGB(200,0,0), styleCloud);
+//PlotOHLC( 0,yt,yb,yb ,"",ColorRGB(0,200,0), styleCloud);
+PlotOHLC( 0,x,xb,xb ,"",colorGold, styleCloud);
+PlotOHLC( 0,yt,y,y ,"",colorGold, styleCloud);
+PlotOHLC( 0,x,y,y ,"",ColorRGB(50,50,10), styleCloud);
+
+
+
+_SECTION_END();

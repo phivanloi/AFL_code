@@ -1,0 +1,42 @@
+
+//StochLow=Optimize("StochLow",20,15,25,1);
+//StochHigh=Optimize("StochHigh",80,75,85,1);
+//RSILow=Optimize("StochLow",30,25,35,1);
+//RSIHigh=Optimize("StochHigh",70,65,75,1);
+//StochKperiod =Optimize("StochKperiod ",14,10,18,1);
+//StochKsmooth =Optimize("StochKsmooth ",3,1,3,1);
+//StochDperiod =Optimize("StochDperiod ",14,10,18,1);
+//StochDsmooth =Optimize("StochDsmooth ",3,1,3,1);
+//BBperiod =Optimize("BBperiod ",15,12,16,1);
+//BBwidth =Optimize("BBwidth ",2,1,3,0.1);
+//RSIperiod =Optimize("RSIperiod ",14,10,18,1);
+
+StochLow=20;
+StochHigh=80;
+RSILow=30;
+RSIHigh=70;
+StochKperiod =14;
+StochKsmooth =3;
+StochDperiod =14;
+StochDsmooth =3;
+BBperiod =15;
+BBwidth =2;
+RSIperiod =14;
+
+k=StochK(StochKperiod, StochKsmooth);
+d=StochD(StochDperiod, StochKsmooth,StochDsmooth);
+bbTop=BBandTop( C, BBperiod , BBwidth );
+bbBottom=BBandBot( C, BBperiod , BBwidth );
+r=RSI( RSIperiod);
+
+Buy= r < RSILow AND C < bbBottom AND k < StochLow AND d < StochLow;
+Sell= r > RSIHigh AND C > bbTop AND k > StochHigh AND d > StochHigh;
+
+Short= Sell;
+Cover= Buy;
+
+
+
+
+
+

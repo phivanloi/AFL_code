@@ -1,0 +1,162 @@
+_SECTION_BEGIN("Intraday");
+/*----------------------------------------------------------------
+ 
+Intraday Range and Periods Framer
+
+This script will draw horizontal lines for the following items:
+
+- Previous day close (red dashed line)
+- Today open (pink dotted line)
+- Today high and low (pink lines)
+- Premarket range 8:30am to 9:30am EST (blue dashed lines)
+- 5 min opening range (dark green lines)
+- 30 mintue opening range (light green lines)
+
+It also draws yellow vertical lines marking the following periods:
+- Day start (blue triangle)
+- Day end (red triangle)
+- 5 min opening period end (dark green triangle)
+- 30 minute period end (light green triangle)
+- Mid day slow period (gray triangles)
+
+The important part of this script is that it shows how to get
+accurate values from the TimeFrameCompress and TimeFrameExpand
+functions when displaying intraday data on a chart that is not 
+limited to market hours only (9:30am to 4:00pm EST).  If you
+did not use the methods shown in this script, then the TF functions
+might return values that you did not want.  You would still get 
+open, high, low, and prev clos values, but they would most likely 
+off as they would include the pre and post market values as well.
+By using arrays of boolean values indicating what period the each
+bar in is, the TF functions can then be used effectively while
+still showing all data the 24 hour period has to offer.
+
+I leave it up to you to put alerts or filtering criteria in the script.
+
+8/13/2009
+bluueskyy
+
+------------------------------------------------------------------*/
+
+SetBarsRequired(500,500);
+
+pAlwaysShowLastDay = ParamToggle("Show Last Day Always", "No|Yes", 1);
+pShowMarkers = ParamToggle("Show Markers", "No|Yes", 1);
+pShowRangeLines = ParamToggle("Show Range Lines", "No|Yes", 1);
+pExtendAllRangeLines = ParamToggle("Extend Range Lines", "No|Yes", 0);
+
+
+rthDN = DateNum();
+rthDT = DateTime();
+rthTN = TimeNum();
+rthIn = TimeNum() >= 095500 AND TimeNum() <= 153000;
+rtnBI = BarIndex();
+
+porAlwaysShowLastDay = (pAlwaysShowLastDay AND rthDN == LastValue(rthDN));
+porShowMarkers = pShowMarkers OR porAlwaysShowLastDay;
+porShowRangeLines = pShowRangeLines OR porAlwaysShowLastDay;
+
+isAll = True;
+isRth =  TimeNum() >= 093000 AND TimeNum() <= 160000;
+aRthH = IIf(isRth, H, Null);
+aRthL = IIf(isRth, L, 1000000);
+
+isPreM =  TimeNum() >= 083000 AND TimeNum() < 093000;
+aPreMH = IIf(isPreM, H, Null);
+aPreML = IIf(isPreM, L, 1000000);
+
+isOR1 =  TimeNum() >= 093000 AND TimeNum() < 093500;
+aOR1H = IIf(isOR1, H, Null);
+aOR1L = IIf(isOR1, L, 1000000);
+isOR1LastBar = isOR1 AND NOT Ref(isOR1, 1);
+
+isOR2 =  TimeNum() >= 093000 AND TimeNum() < 100000;
+aOR2H = IIf(isOR2, H, Null);
+aOR2L = IIf(isOR2, L, 1000000);
+isOR2LastBar = isOR2 AND NOT Ref(isOR2, 1);
+
+isLastBarOfDay = rthDN != Ref(rthDN, 1);
+isFirstBarOfDay = rthDN != Ref(rthDN, -1);
+
+isSlowPeriod = TimeNum() >= 110000 AND TimeNum() < 140000;
+isSlowPeriodBegin = isSlowPeriod != Ref(isSlowPeriod, -1); 
+isSlowPeriodEnd = isSlowPeriod != Ref(isSlowPeriod, 1); 
+
+isClose = (rthIn AND NOT Ref(rthIn, 1)) OR (rthIn AND rthDN < Ref(rthDN, 1));
+aClose = IIf(isClose, Close, Null);
+isOpen = (rthIn AND NOT Ref(rthIn, -1)) OR (rthIn AND rthDN > Ref(rthDN, -1));
+aOpen = IIf(isOpen, Open, Null);
+
+aVolumeSum[0] = 0;
+aVolumeSum = IIf(isFirstBarOfDay, 0, Ref(aVolumeSum, -1) + Volume);
+aVolumeSumPreM = IIf(isPreM, aVolumeSum, 0);
+PreMVolume = TimeFrameCompress( aVolumeSumPreM, inDaily, compressHigh );
+PreMVolume = TimeFrameExpand( PreMVolume , inDaily, expandFirst );
+
+DayO = TimeFrameCompress( aOpen, inDaily, compressHigh );
+DayO = TimeFrameExpand( DayO, inDaily, expandFirst );
+DayH = TimeFrameCompress( aRthH, inDaily, compressHigh );
+DayH = TimeFrameExpand( DayH, inDaily, expandFirst );
+DayL = TimeFrameCompress( aRthL, inDaily, compressLow );
+DayL = TimeFrameExpand( DayL, inDaily, expandFirst );
+PrevDayC = TimeFrameCompress( aClose, inDaily, compressHigh );
+PrevDayC = TimeFrameExpand( Ref(PrevDayC, -1), inDaily, expandFirst );
+
+OR1H = TimeFrameCompress( aOR1H, inDaily, compressHigh );
+OR1H = TimeFrameExpand( OR1H, inDaily, expandFirst );
+OR1L = TimeFrameCompress( aOR1L, inDaily, compressLow );
+OR1L = TimeFrameExpand( OR1L, inDaily, expandFirst );
+
+ShowRangeLine = isRth OR pExtendAllRangeLines;
+
+Plot(IIf(porShowRangeLines AND NOT isLastBarOfDay AND ShowRangeLine, OR1H, Null), "OR1H", ColorRGB( 0, 100, 0 ), styleLine | styleNoTitle ); 
+Plot(IIf(porShowRangeLines AND NOT isLastBarOfDay AND ShowRangeLine AND OR1L < 1000000, OR1L, Null), "OR1L", ColorRGB( 0, 100, 0 ), styleLine | styleNoTitle ); 
+PlotShapes(IIf(porShowMarkers AND isOR1 AND NOT Ref(isOR1, 1), shapeDownTriangle, Null), ColorRGB( 0, 100, 0 ), 0, OR1H, -8);
+PlotShapes(IIf(porShowMarkers AND isOR1 AND NOT Ref(isOR1, 1) AND OR1L < 1000000, shapeUpTriangle, Null), ColorRGB( 0, 100, 0 ), 0, OR1L, -8);
+PlotOHLC(IIf(porShowRangeLines AND isOR1LastBar AND OR1L < 1000000, DayH, Null),IIf(porShowRangeLines AND isOR1LastBar AND OR1L < 1000000, DayH, Null),
+	IIf(porShowRangeLines AND isOR1LastBar AND OR1L < 1000000, DayL, Null),IIf(porShowRangeLines AND isOR1LastBar AND OR1L < 1000000, DayL, Null),
+	"OR1End", colorYellow, styleBar | styleNoTitle);
+
+OR2H = TimeFrameCompress( aOR2H, inDaily, compressHigh );
+OR2H = TimeFrameExpand( OR2H, inDaily, expandFirst );
+OR2L = TimeFrameCompress( aOR2L, inDaily, compressLow );
+OR2L = TimeFrameExpand( OR2L, inDaily, expandFirst );
+
+
+Plot(IIf(porShowRangeLines AND NOT isLastBarOfDay AND ShowRangeLine, OR2H, Null), "OR2H", ColorRGB( 100, 170, 100 ), styleLine | styleNoTitle ); 
+Plot(IIf(porShowRangeLines AND NOT isLastBarOfDay AND ShowRangeLine AND OR2L < 1000000, OR2L, Null), "OR2L", ColorRGB( 100, 170, 100 ), styleLine | styleNoTitle ); 
+PlotShapes(IIf(porShowMarkers AND isOR2 AND NOT Ref(isOR2, 1), shapeDownTriangle, Null), ColorRGB( 100, 170, 100 ), 0, OR2h, -8);
+PlotShapes(IIf(porShowMarkers AND isOR2 AND NOT Ref(isOR2, 1) AND OR2L < 1000000, shapeUpTriangle, Null), ColorRGB( 100, 170, 100 ), 0, OR2L, -8);
+PlotOHLC(IIf(porShowRangeLines AND isOR2LastBar AND OR2L < 1000000, DayH, Null),IIf(porShowRangeLines AND isOR2LastBar AND OR2L < 1000000, DayH, Null),
+	IIf(porShowRangeLines AND isOR2LastBar AND OR2L < 1000000, DayL, Null),IIf(porShowRangeLines AND isOR2LastBar AND OR2L < 1000000, DayL, Null),
+	"OR2End", colorYellow, styleBar | styleNoTitle);
+
+PreH = TimeFrameCompress( aPreMH, inDaily, compressHigh );
+PreH = TimeFrameExpand( PreH, inDaily, expandFirst );
+PreL = TimeFrameCompress( aPreML, inDaily, compressLow );
+PreL = TimeFrameExpand( PreL, inDaily, expandFirst );
+
+Plot(IIf(porShowRangeLines AND NOT isLastBarOfDay AND isAll, PreH, Null), "PreH", colorBlue, styleDashed | styleNoTitle ); 
+Plot(IIf(porShowRangeLines AND NOT isLastBarOfDay AND isAll AND preL < 1000000, PreL, Null), "PreL", colorBlue, styleDashed | styleNoTitle );
+
+Plot(IIf(porShowRangeLines AND NOT isLastBarOfDay AND ShowRangeLine, DayO, Null), "DOpen", ColorRGB( 255, 100, 255 ), styleLine | styleNoTitle | styleDots); 
+Plot(IIf(porShowRangeLines AND NOT isLastBarOfDay AND ShowRangeLine, DayH, Null), "DHigh", ColorRGB( 255, 100, 255 ), styleLine | styleNoTitle ); 
+Plot(IIf(porShowRangeLines AND NOT isLastBarOfDay AND ShowRangeLine, DayL, Null), "DLow", ColorRGB( 255, 100, 255 ), styleLine | styleNoTitle ); 
+
+Plot(IIf(porShowRangeLines AND NOT isLastBarOfDay AND ShowRangeLine, PrevDayC, Null), "PClose", colorRed, styleDashed | styleNoTitle ); 
+
+PlotShapes(IIf(porShowMarkers AND isOpen, shapeUpTriangle, Null), colorBlue, 0, DayL, -8);
+PlotOHLC(IIf(porShowRangeLines AND isOpen, DayH, Null),IIf(porShowRangeLines AND isOpen, DayH, Null),
+	IIf(porShowRangeLines AND isOpen, DayL, Null),IIf(porShowRangeLines AND isOpen, DayL, Null),
+	"Open", colorYellow, styleBar | styleNoTitle);
+PlotShapes(IIf(porShowMarkers AND isClose, shapeUpTriangle, Null), colorRed, 0, DayL, -8);
+PlotOHLC(IIf(porShowRangeLines AND isClose, DayH, Null),IIf(porShowRangeLines AND isClose, DayH, Null),
+	IIf(porShowRangeLines AND isClose, DayL, Null),IIf(porShowRangeLines AND isClose, DayL, Null),
+	"Open", colorYellow, styleBar | styleNoTitle);
+
+PlotShapes(IIf(porShowMarkers AND isSlowPeriodBegin, shapeUpTriangle, Null), ColorRGB(155, 155, 155), 0, DayL, -8);
+PlotShapes(IIf(porShowMarkers AND isSlowPeriodEnd, shapeUpTriangle, Null), ColorRGB(155, 155, 155), 0, DayL, -8);
+PlotOHLC(IIf(porShowRangeLines AND isSlowPeriodBegin, DayH, Null),IIf(porShowRangeLines AND isSlowPeriodBegin, DayH, Null),
+	IIf(porShowRangeLines AND isSlowPeriodBegin, DayL, Null),IIf(porShowRangeLines AND isSlowPeriodBegin, DayL, Null),
+"Open", colorYellow, styleBar | styleNoTitle);
+_SECTION_END();

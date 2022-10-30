@@ -1,0 +1,7 @@
+piv = (H+C+L)/3;
+Plot(piv,"",colorWhite,styleThick);
+
+bbtop = BBandTop(piv,5,0.5);
+bbbot = BBandBot(piv,5,0.5);
+Plot(bbtop,"bbtop",IIf(bbtop > Ref(bbtop,-1),colorBlue,colorGrey40));
+Plot(bbbot,"bbbot",IIf(bbbot < Ref(bbbot,-1),colorBlue,colorGrey40));

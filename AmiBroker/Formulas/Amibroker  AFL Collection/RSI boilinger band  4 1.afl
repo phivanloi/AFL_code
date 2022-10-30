@@ -1,0 +1,8 @@
+_SECTION_BEGIN("RSI");
+
+SetChartBkColor( colorBlack ) ;
+A1=RSI(14); 
+Plot(a1,"RSI",colorRed,styleLine);
+Plot(30,"",31,1);
+Plot(70,"",31,1);
+_SECTION_END();  

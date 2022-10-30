@@ -1,0 +1,2 @@
+Plot(HHV(H,12), "Bear Stop",5);
+Plot(LLV(L,12), "Bull Stop",4);

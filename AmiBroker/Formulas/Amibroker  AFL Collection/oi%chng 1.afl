@@ -1,0 +1,8 @@
+_SECTION_BEGIN("Change in Open Interest%");
+x=OpenInt;
+ChangeinOI=(x-Ref(x,-1))*100/Ref(x,-1);
+Plot( ChangeinOI, "ChangeinOI", ParamColor("Color", colorCycle ), ParamStyle( "Style", styleHistogram | styleThick, maskHistogram ) );
+Filter=ChangeinOI;
+AddColumn(ChangeinOI,"ChangeinOI",1.1,colorDefault ,IIf(ChangeinOI>5,colorDarkYellow,colorYellow));
+
+_SECTION_END(); 

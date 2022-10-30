@@ -1,0 +1,150 @@
+Plot( C, "Close", IIf(C>Ref(C,-1),colorCustom9,colorRed),  ParamStyle("Style") | GetPriceStyle() ); 
+
+_SECTION_BEGIN("Bollinger Bands");
+Plot(MA( C, 20 ),"MA20",colorYellow,styleLine|styleThick);
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 20, 2, 100, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorDarkGrey );
+Style = ParamStyle("Style", styleLine | styleNoLabel ) | styleNoLabel;
+Plot( bbt = BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), colorCustom1, Style ); 
+Plot( bbb = BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), colorCustom1, Style ); 
+PlotOHLC( bbt, bbt, bbb, bbb, "", ColorBlend( Color, GetChartBkColor(), 0.1 ), styleThick | styleCloud | styleNoRescale, Null, Null, Null, -1 );
+_SECTION_END();
+
+_SECTION_BEGIN("i");
+/* ICHIMOKU CHART */
+n1 = Param("»ши?оку: пе?иод 1",9,1,200,1); 
+n2 = Param("»ши?оку: пе?иод 2",26,1,400,1); 
+n3 = Param("»ши?оку: пе?иод 3",52,1,600,1); 
+ 
+TenkanSen   =(HHV(H,n1)+LLV(L,n1))/2;            // Tenkan-sen (?енкан-сен) Ц ??о с?еднее значение цены за пе?вый п?о?ежу?ок в?е?ени (?авна (high+low)/2, ?де high и low Ц ?акси?у? и ?ини?у? за пе?иод). 
+KijunSen    =(HHV(H,n2)+LLV(L,n2))/2;            // Kijun-sen ( иджун-сен) Ц ??о с?еднее значение цены за в?о?ой п?о?ежу?ок. 
+ChinkouSpan =Ref(C,-n2);                          // Chinkou Span („икоу спен) - цена зак?ы?и€ ?екуще?о ба?а, сдвину?а€ назад на величину в?о?о?о в?е?енно?о ин?е?вала. 
+Cks         = Close;                             // ??афический Chinkou Span, сдви? назад засче? о??исовки. 
+SenkouSpanA =Ref((KijunSen+TenkanSen)/2,-n2);    // Senkou Span A (—енкоу спен ј) / Up Kumo - се?едина ?асс?о€ни€ ?ежду Tenkan-sen и Kijun-sen, сдвину?ое впе?ед на величину в?о?о?о в?е?енно?о ин?е?вала. 
+SpA         =(KijunSen+TenkanSen)/2;             // ??афический Senkou Span A , сдви? впе?ед засче? о??исовки. 
+SenkouSpanB =Ref((HHV(H,n3)+LLV(L,n3))/2,-n2);   // Senkou Span B (—енкоу спен ¬) / Down Kumo - с?еднее значение цены за ??е?ий в?е?енной ин?е?вал, сдвину?ое впе?ед на величину в?о?о?о в?е?енно?о ин?е?вала. 
+SpB         =(HHV(H,n3)+LLV(L,n3))/2;            // ??афический Senkou Span B, сдви? впе?ед засче? о??исовки. 
+DL = Ref( C, 25 );
+ 
+ 
+Cond1 =  Ref(Close > Max(SenkouSpanA,SenkouSpanB),-1);  //цена выше облака  -- бычье нас??оение 
+Cond2 =  Ref(Close < Min(SenkouSpanA,SenkouSpanB),-1);  //цена ниже облака  -- ?едвежье нас??оение 
+Cond3 =  Ref(Cross(TenkanSen,KijunSen),-1);  //пе?есечение ?енкан и  иджун -- си?нал на покупку 
+Cond4 =  Ref(Cross(KijunSen,TenkanSen),-1);  //пе?есечение ?енкан и  иджун -- си?нал на п?одажу 
+Cond5 =  Ref(Cross(Close,ChinkouSpan ),-1);  //пе?есечение „икоу и цены 
+Cond6 =  Ref(Cross(ChinkouSpan ,Close),-1);  //пе?есечение „икоу и цены 
+Cond7 =  Ref(Cross (Close , Max(SenkouSpanA,SenkouSpanB)),-1);  //цена вы?оди? вве?? из облака  -- си?нал на покупку 
+Cond8 =  Ref(Cross ( Min(SenkouSpanA,SenkouSpanB), Close),-1);  //цена вы?оди? вниз  из облака  -- си?нал на п?одажу 
+Cond9 = Close > TenkanSen AND TenkanSen > KijunSen AND KijunSen > Max(SenkouSpanA,SenkouSpanB); // си?нал ??е? линий вве?? 
+Cond10= Close < TenkanSen AND TenkanSen < KijunSen AND KijunSen < Min(SenkouSpanA,SenkouSpanB); // си?нал ??е? линий вниз 
+RemCond9=ExRem(Cond9,NOT Cond9);                  
+RemCond10=ExRem(Cond10,NOT Cond10); 
+ 
+ColSenk =IIf (Cond1,colorGreen, IIf(Cond2,colorRed,colorLightGrey)); // задае? цве?, если цена выше/ниже/вну??и облака. 
+Flat  =  TenkanSen == Ref(TenkanSen,-1) OR (NOT(Cond1) AND NOT(Cond2)) ; 
+ 
+for( i = 0; i < BarCount; i++ ) //?аск?ашивае? с?едн?? лини? индика?о?а по взаи?о?асположени? и нап?авлени€ движени€ TenkanSen, цены и облака. 
+{ 
+   if (Flat[i]) 
+      ColTenk[i] = colorLightGrey; 
+   else
+   { 
+if (Cond1[i] AND TenkanSen[i] > TenkanSen[i-1]) 
+     ColTenk[i] = colorGreen; 
+if (Cond1[i] AND TenkanSen[i] < TenkanSen[i-1]) 
+     ColTenk[i] = colorRed; 
+if (Cond2[i] AND TenkanSen[i] < TenkanSen[i-1]) 
+     ColTenk[i] = colorRed; 
+if (Cond2[i] AND TenkanSen[i] > TenkanSen[i-1]) 
+     ColTenk[i] = colorGreen; 
+   } 
+} 
+ 
+//PlotShapes(IIf(Cond7, shapeSmallUpTriangle ,shapeNone),colorGreen,0,H,10);              
+//PlotShapes(IIf(Cond8, shapeSmallDownTriangle ,shapeNone),colorRed,0,L,10); 
+//PlotShapes(IIf(Cond3, shapeHollowSmallUpTriangle,shapeNone),colorGreen,0,H,12);              
+//PlotShapes(IIf(Cond4, shapeHollowSmallDownTriangle ,shapeNone),colorRed,0,L,12); 
+//PlotShapes(IIf(Cond5, shapeSmallCircle ,shapeNone),colorGreen,0,H,4);              
+//PlotShapes(IIf(Cond6, shapeSmallCircle + shapePositionAbove ,shapeNone),colorRed,0,L,4); 
+//PlotShapes(IIf(RemCond9 , shapeHollowSquare ,shapeNone),colorGreen,0,H,18);              
+//PlotShapes(IIf(RemCond10, shapeHollowSquare + shapePositionAbove ,shapeNone),colorRed,0,L,18); 
+ 
+//Plot (C,"Close",colorBlack,styleThick); 
+Plot (C,"Bars",colorBlack,styleCandle); 
+Plot (TenkanSen,"Tenkan-sen",colorRed); 
+Plot (KijunSen, "Kijun-sen", colorBlue); 
+Plot (Cks,"Chinkou Span",colorLime, style = styleLine,0,0,-n2); 
+Plot (SpA,"SenkouSpanA",colorOrange,styleDashed,0,0,n2); 
+Plot (SpB,"SenkouSpanB",colorViolet,styleDashed + styleThick,0,0,n2); 
+PlotOHLC (SpA,SpA,SpB,SpB,"Cloud",IIf (SpA > SpB,ColorRGB( 64, 128, 128 ),ColorRGB( 128, 128, 128 )),styleCloud, 10, 10, n2 ); 
+above = IIf(KijunSen>SenkouSpanA AND TenkanSen>SenkouSpanB,1,0);
+within = IIf(KijunSen>SenkouSpanA AND TenkanSen<SenkouSpanB,1,0);
+below = IIf(TenkanSen<SenkouSpanA AND TenkanSen<SenkouSpanB,1,0);
+DK1 = C> SenkouSpanB;
+DK2 = (SpB > SpA);
+DK3 = (SenkouSpanB > SenkouSpanA);
+DK4 = Cross(C, SenkouSpanB) or Cross(C, SenkouSpanA);
+Buy = DK1  AND DK3 AND DK4;
+PlotShapes( shapeUpArrow * Buy ,6,0,L,Offset=-15);
+
+AddColumn(V,"Khoi Luong",1.0);
+AddColumn(Buy,"Break Out Vuot May",True,colorcustom2,colorCustom6);
+//Buy = Cross(TenkanSen,KijunSen) AND (DL>Close);
+//Sell = Cross(KijunSen,TenkanSen) AND (DL<KijunSen);
+//StrongBuy = Buy AND above;
+//MediumBuy = Buy AND within;
+//WeakBuy = Buy AND below;
+//StrongSell = Sell AND below;
+//MediumSell = Sell AND within;
+//WeakSell = Sell AND above;
+
+ 
+//IIf( (StrongBuy),PlotShapes(shapeUpTriangle*StrongBuy,colorGreen),0);
+//IIf( (MediumBuy),PlotShapes(shapeUpArrow*MediumBuy,colorGreen),0);
+//IIf( (WeakBuy),PlotShapes(shapeHollowUpArrow*WeakBuy,colorIndigo),0);
+//IIf( (StrongSell),PlotShapes(shapeDownTriangle*StrongSell,colorRed),0);
+//IIf( (MediumSell),PlotShapes(shapeDownArrow*MediumSell,colorRed),0);
+//IIf( (WeakSell),PlotShapes(shapeHollowDownArrow*WeakSell,colorBrown),0);
+//Plot( 1, "Ribbon", ColTenk, styleOwnScale|styleArea|styleNoLabel, -2, 200 );   // индици?уе? фл?? на TenkanSen. 
+//Plot( 4, "Ribbon", ColSenk, styleOwnScale|styleArea|styleNoLabel, -1, 200 );   // индици?уе? положение цены о?носи?ельно облака
+_SECTION_END();
+_SECTION_BEGIN("Khoi Luong Trung Binh");
+messageboard = ParamToggle("Tat/mo Khoi luong TB","Hien|An",1);
+if (messageboard == 1 )
+{
+HPercent = Param("CHIEU CAO VOL", 20, 1, 100, 1);
+MAV = MA(V, Param("DUONG MAv", 20, 1, 100, 1));
+Vmax =  HighestVisibleValue(V)*100/HPercent;
+Vmin = LowestVisibleValue(V);
+Plot(V, "Volume", IIf( C > O, ParamColor("Up Color", colorGreen ), ParamColor("Down Color", colorRed )), styleHistogram|styleOwnScale, Vmin, Vmax, 0, 0, 2);
+Plot(MAV, "MAV", colorWhite, styleLine|styleOwnScale, Vmin, Vmax, 0, 0, 2);
+}
+_SECTION_END();
+_SECTION_BEGIN("Title");
+messageboard = ParamToggle("Tat Title","Hien|An",1);
+function GetSecondNum()
+{
+Time = Now( 4 );
+Seconds = int( Time % 100 );
+Minutes = int( Time / 100 % 100 );
+Hours = int( Time / 10000 % 100 );
+SecondNum = int( Hours * 60 * 60 + Minutes * 60 + Seconds );
+return SecondNum;
+}
+RequestTimedRefresh( 1 );
+TimeFrame = Interval();
+SecNumber = GetSecondNum();
+SecsLeft	= SecNumber - int( SecNumber / TimeFrame ) * TimeFrame;
+SecsToGo	= TimeFrame - SecsLeft;
+YC=TimeFrameGetPrice("C",inDaily,-1);
+DD=Prec(C-YC,2);
+xx=Prec((DD/YC)*100,2);
+if (messageboard == 1 )
+{
+Title =  EncodeColor(colorCustom12) + "CHI BAO ICHIMOKU" + " - " + EncodeColor(colorYellow)+ FullName()+"("+Name()+") - " + "Hotline :" + EncodeColor(colorRed)+ " 0372.095.129" + EncodeColor(colorYellow)+ " - Website :  "+ EncodeColor(colorRed)+"Nududo.com" + EncodeColor(colorWhite) + " - " + Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +"\n" +EncodeColor(colorWhite) +"Mo cua-"+O+"  "+"Cao-"+H+"  "+"Thap-"+L+"  "+
+"Dong cua-"+C+"  "+ "Khoi Luong = "+ WriteVal(V) + " - " +  EncodeColor(colorYellow)+ "Dem Time: " + EncodeColor(colorCustom6)+ NumToStr( SecsToGo, 1.0, False ) + " / " + NumToStr( TimeFrame, 1.0 ) +" - "+ EncodeColor(colorYellow) + "Gia thay doi: " + EncodeColor(colorCustom6) + DD + " (" + NumToStr( xx, 1.2 )+ "%)";
+}
+_SECTION_END();

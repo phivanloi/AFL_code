@@ -1,0 +1,20 @@
+_SECTION_BEGIN("macd rsi");
+EMA3 = EMA(RSI(14),3);
+ema27 = EMA(RSI(14),27);
+
+diff = ema3-EMA27;
+s_ema = EMA(diff,Optimize("short ema",3,1,20,1));
+L_ema = Ref(EMA(diff,Optimize("short ema",3,1,20,1)),-1);
+Col_rsi = IIf ( s_ema > L_ema,colorBlue,colorRed);
+Plot (s_ema,"diff in rsi3",Col_rsi,styleThick);
+Plot (L_ema,"diff in rsi5",colorYellow,styleThick);
+Plot (0,"",colorWhite,styleThick);
+
+Buy = Cross (L_EMA,s_ema);
+Sell = Cross (s_ema, l_ema);
+Cover = Buy;
+Short = Sell;
+
+PlotShapes (shapeUpTriangle*Buy,colorYellow);
+PlotShapes (shapeDownTriangle*Sell,colorYellow);
+_SECTION_END();

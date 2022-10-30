@@ -1,0 +1,120 @@
+/*
+//       $Archive: /AFL.root/AFL/YofaTrader/Custom/Murrey Math Price Lines.afl.cs $           
+//          $Date: 08.03.29 22:57 $         
+//       $Modtime: 08.03.29 22:52 $       
+//      $Revision: 15 $      
+//      $Workfile: Murrey Math Price Lines.afl.cs $        
+*/
+
+ParamShowLevel=ParamList("Show harmonic levels", "1/8|1/4|1/2", 1 ); 
+ParamShowLabel=ParamStyle("Show harmonic labels", styleNoLabel, styleNoLabel);
+
+if(Status("action") ==1)  //indicator
+{
+    LastVisibleIndex = LastValue(Status("lastvisiblebarindex"));
+    if (LastVisibleIndex > BarCount -1) //to avoid errors is case of cursor is behind the last bar
+	    LastVisibleIndex = BarCount-1;
+    TotalVisibleBars = LastVisibleIndex - LastValue(Status("firstvisiblebarindex")) + 1;
+}
+else
+{
+    LastVisibleIndex = BarCount -1;
+    TotalVisibleBars = BarCount;
+}
+
+HHScreen = HHV(High, TotalVisibleBars);
+LLScreen = LLV(Low,  TotalVisibleBars);
+PRScreen = HHScreen[LastVisibleIndex] - LLScreen[LastVisibleIndex]; //Price range
+
+PriceRangeVisible = PRScreen * 1.1;
+MiddleVisible = (HHScreen[LastVisibleIndex] + LLScreen[LastVisibleIndex]) /2;
+HighestVisible= MiddleVisible + PriceRangeVisible / 2;
+LowestVisible = MiddleVisible - PriceRangeVisible / 2;
+
+SquareBase = 0.1953125;
+
+if (HighestVisible > 0.390625)
+    { SquareBase = 1.5625; }
+
+if (HighestVisible > 1.5625)
+    { SquareBase = 3.125; }
+	
+if (HighestVisible > 3.125)
+    { SquareBase = 6.25; }
+	
+if (HighestVisible > 6.25)
+    { SquareBase = 12.5; }
+    
+if (HighestVisible > 25)
+    { SquareBase = 100; }
+        	
+if (HighestVisible > 250)
+    { SquareBase = 1000; }
+	
+if (HighestVisible > 2500)
+    { SquareBase = 10000; }
+	
+if (HighestVisible > 25000)
+    { SquareBase = 100000; }
+
+ShowLevel = 1;
+
+PriceStep = SquareBase / 8;
+while ( PriceRangeVisible / 4 <= PriceStep AND ShowLevel < 4)
+{
+    PriceStep = PriceStep / 8;
+    ShowLevel++;
+}
+
+//Lowest,highest harmonic value to show on the panel
+LowerValue  = floor(LowestVisible  / PriceStep) * PriceStep;
+HigherValue = ceil(HighestVisible / PriceStep) * PriceStep;
+
+Octave1PriceStep = SquareBase / 8; 
+Octave2PriceStep = SquareBase / 64 ;
+Octave3PriceStep = SquareBase / 512;
+
+Harmonic = LowerValue;
+
+//iterate from low to high values 
+while( Harmonic <= HigherValue )
+{
+    style = styleDashed; // 1/8, 3/8, 5/8, 7/8 lines of any level
+    color = colorGreen;  //1/8, 7/8
+    if ((Harmonic / PriceStep) % 8 == 1 OR (Harmonic / PriceStep) % 8 == 7)
+        color = colorYellow; // 3/8, 5/8
+    if (ParamShowLevel != "1/8")
+        style = styleNoLine;
+        
+    if ((Harmonic / PriceStep) % 2 == 0) // 1/4, 3/4 lines of any level
+    {
+        style = styleDashed;
+        color = colorPink;
+        if (ParamShowLevel == "1/2")
+            style = styleNoLine;
+    }
+     
+    if ((Harmonic / PriceStep) % 4 == 0) // 1/2 line of any level
+    {
+        style = styleDashed;
+        color = colorBlue;
+    }
+    
+    if ((Harmonic / PriceStep) % 8 == 0) // 1/1 line of Baby level
+    {
+        color = colorBlue;
+        style = styleLine;
+        if ((Harmonic / Octave3PriceStep) % 64 == 0) // 1/1 line of Minor level 
+        {
+             style = styleThick; // 1/1 /Level Minor
+        }
+    }
+    
+    if (style != styleNoLine)  //if there is a line to plot... (avoid printing unused labels)
+    {
+	    style = style + ParamShowLabel;
+        Plot( Harmonic, "", color, style);
+    }
+    
+    Harmonic = Harmonic + PriceStep;
+}

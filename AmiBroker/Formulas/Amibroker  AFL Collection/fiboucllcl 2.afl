@@ -1,0 +1,12 @@
+_SECTION_BEGIN("fiboucllcl");
+TimeFrameSet(inDaily);
+ph=Ref(H,-1);
+pl=Ref(L,-1);
+pc=Ref(C,-1);
+ucl=pc+((ph-pl)*1.38);
+Lcl=pc-((ph-pl)*0.62);
+Plot( ucl, _DEFAULT_NAME(), ParamColor("Color", colorCycle ), ParamStyle("Style") );
+Plot( Lcl, _DEFAULT_NAME(), ParamColor("Color", colorCycle ), ParamStyle("Style") );
+_SECTION_END();
+
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 

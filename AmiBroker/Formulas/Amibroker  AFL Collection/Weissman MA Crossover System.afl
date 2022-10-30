@@ -1,0 +1,30 @@
+x = Ref( MA (C,9),-1);
+y = Ref( MA (C,26),-1);
+
+Buy=Cross(x,y);
+PlotShapes(shapeUpArrow*Buy,colorGreen);
+Sell=Cross(y,x);
+PlotShapes(shapeDownArrow*Sell,colorRed);
+
+
+Plot( Close, "Price", IIf(Close > Open, colorGreen, colorRed), styleBar);
+
+Plot( MA (C, 9), "MA-9", colorRed);
+Plot( MA (C, 26), "MA-26", colorBlue);
+
+Filter = Buy OR Sell;
+
+AddColumn( Buy, "Buy", 1);
+AddColumn(Sell, "Sell", 1);
+AddColumn(Close,"Close",1.2);
+AddColumn(Volume,"Volume",1.0);
+
+_SECTION_BEGIN("Volume");
+Plot( Volume, _DEFAULT_NAME(), ParamColor("Color", colorLavender ), styleNoTitle | ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick | styleNoLabel, maskHistogram  ), 2 );
+_SECTION_END();
+
+_SECTION_BEGIN("Trending Ribbon");
+uptrend=PDI()>MDI()AND Signal()<MACD();
+downtrend=MDI()>PDI()AND Signal()>MACD();
+Plot( 2,"", IIf( uptrend, colorGreen, IIf( downtrend, colorRed, 0 )), /* choose color */styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+_SECTION_END();

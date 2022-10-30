@@ -1,0 +1,7 @@
+_SECTION_BEGIN("TRIX");
+//Plot( Trix( 7 ), "", colorWhite, styleThick );
+Plot( Trix( 3 ), "", colorRed, styleThick );
+Plot(EMA(Trix(3),3),"",colorBlue,styleThick+styleDots);
+//Plot(EMA(Trix(3),7),"",colorWhite,styleThick+styleDots);
+
+//Plot( Trix( 4 ), "", colorBlue, styleThick );

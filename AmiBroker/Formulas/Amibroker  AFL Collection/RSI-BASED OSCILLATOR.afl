@@ -1,0 +1,18 @@
+function PIDosc() 
+    { 
+     sma200 = MA(C,200); 
+     bull = C >sma200; 
+     return IIf( bull, (RSI(14)-35)/(85-35), (RSI(14)-20)/(70-20) )*100; 
+    } 
+    
+    pid = PIDOsc(); 
+    
+    Buy = Cross( pid, 0 ); 
+    Sell = Cross( 100, pid ); 
+    
+    Plot( C, "Price", colorBlack, styleBar ); 
+    
+    PlotShapes( Buy * shapeUpArrow, colorBlue ); 
+    PlotShapes( Sell * shapeDownArrow, colorRed );
+    
+

@@ -1,0 +1,508 @@
+_SECTION_BEGIN("shiree cloud CAMS");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorPink ), styleNoTitle | styleCandle|styleNoLabel); 
+
+//////////////////////////////////////////////////  DP TOGGLE ///////////////////////////////////////////////////////
+
+Show_Prev = ParamToggle( "Display Pivots", "No|Yes", 1);
+ 
+//---- pivot points
+DayH = TimeFrameGetPrice("H", inDaily, -1);		// yesterdays high
+DayL = TimeFrameGetPrice("L", inDaily, -1);		 	// low
+DayC = TimeFrameGetPrice("C", inDaily, -1);		// close
+DayO = TimeFrameGetPrice("O", inDaily);			// current day open
+Today = LastValue(Day( ) );
+
+if ( True )
+{
+R = DayH - DayL;	  // range
+PP = (DayH + DayL + DayO + DayO) / 4 ;
+R4 = (R * 1.1/2)+DayC;
+R3 = (R * 1.1/4)+DayC;
+S3 = DayC-(R * 1.1/4);
+S4 = DayC- (R * 1.1/2);
+}
+
+
+
+R6 = (DayH / DayL) * DayC * 1.002;
+R5 = (DayH / DayL) * DayC;
+//R4 = (((DayH / DayL) + 0.83) / 1.83) * DayC;
+//R3 = ( ( (DayH / DayL) + 2.66) / 3.66) * DayC;
+
+//R3 = ( ( (DayH / DayL) + 2.66) / 3.66) * DayC;
+//R2 = ( ( (DayH / DayL) + 4.5) / 5.5) * DayC;
+//R1 = ( ( (DayH / DayL) + 10) / 11) * DayC;
+ 
+//S1 = (2- ( ( (DayH / DayL) + 10) / 11)) * DayC;
+//S2 = (2-( (DayH / DayL) + 4.5) / 5.5) * DayC;
+//S3 = (2-(( DayH / DayL) + 2.66) / 3.66) * DayC;
+//S4 = (2-( (DayH / DayL) + 0.83) / 1.83) * DayC;
+S5 = (2-( DayH / DayL)) * DayC;
+S6 = (2-( DayH / DayL)) * DayC * 0.998;
+
+
+
+//PlotOHLC( 0, Prev_High ,Prev_Low ,Prev_Low, "", HLColor, styleCloud|styleNoLabel);
+/////////////////////////////////////////////////////////////////////////////////////////
+R43=R4-R3;
+RA1=R3+0.01*R43;
+RA2=R3+0.02*R43;
+RA3=R3+0.03*R43;
+RA4=R3+0.04*R43;
+RA5=R3+0.05*R43;
+RA6=R3+0.06*R43;
+RA7=R3+0.07*R43;
+RA8=R3+0.08*R43;
+RA9=R3+0.09*R43;
+RA10=R3+0.10*R43;
+RA11=R3+0.11*R43;
+RA12=R3+0.12*R43;
+RA13=R3+0.13*R43;
+RA14=R3+0.14*R43;
+RA15=R3+0.15*R43;
+RA16=R3+0.16*R43;
+RA17=R3+0.17*R43;
+RA18=R3+0.18*R43;
+RA19=R3+0.19*R43;
+RA20=R3+0.20*R43;
+
+RA21=R3+0.21*R43;
+RA22=R3+0.22*R43;
+RA23=R3+0.23*R43;
+RA24=R3+0.24*R43;
+RA25=R3+0.25*R43;
+RA26=R3+0.26*R43;
+RA27=R3+0.27*R43;
+RA28=R3+0.28*R43;
+RA29=R3+0.29*R43;
+RA30=R3+0.30*R43;
+RA31=R3+0.31*R43;
+RA32=R3+0.32*R43;
+RA33=R3+0.33*R43;
+RA34=R3+0.34*R43;
+RA35=R3+0.35*R43;
+RA36=R3+0.36*R43;
+RA37=R3+0.37*R43;
+RA38=R3+0.38*R43;
+RA39=R3+0.39*R43;
+RA40=R3+0.40*R43;
+/////////////////////////////////////////
+
+RA41=R3+0.41*R43;
+RA42=R3+0.42*R43;
+RA43=R3+0.43*R43;
+RA44=R3+0.44*R43;
+RA45=R3+0.45*R43;
+RA46=R3+0.46*R43;
+RA47=R3+0.47*R43;
+RA48=R3+0.48*R43;
+RA49=R3+0.49*R43;
+RA50=R3+0.50*R43;
+RA51=R3+0.51*R43;
+RA52=R3+0.52*R43;
+RA53=R3+0.53*R43;
+RA54=R3+0.54*R43;
+RA55=R3+0.55*R43;
+RA56=R3+0.56*R43;
+RA57=R3+0.57*R43;
+RA58=R3+0.58*R43;
+RA59=R3+0.59*R43;
+RA60=R3+0.60*R43;
+
+RA61=R3+0.61*R43;
+RA62=R3+0.62*R43;
+RA63=R3+0.63*R43;
+RA64=R3+0.64*R43;
+RA65=R3+0.65*R43;
+RA66=R3+0.66*R43;
+RA67=R3+0.67*R43;
+RA68=R3+0.68*R43;
+RA69=R3+0.69*R43;
+RA70=R3+0.70*R43;
+RA71=R3+0.71*R43;
+RA72=R3+0.72*R43;
+RA73=R3+0.73*R43;
+RA74=R3+0.74*R43;
+RA75=R3+0.75*R43;
+RA76=R3+0.76*R43;
+RA77=R3+0.77*R43;
+RA78=R3+0.78*R43;
+RA79=R3+0.79*R43;
+RA80=R3+0.80*R43;
+
+RA81=R3+0.81*R43;
+RA82=R3+0.82*R43;
+RA83=R3+0.83*R43;
+RA84=R3+0.84*R43;
+RA85=R3+0.85*R43;
+RA86=R3+0.86*R43;
+RA87=R3+0.87*R43;
+RA88=R3+0.88*R43;
+RA89=R3+0.89*R43;
+RA90=R3+0.90*R43;
+RA91=R3+0.91*R43;
+RA92=R3+0.92*R43;
+RA93=R3+0.93*R43;
+RA94=R3+0.94*R43;
+RA95=R3+0.95*R43;
+RA96=R3+0.96*R43;
+RA97=R3+0.97*R43;
+RA98=R3+0.98*R43;
+RA99=R3+0.99*R43;
+
+
+//ColorR=ColorRGB(150,20,100);
+ColorR=ParamColor("R", ColorRGB(150,20,100));
+////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+
+
+S43=S3-S4;
+SA1=S4+0.01*S43;
+SA2=S4+0.02*S43;
+SA3=S4+0.03*S43;
+SA4=S4+0.04*S43;
+SA5=S4+0.05*S43;
+SA6=S4+0.06*S43;
+SA7=S4+0.07*S43;
+SA8=S4+0.08*S43;
+SA9=S4+0.09*S43;
+SA10=S4+0.1*S43;
+SA11=S4+0.11*S43;
+SA12=S4+0.12*S43;
+SA13=S4+0.13*S43;
+SA14=S4+0.14*S43;
+SA15=S4+0.15*S43;
+SA16=S4+0.16*S43;
+SA17=S4+0.17*S43;
+SA18=S4+0.18*S43;
+SA19=S4+0.19*S43;
+SA20=S4+0.20*S43;
+
+SA21=S4+0.21*S43;
+SA22=S4+0.22*S43;
+SA23=S4+0.23*S43;
+SA24=S4+0.24*S43;
+SA25=S4+0.25*S43;
+SA26=S4+0.26*S43;
+SA27=S4+0.27*S43;
+SA28=S4+0.28*S43;
+SA29=S4+0.29*S43;
+SA30=S4+0.30*S43;
+SA31=S4+0.31*S43;
+SA32=S4+0.32*S43;
+SA33=S4+0.33*S43;
+SA34=S4+0.34*S43;
+SA35=S4+0.35*S43;
+SA36=S4+0.36*S43;
+SA37=S4+0.37*S43;
+SA38=S4+0.38*S43;
+SA39=S4+0.39*S43;
+SA40=S4+0.40*S43;
+/////////////////////////////////////////
+
+SA41=S4+0.41*S43;
+SA42=S4+0.42*S43;
+SA43=S4+0.43*S43;
+SA44=S4+0.44*S43;
+SA45=S4+0.45*S43;
+SA46=S4+0.46*S43;
+SA47=S4+0.47*S43;
+SA48=S4+0.48*S43;
+SA49=S4+0.49*S43;
+SA50=S4+0.50*S43;
+SA51=S4+0.51*S43;
+SA52=S4+0.52*S43;
+SA53=S4+0.53*S43;
+SA54=S4+0.54*S43;
+SA55=S4+0.55*S43;
+SA56=S4+0.56*S43;
+SA57=S4+0.57*S43;
+SA58=S4+0.58*S43;
+SA59=S4+0.59*S43;
+SA60=S4+0.60*S43;
+
+SA61=S4+0.61*S43;
+SA62=S4+0.62*S43;
+SA63=S4+0.63*S43;
+SA64=S4+0.64*S43;
+SA65=S4+0.65*S43;
+SA66=S4+0.66*S43;
+SA67=S4+0.67*S43;
+SA68=S4+0.68*S43;
+SA69=S4+0.69*S43;
+SA70=S4+0.70*S43;
+SA71=S4+0.71*S43;
+SA72=S4+0.72*S43;
+SA73=S4+0.73*S43;
+SA74=S4+0.74*S43;
+SA75=S4+0.75*S43;
+SA76=S4+0.76*S43;
+SA77=S4+0.77*S43;
+SA78=S4+0.78*S43;
+SA79=S4+0.79*S43;
+SA80=S4+0.80*S43;
+
+SA81=S4+0.81*S43;
+SA82=S4+0.82*S43;
+SA83=S4+0.83*S43;
+SA84=S4+0.84*S43;
+SA85=S4+0.85*S43;
+SA86=S4+0.86*S43;
+SA87=S4+0.87*S43;
+SA88=S4+0.88*S43;
+SA89=S4+0.89*S43;
+SA90=S4+0.90*S43;
+SA91=S4+0.91*S43;
+SA92=S4+0.92*S43;
+SA93=S4+0.93*S43;
+SA94=S4+0.94*S43;
+SA95=S4+0.95*S43;
+SA96=S4+0.96*S43;
+SA97=S4+0.97*S43;
+SA98=S4+0.98*S43;
+SA99=S4+0.99*S43;
+
+
+ColorS=ParamColor("S", ColorRGB(20,150,100));
+
+
+//HLColor = colorPaleBlue;
+
+if(Show_Prev)
+
+
+{
+Plot(IIf(Today == Day(),PP, Null), "PP", colorWhite,styleDots|styleThick|styleNoRescale);
+
+Plot(IIf(Today == Day(),R5, Null), "R5", ColorR,styleDots|styleThick|styleNoRescale);
+Plot(IIf(Today == Day(),R4, Null), "R4", ColorR,styleLine|styleThick|styleNoRescale);
+
+Plot(IIf(Today == Day(),RA1, Null), "RA1", colorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA2, Null), "RA2", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA3, Null), "RA3", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA4, Null), "RA4", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA5, Null), "RA5", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA6, Null), "RA6", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA7, Null), "RA7", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA8, Null), "RA8", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA9, Null), "RA9", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA10, Null), "RA10", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+
+Plot(IIf(Today == Day(),RA11, Null), "RA11", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA12, Null), "RA12", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA13, Null), "RA13", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA14, Null), "RA14", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA15, Null), "RA15", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA16, Null), "RA16", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA17, Null), "RA17", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA18, Null), "RA18", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA19, Null), "RA19", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA20, Null), "RA20", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+
+Plot(IIf(Today == Day(),RA21, Null), "RA21", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA22, Null), "RA22", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA23, Null), "RA23", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA24, Null), "RA24", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA25, Null), "RA25", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA26, Null), "RA26", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA27, Null), "RA27", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA28, Null), "RA28", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA29, Null), "RA29", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA30, Null), "RA30", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA31, Null), "RA31", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA32, Null), "RA32", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA33, Null), "RA33", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA34, Null), "RA34", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA35, Null), "RA35", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA36, Null), "RA36", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA37, Null), "RA37", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA38, Null), "RA38", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA39, Null), "RA39", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA39, Null), "RA39", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA40, Null), "RA40", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+
+
+Plot(IIf(Today == Day(),RA41, Null), "RA41", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA42, Null), "RA42", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA43, Null), "RA43", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA44, Null), "RA44", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA45, Null), "RA45", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA46, Null), "RA46", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA47, Null), "RA47", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA48, Null), "RA48", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA49, Null), "RA49", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA50, Null), "RA50", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA51, Null), "RA51", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA52, Null), "RA52", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA53, Null), "RA53", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA54, Null), "RA54", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA55, Null), "RA55", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA56, Null), "RA56", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA57, Null), "RA57", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA58, Null), "RA58", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA59, Null), "RA59", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA60, Null), "RA60", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA61, Null), "RA61", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA62, Null), "RA62", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA63, Null), "RA63", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA64, Null), "RA64", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA65, Null), "RA65", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA66, Null), "RA66", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA67, Null), "RA67", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA68, Null), "RA68", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA69, Null), "RA69", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA70, Null), "RA70", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+
+Plot(IIf(Today == Day(),RA71, Null), "RA71", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA72, Null), "RA72", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA73, Null), "RA73", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA74, Null), "RA74", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA75, Null), "RA75", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA76, Null), "RA76", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA77, Null), "RA77", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA78, Null), "RA78", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA79, Null), "RA79", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA80, Null), "RA80", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA81, Null), "RA81", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA82, Null), "RA82", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA83, Null), "RA83", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA84, Null), "RA84", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA85, Null), "RA85", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA86, Null), "RA86", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA87, Null), "RA87", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA88, Null), "RA88", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA89, Null), "RA89", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA90, Null), "RA90", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA91, Null), "RA91", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA92, Null), "RA92", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA93, Null), "RA93", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA94, Null), "RA94", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA95, Null), "RA95", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA96, Null), "RA96", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA97, Null), "RA97", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA98, Null), "RA98", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),RA99, Null), "RA99", ColorR,styleLine|styleThick|styleNoRescale|styleNoLabel);
+
+
+Plot(IIf(Today == Day(),R3, Null), "R3", ColorR,styleLine|styleThick|styleNoRescale);
+
+
+
+Plot(IIf(Today == Day(),S3, Null), "S3", ColorS,styleLine|styleThick|styleNoRescale);
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+Plot(IIf(Today == Day(),SA1, Null), "SA1", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA2, Null), "SA2", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA3, Null), "SA3", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA4, Null), "SA4", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA5, Null), "SA5", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA6, Null), "SA6", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA7, Null), "SA7", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA8, Null), "SA8", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA9, Null), "SA9", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA10, Null), "SA10", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA11, Null), "SA11", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA12, Null), "SA12", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA13, Null), "SA13", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA14, Null), "SA14", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA15, Null), "SA15", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA16, Null), "SA16", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA17, Null), "SA17", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA18, Null), "SA18", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA19, Null), "SA19", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA20, Null), "SA20", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+
+Plot(IIf(Today == Day(),SA21, Null), "SA21", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA22, Null), "SA22", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA23, Null), "SA23", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA24, Null), "SA24", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA25, Null), "SA25", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA26, Null), "SA26", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA27, Null), "SA27", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA28, Null), "SA28", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA29, Null), "SA29", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA30, Null), "SA30", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA31, Null), "SA31", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA32, Null), "SA32", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA33, Null), "SA33", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA34, Null), "SA34", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA35, Null), "SA35", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA36, Null), "SA36", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA37, Null), "SA37", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA38, Null), "SA38", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA39, Null), "SA39", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA40, Null), "SA40", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+
+
+Plot(IIf(Today == Day(),SA41, Null), "SA41", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA42, Null), "SA42", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA43, Null), "SA43", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA44, Null), "SA44", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA45, Null), "SA45", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA46, Null), "SA46", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA47, Null), "SA47", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA48, Null), "SA48", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA49, Null), "SA49", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA50, Null), "SA50", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA51, Null), "SA51", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA52, Null), "SA52", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA53, Null), "SA53", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA54, Null), "SA54", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA55, Null), "SA55", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA56, Null), "SA56", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA57, Null), "SA57", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA58, Null), "SA58", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA59, Null), "SA59", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA60, Null), "SA60", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+
+Plot(IIf(Today == Day(),SA61, Null), "SA61", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA62, Null), "SA62", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA63, Null), "SA63", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA64, Null), "SA64", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA65, Null), "SA65", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA66, Null), "SA66", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA67, Null), "SA67", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA68, Null), "SA68", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA69, Null), "SA69", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA70, Null), "SA70", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA71, Null), "SA71", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA72, Null), "SA72", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA73, Null), "SA73", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA74, Null), "SA74", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA75, Null), "SA75", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA76, Null), "SA76", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA77, Null), "SA77", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA78, Null), "SA78", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA79, Null), "SA79", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA80, Null), "SA80", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+
+Plot(IIf(Today == Day(),SA81, Null), "SA81", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA82, Null), "SA82", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA83, Null), "SA83", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA84, Null), "SA84", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA85, Null), "SA85", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA86, Null), "SA86", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA87, Null), "SA87", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA88, Null), "SA88", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA89, Null), "SA89", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA90, Null), "SA90", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA91, Null), "SA91", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA92, Null), "SA92", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA93, Null), "SA93", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA94, Null), "SA94", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA95, Null), "SA95", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA96, Null), "SA96", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA97, Null), "SA97", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA98, Null), "SA98", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+Plot(IIf(Today == Day(),SA99, Null), "SA99", ColorS,styleLine|styleThick|styleNoRescale|styleNoLabel);
+
+
+
+
+Plot(IIf(Today == Day(),S4, Null), "S4", ColorS,styleLine|styleThick|styleNoRescale );
+Plot(IIf(Today == Day(),S5, Null), "S5", ColorS,styleDots|styleThick|styleNoRescale);}
+
+
+_SECTION_END();

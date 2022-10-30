@@ -1,0 +1,2547 @@
+A32,Cong ty co phan 32
+AAA,Cong ty Co phan Nhua An Phat Xanh
+AAAI,CTCP Bao hiem AAA
+AACORP,CTCP Xay dung Kien truc AA
+AAM,Cong ty Co phan Thuy san Mekong
+AAS,Cong ty Co phan Chung Khoan Smart Invest
+AAT,Cong ty Co phan Tien Son Thanh Hoa
+AAUS,Cong ty Co phan Chung khoan A Au
+AAV,Cong ty Co phan Viet Tien Son Dia oc
+ABB,Ngan hang Thuong mai co phan An Binh
+ABC,Cong ty co phan Truyen thong VMG
+ABF,Cong ty co phan Quan ly quy dau tu Chung khoan An Binh
+ABI,Cong ty Co phan Bao hiem Ngan hang Nong nghiep
+ABR,Cong ty Co phan Dau tu Nhan hieu Viet
+ABS,Cong ty co phan Dich vu Nong nghiep Binh Thuan
+ABT,Cong ty Co phan Xuat nhap khau Thuy san Ben Tre
+AC4,Cong ty Co phan ACC - 244
+ACB,Ngan hang Thuong mai Co phan A Chau
+ACBC,Cong ty TNHH MTV Quan ly Quy ACB (ACBC)
+ACBS,Cong ty TNHH Chung khoan ACB
+ACC,Cong ty Co phan Dau tu va Xay dung Binh Duong ACC
+ACCBQP,Tong Cong ty Xay dung Cong trinh Hang khong
+ACE,Cong ty Co phan Be tong ly tam An Giang
+ACECOOK,CTCP Acecook Viet Nam
+ACG,Cong ty Co phan Go An Cuong
+ACL,Cong ty co phan Xuat nhap khau Thuy san Cuu Long An Giang
+ACM,CTCP Tap doan Khoang san A Cuong
+ACS,Cong ty Co phan Xay lap Thuong mai 2
+ACV,Tong cong ty Cang hang khong Viet Nam - CTCP
+ADC,Cong ty Co phan Mi thuat va Truyen thong
+ADG,Cong ty co phan Clever Group
+ADP,Cong ty Co phan Son A Dong
+ADS,Cong ty co phan Damsan
+AFC,Cong ty Co phan Nong Lam Nghiep Binh Duong
+AFM,Cong ty Co phan Quan ly quy AIC
+AFX,Cong ty Co phan Xuat nhap khau Nong san Thuc pham An Giang
+AG1,Cong ty Co phan 28.1
+AGC,Cong ty Co phan Ca phe An Giang
+AGD,Cong ty Co phan Go Dang
+AGF,Cong ty Co phan Xuat nhap khau Thuy san An Giang
+AGG,Cong ty Co phan Dau tu va Phat trien Bat dong san An Gia
+AGM,Cong ty co phan Xuat nhap khau An Giang
+AGP,Cong ty co phan Duoc pham Agimexpharm
+AGR,Cong ty Co phan Chung khoan Agribank
+AGRIMECO,Tong Cong ty Co dien Xay dung - CTCP
+AGRIMEX,CTCP - Tong Cong ty Vat tu nong nghiep Nghe An
+AGTEX28,Cong TNHH MTV Tong Cong ty 28
+AGX,Cong ty co phan Thuc pham Nong san Xuat khau Sai Gon
+AIC,Cong ty co phan Bao hiem Hang khong
+AJINOMOTO,Cong ty Ajinomoto Viet Nam
+ALC,CTCP Au Lac
+ALP,Cong ty Co phan Dau tu Alphanam
+ALSX,CTCP Giao nhan Kho van Hang khong
+ALT,Cong ty Co phan Van hoa Tan Binh
+ALV,Cong ty Co phan Dau tu phat trien Ha tang ALV
+AMC,Cong ty co phan Khoang san A Chau
+AMD,Cong ty co phan Dau tu va Khoang san FLC Stone
+AME,Cong ty Co phan Alphanam E&C
+AMP,Cong ty Co phan Armephaco
+AMS,Cong ty Co phan Co khi xay dung AMECC
+AMV,CTCP San xuat Kinh doanh Duoc va Trang thiet bi Y te Viet My
+ANBINHSEC,Cong ty co phan Chung khoan An Binh
+ANC11601,Trai Phieu Cong ty Co phan Dinh duong Nong nghiep Quoc te
+ANDONG,CTCP Dau tu An Dong
+ANGIANG,Cong ty Co phan Moi truong Do thi An Giang
+ANLONG,CTCP Thuc pham An Long
+ANOVA,Tap doan Anova
+ANPHATCAPITAL,Cong ty Co phan Quan ly quy dau tu An Phat
+ANPHONG,CTCP Dau tu An Phong
+ANT,CTCP Rau qua Thuc pham An Giang
+ANV,Cong ty Co phan Nam Viet
+ANZBANK,ANZ Viet Nam (ANZVL)
+APATIT,Cong ty TNHH MTV Apatit Viet Nam
+APC,Cong ty Co phan Chieu xa An Phu
+APF,Cong ty Co phan Nong san thuc pham Quang Ngai
+APG,Cong ty Co phan Chung khoan APG
+APH,Cong ty Co phan Tap doan An Phat Holdings
+API,Cong ty Co phan Dau tu Chau A - Thai Binh Duong
+APL,CTCP Co khi va Thiet bi ap luc - VVMI
+APP,Cong ty Co phan Phat trien Phu gia va San pham Dau mo
+APROMACO,CTCP Vat tu nong san
+APS,Cong ty Co phan Chung khoan Chau A – Thai Binh Duong
+APSC,Cong ty Co phan Chung khoan ALPHA
+APT,CTCP Kinh doanh Thuy Hai San Sai Gon
+AQN,Cong ty co phan 28 Quang Ngai
+ARM,Cong ty Co phan Xuat nhap khau Hang khong
+ART,Cong ty Co phan Chung khoan BOS
+ARTEXPORT,Cong ty Co phan Xuat nhap khau Thu cong My nghe
+ASA,Cong ty co phan Tap doan ASA
+ASC,Cong ty Co phan Chung khoan ASC
+ASCH,Cong ty Co phan Hoa chat A Chau
+ASD,Cong ty Co phan Song Da Ha Noi
+ASEANSF,Asean Smallcap Fund
+ASG,Co phieu Cong ty Co phan Tap doan ASG
+ASIAFOOD,CTCP Thuc pham A Chau
+ASIAGF,Quy dau tu tang truong ACB
+ASM,Cong ty Co phan Tap doan Sao Mai
+ASP,Cong ty Co phan Tap doan Dau khi An Pha
+AST,Cong ty Co phan Dich vu Hang khong Taseco
+ATA,Cong ty Co phan NTACO
+ATB,Cong ty Co phan An Thinh
+ATD,Cong ty co phan 28 Da Nang
+ATG,Cong ty Co phan An Truong An
+ATS,Cong ty co phan Suat an cong nghiep Atesco
+ATSC,Cong ty Co phan Chung khoan An Thanh
+AUM,CTCP Vinacafe Son Thanh
+AVC,Cong ty co phan Thuy dien A Vuong
+AVF,Cong ty Co phan Viet An
+AVG,CTCP Nghe nhin Toan cau
+AVS,Cong ty Co phan Chung khoan Au Viet
+B82,Cong ty Co phan 482
+BAB,Ngan hang Thuong mai co phan Bac A
+BAL,Cong ty co phan Bao bi Bia – Ruou – Nuoc giai khat
+BAM,CTCP Khoang san va Luyen kim Bac A
+BAS,Cong ty Co phan Basa
+BASON,Tong Cong ty Ba Son
+BAX,Cong ty Co phan Thong Nhat
+BBC,Cong ty Co phan Bibica
+BBH,CTCP Bao bi Hoang Thach
+BBM,Cong ty Co phan Bia Ha Noi - Nam Dinh
+BBS,Cong ty co phan VICEM Bao bi But Son
+BBT,Cong ty Co phan Bong Bach Tuyet
+BCA,Cong ty co phan B.C.H
+BCB,Cong ty co phan 397
+BCC,Cong ty Co phan Xi mang Bim Son
+BCE,Cong ty Co phan Xay dung va Giao thong Binh Duong
+BCF,Cong ty Co phan Thuc pham Bich Chi
+BCG,Cong ty co phan Bamboo Capital
+BCI,Cong ty Co phan Dau tu Xay dung Binh Chanh
+BCM,Tong Cong ty Dau tu va phat trien Cong nghiep - CTCP
+BCP,Cong ty co phan Duoc Becamex
+BCV,CTCP Du lich va Thuong mai Bang Giang Cao Bang - Vimico
+BDB,Cong ty Co phan Sach va Thiet bi Binh Dinh
+BDC,Tong Cong ty Xay dung Bach Dang - CTCP
+BDF,Cong ty co phan Giay Binh Dinh
+BDG,CTCP May mac Binh Duong
+BDP,Cong ty Co phan Biet thu va Khach san bien Dong Phuong
+BDT,Cong ty Co phan Xay lap va Vat lieu Xay dung Dong Thap
+BDW,Cong ty co phan Cap thoat nuoc Binh Dinh
+BED,Cong ty Co phan Sach va Thiet bi truong hoc Da Nang
+BEL,CTCP Dien tu Bien Hoa
+BENTHANH,Tong Cong ty Ben Thanh - Cong ty TNHH MTV
+BESRA,Cong ty TNHH Besra Viet Nam
+BETA,Cong ty Co phan Chung khoan BETA
+BFC,Cong ty co phan Phan bon Binh Dien
+BFI,Cong ty co phan Dau tu tai chinh BIDV
+BGM,Cong ty Co phan Khai thac va Che bien Khoang san Bac Giang
+BGW,Cong ty Co phan Nuoc sach Bac Giang
+BHA,Cong ty Co phan Thuy dien Bac Ha
+BHC,Cong ty Co phan Be tong Bien Hoa
+BHG,Cong ty co phan Che Bien Ho
+BHK,Cong ty Co phan Bia Ha Noi - Kim Bai
+BHN,Tong CTCP Bia - Ruou - Nuoc giai khat Ha Noi
+BHP,Cong ty Co phan Bia Ha Noi - Hai Phong
+BHS,Cong ty Co phan Duong Bien Hoa
+BHT,Cong ty Co phan Dau tu Xay dung Bach Dang TMC
+BHV,Cong ty Co phan Viglacera Ba Hien
+BIANFISHCO,Cong ty co phan Thuy san Binh An
+BIC,Tong Cong ty Co phan Bao hiem Ngan hang Dau tu va phat trien Viet Nam
+BID,Ngan hang Thuong mai co phan Dau tu va Phat trien Viet Nam
+BII,Cong ty co phan Louis Land
+BIMGROUP,Cong ty TNHH Dau tu Phat trien San xuat Ha Long
+BIO,Cong ty co phan Vac xin va Sinh pham Nha Trang
+BITAGCO,Cong ty Co phan Dich vu Nong nghiep Binh Thuan
+BITEXCO,Cong ty TNHH Tap doan Bitexco
+BITIS,Cong ty TNHH San xuat hang tieu dung Binh Tien
+BJC,Cong Ty Co Phan VRG - Bao Loc
+BKC,Cong ty Co phan Khoang san Bac Kan
+BKG,Cong ty Co phan Dau tu BKG Viet Nam
+BKH,Cong ty co phan Banh Mut Keo Ha Noi
+BLF,Cong ty Co phan Thuy san Bac Lieu
+BLI,Tong Cong ty co phan Bao hiem Bao Long
+BLN,CTCP Van tai va Dich vu Lien Ninh
+BLT,Cong ty Co phan Luong thuc Binh Dinh
+BLU,Trung tam Dich vu Do thi tinh Bac Lieu
+BLW,Cong ty co phan Cap nuoc Bac Lieu
+BM9,CTCP Dau tu Xay dung 319 Mien Nam
+BMC,Cong ty co phan Khoang san Binh Dinh
+BMD,Cong ty Co phan Moi truong va Dich vu do thi Binh Thuan
+BMF,Cong ty co phan Vat lieu Xay dung va Chat dot Dong Nai
+BMG,Cong ty co phan May Binh Minh
+BMI,Tong Cong ty Co phan Bao Minh
+BMJ,Cong ty Co phan Khoang san Mien Dong AHP
+BMN,Cong ty Co phan 715
+BMP,Cong ty Co phan Nhua Binh Minh
+BMS,Cong ty Co phan Chung khoan Bao Minh
+BMV,Cong ty Co phan Bot my Vinafood 1
+BNA,Cong ty Co phan Dau tu San xuat Bao Ngoc
+BNC,Cong ty co phan Dich vu Cap treo Ba Na
+BNW,Cong ty co phan Nuoc sach Bac Ninh
+BONGSEN,CTCP Bong Sen
+BOT,Cong ty co phan BOT Cau Thai Ha
+BPC,Cong ty co phan Vicem Bao bi Bim Son
+BPW,Cong ty Co phan Cap thoat nuoc Binh Phuoc
+BQB,Cong ty Co phan Bia Ha Noi - Quang Binh
+BRC,Cong ty Co phan Cao su Ben Thanh
+BRGGROUP,CTCP Tap doan BRG
+BRR,Cong ty Co phan Cao su Ba Ria
+BRS,Cong ty Co phan Dich vu do thi Ba Ria
+BSA,Cong ty co phan Thuy dien Buon Don
+BSC,Cong ty Co phan Dich vu Ben Thanh
+BSD,Cong ty Co phan Bia, Ruou Sai Gon - Dong Xuan
+BSG,Cong ty Co phan Xe khach Sai Gon
+BSH,Cong ty co phan Bia Sai Gon - Ha Noi
+BSI,Cong ty co phan Chung khoan Ngan hang Dau tu va Phat trien Viet Nam
+BSL,Cong ty Co phan Bia Sai Gon - Song Lam
+BSP,Cong ty co phan Bia Sai Gon - Phu Tho
+BSQ,Cong ty co phan Bia Sai Gon - Quang Ngai
+BSR,Cong ty Co phan Loc Hoa dau Binh Son
+BST,Cong ty Co phan Sach - Thiet bi Binh Thuan
+BT1,Cong ty co phan Bao ve Thuc vat 1 Trung uong
+BT6,Cong ty Co phan Beton 6
+BTA,CTCP Bat dong san Binh Thien An
+BTB,Cong ty Co phan Bia Ha Noi - Thai Binh
+BTC,Cong ty Co phan Co khi va Xay dung Binh Trieu
+BTD,Cong ty Co phan Be tong Ly tam Thu Duc
+BTG,Cong ty Co phan Bao bi Tien Giang
+BTH,Cong ty Co phan Che tao Bien the va Vat lieu dien Ha Noi
+BTJ,CTCP Vang bac da quy Ben Thanh
+BTL,Cong ty Co phan Dau tu Dia oc Ben Thanh
+BTN,Cong ty Co phan Gach Tuy Nen Binh Dinh
+BTP,Cong ty Co phan Nhiet dien Ba Ria
+BTR,CTCP Duong sat Binh Tri Thien
+BTRS,CTCP Dau Tu Xay Dung Kinh Doanh Nha Ben Thanh
+BTS,Cong ty co phan Xi mang Vicem But Son
+BTT,Cong ty Co phan Thuong mai - Dich vu Ben Thanh
+BTU,CTCP Cong trinh Do thi Ben Tre
+BTV,Cong ty Co phan Dich vu Du lich Ben Thanh
+BTW,Cong ty Co phan Cap nuoc Ben Thanh
+BUD,CTCP Khoa hoc Cong nghe Viet Nam
+BVB,Ngan hang Thuong mai co phan Ban Viet
+BVF,Cong ty TNHH Quan ly Quy Bao Viet
+BVG,Cong ty Co phan Dau tu BVG
+BVGT,CTCP Benh vien Giao thong Van tai
+BVH,Tap doan Bao Viet
+BVIM,Cong ty Lien doanh Quan ly quy dau tu BIDV-Viet Nam Partners
+BVIMVIF,Quy dau tu Viet Nam
+BVINSURANCE,Tong Cong ty Bao hiem Bao Viet
+BVL,Cong ty co phan BV Land
+BVLIFE,Tong Cong ty Bao Viet Nhan tho
+BVN,Cong ty co phan Bong Viet Nam
+BVS,Cong ty Co phan Chung khoan Bao Viet
+BWA,Cong ty Co phan Cap thoat nuoc va Xay dung Bao Loc
+BWE,Cong ty Co phan Nuoc – Moi truong Binh Duong
+BWS,Cong ty co phan Cap nuoc Ba Ria - Vung Tau
+BXD,Cong ty Co phan Van tai va Quan ly Ben xe Da Nang
+BXH,Cong ty co phan VICEM Bao bi Hai Phong
+BXT,Ban Quan ly va Dieu hanh Ben xe tau
+C12,Cong ty Co phan Cau 12
+C21,Cong ty co phan The ky 21
+C22,Cong ty Co phan 22
+C32,Cong ty Co phan CIC39
+C36,Cong ty Co phan Quan ly va Xay dung cong trinh giao thong 236
+C47,Cong ty Co phan Xay dung 47
+C4G,Cong ty co phan Tap doan CIENCO4
+C69,Cong ty Co phan Xay dung 1369
+C71,Cong ty Co phan 471
+C92,Cong ty Co phan Xay dung va Dau tu 492
+CAB,CTCP Tong Cong ty Truyen hinh Cap Viet Nam
+CAD,Cong ty Co phan Che bien va Xuat nhap khau Thuy san CADOVIMEX
+CADISUN,CTCP Day va cap dien Thuong Dinh
+CAG,Cong ty Co phan Cang An Giang
+CALOFIC,Cong ty TNHH Dau thuc vat Cai Lan
+CAM,Cong ty TNHH MTV Moi truong do thi Ca Mau
+CAN,Cong ty Co phan Do hop Ha Long
+CANON,Cong ty TNHH Canon Viet Nam
+CAP,Cong ty Co phan Lam Nong san Thuc pham Yen Bai
+CARGILL,Cong ty TNHH Cargill Viet Nam
+CASC,Cong ty Co phan Chung khoan Thu Do
+CASEAMIEX,CTCP Xuat nhap khau thuy san Can Tho
+CASES,CTCP Che bien va dich vu Thuy san Ca Mau
+CASUCO,CTCP Mia Duong Can Tho
+CAT,Cong ty Co phan Thuy san Ca Mau
+CAV,Cong ty co phan Day Cap Dien Viet Nam
+CBC,Cong ty co phan Che Bau Can
+CBI,Cong ty Co phan Gang thep Cao Bang
+CBS,Cong ty Co phan Mia duong Cao Bang
+CC1,Tong Cong ty Xay dung so 1 - CTCP
+CC4,Cong ty Co phan Dau tu va Xay dung so 4
+CCA,CTCP Xuat nhap khau Thuy san Can Tho
+CCH,Cong ty Co phan Tu van va Dau tu xay dung CCIC Ha Noi
+CCI,Cong ty Co phan Dau tu Phat trien Cong nghiep - Thuong mai Cu Chi
+CCL,Cong ty co phan Dau tu va Phat trien Do thi Dau khi Cuu Long
+CCM,Cong ty Co phan Khoang san & Xi mang Can Tho
+CCP,Cong ty co phan Cang Cua Cam Hai Phong
+CCR,Cong ty co phan Cang Cam Ranh
+CCT,Cong ty Co phan Cang Can Tho
+CCV,Cong ty co phan Tu van Xay dung Cong nghiep va Do thi Viet Nam
+CDC,Cong ty Co phan Chuong Duong
+CDG,Cong ty Co phan Cau Duong
+CDH,CTCP Cong trinh cong cong Dich vu Du lich Hai Phong
+CDN,Cong ty co phan Cang Da Nang
+CDO,Cong ty Co phan Tu van thiet ke va Phat trien do thi
+CDP,Cong ty co phan Duoc pham Trung uong Codupha
+CDR,Cong ty Co phan Xay dung Cao su Dong Nai
+CE1,Cong ty Co phan Xay dung va Thiet bi Cong nghiep CIE1
+CEC,Cong ty Co phan Thiet ke Cong nghiep Hoa chat
+CEE,Cong ty Co phan Xay dung Ha tang CII
+CEG,Cong ty Co phan Tap doan Xay dung va Thiet bi Cong nghiep
+CEN,Cong ty Co phan CENCON Viet Nam
+CEO,Cong ty Co phan Tap doan C.E.O
+CER,Cong ty Co phan Dia chinh va Tai nguyen Moi truong
+CET,Cong ty co phan HTC Holding
+CFC,Cong ty Co phan Cafico Viet Nam
+CFM,CTCP Dau tu CFM
+CFPT02MBS21CE,Chung quyen CFPT02MBS21CE
+CFPT2016,Chung quyen FPT/8M/SSI/C/EU/Cash-08
+CFPT2101,Chung quyen CFPT04MBS20CE
+CFPT2102,Chung quyen FPT/VCSC/M/Au/T/A3
+CFPT2103,Chung quyen FPT-HSC-MET07
+CFPT2104,Chung quyen FPT/ACBS/Call/EU/Cash/4M/10
+CFPT2105,Chung quyen FPT/5M/SSI/C/EU/Cash-10
+CFV,Cong ty TNHH Mot thanh vien Ca phe Thang Loi
+CGL,CTCP Thuong mai Gia Lai
+CGP,Cong ty co phan Duoc pham Can Gio
+CGV,Cong ty Co phan Sanh su Thuy tinh Viet Nam
+CH5,Cong ty Co phan Xay dung So 5 Ha Noi
+CHC,Cong ty Co phan Cam Ha
+CHDB2101,Chung quyen.HDB.KIS.M.CA.T.06
+CHP,Cong ty Co phan Thuy dien mien Trung
+CHPG02MBS21CE,Chung quyen CHPG02MBS21CE
+CHPG2020,Chung quyen.HPG.VND.M.CA.T.2020.02
+CHPG2101,Chung quyen.HPG.KIS.M.CA.T.10
+CHPG2102,Chung quyen HPG/ACBS/Call/EU/Cash/6M/02
+CHPG2103,Chung quyen.HPG.VND.M.CA.T.2020.03
+CHPG2104,Chung quyen CHPG04MBS20CE
+CHPG2105,Chung quyen HPG-HSC-MET06
+CHPG2106,Chung quyen CHPG01MBS21CE
+CHPG2107,Chung quyen.HPG.KIS.M.CA.T.11
+CHPG2108,Chung quyen.HPG.KIS.M.CA.T.12
+CHPG2109,Chung quyen HPG/VCSC/M/Au/T/A2
+CHPG2110,Chung quyen HPG/ACBS/Call/EU/Cash/4M/05
+CHPG2111,Chung quyen HPG/5M/SSI/C/EU/Cash-10
+CHS,Cong ty Co phan Chieu sang Cong cong Thanh pho Ho Chi Minh
+CI5,Cong ty co phan Dau tu Xay dung so 5
+CIA,Cong ty Co phan Dich vu San bay Quoc te Cam Ranh
+CIC,Cong ty Co phan Dau tu va Xay dung COTEC
+CICT,Cong ty TNHH Cang Container Quoc te Cai Lan
+CID,Cong ty Co phan Xay dung va Phat trien Co so Ha tang
+CIENCO1,Tong Cong ty Xay dung Cong trinh Giao thong 1 - CTCP
+CIENCO5,Tong Cong ty Xay dung Cong trinh Giao thong 5 - CTCP
+CIENCO6,Tong Cong ty Xay dung Cong trinh Giao thong 6 - CTCP
+CIENCO8,Tong Cong ty Xay dung Cong trinh Giao thong 8 - CTCP
+CIG,Cong ty Co phan COMA18
+CII,Cong ty co phan Dau tu Ha tang Ky thuat T.P Ho Chi Minh
+CII11709,Trai phieu Cong ty Co phan Dau tu Ha tang Ky thuat Thanh pho Ho Chi Minh
+CII41401,Trai phieu chuyen doi Cong ty co phan Dau tu Ha tang Ky thuat Thanh pho Ho Chi Minh
+CIMB,Ngan hang TNHH MTV CIMB Viet Nam
+CIP,Cong ty Co phan Xay lap va San xuat Cong nghiep
+CIPM,Tong Cong ty Dau tu Phat trien va Quan ly Du an ha tang giao thong Cuu Long
+CIPUTRAHN,Cong ty TNHH Phat Trien Khu do thi Nam Thang Long
+CJC,Cong ty Co phan Co dien Mien Trung
+CK8,Cong ty Co phan Co khi 120
+CKA,Cong ty co phan Co khi An Giang
+CKD,Cong ty co phan Co khi Dong Anh Licogi
+CKDH02MBS21CE,Chung quyen CKDH02MBS21CE
+CKDH2002,Chung quyen.KDH.KIS.M.CA.T.03
+CKDH2101,Chung quyen.KDH.KIS.M.CA.T.04
+CKDH2102,Chung quyen CKDH01MBS21CE
+CKDH2103,Chung quyen CKDH2103
+CKG,CTCP Tap doan Tu van Dau tu & Xay dung Kien Giang
+CKH,Cong ty Co phan Co khi che tao Hai Phong
+CKV,Cong ty Co phan COKYVINA
+CLC,Cong ty Co phan Cat Loi
+CLG,Cong ty Co phan Dau tu va Phat trien Nha dat COTEC
+CLH,Cong ty co phan Xi mang La Hien VVMI
+CLL,Cong ty co phan Cang Cat Lai
+CLM,CTCP Xuat nhap khau Than - Vinacomin
+CLP,Cong ty Co phan Thuy San Cuu Long
+CLS,Cong ty Co phan Chung Khoan Cho Lon
+CLW,Cong ty Co phan Cap nuoc Cho Lon
+CLX,Cong ty Co phan Xuat nhap khau va Dau tu Cho Lon (Cholimex)
+CMBB2010,Chung quyen MBB/8M/SSI/C/EU/Cash-08
+CMBB2101,Chung quyen.MBB.VND.M.CA.T.2020.03
+CMBB2103,Chung quyen MBB-HSC-MET07
+CMC,Cong ty Co phan Dau tu CMC
+CMD,CTCP Vat lieu Xay dung va Trang tri Noi that Thanh pho Ho Chi Minh
+CMF,Cong ty Co phan Thuc pham Cholimex
+CMG,Cong ty Co phan Tap doan Cong nghe CMC
+CMI,Cong ty co phan CMISTONE Viet Nam
+CMIT,Cong ty TNHH Cang Quoc te Cai Mep
+CMK,Cong ty co phan Co khi Mao khe - Vinacomin
+CMN,Cong ty Co phan Luong thuc Thuc pham Colusa-Miliket
+CMP,CTCP Cang Chan May
+CMS,Cong ty co phan Xay dung va Nhan luc Viet Nam
+CMSN2102,Chung quyen.MSN.KIS.M.CA.T.10
+CMSN2103,Chung quyen CMSN01MBS21CE
+CMSN2104,Chung quyen MSN/ACBS/Call/EU/Cash/9M/09
+CMSN2105,Chung quyen MSN/5M/SSI/C/EU/Cash-10
+CMSN2106,Chung quyen CMSN2106
+CMT,Cong ty Co phan Cong nghe Mang va Truyen thong
+CMV,Cong ty Co phan Thuong nghiep Ca Mau
+CMW,Cong ty Co phan Cap nuoc Ca Mau
+CMWG2013,Chung quyen.MWG.VND.M.CA.T.2020.02
+CMWG2016,Chung quyen MWG-HSC-MET07
+CMWG2101,Chung quyen.MWG.VND.M.CA.T.2020.03
+CMWG2102,Chung quyen MWG/VCSC/M/Au/T/A3
+CMWG2103,Chung quyen CMWG04MBS20CE
+CMWG2104,Chung quyen MWG/ACBS/Call/EU/Cash/12M/04
+CMWG2105,Chung quyen CMWG01MBS21CE
+CMWG2106,Chung quyen MWG-HSC-MET08
+CMWG2107,Chung quyen MWG/5M/SSI/C/EU/Cash-10
+CMX,Cong ty Co phan Camimex Group
+CNC,Cong ty co phan Cong nghe cao Traphaco
+CNG,Cong ty co phan CNG Viet Nam
+CNH,Cong ty Co phan Cang Nha Trang
+CNN,CTCP Tu van cong nghe, thiet bi va kiem dinh xay dung - CONINCO
+CNS,Tong Cong ty Cong nghiep Sai Gon - TNHH Mot thanh vien
+CNT,Cong ty Co phan Xay dung va Kinh doanh Vat tu
+CNVL2003,Chung quyen.NVL.KIS.M.CA.T.04
+CNVL2101,Chung quyen.NVL.KIS.M.CA.T.05
+CNVL2102,Chung quyen.NVL.KIS.M.CA.T.06
+COCACOLA,Cong ty TNHH Coca Cola Viet Nam
+COM,Cong ty Co phan Vat tu - Xang dau
+CPA,CTCP Ca phe Phuoc An
+CPC,Cong ty Co phan Thuoc sat trung Can Tho
+CPDR2101,Chung quyen.PDR.KIS.M.CA.T.01
+CPDR2102,Chung quyen.PDR.KIS.M.CA.T.02
+CPH,Cong ty Co phan Mai tang Hai Phong
+CPI,Cong ty Co phan Dau tu Cang Cai Lan
+CPNJ2101,Chung quyen.PNJ.VND.M.CA.T.2020.02
+CPNJ2102,Chung quyen PNJ/VCSC/M/Au/T/A2
+CPNJ2103,Chung quyen CPNJ04MBS20CE
+CPNJ2104,Chung quyen PNJ-HSC-MET04
+CPNJ2105,Chung quyen PNJ/5M/SSI/C/EU/Cash-10
+CPVN,CTCP Chan nuoi C.P Viet Nam
+CPW,CTCP Cong trinh Giao thong Cong chanh
+CQN,Cong ty co phan Cang Quang Ninh
+CQT,Cong ty co phan Xi mang Quan Trieu VVMI
+CRC,Cong ty Co phan Create Capital Viet Nam
+CRE,Cong ty Co phan Bat dong san The Ky
+CREE2101,Chung quyen.REE.VND.M.CA.T.2020.04
+CSBT2101,Chung quyen.SBT.KIS.M.CA.T.04
+CSC,Cong ty Co phan Tap doan COTANA
+CSG,Cong ty Co phan Cap Sai Gon
+CSI,Cong ty co phan Chung khoan Kien thiet Viet Nam
+CSM,Cong ty Co phan Cong nghiep Cao su Mien Nam
+CST,Cong ty Co phan Than Cao Son - TKV
+CSTB02MBS21CE,Chung quyen CSTB02MBS21CE
+CSTB2007,Chung quyen.STB.KIS.M.CA.T.07
+CSTB2010,Chung quyen.STB.KIS.M.CA.T.08
+CSTB2014,Chung quyen STB/8M/SSI/C/EU/Cash-08
+CSTB2101,Chung quyen.STB.KIS.M.CA.T.11
+CSTB2102,Chung quyen CSTB04MBS20CE
+CSTB2103,Chung quyen STB-HSC-MET02
+CSTB2104,Chung quyen CSTB01MBS21CE
+CSTB2105,Chung quyen STB/VCSC/M/Au/T/A1
+CSTB2106,Chung quyen CSTB2106
+CSV,Cong ty Co phan Hoa chat Co ban mien Nam
+CT3,Cong ty Co phan Dau tu va Xay dung Cong trinh 3
+CT5,Cong ty co phan 319.5
+CT6,Cong ty Co phan Cong trinh 6
+CTA,Cong ty Co phan Vinavico
+CTB,Cong ty Co phan Che tao Bom Hai Duong
+CTC,Cong ty Co phan Tap doan Hoang Kim Tay Nguyen
+CTCB02MBS21CE,Chung quyen CTCB02MBS21CE
+CTCB2012,Chung quyen TCB/8M/SSI/C/EU/Cash-09
+CTCB2101,Chung quyen TCB/ACBS/Call/EU/Cash/9M/05
+CTCB2102,Chung quyen.TCB.VND.M.CA.T.2020.02
+CTCB2103,Chung quyen TCB-HSC-MET05
+CTCB2104,Chung quyen CTCB01MBS21CE
+CTCB2105,Chung quyen TCB/ACBS/Call/EU/Cash/9M/06
+CTCH2003,Chung quyen.TCH.KIS.M.CA.T.03
+CTCH2101,Chung quyen.TCH.KIS.M.CA.T.04
+CTCH2102,Chung quyen CTCH01MBS21CE
+CTCH2103,Chung quyen.TCH.KIS.M.CA.T.05
+CTD,Cong ty Co phan Xay dung Coteccons
+CTF,Cong ty co phan City Auto
+CTG,Ngan hang Thuong mai Co phan Cong thuong Viet Nam
+CTGROUP,Cong ty co phan Quoc te C&T
+CTI,Cong ty Co phan Dau tu Phat trien Cuong Thuan IDICO
+CTM,Cong ty Co phan Dau tu Xay dung va Khai thac mo Vinavico
+CTN,Cong ty Co phan Xay dung Cong trinh ngam
+CTNQN,Cong ty co phan Cap thoat nuoc Quang Nam
+CTP,Cong ty Co phan Minh Khang Capital Trading Public
+CTR,Tong Cong ty Co phan Cong trinh Viettel
+CTS,Cong ty co phan Chung khoan Ngan hang Cong thuong Viet Nam
+CTT,CTCP Che tao may Vinacomin
+CTV,Cong ty co phan Dau tu-San xuat va Thuong mai Viet Nam
+CTW,CTCP Cap thoat nuoc Can Tho
+CTX,Tong Cong ty Co phan Dau tu Xay dung va Thuong mai Viet Nam
+CVC,Cong ty Co Phan Co dien Vat tu
+CVH,Cong ty Co phan Cong vien, Cay xanh Hai Phong
+CVHM02MBS21CE,Chung quyen CVHM02MBS21CE
+CVHM2008,Chung quyen.VHM.KIS.M.CA.T.05
+CVHM2101,Chung quyen.VHM.KIS.M.CA.T.06
+CVHM2102,Chung quyen.VHM.VND.M.CA.T.2020.01
+CVHM2103,Chung quyen CVHM01MBS20CE
+CVHM2104,Chung quyen VHM-HSC-MET05
+CVHM2105,Chung quyen CVHM01MBS21CE
+CVHM2106,Chung quyen.VHM.KIS.M.CA.T.07
+CVHM2107,Chung quyen VHM/5M/SSI/C/EU/Cash-10
+CVIC2005,Chung quyen.VIC.KIS.M.CA.T.07
+CVIC2101,Chung quyen.VIC.KIS.M.CA.T.09
+CVIC2102,Chung quyen CVIC01MBS20CE
+CVIC2103,Chung quyen.VIC.KIS.M.CA.T.10
+CVIC2104,Chung quyen VIC-HSC-MET02
+CVIC2105,Chung quyen VIC/5M/SSI/C/EU/Cash-10
+CVJC2006,Chung quyen.VJC.KIS.M.CA.T.05
+CVJC2101,Chung quyen VJC/5M/SSI/C/EU/Cash-10
+CVJC2102,Chung quyen CVJC2102
+CVN,Cong ty co phan Vinam
+CVNM02MBS21CE,Chung quyen CVNM02MBS21CE
+CVNM2011,Chung quyen.VNM.KIS.M.CA.T.06
+CVNM2101,Chung quyen.VNM.KIS.M.CA.T.08
+CVNM2102,Chung quyen.VNM.VND.M.CA.T.2020.02
+CVNM2103,Chung quyen CVNM04MBS20CE
+CVNM2104,Chung quyen CVNM01MBS21CE
+CVNM2105,Chung quyen.VNM.KIS.M.CA.T.09
+CVNM2106,Chung quyen VNM/VCSC/M/Au/T/A2
+CVNM2107,Chung quyen VNM-HSC-MET06
+CVNM2108,Chung quyen VNM/ACBS/Call/EU/Cash/4M/07
+CVNM2109,Chung quyen VNM/5M/SSI/C/EU/Cash-10
+CVPB2015,Chung quyen VPB/8M/SSI/C/EU/Cash-09
+CVPB2101,Chung quyen.VPB.VND.M.CA.T.2020.02
+CVPB2102,Chung quyen CVPB04MBS20CE
+CVPB2103,Chung quyen VPB-HSC-MET06
+CVPB2104,Chung quyen CVPB01MBS21CE
+CVPB2105,Chung quyen CVPB2105
+CVRE02MBS21CE,Chung quyen CVRE02MBS21CE
+CVRE2009,Chung quyen.VRE.KIS.M.CA.T.07
+CVRE2011,Chung quyen.VRE.KIS.M.CA.T.09
+CVRE2013,Chung quyen VRE/8M/SSI/C/EU/Cash-09
+CVRE2101,Chung quyen.VRE.KIS.M.CA.T.10
+CVRE2102,Chung quyen.VRE.VND.M.CA.T.2020.01
+CVRE2103,Chung quyen VRE-HSC-MET06
+CVRE2104,Chung quyen CVRE01MBS21CE
+CVRE2105,Chung quyen VRE/ACBS/Call/EU/Cash/9M/08
+CVRE2106,Chung quyen VRE/5M/SSI/C/EU/Cash-10
+CVSM,Cong ty Co phan Chung khoan VSM
+CVT,Cong ty Co phan CMC
+CX8,Cong ty co phan Dau tu va Xay lap Constrexim so 8
+CXH,CTCP Xe khach Ha Noi
+CYC,Cong ty Co phan Gach men Chang Yih
+CZC,Cong ty co phan Than mien Trung
+D11,Cong ty Co phan Dia oc 11
+D26,Cong ty Co phan Quan ly va Xay dung Duong bo 26
+D2D,Cong ty Co phan Phat trien Do thi Cong nghiep So 2
+DAC,Cong ty Co phan Viglacera Dong Anh
+DACF,Cong ty TNHH Quan ly quy dau tu chung khoan Dong A
+DAD,Cong ty Co phan Dau tu va Phat trien Giao duc Da Nang
+DAE,Cong ty Co phan Sach Giao duc tai Tp. Da Nang
+DAF,Ngan hang Thuong mai co phan Dong A
+DAG,Cong ty Co phan Tap doan Nhua Dong A
+DAH,Cong ty co phan Tap doan Khach san Dong A
+DAINAM,CTCP Dai Nam
+DALATMILK,CTCP Sua Da Lat
+DANAPHA,Cong ty co phan Duoc Danapha
+DAP,Cong ty Co phan Dong A
+DAR,Cong ty Co phan Xe lua Di An
+DAS,Cong ty Co phan May - Thiet bi Dau khi Da Nang
+DASC,Cong ty TNHH MTV Chung khoan Ngan hang Dong A
+DAT,Cong ty Co phan Dau tu Du lich va Phat trien Thuy san
+DBC,Cong ty Co phan Tap doan Dabaco Viet Nam
+DBD,Cong ty Co phan Duoc - Trang thiet bi Y te Binh Dinh
+DBF,Cong ty Co phan Luong thuc Dong Bac
+DBH,CTCP Duong bo Hai Phong
+DBM,Cong ty Co phan Duoc - Vat tu Y te Dak Lak
+DBT,Cong ty Co phan Duoc pham Ben Tre
+DBW,Cong ty Co phan Cap nuoc Dien Bien
+DC1,Cong ty co phan Dau tu Phat trien Xay dung so 1
+DC2,Cong ty Co phan Dau tu Phat trien - Xay dung so 2
+DC4,Cong ty Co phan Xay dung DIC Holdings
+DCC,Cong ty Co phan Xay dung Cong nghiep DESCON
+DCD,CTCP Du lich va Thuong mai DIC
+DCF,Cong ty Co phan Xay dung va Thiet ke so 1
+DCG,Cong ty co phan Tong cong ty May Dap Cau
+DCH,Cong ty Co phan Dia chinh Ha Noi
+DCI,Cong ty Co phan Cong nghiep Hoa chat Da Nang
+DCL,Cong ty Co phan Duoc pham Cuu Long
+DCM,Cong ty Co phan Phan bon Dau khi Ca Mau
+DCR,Cong ty co phan Gach men Cosevco
+DCS,Cong ty Co phan Tap doan Dai Chau
+DCT,Cong ty Co phan Tam lop Vat lieu xay dung Dong Nai
+DCVEIL,Dragon Capital Vietnam Enterprise Investment Ltd
+DCVGF,Dragon Capital Vietnam Growth Fund Ltd
+DDG,Cong ty co phan Dau tu Cong nghiep Xuat nhap khau Dong Duong
+DDH,CTCP Dam bao giao thong duong thuy Hai Phong
+DDM,Cong ty Co phan Hang hai Dong Do
+DDN,Cong ty Co phan Duoc - Thiet bi Y te Da Nang
+DDS,Cong ty Co phan Chung khoan AIS
+DDV,Cong ty co phan DAP - VINACHEM
+DELOITTE,Cong ty TNHH Deloitte Viet Nam
+DFC,Cong ty Co phan Xich lip Dong Anh
+DFF,CTCP Tap doan Dua Fat
+DFS,CTCP Che bien Xuat nhap khau Nong san Thuc pham Dong Nai
+DGC,Cong ty Co phan Tap doan Hoa chat Duc Giang
+DGL,CTCP Hoa chat Duc Giang – Lao Cai
+DGT,Cong ty co phan Cong trinh Giao thong Dong Nai
+DGW,Cong ty co phan The gioi so
+DHA,Cong ty Co phan Hoa An
+DHB,Cong ty Co phan Phan dam va Hoa chat Ha Bac
+DHC,Cong ty Co phan Dong Hai Ben Tre
+DHD,Cong ty co phan Duoc Vat tu Y te Hai Duong
+DHG,Cong ty Co phan Duoc Hau Giang
+DHI,Cong ty co phan In Dien Hong
+DHL,Cong ty co phan Co khi Van tai Thuong mai Dai Hung
+DHM,Cong ty co phan Thuong mai va khai thac khoang san Duong Hieu
+DHN,Cong ty Co phan Duoc pham Ha Noi
+DHP,Cong ty Co phan Dien Co Hai Phong
+DHT,Cong ty Co phan Duoc pham Ha Tay
+DIANA,CTCP Diana Unicharm
+DIC,Cong ty Co phan Dau tu va Thuong mai DIC
+DID,Cong ty Co phan DIC - Dong Tien
+DIENMAYCHOLON,Cong ty TNHH Cao Phong
+DIENMAYHC,Cong ty TNHH thuong mai VHC
+DIG,Tong Cong ty Co phan Dau tu Phat trien Xay dung
+DIH,Cong ty Co phan Dau tu Phat trien Xay dung - Hoi An
+DKC,CTCP Cho Lang Son
+DKH,Trung tam Dang kiem phuong tien Giao thong Thuy bo
+DKP,Cong ty co phan Duoc khoa
+DL1,CTCP Tap doan Alpha Seven
+DLC,Cong ty co phan Du lich Can Tho
+DLD,Cong ty Co phan Du lich Dak Lak
+DLG,Cong ty Co phan Tap doan Duc Long Gia Lai
+DLR,Cong ty Co phan Dia oc Da Lat
+DLT,CTCP Du lich va Thuong mai – Vinacomin
+DLV,Cong ty Co phan Du lich Viet Nam Vitours
+DM7,Cong ty co phan Det may 7
+DMC,Cong ty Co phan Xuat nhap khau Y te Domesco
+DNA,Cong ty Co phan Dien nuoc An Giang
+DNB,Cong ty TNHH MTV Sach va Thiet bi truong hoc tinh Dak Nong
+DNC,Cong ty Co phan Dien nuoc Lap may Hai Phong
+DND,CTCP Dau tu Xay dung va Vat lieu Dong Nai
+DNE,Cong ty Co phan Moi truong Do thi Da Nang
+DNF,Cong ty Co phan Luong thuc Da Nang
+DNH,Cong ty Co phan Thuy dien Da Nhim - Ham Thuan - Da Mi
+DNL,Cong ty co phan Logistic Cang Da Nang
+DNM,Tong Cong ty co phan Y te Danameco
+DNN,Cong ty Co phan Cap nuoc Da Nang
+DNP,Cong ty Co phan Nhua Dong Nai
+DNR,CTCP Duong sat Quang Nam - Da Nang
+DNS,Cong ty Co phan Thep Da Nang
+DNSE,Cong ty Co phan Chung khoan Dai Nam
+DNT,Cong ty Co phan Du lich Dong Nai
+DNV,CTCP Thuong mai Dich vu VDA Da Nang
+DNW,Cong ty co phan Cap nuoc Dong Nai
+DNY,Cong ty Co phan Thep Dana - Y
+DOC,Cong ty co phan Vat tu nong nghiep Dong Nai
+DOFICO,Tong Cong ty Cong nghiep Thuc pham Dong Nai
+DOJI,CTCP Tap doan Vang bac da quy Doji
+DONA,Cong ty co phan Thuc pham va nuoc giai khat Dona Newtower
+DOP,CTCP Van tai Xang dau Dong Thap
+DP1,Cong ty Co phan duoc pham Trung uong CPC1
+DP2,Cong ty Co phan Duoc pham Trung uong 2
+DP3,Cong ty Co phan Duoc pham Trung uong 3
+DPC,Cong ty Co phan Nhua Da Nang
+DPD,CTCP Cao su Dong Phu - Dak Nong
+DPG,Cong ty Co phan Dat Phuong
+DPH,Cong ty Co phan Duoc pham Hai Phong
+DPM,Tong Cong ty Phan bon va Hoa chat Dau khi-CTCP
+DPP,Cong ty Co phan Duoc Dong Nai
+DPR,Cong ty Co phan Cao su Dong Phu
+DPS,Cong ty co phan Dau tu Phat trien Soc Son
+DQC,Cong ty Co phan Bong den Dien Quang
+DQMX,CTCP Dau tu Dia oc Dai Quang Minh
+DRAGON,Dragon Capital
+DRC,Cong ty Co phan Cao su Da Nang
+DRG,Cong ty co phan Cao su Dak Lak
+DRH,Cong ty co phan DRH Holdings
+DRI,Cong ty Co phan Dau tu Cao su Dak Lak
+DRL,Cong ty Co phan Thuy dien – Dien luc 3
+DS3,Cong ty Co phan Quan ly Duong song so 3
+DSC,Cong ty Co phan Chung khoan Da Nang
+DSG,Cong ty Co phan Kinh Viglacera Dap Cau
+DSN,Cong ty Co phan Cong vien nuoc Dam Sen
+DSP,Cong ty co phan Dich vu Du lich Phu Tho
+DSS,Cong ty Co phan Duong sat Sai Gon
+DST,Cong ty Co phan Dau tu Sao Thang Long
+DSV,Cong ty Co phan Duong sat Vinh Phu
+DT4,CTCP Quan ly bao tri duong thuy noi dia so 4
+DTA,Cong ty Co phan De Tam
+DTB,Cong ty co phan Cong trinh Do thi Bao Loc
+DTC,Cong ty Co phan Viglacera Dong Trieu
+DTD,Cong ty Co phan Dau tu phat trien Thanh Dat
+DTE,CTCP Dau tu Nang luong Dai Truong Thanh Holdings
+DTG,Cong ty Co phan Duoc pham Tipharco
+DTGG,Cong ty Co phan Dong Tam
+DTH,Cong ty Co phan Duoc - Vat tu Y te Thanh Hoa
+DTI,Cong ty Co phan Dau tu Duc Trung
+DTK,Tong cong ty Dien luc TKV - CTCP
+DTL,Cong ty Co phan Dai Thien Loc
+DTN,Cong ty Co phan Diem Thong Nhat
+DTP,Cong ty co phan Duoc pham CPC1 Ha Noi
+DTS,CTCP Dich Vu Du Lich Da Lat
+DTT,Cong ty Co phan Ky nghe Do Thanh
+DTV,Cong ty Co phan Phat trien dien Nong thon Tra Vinh
+DUGARCO,Tong Cty Duc Giang - CTCP
+DUOCBAOCHAU,CTCP Tap doan Duoc Bao Chau
+DUS,CTCP Dich vu Do thi Da Lat
+DUYTANPLASTIC,CTCP San xuat Nhua Duy Tan
+DVC,Cong ty co phan Thuong mai Dich vu Tong hop Cang Hai Phong
+DVD,Cong ty Co phan Duoc pham Vien Dong
+DVG,Cong ty Co phan Tap doan Son Dai Viet
+DVH,Cong ty co phan Che tao may dien Viet Nam - Hungari
+DVIZ,CTCP Khu cong nghiep Dinh Vu
+DVN,Tong Cong ty Duoc Viet Nam - CTCP
+DVP,Cong ty co phan Dau tu va Phat trien Cang Dinh Vu
+DVS,Cong ty Co phan Thep Dinh Vu
+DVSC,Cong ty Co phan Chung khoan Dai Viet
+DVW,Cong ty Co phan Dich vu va Xay dung Cap nuoc Dong Nai
+DWS,Cong ty co phan Cap nuoc va Moi truong do thi Dong Thap
+DWSVF,DWS Vietnam Fund
+DX2,Cong ty co phan Dau tu va Xay dung 319.2
+DXD,Cong ty co phan Dau tu va Xay dung - VVMI
+DXG,Cong ty Co phan Tap doan Dat Xanh
+DXL,Cong ty Co phan Du lich va Xuat nhap khau Lang Son
+DXP,Cong ty co phan Cang Doan Xa
+DXS,Cong ty Co phan Dich vu Bat dong san Dat Xanh
+DXV,Cong ty Co phan VICEM Vat lieu Xay dung Da Nang
+DZM,Cong ty Co phan Co dien Dzi An
+E12,CTCP Xay dung dien Vneco12
+E1SSHN30,Chung chi quy ETF SSIAM-HNX30
+E1VFVN30,Quy ETF VFMVN30
+E29,CTCP Dau tu xay dung va ky thuat 29
+EAD,CTCP Thuy dien Dien luc Dak Lak
+EBA,Cong ty Co phan Dien Bac Na
+EBS,Cong ty Co phan Sach Giao duc tai Tp.Ha Noi
+ECC,Cong ty Co phan Chung khoan EUROCAPITAL
+ECI,Cong ty Co phan Ban do va Tranh anh Giao duc
+EFI,Cong ty Co phan Dau tu Tai chinh Giao duc
+EIB,Ngan hang Thuong mai Co phan Xuat nhap khau Viet Nam
+EIC,Cong ty co phan EVN Quoc te
+EID,Cong ty Co phan Dau tu va Phat trien giao duc Ha Noi
+EIFMC,Cong ty quan ly quy Eastspring Investments
+EIN,Cong ty co phan Dau tu - Thuong mai - Dich vu Dien luc
+ELC,Cong ty Co phan Dau tu Phat trien Cong nghe Dien tu Vien thong
+EMC,Cong ty co phan Co dien Thu Duc
+EME,Cong ty Co phan Dien co
+EMG,Cong ty Co phan Thiet bi Phu tung Co dien
+EMICO,Tong Cty Phat trien Phat thanh Truyen hinh Thong tin
+EMS,Tong Cong ty Chuyen phat nhanh Buu Dien - CTCP
+EPC,Cong ty TNHH Mot thanh vien Ca phe Ea Pok
+EPH,Cong ty Co phan dich vu xuat ban giao duc Ha Noi
+EPS,Cong ty Co Phan Chung khoan Gia Quyen
+EVE,Cong ty co phan Everpia
+EVF,Cong ty Tai chinh co phan Dien luc
+EVG,Cong ty Co phan Dau tu Everland
+EVN,Tap doan Dien luc Viet Nam - Cong ty TNHH MTV
+EVNCPC,Tong Cong ty Dien luc mien Trung
+EVNHANOI,Tong Cong ty Dien luc Thanh pho Ha Noi
+EVNHCMC,Tong Cong ty Dien luc Thanh pho Ho Chi Minh
+EVNNPC,Tong Cong ty Dien luc mien Bac
+EVNNPT,Tong Cong ty Truyen tai dien Quoc gia
+EVNSPC,Tong Cong ty Dien luc mien Nam
+EVS,Cong ty co phan Chung khoan Everest
+EWH,CTCP EuroWindow Holding
+EXIMLAND,Cong ty co phan Bat dong san E Xim
+FBA,Cong ty Co phan Tap doan Quoc te FBA
+FBC,Cong ty Co phan Co khi Pho Yen
+FBT,Cong ty Co phan Xuat nhap khau Lam Thuy san Ben Tre
+FCC,CTCP Lien hop Thuc pham
+FCM,Cong ty co phan Khoang san FECON
+FCN,Cong ty co phan FECON
+FCS,Cong ty Co phan Luong thuc Thanh pho Ho Chi Minh
+FDC,Cong ty Co phan Ngoai thuong va Phat trien Dau tu Thanh pho Ho Chi Minh
+FDG,Cong ty Co phan Docimexco
+FDT,Cong ty co phan Fiditour
+FGL,Cong ty co phan Ca phe Gia Lai
+FHN,Cong Ty Co phan Xuat Nhap Khau Luong Thuc - Thuc Pham Ha Noi
+FHS,Cong ty co phan Phat hanh sach T.P Ho Chi Minh
+FIC,Tong cong ty Vat Lieu Xay Dung So 1 - CTCP
+FID,Cong ty Co phan Dau tu va Phat trien Doanh nghiep Viet Nam
+FIR,Cong ty Co phan Dia oc First Real
+FIS,Cong ty Co phan He thong Thong tin FPT
+FIT,Cong ty co phan Tap doan F.I.T
+FIVIMART,CTCP Nhat Nam
+FLC,Cong ty co phan Tap doan FLC
+FMC,Cong ty Co phan Thuc pham Sao Ta
+FNS,Cong ty co phan Chung khoan FUNAN
+FOC,Cong ty co phan Dich vu Truc tuyen FPT
+FORDVN,Cty TNHH Ford Viet Nam
+FORMOSA,Cong ty TNHH Hung Nghiep Formosa
+FOX,Cong ty Co phan Vien thong FPT
+FPC,Cong ty Co phan Full Power
+FPT,Cong ty Co phan FPT
+FPTCAPITAL,Cong ty Co phan Quan ly quy dau tu FPT
+FPTEDU,Cong ty TNHH Giao duc FPT
+FPTIS,Cong ty TNHH He thong Thong tin FPT
+FPTTRADING,Cong ty TNHH Thuong mai FPT
+FRC,Cong ty co phan Lam dac san Xuat khau Quang Nam
+FRM,Cong ty co phan Lam nghiep Sai Gon
+FRT,Cong ty co phan Ban le Ky thuat so FPT
+FSC,Cong ty TNHH Chung khoan Yuanta Viet Nam
+FSO,Cong ty Co phan Co khi dong tau thuy san Viet Nam
+FSOFT,Cong ty TNHH Phan mem FPT
+FT1,Cong ty Co phan Phu tung may so 1
+FTG,Cong ty co phan Thuong mai FPT
+FTI,Cong ty Co phan Cong nghiep - Thuong mai Huu Nghi
+FTM,Cong ty Co phan Dau tu va Phat trien Duc Quan
+FTS,Cong ty Co phan Chung khoan FPT
+FTSEETF,FTSE Vietnam ETF
+FTV,Cong ty Co phan Cong nghiep Ngu Kim Fortress
+FUCTVGF1,Quy Dau tu tang truong TVAM
+FUCTVGF2,Quy Dau tu tang truong Thien Viet 2
+FUCVREIT,Quy Dau tu Bat dong san Techcom Viet Nam
+FUEMAV30,Quy ETF MAFM VN30
+FUESSV30,Quy ETF SSIAM VN30
+FUESSV50,Quy ETF SSIAM VNX50
+FUESSVFL,Quy ETF SSIAM VNFIN LEAD
+FUEVFVND,Quy ETF VFMVN DIAMOND
+FUEVN100,Quy ETF VINACAPITAL VN100
+FUTA,CTCP Dau tu Phuong Trang
+G20,Cong ty co phan Dau tu Det may G.Home
+G36,Tong Cong ty 36 - CTCP
+GAB,Cong ty Co phan Dau tu khai khoang va Quan ly tai san FLC
+GAET,Tong Cong ty Kinh te ky thuat Cong nghiep quoc phong
+GALAXYSTUDIO,CTCP Phim Thien Ngan
+GAMI,CTCP Tap doan Gami
+GAS,Tong Cong ty Khi Viet Nam-CTCP
+GBS,Cong ty Co phan Chung khoan Golden Bridge Viet Nam
+GCB,Cong ty Co Phan Petec Binh Dinh
+GCC,CTCP Van hoa Tong hop Ben Thanh
+GDC,CTCP Xuat Nhap khau Gia Dinh
+GDT,Cong ty Co phan Che bien Go Duc Thanh
+GDW,Cong ty Co phan Cap nuoc Gia Dinh
+GE2,Tong cong ty Phat dien 2 - Cong ty TNHH MTV
+GEG,Cong ty co phan Dien Gia Lai
+GELEXIMCO,CTCP Xuat nhap khau Tong hop Ha Noi
+GENCO1,Tong Cong ty Phat dien 1
+GENTRACO,CTCP Gentraco
+GER,Cong ty Co phan The thao Ngoi sao Geru
+GEX,Cong ty Co phan Tap doan GELEX
+GFC,Cong ty Co phan Thuy san Gentraco
+GGG,Cong ty co phan O to Giai Phong
+GGS,Cong ty Co phan Giong Gia suc Ha Noi
+GH3,CTCP Cong trinh Giao thong Ha Noi
+GHA,Cong ty Co phan HAPACO Hai Au
+GHC,Cong ty Co phan Thuy dien Gia Lai
+GHNB,Cong ty Dau an Golden Hope Nha Be
+GIC,Cong ty Co phan Dau tu dich vu va Phat trien Xanh
+GICSINGAPORE,GIC/Government of Singapore
+GIDITEXCO,Cong ty Co phan Det May Gia Dinh
+GIL,Cong ty Co phan San xuat Kinh doanh Xuat nhap khau Binh Thanh
+GKM,Cong ty Co phan Khang Minh Group
+GLC,Cong ty co phan Vang Lao Cai
+GLH,Cong ty Co phan GLEXHOMES
+GLS,Cong ty Co phan Chung khoan Sen Vang
+GLT,Cong ty co phan Ky thuat dien Toan Cau
+GLW,Cong ty Co phan Cap thoat nuoc Gia Lai
+GMA,Cong ty Co phan Enteco Viet Nam
+GMC,Cong ty Co phan Garmex Sai Gon
+GMD,Cong ty Co phan Gemadept
+GMS,CTCP Thiet ke va gia cong phan men GMS888
+GMVN,Cong ty TNHH O to GM Viet Nam
+GMX,Cong ty co phan Gach Ngoi Gom Xay dung My Xuan
+GND,Cong ty Co phan Gach ngoi Dong Nai
+GOLDENGATE,CTCP Thuong mai Dich vu Cong Vang
+GOLFLONGTHANH,CTCP Dau tu va Kinh doanh golf Long Thanh
+GPAC,Cong ty Co phan Quan ly Quy Doi tac Toan Cau
+GPFUND,Cong ty Co phan Quan ly quy Dau khi Toan Cau
+GQN,Trung tam Giong Thuy san Quang Nam
+GREENFEED,CTCP GreenFeed Viet Nam
+GSC,Cong ty co phan Thuy dien Geruco Song Con
+GSM,Cong ty co phan Thuy dien Huong Son
+GSP,Cong ty co phan Van tai San pham khi quoc te
+GTA,Cong ty Co phan Che bien Go Thuan An
+GTC,Cong ty Co phan Tra Rong Vang
+GTD,Cong ty Co phan Giay Thuong Dinh
+GTEL,Tong Cong ty Vien thong Toan cau
+GTH,Cong ty Co phan Xay dung Giao thong Thua Thien Hue
+GTK,Cong ty co phan Giay Thuy Khue
+GTN,Cong ty co phan GTNfoods
+GTS,Cong ty co phan Cong trinh Giao thong Sai Gon
+GTT,Cong ty Co phan Thuan Thao
+GVR,Tap doan Cong nghiep Cao su Viet Nam
+GVT,Cong ty Co phan Giay Viet Tri
+H11,Cong ty Co phan Xay dung HUD101
+HAB,Cong ty Co phan Sach va Thiet bi Truong hoc Ha Noi
+HAC,Cong ty Co phan Chung khoan Hai Phong
+HAD,Cong ty Co phan Bia Ha Noi - Hai Duong
+HAF,Cong ty Co phan Thuc pham Ha Noi
+HAG,Cong ty Co phan Hoang Anh Gia Lai
+HAGLLAND,CTCP Xay dung va Phat trien Nha Hoang Anh
+HAGLSUGAR,CTCP Mia duong Hoang Anh Gia Lai
+HAH,Cong ty Co phan Van tai va Xep do Hai An
+HAI,Cong ty Co phan Nong duoc H.A.I
+HAIAUA,CTCP Hang khong Hai Au
+HAICHAU,Cong ty Co phan Banh keo Hai Chau
+HALIDA,Cong ty Lien doanh nha may bia Dong Nam A
+HALLEY,Halley Sicav - Halley Asian Prosperity
+HAM,Cong ty Co phan Vat tu Hau Giang
+HAN,Tong cong ty Xay dung Ha Noi - CTCP
+HANAKA,CTCP Tap doan HANAKA
+HANDICO,Tong Cong ty Dau tu va phat trien Nha Ha Noi
+HANEXIM,CTCP Xuat nhap khau Ha Anh
+HANOITELECOM,CTCP Vien thong Ha Noi
+HANOITOURIST,TONG CONG TY DU LICH HA NOI - CONG TY TNHH
+HANVICO,Cong ty TNHH Han Viet
+HAP,Cong ty Co phan Tap doan Hapaco
+HAPF,Cong ty Co phan Quan ly quy Thai Binh Duong
+HAR,Cong ty Co phan Dau tu Thuong mai Bat dong san An Duong Thao Dien
+HAS,Cong ty Co phan HACISCO
+HAT,Cong ty Co phan Thuong mai Bia Ha Noi
+HAV,Cong ty Co phan ruou Hapro
+HAVANA,Cong ty co phan Hai Van Nam
+HAW,Trung tam Nuoc sach va Ve sinh moi truong nong thon
+HAX,Cong ty Co phan Dich vu O to Hang Xanh
+HBB,Ngan hang Thuong mai Co phan Nha Ha Noi
+HBC,Cong ty co phan Tap doan Xay dung Hoa Binh
+HBD,Cong ty Co phan Bao bi PP Binh Duong
+HBE,Cong ty Co phan Sach - Thiet bi truong hoc Ha Tinh
+HBH,Cong ty Co phan Habeco - Hai Phong
+HBI,Cong ty Co phan HBI
+HBS,Cong ty Co phan Chung khoan Hoa Binh
+HBSC,Cong ty Co phan Chung khoan Hung Thinh
+HBW,Cong ty co phan Nuoc sach Hoa Binh
+HC1,CTCP Xay dung so 1 Ha Noi
+HC3,Cong ty Co phan Xay dung So 3 Hai Phong
+HCB,Cong ty co phan Det may 29/3
+HCC,Cong ty Co phan Be tong Hoa Cam - Intimex
+HCD,Cong ty Co phan Dau tu San xuat va Thuong mai HCD
+HCFVN,Cong ty TNHH MTV Tai chinh Home Credit Viet Nam
+HCI,Cong ty Co phan Dau tu - Xay dung Ha Noi
+HCM,Cong ty Co phan Chung khoan Thanh pho Ho Chi Minh
+HCS,Cong ty Co phan Thong tin Tin hieu Duong sat Ha Noi
+HCT,Cong ty Co phan Thuong mai Dich vu Van tai Xi mang Hai Phong
+HD2,CTCP Dau tu Phat trien nha HUD2
+HD3,CTCP Dau tu Phat trien Nha va Do thi MHDI3
+HD6,CTCP Dau tu va Phat trien Nha so 6 Ha Noi
+HD8,CTCP Dau tu Phat trien Nha va Do thi HUD8
+HDA,Cong ty Co phan Hang son Dong A
+HDB,Ngan hang TMCP Phat trien T.P Ho Chi Minh
+HDBKISMCAT07,Chung quyen HDB.KIS.M.CA.T.07
+HDC,Cong ty Co phan Phat trien nha Ba Ria-Vung Tau
+HDG,Cong ty Co phan Tap doan Ha Do
+HDM,Cong ty Co phan Det May Hue
+HDO,Cong ty Co phan Hung Dao Container
+HDP,Cong ty Co phan Duoc Ha Tinh
+HDW,Cong ty co phan Kinh doanh nuoc sach Hai Duong
+HEC,Cong ty Co phan Tu van Xay dung Thuy loi II
+HEJ,Tong Cong ty Tu van xay dung Thuy loi Viet Nam - Cong ty Co phan
+HEM,Cong ty co phan Che tao Dien Co Ha Noi
+HEP,Cong ty Co phan Moi truong va Cong trinh Do thi Hue
+HES,Cong ty Co phan Dich vu Giai tri Ha Noi
+HEV,Cong ty Co phan Sach Dai hoc - Day nghe
+HFB,Cong ty Co phan Cong trinh Cau pha Thanh pho Ho Chi Minh
+HFC,Cong ty Co phan Xang dau HFC
+HFIC,Cong ty Dau tu Tai chinh Nha nuoc T.P Ho Chi Minh
+HFS,Cong ty Co phan Thuong mai dich vu Thoi trang Ha Noi
+HFT,Cong ty Co phan Chung khoan Pinetree
+HFX,Cong ty co phan San xuat - Xuat nhap khau Thanh Ha
+HGA,Trung tam Giong Nong nghiep tinh Hau Giang
+HGC,Trung tam Quy hoach - Kien truc tinh Hau Giang
+HGM,Cong ty co phan Co khi va Khoang san Ha Giang
+HGR,Trung tam Ky thuat Tai nguyen va Moi truong
+HGT,Cong ty co phan Du lich Huong Giang
+HGW,Cong ty Co phan Cap thoat nuoc - Cong trinh do thi Hau Giang
+HHA,Cong ty co phan Van phong pham Hong Ha
+HHC,Cong ty Co phan Banh keo Hai Ha
+HHG,Cong ty Co phan Hoang Ha
+HHL,Cong ty Co phan Hong Ha Long An
+HHN,Cong ty Co Phan Van tai va Dich vu Hang hoa Ha Noi
+HHP,Cong ty co phan Giay Hoang Ha Hai Phong
+HHR,Cong ty Co phan Duong sat Ha Hai
+HHS,Cong ty Co phan Dau tu Dich vu Hoang Huy
+HHV,CTCP Dau tu ha tang giao thong Deo Ca
+HICC1,CTCP Dau tu va Xay dung so 1 Ha Noi
+HID,Cong ty Co phan Halcom Viet Nam
+HIG,Cong ty Co phan Tap doan HIPT
+HIGHLANDS,CTCP Dich vu Ca phe Cao nguyen
+HII,Cong ty Co phan An Tien Industries
+HIMLAM,CTCP Him Lam
+HINOVN,Cong ty Lien doanh TNHH Hino Motors Viet Nam
+HIS,Cong ty co phan Dau tu phat trien thuong mai tong hop Son Ha
+HIZ,Cong ty co phan Khu cong nghiep Ho Nai
+HJC,Cong ty Co phan Hoa Viet
+HJS,Cong ty Co phan Thuy dien Nam Mu
+HKB,Cong ty Co phan Nong nghiep va Thuc pham Ha Noi - Kinh Bac
+HKC,CTCP Det Kim Ha Noi
+HKP,CTCP Bao bi Ha Tien
+HKT,Cong ty Co phan Dau tu EGO Viet Nam
+HLA,Cong ty Co phan Huu Lien A Chau
+HLB,Cong ty Co phan Bia va Nuoc giai khat Ha Long
+HLC,CTCP Than Ha Lam - Vinacomin
+HLCC,CTCP Xi mang Ha Long
+HLD,Cong ty Co phan Dau tu va Phat trien Bat dong san HUDLAND
+HLE,Cong ty Co phan Dien chieu sang Hai Phong
+HLG,Cong ty Co phan Tap doan Hoang Long
+HLR,Cong ty Co phan Duong sat Ha Lang
+HLS,Cong ty Co phan Su ky thuat Hoang Lien Son
+HLT,CTCP Det may Hoang Thi Loan
+HLY,Cong ty Co phan Viglacera Ha Long I
+HMC,Cong ty Co phan Kim khi Thanh pho Ho Chi Minh - Vnsteel
+HMG,CTCP Kim khi Ha Noi - VNSTEEL
+HMH,Cong ty Co phan Hai Minh
+HMS,Cong ty Co phan Xay dung bao tang Ho Chi Minh
+HNA,Cong ty Co phan Thuy dien Hua Na
+HNB,CTCP Ben xe Ha Noi
+HND,CTCP Nhiet dien Hai Phong
+HNE,Cong ty co phan Hanel
+HNF,CTCP Thuc pham Huu Nghi
+HNG,Cong ty co phan Nong nghiep Quoc te Hoang Anh Gia Lai
+HNI,Cong ty Co phan May Huu Nghi
+HNM,Cong ty Co phan Sua Ha Noi
+HNP,Cong ty Co phan Hanel Xop nhua
+HNR,Cong ty co phan Ruou va Nuoc giai khat Ha Noi
+HNT,Cong ty Co phan Xe dien Ha Noi
+HOANCAU,Cong ty TNHH Hoan Cau
+HOANGTHACH,Cong ty TNHH MTV Xi mang Vicem Hoang Thach
+HOANGTHANH,CTCP Dau tu va Phat trien Ha tang Hoang Thanh
+HOANMY,CTCP Y khoa Hoan My
+HOM,Cong ty co phan Xi mang VICEM Hoang Mai
+HONDA,Cong ty Honda Viet Nam
+HONGLEONG,Hong Leong Bank Vietnam Limited
+HOT,Cong ty co phan Du lich - Dich vu Hoi An
+HPB,Cong ty Co phan Bao bi PP
+HPC,Cong ty Co phan Chung khoan Hai Phong
+HPCO,CTCP Hoa Chat Hung Phat Ha Bac
+HPD,Cong ty Cong ty Co phan Thuy dien Dak Doa
+HPG,Cong ty co phan Tap doan Hoa Phat
+HPH,Cong ty Co phan Hoa chat Hung Phat Ha Bac
+HPI,Cong ty Co phan Khu cong nghiep Hiep Phuoc
+HPL,Cong ty Co phan Ben xe Tau pha Can Tho
+HPM,CTCP Xay dung Thuong mai va Khoang san Hoang Phuc
+HPP,Cong ty Co phan Son Hai Phong
+HPR,Cong ty Co phan Dau tu Xay dung Hong Phat
+HPS,Cong ty Co phan Da Xay dung Hoa Phat
+HPT,Cong ty Co phan Dich vu Cong nghe Tin hoc HPT
+HPU,Cong ty co phan 28 Hung Phu
+HPW,Cong ty Co phan Cap nuoc Hai Phong
+HPX,Cong ty co phan Dau tu Hai Phat
+HQC,Cong ty co phan Tu van-Thuong mai-Dich vu Dia oc Hoang Quan
+HQMK,Cong ty co phan Tu van Thuong mai Dich vu Dia oc Hoang Quan Me Kong
+HRB,Cong ty Co phan Harec Dau tu va Thuong mai
+HRC,Cong ty Co phan Cao su Hoa Binh
+HRG,Cong ty co phan Cao su Ha Noi
+HRS,CTCP Chung khoan Viet Nam Gateway
+HRT,Cong ty co phan Van tai Duong sat Ha Noi
+HSA,Cong ty Co phan HESTIA
+HSBC,HSBC Viet Nam
+HSC,Cong ty Co phan Hacinco
+HSG,Cong ty Co phan Tap doan Hoa Sen
+HSI,Cong ty Co phan Vat tu tong hop va Phan bon Hoa sinh
+HSL,Cong ty Co phan Dau tu Phat trien Thuc pham Hong Ha
+HSM,Tong Cong ty co phan Det may Ha Noi
+HSP,CTCP Son Tong hop Ha Noi
+HSSC,Cong ty Co phan Chung khoan Ha Noi
+HST,Cong ty co phan Phat hanh Sach va Thiet bi Truong hoc Hung Yen
+HSV,Cong ty co phan Gang thep Ha Noi
+HT1,Cong ty Co phan Xi Mang Vicem Ha Tien
+HT2,Cong ty Co phan Xi mang Ha Tien 2
+HTB,Cong ty Co phan Xay dung Huy Thang
+HTC,Cong ty Co phan Thuong mai Hoc Mon
+HTE,Cong ty Co phan Dau tu Kinh doanh Dien luc Thanh pho Ho Chi Minh
+HTG,Tong Cong ty co phan Det may Hoa Tho
+HTH,Cong ty TNHH MTV Hoa tieu Hang hai - TKV
+HTI,Cong ty Co phan Dau tu phat trien ha tang IDICO
+HTK,Trung tam Dang kiem xe co gioi Hai Duong
+HTL,Cong ty Co phan Ky thuat va O to Truong Long
+HTM,Tong Cong ty Thuong mai Ha Noi - CTCP
+HTN,Cong ty Co phan Hung Thinh Incons
+HTP,Cong ty Co phan In sach giao khoa Hoa Phat
+HTR,Cong ty Co phan Duong sat Ha Thai
+HTT,Cong ty co phan Thuong mai Ha Tay
+HTU,Cong ty Co phan Moi truong va Cong trinh Do thi Ha Tinh
+HTV,Cong ty Co phan Logistics Vicem
+HTW,Cong ty Co phan Cap nuoc Ha Tinh
+HU1,Cong ty Co phan Dau tu va Xay dung HUD1
+HU3,Cong ty co phan Dau tu va Xay dung HUD3
+HU4,Cong ty Co phan Dau tu va Xay dung HUD4
+HU6,Cong ty co phan Dau tu Phat trien nha va Do thi HUD 6
+HUB,Cong ty co phan Xay lap Thua Thien Hue
+HUDA,Cong ty TNHH Bia Hue
+HUDX,Tong Cong ty Dau tu Phat trien nha va Do thi-Cong ty TNHH
+HUG,Tong Cong ty may Hung Yen - Cong ty Co phan
+HUNGCA,Cong ty TNHH Hung Ca
+HUNGHAU,Cong ty Co phan Phat trien Hung Hau
+HUT,Cong ty Co phan Tasco
+HUX,CTCP Khoang san Thua Thien Hue
+HUYNHDAITC,CTCP O to Hyundai Thanh Cong Viet Nam
+HVA,Cong ty co phan Dau tu HVA
+HVC,Cong ty Co phan Hung Vuong
+HVCAPITAL,Cong ty Co phan Quan ly quy Hung Viet
+HVG,Cong ty Co phan Hung Vuong
+HVH,Cong ty Co phan Dau tu va Cong nghe HVC
+HVN,Tong Cong ty Hang khong Viet Nam - CTCP
+HVS,CTCP Chung khoan HVS Viet Nam
+HVT,Cong ty Co phan Hoa chat Viet Tri
+HVX,Cong ty Co phan Xi mang Vicem Hai Van
+HWS,Cong ty co phan Cap nuoc Thua Thien Hue
+HYUNDAIVINASHIN,Cong ty TNHH Nha may Tau bien Hyundai-Vinashin
+I10,CTCP Dau tu Xay dung so 10 IDICO
+IBC,Cong ty Co phan Dau tu Apax Holdings
+IBD,CTCP In Tong hop Binh Duong
+IBN,Cong ty TNHH MTV In bao Nghe An
+ICA,Cong ty Co phan Cong nghe Sinh hoc - Duoc pham ICA
+ICC,CTCP Xay dung Cong nghiep
+ICF,Cong ty Co phan Dau tu Thuong mai Thuy San
+ICG,Cong ty Co phan Xay dung Song Hong
+ICI,Cong ty Co phan Dau tu va Xay dung Cong nghiep
+ICN,Cong ty co phan Dau tu Xay dung Dau khi IDICO
+ICPX,Cong ty CP San xuat hang gia dung Quoc te
+ICT,Cong ty co phan Vien thong - Tin hoc Buu dien
+IDC,Tong cong ty IDICO - Cong ty Co phan
+IDGVV,IDG Ventures Vietnam
+IDI,Cong ty Co phan Dau tu va Phat trien Da Quoc Gia I.D.I
+IDJ,Cong ty co phan dau tu IDJ Viet Nam
+IDN,Cong ty co phan In va Dich vu Da Nang
+IDP,Cong ty co phan Sua Quoc te
+IDV,Cong ty Co phan Phat trien Ha tang Vinh Phuc
+IFC,CTCP Thuc pham Cong nghe Sai Gon
+IFCWB,International Finance Corporation (World Bank)
+IFMC,Cong ty Co phan Quan ly quy Quoc te
+IFS,Cong ty Co phan Thuc pham Quoc te
+IHK,Cong ty Co phan In Hang khong
+IJC,Cong ty Co phan Phat trien Ha tang Ky thuat
+IKH,Cong ty Co phan In Khoa hoc Ky thuat
+ILA,Cong ty Co phan ILA
+ILB,Cong ty Co phan ICD Tan Cang – Long Binh
+ILC,Cong ty Co phan Hop tac Lao dong voi Nuoc ngoai
+ILS,Cong ty Co phan Dau tu Thuong mai va Dich vu Quoc te
+IME,Cong ty Co phan Co khi va Xay lap Cong nghiep
+IMP,Cong ty Co phan Duoc pham IMEXPHARM
+IMT,Cong ty Co phan Xuat nhap khau Dau tu Thanh pho Ho Chi Minh
+IN4,Cong ty Co phan In so 4
+INC,Cong ty Co phan Tu van Dau tu IDICO
+INN,Cong ty Co phan Bao bi va In Nong nghiep
+INVESTCO,Cong ty co phan Dau tu & Phat trien Xay dung
+IPA,Cong ty co phan Tap doan Dau tu I.P.A
+IPAF,Cong ty TNHH MTV Quan ly quy Dau tu chung khoan I.P.A
+IPH,Cong ty TNHH MTV In va Phat hanh bieu mau Thong ke
+IPPGROUP,Cong ty TNHH XNK Lien Thai Binh Duong
+IRC,Cong ty Co phan Cao su Cong nghiep
+IRS,Cong ty Co phan Chung khoan Quoc te Hoang Gia
+ISC,Cong ty Co phan Chung khoan Cong Nghiep Viet Nam
+ISG,CTCP Van tai bien & Hop tac Quoc te
+ISH,Cong ty co phan Thuy dien Srok Phu Mieng IDICO
+IST,Cong ty Co phan ICD Tan Cang Song Than
+ITA,Cong ty Co phan Dau tu va Cong nghiep Tan Tao
+ITC,Cong ty Co phan Dau tu - Kinh doanh nha
+ITD,Cong ty Co phan Cong nghe Tien Phong
+ITQ,Cong ty co phan Tap doan Thien Quang
+ITS,Cong ty co phan Dau tu, Thuong mai va Dich vu - Vinacomin
+IVS,Cong ty co phan Chung khoan Guotai Junan (Viet Nam)
+JACCAR,Jaccar
+JAPFA,Cong ty CP Japfa Comfeed Viet Nam
+JFVOF,JPMorgan Vietnam Opportunities Fund
+JOS,Cong ty Co phan Che bien Thuy san Xuat khau Minh Hai
+JPA,Cong ty CP Hang khong Jetstar Pacific Airlines
+JSC,Cong ty Co phan Xay dung Cau duong Ha Noi
+JSI,Cong ty co phan Chung khoan Nhat Ban
+JVC,Cong ty co phan Thiet bi Y te Viet Nhat
+KAC,Cong ty Co phan Dau tu Dia oc Khang An
+KAL,Cong ty co phan Nhom Khanh Hoa
+KBC,Tong Cong ty Phat trien Do thi Kinh Bac-CTCP
+KBE,Cong ty Co phan Sach - Thiet bi Truong hoc Kien Giang
+KBT,Cong ty Co phan Gach ngoi Kien Giang
+KCB,CTCP Khoang san va luyen kim Cao Bang
+KCE,Cong ty Co phan Be tong Ly tam Dien luc Khanh Hoa
+KDC,Cong ty Co phan Tap doan Kido
+KDF,Cong ty Co phan Thuc pham Dong lanh KIDO
+KDH,Cong ty Co phan Dau tu Kinh doanh nha Khang Dien
+KDHKISMCAT05,Chung quyen KDH.KIS.M.CA.T.05
+KDM,Cong ty co phan - Tong Cong ty Phat trien khu do thi Dan cu Moi
+KGM,Cong ty Co phan Xuat nhap khau Kien Giang
+KGU,Cong ty Co phan Phat trien Do thi Kien Giang
+KHA,Cong ty Co phan Dau tu va Dich vu Khanh Hoi
+KHATOCO,Tong Cong ty Khanh Viet
+KHB,Cong ty Co phan Khoang san Hoa Binh
+KHD,CTCP Khai thac, Che bien khoang san Hai Duong
+KHG,Cong ty Co phan Bat dong san Khai Hoan Land
+KHL,Cong ty co phan Khoang san va Vat lieu Xay dung Hung Long
+KHP,Cong ty Co phan Dien luc Khanh Hoa
+KHS,Cong ty Co phan Kien Hung
+KHV,Cong ty TNHH Kim Ha Viet
+KHW,Cong ty Co phan Cap nuoc Khanh Hoa
+KIP,Cong ty Co phan K.I.P Viet Nam
+KIS,Cong ty Co phan Chung khoan KIS Viet Nam
+KISIMEX,Cong ty CP Thuy san Kien Giang
+KKC,Cong ty Co phan Kim khi KKC
+KLB,Ngan hang TMCP Kien Long
+KLF,Cong ty Co phan Dau tu Thuong mai va Xuat nhap khau CFS
+KLM,CTCP Kim loai mau Nghe Tinh
+KLS,Cong ty Co phan Chung khoan Kim Long
+KMF,Cong ty Co phan Mirae Fiber
+KMR,Cong ty Co phan Mirae
+KMT,Cong ty co phan Kim khi mien Trung
+KOS,Cong ty Co phan Kosy
+KPF,Cong ty Co phan Dau tu tai chinh Hoang Minh
+KSA,Cong ty Co phan Cong nghiep Khoang san Binh Thuan
+KSB,Cong ty Co phan Khoang san va Xay dung Binh Duong
+KSC,Cong ty Co phan Muoi Khanh Hoa
+KSD,Cong ty co phan Dau tu DNA
+KSE,Cong ty Co phan Xuat khau Thuy san Khanh Hoa
+KSH,Cong ty Co phan Damac GLS
+KSK,Cong ty co phan Khoang san Luyen kim mau
+KSQ,Cong ty co phan CNC Capital Viet Nam
+KSS,Cong ty Co phan Khoang san Na Ri Hamico
+KST,Cong ty co phan KASATI
+KSV,Tong Cong ty Khoang san TKV - CTCP
+KTB,Cong ty Co phan Dau tu Khoang san Tay Bac
+KTC,Cong ty Co phan Thuong mai Kien Giang
+KTL,CTCP Kim khi Thang Long
+KTS,Cong ty co phan Duong Kon Tum
+KTT,Cong ty co phan Tap doan dau tu KTT
+KTU,Cong ty Co phan Moi truong do thi Kon Tum
+KVC,CTCP San xuat Xuat nhap khau Inox Kim Vi
+KVS,Cong ty Co phan Chung khoan KENANGA Viet Nam
+L10,Cong ty co phan Lilama 10
+L12,Cong ty co phan Licogi 12
+L14,Cong ty co phan LICOGI 14
+L18,Cong ty Co phan Dau tu va Xay dung so 18
+L35,Cong ty Co phan Co khi Lap may Lilama
+L40,Cong ty Co phan Dau tu va Xay dung 40
+L43,Cong ty Co phan Lilama 45.3
+L44,Cong ty Co phan Lilama 45.4
+L45,CTCP Lilama 45.1
+L61,Cong ty Co phan Lilama 69-1
+L62,Cong ty Co phan Lilama 69-2
+L63,CTCP Lilama 69-3
+LAF,Cong ty Co phan Che bien Hang xuat khau Long An
+LAI,CTCP Dau tu xay dung Long An IDICO
+LAS,Cong ty co phan Supe Phot phat va Hoa chat Lam Thao
+LAVIE,Cong ty TNHH LA VIE
+LAW,Cong ty co phan Cap thoat nuoc Long An
+LBC,Cong ty Co phan Thuong mai - Dau tu Long Bien
+LBE,Cong ty Co phan Sach va Thiet bi truong hoc Long An
+LBM,Cong ty Co phan Khoang san va Vat lieu xay dung Lam Dong
+LCC,Cong ty Co phan Xi mang Hong Phong
+LCD,Cong ty Co phan Lap may - Thi nghiem Co dien
+LCG,Cong ty co phan LICOGI 16
+LCM,Cong ty Co phan Khai thac va Che bien Khoang san Lao Cai
+LCS,Cong ty Co phan Licogi 166
+LCW,Cong ty Co phan Nuoc sach Lai Chau
+LDG,Cong ty Co phan Dau tu LDG
+LDP,Cong ty Co phan Duoc Lam Dong - Ladophar
+LDW,Cong ty co phan Cap thoat nuoc Lam Dong
+LEC,Cong ty Co phan Bat dong san Dien luc Mien Trung
+LG9,Cong ty Co phan Co gioi va Xay lap so 9
+LGC,Cong ty Co phan Dau tu Cau duong CII
+LGL,Cong ty co phan Dau tu va Phat trien Do thi Long Giang
+LGM,CTCP Giay da va May mac Xuat khau (LEGAMEX)
+LHC,Cong ty Co phan Dau tu va Xay dung Thuy loi Lam Dong
+LHG,Cong ty Co phan Long Hau
+LIC,Tong Cong ty Licogi - Cong ty Co phan
+LIG,Cong ty Co phan Licogi 13
+LIONGVF,LionGlobal Vietnam Fund
+LIX,Cong ty Co phan Bot giat Lix
+LKW,CTCP Cap nuoc Long Khanh
+LLM,Tong Cong ty Lap may Viet Nam - CTCP
+LM3,Cong ty Co phan Lilama 3
+LM7,Cong ty Co phan Lilama 7
+LM8,Cong ty Co phan Lilama 18
+LMC,Cong ty Co phan Khoang san Latca
+LMH,Cong ty Co phan Landmark Holding
+LMI,Cong ty Co phan Dau tu Xay dung Lap may IDICO
+LNC,Cong ty co phan Le Ninh
+LNS,Cong ty co phan Mia duong La Nga
+LO5,Cong ty Co phan Lilama 5
+LONGHAIGROUP,Cong ty CP Tap doan dau tu Long Hai
+LONGTHANHPLASTIC,Cong ty TNHH Nhua Long Thanh
+LPB,Ngan hang Thuong mai co phan Buu dien Lien Viet
+LPT,CTCP Thuong mai va San xuat Lap Phuong Thanh
+LQN,Cong ty co phan Licogi Quang Ngai
+LSS,Cong ty Co phan Mia duong Lam Son
+LTC,Cong ty co phan Dien nhe Vien thong
+LTG,Cong ty Co phan Tap doan Loc Troi
+LUCKYTEL,Cong ty CP XNK thiet bi vien thong May Man
+LUNGLO,Tong Cong ty Xay dung Lung Lo
+LUT,Cong ty Co phan Dau tu Xay dung Luong Tai
+LVS,Cong ty co phan Chung khoan Lien Viet
+LWS,Cong ty Co phan Cap nuoc tinh Lao Cai
+LYF,CTCP Luong Thuc Luong Yen
+M10,Tong Cong ty May 10 - CTCP
+MA1,Cong ty co phan Thiet bi
+MAC,Cong ty Co phan Cung ung va Dich vu Ky thuat Hang Hai
+MAFPF1,Quy dau tu tang truong Manulife
+MANULIFE,Cong ty TNHH Manulife (Viet Nam)
+MAS,Cong ty co phan Dich vu Hang khong San bay Da Nang
+MAX,Cong ty Co phan Khai khoang va Co khi Huu nghi Vinh Sinh
+MBB,Ngan hang Thuong mai co phan Quan doi
+MBG,Cong ty co phan Tap doan MBG
+MBKE,Cong ty co phan Chung khoan MayBank Kim Eng
+MBN,Cong ty co phan Moi truong va Cong trinh Do thi Bac Ninh
+MBS,Cong ty co phan Chung khoan MB
+MC3,Cong ty Co phan Khoang san 3 - Vimico
+MCC,Cong ty Co phan Gach ngoi cao cap
+MCF,CTCP Xay lap Co khi va Luong thuc Thuc pham
+MCG,Cong ty Co phan Co dien va Xay dung Viet Nam
+MCH,Cong ty Co phan Hang tieu dung Masan
+MCI,CTCP Dau tu Xay dung va Phat trien Vat lieu IDICO
+MCL,Cong ty Co phan Phat trien Nha va San xuat Vat lieu xay dung Chi Linh
+MCM,Cong ty co phan Giong bo sua Moc Chau
+MCO,Cong ty Co phan Dau tu va Xay dung BDC Viet Nam
+MCP,Cong ty co phan In va Bao bi My Chau
+MCT,Cong ty Co phan Kinh doanh Vat tu va Xay dung
+MCV,Cong ty Co phan Cavico Viet Nam Khai thac Mo va Xay dung
+MDA,Cong ty Co phan Moi truong Do thi Dong Anh
+MDC,Cong ty co phan Than Mong Duong - Vinacomin
+MDF,Cong ty co phan Go MDF VRG Quang Tri
+MDG,Cong ty Co phan mien Dong
+MDN,CTCP Tong Cong ty May Dong Nai
+MDT,CTCP Co khi mo va Dong tau - TKV
+MEC,Cong ty Co phan Co khi - lap may Song Da
+MED,Cong ty co phan Duoc Trung uong Mediplantex
+MEDIAMART,CTCP Mediamart Viet Nam
+MEF,Cong ty co phan MEINFA
+MEG,Cong ty co phan Megram
+MEKONGCAP,Mekong Capital
+MEL,Cong ty Co phan Thep Me Lin
+MERCEDESVN,Cong ty Lien doanh Mercedes-Benz Viet Nam
+MES,Cong ty co phan Co dien Cong trinh
+METROVN,Cong ty TNHH Metro Cash & Carry Viet Nam
+MFS,Cong ty Co phan Dich vu Ky thuat Mobifone
+MGC,Cong ty co phan Dia chat mo - TKV
+MGG,Tong Cong ty Duc Giang - Cong ty Co phan
+MH3,Cong ty Co phan Khu cong nghiep Cao Su Binh Long
+MHB,Ngan hang TMCP Phat trien nha dong bang song Cuu Long
+MHBS,Cong ty co phan Chung khoan Ngan hang Phat trien Nha dong bang Song Cuu Long
+MHC,Cong ty Co phan MHC
+MHDI,Tong Cong ty Dau tu phat trien nha va Do thi - BQP
+MHL,Cong ty Co phan Minh Huu Lien
+MHP,CTCP Moi truong va Dich vu do thi Viet Tri
+MHY,Cong ty TNHH MTV Moi truong va Cong trinh Do thi Hung Yen
+MIC,Cong ty Co phan Ky nghe Khoang san Quang Nam
+MICROSOFT,Cong ty TNHH Microsoft Viet Nam
+MIE,Tong Cong ty May va Thiet bi Cong nghiep - CTCP
+MIG,Tong Cong ty co phan Bao hiem Quan doi
+MIH,Cong ty Co phan Xuat nhap khau Khoang san Ha Nam
+MIM,Cong ty Co phan Khoang san va Co khi
+MINHLONG1,Cong ty TNHH Minh Long 1
+MINHVIETCAPITAL,Cong ty Co phan Quan ly quy dau tu Chung khoan Minh Viet
+MIPEC,CTCP Hoa dau Quan doi
+MIPECORP,Tong Cong ty Xang dau Quan doi
+MIRAEASSET,Cong ty TNHH Chung khoan Mirae Asset (Viet Nam)
+MJC,Cong ty Co phan Thuong mai Moc Hoa
+MKP,Cong ty Co phan Hoa - Duoc pham Mekophar
+MKT,Cong ty co phan Det Minh Khai
+MKV,Cong ty Co phan Duoc Thu y Cai Lay
+MLC,Cong ty Co phan Moi truong Do thi Tinh Lao Cai
+MLG,Cong ty Co phan Tap doan Mai Linh
+MLN,Cong ty co phan Mai Linh Mien Bac
+MLS,Cong ty co phan Chan nuoi - Mitraco
+MMC,Cong ty Co phan Khoang san Mangan
+MML,Cong ty Co phan Masan MEATLife
+MNB,Tong Cong ty May Nha Be - Cong ty Co phan
+MNC,Cong ty Co phan Tap doan Mai Linh Mien Trung
+MND,Cong ty Co phan Moi truong Nam Dinh
+MOBIFONE,Tong Cong ty Vien thong Mobifone
+MOMOTA,Cong ty co phan 118
+MPC,Cong ty Co phan Tap doan Thuy san Minh Phu
+MPHG,CTCP Che bien Thuy san Minh Phu - Hau Giang
+MPT,Cong ty co phan Tap doan Truong Tien
+MPY,Cong ty Co phan Moi truong Do thi Phu Yen
+MQB,Cong ty Co phan Moi truong va phat trien Do thi Quang Binh
+MQN,Cong ty Co phan Moi truong do thi Quang Ngai
+MRF,Cong ty co phan Merufa
+MSB,Ngan hang Thuong mai co phan Hang hai Viet Nam
+MSC,Cong ty co phan Dich vu Phu Nhuan
+MSG,Cong ty Chung khoan JB Viet Nam
+MSH,Cong ty co phan May Song Hong
+MSI,Cong ty Co phan Chung khoan KB Viet Nam
+MSM,Cong ty TNHH Truyen thong Megastar
+MSN,Cong ty Co phan Tap doan MaSan
+MSNKISMCAT11,Chung quyen MSN.KIS.M.CA.T.11
+MSR,Cong ty co phan Masan High-Tech Materials
+MST,Cong ty Co phan Dau tu MST
+MTA,Tong Cong ty Khoang san va Thuong mai Ha Tinh - CTCP
+MTB,CTCP Moi truong va Cong trinh Do thi tinh Thai Binh
+MTC,CTCP Dich vu Du lich My Tra
+MTG,Cong ty Co phan MT Gas
+MTH,Cong ty Co phan Moi truong Do thi Ha Dong
+MTL,CTCP Dich vu Moi truong Do thi Tu Liem
+MTM,CTCP Mo va Xuat nhap khau Khoang san Mien Trung
+MTP,Cong ty Co phan Duoc Medipharco
+MTS,Cong ty co phan Vat tu - TKV
+MTV,Cong ty Co phan Dich vu Moi truong va Cong trinh Do thi Vung Tau
+MUONGTHANH,Doanh nghiep tu nhan Xay dung so 1 tinh Dien Bien
+MVB,Tong cong ty Cong nghiep mo Viet Bac TKV - CTCP
+MVC,Cong ty Co phan Vat lieu va Xay dung Binh Duong
+MVN,Tong Cong ty Hang hai Viet Nam - CTCP
+MVY,Cong ty Co phan Moi truong va Dich vu Do thi Vinh Yen
+MWG,Cong ty co phan Dau tu The gioi Di dong
+MXC,Trung tam Nong nghiep Mua Xuan
+NAB,Ngan hang TMCP Nam A
+NAC,Cong ty Co phan Tu van Xay dung Tong hop
+NAF,Cong ty Co phan Nafoods Group
+NAG,Cong ty co phan Tap doan Nagakawa
+NAKYDACO,CTCP Dau thuc vat Tan Binh
+NAMCUONG,CTCP Tap doan Nam Cuong Ha Noi
+NAP,Cong ty co phan Cang Nghe Tinh
+NAS,Cong ty Co phan Dich vu Hang khong San bay Noi Bai
+NASC,Cong ty TNHH Chung khoan Shinhan Viet Nam
+NASICO,Cong ty TNHH MTV Dong Tau Nam Trieu
+NAU,Cong ty co phan Moi truong va Cong trinh do thi Nghe An
+NAV,Cong ty Co phan Nam Viet
+NAW,Cong ty Co phan Cap nuoc Nghe An
+NBB,Cong ty Co phan Dau tu Nam Bay Bay
+NBC,Cong ty co phan Than Nui Beo – Vinacomin
+NBE,Cong ty Co phan Sach va Thiet bi Giao duc Mien Bac
+NBP,Cong ty Co phan Nhiet dien Ninh Binh
+NBR,CTCP Duong sat Nghia Binh
+NBS,Cong ty Co phan Ben xe Nghe An
+NBT,CTCP Cap thoat nuoc Ben Tre
+NBW,Cong ty Co phan Cap nuoc Nha Be
+NCP,Cong ty Co phan Nhiet dien Cam Pha - TKV
+NCS,Cong ty co phan Suat an Hang khong Noi Bai
+NCT,Cong ty Co phan Dich vu Hang hoa Noi Bai
+ND2,Cong ty Co phan Dau tu Phat trien dien Mien Bac 2
+NDC,Cong ty Co phan Nam Duoc
+NDF,CTCP Che bien thuc pham nong san xuat khau Nam Dinh
+NDHI,Cong ty TNHH Dau tu NDH Viet Nam
+NDHINVEST,Cong ty TNHH Dau tu NDH
+NDN,Cong ty Co phan Dau tu Phat trien Nha Da Nang
+NDP,Cong ty Co phan Duoc pham 2/9
+NDT,Tong Cong ty co phan Det may Nam Dinh
+NDW,CTCP Cap nuoc Nam Dinh
+NDX,Cong ty Co phan Xay lap Phat trien Nha Da Nang
+NECORP,Tong Cong ty Dong Bac - BQP
+NED,Cong ty co phan Dau tu va Phat trien Dien Tay Bac
+NET,Cong ty Co phan Bot giat Net
+NFC,Cong ty Co phan Phan lan Ninh Binh
+NGC,Cong ty Co phan Che bien Thuy san Xuat khau Ngo Quyen
+NGUYENKIM,CTCP Thuong mai Nguyen Kim
+NHA,Tong Cong ty Dau tu Phat trien Nha va Do thi Nam Ha Noi
+NHAC,Cong ty Co Phan Nguyen Ha A Chau
+NHC,Cong ty Co phan Gach Ngoi Nhi Hiep
+NHH,Cong ty Co phan Nhua Ha Noi
+NHN,Cong ty co phan Phat trien do thi Nam Ha Noi
+NHONHOA,Cong ty TNHH San xuat can Nhon Hoa
+NHP,Cong ty Co phan San xuat Xuat nhap khau NHP
+NHS,Cong ty Co phan Duong Ninh Hoa
+NHT,Cong ty Co phan San xuat va Thuong mai Nam Hoa
+NHV,Cong ty co phan Dau tu NHV
+NHW,Cong ty Co phan Ngo Han
+NIS,Cong ty Co phan Dich vu Ha tang mang
+NISACO,Cong ty co phan Muoi Ninh Thuan
+NJC,Cong ty co phan May Nam Dinh
+NKD,Cong ty Co phan Che bien Thuc pham Kinh Do Mien Bac
+NKG,Cong ty Co phan Thep Nam Kim
+NKID,CTCP Dau tu va Phat trien Nguyen Kim
+NLC,Cong ty Co phan Thuy dien Na Loi
+NLG,Cong ty co phan Dau tu Nam Long
+NLS,Cong ty co phan Cap thoat Nuoc Lang Son
+NMK,Cong ty co phan Xay dung Cong trinh 510
+NNB,CTCP Cap thoat nuoc Ninh Binh
+NNC,Cong ty Co phan Da Nui Nho
+NNG,Cong ty Co phan Cong nghiep - Dich vu - Thuong Mai Ngoc Nghia
+NNQ,Trung tam Giong Nong - Lam nghiep Quang Nam
+NNT,Cong ty co phan Cap nuoc Ninh Thuan
+NORCEM,CTCP Kinh doanh Xi mang Mien Bac
+NOS,Cong ty Co phan Van tai bien va Thuong mai Phuong Dong
+NPH,CTCP Khach san Buu dien Nha Trang
+NPS,Cong ty Co phan May Phu Thinh - Nha Be
+NQB,Cong ty co phan Cap nuoc Quang Binh
+NQN,Cong ty Co phan Nuoc sach Quang Ninh
+NQT,Cong ty Co phan Nuoc sach Quang Tri
+NRC,Cong ty Co phan Tap doan Danh Khoi
+NS2,Cong ty Co phan Nuoc sach so 2 Ha Noi
+NS3,CTCP San xuat Kinh doanh Nuoc sach so 3 Ha Noi
+NSC,Cong ty co phan Tap doan Giong cay trong Viet Nam
+NSG,CTCP Nhua Sai Gon
+NSH,Cong ty Co phan Nhom Song Hong
+NSI,Cong ty Co phan Chung khoan Quoc gia
+NSL,Cong ty co phan Cap nuoc Son La
+NSN,Cong ty Co phan Xay dung 565
+NSP,Cong ty Co phan Nhua Sam Phu
+NSS,Cong ty co phan Nong Suc San Dong Nai
+NST,Cong ty Co phan Ngan Son
+NT2,Cong ty Co phan Dien luc Dau khi Nhon Trach 2
+NTB,Cong ty co phan Dau tu Xay dung va Khai thac Cong trinh Giao thong 584
+NTC,Cong ty Co phan Khu Cong nghiep Nam Tan Uyen
+NTF,CTCP Duoc - Vat tu Y te Nghe An
+NTH,Cong ty Co phan thuy dien Nuoc Trong
+NTL,Cong ty Co phan Phat trien Do thi Tu Liem
+NTP,Cong ty Co phan Nhua Thieu nien Tien Phong
+NTR,Cong ty Co Phan Duong sat Nghe Tinh
+NTSF,Cong ty Co phan Nha Trang Seafoods - F17
+NTT,Cong ty Co phan Det - May Nha Trang
+NTW,Cong ty co phan Cap nuoc Nhon Trach
+NUE,Cong ty Co phan Moi truong Do thi Nha Trang
+NVB,Ngan hang Thuong mai co phan Quoc Dan
+NVC,Cong ty Co phan Nam Vang
+NVL,Cong ty co phan Tap doan Dau tu Dia oc No Va
+NVN,Cong ty Co phan Nha Viet Nam
+NVP,Cong ty Co phan Nuoc sach Vinh Phuc
+NVS,Cong ty co phan Chung khoan NAVIBANK
+NVT,Cong ty Co phan Bat dong san Du lich Ninh Van Bay
+NWT,CTCP Van tai Newway
+OCB,Ngan hang Thuong mai co phan Phuong Dong
+OCH,Cong ty Co phan Khach san va Dich vu OCH
+OCS,Cong ty Co phan Chung khoan Dai Duong
+OGC,Cong ty Co phan Tap doan Dai Duong
+OIL,Tong Cong ty Dau Viet Nam - CTCP
+OLAM,Cong ty TNHH Olam Viet Nam
+OLC,Cong ty co phan Xay dung, Dich vu va Hop tac lao dong
+OMC,Cong ty Co phan Quan ly quy dau tu Chung khoan Phuong Dong
+ONE,Cong ty Co phan Truyen thong so 1
+ONW,Cong ty Co phan Dich vu Mot The gioi
+OPC,Cong ty co phan Duoc pham OPC
+ORION,Cong ty TNHH Thuc pham Orion Vina
+ORS,Cong ty Co phan Chung khoan Tien Phong
+OSC,Cong ty Co phan Chung khoan DAI TAY DUONG
+OSCVN,CTCP Du lich Dich vu Dau khi Viet Nam
+OTG,CTCP Otran Logistics
+OTRAN,CTCP Otran Viet Nam
+PAC,Cong ty Co phan Pin Ac quy Mien Nam
+PAI,CTCP Cong nghe thong tin, vien thong va tu dong hoa Dau khi
+PAN,Cong ty Co phan Tap doan PAN
+PAP,CTCP Dau khi dau tu khai thac Cang Phuoc An
+PARKSON,Cong ty TNHH Parkson Viet Nam
+PAS,Cong ty co phan Quoc te Phuong Anh
+PBC,CTCP Duoc pham Trung uong I - Pharbaco
+PBK,Cong ty co phan Dien luc Dau khi Bac Kan
+PBP,Cong ty co phan Bao bi Dau khi Viet Nam
+PBT,Cong ty co phan Nha va Thuong mai Dau khi
+PC1,Cong ty co phan Xay lap dien 1
+PCC,Cong ty Co phan Tap doan Xay lap 1 - Petrolimex
+PCE,Cong ty co phan Phan bon va Hoa chat Dau khi Mien Trung
+PCF,Cong ty co phan Ca Phe Petec
+PCG,Cong ty Co phan Dau tu va Phat trien Gas Do Thi
+PCM,Cong ty Co phan Vat lieu Xay dung Buu dien
+PCN,Cong ty co phan Hoa pham dau khi DMC - mien Bac
+PCT,Cong ty co phan Van tai khi va hoa chat Viet Nam
+PDB,Cong ty Co phan Tap doan dau tu DIN Capital
+PDC,Cong ty co phan Du lich Dau khi Phuong Dong
+PDN,Cong ty Co phan Cang Dong Nai
+PDR,Cong ty co phan Phat trien Bat dong san Phat Dat
+PDT,Cong ty TNHH MTV Thuong mai Dau khi Dong Thap
+PDV,Cong ty co phan Van tai dau Phuong Dong Viet
+PEC,Cong ty Co phan Co khi Dien luc
+PEG,Tong Cong ty Thuong mai Ky thuat va Dau tu - CTCP
+PEN,Cong ty co phan Xay lap III Petrolimex
+PENM,BankInvest/PENM Partners
+PEQ,Cong ty co phan Thiet bi Xang dau Petrolimex
+PET,Tong Cong ty Co phan Dich vu Tong hop Dau khi
+PFI,Cong ty Co phan Dau tu Tai chinh Cong doan Dau khi
+PFL,Cong ty co phan Dau khi Dong Do
+PFV,Cong ty Co phan Dau tu va Thuong mai PFV
+PGB,Ngan hang TMCP Xang dau Petrolimex
+PGC,Tong Cong ty Gas Petrolimex-CTCP
+PGD,Cong ty Co phan Phan phoi Khi thap ap Dau khi Viet Nam
+PGI,Tong Cong ty co phan Bao hiem Petrolimex
+PGN,Cong ty Co phan Phu gia Nhua
+PGS,Cong ty Co phan Kinh doanh Khi Mien Nam
+PGSC,Cong ty Co phan Chung khoan PHU GIA
+PGT,Cong ty Co phan PGT Holdings
+PGV,Tong Cong ty Phat dien 3 - Cong ty co phan
+PHC,Cong ty co phan Xay dung Phuc Hung Holdings
+PHH,Cong ty Co phan Hong Ha Viet Nam
+PHN,Cong ty Co phan Pin Ha Noi
+PHP,Cong ty co phan Cang Hai Phong
+PHR,Cong ty co phan Cao su Phuoc Hoa
+PHS,Cong ty Co phan Chung khoan Phu Hung
+PHT,Cong ty Co phan San xuat va Thuong mai Phuc Tien
+PHUCSINH,CTCP Ca phe Phuc Sinh
+PHUMYHUNG,Cong ty TNHH Phat trien Phu My Hung
+PIA,Cong ty co phan Tin hoc Vien thong Petrolimex
+PIAGGIO,Cong ty TNHH Piaggio Viet Nam
+PIC,Cong ty co phan Dau tu Dien luc 3
+PICO,CTCP PICO
+PID,Cong ty Co phan Trang tri Noi that Dau khi
+PIS,Tong Cong ty Pisico Binh Dinh - CTCP
+PIT,Cong ty Co phan Xuat nhap khau Petrolimex
+PIV,Cong ty Co phan PIV
+PIVLS,Cong ty Co phan Dau tu Khu cong nghiep Dau khi - Idico Long Son
+PJC,Cong ty Co phan Thuong mai va Van tai Petrolimex Ha Noi
+PJS,Cong ty co phan Cap nuoc Phu Hoa Tan
+PJT,Cong ty Co phan Van tai Xang dau Duong thuy Petrolimex
+PKR,Cong ty Co phan Duong sat Phu Khanh
+PLA,Cong ty co phan Dau tu Dich vu Ha tang Xang Dau
+PLASCHEM,CTCP Hoa chat nhua
+PLC,Tong Cong ty Hoa dau Petrolimex-CTCP
+PLE,CTCP Tu van Xay dung Petrolimex
+PLO,Cong ty Co phan Kho Van Petec
+PLP,Cong ty Co phan San xuat va Cong nghe Nhua Pha Le
+PLX,Tap doan Xang dau Viet Nam
+PMB,Cong ty co phan Phan bon va Hoa chat Dau khi Mien Bac
+PMC,Cong ty Co phan Duoc pham Duoc lieu Pharmedic
+PME,Cong ty Co phan Pymepharco
+PMG,Cong ty Co phan Dau tu va San xuat Petro Mien Trung
+PMJ,Cong ty co phan Vat tu Buu dien
+PMP,Cong ty co phan Bao bi Dam Phu My
+PMS,Cong ty Co phan Co khi Xang dau
+PMT,Cong ty co phan Vien thong TELVINA Viet Nam
+PMW,Cong ty co phan Cap nuoc Phu My
+PNC,Cong ty Co phan Van hoa Phuong Nam
+PND,Cong ty Co phan Xang dau Dau khi Nam Dinh
+PNG,Cong ty co phan Thuong mai Phu Nhuan
+PNJ,Cong ty Co phan Vang bac Da quy Phu Nhuan
+PNJHSCMET04,Chung quyen PNJ-HSC-MET04
+PNP,Cong ty co phan Tan Cang - Phu Huu
+PNT,Cong ty co phan Ky thuat Xay dung Phu Nhuan
+POB,Cong ty Co phan Xang dau Dau khi Thai Binh
+POM,Cong ty Co phan Thep Pomina
+POS,Cong ty Co phan Dich vu Lap dat, Van hanh va Bao duong Cong trinh Dau khi bien PTSC
+POT,Cong ty Co phan Thiet bi Buu dien
+POV,Cong ty Co phan Xang dau Dau khi Vung Ang
+POW,Tong Cong ty Dien luc Dau khi Viet Nam - CTCP
+PPC,Cong ty Co phan Nhiet dien Pha Lai
+PPE,Cong ty co phan Tu van Dien luc Dau khi Viet Nam
+PPG,Cong ty co phan San xuat Thuong mai Dich vu Phu Phong
+PPH,Tong Cong ty Co phan Phong Phu
+PPI,Cong ty Co phan Dau tu va Phat trien Du an Ha tang Thai Binh Duong
+PPP,Cong ty Co phan Duoc pham Phong Phu
+PPS,Cong ty Co phan Dich vu Ky thuat Dien luc Dau khi Viet Nam
+PPY,Cong ty co phan Xang dau Dau khi Phu Yen
+PQG,CTCP Dau tu vang Phu Quy
+PQN,CTCP Dich vu Dau khi Quang Ngai PTSC
+PRC,Cong ty Co phan Logistics Portserco
+PRE,Tong Cong ty Co phan Tai bao hiem PVI
+PRIME,CTCP Prime Group
+PRO,Cong ty Co phan Procimex Viet Nam
+PROCONCO,CTCP Viet Phap san xuat thuc an gia suc
+PRT,Tong cong ty San xuat - Xuat nhap khau Binh Duong - TNHH MTV
+PRUBF1,Quy Dau tu Can bang Prudential
+PRUDENTIAL,Cong ty TNHH Bao hiem Nhan tho Prudential Viet Nam
+PRUFC,Cong ty TNHH MTV Tai chinh Prudential Viet Nam
+PSB,Cong ty co phan Dau tu Dau khi Sao Mai – Ben Dinh
+PSC,Cong ty co phan Van tai va Dich vu Petrolimex Sai Gon
+PSD,Cong ty co phan Dich vu Phan phoi Tong hop Dau khi
+PSE,Cong ty co phan Phan bon va Hoa chat Dau khi Dong Nam Bo
+PSG,Cong ty Co phan Dau tu va Xay lap Dau khi Sai Gon
+PSH,CTCP Thuong mai Dau tu Dau khi Nam Song Hau
+PSI,Cong ty co phan Chung khoan Dau khi
+PSL,Cong ty Co phan Chan nuoi Phu Son
+PSN,Cong ty Co phan Cang dich vu Dau khi Tong hop PTSC Thanh Hoa
+PSP,Cong ty Co phan Cang dich vu Dau khi Dinh Vu
+PSW,Cong ty co phan Phan bon va Hoa chat Dau khi Tay Nam Bo
+PTB,Cong ty Co phan Phu Tai
+PTC,Cong ty Co phan Dau tu va Xay dung Buu dien
+PTD,CTCP Thiet ke - Xay dung - Thuong mai Phuc Thinh
+PTE,Cong ty Co phan Xi mang Phu Tho
+PTG,Cong ty Co phan May Xuat khau Phan Thiet
+PTH,Cong ty Co phan Van tai va Dich vu Petrolimex Ha Tay
+PTI,Tong Cong ty Co phan Bao hiem Buu dien
+PTK,Cong ty Co phan Luyen kim Phu Thinh
+PTL,Cong ty Co phan Dau tu Ha tang va Do thi Dau khi
+PTM,Cong ty co phan San xuat, Thuong mai va Dich vu oto PTM
+PTO,Cong ty Co phan Dich vu - Xay dung Cong trinh Buu dien
+PTP,Cong ty Co phan Dich vu Vien thong va In Buu dien
+PTS,Cong ty Co phan Van tai va Dich vu Petrolimex Hai Phong
+PTT,Cong ty Co phan Van tai Dau khi Dong Duong
+PTV,Cong ty co phan Thuong mai Dau khi
+PTX,Cong ty co phan Van tai va Dich vu Petrolimex Nghe Tinh
+PUBLICBANK,Ngan hang TNHH MTV Public Viet Nam
+PV2,Cong ty co phan Dau tu PV2
+PVA,Cong ty Co phan Tong Cong ty Xay lap Dau khi Nghe An
+PVB,Cong ty co phan Boc ong Dau khi Viet Nam
+PVC,Tong Cong ty Hoa chat va Dich vu Dau khi - CTCP
+PVCME,Cong ty co phan Thi cong co gioi va lap may dau khi
+PVD,Tong Cong ty Co phan Khoan va Dich vu Khoan Dau khi
+PVE,Tong Cong ty Tu van Thiet ke Dau khi-CTCP
+PVEIC,Tong Cong ty Bao Duong -Sua chua Cong trinh Dau khi - CTCP
+PVEP,Tong Cong ty Tham do Khai thac Dau khi
+PVF,Tong Cong ty Tai chinh Co phan Dau khi Viet Nam
+PVFCC,Cong ty Co phan Quan ly quy Dau tu Tai chinh Dau khi
+PVG,Cong ty Co phan Kinh doanh LPG Viet Nam
+PVH,Cong ty co phan Xay lap dau khi Thanh Hoa
+PVI,Cong ty Co phan PVI
+PVID,Cong ty co phan Dau tu va Xay lap khi
+PVIF,Cong ty co phan Dau tu Tai chinh Bao hiem Dau khi
+PVIINSURANCE,Tong Cong ty Bao hiem PVI
+PVL,Cong ty co phan Dau tu Nha dat Viet
+PVM,Cong ty Co phan May - Thiet bi Dau khi
+PVN,Tap doan Dau khi Viet Nam
+PVO,CTCP Dau nhon PV Oil
+PVP,Cong ty Co phan Van tai dau khi Thai Binh Duong
+PVR,Cong ty Co phan dau tu PVR Ha Noi
+PVS,Tong Cong ty Co phan Dich vu Ky thuat Dau khi Viet Nam
+PVSH,Cong ty co phan Dau tu va Thuong mai Dau khi Song Hong
+PVST,Cong ty co phan Du lich dau khi Sapa
+PVT,Tong cong ty Co phan Van tai Dau khi
+PVV,Cong ty Co phan Vinaconex 39
+PVX,Tong Cong ty co phan Xay lap Dau khi Viet Nam
+PVY,Cong ty Co phan Che tao Gian khoan Dau khi
+PWA,Cong ty Co phan Bat dong san Dau khi
+PWS,Cong ty Co phan Cap thoat nuoc Phu Yen
+PX1,Cong ty co phan Xi mang Song Lam 2
+PXA,Cong ty co phan Dau tu & Thuong mai Dau khi Nghe An
+PXC,Cong ty co phan Phat trien do thi Dau khi
+PXH,Cong ty co phan Xay lap Dau khi Ha Noi
+PXI,Cong ty Co phan Xay dung cong nghiep va dan dung Dau khi
+PXL,Tong Cong ty co phan Dau tu va Phat trien KCN Dau khi-Long Son
+PXM,Cong ty Co phan Xay lap Dau khi Mien Trung
+PXPVEEF,PXP Vietnam Emerging Equity Fund
+PXS,Cong ty Co phan Ket cau Kim loai va Lap may Dau khi
+PXT,Cong ty Co phan Xay lap Duong ong Be chua Dau khi
+PYNMFE,Mutual Fund Elite
+PYU,Cong ty Co phan Moi truong va Cong trinh Do thi Phuc Yen
+QBR,Cong ty Co Phan Duong sat Quang Binh
+QBS,Cong ty Co phan Xuat nhap khau Quang Binh
+QCC,CTCP Dau tu Xay dung va Phat trien Ha tang Vien thong
+QCG,Cong ty Co phan Quoc Cuong Gia Lai
+QHD,Cong ty Co phan Que han dien Viet Duc
+QHW,CTCP Nuoc khoang Quang Ninh
+QLD,Cong ty Co phan Quan ly va Xay dung giao thong Lang Son
+QLT,Cong ty Co phan Quan ly Bao tri Duong thuy noi dia so 10
+QMCGROUP,Cong ty Co phan Tap doan Quang Minh
+QNC,Cong ty Co phan Xi mang va Xay dung Quang Ninh
+QNP,CTCP Cang Quy Nhon
+QNS,Cong ty Co phan Duong Quang Ngai
+QNT,Cong ty co phan Tu van va Dau tu Phat trien Quang Nam
+QNU,Cong ty Co phan Moi truong Do thi Quang Nam
+QNW,CTCP Cap thoat nuoc va Xay dung Quang Ngai
+QPH,Cong ty Co phan Thuy dien Que Phong
+QSP,Cong ty co phan Tan Cang Quy Nhon
+QST,Cong ty Co phan Sach va Thiet bi truong hoc Quang Ninh
+QTC,Cong ty Co phan Cong trinh Giao thong Van tai Quang Nam
+QTP,Cong ty Co phan Nhiet dien Quang Ninh
+QVFOOD,Cong ty TNHH Kinh doanh che bien thuy san va XNK Quoc Viet
+RAL,Cong ty Co phan Bong den Phich nuoc Rang Dong
+RAT,CTCP Van tai va Thuong mai Duong sat
+RBC,CTCP Cong nghiep va Xuat nhap khau Cao Su
+RCC,Cong ty Co phan Tong cong ty Cong trinh duong sat
+RCD,Cong ty co phan Xay dung - Dia oc Cao su
+RCL,Cong ty Co phan Dia oc Cho Lon
+RDP,Cong ty Co phan Rang Dong Holding
+REDBULL,Cong ty TNHH Red Bull (Viet Nam)
+REDRIVER,Red River Holding
+REE,Cong ty Co phan Co dien lanh
+REM,Cong ty co phan Tu bo di tich Trung uong - Vinaremon
+RESCO,Tong Cong ty Dia oc Sai Gon - TNHH MTV
+RGC,Cong ty co phan Dau tu PV - Inconess
+RHC,Cong ty Co phan Thuy dien Ry Ninh II
+RHN,Cong ty Co phan Duong sat Ha Ninh
+RIC,Cong ty Co phan Quoc te Hoang Gia
+RICONS,Cong ty Co phan Dau tu Xay dung Ricons
+RLC,Cong ty Co phan Duong bo Lao Cai
+ROS,Cong ty co phan Xay dung FLC Faros
+ROSE,CTCP Chung khoan Globalmind Capital
+ROXY,CTCP Roxy Viet Nam
+RTB,Cong ty co phan Cao su Tan Bien
+RTD,CTCP Phat trien cong nghe nong thon
+RTH,Cong ty Co phan Duong sat Thanh Hoa
+RTS,CTCP Thong tin tin hieu Duong sat Da Nang
+RUBSE,Cong ty Co phan Chung khoan CAO SU
+S12,Cong ty Co phan Song Da 12
+S27,Cong ty co phan Song Da 27
+S33,Cong ty co phan Mia duong 333
+S4A,Cong ty Co phan Thuy dien Se San 4A
+S55,Cong ty Co phan Song Da 505
+S64,Cong ty Co phan Song Da 6.04
+S72,Cong ty Co phan Song Da 7.02
+S74,Cong ty Co phan Song Da 7.04
+S91,Cong ty Co phan Song Da 9.01
+S96,Cong ty Co phan Song Da 9.06
+S99,Cong ty Co phan SCI
+SAB,Tong CTCP Bia - Ruou - Nuoc giai khat Sai Gon
+SABECONT,Cong ty co phan Bia Sai Gon - Nghe Tinh
+SABIBECO,Cong ty co phan Bia Sai Gon-Binh Tay
+SAC,Cong ty Co phan Xep do va Dich vu Cang Sai Gon
+SADACO,CTCP Phat Trien San Xuat Thuong Mai Sai Gon
+SAF,Cong ty Co phan Luong thuc Thuc pham Safoco
+SAGRI,Tong Cong ty Nong nghiep Sai Gon - TNHH MTV
+SAIGON5,Cong ty TNHH MTV Xay dung Thuong mai Sai Gon 5
+SAIGONAM,Saigon Asset Management
+SAIGONCAPITAL,Cong ty Co phan Quan ly quy Sai Gon
+SAIGONCONS,Tong Cong ty Xay dung Sai Gon - TNHH MTV
+SAIGONCOOP,Lien hiep Hop tac xa Thuong mai Thanh pho Ho Chi Minh
+SAIGONPETRO,Cong ty TNHH MTV Dau khi Thanh pho Ho Chi Minh
+SAIGONTOURIST,Tong Cong ty Du lich Sai Gon - TNHH Mot thanh vien
+SAL,Cong ty Co phan Truc vot cuu ho Viet Nam
+SAM,Cong ty Co phan SAM Holdings
+SAMCO,Tong Cong ty Co khi Giao thong Van tai Sai Gon - TNHH MTV
+SAMVEH,Vietnam Equity Holding
+SAMVPH,Vietnam Property Holding
+SAP,Cong ty Co phan In Sach giao khoa tai Tp.Ho Chi Minh
+SAPHARCO,Cong ty TNHH MTV Duoc Sai Gon
+SAS,CTCP Dich vu Hang khong San bay Tan Son Nhat
+SATRA,Tong Cong ty Thuong mai Sai Gon - TNHH MTV
+SAV,Cong ty Co phan Hop tac kinh te va Xuat nhap khau SAVIMEX
+SAWACO,Tong Cong ty Cap nuoc Sai Gon
+SB1,Cong ty co phan Bia Sai Gon - Nghe Tinh
+SBA,Cong ty Co phan Song Ba
+SBBS,Cong ty Co phan Chung khoan SAIGONBANK BERJAYA
+SBC,Cong ty Co phan Van tai va Giao nhan bia Sai Gon
+SBD,Cong ty Co phan Cong nghe Sao Bac Dau
+SBF,Cong ty Co phan Quan ly quy Sabeco
+SBH,Cong ty co phan Thuy dien Song Ba Ha
+SBIC,Tong Cong ty Cong nghiep Tau thuy Viet nam
+SBL,Cong ty Co phan Bia Sai Gon - Bac Lieu
+SBM,Cong ty Co phan Dau tu Phat trien Bac Minh
+SBR,CTCP Cao su Song Be
+SBS,Cong ty Co phan Chung khoan Ngan hang Sai Gon Thuong Tin
+SBT,Cong ty co phan Thanh Thanh Cong - Bien Hoa
+SBV,CTCP Siam Brothers Viet Nam
+SC5,Cong ty Co phan Xay dung so 5
+SCA,CTCP Nong nghiep Song Con
+SCB,Ngan hang Thuong mai Co phan Sai Gon
+SCC,Cong ty Co phan Dau tu Thuong mai Hung Long tinh Hoa Binh
+SCD,Cong ty Co phan Nuoc giai khat Chuong Duong
+SCG,Cong ty co phan Xay dung SCG
+SCH,CTCP Thuy dien Song chay 5
+SCI,Cong ty Co phan SCI E&C
+SCIC,Tong Cong ty Dau tu va Kinh doanh von Nha nuoc
+SCID,Cong ty co phan Dau tu Phat trien Saigon Co-op
+SCJ,Cong ty Co phan Xi mang Sai Son
+SCL,Cong ty Co phan Song Da Cao Cuong
+SCO,Cong ty Co phan Cong nghiep Thuy san
+SCR,Cong ty Co phan Dia oc Sai Gon Thuong Tin
+SCS,Cong ty co phan Dich vu Hang hoa Sai Gon
+SCV,Cong ty TNHH MTV Muoi Viet Nam
+SCY,Cong ty Co phan Dong tau Song Cam
+SD1,Cong ty Co phan Song Da 1
+SD2,Cong ty Co phan Song Da 2
+SD3,Cong ty Co phan Song Da 3
+SD4,Cong ty Co phan Song Da 4
+SD5,Cong ty Co phan Song Da 5
+SD6,Cong ty Co phan Song Da 6
+SD7,Cong ty Co phan Song Da 7
+SD8,Cong ty Co phan Song Da 8
+SD9,Cong ty Co phan Song Da 9
+SDA,Cong ty Co phan Simco Song Da
+SDB,Cong ty Co phan Song Da 207
+SDC,Cong ty Co phan Tu van Song Da
+SDD,Cong ty Co phan Dau tu va Xay lap Song Da
+SDE,Cong ty co phan Ky thuat Dien Song Da
+SDF,Cong ty Tai chinh co phan Song Da
+SDG,Cong ty Co phan Sadico Can Tho
+SDH,Cong ty Co phan Xay dung ha tang Song Da
+SDHL,Cong ty co phan Thuy dien Song Da - Hoang Lien
+SDI,Cong ty co phan Dau tu va Phat trien Do thi Sai Dong
+SDJ,Cong ty Co phan Song Da 25
+SDK,Cong ty Co phan Co khi Luyen kim
+SDN,Cong ty Co phan Son Dong Nai
+SDP,Cong ty co phan SDP
+SDS,Cong ty Co phan Xay lap va Dau tu Song Da
+SDT,Cong ty Co phan Song Da 10
+SDU,Cong ty Co phan Dau tu Xay dung va Phat trien Do thi Song Da
+SDV,Cong ty Co phan Dich vu Sonadezi
+SDX,CTCP Phong chay chua chay va Dau tu Xay dung Song Da
+SDY,Cong ty Co phan Xi mang Song Da Yaly
+SEA,Tong cong ty Thuy san Viet Nam – CTCP
+SEAPRIMEXCO,Cong ty co phan Thuy san Ca Mau
+SEB,Cong ty Co phan Dau tu va Phat trien Dien mien Trung
+SEC,Cong ty Co phan Mia duong Nhiet dien Gia Lai
+SED,Cong ty Co phan Dau tu va Phat trien giao duc Phuong Nam
+SEL,Cong ty Co phan Song Da 11 Thang Long
+SEP,Cong ty Co phan Tong Cong ty Thuong mai Quang Tri
+SEV,Cong ty TNHH Samsung Electronics Viet Nam
+SFC,Cong ty Co phan Nhien lieu Sai Gon
+SFG,Cong ty Co phan Phan bon Mien Nam
+SFI,Cong ty Co phan Dai ly Van tai SAFI
+SFN,Cong ty Co phan Det luoi Sai Gon
+SFT,CONG TY CO PHAN SOFTECH
+SGB,Ngan hang TMCP Sai Gon Cong thuong
+SGC,Cong ty Co phan Xuat nhap khau Sa Giang
+SGD,Cong ty co phan Sach Giao duc tai T.P Ho Chi Minh
+SGH,Cong ty Co phan Khach san Sai Gon
+SGHP,CTCP Cang Sai Gon - Hiep Phuoc
+SGIX,CTCP Dau tu Sai Gon
+SGN,Cong ty co phan Phuc vu Mat dat Sai Gon
+SGNF,Cong ty TNHH Thuc pham Dinh Duong Sai Gon
+SGO,Cong ty co phan Dau thuc vat Sai Gon
+SGP,Cong ty Co phan Cang Sai Gon
+SGR,Cong ty co phan Dia oc Sai Gon
+SGS,Cong ty Co phan Van tai bien Sai Gon
+SGT,Cong ty Co phan Cong nghe Vien thong Sai Gon
+SGVW,Cong ty TNHH Saigon Ve Wong
+SHA,Cong ty Co phan Son Ha Sai Gon
+SHB,Ngan hang Thuong mai co phan Sai Gon - Ha Noi
+SHBS,Cong ty Co phan Chung khoan SHB
+SHC,Cong ty Co phan Hang Hai Sai Gon
+SHE,Cong ty Co phan Phat trien nang luong Son Ha
+SHERATONSG,Cong ty Lien doanh Dai Duong
+SHF,Cong ty co phan Quan ly quy Dau tu Sai Gon - Ha Noi
+SHG,Tong Cong ty Co phan Song Hong
+SHI,Cong ty co phan Quoc te Son Ha
+SHINHAN,Shinhan Bank Vietnam Limited
+SHN,Cong ty Co phan Dau tu Tong hop Ha Noi
+SHP,Cong ty co phan Thuy dien Mien Nam
+SHS,Cong ty Co phan Chung Khoan Sai Gon Ha Noi
+SHT,Cong ty Co phan Tap doan Song Hong Thu Do
+SHV,Cong ty Co phan Hai Viet
+SHX,CTCP Sai Gon Hoa xa
+SIC,Cong ty co phan ANI
+SID,Cong ty Co phan Dau tu Phat trien Sai Gon Co.op
+SIG,CTCP Dau tu va Thuong mai Song Da
+SII,Cong ty co phan Ha tang nuoc Sai Gon
+SIP,CTCP Dau tu Sai Gon VRG
+SIV,Cong ty Co phan SIVICO
+SJ1,Cong ty co phan Nong nghiep Hung Hau
+SJC,Cong ty Co phan Song Da 1.01
+SJCS,Cong ty Co phan Chung khoan SJC
+SJCX,Cong ty TNHH MTV Vang bac da quy Sai Gon
+SJD,Cong ty Co phan Thuy dien Can Don
+SJE,Cong ty Co phan Song Da 11
+SJF,CTCP Dau tu Sao Thai Duong
+SJG,Tong Cong ty Song Da - Cong ty co phan
+SJM,Cong ty Co phan Song Da 19
+SJS,Cong ty Co phan Dau tu Phat trien Do thi va Khu Cong nghiep Song Da
+SKG,Cong ty Co phan Tau cao toc Superdong – Kien Giang
+SKH,CTCP Nuoc giai khat Sanest Khanh Hoa
+SKN,CTCP Nuoc giai khat Sanna Khanh Hoa
+SKS,Cong ty co phan Cong trinh Giao thong Song Da
+SKV,Cong ty Co phan Nuoc giai khat Yen sao Khanh Hoa
+SLC,CTCP Dich vu xuat khau lao dong va chuyen gia
+SLD,Cong ty Co phan Dia oc Sacom
+SLS,Cong ty co phan Mia duong Son La
+SMA,Cong ty Co phan Thiet bi Phu tung Sai Gon
+SMB,Cong ty Co phan Bia Sai Gon - Mien Trung
+SMC,Cong ty Co phan Ðau tu Thuong mai SMC
+SME,Cong ty Co phan Chung khoan SME
+SMN,Cong ty Co phan Sach va Thiet bi Giao duc Mien Nam
+SMT,Cong ty co phan SAMETEL
+SMVC,Cong ty Co phan Seoul Metal Viet Nam
+SNC,Cong ty Co phan Xuat nhap khau Thuy san Nam Can
+SNG,Cong ty TNHH MTV Song Da 10.1
+SNP,Cong ty TNHH MTV - Tong Cong ty Tan Cang Sai Gon
+SNTB,CTCP Thuong Mai Bia Sai Gon Nam Trung Bo
+SNZ,Tong Cong ty Co phan phat trien khu Cong nghiep
+SON,Cong ty Co phan Cung ung nhan luc Quoc te va Thuong mai
+SONADEZI,Tong Cong ty Phat trien Khu cong nghiep
+SONGLONG,Cong ty TNHH Song Long
+SONGTHU,Tong Cong ty Song Thu - BQP
+SONTECH,Cong ty TNHH Son Tech
+SOSAL,CTCP Tap doan muoi Mien Nam
+SOV,Cong ty co phan Mat kinh Sai Gon
+SOVICO,Cong ty co phan Sovico
+SP2,CTCP Thuy dien Su Pan 2
+SPA,Cong ty Co Phan Bao bi Sai Gon
+SPB,Cong ty co phan Soi Phu Bai
+SPC,Cong ty Co phan Bao ve Thuc vat Sai Gon
+SPCT,Cong ty Cang Container Trung tam Sai Gon
+SPD,Cong ty Co phan Xuat nhap khau Thuy san Mien Trung
+SPH,Cong ty co phan Xuat nhap khau Thuy san Ha Noi
+SPI,Cong ty co phan Spiral Galaxy
+SPM,Cong ty Co phan S.P.M
+SPP,Cong ty co phan Bao bi Nhua Sai Gon
+SPPSA,Cong ty TNHH Cang Quoc te SP - PSA
+SPT,Cong ty co phan Dich vu Buu chinh Vien thong Sai Gon
+SPV,Cong ty co phan Thuy Dac San
+SQC,Cong ty Co phan Khoang san Sai Gon - Quy Nhon
+SRA,Cong ty Co phan Sara Viet Nam
+SRB,Cong ty Co phan Tap doan Sara
+SRC,Cong ty Co phan Cao Su Sao Vang
+SRF,Cong ty Co phan Ky Nghe Lanh
+SRT,Cong ty Co phan Van tai Duong sat Sai Gon
+SSB,Ngan hang Thuong mai co phan Dong Nam A
+SSC,Cong ty Co phan Giong cay trong Mien Nam
+SSF,Cong ty Co phan Giay Sai Gon
+SSG,Cong ty Co phan Van tai bien Hai Au
+SSGG,Cong ty Co phan Tap doan SSG
+SSH,Cong ty co phan Phat trien Sunshine Homes
+SSI,Cong ty co phan Chung khoan SSI
+SSIAM,Cong ty TNHH Quan ly quy SSI
+SSIT,Cong ty Lien doanh Dich vu Container Quoc te Cang Sai Gon - SSA
+SSM,Cong ty Co phan Che tao Ket cau Thep VNECO.SSM
+SSN,Cong ty Co phan Xuat nhap khau Thuy san Sai Gon
+SSS,Cong ty Co phan Song Da 6.06
+SST,CTCP Thuong mai Bia Sai Gon Song Tien
+SSU,CTCP Moi truong Do thi Soc Son
+ST8,Cong ty Co phan Sieu Thanh
+STANCHART,Standard Chartered Viet Nam
+STAPIMEX,CTCP Thuy san Soc Trang
+STB,Ngan hang Thuong mai Co phan Sai Gon Thuong Tin
+STBKISMCAT12,Chung quyen STB.KIS.M.CA.T.12
+STC,Cong ty Co phan Sach va Thiet bi truong hoc Tp. Ho Chi Minh
+STD,CTCP Bia - Nuoc giai khat Sai Gon - Tay Do
+STG,Cong ty Co phan Kho van Mien Nam
+STH,CTCP Phat hanh sach Thai Nguyen
+STJ,Cong ty Co phan Van tai Sonadezi
+STK,Cong ty co phan Soi The Ky
+STL,Cong ty co phan Song Da - Thang Long
+STP,Cong ty Co phan Cong nghiep Thuong mai Song Da
+STS,Cong ty Co phan Dich vu Van tai Sai Gon
+STSC,Cong ty Co phan Chung khoan SAI GON TOURIST
+STT,Cong ty co phan Van chuyen Sai Gon Tourist
+STU,Cong ty Co phan Moi truong va Cong trinh Do thi Son Tay
+STV,Cong ty co phan Che tac Da Viet Nam
+STW,Cong ty co phan Cap nuoc Soc Trang
+SUM,Cong ty Co phan Do dac va Khoang san
+SUNHOUSE,CTCP Tap doan Sunhouse
+SUNTORYPEPSICO,Cong ty TNHH Suntory PepsiCo Viet Nam
+SVC,Cong ty Co phan Dich vu tong hop Sai Gon
+SVD,Cong ty Co phan Dau tu va Thuong mai Vu Dang
+SVG,CTCP Hoi Ky nghe Que han
+SVH,Cong ty Co phan Thuy dien Song Vang
+SVI,Cong ty Co phan Bao bi Bien Hoa
+SVIC,Tong Cong ty co phan Bao hiem SHB - Vinacomin
+SVJ,CTCP Santomas Viet Nam
+SVL,Cong ty Co phan Nhan luc Quoc te Sovilaco
+SVN,Cong ty co phan Tap doan Vexilla Viet Nam
+SVS,Cong ty Co phan Chung khoan Sao Viet
+SVT,Cong ty Co phan Cong nghe Sai Gon Vien Dong
+SWC,Tong Cong ty Co phan Duong Song Mien Nam
+SYNCAP,Cong ty Co phan Quan ly quy Hop Luc Viet Nam
+SZB,Cong ty co phan Sonadezi Long Binh
+SZC,Cong ty co phan Sonadezi Chau Duc
+SZE,Cong ty Co phan Moi truong Sonadezi
+SZL,Cong ty co phan Sonadezi Long Thanh
+T12,Cong ty Co phan Thuong mai dich vu Trang Thi
+TA3,Cong ty Co phan Dau tu va Xay lap Thanh An 386
+TA6,Cong ty Co phan Dau tu va Xay lap Thanh An 665
+TA9,Cong ty Co phan Xay lap Thanh An 96
+TAC,Cong ty Co phan Dau Thuc vat Tuong An
+TAEL,TAEL Partners
+TAFM,Cong ty Co phan Quan ly quy Dau tu Nhan Viet
+TAG,Cong ty Co phan The gioi so Tran Anh
+TAN,Cong ty TNHH Mot thanh vien Ca phe Thuan An
+TANISUGAR,CTCP Mia duong Tay Ninh
+TANMAIPAPER,CTCP Tap doan Tan Mai
+TAP,Cong ty co phan Do thi Tan An
+TAR,Cong ty Co phan Nong nghiep Cong nghe cao Trung An
+TAS,Cong ty Co phan Chung khoan Trang An
+TAW,CTCP Cap nuoc Trung An
+TAYHO,Cong ty Co phan Dau Tu va Xay dung Tay Ho
+TB.CORP,Cong ty Co phan Thanh Binh
+TB8,CTCP San xuat va Kinh doanh Vat tu Thiet bi - VVMI
+TBC,Cong ty co phan Thuy dien Thac Ba
+TBD,Tong Cong ty Thiet bi Dien Dong Anh - Cong ty Co phan
+TBH,CTCP Tong Bach Hoa
+TBN,Cong ty Co phan Thoat nuoc va Xu ly Nuoc thai Bac Ninh
+TBR,Cong ty Co phan Dia oc Tan Binh
+TBSG,CTCP Dau tu Thai Binh
+TBT,Cong ty Co phan Xay dung Cong trinh Giao thong Ben Tre
+TBX,Cong ty Co phan Xi mang Thai Binh
+TC6,Cong ty co phan Than Coc Sau - Vinacomin
+TCB,Ngan hang TMCP Ky Thuong Viet Nam (Techcombank)
+TCBS,Cong ty TNHH Chung khoan Ky Thuong
+TCD,Cong ty Co phan Dau tu Phat trien Cong nghiep va Van tai
+TCH,Cong ty co phan Dau tu Dich vu Tai chinh Hoang Huy
+TCI,Cong ty co phan Chung khoan Thanh Cong
+TCIEV,Cong ty TNHH TCIE Viet Nam
+TCIT,Cong ty TNHH Cang quoc te Tan Cang - Cai Mep
+TCJ,Cong ty co phan To Chau
+TCK,Tong cong ty co khi xay dung - CTCP
+TCL,Cong ty Co phan Dai ly Giao nhan Van tai Xep do Tan Cang
+TCLB,Cong ty co phan ICD Tan Cang - Long Binh
+TCM,Cong ty Co phan Det may - Dau tu - Thuong mai Thanh Cong
+TCO,Cong ty Co phan Van tai Da phuong thuc Duyen Hai
+TCR,Cong ty Co phan Cong nghiep Gom su Taicera
+TCT,Cong ty Co phan Cap treo Nui Ba Tay Ninh
+TCT15,Tong Cong ty 15
+TCT319,Tong Cong ty 319
+TCT789,Tong Cong ty 789
+TCW,Cong ty co phan Kho van Tan Cang
+TCXM,Cong ty Tai chinh co phan Xi mang
+TDA,Cong ty Co phan Dau tu, Xay lap va Vat lieu Xay dung Dong Anh
+TDB,Cong ty Co phan Thuy dien Dinh Binh
+TDC,Cong ty Co phan Kinh doanh va Phat trien Binh Duong
+TDF,Cong ty Co phan Trung Do
+TDG,Cong ty Co phan Dau khi Thai Duong
+TDH,Cong ty Co phan Phat trien Nha Thu Duc
+TDL,CTCP Da Tay Do
+TDM,Cong ty co phan Nuoc Thu Dau Mot
+TDN,Cong ty Co phan Than Deo Nai - Vinacomin
+TDP,Cong ty co phan Thuan Duc
+TDS,Cong ty co phan Thep Thu Duc - Vnsteel
+TDSC,CTCP Tu Van Thiet Ke Giao Thong Van Tai Phia Nam
+TDT,Cong ty co phan Dau tu va Phat trien TDT
+TDW,Cong ty Co phan Cap nuoc Thu Duc
+TEC,Cong ty Co phan Traenco
+TECHCAPITAL,Cong ty TNHH Quan ly quy Ky Thuong
+TEDI,Tong Cong ty Tu van Thiet ke Giao thong Van tai - CTCPP
+TEG,Cong ty co phan Nang luong va Bat dong san Truong Thanh
+TEL,Cong ty Co phan Phat trien Cong trinh Vien thong
+TEMASEK,Temasek Holdings
+TEMPLETON,Franklin Templeton Investments
+TET,Cong ty Co phan Vai soi May mac Mien Bac
+TFC,Cong ty Co phan Trang
+TGG,Cong ty Co phan Louis Capital
+TGP,Cong ty Co phan Truong Phu
+TH1,Cong ty Co phan Xuat nhap khau Tong hop I Viet Nam
+THA,Cong ty co phan O to Truong Hai
+THAIDUONGCAPITAL,Cong ty Co phan Quan ly Quy Dau tu Chung khoan Thai Duong
+THANHAN11,Tong Cong ty Thanh An (Binh doan 11)
+THANHNIEN,CTCP Tap doan Truyen thong Thanh nien
+THB,Cong ty co phan Bia Ha Noi - Thanh Hoa
+THD,Cong ty Co phan Thaiholdings
+THFI,Cong ty co phan Dau tu Tai chinh Thien Hoa
+THG,Cong ty Co phan Dau tu va Xay dung Tien Giang
+THI,Cong ty Co phan Thiet Bi Dien
+THMILK,CTCP Sua TH
+THMILKFOOD,CTCP Thuc pham sua TH
+THN,Cong ty Co phan Cap nuoc Thanh Hoa
+THP,CTCP Thuy san va Thuong mai Thuan Phuoc
+THPG,Cong ty TNHH Thuong mai - Dich vu Tan Hiep Phat
+THQTRADING,Cong ty TNHH Thuong mai Tran Hong Quan
+THR,Cong ty Co phan Duong sat Thuan Hai
+THS,Cong ty co phan Thanh Hoa - Song Da
+THT,Cong ty co phan Than Ha Tu - Vinacomin
+THU,Cong ty Co phan Moi truong va Cong trinh Do thi Thanh Hoa
+THV,Cong ty Co phan Tap doan Thai Hoa Viet Nam
+THW,Cong ty co phan Cap nuoc Tan Hoa
+TIC,Cong ty Co phan Dau tu Dien Tay Nguyen
+TID,Cong ty co phan Tong cong ty Tin Nghia
+TIE,Cong ty Co phan TIE
+TIG,Cong ty Co phan Tap doan Dau tu Thang Long
+TIP,Cong ty co phan Phat trien Khu Cong nghiep Tin Nghia
+TIS,Cong ty co phan Gang thep Thai Nguyen
+TIX,CTCP San xuat Kinh doanh Xuat nhap khau Dich vu va Dau tu Tan Binh
+TJC,Cong ty co phan Dich vu Van tai va Thuong mai
+TKA,Cong ty co phan Bao bi Tan Khanh An
+TKC,Cong ty Co phan Xay dung va Kinh doanh Dia oc Tan Ky
+TKG,CTCP San xuat va Thuong mai Tung Khanh
+TKR,Cong ty Co phan Cao su Tan Bien - Kampong Thom
+TKSC,Cong ty Co phan Chung khoan TONKIN
+TKU,Cong ty Co phan Cong nghiep Tung Kuang
+TL4,Tong cong ty Xay dung Thuy loi 4 - CTCP
+TLC,Cong ty Co phan Vien thong Thang Long
+TLD,Cong ty Co phan Dau tu Xay dung va Phat trien Do thi Thang Long
+TLG,Cong ty Co phan Tap doan Thien Long
+TLH,Cong ty Co phan Tap doan Thep Tien Len
+TLI,Cong ty co phan May Quoc te Thang Loi
+TLMC,Cong ty Co phan Quan ly quy Thang Long
+TLMECO,Cong ty co phan Co khi 4 va xay dung Thang Long
+TLP,Tong Cong ty Thuong mai Xuat nhap khau Thanh Le - CTCP
+TLT,Cong ty Co phan Viglacera Thang Long
+TMB,Cong ty Co phan Kinh doanh than Mien Bac - Vinacomin
+TMC,Cong ty Co phan Thuong mai - Xuat nhap khau Thu Duc
+TMD,Cong ty co phan Thuong mai va Dai ly dau tinh Ba Ria-Vung Tau
+TMG,Cong ty Co phan Kim loai mau Thai Nguyen - Vimico
+TMHG,Cong ty TNHH Thuong mai va Dich vu Khach san Tan Hoang Minh
+TMP,Cong ty co phan Thuy dien Thac Mo
+TMS,Cong ty Co phan Transimex
+TMT,Cong ty Co phan O to TMT
+TMW,Cong ty Co phan Tong hop Go Tan Mai
+TMX,Cong ty co phan VICEM Thuong mai Xi mang
+TN1,Cong ty Co phan Thuong mai Dich vu TNS Holdings
+TNA,Cong ty Co phan Thuong mai Xuat nhap khau Thien Nam
+TNB,Cong ty Co phan Thep Nha Be - VNSTEEL
+TNC,Cong ty Co phan Cao su Thong Nhat
+TND,CTCP Than Tay Nam Da Mai - Vinacomin
+TNFS,Cong ty co phan Thep Tam La Thong Nhat
+TNG,Cong ty Co phan Dau tu va Thuong mai TNG
+TNH,Cong ty Co phan Benh vien Quoc te Thai Nguyen
+TNI,Cong ty co phan Tap doan Thanh Nam
+TNM,Cong ty Co phan Xuat nhap khau va Xay dung Cong trinh
+TNP,Cong ty co phan Cang Thi Nai
+TNS,Cong ty Co phan Thep Tam la Thong Nhat
+TNT,Cong ty Co phan Tap doan TNT
+TNTGROUP,CTCP Tap doan T&T
+TNW,Cong ty Co phan Nuoc sach Thai Nguyen
+TNY,Cong ty Co phan Dau tu Xay dung Thanh nien
+TOP,CTCP Phan phoi Top One
+TOS,CTCP Dich vu bien Tan Cang
+TOT,Cong ty Co phan Van tai Transimex
+TOW,Cong ty co phan Cap nuoc Tra Noc - O Mon
+TOYOTAVN,Cong ty O to Toyota Viet Nam
+TPB,Ngan hang Thuong mai co phan Tien Phong
+TPC,Cong ty Co phan Nhua Tan Dai Hung
+TPCVINA,Cong ty TNHH Nhua va Hoa chat TPC Vina
+TPH,Cong ty Co phan In Sach giao khoa tai T.P Ha Noi
+TPHC,Cong ty Co phan Quan ly Quy Tin Phat
+TPLS,CTCP Thuong mai Van tai bien Truong Phat Loc
+TPP,Cong ty Co phan Tan Phu Viet Nam
+TPS,Cong ty co phan Ben bai Van tai Sai Gon
+TQN,Cong ty Co phan Thong Quang Ninh
+TQW,CTCP Cap thoat nuoc Tuyen Quang
+TR1,CTCP Van tai 1 Traco
+TRA,Cong ty Co phan TRAPHACO
+TRAFUCO,CTCP Co dien Tran Phu
+TRC,Cong ty Co phan Cao su Tay Ninh
+TRI,Cong ty Co phan Nuoc giai khat Sai Gon
+TRS,Cong ty co phan Van tai va Dich vu Hang hai
+TRT,Cong ty Co phan RedstarCera
+TRUNGNGUYEN,CTCP Tap doan Trung Nguyen
+TRUONGSON,Tong Cong ty Xay dung Truong Son
+TS3,Cong ty co phan Truong Son 532
+TS4,Cong ty co phan Thuy san so 4
+TS5,Cong ty TNHH MTV 145
+TSB,Cong ty Co phan Ac quy Tia sang
+TSC,Cong ty Co phan Vat tu ky thuat Nong nghiep Can Tho
+TSD,Cong ty Co phan Du lich Truong Son COECCO
+TSG,Cong ty Co phan Thong tin Tin hieu Duong sat Sai Gon
+TSH,Cong ty Co phan Tien Son Thanh Hoa
+TSJ,Cong ty Co phan Du lich Dich vu Ha Noi
+TSM,Cong ty Co phan Xi mang Tien Son Ha Tay
+TSNCARGO,Cong ty TNHH Dich vu Hang hoa Tan Son Nhat
+TSS,Cong ty Co phan Chung khoan TRUONG SON
+TST,Cong ty Co phan Dich vu Ky thuat Vien thong
+TTA,Cong ty Co phan Dau tu Xay dung va Phat trien Truong Thanh
+TTB,Cong ty co phan Tap doan Tien Bo
+TTC,Cong ty Co phan Gach men Thanh Thanh
+TTCG,CTCP Dau tu Thanh Thanh Cong
+TTD,Cong ty Co phan Benh vien Tim Tam Duc
+TTE,Cong ty Co phan Dau tu Nang luong Truong Thinh
+TTF,Cong ty Co phan Tap doan Ky nghe Go Truong Thanh
+TTG,Cong ty Co phan May Thanh Tri
+TTH,Cong ty co phan Thuong mai va Dich vu Tien Thanh
+TTIPC,Cong ty TNHH MTV Phat trien Cong nghiep Tan Thuan
+TTJ,Cong ty Co phan Thuy Ta
+TTL,Tong Cong ty Thang Long - CTCP
+TTN,Cong ty Co phan Cong nghe va Truyen thong Viet Nam
+TTP,Cong ty Co phan Bao bi Nhua Tan Tien
+TTR,Cong ty Co phan Du lich Thuong mai va Dau tu
+TTS,Cong ty Co phan Can thep Thai Trung
+TTT,Cong ty Co phan Du lich – Thuong mai Tay Ninh
+TTV,CTCP Thong tin Tin hieu Duong sat Vinh
+TTZ,Cong ty co phan Dau tu Xay dung va Cong nghe Tien Trung
+TUANLOC,CTCP Dau tu Xay dung Tuan Loc
+TUG,Cong ty Co phan Lai dat va Van tai Cang Hai Phong
+TV1,Cong ty co phan Tu van Xay dung Dien 1
+TV2,Cong ty Co phan Tu van Xay dung Dien 2
+TV3,Cong ty Co phan Tu van Xay dung Dien 3
+TV4,Cong ty Co phan Tu van Xay dung Dien 4
+TV6,CTCP Thuong mai Dau tu Xay lap dien Thinh Vuong
+TVA,Cong ty Co phan Su Viglacera Thanh Tri
+TVB,Cong ty co phan Chung khoan Tri Viet
+TVC,Cong ty co phan Tap doan Quan ly Tai san Tri Viet
+TVD,Cong ty co phan Than Vang Danh - Vinacomin
+TVG,Cong ty co phan Tu van Dau tu va Xay dung Giao thong Van tai
+TVH,Cong ty co phan Tu van va Xay dung cong trinh Hang Hai
+TVM,CTCP Tu van Dau tu Mo va Cong nghiep - Vinacomin
+TVMC,Cong ty Co phan Quan ly quy Dau tu Thanh Viet
+TVN,Tong Cong ty Thep Viet Nam - CTCP
+TVP,Cong ty Co phan Duoc pham TV.Pharm
+TVS,Cong ty Co phan Chung khoan Thien Viet
+TVSI,Cong ty Co phan Chung khoan Tan Viet
+TVT,Tong Cong ty Viet Thang - CTCP
+TVU,Cong ty co phan Cong trinh Do thi Tra Vinh
+TVW,Cong ty Co phan Cap thoat nuoc Tra Vinh
+TW3,CTCP Duoc Trung uong 3
+TXM,Cong ty co phan VICEM Thach cao Xi mang
+TYA,Cong ty Co phan Day va Cap dien Taya Viet Nam
+UAMC,Cong ty Co phan Co khi Oto Uong Bi
+UCT,Cong ty Co phan Do thi Can Tho
+UDC,Cong ty co phan Xay dung va Phat trien Do thi tinh Ba Ria-Vung Tau
+UDIC,Tong Cong ty Dau tu Phat trien Ha tang Do thi
+UDJ,Cong ty Co phan Phat trien Do thi
+UDL,CTCP Do thi va Moi truong Dak Lak
+UEM,CTCP Co dien Uong Bi- Vinacomin
+UIC,Cong ty Co phan Dau tu Phat trien Nha va Do thi Idico
+UMC,Cong ty co phan Cong trinh do thi Nam Dinh
+UNI,Cong ty Co phan Vien Lien
+UNIPRESIDENT,Cong ty TNHH Uni-President Viet Nam
+UNIX,CTCP Dau tu U&I
+UOBBANK,Ngan hang TNHH MTV UOB Viet Nam
+UPC,Cong ty Co phan Phat trien Cong vien cay xanh va Do thi Vung Tau
+UPH,CTCP Duoc pham TW25
+USC,Cong ty Co phan Khao sat va Xay dung - USCO
+USD,Cong ty co phan Cong trinh Do thi Soc Trang
+UXC,CTCP Che bien Thuy san Ut Xi
+V11,Cong ty Co phan Xay dung so 11
+V12,Cong ty Co phan Xay dung so 12
+V15,Cong ty Co phan Xay dung So 15
+V21,Cong ty Co phan VINACONEX 21
+VAB,Ngan hang Thuong mai co phan Viet A
+VACS,Cong ty TNHH MTV Suat an hang khong Viet Nam
+VAF,Cong ty co phan Phan lan nung chay Van Dien
+VALC,CTCP Cho thue may bay Viet Nam
+VANTHINHPHAT,CTCP Tap doan Dau tu Van Thinh Phat
+VASS,Cong ty co phan Bao hiem Vien Dong
+VAT,Cong ty Co phan VT Van Xuan
+VATGIA,CTCP Vat Gia Viet Nam
+VATM,Tong Cong ty Quan ly bay Viet Nam
+VAV,Cong ty Co phan VIWACO
+VBB,Ngan hang Thuong mai co phan Viet Nam Thuong Tin
+VBC,Cong ty Co phan Nhua Bao bi Vinh
+VBG,Cong ty Co phan Dia chat Viet Bac - TKV
+VBH,Cong ty Co phan Dien tu Binh Hoa
+VBL,Cong ty TNHH Nha may Bia Viet Nam
+VC1,Cong ty Co phan Xay dung so 1
+VC2,Cong ty Co phan Dau tu va Xay dung Vina2
+VC3,Cong ty Co phan Tap doan Nam Me Kong
+VC5,Cong ty Co phan Xay dung so 5
+VC6,Cong ty Co phan Xay dung va Dau tu Visicons
+VC7,Cong ty Co phan Tap doan BGI
+VC9,Cong ty Co phan Xay dung so 9
+VCA,Cong ty Co phan Thep VICASA - VNSTEEL
+VCAM,Cong ty Co phan Chung khoan Ban Viet
+VCB,Ngan hang Thuong mai co phan Ngoai thuong Viet Nam
+VCBF,Cong ty Lien doanh Quan ly quy dau tu chung khoan Vietcombank
+VCBS,Cong ty TNHH Chung khoan Ngan hang Thuong mai Co phan Ngoai thuong Viet Nam
+VCC,Cong ty Co phan Vinaconex 25
+VCCORP,Cong ty co phan VCCorp
+VCE,CTCP Xay lap Moi truong - TKV
+VCF,Cong ty Co phan VinaCafe Bien Hoa
+VCFC,Cong ty Tai chinh co phan Hoa chat Viet Nam
+VCG,Tong Cong ty Co phan Xuat nhap khau va Xay dung Viet Nam
+VCGPVF,Forum One - VCG Partners Vietnam Fund
+VCH,Cong ty Co phan Dau tu va Phat trien Ha tang Vinaconex
+VCI,Cong ty co phan Chung khoan Ban Viet
+VCM,Cong ty Co phan Nhan luc va Thuong mai Vinaconex
+VCMC,Cong ty Co phan Quan ly quy dau tu chung khoan Chien Thang
+VCP,Cong ty co phan Dau tu xay dung va phat trien nang luong Vinaconex
+VCR,Cong ty Co phan Dau tu va Phat trien Du lich Vinaconex
+VCS,Cong ty co phan VICOSTONE
+VCT,Cong ty Co phan Tu van Xay dung Vinaconex
+VCV,Cong ty Co phan Van tai Vinaconex
+VCVNI,VinaCapital Vietnam Infrastructure Ltd
+VCVNL,VinaCapital Vinaland Ltd
+VCVOF,VinaCapital Vietnam Opportunity Fund
+VCW,Cong ty Co phan Dau tu Nuoc sach Song Da
+VCX,Cong ty Co phan Xi mang Yen Binh
+VDB,Cong ty co phan Van tai va Che bien Than Dong Bac
+VDFM,Cong ty Co phan Quan ly quy dau tu Chung khoan Viet Long
+VDL,Cong ty Co phan Thuc pham Lam Dong
+VDM,CTCP - Vien nghien cuu Det may
+VDN,Cong ty Co phan Vinatex Da Nang
+VDP,Cong ty Co phan Duoc pham Trung uong VIDIPHA
+VDS,Cong ty Co phan Chung khoan Rong Viet
+VDSE,Cong ty Co phan Chung khoan Vien Dong
+VDT,Cong ty co phan Luoi thep Binh Tay
+VE1,Cong ty Co phan Xay dung dien VNECO 1
+VE2,Cong ty co phan Xay dung dien VNECO 2
+VE3,Cong ty co phan Xay dung dien VNECO 3
+VE4,Cong ty Co phan Xay dung dien VNECO4
+VE8,Cong ty co phan Xay dung dien VNECO 8
+VE9,Cong ty Co phan Dau tu va Xay dung VNECO 9
+VEA,Tong Cong ty May dong luc va may nong nghiep Viet Nam - CTCP
+VEC,Tong Cong ty co phan Dien tu va Tin hoc Viet Nam
+VECX,Tong Cong ty Dau tu phat trien duong cao toc Viet Nam
+VED,Cong ty co phan Phat trien The thao Dien tu Viet Nam
+VEDAN,CTCP Huu han Vedan Viet Nam
+VEE,Cong ty Co phan Thiet bi dien Cam Pha
+VEF,CTCP Trung tam Hoi cho Trien lam Viet Nam
+VEGETEXCO,Tong Cong ty Rau qua Nong san - CTCP
+VES,Cong ty Co phan Dau tu va Xay dung dien Me Ca Vneco
+VET,Cong ty Co phan Thuoc thu y Trung uong Navetco
+VFC,Cong ty Co phan VINAFCO
+VFCINC,Cong ty Co phan Quan ly quy Viet Cat
+VFG,Cong ty Co phan Khu trung Viet Nam
+VFM,Cong ty Co phan Quan ly quy Dau tu Viet Nam
+VFMVF1,Quy Dau tu Chung khoan Viet Nam
+VFMVF4,Quy dau tu Doanh nghiep Hang dau Viet Nam
+VFMVFA,Quy Dau tu Nang dong Viet Nam
+VFMVN30,Quy ETF VFMVN30
+VFR,Cong ty Co phan Van tai va Thue tau
+VFS,Cong ty Co phan Chung khoan Nhat Viet
+VFW,Cong ty Co phan Quan ly quy Loc Viet
+VGC,Tong Cong ty Viglacera - CTCP
+VGG,Tong Cong ty co phan May Viet Tien
+VGI,Tong Cong ty co phan Dau tu Quoc te Viettel
+VGL,CTCP Ma kem cong nghiep Vingal - Vnsteel
+VGP,Cong ty Co phan Cang Rau qua
+VGR,Cong ty Co phan Cang Xanh VIP
+VGS,Cong ty Co phan Ong thep Viet Duc VG PIPE
+VGT,Tap doan Det may Viet Nam
+VGV,Tong Cong ty Tu van Xay dung Viet Nam - CTCP
+VHC,Cong ty Co phan Vinh Hoan
+VHD,Cong ty Co phan Dau tu phat trien Nha va Do thi Vinaconex
+VHE,Cong ty Co phan Duoc lieu va Thuc pham Viet Nam
+VHF,Cong ty Co phan Xay dung va Che bien luong thuc Vinh Ha
+VHG,Cong ty Co phan Dau tu Cao Su Quang Nam
+VHH,Cong ty co phan Dau tu Kinh doanh nha Thanh Dat
+VHI,CTCP Kinh doanh va Dau tu Viet Ha
+VHL,Cong ty Co phan Viglacera Ha Long
+VHM,Cong ty co phan Vinhomes
+VHW,CTCP Nuoc Khoang Vinh Hao
+VIA,Cong ty Co phan VIAN
+VIB,Ngan hang Thuong mai co phan Quoc te Viet Nam
+VIC,Tap doan Vingroup - Cong ty Co phan
+VIC11501,Trai phieu Vingroup 062015
+VIC11504,Trai phieu VIC11201802
+VICEM,Tong Cong ty Cong nghiep Xi mang Viet Nam
+VICOTEX,Tong Cong ty Viet Thang - CTCP
+VICT,Cong ty Lien doanh Phat trien Tiep van so 1
+VID,Cong ty Co phan Dau tu Phat trien Thuong mai Vien Dong
+VIDGROUP,Tap doan Dau tu Phat trien Viet Nam
+VIDIFI,Tong Cong ty Phat trien ha tang va dau tu tai chinh Viet Nam
+VIE,Cong ty Co phan Cong nghe Vien thong VITECO
+VIENTHONGA,Cong ty co phan San xuat-Thuong mai-Xuat nhap khau Vien thong A
+VIETHA,Cong ty TNHH MTV Dau tu Viet Ha
+VIETRACIMEX,Tong Cong ty co phan Thuong mai Xay dung
+VIETSOVPETRO,Lien doanh Viet - Nga Vietsovpetro
+VIETTEL,Tap doan Vien thong Quan doi (Viettel)
+VIETTELSTORE,Cong ty TNHH NN MTV Thuong mai va XNK Viettel
+VIF,Tong Cong ty Lam nghiep Viet Nam - CTCP
+VIFON,CTCP Ky nghe thuc pham Viet Nam
+VIG,Cong ty Co phan Chung khoan Thuong mai va Cong nghiep Viet Nam
+VIGECAM,Tong Cong ty Vat tu Nong nghiep - Cong ty TNHH MTV
+VIGROUP,VI (Vietnam Invesments) Group
+VIH,Cong ty Co phan Viglacera Ha Noi
+VIM,Cong ty Co phan Khoang san Viglacera
+VIN,CTCP Giao nhan Kho van Ngoai thuong Viet Nam
+VINACAFE,Tong Cong ty Ca phe Viet Nam - Cong ty TNHH MTV
+VINACAM,CTCP Vinacam
+VINACAP,VinaCapital
+VINACCO,Tong Cong ty Xay dung Nong nghiep Viet Nam - CTCP
+VINACHEM,Tap doan Hoa chat Viet Nam
+VINACOMIN,Tap doan Cong nghiep Than - Khoang san Viet Nam
+VINAGLOBAL,Cong ty Co phan Chung khoan Toan Cau
+VINAMED,Tong Cong ty Thiet bi Y te Viet Nam - CTCP
+VINAMOTOR,Tong Cong ty Cong nghiep O to Viet Nam - CTCP
+VINAPACO,Tong Cong ty Giay Viet Nam
+VINASTAR,Cong ty TNHH o to Mitsubishi Viet Nam
+VINASUGAR1,Tong Cong ty Mia duong I - CTCP
+VINASUGAR2,Tong Cong ty Mia duong II - CTCP
+VINATABA,Tong Cong ty Thuoc la Viet Nam - Cong ty TNHH MTV
+VINATEA,Tong Cong ty Che Viet Nam
+VINAWACO,Tong Cong ty Xay dung Duong thuy - CTCP
+VINAWEALTH,Cong ty Co phan Quan ly Quy VINAWEALTH
+VINAXUKI,CTCP O to Xuan Kien Vinaxuki
+VINECOM,Cong ty TNHH VinE-com
+VINFAST,Cong ty TNHH San Xuat va Kinh Doanh Vinfast
+VINMART,CTCP Sieu thi VinMart
+VINMEC,CTCP Benh vien Da khoa Quoc te Vinmec
+VIP,Cong ty Co phan Van tai Xang dau VIPCO
+VIPC,Cong ty Co phan Quan ly Quy Dau tu VIPC
+VIR,Cong ty co phan Du lich Quoc te Vung Tau
+VIS,Cong ty Co phan Thep Viet Y
+VISSAI,Cong ty TNHH Tap doan Hoang Phat Vissai
+VIT,Cong ty Co phan Viglacera Tien Son
+VITS,Cong ty Co phan Chung khoan VIT
+VIW,Tong Cong ty Dau tu Nuoc va Moi truong Viet Nam - CTCP
+VIX,Cong ty co phan Chung khoan VIX
+VJC,Cong ty co phan Hang khong VietJet
+VJCKISMCAT06,Chung quyen VJC.KIS.M.CA.T.06
+VKC,Cong ty co phan Cap Nhua Vinh Khanh
+VKD,Cong ty Co phan Nuoc khoang Khanh Hoa
+VKP,Cong ty Co phan Nhua Tan Hoa
+VLA,Cong ty Co phan Dau tu va Phat trien Cong nghe Van Lang
+VLB,CTCP Xay dung va San xuat Vat lieu Xay dung Bien Hoa
+VLC,Tong Cong ty Chan nuoi Viet Nam - CTCP
+VLD,Cong ty Co phan Bat Dong San Viettronics
+VLF,Cong ty Co phan Luong thuc Thuc pham Vinh Long
+VLG,CTCP Vinalines Logistics - Viet Nam
+VLP,Cong ty Co phan Cong trinh cong cong Vinh Long
+VLW,Cong ty Co phan Cap nuoc Vinh Long
+VMA,Cong ty co phan Cong nghiep O to – Vinacomin
+VMC,Cong ty Co phan Vimeco
+VMD,Cong ty co phan Y Duoc pham Vimedimex
+VMEP,Cong ty TNHH Che tao cong nghiep va gia cong che bien hang xuat khau Viet Nam
+VMG,Cong ty Co phan Thuong mai va Dich vu Dau khi Vung Tau
+VMI,Cong ty Co phan Khoang san va Dau tu VISACO
+VMS,CTCP Phat trien Hang hai
+VMSN,Tong Cong ty Bao dam an toan hang hai mien Bac
+VMSS,Tong Cong ty Bao dam an toan hang hai mien Nam
+VNA,Cong ty Co phan Van tai Bien Vinaship
+VNAC,Cong ty Co phan Quan ly quy Dau tu Chung khoan Lien Minh Viet Nam
+VNB,CTCP Sach Viet Nam
+VNC,Cong ty Co phan Tap doan Vinacontrol
+VND,Cong ty co phan Chung khoan VNDIRECT
+VNE,Tong cong ty Co phan Xay dung dien Viet Nam
+VNF,Cong ty co phan Vinafreight
+VNF1,Tong Cong ty Luong thuc Mien Bac
+VNG,Cong ty Co phan Du lich Thanh Thanh Cong
+VNGX,CTCP VNG
+VNH,Cong ty Co phan Dau tu Viet Viet Nhat
+VNHELICOPTER,Tong Cong ty Truc thang Viet Nam - Cong ty TNHH
+VNHOLDING,Vietnam Holding Limited
+VNI,Cong ty co phan Dau tu Bat dong san Viet Nam
+VNL,Cong ty co phan Logistics Vinalink
+VNM,Cong ty Co phan Sua Viet Nam
+VNMETF,Market Vectors Vietnam ETF
+VNN,Cong ty co phan Dau tu va Thuong mai VNN
+VNOMAN,Vietnam Oman Investment
+VNP,Cong ty co phan Nhua Viet Nam
+VNPOST,Tong Cong ty Buu dien Viet Nam
+VNPT,Tap doan Buu chinh Vien thong Viet Nam
+VNR,Tong Cong ty Co phan Tai bao hiem quoc gia Viet Nam
+VNRAILWAYS,Tong Cong ty Duong sat Viet Nam
+VNS,Cong ty Co phan Anh Duong Viet Nam
+VNSC,Cong ty Co phan Chung khoan VINA
+VNT,Cong ty co phan Giao nhan Van tai Ngoai thuong
+VNX,Cong ty Co phan Quang cao va Hoi cho Thuong mai
+VNY,Cong ty Co phan Thuoc Thu y Trung uong I
+VOC,Tong Cong ty Cong nghiep Dau thuc vat Viet Nam - CTCP
+VOS,Cong ty Co phan Van tai bien Viet Nam
+VPA,CTCP Van tai Hoa dau VP
+VPB,Ngan hang Thuong mai Co phan Viet Nam Thinh Vuong
+VPBKISMCAT02,Chung quyen VPB.KIS.M.CA.T.02
+VPBS,Cong ty co phan Chung khoan VPS
+VPC,Cong ty Co phan Dau tu va Phat trien Nang luong Viet Nam
+VPD,Cong ty co phan Phat trien Dien luc Viet Nam
+VPG,Cong ty Co phan Dau tu Thuong mai Xuat nhap khau Viet Phat
+VPH,Cong ty Co phan Van Phat Hung
+VPI,Cong ty Co phan Dau tu Van Phu - Invest
+VPK,Cong ty Co phan Bao bi dau thuc vat
+VPL,Cong ty TNHH Mot thanh vien Vinpearl
+VPR,CTCP In va Thuong mai Vina
+VPS,CTCP Thuoc sat trung Viet Nam
+VPW,Cong ty Co phan Cap thoat nuoc so 1 Vinh Phuc
+VQC,Cong ty Co phan Giam dinh Vinacomin
+VQSC,Cong ty Co phan Chung khoan Viet Quoc
+VRC,Cong ty Co phan Bat dong san va Dau tu VRC
+VRE,Cong ty Co phan Vincom Retail
+VREKISMCAT11,Chung quyen VRE.KIS.M.CA.T.11
+VRG,CTCP Phat trien do thi va Khu cong nghiep Cao su Viet Nam
+VSA,Cong ty co phan Dai ly Hang hai Viet Nam
+VSC,Cong ty co phan Tap doan Container Viet Nam
+VSCS,Cong ty Co phan Chung khoan Viet
+VSE,Cong ty co phan Dich vu Duong cao toc Viet Nam
+VSEC,Cong ty Co phan Chung khoan Viet Nam
+VSF,Tong Cong ty Luong thuc Mien Nam - Cong ty co phan
+VSG,Cong ty Co phan Container Phia Nam
+VSH,Cong ty Co phan Thuy dien Vinh Son - Song Hinh
+VSI,Cong ty Co phan Dau tu va Xay dung Cap thoat nuoc
+VSIP,Cong ty Lien doanh TNHH Khu cong nghiep Viet Nam - Singapore
+VSIV,Cong ty co phan VS Industry Vietnam
+VSM,Cong ty Co phan Container Mien Trung
+VSN,CTCP Viet Nam Ky nghe Suc san
+VSP,Cong ty co phan Van tai bien va Bat dong san Viet Hai
+VST,Cong ty Co phan Van tai va Thue tau bien Viet Nam
+VT1,Cong ty Co phan Vat tu Ben Thanh
+VT8,Cong ty Co phan Dich vu Van tai o to so 8
+VTA,Cong ty Co phan Vitaly
+VTB,Cong ty Co phan Viettronics Tan Binh
+VTC,Cong ty Co phan Vien thong VTC
+VTCC,CTCP Quan ly Quy Viet Tin
+VTCCORP,Tong Cong ty Truyen thong da phuong tien VTC
+VTCINTECOM,Cong ty VTC Cong nghe va Noi dung so
+VTCONLINE,CTCP VTC Truyen thong Truc tuyen
+VTD,Cong ty co phan Du lich Vietourist
+VTE,Cong ty co phan Vien thong Dien tu Vinacap
+VTF,Cong ty Co phan Thuc an Chan nuoi Viet Thang
+VTG,Cong ty co phan Du lich tinh Ba Ria - Vung Tau
+VTH,Cong ty Co phan Day cap dien Viet Thai
+VTI,Cong ty Co phan San xuat – Xuat nhap khau Det May
+VTJ,Cong ty co phan Thuong mai va Dau tu Vinataba
+VTK,Cong ty co phan Tu van Thiet ke Viettel
+VTL,Cong ty Co phan Vang Thang Long
+VTM,CTCP Van tai va Dua don tho mo - Vinacomin
+VTO,Cong ty Co phan Van tai Xang dau VITACO
+VTP,Tong Cong ty co phan Buu chinh Viettel
+VTQ,Cong ty Co phan Viet Trung Quang Binh
+VTR,CTCP Du lich va Tiep thi Giao thong Van tai Viet Nam - Vietravel
+VTS,Cong ty Co phan Viglacera Tu Son
+VTSC,Cong ty Co phan Chung khoan Viet Thanh
+VTSS,Cong ty Co phan Chung khoan Viet Tin
+VTV,Cong ty Co phan Nang luong va Moi truong VICEM
+VTX,Cong ty co phan Van tai da phuong thuc Vietranstimex
+VVDIF,Quy Dau tu Kham pha Gia tri Ngan hang Cong Thuong Viet Nam
+VVN,Tong Cong ty co phan Xay dung cong nghiep Viet Nam
+VW3,Cong ty co phan Viwaseen3
+VWS,Cong ty Co phan Nuoc va Moi truong Viet Nam
+VXB,Cong ty Co phan Vat lieu xay dung Ben Tre
+VXP,CTCP Thuoc Thu y Trung uong VETVACO
+VXT,CTCP Kho van va Dich vu Thuong mai
+WASATCH,Wasatch Frontier Emerging Small Countries Fund
+WCS,Cong ty Co phan Ben xe Mien Tay
+WOORIBANK,Ngan hang TNHH MTV Woori Viet Nam
+WOORICBV,Cong ty TNHH Chung khoan NH Viet Nam
+WSB,Cong ty Co phan Bia Sai Gon - Mien Tay
+WSS,Cong ty Co phan Chung khoan Pho Wall
+WTC,CTCP Van tai thuy - Vinacomin
+WTN,Cong ty Co phan Cap thoat nuoc Tay Ninh
+X18,Cong ty Co phan Xi mang X18
+X20,Cong ty Co phan X20
+X26,Cong ty co phan 26
+X77,Cong ty Co phan Thanh An 77
+XDH,Cong ty co phan Dau tu Xay dung Dan dung Ha Noi
+XHC,Cong ty co phan Xuan Hoa Viet Nam
+XLV,Cong ty Co phan Xay lap va Dich vu Song Da
+XMC,Cong ty co phan Dau tu va Xay dung Xuan Mai
+XMCP,CTCP Xi mang Cam Pha
+XMCT,CTCP Xi mang Cong Thanh
+XMD,Cong ty co phan Xuan Mai - Dao Tu
+XMHP,Cong ty TNHH MTV Xi mang Vicem Hai Phong
+XMP,CTCP Thuy dien Xuan Minh
+XMTD,Cong ty TNHH MTV Xi mang Vicem Tam Diep
+XMXT,CTCP Xi mang Xuan Thanh
+XPH,Cong ty Co phan Xa phong Ha Noi
+YAMAHAVN,Cong ty TNHH Yamaha Motor Viet Nam
+YAN,CTCP Cong nghe va Tam nhin Yeu am nhac
+YBC,Cong ty Co phan Xi mang va Khoang san Yen Bai
+YBM,Cong ty Co phan Khoang san Cong nghiep Yen Bai
+YEG,Cong ty Co phan Tap doan Yeah1
+YENKHANH,Cong ty TNHH Thuong mai Dich vu San xuat Yen Khanh
+YRC,CTCP Duong sat Yen Lao
+YSC,Cong ty Co phan Hapaco Yen Son
+YSKH,Cong ty TNHH Nha nuoc MTV Yen sao Khanh Hoa
+YTC,Cong ty Co phan Xuat nhap khau Y te Thanh pho Ho Chi Minh

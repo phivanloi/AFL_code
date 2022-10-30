@@ -1,0 +1,1 @@
+Plot( E_TSKPA900(Close) , _DEFAULT_NAME(), ParamColor( "Color", colorWhite ), ParamStyle("Style",style=styleNoLabel, mask=maskDefault) ); 

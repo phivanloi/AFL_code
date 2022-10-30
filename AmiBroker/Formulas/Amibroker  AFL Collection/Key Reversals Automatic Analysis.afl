@@ -1,0 +1,5 @@
+/*Key Reversals Automatic Analysis
+by Larry Lovrencic*/
+
+Buy=O<Ref(C,-1) AND L<Ref(L,-1) AND C>Ref(H,-1);
+Sell=O>Ref(C,-1) AND H>Ref(H,-1) AND C<Ref(L,-1);

@@ -1,0 +1,115 @@
+MaxGraph=7;
+
+/*(P) */Grapha = (H + L + C) / 3 ;
+/*(R1)*/Graph1 = Peak(((2 * Grapha) -H),2) ;
+/*(S1)*/Graph2 = Trough(((2 * Grapha) - H),3) ;
+Graph3=Trough(((2 * Grapha) - H),2) ;
+Graph3Color=6; 
+Graph4=L;
+GraphXSpace=5; 
+Graph1Style=1; 
+
+Graph2Style=1;
+Graph3Style=1;
+Graph4Style=1;
+Graph4Color=9; 
+Graph2Color=7;
+Graph1Color=15;
+
+Graph5=C;
+
+Graph5Color=12;
+
+Graph5Style=1; 
+Upbar1=(((C-Graph1)/C)*100)>10;
+Lowbar1=(((C-Graph1)/C)*100)<4.99 ;
+Middlebar1=(((C-Graph1)/C)*100)>5 AND (((C-Graph1)/C)*100)<9.99;
+barcolor = IIf( Lowbar1, 8,IIf(Middlebar1,10,IIf( Upbar1, 4, 0)));
+Graph5BarColor = ValueWhen( barcolor != 0, barcolor );
+
+Title=Name()+" Low"+WriteVal (Graph4)+ " Close"+WriteVal(C)+" MultiColor Line(Close) - Colors Calculated from Close to (Red) Resistance Lines - Grn <5%, P/Blue >5 and <10, Red>10"; //--Indicator-End--//
+Title = Name()+" ("+FullName()+")" ;
+"";
+"% Diff Red to Yellow"+WriteVal(((Graph1-Graph2)/Graph1)*100);
+"";
+
+
+"Close:"+WriteVal(C);
+"Resistance(Red):"+WriteVal(Graph1);
+"$ Diff Close to Resistance :"+WriteVal(C-Graph1);
+"*%Close to Resistance(Red): "+WriteVal(((C-Graph1)/Graph1)*100);
+"";
+
+"Close:"+WriteVal(C);
+"Support(Yel):"+WriteVal(Graph2);
+"$ Diff Close to Suppot(Yel) :"+WriteVal(C-Graph2);
+"%Close to Support(Yel): "+WriteVal(((C-Graph2)/Graph2)*100);
+"";
+
+"Close:"+WriteVal(C);
+"Support(Blue):"+WriteVal(Graph3);
+"$ Diff Close to Support(Blue) :"+WriteVal(C-Graph3);
+"%Close to Support(Blue): "+WriteVal(((C-Graph3)/Graph3)*100);
+"";
+
+"Target @ 2.5%(From Close):"+WriteVal((C*2.5/100)+C);
+"$ Diff Target/Close:"+WriteVal(((C*2.5/100)+C)-C); 
+"";
+
+"Target @ 5%(From Close):"+WriteVal((C*5/100)+C);
+"$ Diff Target/Close:"+WriteVal(((C*5/100)+C)-C); 
+"";
+
+"Target @ 10%:"+WriteVal((C*10/100)+C);
+"$ Diff Target/Close:"+WriteVal(((C*10/100)+C)-C); 
+"";
+
+"Target @ 15%:"+WriteVal((C*15/100)+C);
+"$ Diff Target/Close:"+WriteVal(((C*15/100)+C)-C); 
+
+
+/*AND match with this. Helps to show Breakouts to new highs.*/
+
+Graph0=C;
+Graph0Style=128;
+Graph1=(HHV(((H+L)/2),130));/*Six Months*/
+Graph2=(HHV(((H+L)/2),65));
+Graph2Color=5;
+Graph2Style=1;
+
+//--Indicator-End--//
+
+" P/Close: "+WriteVal(Ref(C,-1));
+" Six Month H/Close:"+WriteVal((HHV(C,130)));
+" Spread "+WriteVal((((HHV(C,130)))-C)/((HHV(C,130)))*100)+"%";
+" Three Mth H/Close"+WriteVal((HHV(C,65)));
+" Spread "+WriteVal((((HHV(C,65)))-C)/((HHV(C,130)))*100,format=1)+"%";;
+
+"";
+"$ Change Day to Day: "+WriteVal(C-(Ref(C,-1)),format=1.2);
+"% Change Day to Day: "+WriteVal((((C-(Ref(C,-1)))/C)*100),format=1.1);
+
+"";
+
+"P/Close:"+WriteVal(Ref(C,-1));
+"Open: "+WriteVal(O); 
+"High: "+WriteVal(H);
+"Low: "+WriteVal(L);
+"Close: "+WriteVal(C);
+"Volume: "+WriteVal(V,format=1);
+"Avg Daily Vol: "+WriteVal((EMA(EMA(EMA(V,26),26),26)),format=1);
+"";
+
+"Highest Close 1 Year"+WriteVal (HHV(C,260));
+"Lowest Close 1 Year"+WriteVal (LLV(C,260));
+"% Diff Close to Close" +WriteVal ((((HHV(C,260))-C)/(HHV(C,260)))*100);
+"";
+
+"Highest Close 1/2 Year"+WriteVal (HHV(C,130));
+"Lowest Close 1/2 Year"+WriteVal (LLV(C,130));
+"% Diff Close to Close" +WriteVal ((((HHV(C,130))-C)/(HHV(C,130)))*100); 
+"";
+
+"Highest Close 1/4 Year"+WriteVal (HHV(C,65));
+"Lowest Close 1/4 Year"+WriteVal (LLV(C,65));
+"% Diff Close to Close" +WriteVal ((((HHV(C,65))-C)/(HHV(C,65)))*100); 

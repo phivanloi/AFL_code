@@ -1,0 +1,441 @@
+// WolfeWave-V1.01.afl
+        
+ 
+      // Author: Mac Johnson
+        
+
+      // Date:   28aug2005
+        
+
+        
+
+      Version(4.70); // works from this version onwards
+        
+
+        
+
+      SetChartBkColor(ParamColor("Background
+        colour",colorTan));
+        
+
+        
+
+      Plot(C, "", colorGrey40,
+      styleCandle );
+        
+
+        
+
+      // Only interested in the visible  bars
+        
+
+        lastbar  = Status("lastvisiblebarindex") - 10;
+        
+
+        startBar = Status("firstvisiblebarindex");
+        
+
+        
+
+      // Some visual choices ...
+        
+
+        BullPlot=ParamToggle("Plot bull
+        signals", "No,Yes");
+        
+
+        BullGuide=ParamToggle("Plot bull guides","No,Yes");
+        
+
+        ExtendBull=ParamToggle("Extend bull plot", "No,Yes");
+        
+
+        BullWColor=ParamColor("Bullish wave
+        colour", colorBrightGreen);
+        
+
+        BullTColor=ParamColor("Bullish trend
+        colour", colorDarkGreen);
+        
+
+        
+
+        BearPlot=ParamToggle("Plot bear
+        signals", "No,Yes");
+        
+
+        BearGuide=ParamToggle("Plot bear guides", "No,Yes");
+        
+
+        ExtendBear=ParamToggle("Extend bear plot", "No,Yes");
+        
+
+        BearWColor=ParamColor("Bearish wave
+        colour", colorRed);
+        
+
+        BearTColor=ParamColor("Bearish trend
+        colour", colorBrown);
+        
+
+        
+
+      // set AB's Peak/Trough percentage  selection ratio
+        
+
+        ValidDiff=1/Param("Peak ratio", 65, 0,500,5);
+        
+
+        
+
+      for(Bar = startbar; Bar < lastbar; Bar++)
+        
+
+        {
+        
+
+          // Build Peak and Trough arrays
+        
+
+          P1    = Peak(H, validdiff, 1);
+        
+
+          P1Idx = Bar - PeakBars(H, ValidDiff, 1);
+        
+
+        
+
+          P2    = Peak(H, validdiff, 2);
+        
+
+          P2Idx = Bar - PeakBars(H, ValidDiff, 2);
+        
+
+        
+
+          T1    = Trough(L, validdiff, 1);
+        
+
+          T1Idx = Bar - TroughBars(L, ValidDiff, 1);
+        
+
+        
+
+          T2    = Trough(Low, validdiff, 2);
+        
+
+          T2Idx = Bar - TroughBars(L, ValidDiff, 2);
+        
+
+        
+
+      /* Test for a WolfeWave Bullish setup
+        
+
+        *
+        
+
+        *          \           2                              + EPA
+        
+
+        *           \     Peak A is P2                       /   |
+        
+
+        *            \        /\             4              /    |
+        
+
+        *             \      /  \       Peak C is P1       /     |
+        
+
+        *              \    /    \          /\            /      |
+        
+
+        *               \  /      \        /  \          /       |
+        
+
+        *                \/        \      /    \        /        |
+        
+
+        *         Trough X is T2    \    /      \      /         |
+        
+
+        *                1           \  /        \    /          |
+        
+
+        *                             \/          \  /           |
+        
+
+        *                       Trough B is T1     \/            |
+        
+
+        *                              3           5-D          ETA
+        
+
+        * Lines
+        
+
+        * 1 - 4 = EPA
+        
+
+        * 2 - 4 +
+        
+
+        * 1 - 3 = ETA convergence
+        
+
+        */
+        
+
+      if(BullPlot)
+        
+
+        {
+        
+
+           // are the peaks and troughs in the correct timewise order?
+        
+
+          PTValid = (P1Idx[Bar] > T1Idx[Bar]) AND
+        (T1Idx[Bar] > P2Idx[Bar]) AND (P2Idx[Bar] > T2Idx[Bar]);
+        
+
+        
+
+          // are the peaks and troughs hi's AND lo's correct relatively?
+        
+
+          HLValid = (P1[Bar] < P2[Bar]) AND (T1[Bar] < T2[Bar]) AND (P1[Bar]
+        > T1[Bar]);
+        
+
+        
+
+          if(PTValid AND HLValid){
+        
+
+            // Bareish Wolfewave found.  Draw pattern.
+        
+
+            PlotXA = LineArray(T2Idx[Bar], T2[Bar], P2Idx[Bar], P2[Bar]);
+        
+
+            Plot(PlotXA, "", BullWColor, styleLine|styleThick);
+        
+
+        
+
+            PlotAB = LineArray(P2Idx[Bar], P2[Bar], T1Idx[Bar], T1[Bar]);
+        
+
+            Plot(PlotAB, "", BullWColor, styleLine|styleThick );
+        
+
+        
+
+            PlotBC = LineArray(T1Idx[Bar], T1[Bar], P1Idx[Bar], P1[Bar]);
+        
+
+            Plot(PlotBC, "", BullWColor, styleLine|styleThick);
+        
+
+        
+
+           if(BullGuide){
+        
+
+             PlotAC = LineArray(P2Idx[Bar], P2[Bar], P1Idx[Bar],
+        P1[Bar],extendBull);
+        
+
+             Plot(PlotAC, "", BullTColor, styleLine|styleThick);
+        
+
+        
+
+             PlotXB = LineArray(T2Idx[Bar], T2[Bar], T1Idx[Bar],
+        T1[Bar],extendBull);
+        
+
+             Plot(PlotXB, "", BullTColor, styleLine|styleThick);
+        
+
+        
+
+             PlotXC = LineArray(T2Idx[Bar], T2[Bar], P1Idx[Bar],
+        P1[Bar],extendBull);
+        
+
+             Plot(PlotXC, "", BullTColor, styleLine|styleThick);
+        
+
+           }
+        
+
+          }
+        
+
+        } // fi if(BullPlot)
+        
+
+        
+
+        
+
+      /* Test for a WolfeWave Bearish setup
+        
+
+        *
+        
+
+        *                      3             5-D          ETA
+        
+
+        *                 Peak B is P1      /\             |
+        
+
+        *                      /\          /  \            |
+        
+
+        *         1           /  \        /    \           |
+        
+
+        *    Peak X is P2    /    \      /      \          |
+        
+
+        *         /\        /      \    /        \         |
+        
+
+        *        /  \      /        \  /          \        |
+        
+
+        *       /    \    /          \/            \       |
+        
+
+        *      /      \  /     Trough C is T1       \      |
+        
+
+        *     /        \/             4              \     |
+        
+
+        *    /   Trough A is T2                       \    |
+        
+
+        *   /           2                              +  EPA
+        
+
+        *
+        
+
+        *
+        
+
+        * Lines
+        
+
+        * 1 - 4 = EPA
+        
+
+        * 2 - 4 +
+        
+
+        * 1 - 3 = ETA convergence
+        
+
+        */
+        
+
+      if(BearPlot)
+        
+
+        {
+        
+
+          // are the peaks and troughs in the correct timewise order?
+        
+
+          PTValid = (T1Idx[Bar] > P1Idx[Bar]) AND
+        (P1Idx[Bar] > T2Idx[Bar]) AND (T2Idx[Bar] > P2Idx[Bar]);
+        
+
+        
+
+          // are the peaks and troughs hi's AND lo's correct relatively?
+        
+
+          HLValid = (P1[Bar] > P2[Bar]) AND (T1[Bar] > T2[Bar]) AND (T1[Bar]
+        < P1[Bar]);
+        
+
+        
+
+          if(PTValid AND HLValid){
+        
+
+            // Bullish Wolfewave found.  Draw patterns
+        
+
+            PlotXA = LineArray(P2Idx[Bar], P2[Bar], T2Idx[Bar], T2[Bar]);
+        
+
+            Plot(PlotXA, "", BearWColor, styleLine|styleThick);
+        
+
+        
+
+            PlotAB = LineArray(T2Idx[Bar], T2[Bar], P1Idx[Bar], P1[Bar]);
+        
+
+            Plot(PlotAB, "", BearWColor, styleLine|styleThick );
+        
+
+        
+
+            PlotBC = LineArray(P1Idx[Bar], P1[Bar], T1Idx[Bar], T1[Bar]);
+        
+
+            Plot(PlotBC, "", BearWColor, styleLine|styleThick);
+        
+
+        
+
+           if(BearGuide){
+        
+
+             PlotAC = LineArray(T2Idx[Bar], T2[Bar], T1Idx[Bar],
+        T1[Bar],extendBear);
+        
+
+             Plot(PlotAC, "", BearTColor, styleLine|styleThick);
+        
+
+        
+
+             PlotXB = LineArray(P2Idx[Bar], P2[Bar], P1Idx[Bar],
+        P1[Bar],extendBear);
+        
+
+             Plot(PlotXB, "", BearTColor, styleLine|styleThick);
+        
+
+        
+
+             PlotXC = LineArray(P2Idx[Bar], P2[Bar], T1Idx[Bar],
+        T1[Bar],extendBear);
+        
+
+             Plot(PlotXC, "", BearTColor, styleLine|styleThick);
+        
+
+           }
+        
+
+          }
+        
+
+        } // fi if(BearPlot)
+        
+
+        } // fi for(Bar =
+        
+
+      _N(Title="Wolfe Wave Patterns");

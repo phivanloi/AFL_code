@@ -1,0 +1,11 @@
+MaxGraph = 5;
+Graph0 = Close;
+Graph0Style=64;
+Graph0Color=2;
+Graph1 = EMA(Close,5)-(EMA(ATR(1),10)*1.50);
+Graph2 = EMA(Close,5)+(EMA(ATR(1),10)*2.5);
+Graph2Style = 1;
+Graph2Color=3;
+Graph3 = EMA(Close,5)+(EMA(ATR(1),10)/4);
+Graph3Style = 1;
+graph3colour =5;

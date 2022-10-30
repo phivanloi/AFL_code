@@ -1,0 +1,94 @@
+/*   
+   VolSpikeDemo_01.afl
+
+   Demo code by Progster in response to:
+
+   http://finance.groups.yahoo.com/group/amibroker/message/124977
+
+   This is Exploration code.
+
+*/
+
+
+MaxBack = 150;       // maximum number of bars to look back
+MaxFwd = 30;         // maximum number of bar to look forward
+
+//   Exploration parameters
+ShowBack = ParamToggle("ShowBack","No|Yes",1);
+LB = Param("LookBack",1,1,MaxBack,1);      //   LookBack (for vol spikes exactly this many bars ago)
+
+ShowFwd = ParamToggle("ShowFwd","No|Yes",0);
+LF = Param("LookFwd",10,1,MaxFwd,1);      //   LookFwd (for vol spikes up to this many bars in the future)
+
+//   Array calculations
+MA_V = (MA(V,MaxBack)) ;   
+SD_V = StDev(V,MaxBack) ;
+VolSpike = Volume > (MA_V + SD_V);
+
+//   Use array function BarsSince() to look back  (convenient and fast)
+BarsSinceVolSpike = BarsSince(VolSpike);
+
+
+//   Use a loop to look forward   (less convenient, less fast)
+BarsToVolSpike = -1 ;
+
+if ( ShowFwd )
+{
+    for ( idx = 0 ; idx < ( BarCount - MaxFwd ); idx++ )
+    {
+        //   Since jdx is positive, we are looking into the future relative to the current bar
+        for ( jdx = 1; jdx < MaxFwd; jdx++ )
+        {
+            if ( VolSpike[idx + jdx] )
+            {
+                BarsToVolSpike[idx] = jdx;
+                break;
+            }
+        }
+    }
+}
+
+//   Set exploration Filter according to whether we are looking back, forward, or both
+if(ShowBack AND ShowFwd){
+   Filter = (BarsSinceVolSpike == LB) OR (BarsToVolSpike >= 0) ;
+}
+else if ( ShowBack ){
+   Filter = (BarsSinceVolSpike == LB) ;
+}
+else if ( ShowFwd ){
+   Filter = (BarsToVolSpike >= 0) ;
+}
+
+//   Info at current bar
+AddColumn( DateTime(), "cDate", formatDateTime );      //   c = "current"
+/*
+AddColumn(Volume, "cVolume" );
+AddColumn(MA_V, "cMA_V" );
+AddColumn(SD_V, "cSD_V" );
+*/
+
+//   Info at the previous VolSpike bar.  p = "previous" or "past"
+if ( ShowBack )
+{
+   // Volume-based calcs with no particular formatting applied
+    AddColumn( LB, "BarsBack" );
+    AddColumn( Ref( DateTime(), -LB ), "pDate", formatDateTime );
+    AddColumn( Ref( Volume, -LB ), "pVolume" );
+    AddColumn( Ref( MA_V, -LB ), "pMA_V" );
+    AddColumn( Ref( SD_V, -LB ), "pSD_V" );
+}
+
+//   Info at the next VolSpike bar.  f = "forward"
+
+if ( ShowFwd )
+{
+    textColor = colorDefault ;
+    BGColor = IIf( BarsToVolSpike < 0, colorRed, colorDefault ) ;      // Use Red BG color if no forward vol spike found
+
+    //   Volume-based calcs formetted to 0 decimals
+    AddColumn( BarsToVolSpike, "BarsFwd", 1.0, textColor, BGColor );
+    AddColumn( Ref( DateTime(), BarsToVolSpike ), "fDate", formatDateTime, textColor, BGColor );
+    AddColumn( Ref( Volume, BarsToVolSpike ), "fVolume", 1.0, textColor, BGColor );
+    AddColumn( Ref( MA_V, BarsToVolSpike ), "fMA_V", 1.0, textColor, BGColor );
+    AddColumn( Ref( SD_V, BarsToVolSpike ), "fSD_V", 1.0, textColor, BGColor );
+}

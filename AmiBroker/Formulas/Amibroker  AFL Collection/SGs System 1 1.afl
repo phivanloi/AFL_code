@@ -1,0 +1,79 @@
+_SECTION_BEGIN("SG's MA Crossover Trading");
+MidRange=(H+L)/2;//Figure Used in Title for Middle of Price Range. 
+MyATR=ATR(10);//Enter ATR Average or use the 14 Day Moving Average of ATR 
+StyleList= ParamList("Chart Style", "Candle,Bar,line");
+style =IIf(StyleList== "Candle",styleCandle, IIf(StyleList== "Bar",styleBar,styleLine));
+SetChartBkGradientFill( ParamColor("BgTop", colorLavender),ParamColor("BgBottom", colorBlack)); 
+
+ 
+
+Cc = CCI(14);
+
+Buy_cci = Cc >80;
+
+Sell_cci = -80> Cc;
+
+
+A1=EMA(RSI(5),21); 
+BBtop=BBandTop(A1,5,.5); 
+BBbot=BBandBot(A1,5,.5);
+Color=IIf(a1 > bbtop, colorBlue,IIf(a1 < bbbot, colorRed,colorYellow));
+bbtop_col = IIf (BBtop > Ref(BBtop,-1),colorBlue,colorRed);
+bbbot_col = IIf (BBbot > Ref(BBbot,-1),colorBlue,colorRed);
+Buy_rsi = a1 > bbtop;
+Sell_rsi = a1 < bbbot;
+
+Col_bar = IIf(Buy_rsi AND Buy_cci,colorGreen,IIf(Sell_rsi AND Sell_cci,colorRed,colorYellow));
+Plot(Close, "Price", col_bar, style+styleThick);
+
+
+
+_SECTION_BEGIN("KPL");
+//AFL by Kamalesh Langote. Email:kpl@vfmdirect.com
+no=Param( "Swing", 5, 1, 55 );
+tsl_col=colorWhite;
+
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+tsl=IIf(avn==1,sup,res);
+
+Plot(tsl, _DEFAULT_NAME(), tsl_col, styleStaircase);
+
+Buy=Cross(C,tsl);
+Sell=Cross(tsl,C);
+shape=Buy*shapeUpArrow + Sell*shapeDownArrow;
+PlotShapes(shape,IIf(Buy,tsl_col,tsl_col),0,IIf(Buy,Low,High));
+_SECTION_END();
+
+Buy1 = Col_bar ==colorGreen AND C > tsl;
+Sell1= Col_bar ==colorRed AND C  < tsl;
+
+Buy1 = ExRem(Buy1,Sell1);
+Sell1 = ExRem(Sell1,Buy1);
+
+shape=Buy1*shapeUpTriangle + Sell1*shapeDownTriangle;
+PlotShapes(shape,IIf(Buy1,colorGreen,colorRed),0,IIf(Buy1,Low,High));
+
+dist = 1.5*ATR(10); 
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy1[i] ) PlotText( "Buy\n@" + C[ i ], i, L[ i ]-dist[i], colorGreen); 
+if( Sell1[i] ) PlotText( "Sell\n@" + C[ i ], i, H[ i ]+dist[i], colorRed); 
+}
+
+
+Title = 
+EncodeColor(colorWhite)+ "Linkon's Silver" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) 
++ EncodeColor(colorWhite) +  "  - " + Date() +" - "
++"\n" 
+
++EncodeColor(colorYellow) +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+ "Cl-"+C+"  "+ "Vol= "+ WriteVal(V)
++ WriteIf (EMA(C,3)>EMA(C,45) ,EncodeColor(colorLime)+ "      Direction : LONG",EncodeColor(colorRed)+"      Direction : SHORT")
+
+;
+
+
+Plot(6, "", Col_bar, styleOwnScale| styleArea|styleNoLabel,-0.5,100);

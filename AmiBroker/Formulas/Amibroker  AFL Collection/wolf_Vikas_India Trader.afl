@@ -1,0 +1,56 @@
+_SECTION_BEGIN("wolfe");
+/*Wolf Buy Pattern*/
+
+
+Pa=Trough(Low,5,4);
+
+Pb=Peak(High,5,3);
+
+P1=Trough(Low,5,3);
+
+P2=Peak(High,5,2);
+
+P3=Trough(Low,5,2);
+
+P4=Peak(High,5,1);
+
+P5=Trough(Low,5,1);
+
+tb=TroughBars(Low,5,1);
+
+eki1=IIf(tb<=4 AND p1 > pa AND pb < p2 AND p1 < p4 AND
+
+p1 > p3 AND p3 > p5 AND p4 < p2,1,0);
+
+p1=Trough(Low,5,3);
+
+p3=Trough(Low,5,3);
+
+p5=Trough(Low,5,3);
+
+o1=p1-p3;
+
+o2=p1-p5;
+
+a1=TroughBars(Low,5,3)-TroughBars(Low,5,2);
+
+a2=TroughBars(Low,5,3)-TroughBars(Low,5,2);
+
+tan1=o1/a1;
+
+tan2=o2/a2;
+
+eki2=abs(tan1-tan2);
+
+Wolf=IIf(eki1 AND eki2 <= .2 ,1,0);
+
+Graph1=Wolf;
+
+Graph1Color=43; 
+
+Graph1Style=1;
+
+Filter=Wolf;
+
+AddColumn( IIf(Wolf,1,0) ,"Wolf",1.0,colorWhite,IIf(Wolf,colorGreen,Null)); 
+_SECTION_END();

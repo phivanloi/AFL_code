@@ -1,0 +1,6 @@
+/* Elders SIROC Indicator */
+/* Set Scaling to Automatic, Show dates On, Percent On, Middle On */
+
+Graph0 = ROC(EMA(C,13),21);
+Graph0Style = 1; 
+Graph0Color = 9;

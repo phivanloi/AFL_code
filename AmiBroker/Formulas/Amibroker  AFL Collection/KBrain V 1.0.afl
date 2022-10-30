@@ -1,0 +1,208 @@
+//KBrain System Coded by Karthikmarar. Blog. www.stocktechnician.blogspot.com email. karthikmarar@yahoo.com
+//System based on the BrainTrend system in Metatrader
+// The Turquiose colored Dot indicates start of a Up Trend
+// The Magenta DOt indicates end of an Up move and beginning of a downmove
+// The system is a Stop and reverse system
+_SECTION_BEGIN("KBrain");
+//========================Initiation========================
+bts=ParamToggle("BrainTrend1 signal","No|Yes" ,0);
+btst=ParamToggle("BrainTrend1 stop","No|Yes" ,0);
+btsl=ParamToggle("BrainTrend1 stop line","No|Yes" ,0);
+period=Param("Period",14,6,20,1);
+x1=53;
+x2=47;
+d=2.3;
+f=7;
+s=1.5;
+range=ATR(f);
+Range1 = ATR(f)/d; 
+Range2 = (ATR(f)*s)/4;
+range3=ATR(10);
+R = ((HHV(H,period) - C) /(HHV (H,period) -LLV (L,period))) *-100;
+EMA1= EMA(R,Period);
+EMA2= EMA(EMA1,5);
+Difference= EMA1 - EMA2;
+ZeroLagEMA= EMA1 + Difference;
+value2=abs(ZeroLagEMA);
+
+
+function PercentR( periods )
+{
+ return -100 * ( HHV( H, periods ) - C )/( HHV( H, periods ) - LLV( L, periods ) ); 
+}
+
+
+for( i = period+10; i < BarCount; i++ ) 
+{
+C[0]=0;
+Value2[0]=0;
+p[0]=0;
+Plot1[0]=0;
+Plot2[0]=0;
+Val1=0;
+Val2=0;
+temp[0]=0;
+Value3[0]=0;
+tm[0]=0;
+p1[i]=0;
+bt1[0]=0;
+bt2[0]=0;
+r[0]=0;
+bt1a[0]=0;
+bt2a[0]=0;
+istop[0]=Val1[0];
+stop[i]=Val1[0];
+bstop[0]=0;
+sstop[i]=0;
+//==================================Indicators============================
+{
+if (value2[i] < x2 AND abs(Close[i]-Close[i-2]) > range1[i])
+ p[i] = 1 ;
+else
+{
+if (value2[i] > x1 AND abs(Close[i]-Close[i-2]) > Range1[i]) 
+ p[i] = 2 ;
+
+else
+
+ p[i]=0;
+}
+}
+
+if ((value2[i] < x2 AND p[i] == 1) OR (value2[i] < x2 AND p[i] == 0))
+
+{
+if (abs(Close[i]-Close[i-2]) > Range1[i])
+{
+Plot1[i]=H[i];
+Plot2[i]=L[i];
+}
+else
+{
+Plot1[i]=Plot1[i-1];
+Plot2[i]=Plot2[i-1];
+}
+}
+else
+{
+if ((value2[i] > x1 AND p[i] == 2) OR (value2[i] > x1 AND p[i] == 0))
+          
+{
+Plot1[i]=L[i];
+Plot2[i]=H[i];			
+}
+else
+{
+Plot1[i]=Plot1[i-1];
+Plot2[i]=Plot2[i-1];
+}
+}
+//==================KBrain Signal ====================================
+{
+if (value2[i] < x2 AND (abs(Close[i]-Close[i-2]) > Range1[i]))
+{
+if (p[i] == 1 OR p[i] == 0)
+Value3[i]=L[i]-range3[i];
+val1[i]=Value3[i];
+p[i]=1;
+temp[i]=1;
+}
+else
+{
+temp[i]=temp[i-1];
+}
+{
+if (value2[i] > x1 AND (abs(Close[i]-Close[i-2]) > Range1[i]))
+{
+if (p[i] == 2 OR p[i] == 0)
+Value3[i]=H[i]+range3[i];
+val2[i]=Value3[i];
+p[i]=2;
+temp[i]=2;;	
+}
+
+}
+}
+{
+
+if (temp[i]==1 AND Plot1[i]>0 AND tm[i] != 1)
+ tm[i]= 1;
+
+if (temp[i]==2 AND Plot2[i]>0 AND tm[i] != 2) 
+ tm[i]=2;
+
+}
+//===============================stop========================================
+{
+if (value2[i] < x2 AND (abs(Close[i]-Close[i-2]) > Range1[i])AND p[i] !=2)
+
+   {
+     value3[i]=L[i]-range3[i];
+     va1[i]=Value3[i];
+     p1[i]=2;
+     r[i]=Va1[i];
+     bstop[i]=Va1[i];
+     bt2[i]=bt2[i-1];
+     }
+      
+if (value2[i] > x1 AND (abs(Close[i]-Close[i-2]) > Range1[i])AND p[i] !=1)
+   
+     {
+     Value3[i]=H[i]+range3[i];
+     va2[i]=Value3[i];
+     p1[i]=1;
+       
+     r[i]=Va2[i];
+     sstop[i]=Value3[i];
+     bt1[i]=bt1[i-1];
+     }
+    
+  }
+
+
+
+if (val1[i] == 0 AND val2[i] == 0 AND p[i] == 0 )
+         {
+         bstop[i]=bstop[i-1]; 
+         sstop[i]=sstop[i-1];
+         }
+     
+
+if (bstop[i]<bstop[i-1] AND tm[i]==1 AND tm[i-1]==1) bstop[i]=bstop[i-1];
+if (sstop[i]>sstop[i-1] AND tm[i]==2 AND tm[i-1]==2) sstop[i]=sstop[i-1];
+  
+}
+//=============================SYSTEM======================================
+Mycolor=IIf(p==1,colorLime,IIf(p==2,colorRed,colorBlue));
+PlotOHLC( Open,  High,  Low,  Close, "", Mycolor, styleBar| styleThick   ); 
+PlotShapes( shapeCircle* (bts AND tm==1 AND Ref(tm,-1)==2),colorTurquoise, 0, bstop, 0 );
+PlotShapes( shapeCircle* (bts AND tm==2 AND Ref(tm,-1)==1), colorCustom12, 0, sstop, 0 );
+PlotShapes( IIf(btst AND p==1,shapeSmallCircle,Null), colorTurquoise,0,bstop,0);
+Plot(IIf(btsl AND tm==1,bstop,Null),"",colorPaleBlue,1);
+PlotShapes( IIf(btst AND p==2,shapeSmallCircle,Null), colorCustom12,0,sstop,0);
+Plot(IIf(btsl AND tm==2,sstop,Null),"",colorLightYellow,1);
+Buy=Cover=(bts AND tm==1 AND Ref(tm,-1)==2);
+Sell=Short=(bts AND tm==2 AND Ref(tm,-1)==1);
+SellPrice=ValueWhen(Sell,C,1);
+BuyPrice=ValueWhen(Buy,C,1);
+Long=Flip(Buy,Sell);
+Shrt=Flip(Sell,Buy );
+_SECTION_END();
+//=================TITLE================================================================================================
+_SECTION_BEGIN("Title");
+if( Status("action") == actionIndicator ) 
+(
+Title = EncodeColor(colorWhite)+ "KBrain V 1.0. " + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"\n" +EncodeColor(colorYellow) +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+
+"Cl-"+C+"  "+ "Vol= "+ WriteVal(V)+"\n"+ 
+EncodeColor(colorLime)+
+WriteIf (Buy , " GO LONG / Reverse Signal at "+C+"  ","")+
+WriteIf (Sell , " EXIT LONG / Reverse Signal at "+C+"  ","")+"\n"+EncodeColor(colorWhite)+
+WriteIf(Sell , "Total Profit/Loss for the Last Trade Rs."+(C-BuyPrice)+"","")+
+WriteIf(Buy  , "Total Profit/Loss for the Last trade Rs."+(SellPrice-C)+"","")+
+WriteIf(Long AND NOT Buy, "Trade : Long - Entry price Rs."+(BuyPrice),"")+
+WriteIf(shrt AND NOT Sell, "Trade : Short - Entry price Rs."+(SellPrice),"")+"\n"+ 
+WriteIf(Long AND NOT Buy, "Current Profit/Loss Rs."+(C-BuyPrice)+"","")+
+WriteIf(shrt AND NOT Sell, "Current Profit/Loss Rs."+(SellPrice-C)+"",""));
+
+_SECTION_END();

@@ -1,0 +1,9 @@
+A = RSI( 14)-Ref( RSI (14),-9)+ MA(RSI(3),3);
+Plot1 = MA(A, 13);
+Plot2 = MA(A,33);
+
+Plot( A, "The Composite Index", colorRed,styleLine, styleThick);
+Plot( Plot1, "", colorDarkGreen,styleLine);
+Plot( Plot2, "", colorBlue,styleLine);
+
+PlotGrid(0, colorLightGrey); 

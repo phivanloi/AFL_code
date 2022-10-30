@@ -1,0 +1,7 @@
+/* CBDerivative */
+/* Set Scaling to Automatic, Show dates On, Percent On, Middle On */
+
+Graph0= (EMA(EMA(RSI(14),5),3))-(MA(EMA(EMA(RSI(14),5),3),9));
+
+Graph0Style = 2; 
+Graph0Color = 4;

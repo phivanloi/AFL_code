@@ -1,0 +1,738 @@
+// Downloaded From https://www.WiseStockTrader.com
+Title = " ";
+_SECTION_BEGIN("RKR_AutoTrade1V00 ");
+
+EnableRealTimeControl = ParamList("Enable Controls", "No|Yes", 0);
+EnableStrategy = ParamList("Enable Strategy", "No|Yes", 0);
+StrategyType = ParamList("StrategyType", "Long/Short|Long|Short", 0);
+EnableAutoTrade = ParamList("Enable Autotrade", "No|Yes", 0);
+BuyPriceSelection = ParamList("Buy Price", "Bid Price|Ask Price|LTP", 0);
+SellPriceSelection = ParamList("Sell Price", "Ask Price|Bid Price|LTP", 0);
+ProductType = ParamList("Product Type", "MIS|NRML", 0);
+OrderType = ParamList("Order Type", "LIMIT|MARKET", 0);
+ClientIdValue = ParamStr("Client Id", "CLIENTID");
+LotQuantity = Param("Lot Quantity", 1000, 50, 100000, 10);  // Default Trade Qty.
+X2 = Param("Button X Offset", 0, 0, 2000, 100);
+Y2 = Param("Button Y Offset", 0, 0, 2000, 100);
+X1 = Param("Button Size", 100, 100, 300, 50);
+ParamList("Written By", "Ranjith K R");
+ParamList("e-mail ID", "ranjicgnr@gmail.com");
+Buy = 0;
+Sell = 0;
+Short = 0;
+Cover = 0;
+
+if(EnableStrategy == "Yes")
+{
+/*~~~~~~~~~~~~~~~~AutoTrade Strategy~~~~~~~~~~~~~~~~~~~~~~*/
+/*
+You Have to replace the below code with your strategy
+Strictly don't use the bellow Buy/Sell code for real Trading
+*/
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+Buy = Cross(MACD(12, 26), Signal(12, 26, 9));
+Sell = Cross(Signal(12, 26, 9), MACD(12, 26));
+
+Short = Cross(Signal(12, 26, 9), MACD(12, 26));
+Cover = Cross(MACD(12, 26), Signal(12, 26, 9));
+
+/*~~~~~~~~~~~~~~~End Of AutoTrade Strategy~~~~~~~~~~~~~~~~*/
+}
+
+
+if(EnableAutoTrade == "Yes" && EnableRealTimeControl == "Yes")
+{
+	if(StaticVarGetText("firstflagforNest")=="")
+	{
+		nestplus = Null;
+		if(IsNull(nestplus))
+		{
+			nestplus = CreateStaticObject("Nest.PlusApi");
+			nestplus.SetObjectName("RKRAutoTrade");
+		}
+		StaticVarSetText ("firstflagforNest","0", 1);
+	}
+	
+}
+
+X0 = 20;
+Y0 = 10;
+procedure DashBoard (Text, x1, y1, x2, y2, colorFrom, colorTo)
+{
+	GfxSetOverlayMode(0);
+	GfxSelectFont("Segoe UI", 8.5, 500);
+	GfxSetBkMode(1);
+	GfxGradientRect(x1, y1, x2, y2, colorFrom, colorTo);
+	GfxDrawText(Text, x1, y1, x2, y2, 32|0|4|16);
+}
+GfxSetTextColor(colorWhite);
+
+DashBoard (" Strategy: " + EnableStrategy, X0, Y0, X0+150, Y0+13, colorGrey40, colorGrey40);
+DashBoard (" Strategy Type: " + StrategyType, X0, Y0+13, X0+150, Y0+26, colorGrey40, colorGrey40);
+DashBoard (" Auto Trade: " + EnableAutoTrade, X0, Y0+26, X0+150, Y0+38, colorGrey40, colorGrey40);
+DashBoard (" Buy Price: " + BuyPriceSelection, X0, Y0+38, X0+150, Y0+50, colorGrey40, colorGrey40);
+DashBoard (" Sell Price: " + SellPriceSelection, X0, Y0+50, X0+150, Y0+62, colorGrey40, colorGrey40);
+DashBoard (" Product Type: " + ProductType, X0, Y0+62, X0+150, Y0+75, colorGrey40, colorGrey40);
+DashBoard (" Order Type: " + OrderType, X0, Y0+75, X0+150, Y0+88, colorGrey40, colorGrey40);
+DashBoard ("", X0+1, Y0+88, X0+149, Y0+89, colorRed, colorRed);
+GfxSetTextColor(colorAqua);
+DashBoard (" Written By: Ranjith K R", X0, Y0+89, X0+150, Y0+105, colorBlack, colorBlack);
+
+X0 = 180;
+Y0 = 10;
+procedure DrawData (Text, x1, y1, x2, y2, colorFrom, colorTo)
+{
+	GfxSetOverlayMode(0);
+	GfxSelectFont("Segoe UI", 8.5, 600);
+	GfxSetBkMode(1);
+	GfxGradientRect(x1, y1, x2, y2, colorFrom, colorTo);
+	GfxDrawText(Text, x1, y1, x2, y2, 32|0|4|16);
+}
+GfxSetTextColor(colorWhite);
+DrawData (" " + Name(), X0, Y0, X0+200, Y0+15, colorGrey40, colorGrey40);
+DrawData (" " + Date(), X0+205, Y0, X0+360, Y0+15, colorGrey40, colorGrey40);
+DrawData (" Open : " + Open, X0+365, Y0, X0+505, Y0+15, colorGrey40, colorGrey40);
+DrawData (" Close : " + Close, X0+510, Y0, X0+650, Y0+15, colorGrey40, colorGrey40);
+DrawData (" High : " + High, X0+655, Y0, X0+795, Y0+15, colorGrey40, colorGrey40);
+DrawData (" Low : " + Low, X0+800, Y0, X0+940, Y0+15, colorGrey40, colorGrey40);
+DrawData (" Volume : " + NumToStr(Volume,1,0), X0+945, Y0, X0+1100, Y0+15, colorGrey40, colorGrey40);
+DrawData (" % Change : " + NumToStr( (((C-O)*100)/O), 1.2, True), X0+1105, Y0, X0+1235, Y0+15, colorGrey40, colorGrey40);
+
+if(StaticVarGetText("firstflag")=="")
+{
+	StaticVarSet("OrderNo", 0);
+	
+	StaticVarSetText ("firstflag","0");
+}
+
+if(StaticVarGetText("firstflag"+Name())=="")
+{
+	StaticVarSet(("BuyIndex" + Name()), 0);
+	StaticVarSet(("BuyCount" + Name()), 0);
+	StaticVarSet(("BuyFlag"  + Name()), 0);
+	StaticVarSet(("BuyPrice"  + Name()), 0);
+	StaticVarSet(("BuyQty"  + Name()), 0);
+	
+	StaticVarSet(("SellIndex" + Name()), 0);
+	StaticVarSet(("SellCount" + Name()), 0);
+	StaticVarSet(("SellFlag"  + Name()), 0);
+	StaticVarSet(("SellPrice"  + Name()), 0);
+	StaticVarSet(("SellQty"  + Name()), 0);
+	
+	StaticVarSet(("ShortIndex" + Name()), 0);
+	StaticVarSet(("ShortCount" + Name()), 0);
+	StaticVarSet(("ShortFlag"  + Name()), 0);
+	StaticVarSet(("ShortPrice"  + Name()), 0);
+	StaticVarSet(("ShortQty"  + Name()), 0);
+	
+	StaticVarSet(("CoverIndex" + Name()), 0);
+	StaticVarSet(("CoverCount" + Name()), 0);
+	StaticVarSet(("CoverFlag"  + Name()), 0);
+	StaticVarSet(("CoverPrice"  + Name()), 0);
+	StaticVarSet(("CoverQty"  + Name()), 0);
+	
+	StaticVarSet("LTPSave" + Name(), 0);
+	StaticVarSet("LTQSave" + Name(), 0);
+	StaticVarSet("VolumeTemp" + Name(), 0);
+	StaticVarSet("AskSave" + Name(), 0);
+	StaticVarSet("BidSave" + Name(), 0);
+	
+	StaticVarSet("LastLTPColor" + Name(), colorGrey40);
+	StaticVarSet("LastLTQColor" + Name(), colorGrey40);
+	StaticVarSet("LastAskColor" + Name(), colorGrey40);
+	StaticVarSet("LastBidColor" + Name(), colorGrey40);
+	
+	StaticVarSetText("firstflag"+Name(), "0");
+}
+
+CurrentAskPrice = LastValue(Aux1);
+CurrentBidPrice = LastValue(Aux2);
+CurrentTradedPrice = LastValue(C);
+CurrentVolume = LastValue(Volume);
+
+if(BuyPriceSelection == "Bid Price")
+{
+	BuyPriceValue = CurrentBidPrice;
+}
+else if(BuyPriceSelection == "Ask Price")
+{
+	BuyPriceValue = CurrentAskPrice;
+}
+else
+{
+	BuyPriceValue = CurrentTradedPrice;
+}
+
+if(SellPriceSelection == "Ask Price")
+{
+	SellPriceValue = CurrentAskPrice;
+}
+else if(SellPriceSelection == "Bid Price")
+{
+	SellPriceValue = CurrentBidPrice;
+}
+else
+{
+	SellPriceValue = CurrentTradedPrice;
+}
+
+LTPTemp = StaticVarGet("LTPSave" + Name());
+LTQTemp = StaticVarGet("LTQSave" + Name());
+VolumeTemp = StaticVarGet("VolumeTemp" + Name());
+AskTemp = StaticVarGet("AskSave" + Name());
+BidTemp = StaticVarGet("BidSave" + Name());
+
+CurrentLTQ = (CurrentVolume - VolumeTemp);
+
+if(CurrentLTQ < 0)
+{
+	CurrentLTQ = CurrentLTQ * -1;
+}
+
+if(CurrentLTQ == 0)
+{
+	CurrentLTQ = LTQTemp;
+}
+
+LTPColor = StaticVarGet("LastLTPColor" + Name());
+LTQColor = StaticVarGet("LastLTQColor" + Name());
+AskColor = StaticVarGet("LastAskColor" + Name());
+BidColor = StaticVarGet("LastBidColor" + Name());
+
+
+if(LTPTemp > CurrentTradedPrice)
+{
+	LTPColor = colorRed;
+}
+else if(LTPTemp < CurrentTradedPrice)
+{
+	LTPColor = ColorGreen;
+}
+
+if(LTQTemp > CurrentLTQ)
+{
+	LTQColor = colorRed;
+}
+else if(LTQTemp < CurrentLTQ)
+{
+	LTQColor = ColorGreen;
+}
+
+if(AskTemp > CurrentAskPrice)
+{
+	AskColor = colorRed;
+}
+else if(AskTemp < CurrentAskPrice)
+{
+	AskColor = ColorGreen;
+}
+
+if(BidTemp > CurrentBidPrice)
+{
+	BidColor = colorRed;
+}
+else if(BidTemp < CurrentBidPrice)
+{
+	BidColor = ColorGreen;
+}
+
+StaticVarSet("LastLTPColor" + Name(), LTPColor);
+StaticVarSet("LastLTQColor" + Name(), LTQColor);
+StaticVarSet("LastAskColor" + Name(), AskColor);
+StaticVarSet("LastBidColor" + Name(), BidColor);
+
+StaticVarSet("LTPSave" + Name(), CurrentTradedPrice);
+StaticVarSet("LTQSave" + Name(), CurrentLTQ);
+StaticVarSet("VolumeTemp" + Name(), CurrentVolume);
+StaticVarSet("AskSave" + Name(), CurrentAskPrice);
+StaticVarSet("BidSave" + Name(), CurrentBidPrice);
+
+
+X0 = X2 + 20;
+Y0 = Y2 + 120;
+LBClick = GetCursorMouseButtons() == 9;	// Click
+MouseX  = Nz(GetCursorXPosition(1));		// 
+MouseY  = Nz(GetCursorYPosition(1));		//
+
+NumPad0 = GetAsyncKeyState(96) < 0;
+NumPad4 = GetAsyncKeyState(100) < 0;
+NumPad5 = GetAsyncKeyState(101) < 0;
+NumPad7 = GetAsyncKeyState(103) < 0;
+NumPad8 = GetAsyncKeyState(104) < 0;
+
+procedure DrawBut (Text, x1, y1, x2, y2, colorFrom, colorTo)
+{
+	GfxSetOverlayMode(0);
+	GfxSelectFont("Segoe UI", 9, 700);
+	GfxSetBkMode(1);
+	GfxGradientRect(x1, y1, x2, y2, colorFrom, colorTo);
+	GfxDrawText(Text, x1, y1, x2, y2, 32|1|4|16);
+}
+GfxSetTextColor(colorWhite);
+
+if(EnableRealTimeControl == "Yes")
+{
+
+	DrawBut ("Buy", X0, Y0, X0+X1, Y0+30, colorGreen, colorGreen);
+	CursorInBuyButton = MouseX >= X0 AND MouseX <= X0+X1 AND MouseY >= Y0 AND MouseY <= Y0+30;
+	BuyButtonClick = CursorInBuyButton AND LBClick;
+	if (BuyButtonClick || NumPad7 )
+	{
+		TempBuy = Buy;
+		Buy = IIf((DateTime() == LastValue(DateTime())) || (TempBuy == True), True, False);
+	}
+
+	DrawBut ("Sell", X0, Y0+40, X0+X1, Y0+70, colorRed, colorRed);
+	CursorInSellButton = MouseX >= X0 AND MouseX <= X0+X1 AND MouseY >= Y0+40 AND MouseY <= Y0+70;
+	SellButtonClick = CursorInSellButton AND LBClick;
+	if (SellButtonClick || NumPad8)
+	{
+		TempSell = Sell;
+		Sell = IIf((DateTime() == LastValue(DateTime())) || (TempSell == True), True, False);
+	}
+	
+	DrawBut ("Short", X0, Y0+80, X0+X1, Y0+110, colorOrange, colorOrange);
+	CursorInShortButton = MouseX >= X0 AND MouseX <= X0+X1 AND MouseY >= Y0+80 AND MouseY <= Y0+110;
+	ShortButtonClick = CursorInShortButton AND LBClick;
+	if (ShortButtonClick || NumPad4)
+	{
+		TemShort = Short;
+		Short = IIf((DateTime() == LastValue(DateTime())) || (TemShort == True), True, False);
+	}
+
+	DrawBut ("Cover", X0, Y0+120, X0+X1, Y0+150, colorTurquoise, colorTurquoise);
+	CursorInCoverButton = MouseX >= X0 AND MouseX <= X0+X1 AND MouseY >= Y0+120 AND MouseY <= Y0+150;
+	CoverButtonClick = CursorInCoverButton AND LBClick;
+	if (CoverButtonClick || NumPad5)
+	{
+		TempCover = Cover;
+		Cover = IIf((DateTime() == LastValue(DateTime())) || (TempCover == True), True, False);
+	}
+
+	DrawBut ("Clear Data", X0, Y0+160, X0+X1, Y0+190, colorGrey40, colorGrey40);
+	CursorInClearButton = MouseX >= X0 AND MouseX <= X0+X1 AND MouseY >= Y0+160 AND MouseY <= Y0+190;
+	ClearButtonClick = CursorInClearButton AND LBClick;
+	if (ClearButtonClick || NumPad0 ) 
+	{ 
+		DrawBut("Clear", X0+X1+10, Y0, X0+X1+75, Y0+30,  colorGrey40, colorGrey40);
+
+		StaticVarSetText("firstflag"+Name(), "");
+	}
+	
+	//TempBuy = Buy;
+	TempBuy = IIf((DateTime() == LastValue(DateTime())) && (LastValue(Buy) == True), True, False);
+	BuyTempData = StaticVarGet("BuyIndex" + Name());
+	TempCount = StaticVarGet("BuyCount" + Name());
+	BuyPrevTemp = 0;
+	for(i = 0; i <= TempCount; i++)
+	{
+		BuyPrevTemp = BuyPrevTemp | (IIF(DateTime() == BuyTempData[i], True, False));
+	}
+	Buy = IIF(((BuyPrevTemp == True) || (TempBuy == True)), True, False);
+	
+	//TempSell = Sell;
+	TempSell = IIf((DateTime() == LastValue(DateTime())) && (LastValue(Sell) == True), True, False);
+	SellTempData = StaticVarGet("SellIndex" + Name());
+	TempCount = StaticVarGet("SellCount" + Name());
+	SellPrevTemp = 0;
+	for(i = 0; i <= TempCount; i++)
+	{
+		SellPrevTemp = SellPrevTemp | (IIF(DateTime() == SellTempData[i], True, False));
+	}
+	TempCount = StaticVarGet("BuyCount" + Name());
+	Sell = IIF((TempCount > 0) && ((SellPrevTemp == True) || (TempSell == True)), True, False);
+	
+	//TempShort = Short;
+	TempShort = IIf((DateTime() == LastValue(DateTime())) && (LastValue(Short) == True), True, False);
+	ShortTempData = StaticVarGet("ShortIndex" + Name());
+	TempCount = StaticVarGet("ShortCount" + Name());
+	ShortPrevTemp = 0;
+	for(i = 0; i <= TempCount; i++)
+	{
+		ShortPrevTemp = ShortPrevTemp | (IIF(DateTime() == ShortTempData[i], True, False));
+	}
+	Short = IIF(((ShortPrevTemp == True) || (TempShort == True)), True, False);
+	
+	//TempCover = Cover;
+	TempCover = IIf((DateTime() == LastValue(DateTime())) && (LastValue(Cover) == True), True, False);
+	CoverTempData = StaticVarGet("CoverIndex" + Name());
+	TempCount = StaticVarGet("CoverCount" + Name());
+	CoverPrevTemp = 0;
+	for(i = 0; i <= TempCount; i++)
+	{
+		CoverPrevTemp = CoverPrevTemp | (IIF(DateTime() == CoverTempData[i], True, False));
+	}
+	TempCount = StaticVarGet("ShortCount" + Name());
+	Cover = IIF((TempCount > 0) && ((CoverPrevTemp == True) || (TempCover == True)), True, False);
+	
+}
+
+if(StrategyType == "Long")
+{
+	Short = 0;
+	Cover = 0;
+}
+else if(StrategyType == "Short")
+{
+	Buy = 0;
+	Sell = 0;
+}
+
+Buy = ExRem( Buy, Sell );
+Sell = ExRem( Sell, Buy );
+
+Short = ExRem( Short, Cover );
+Cover = ExRem( Cover, Short );
+
+Buyshape = Buy * shapeUpArrow;
+SellShape = Sell * shapeDownArrow;
+PlotShapes( Buyshape, colorBrightGreen, 0, Low );
+PlotShapes( SellShape, colorRed, 0, High );
+
+Shortshape = Short * shapeDownArrow;
+CoverShape = Cover * shapeUpArrow;
+PlotShapes( Shortshape, colorOrange, 0, High, -30);
+PlotShapes( CoverShape, colorTurquoise, 0, Low, -30 );
+
+GraphXSpace = 5;
+	
+	
+if(EnableRealTimeControl == "Yes")
+{
+	if((LastValue(Buy) == True) && (StaticVarGet(("BuyFlag" + Name())) != LastValue(DateTime())))
+	{
+		StaticVarSet(("BuyFlag" + Name()), LastValue(DateTime()));
+		DrawBut("Buy", X0+X1+10, Y0, X0+X1+75, Y0+30,  colorGrey40, colorGrey40);
+		TempCount = StaticVarGet("BuyCount" + Name());
+		TempIndex = StaticVarGet("BuyIndex" + Name());
+		TempPrice = StaticVarGet("BuyPrice"  + Name());
+		TempQty = StaticVarGet("BuyQty"  + Name());
+		TempIndex[TempCount] = LastValue(DateTime());
+		TempPrice[TempCount] = BuyPriceValue;
+		TempQty[TempCount] = LotQuantity;
+		TempCount++;
+		StaticVarSet("BuyCount" + Name(), TempCount);
+		StaticVarSet(("BuyIndex" + Name()), TempIndex);
+		StaticVarSet(("BuyPrice" + Name()), TempPrice);
+		StaticVarSet(("BuyQty" + Name()), TempQty);
+		
+		if(EnableAutoTrade == "Yes")
+		{
+			LastOrderNo = StaticVarGet("OrderNo");
+			LastOrderNo++;
+			StaticVarSet("OrderNo", LastOrderNo);
+			TempOrderNo = ClientIdValue + NumToStr(Now(3),1,0) + "00" + LastOrderNo;
+			TempName = Name() + "-EQ";
+			nestplus.PlaceOrder("BUY", TempOrderNo, "NSE", TempName, "DAY", OrderType, LotQuantity, BuyPriceValue, 0.0, 0, ProductType, ClientIdValue);
+		}
+	}
+
+	if((LastValue(Sell) == True) && (StaticVarGet(("SellFlag" + Name())) != LastValue(DateTime())))
+	{
+		StaticVarSet(("SellFlag" + Name()), LastValue(DateTime()));
+		DrawBut("Sell", X0+X1+10, Y0, X0+X1+75, Y0+30,  colorGrey40, colorGrey40);
+		TempCount = StaticVarGet("SellCount" + Name());
+		TempIndex = StaticVarGet("SellIndex" + Name());
+		TempPrice = StaticVarGet("SellPrice"  + Name());
+		TempQty = StaticVarGet("SellQty"  + Name());
+		TempIndex[TempCount] = LastValue(DateTime());
+		TempPrice[TempCount] = SellPriceValue;
+		TempQty[TempCount] = LotQuantity;
+		TempCount++;
+		StaticVarSet("SellCount" + Name(), TempCount);
+		StaticVarSet(("SellIndex" + Name()), TempIndex);
+		StaticVarSet(("SellPrice" + Name()), TempPrice);
+		StaticVarSet(("SellQty" + Name()), TempQty);
+		
+		if(EnableAutoTrade == "Yes")
+		{
+			LastOrderNo = StaticVarGet("OrderNo");
+			LastOrderNo++;
+			StaticVarSet("OrderNo", LastOrderNo, 1);
+			TempOrderNo = ClientIdValue + NumToStr(Now(3),1,0) + "00" + LastOrderNo;
+			TempName = Name() + "-EQ";
+			nestplus.PlaceOrder("SELL", TempOrderNo, "NSE", TempName, "DAY", OrderType, LotQuantity, SellPriceValue, 0.0, 0, ProductType, ClientIdValue);
+		}
+	}
+	
+	if((LastValue(Short) == True) && (StaticVarGet(("ShortFlag" + Name())) != LastValue(DateTime())))
+	{
+		StaticVarSet(("ShortFlag" + Name()), LastValue(DateTime()));
+		DrawBut("Short", X0+X1+10, Y0, X0+X1+75, Y0+30,  colorGrey40, colorGrey40);
+		TempCount = StaticVarGet("ShortCount" + Name());
+		TempIndex = StaticVarGet("ShortIndex" + Name());
+		TempPrice = StaticVarGet("ShortPrice"  + Name());
+		TempQty = StaticVarGet("ShortQty"  + Name());
+		TempIndex[TempCount] = LastValue(DateTime());
+		TempPrice[TempCount] = SellPriceValue;
+		TempQty[TempCount] = LotQuantity;
+		TempCount++;
+		StaticVarSet("ShortCount" + Name(), TempCount);
+		StaticVarSet(("ShortIndex" + Name()), TempIndex);
+		StaticVarSet(("ShortPrice" + Name()), TempPrice);
+		StaticVarSet(("ShortQty" + Name()), TempQty);
+		
+		if(EnableAutoTrade == "Yes")
+		{
+			LastOrderNo = StaticVarGet("OrderNo");
+			LastOrderNo++;
+			StaticVarSet("OrderNo", LastOrderNo);
+			TempOrderNo = ClientIdValue + NumToStr(Now(3),1,0) + "00" + LastOrderNo;
+			TempName = Name() + "-EQ";
+			nestplus.PlaceOrder("SELL", TempOrderNo, "NSE", TempName, "DAY", OrderType, LotQuantity, SellPriceValue, 0.0, 0, ProductType, ClientIdValue);
+		}
+	}
+
+	if((LastValue(Cover) == True) && (StaticVarGet(("CoverFlag" + Name())) != LastValue(DateTime())))
+	{
+		StaticVarSet(("CoverFlag" + Name()), LastValue(DateTime()));
+		DrawBut("Cover", X0+X1+10, Y0, X0+X1+75, Y0+30,  colorGrey40, colorGrey40);
+		TempCount = StaticVarGet("CoverCount" + Name());
+		TempIndex = StaticVarGet("CoverIndex" + Name());
+		TempPrice = StaticVarGet("CoverPrice"  + Name());
+		TempQty = StaticVarGet("CoverQty"  + Name());
+		TempIndex[TempCount] = LastValue(DateTime());
+		TempPrice[TempCount] = BuyPriceValue;
+		TempQty[TempCount] = LotQuantity;
+		TempCount++;
+		StaticVarSet("CoverCount" + Name(), TempCount);
+		StaticVarSet(("CoverIndex" + Name()), TempIndex);
+		StaticVarSet(("CoverPrice" + Name()), TempPrice);
+		StaticVarSet(("CoverQty" + Name()), TempQty);
+		
+		if(EnableAutoTrade == "Yes")
+		{
+			LastOrderNo = StaticVarGet("OrderNo");
+			LastOrderNo++;
+			StaticVarSet("OrderNo", LastOrderNo, 1);
+			TempOrderNo = ClientIdValue + NumToStr(Now(3),1,0) + "00" + LastOrderNo;
+			TempName = Name() + "-EQ";
+			nestplus.PlaceOrder("BUY", TempOrderNo, "NSE", TempName, "DAY", OrderType, LotQuantity, BuyPriceValue, 0.0, 0, ProductType, ClientIdValue);
+		}
+	}
+}
+	
+X0 = 180;
+Y0 = 30;
+
+if(EnableRealTimeControl == "Yes")
+{
+	TotPrice = 0;
+	TotQty = 0;
+	TotVal = 0;
+	TempPriceArray = StaticVarGet("BuyPrice" + Name());
+	TempQtyArray = StaticVarGet("BuyQty" + Name());
+	TempCount = StaticVarGet("BuyCount" + Name());
+	for(i = 0; i < TempCount; i++)
+	{
+		TotPrice = TotPrice + TempPriceArray[i];
+		TotQty = TotQty + TempQtyArray[i];
+		TotVal = TotVal + TempPriceArray[i] * TempQtyArray[i];
+	}
+	if(TempCount == 0)
+	{
+		AvgBuyPrice = 0;
+		LastBuyPrice = 0;
+		LastBuyQty = 0;
+	}
+	else
+	{
+		AvgBuyPrice = (TotPrice / TempCount);
+		LastBuyPrice = TempPriceArray[(TempCount - 1)];
+		LastBuyQty = NumToStr(TempQtyArray[(TempCount - 1)], 1, 0);
+	}
+	TotBuyQty = NumToStr(TotQty, 1, 0);
+	NetBuyQty = TotQty;
+	NetBuyValue = TotVal;
+	
+	TotPrice = 0;
+	TotQty = 0;
+	TotVal = 0;
+	TempPriceArray = StaticVarGet("SellPrice" + Name());
+	TempQtyArray = StaticVarGet("SellQty" + Name());
+	TempCount = StaticVarGet("SellCount" + Name());
+	for(i = 0; i < TempCount; i++)
+	{
+		TotPrice = TotPrice + TempPriceArray[i];
+		TotQty = TotQty + TempQtyArray[i];
+		TotVal = TotVal + TempPriceArray[i] * TempQtyArray[i];
+	}
+	if(TempCount == 0)
+	{
+		AvgSellPrice = 0;
+		LastSellPrice = 0;
+		LastSellQty = 0;
+	}
+	else
+	{
+		AvgSellPrice = (TotPrice / TempCount);
+		LastSellPrice = TempPriceArray[(TempCount - 1)];
+		LastSellQty = NumToStr(TempQtyArray[(TempCount - 1)], 1, 0);
+	}
+	TotSellQty = NumToStr(TotQty, 1, 0);
+	NetSellQty = TotQty;
+	NetSellValue = TotVal;
+	
+	TotPrice = 0;
+	TotQty = 0;
+	TotVal = 0;
+	TempPriceArray = StaticVarGet("ShortPrice" + Name());
+	TempQtyArray = StaticVarGet("ShortQty" + Name());
+	TempCount = StaticVarGet("ShortCount" + Name());
+	for(i = 0; i < TempCount; i++)
+	{
+		TotPrice = TotPrice + TempPriceArray[i];
+		TotQty = TotQty + TempQtyArray[i];
+		TotVal = TotVal + TempPriceArray[i] * TempQtyArray[i];
+	}
+	if(TempCount == 0)
+	{
+		AvgShortPrice = 0;
+		LastShortPrice = 0;
+		LastShortQty = 0;
+	}
+	else
+	{
+		AvgShortPrice = (TotPrice / TempCount);
+		LastShortPrice = TempPriceArray[(TempCount - 1)];
+		LastShortQty = NumToStr(TempQtyArray[(TempCount - 1)], 1, 0);
+	}
+	TotShortQty = NumToStr(TotQty, 1, 0);
+	NetShortQty = TotQty;
+	NetShortValue = TotVal;
+	
+	TotPrice = 0;
+	TotQty = 0;
+	TotVal = 0;
+	TempPriceArray = StaticVarGet("CoverPrice" + Name());
+	TempQtyArray = StaticVarGet("CoverQty" + Name());
+	TempCount = StaticVarGet("CoverCount" + Name());
+	for(i = 0; i < TempCount; i++)
+	{
+		TotPrice = TotPrice + TempPriceArray[i];
+		TotQty = TotQty + TempQtyArray[i];
+		TotVal = TotVal + TempPriceArray[i] * TempQtyArray[i];
+	}
+	if(TempCount == 0)
+	{
+		AvgCoverPrice = 0;
+		LastCoverPrice = 0;
+		LastCoverQty = 0;
+	}
+	else
+	{
+		AvgCoverPrice = (TotPrice / TempCount);
+		LastCoverPrice = TempPriceArray[(TempCount - 1)];
+		LastCoverQty = NumToStr(TempQtyArray[(TempCount - 1)], 1, 0);
+	}
+	TotCoverQty = NumToStr(TotQty, 1, 0);
+	NetCoverQty = TotQty;
+	NetCoverValue = TotVal;
+	
+	NetQty = NetSellQty - NetBuyQty + NetShortQty - NetCoverQty;
+	NetValue = NetSellValue - NetBuyValue + NetShortValue - NetCoverValue;
+	
+	NetQuantityColor = colorGrey40;
+	NetValueColor = colorGrey40;
+
+	if(NetQty > 0)
+	{
+		NetQuantityColor = colorRed;
+		NetValueColor = colorRed;
+	}
+	else if(NetQty < 0)
+	{
+		NetQuantityColor = colorGreen;
+		NetValueColor = colorGreen;
+	}
+	else if(NetQty == 0)
+	{
+		if(NetValue > 0)
+		{
+			NetValueColor = colorGreen;
+		}
+		else if(NetValue < 0)
+		{
+			NetValueColor = colorRed;
+		}
+	}
+	
+	DrawData (" AvgBuyPr: " + AvgBuyPrice, X0, Y0, X0+150, Y0+15, colorGrey40, colorGrey40);
+	DrawData (" TotBuyQty: " + TotBuyQty, X0+155 , Y0, X0+305, Y0+15, colorGrey40, colorGrey40);
+	DrawData (" AvgSellPr: " + AvgSellPrice, X0+310, Y0, X0+460, Y0+15, colorGrey40, colorGrey40);
+	DrawData (" TotSellQty: " + TotSellQty, X0+465, Y0, X0+615, Y0+15, colorGrey40, colorGrey40);
+	DrawData (" AvgShortPr: " + AvgShortPrice, X0+620, Y0, X0+770, Y0+15, colorGrey40, colorGrey40);
+	DrawData (" TotShortQty: " + TotShortQty, X0+775 , Y0, X0+925, Y0+15, colorGrey40, colorGrey40);
+	DrawData (" AvgCoverPr: " + AvgCoverPrice, X0+930, Y0, X0+1080, Y0+15, colorGrey40, colorGrey40);
+	DrawData (" TotCoverQty: " + TotCoverQty, X0+1085, Y0, X0+1235, Y0+15, colorGrey40, colorGrey40);
+	
+	Y0 = 50;
+	
+	DrawData (" LastBuyPr: " + LastBuyPrice, X0, Y0, X0+150, Y0+15, colorGrey40, colorGrey40);
+	DrawData (" LastBuyQty: " + LastBuyQty, X0+155 , Y0, X0+305, Y0+15, colorGrey40, colorGrey40);
+	DrawData (" LastSellPr: " + LastSellPrice, X0+310, Y0, X0+460, Y0+15, colorGrey40, colorGrey40);
+	DrawData (" LastSellQty: " + LastSellQty, X0+465, Y0, X0+615, Y0+15, colorGrey40, colorGrey40);
+	DrawData (" LastShortPr: " + LastShortPrice, X0+620, Y0, X0+770, Y0+15, colorGrey40, colorGrey40);
+	DrawData (" LastShortQty: " + LastShortQty, X0+775 , Y0, X0+925, Y0+15, colorGrey40, colorGrey40);
+	DrawData (" LastCoverPr: " + LastCoverPrice, X0+930, Y0, X0+1080, Y0+15, colorGrey40, colorGrey40);
+	DrawData (" LastCoverQty: " + LastCoverQty, X0+1085, Y0, X0+1235, Y0+15, colorGrey40, colorGrey40);
+	
+	Y0 = 70;
+	
+	DrawData (" LTP : " + CurrentTradedPrice, X0, Y0, X0+125, Y0+15, LTPColor, LTPColor);
+	DrawData (" LTQ : " + NumToStr(CurrentLTQ,1,0), X0+130, Y0, X0+255, Y0+15, LTQColor, LTQColor);
+	DrawData (" Bid : " + CurrentBidPrice, X0+260, Y0, X0+385, Y0+15, AskColor, AskColor);
+	DrawData (" Ask : " + CurrentAskPrice, X0+390, Y0, X0+515, Y0+15, BidColor, BidColor);
+	
+	NestOredrNo = ClientIdValue + NumToStr(Now(3),1,0) + "00" + StaticVarGet("OrderNo");
+	DrawData (" NetQty : " + NetQty, X0+520, Y0, X0+670, Y0+15, NetQuantityColor, NetQuantityColor);
+	DrawData (" NetValue : " + NetValue, X0+675, Y0, X0+900, Y0+15, NetValueColor, NetValueColor);
+	DrawData (" Order No : " + NestOredrNo, X0+905, Y0, X0+1150, Y0+15, colorGrey40, colorGrey40);
+	
+}
+
+_SECTION_END();
+
+// ~~~~~~~~~~~~~~~~ Quote Display Draw ~~~~~~~~~~~~~~~~~//
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+//_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} \nOpen : %g, Close : %g (%.1f%%) \nLow : %g, High : %g (%.1f%%) \nVolume : " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, C,(((C-O)*100)/O), L, H, (((H-L)*100)/L) ));
+Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("MA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 10, 2, 200, 1 );
+Plot( MA( P, Periods ), /*_DEFAULT_NAME()*/ "", ParamColor( "Color", colorGreen ), ParamStyle("Style", styleLine | styleNoLabel ) | styleNoRescale ); 
+_SECTION_END();
+
+_SECTION_BEGIN("EMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 30, 2, 300, 1, 10 );
+Plot( EMA( P, Periods ), /*_DEFAULT_NAME()*/ "", ParamColor( "Color", colorOrange ), ParamStyle("Style", styleLine | styleNoLabel) | styleNoRescale ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Long MA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 45, 2, 400, 1 );
+Plot( MA( P, Periods ), /*_DEFAULT_NAME()*/ "", ParamColor( "Color", colorYellow ), ParamStyle("Style", styleLine | styleNoLabel ) | styleNoRescale ); 
+_SECTION_END();
+
+_SECTION_BEGIN("BBands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 100, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorLightGrey );
+Color = ColorBlend( Color,  GetChartBkColor(), 0.5 );
+Style = ParamStyle("Style", styleLine | styleNoLabel ) | styleNoRescale;;
+Plot( bbt = BBandTop( P, Periods, Width ), /*"BBTop" + _PARAM_VALUES()*/ "", Color, Style ); 
+Plot( bbb = BBandBot( P, Periods, Width ), /*"BBBot" + _PARAM_VALUES()*/ "", Color, Style ); 
+PlotOHLC( bbt, bbt, bbb, bbb, "", ColorBlend( Color, GetChartBkColor(), 0.7 ), styleNoLabel | styleCloud | styleNoRescale, Null, Null, Null, -1 );
+_SECTION_END();
+
+_SECTION_BEGIN("Volume");
+Color = ParamColor("Color", ColorRGB( 128, 128, 192 ) );
+Plot( Volume, /*_DEFAULT_NAME()*/"", ColorBlend( Color, GetChartBkColor(), 0.2  ), styleNoTitle | ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick | styleNoLabel, maskHistogram  ), 2 );
+_SECTION_END();

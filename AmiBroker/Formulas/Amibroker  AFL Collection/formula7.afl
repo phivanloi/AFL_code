@@ -1,0 +1,4 @@
+_SECTION_BEGIN("HVSixOneHundred");
+HVSixOneHundred = (StDev(log(C/Ref(C,-1)),6)*100*sqrt(256)) / (StDev(log(C/Ref(C,-1)),100)*100*sqrt(256));
+Plot(HVSixOneHundred,"HV 6/100",colorOrange,styleLine);
+_SECTION_END();

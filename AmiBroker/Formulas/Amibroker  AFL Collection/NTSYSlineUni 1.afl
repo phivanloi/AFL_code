@@ -1,0 +1,23 @@
+_SECTION_BEGIN("MA Crossover Unicolor");
+
+Plot(EMA(Close,10),"10-EMA",colorYellow,1);
+Plot(EMA(Close,40),"40-EMA",colorBlack,4);
+Plot(EMA(Close,200),"200-EMA",colorBlue,styleLine);
+Plot(MA(Close,200),"200-MA",colorGreen,styleLine);
+
+r=EMA(C,10);
+a=EMA(C,40);
+
+Buy = Cross(r,a) ;
+Sell = Cross(a,r)  ;
+
+PlotShapes (IIf(Buy,shapeUpArrow,shapeNone),colorYellow,0,Graph0,-15);
+PlotShapes (IIf(Sell,shapeDownArrow,shapeNone),colorCustom12,0,Graph0,-15);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", IIf(r>a,colorGreen,IIf(a>=r,colorRed,colorBlack)), styleBar | styleThick ); 
+_SECTION_END();

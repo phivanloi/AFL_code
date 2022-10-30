@@ -1,0 +1,18 @@
+// PositionInRange.afl
+//
+function PIR( Price, LookBack, MinValue, MaxValue )
+{
+    HH = HHV( Price, LookBack );
+    LL = LLV( Price, LookBack );
+    P = ( Price - LL ) / ( HH - LL );
+    Q = P * ( MaxValue - MinValue ) + MinValue;
+    return Q;
+}
+
+dd = PIR( C, 20, -1, 1 );
+ee = EMA( dd, 3 );
+ff = EMA( ee, 5 );
+Plot( C, "C", colorBlack, styleCandle );
+Plot( dd, "PIR", colorRed, styleLine | styleOwnScale, -1, 1 );
+//Plot( ee, "PIR Sm", colorBlue, styleLine | styleOwnScale, -1, 1 );
+Plot( ff, "PIR Db Sm", colorGreen, styleLine | styleOwnScale, -1, 1 );

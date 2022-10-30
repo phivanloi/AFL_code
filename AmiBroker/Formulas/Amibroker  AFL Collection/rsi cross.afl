@@ -1,0 +1,17 @@
+r = RSI(14);
+e = EMA(RSI(14),9);
+
+Buy = Cross(r,e);
+
+Sell = Cross(e,r);
+
+Filter = Buy;
+Filter = Sell;
+
+Plot(r,"RSI(14)",colorRed,styleThick);
+Plot(e,"emaRSI(14)", colorGreen,1);
+Plot(70,"70",colorGrey40,1);
+Plot(30,"30",colorGrey40,1);
+GraphXSpace=3;
+
+AddColumn(C,"C",1.3);

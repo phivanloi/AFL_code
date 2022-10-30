@@ -1,0 +1,15 @@
+_SECTION_BEGIN("RI Auto Trading System");
+acc = Param("Acceleration", 0.1, 0, 1, 0.001 );
+accm = Param("Max. acceleration", 0.06, 0, 1, 0.001 );
+Plot( SAR( acc, accm ), _DEFAULT_NAME(), ParamColor( "Color", colorYellow ), ParamStyle("Style", styleLine | styleLine, maskDefault | styleLine | styleLine ) );
+
+Buy = Cross(Open,  SAR(acc,accm));
+Sell = Cross(SAR(acc,accm), Open );
+
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone), colorYellow, 0, Low, Offset=-15);
+PlotShapes(IIf(Sell, shapeDownArrow,shapeNone), colorBlue, 0, High, Offset=-15);
+
+AlertIf( Buy, "SOUND C:\\Windows\\Media\\Chord.wav", "Audio alert", 2 );
+AlertIf( Sell, "SOUND C:\\Windows\\Media\\Ding.wav", "Audio alert", 2 );
+
+_SECTION_END();

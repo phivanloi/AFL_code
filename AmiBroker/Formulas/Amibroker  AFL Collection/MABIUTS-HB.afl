@@ -1,0 +1,18 @@
+("MABIUTS-HB");
+p1=Param("EMA Period",15,1,200,1,1);
+p2=Param("Smoothening Period",15,1,200,1,1);
+p3=Param("Bollinger Band Width",1,1,3,1,1);
+
+X=EMA(C,p1);Y=EMA(X,p2);
+D=X-Y;
+BBB=BBandBot(D,5,p3);
+BBT=BBandTop(D,5,p3);
+
+
+Buy=Cross(D,BBB) OR Cross(D,BBT);
+Sell=Cross(BBT,D) OR Cross(BBB,D);
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+
+shape=Buy*shapeUpArrow+Sell*shapeDownArrow;
+PlotShapes(shape,IIf(Buy,colorGreen,colorRed),0,IIf(Buy,L,H));

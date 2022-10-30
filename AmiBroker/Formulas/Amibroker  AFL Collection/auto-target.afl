@@ -1,0 +1,102 @@
+_SECTION_BEGIN("Auto Target Levels");
+
+GraphXSpace=1; 
+Plot(C,"", colorGreen,styleCandle); 
+
+// Get values for target levels 
+
+StartBar=SelectedValue(BarIndex()); 
+FinishBar = EndValue( BarIndex() ); 
+i = startbar; 
+period = FinishBar - StartBar; 
+
+Lo =LLV(L,period); 
+Hi = HHV(H,period); 
+Line0 = 0; 
+Line1 = 0;  //Target resisten 1
+Line2 = 0;  //Target resisten 2
+Line3 = 0;  //Target resisten 3
+Line4 = 0;  //Target support 1
+Line5 = 0;  //Target support 2
+Line6 = 0; // Target support 3
+Line100 = 0; 
+
+for( i = startbar; i < finishbar; i++ ) 
+{ 
+if(EndValue(C)<SelectedValue(C)) 
+{ 
+Line0 = EndValue(Lo); 
+Line100 = EndValue(Hi); 
+Line1 = Line0 + (Line0*Param("UpTarget1", 0.10, 0, 1, 0.01)); 
+Line2 = Line0 + (Line0*Param("UpTarget2", 0.18, 0, 1, 0.01)); 
+Line3 = Line0 + (Line0*Param("UpTarget3", 0.26, 0, 1, 0.01)); 
+Line4 = Line100 - (Line100*Param("DownTarget1", 0.10, 0, 1, 0.01));
+Line5 = Line100 - (Line100*Param("DownTarget2", 0.20, 0, 1, 0.01)); 
+Line6 = Line100 - (Line100*Param("DownTarget3", 0.30, 0, 1, 0.01));
+
+} 
+else 
+{ 
+Line100 = EndValue(Lo); 
+Line0 = EndValue(Hi); 
+Line1 = Line100 + (Line100*Param("UpTarget1", 0.10, 0, 1, 0.01));
+Line2 = Line100 + (Line100*Param("UpTarget2", 0.18, 0, 1, 0.01)); 
+Line3 = Line100 + (Line100*Param("UpTarget3", 0.26, 0, 1, 0.01)); 
+Line4 = Line0 - (Line0*Param("DownTarget1", 0.10, 0, 1, 0.01));
+Line5 = Line0 - (Line0*Param("DownTarget2", 0.20, 0, 1, 0.01));
+Line6 = Line0 - (Line0*Param("DownTarget3", 0.30, 0, 1, 0.01));
+
+} 
+} 
+
+Uppercolor=ParamColor("Uppercolor", colorRed);
+Midcolor=ParamColor("Midcolor", colorSkyblue);
+Lowercolor=ParamColor("Lowercolor", colorYellow);
+
+/* Perhitungan target dimulai dari barindex yang dipilih yaitu dimana yang kita klik nanti.
+Untuk mempersempit range pengukuran, klik ganda dan set areanya. 
+*/
+target0= LineArray(startbar, Line0, finishbar, Line0, 0, 1); 
+target100 = LineArray(startbar, Line100, finishbar, Line100, 0, 1); 
+
+// depth of middle lines 
+n= round((finishbar-startbar)/2); 
+
+//Target line. 0=no extend, 1=extend right. 2=extend left. 3=extend both. 
+target1= LineArray((finishbar-n), Line1, finishbar, Line1, 1, 1); 
+target2= LineArray((finishbar-n), Line2, finishbar, Line2, 1, 1); 
+target3= LineArray((finishbar-n), Line3, finishbar, Line3, 1, 1); 
+target4= LineArray((finishbar-n), Line4, finishbar, Line4, 1, 1); 
+target5= LineArray((finishbar-n), Line5, finishbar, Line5, 1, 1); 
+target6= LineArray((finishbar-n), Line6, finishbar, Line6, 1, 1); 
+
+
+Plot(target0,"", colorWhite, styleNoLabel); 
+Plot(target100,"", colorRed, styleNoLabel); 
+Plot(target3,"", Uppercolor, styleNoLabel); 
+Plot(target2,"", Midcolor, styleNoLabel); 
+Plot(target1,"", Lowercolor, styleNoLabel); 
+Plot(target4,"", Lowercolor, styleDashed|styleNoLabel); 
+Plot(target5,"", Midcolor, styleDashed|styleNoLabel); 
+Plot(target6,"", Uppercolor, styleDashed|styleNoLabel); 
+
+
+
+Title = Name() + " - Auto Target Levels " 
+
++"\n"+EncodeColor(colorLime)+"Open="+EncodeColor(colorWhite)+O
++"\n"+EncodeColor(colorLime)+"Close="+EncodeColor(colorWhite)+C
++"\n"+EncodeColor(colorLime)+"High="+EncodeColor(colorWhite)+H
++"\n"+EncodeColor(colorLime)+"Low="+EncodeColor(colorWhite)+L
++"\n"+EncodeColor(Uppercolor)+"UpTarget3= "+line3 
++"\n"+EncodeColor(Midcolor)+"UpTarget2= "+line2 
++"\n"+EncodeColor(Lowercolor)+"UpTarget1= "+line1 
++"\n"+EncodeColor(Lowercolor)+"DownTarget1= "+line4 
++"\n"+EncodeColor(Midcolor)+"DownTarget2= "+line5 
++"\n"+EncodeColor(Uppercolor)+"DownTarget3= "+line6
++"\n"+EncodeColor(colorWhite)+"x= "+line0
++"\n"+EncodeColor(colorWhite)+"y= "+line100 
++"\n " 
+ 
+;
+_SECTION_END();

@@ -1,0 +1,29 @@
+/* Calcolo dei pivot point 
+e dei supporti e resistenze
+*/
+
+P  =  ((H + L + C) / 3);
+R1  =  ((2 * P) - L);
+S1  =  ((2 * P)  - H);
+R2  =  ((P - S1) + R1);
+S2  =  (P - (R1 - S1));
+
+MaxGraph = 5;
+
+Graph0 = P;
+Graph1 = R1;
+Graph2 = S1;
+Graph3 = R2;
+Graph4 = S2;
+
+Graph0Style = 4;
+Graph1Style = 1;
+Graph2Style = 1;
+Graph3Style = 1;
+Graph4Style = 1;
+
+Graph0Color = 7;
+Graph1Color = 5;
+Graph2Color = 5;
+Graph3Color = 9;
+Graph4Color = 9;

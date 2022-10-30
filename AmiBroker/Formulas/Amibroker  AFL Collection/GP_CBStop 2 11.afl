@@ -1,0 +1,69 @@
+
+ _SECTION_BEGIN( "Pane Function" );
+ IAM = ParamList( "Pane Function", "None|Price|MACD|MACDH" );
+ _SECTION_END();
+
+ if ( IAM == "Price" ) { // price code here including all params
+     _SECTION_BEGIN( "All Parameters" );
+     StaticVarSet( "myControlParam1", ParamColor( "Color",
+ colorBlack ) );
+     StaticVarSet( "myControlParam2", ParamStyle( "Style" ) );
+     StaticVarSet( "myControlParam3", Param( "Fast Periods", 12, 1,
+ 100, 1 ) );
+     StaticVarSet( "myControlParam4", Param( "Slow Periods", 26, 1,
+ 100, 1 ) );
+     StaticVarSet( "myControlParam5", Param( "Signal", 9, 1, 100,  
+ 1 ) );
+     _SECTION_END();
+
+     // generic param fetch block
+     myControlParam1 = StaticVarGet( "myControlParam1" );
+     myControlParam2 = StaticVarGet( "myControlParam2" );
+     myControlParam3 = StaticVarGet( "myControlParam3" );
+     myControlParam4 = StaticVarGet( "myControlParam4" );
+     myControlParam5 = StaticVarGet( "myControlParam5" );
+     // all the code to plot the price pane
+     Plot( C, "Close", myControlParam1, styleNoTitle | myControlParam2
+ | GetPriceStyle() );
+     Title = "Price + Params";
+ }
+
+
+ else if ( IAM == "MACDH" ) { // MACDcode here including all params
+
+     // generic param fetch block
+     myControlParam1 = StaticVarGet( "myControlParam1" );
+     myControlParam2 = StaticVarGet( "myControlParam2" );
+     myControlParam3 = StaticVarGet( "myControlParam3" );
+     myControlParam4 = StaticVarGet( "myControlParam4" );
+     myControlParam5 = StaticVarGet( "myControlParam5" );
+     // all the code to plot the MACD pane
+     MD1 = MACD( myControlParam3, myControlParam4 );
+     MDS = Signal( myControlParam3, myControlParam4,  
+ myControlParam5 );
+     MDH = MDS - MD1;
+     Plot( MDH, "MACD", myControlParam1, styleHistogram | styleNoTitle
+ | myControlParam2  );
+     Plot( 0 , "MACD", colorBlack );
+     Title = "MACD-Histogram";
+ }
+
+ else if ( IAM == "MACD" ) { // Stoch code here including all params
+
+     // generic param fetch block
+     myControlParam1 = StaticVarGet( "myControlParam1" );
+     myControlParam2 = StaticVarGet( "myControlParam2" );
+     myControlParam3 = StaticVarGet( "myControlParam3" );
+     myControlParam4 = StaticVarGet( "myControlParam4" );
+     myControlParam5 = StaticVarGet( "myControlParam5" );
+    // all the code to plot the Stochpane
+     MD1 = MACD( myControlParam3, myControlParam4 );
+     Plot( MD1, "MACD", myControlParam1, styleNoTitle |
+ myControlParam2  );
+     Plot( 0 , "MACD", colorBlack );
+     Title = "MACD";
+ }
+
+ else { Title = "Select Pane Function"; }
+
+

@@ -1,0 +1,283 @@
+_SECTION_BEGIN("short signal"); 
+HaClose=(O+H+L+C)/4; 
+HaOpen = AMA( Ref( HaClose, -1 ), 0.5 ); 
+HaHigh = Max( H, Max( HaClose, HaOpen ) ); 
+HaLow = Min( L, Min( HaClose, HaOpen ) ); 
+BG2=HHV(LLV(Low,4)+ATR(4),8); 
+BR2=LLV(HHV(High,4)-ATR(4),8);
+SetBarFillColor( IIf(O <C, colorSeaGreen,colorOrange) ); 
+k = Optimize("K",Param("K",1.75,1,5,0.25),1,5,0.25); 
+Per= Optimize("atr",Param("atr",10,3,30,1),3,30,1); 
+j=HaClose;
+nm= (H-L);
+rfsctor = WMA(nm, PER); 
+revers = K * rfsctor; 
+Trend = 1; 
+NW[0] = 0; 
+for(i = 1; i < BarCount; i++) 
+{ 
+if(Trend[i-1] == 1) 
+{ 
+if(j[i] < NW[i-1]) 
+{ 
+Trend[i] = -1; 
+NW[i] = j[i] + Revers[i]; 
+} 
+else 
+{ 
+Trend[i] = 1; 
+if((j[i] - Revers[i]) > NW[i-1]) 
+{ 
+NW[i] = j[i] - Revers[i]; 
+} 
+else 
+{ 
+NW[i] = NW[i-1]; 
+} 
+} 
+} 
+if(Trend[i-1] == -1) 
+{ 
+if(j[i] > NW[i-1]) 
+{ 
+Trend[i] = 1; 
+NW[i] = j[i] - Revers[i]; 
+} 
+else 
+{ 
+Trend[i] = -1; 
+if((j[i] + Revers[i]) < NW[i-1]) 
+{ 
+NW[i] = j[i] + Revers[i]; 
+} 
+else 
+{ 
+NW[i] = NW[i-1]; 
+} 
+} 
+} 
+} 
+
+Plot(NW, "", IIf(Trend == 1, 6, 4), 4); 
+
+Buy=Cross(j,nw);
+Short=Cross(nw,j);
+Sell=Cross(nw,j);
+Cover=Cross(j,nw);
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+Short=ExRem(Short,Cover);
+Cover=ExRem(Cover,Short);
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,halow,-30); 
+PlotShapes(IIf(Sell, shapeHollowDownTriangle, shapeNone),colorWhite, 0,hahigh,-15); 
+PlotShapes(IIf(Cover, shapeHollowUpTriangle, shapeNone),colorWhite, 0,halow,-15); 
+PlotShapes(IIf(Short, shapeDownArrow, shapeNone),colorWhite, 0,hahigh,-30);
+
+Hi1 = IIf(Day()!=Ref(Day(),-1),Ref(HighestSince(Day()!=Ref(Day(),-1),H,1),-1),0);
+Hi = ValueWhen(Day()!=Ref(Day(),-1),Hi1,1);
+Lo1 = IIf(Day()!=Ref(Day(),-1),Ref(LowestSince(Day()!=Ref(Day(),-1),L,1),-1),0);
+Lo = ValueWhen(Day()!=Ref(Day(),-1),Lo1,1);
+Cl1 = IIf(Day()!=Ref(Day(),-1),Ref(C,-1),0);
+C1 = ValueWhen(Day()!=Ref(Day(),-1),Cl1,1);
+rg = (Hi - Lo);
+bp = (Hi + Lo + C1)/3; bpI = LastValue (bp,1);
+r1 = (bp*2)-Lo; r1I = LastValue (r1,1);
+s1 = (bp*2)-Hi; s1I = LastValue (s1,1);
+r2 = bp + r1 - s1; r2I = LastValue (r2,1);
+s2 = bp - r1 + s1; s2I = LastValue (s2,1);
+r3 = bp + r2 - s1; r3I = LastValue (r3,1);
+s3 = bp - r2 + s1; s3I = LastValue (s3,1);
+r4 = bp + r2 - s2; r4I = LastValue (r4,1);
+s4 = bp - r2 + s2; s4I = LastValue (s4,1);
+
+if (Buy[BarCount - 1] == True)
+{
+ih = InternetOpenURL("http://localhost:6868/api/trade?symbol=VN30F1M&side=NB&clientId=1");
+InternetClose(ih);
+}
+
+if (Short[BarCount - 1] == True)
+{
+if (SelectedValue(Close[BarCount]) < s1)
+{
+ih = InternetOpenURL("http://localhost:6868/api/trade?symbol=VN30F1M&side=NS&clientId=1");
+InternetClose(ih);
+// In Long trend , take profit Short after 10 points	
+}
+}
+
+
+closing = SelectedValue(Low[BarCount - 1 ]) < s1;
+if (closing)
+{
+ih3 = InternetOpenURL("http://localhost:6868/api/closeActiveDeals?clientId=1");
+InternetClose(ih3);
+}
+/*
+if (SelectedValue(BarIndex()) <= SelectedValue(s1))
+{
+ih = InternetOpenURL("http://localhost:6868/api/closeActiveDeals?clientId=1");
+InternetClose(ih);
+}
+/
+//if (ValueWhen(Cross(Close[BarCount], Max(bp,s1,s2,s3)), Close, 0) 
+if (LastValue(Close,0) <= s1)
+{
+ih = InternetOpenURL("http://localhost:6868/api/closeActiveDeals?clientId=1");
+InternetClose(ih);
+}
+*/
+
+TelegramAlerts = ParamTrigger("Telegram Alert","Send Alert");
+TelegramAPI_ID = ParamStr("Telegram Bot API Key","1200942736:AAEG8y9qyJ7aHefUm4vt_xKqkNBxfKd3qCc");  //Get the Bot API key via BotFather in Telgram
+TelgramCHAT_ID = ParamStr("Telegram Channel ID","@Victor_AlgoTrading"); 
+EnableScript("VBScript"); 
+<% 
+Public Sub Telegram(Message_Text)
+sAPI_ID = AFL.Var("TelegramAPI_ID")
+sChat_ID = AFL.Var("TelgramCHAT_ID")
+sMSG = Message_Text
+
+'URL to open....
+sUrl = "https://api.telegram.org/bot" & sAPI_ID & "/sendMessage"
+'POST Request to send.
+sRequest = "text=" & sMSG & "&chat_id=" & sChat_ID
+
+set oHTTP = CreateObject("Microsoft.XMLHTTP")
+oHTTP.open "POST", sUrl,false
+oHTTP.setRequestHeader "Content-Type", "application/x-www-form-urlencoded"
+oHTTP.setRequestHeader "Content-Length", Len(sRequest)
+oHTTP.send sRequest
+HTTPPost = oHTTP.responseText
+
+'Store response 
+'msgbox(objXmlHttpMain.responseText)
+'response.Write (objXmlHttpMain.responseText) 
+End Sub 
+
+%> 
+tg = GetScriptObject(); 
+if (LastValue(ValueWhen(Ref(Buy,-1),BarIndex())==BarIndex()) OR LastValue(ValueWhen(Ref(Cover,-1),BarIndex())==BarIndex()) AND StaticVarGet(Name()+GetChartID()+"buyAlert")==0 )
+{
+tg.Telegram("Buy Alert in " +Name() + " : BuyPrice Value is " + BuyPrice + " Time " + TimeNum());
+StaticVarSet(Name()+ GetChartID() + "buyAlertBar", LastValue(TimeNum()));
+}
+if (LastValue(TimeNum()) == StaticVarGet(Name()+GetChartID()+"buyAlertBar"))
+StaticVarSet(Name()+GetChartID()+"buyAlert",1); //alert was triggered, no more alerts on this bar
+else
+StaticVarSet(Name()+GetChartID()+"buyAlert",0); // new bar formed, and alerts can be trigered.
+
+if (LastValue(ValueWhen(Ref(Sell,-1),BarIndex())==BarIndex()) OR LastValue(ValueWhen(Ref(Short,-1),BarIndex())==BarIndex()) AND StaticVarGet(Name()+GetChartID()+"sellAlert")==0 )
+{
+tg.Telegram("Sell Alert in " +Name() + " : SellPrice Value is " + SellPrice + " Time " + TimeNum());
+StaticVarSet(Name()+ GetChartID() + "sellAlertBar", LastValue(TimeNum()));
+}
+
+if (LastValue(TimeNum()) == StaticVarGet(Name()+GetChartID()+"sellAlertBar"))
+StaticVarSet(Name()+GetChartID()+"sellAlert",1); //alert was triggered, no more alerts on this bar
+else
+StaticVarSet(Name()+GetChartID()+"sellAlert",0); // new bar formed, and alerts can be trigered.
+
+/*
+if((Buy[BarCount-1]==True AND (Status("action") == actionExplore OR StaticVarGet(Name()+GetChartID()+"TGCLongEntry")==0)) OR TelegramAlerts)
+{
+tg.Telegram("Buy Alert in " + Name() + " : BuyPrice Value is " + BuyPrice + " Times " + TimeNum());
+}
+*/
+//-----------end--------------
+
+//ADDED PIVOTS LINES LATER
+
+//---- pivot points 
+DayH = TimeFrameGetPrice("H", inDaily, -1);// yesterdays high 
+DayL = TimeFrameGetPrice("L", inDaily, -1);//low 
+DayC = TimeFrameGetPrice("C", inDaily, -1);//close 
+DayO = TimeFrameGetPrice("O", inDaily);// current day open 
+HiDay = TimeFrameGetPrice("H", inDaily); 
+LoDay = TimeFrameGetPrice("L", inDaily); 
+PP = (DayH + DayL + DayO + DayO) / 4 ; 
+R1 = (2 * PP) - DayL; 
+S1 = (2 * PP) - DayH; 
+R2 = PP + R1 - S1; 
+S2 = PP + S1 - R1; 
+R3 = R2 + (R1 - PP); 
+S3 = S2 - (PP - S1); 
+style = styleLine | styleThick + styleNoRescale; 
+rcolor = colorBlue; 
+scolor = colorRed; 
+pcolor = colorWhite; 
+Plot(R1, "R1",rcolor,style); 
+Plot(S1, "S1",scolor,style); 
+Plot(R2, "R2",rcolor,style); 
+Plot(S2, "S2",scolor,style); 
+Plot(PP, "PP",pcolor,style); 
+Plot(s3, "S3", scolor, style); 
+Plot(R3, "R3", rcolor, style); 
+RangeTitle = EncodeColor(colorWhite) + "Day Range= " + EncodeColor(colorWhite);
+
+
+// added later
+
+////////////////////////////////////
+// CCI Price Panel For Amibroker
+// Coded by Crasher_FL 
+// Modified by Dennis 
+/////////////////////////////// 
+// Tic/PIP values: YM=1.0, ER2=0.10, NQ=0.25, EUR/USD=.0001, USD/JPY=0.01, Stocks=0.01
+/////////////////////////////// 
+
+// Background color
+//SetChartBkColor(ParamColor("Panel color ",colorPaleBlue)); 
+
+TicDiv= Param("Tic or PIP value",1,0,1000000); 
+Titledisplay= ParamToggle("Display pivot stats","No|Yes",1); 
+
+//barcolor = IIf(C > Open, colorWhite, IIf(C == Open, colorWhite, colorWhite)); 
+//Plot( C, "Close", barcolor,styleCandle | styleNoLabel);
+
+EMA34 = EMA(C,34); 
+LSMA = LinearReg(C,25); 
+PI = atan(1.00) * 4; 
+periods = 30; 
+HighHigh = HHV(H, periods); 
+LowLow = LLV(L, periods); 
+range = 25 / (HighHigh - LowLow) * LowLow; 
+x1_EMA34 = 0; 
+x2_EMA34 = 2; 
+y1_EMA34 = 0; 
+y2_EMA34 = (Ref(EMA34, -2) - EMA34) / Avg * range; 
+c_EMA34 = sqrt((x2_EMA34 - x1_EMA34)*(x2_EMA34 - x1_EMA34) + (y2_EMA34 -
+y1_EMA34)*(y2_EMA34 - y1_EMA34)); 
+angle_EMA34 = round(180 * acos((x2_EMA34 - x1_EMA34)/c_EMA34) / PI); 
+TitleAngleEMA34 = EncodeColor(colorWhite) + "\nEMA34 angle = "; 
+angle_EMA34 = IIf(y2_EMA34 > 0, - angle_EMA34, angle_EMA34); 
+ColorANGLE_EMA = IIf(angle_EMA34 >=5,colorTurquoise,
+IIf(angle_EMA34 <5 AND angle_EMA34 >=3.57,colorDarkGreen,
+IIf(angle_EMA34 <3.57 AND angle_EMA34 >=2.14,colorPaleGreen,
+IIf(angle_EMA34 <2.14 AND angle_EMA34 >=.71,colorLime,
+IIf(angle_EMA34 <=-1*5,colorDarkRed,
+IIf(angle_EMA34 >-1*5 AND angle_EMA34 <=-1*3.57,colorRed,
+IIf(angle_EMA34 >-1*3.57 AND angle_EMA34 <=-1*2.14,colorOrange,
+IIf(angle_EMA34 >-1*2.14 AND angle_EMA34 <=-1*.71,colorLightOrange,colorYellow))))))));
+Plot(EMA34,"EMA 34",ColorANGLE_EMA, styleLine | styleThick | styleNoLabel ); 
+Plot(lsma,"LSMA 25",IIf(C > lsma,colorBrightGreen, 
+IIf(C == lsma,colorTeal,colorRed)), styleLine | styleThick |styleNoLabel);
+
+
+/*Gann HiLo*/
+
+Hld = IIf(C > Ref(MA(H, 7), -1), 1, IIf(C < Ref(MA(L, 7), -1), -1, 0));
+Hlv = ValueWhen(Hld != 0, Hld, 1);
+Hilo = IIf(Hlv == -1, MA(H, 7), MA(L, 7));
+Trigger = IIf(C>Hilo, colorBlue, colorPink);
+//Plot(Hilo,"HiLo",Trigger,styleStaircase);
+
+
+Title = EncodeColor(colorWhite)+ Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorTan) +
+" - " + Date() +" - "+"Op-"+O+" "+"Hi-"+H+" "+"Lo-"+L+" "+ "Cl-"+C+" "+ "\n"+ "Vol= "+ WriteVal(V)+", 
+Today High="+WriteVal(DayH,2)+", Todays Low="+WriteVal(DayL,2);
+
+_SECTION_BEGIN("Price1");
+Ticker = ParamStr("Symbol", Name() );
+PlotForeign( Ticker, Ticker, ParamColor("Color", colorCycle ), ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

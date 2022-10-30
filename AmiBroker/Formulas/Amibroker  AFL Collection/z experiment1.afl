@@ -1,0 +1,133 @@
+// values of adx, trix, macd, rsi(5), stochd, cci
+// if the ema says the trend is down then we play short. we use the adx and trix for confirmation. 
+// the rsi, stochd and cci is to determine points where we should exit.
+// the fib level is a copy paste to help determine the projected levels
+// when in trend : we follow the ema, macd and trix
+// when sideways: we follow the rsi, stochd and cci
+
+_SECTION_BEGIN("adx & trix");
+WriteIf(EMA( Close,10)>EMA( Close,30),"EMA says            : Trend is -UP","EMA says            : Trend is -DOWN");
+
+WriteIf (Trix( 9 ) > Ref( Trix( 9 ) , -1 ),"TRIX =" + WriteVal(Trix( 9 ))+ "   : Trend is UP"," Trix = " + WriteVal(Trix( 9 ))+"   : Trend is DOWN");
+
+WriteIf (MACD( 12, 26 ) > Ref( MACD( 12, 26 ) , -1 ), "MACD ="+ WriteVal(MACD( 12, 26 ))+ " : Trend is UP","MACD ="+ WriteVal(MACD( 12, 26 ))+ " : Trend is DOWN");
+
+WriteIf(ADX( 9 ) > Ref( ADX( 9 ) , -1 ),"ADX ="+WriteVal (ADX(9))+"   :going UP/DOWN","ADX ="+WriteVal (ADX(9))+"   : no trend");
+WriteIf(RSI(5)>90 OR RSI(5)<10, "\n RSI ="+WriteVal (RSI(5))+"   : Extreame reached", "\n RSI ="+WriteVal (RSI(5)));
+WriteIf(StochD( 15, 3, 3 )>90 OR StochD( 15, 3, 3 )<10, "stochastic ="+WriteVal (StochD( 15, 3, 3 ))+"   : Extreame reached", "stochastic ="+WriteVal (StochD( 15, 3, 3 )));
+WriteIf(CCI(14)>100 OR CCI(14)<-100, "\n CCI ="+WriteVal (CCI(14))+"   : strong TREND", "\n CCI ="+WriteVal (CCI(14)));
+acc = Param("Acceleration", 0.02, 0, 1, 0.001 );
+accm = Param("Max. acceleration", 0.2, 0, 1, 0.001 );
+WriteIf (EMA( Close,10)>EMA( Close,30),"go LONG with a Stop-Loss = " + WriteVal(  SAR( acc, accm )),"go SHORT with a Stop-Loss = " + WriteVal(  SAR( acc, accm )));
+
+ 
+_SECTION_END();
+
+
+_SECTION_BEGIN("Fib_Levels");
+/*---------------------------------------------------
+   Automatic Fib Levels
+   Aron Pipa, December, 11, 2005
+--------------------------------------------------------*/
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+Plot(C,"", IIf(C>O,colorLightBlue,colorBlack) , styleCandle);
+// Get values for fib levels
+
+StartBar=SelectedValue(BarIndex());
+FinishBar = EndValue( BarIndex() );
+i = startbar;
+period = FinishBar - StartBar;
+
+Lo =LLV(L,period);
+Hi = HHV(H,period);
+Line0 = 0;
+Line1 = 0;
+Line2 = 0;
+Line3 = 0;
+Line4= 0;
+Line100 = 0;
+
+for( i = startbar; i < finishbar; i++ )
+{
+if(EndValue(C)<SelectedValue(C))
+{
+Line0  = EndValue(Lo);
+Line100 = EndValue(Hi);
+Line1 = Line0 + abs(Line100-Line0)*0.236;
+Line2 = Line0 + abs(Line100-Line0)*0.382;
+Line3 = Line0 + abs(Line100-Line0)*0.5;
+Line4 = Line0 + abs(Line100-Line0)*0.618;
+
+}
+else
+{
+Line100  = EndValue(Lo);
+Line0 = EndValue(Hi);
+Line1 =Line0 - abs(Line100-Line0)*0.236;
+Line2 = Line0 - abs(Line100-Line0)*0.382;
+Line3 = Line0 - abs(Line100-Line0)*0.5;
+Line4 = Line0 - abs(Line100-Line0)*0.618;
+
+}
+}
+
+// external fib lines begining fom selecetdbarindex()
+fib0= LineArray(startbar, Line0, finishbar, Line0, 0, 1);
+fib100 = LineArray(startbar, Line100, finishbar, Line100, 0, 1);
+
+// depth of middle lines
+n= round((finishbar-startbar)/2);
+
+// middle lines
+fib1= LineArray((finishbar-n), Line1, finishbar, Line1, 0, 1);
+fib2= LineArray((finishbar-n), Line2, finishbar, Line2, 0, 1);
+fib3= LineArray((finishbar-n), Line3, finishbar, Line3, 0, 1);
+fib4= LineArray((finishbar-n), Line4, finishbar, Line4, 0, 1);
+
+Plot(fib0,"", colorGreen);
+Plot(fib100,"", colorRed);
+Plot(fib1,"", colorYellow);
+Plot(fib2,"", colorPink);
+Plot(fib3,"", colorOrange);
+Plot(fib4,"", colorLightBlue);
+
+
+_SECTION_END();
+
+_SECTION_BEGIN("EMA");
+
+Plot( EMA( Close,10),"EMA-10",colorRed  ); 
+Plot( EMA( Close,30),"EMA-30",colorBlue  ); 
+Plot( EMA( Close,50),"EMA-50",colorGreen  ); 
+EMAcrossUP = Cross (EMA(Close,10), EMA(Close,30));
+EMAcrossDOWN = Cross (EMA(Close,30), EMA(Close,10));
+
+PlotShapes(EMAcrossUP*shapeHollowCircle,colorBlack); 
+PlotShapes(EMAcrossDOWN*shapeHollowCircle,colorRed); 
+
+
+WriteIf( EMAcrossUP, "\n 10 & 30 ema crossed : trend UP ",""); 
+WriteIf( EMAcrossDOWN, "\n 10 & 30 ema crossed : Trend  DOWN",""); 
+_SECTION_END();
+
+_SECTION_BEGIN("linkon schochastic");
+Oversold = 	Ref( StochD( 15, 3, 3 ) , -2 ) > Ref( StochK( 15, 3 ) , -2 )
+	AND StochD( 15, 3, 3 ) < StochK( 15, 3 )
+AND StochD( 15, 3, 3 ) < 7;
+
+Overbought = Ref( StochD( 15, 3, 3 ) , -2 ) < Ref( StochK( 15, 3 ) , -2 )
+	AND StochD( 15, 3, 3 ) > StochK( 15, 3 )
+	AND StochD( 15, 3, 3 ) > 93;
+PlotShapes(Oversold*shapeUpArrow,colorGreen);
+PlotShapes(Overbought*shapeDownArrow,colorRed);
+WriteIf(Overbought, "Reached TOP","");
+WriteIf(Oversold,"Reached BOTTOM ","");
+
+_SECTION_END();
+
+_SECTION_BEGIN("SAR1");
+acc = Param("Acceleration", 0.02, 0, 1, 0.001 );
+accm = Param("Max. acceleration", 0.2, 0, 1, 0.001 );
+Plot( SAR( acc, accm ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style", styleDots | styleNoLine, maskDefault | styleDots | styleNoLine ) );
+_SECTION_END();

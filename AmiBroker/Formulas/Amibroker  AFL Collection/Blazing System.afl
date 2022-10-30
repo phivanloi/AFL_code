@@ -1,0 +1,58 @@
+minPrice = 5; //change as needed
+minVol = 50000; //change as needed
+
+O1 = Ref(O,-1);O20 = Ref(O,-20);O3 = Ref(O,-3);
+H1 = Ref(H,-1);H20 = Ref(H,-20);H3 = Ref(H,-3);
+L1 = Ref(L,-1);L20 = Ref(L,-20);L3 = Ref(L,-3);
+C1 = Ref(C,-1);C20 = Ref(C,-20);C3 = Ref(C,-3);
+
+VolAvg = MA( V, 14 );
+VolumeIdx = V / VolAvg;
+AvgRange = Sum( abs(O-C),15 )/15;
+
+HV = 100* StDev(log(C/Ref(C,-1)),100)*sqrt(252);
+VolSP = MA(V*C,65);
+
+xvolFilter = 3/1000; 
+
+reqs = MA(C * V,20) > (volSP*xvolFilter);
+
+/* Condition 1 */ 
+PC1=EMA(C,7)>EMA(C,21);
+
+/* Condition 2 */ 
+PC2=(C>EMA(C,7))AND (C>EMA(C,21));  
+
+/* Slope Condition */ 
+SL=LinRegSlope(EMA(C,21),5);  
+
+/* Blaze Condition */
+Blaze = (SL>=0); 
+
+/* RSI Condition */
+A7= RSI(2);
+PC3= A7>50;
+
+/* ADX Condition */
+A8= ADX(10);
+PC4= A8 > 20;
+
+/* ROC Condition */
+A9=(ROC(C,2));
+PC5= A9 > 1;
+
+/* HV Condition */
+PC6= HV>100;
+
+/* Filter */
+Filter = PC1 AND PC2 AND Blaze AND PC3 AND PC4 AND PC5 AND PC6 AND (C>minPrice) AND (V>minVol);
+
+/* Exploration Columns for Sorting */
+AddColumn(IIf(Blaze , 83,01 ),"Slope is UP ",formatChar, colorGreen);
+AddColumn( A7,"RSI(2)");
+AddColumn( A8,"ADX(10)");
+AddColumn( A9,"ROC5");
+AddColumn( HV,"HV");
+
+
+

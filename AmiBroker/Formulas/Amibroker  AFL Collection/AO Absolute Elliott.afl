@@ -1,0 +1,5 @@
+AE = IIf(Outside() AND Ref(H,-1)>Ref(H,-2),H,IIf(Outside() AND Ref(L,-1)<Ref(L,-2),L,
+IIf((Outside() OR Inside()) AND C>O,H,IIf((Outside() OR Inside()) AND O>C,L,
+IIf(H>Ref(H,-1),H,IIf(L<Ref(L,-1),L,IIf(Ref(H,-1)>Ref(H,-2),H,IIf(Ref(L,-1)<Ref(L,-2),L,C))))))));
+
+Plot(AE, "", colorRed);

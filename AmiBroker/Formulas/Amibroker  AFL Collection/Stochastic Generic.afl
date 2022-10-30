@@ -1,0 +1,48 @@
+_SECTION_BEGIN("Stochastic (Generic)");
+
+//Create Stochastics line and histogram charts with variable parameters according to the following formula;
+
+//100 * (C - Y) / (X - Y) 
+//Where: 
+//C = Close 
+//X = the Highest High value ( HHV ) over some period of time ( Len1 OR in this case 70 bars ) 
+//Y = the Lowest Low value ( LLV ) over some period of time ( Len1 OR in this case 70 bars )
+
+//Set the parameters
+Len1 = Param("Slow",70,1,100,1); 
+Len2 = Param("Fast",45,1,100,1); 
+Len3 = Param("trigger",9,1,50,1); 
+
+//Do the Math
+HH = HHV(C, Len1); 
+LL = LLV(C, Len1); 
+
+FastK = 100 * (C - LL) / (HH - LL); 
+SlowK = EMA(FastK, Len2); 
+SlowD = EMA(SlowK, Len3); 
+
+Diff = SlowK - SlowD; 
+
+//Display your work
+Plot(SlowK, "SlowK "+Len1, colorBlue, styleThick | styleOwnScale, 0, 100); 
+Plot(SlowD, "  SlowD "+Len2, colorWhite, styleThick | styleOwnScale, 0, 100); 
+Plot(Diff, "  SlowK - SlowD "+Len3, IIf(Diff > Ref(Diff, -1), colorBrightGreen, colorRed), styleArea | styleOwnScale, -10, 10);
+
+_SECTION_END();
+
+//Create statements for use in the Automatic Analyzer
+
+//Optimize parameters
+Len1 = Optimize( "Slow",20, 1, 100, 2 ); 
+Len2 = Optimize("Fast", 40, 1, 100, 2 ); 
+Len3 = Optimize( "Trigger", 3, 1, 50, 2 );
+
+//Create Buy/Sell statements
+Buy = Cross(SlowK, slowD);
+Sell = Cross(SlowK, SlowD);
+ 
+//Buy = sign(Diff)>0;
+//Sell= sign(Diff)<0;
+
+//Buy = Diff>0;
+//Sell= Diff<0;

@@ -1,0 +1,78 @@
+_SECTION_BEGIN("ADX"); 
+range = Param("ADX Periods", 7, 2, 200, 1 );
+Col_adx = IIf(ADX(range) > Ref(ADX(range),-1) AND ADX(range) > 10,colorBlue, colorGrey40);
+em = Param("EMA Of ADX",3,1,20,1);
+p = EMA(PDI(range),em);
+m = EMA(MDI(range),em);
+pr=Param("BB avg",5,1,20,1);
+wd = Param("width",0.5,0.1,15,0.1);
+btp = BBandTop( P, pr, wd ); 
+bbp = BBandBot( P, pr, wd );
+btm = BBandTop( m, pr, wd );
+bbm = BBandBot( m, pr, wd );
+Col_p = IIf(p > btp, colorBrightGreen,colorDarkGreen);
+Col_m = IIf(m > btm,colorRed,colorDarkRed);
+Buy = ADX(range) > MDI(range)  AND PDI(range) > MDI(range);
+Sell = ADX(range) > PDI(range) AND MDI(range) > PDI(range);
+Buy_sell = IIf(Buy,colorGreen,IIf(Sell,colorRed,colorGrey40)); 
+trend = IIf(col_p==colorBrightGreen,colorBrightGreen,IIf(col_m==colorRed,colorRed,IIf(PDI(range) > MDI(range),colorDarkGreen,colorDarkRed)));
+
+Buy_p = p > btp OR m < bbm;
+Buy_p1 =p > btp AND m < bbm; 
+Sell_m = m > btm OR p < bbp;
+Sell_m1 = m > btm AND p < bbp;
+
+ 
+bs = IIf(Buy_p1,colorBrightGreen,IIf(sell_m1,colorRed,colorGrey40));
+bs1 = IIf(Buy_p1,colorBrightGreen,IIf(Sell_m1,colorRed,IIf(Buy_p AND Sell_m,colorYellow,IIf(Buy_p,colorDarkGreen,IIf(Sell_m,colorDarkRed,colorYellow)))));
+_SECTION_END();
+
+Plot(MA(Close,3),"3ma",IIf(MA(Close,3) > Ref(MA(Close,3),-1),colorGreen,colorRed),styleThick);
+Plot(Close,"close",bs1,styleCandle,styleThick);
+Plot(5, "", Bs, styleOwnScale| styleArea|styleNoLabel,-0.5,100);
+
+
+
+_SECTION_BEGIN("Fibo for all bars");
+
+TimeFrameSet( in15Minute*2 ); 
+DH=Ref(H,-1); 
+DL=Ref(L,-1);
+DC=Ref(C,-1);
+
+
+pd = ( DH+ DL + DC )/3;
+sd1 = (2*pd)-DH;
+sd2 = pd -(DH - DL);
+sd3 = Sd1 - (DH-DL); 
+rd1 = (2*pd)-DL;
+rd2 = pd +(DH -DL);
+rd3 = rd1 +(DH-DL);
+
+
+
+TimeFrameRestore();
+
+
+Title = EncodeColor(colorWhite)+ "LINKON'S PIVOT TRADING SYSTEM" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+ "Cl-"+C+"  "
++ WriteIf(C > pd, EncodeColor(colorGreen)+"stay long",EncodeColor(colorRed)+"stay SHORT") + "\n"
++ "Vol= "+ WriteVal(V) +WriteIf ( V > MA(V,26) ,EncodeColor(colorGreen)+"  UP "+ (V/MA(V,26))*100 + " %", EncodeColor(colorRed)+"  DOWN "+ (V/MA(V,26))*100 + " %")
++ EncodeColor(colorGreen)+   "\n R3 : "+ EncodeColor(colorWhite)+RD3
++ EncodeColor(colorGreen)+   "\n R2 : "+ EncodeColor(colorWhite)+RD2
++ EncodeColor(colorGreen)+   "\n R1 : "+ EncodeColor(colorWhite)+RD1
++ EncodeColor(colorBlue)+   "\n Pivot : "+ EncodeColor(colorWhite)+pd
++ EncodeColor(colorRed)+   "\n S1 : "+ EncodeColor(colorWhite)+SD1
++ EncodeColor(colorRed)+   "\n S2 : "+ EncodeColor(colorWhite)+SD2
++ EncodeColor(colorRed)+   "\n S3 : "+ EncodeColor(colorWhite)+SD3
+;
+
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), Color, Style ); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), Color, Style ); 
+_SECTION_END();

@@ -1,0 +1,15 @@
+_SECTION_BEGIN("MARSI");
+MP = Param(" Period",13,3,100,1);
+RP = Param("RSI",14,3,20,1);
+UL= Param("Upper Limit",70,0,100,1);
+LL= Param("Lower Limit",30,0,100,1);
+PlotGrid(UL,colorBlue);    
+PlotGrid(LL,colorBlue); 
+R= RSIa( MA(C,MP), RP);
+Plot(R, "RSI OF MA",  colorBlue, styleLine);
+
+
+PlotOHLC( R,R,50,R, "", IIf( R > 50, colorLightOrange , colorSkyblue ), styleCloud | styleClipMinMax, LL, UL ); 
+
+
+_SECTION_END();

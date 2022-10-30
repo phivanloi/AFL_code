@@ -1,0 +1,74 @@
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+
+//TIME FRAME CALCULATION
+H1 = TimeFrameGetPrice("H", inDaily, -1);		// yesterdays high
+L1 = TimeFrameGetPrice("L", inDaily, -1);		//				low
+C1= TimeFrameGetPrice("C", inDaily, -1);		//				close
+DayO = TimeFrameGetPrice("O", inDaily);			// current day open
+
+
+// PIVOT Calculation
+P = ( H1+ L1 + C1 )/3;
+S1 = (2*P)-H1;
+R1 = (2*P)-L1;
+S2 = P -(H1 - L1);
+S3 = S1 - (H1-L1); 
+R2 = P +(H1 - L1);
+R3 = R1 +(H1-L1);
+
+// PIVOT mid points
+MIDR1 = (P+R1)/2;
+MIDR2 = (R1+R2)/2;
+MIDR3 = (R2+R3)/2;
+MIDS1 = (P+S1)/2;
+MIDS2 = (S1+S2)/2;
+MIDS3 = (S2+S3)/2;
+
+//PLOTS
+Plot(R1, "",colorRed,styleLine+styleNoRescale);
+Plot(R2, "",colorRed,styleLine+styleNoRescale);
+Plot(R3, "",colorRed,styleLine+styleNoRescale);
+
+Plot(P, "",colorGold,styleDots+styleNoRescale);
+
+Plot(S1, "",colorDarkBlue,styleLine+styleNoRescale);
+Plot(S2, "",colorDarkBlue,styleLine+styleNoRescale);
+Plot(S3, "",colorDarkBlue,styleLine+styleNoRescale);
+
+Plot(MIDR1, "",colorRed,styleDashed+styleNoRescale);
+Plot(MIDR2, "",colorRed,styleDashed+styleNoRescale);
+Plot(MIDR3, "",colorRed,styleDashed+styleNoRescale);
+
+Plot(MIDS1, "",colorBlue,styleDashed+styleNoRescale);
+Plot(MIDS2, "",colorBlue,styleDashed+styleNoRescale);
+Plot(MIDS3, "",colorBlue,styleDashed+styleNoRescale);
+
+Plot(H1, "",colorRed,styleDots+styleNoRescale);
+Plot(L1, "",colorBlue,styleDots);
+Plot(C1, "",colorBlack,styleDots+styleNoRescale);
+
+// text section
+
+"HIGH /LOW /CLOSE = " +H +" / "+ L+" / "+ C +"\n";
+"H1 /L1 /C1 = " +H1 +" / "+ L1+" / "+ C1 +"\n";
+
+"R3 = " +R3;
+"midr3 = " +MIDR3;
+"R2 = " +R2;
+"midr2 = " +MIDR2;
+"R1 = " +R1;
+"midr1 = " +MIDR1;
+"*************";
+"p = " +p;
+"*************";
+"mids1 = " +MIDS1;
+"S1 = " +S1;
+"mids2 = " +MIDS2;
+"S2 = " +S2;
+"mids3 = " +MIDS3;
+"S3 = " +S3;
+
+_SECTION_END();

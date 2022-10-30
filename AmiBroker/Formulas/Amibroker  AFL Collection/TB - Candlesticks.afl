@@ -1,0 +1,251 @@
+//|------------------------------------------------------------------
+//|Tradingbasis.com - Candlestick Recognition
+//|Version:2.6   29-May-2006
+//|Copyright © 2005, Tradingbasis.com
+//|http://www.tradingbasis.com
+//|e-mail: support@tradingbasis.com
+//|------------------------------------------------------------------
+SetChartOptions(0,chartShowDates|chartLogarithmic|chartWrapTitle);
+#pragma nocache
+#include  <\TBInc\Tradingbasis_f0.afl>
+//AddparamUsefromChart(1);
+AddAlertParam(0,0,0);
+_SECTION_BEGIN("Main Parameters");
+SRplot = ParamToggle("Plot S/R","Off,On",1);
+TextPlot = ParamToggle("Plot Signal Text","Off,On",0);
+Longshape = Param("Buy Shape Typ",59,1,60,1);
+Shortshape = Param("Sell Shape Typ",60,1,60,1);
+LongColor = ParamColor("Buy Signals",colorLime);
+ShortColor = ParamColor("Sell Signals",colorRed);
+_SECTION_END();
+_SECTION_BEGIN("Pattern Selection");
+Dojistar_s= ParamToggle("Doji Star","Off,On",1);
+Hammer_s= ParamToggle("Hammer/Shooting Star","Off,On",1);
+Hangingman_s= ParamToggle("Hanging Man/Inverted Hammer","Off,On",1);
+Spinningtop_s= ParamToggle("Spinning Top","Off,On",1);
+Eng_s= ParamToggle("Engulfing","Off,On",1);
+Harami_s= ParamToggle("Harami","Off,On",1);
+Piercingline_s= ParamToggle("Piercing Line/Dark Cloud Cover","Off,On",1);
+Morning_evening_star_s= ParamToggle("Morning Star/Evening Star","Off,On",1);
+/*Static - currently not support by amibroker 
+if(InChart)StaticVarSet("PQQAWN",Dojistar_s);if(inAA AND Usefromchart) Dojistar_s = StaticVarGet("PQQAWN"); 
+if(InChart)StaticVarSet("ONLDUM",Hammer_s);if(inAA AND Usefromchart) Hammer_s = StaticVarGet("ONLDUM"); 
+if(InChart)StaticVarSet("CPAWNL",Hangingman_s);if(inAA AND Usefromchart) Hangingman_s = StaticVarGet("CPAWNL"); 
+if(InChart)StaticVarSet("MNHCWV",Spinningtop_s);if(inAA AND Usefromchart) Spinningtop_s = StaticVarGet("MNHCWV"); 
+if(InChart)StaticVarSet("FLXSHT",Eng_s);if(inAA AND Usefromchart) Eng_s = StaticVarGet("FLXSHT"); 
+if(InChart)StaticVarSet("FBDBRN",Harami_s);if(inAA AND Usefromchart) Harami_s = StaticVarGet("FBDBRN"); 
+if(InChart)StaticVarSet("OVITBK",Piercingline_s);if(inAA AND Usefromchart) Piercingline_s = StaticVarGet("OVITBK"); 
+if(InChart)StaticVarSet("VHVRAB",Morning_evening_star_s);if(inAA AND Usefromchart) Morning_evening_star_s = StaticVarGet("VHVRAB"); 
+*/
+_SECTION_END();
+
+#include  <\TBInc\Tradingbasis_1.afl> 
+ 
+//Definition of Up- & downtrend
+UT = H==HHV(H,3);UT1 = Ref(UT,-1);
+DT = L==LLV(L,3);DT1 = Ref(DT,-1);
+
+x = Cum(1); 
+B=abs(O-C);//Body  
+B1=Ref(B,-1);//Body yesterday 
+B2=Ref(B,-2);
+BH = IIf(O>C,O,C); //Body High 
+BH1=Ref(BH,-1); BH2=Ref(BH,-2);
+BL  = IIf(O<C,O,C);//Body Low
+BL1=Ref(BL,-1); BL2=Ref(BL,-2);
+wD = C>O;//White Day
+wD1=Ref(WD,-1); wD2=Ref(WD,-2);
+BD = C<O;//Black Day
+bD1=Ref(bD,-1); bD2=Ref(bD,-2);
+DR = H-L;//DayRange
+DR1 = Ref(DR,-1);
+R = DR/100;
+/*********************************/
+LL2 = L==LLV(L,2); LL3 = L==LLV(L,3);
+HH2 = H==HHV(H,2); HH3 = H==HHV(H,3);
+
+//Price-Shortcuts
+L1 = Ref(L,-1); L2 = Ref(L,-2);L3 = Ref(L,-3); 
+H1 = Ref(H,-1); H2 = Ref(H,-2);H3 = Ref(H,-3);
+R1 = Ref(R,-1); R2 = Ref(R,-2);
+C1 = Ref(C,-1); O1 = Ref(O,-1); 
+C2 = Ref(C,-2);
+
+UPshadow = H-BH; DNshadow = BL-L;
+/////////////////////////////////////////////////////
+//Pattern-Part:  single-sticks
+//////////////////////////////////////////////////////
+longday = B>40*R;
+//old condition: BL < (20*R + L) AND BH >(80*R + L);
+//white Longday
+wLD = Longday AND wD; wLD1 = Ref (wLD,-1); wLD2 = Ref (wLD,-2);
+//black Longday
+bLD = Longday AND bD; bLD1 = Ref (bLD,-1); bLD2 = Ref (bLD,-2);
+/**********************************/
+
+/////////////////////////////////////////////////////
+
+doji = tbDoji();
+
+HAMMER = Hammer_s & tbHammer() & DT; 
+SStar =  Hammer_s & BH < (35 * R + L) AND BL < (25 * R + L) AND B >(10*R);
+SStar1 =  BH < (35 * R + L) AND BL < (25 * R + L) AND B >(10*R);
+beSSTAR =  SStar & UT; 
+/////////////////////////////////////////////////////
+HangingMan = Hangingman_s & tbHammer() & UT;
+InvertedHammer = Hangingman_s & BH<(35*R+L)&BL<(10*R+L)& B>(10*R)&DT;
+
+SpinningTop = Spinningtop_s & BH < (75 * R + L) AND BL > (25 * R + L)AND B <(25*R)& H==HHV(H,3)& L==HHV(L,3);
+SpinningTop1 = BH < (75 * R + L) AND BL > (25 * R + L)AND B <(25*R);//without switch
+
+//Pattern-Part:  2-sticks
+buENG = Eng_s & wd & bd1 & BH>BH1 & BL<BL1 & DT1;
+beENG = Eng_s & bd & wd1 & BH>BH1 & BL<BL1 & UT1;
+/////////////////////////////////////////////////////////////////////////////
+//    HARAMI: Body smaller than yesterday's Body
+buHARAMI = Harami_s & bLD1 & wD & B<0.5*B1 & B>0.25*B1 & Inside() & BH < BH1 AND BL > BL1;
+beHARAMI = Harami_s & wLD1 & bD & B<0.5*B1 & B>0.25*B1 & Inside() & BH < BH1 AND BL > BL1;
+//////////////////////////////////////////////////////////////////////////////
+//   HARAMI Cross
+buHARAMICROSS = Harami_s & bLD1 & BH < BH1 & BL > BL1 & B<0.25*B1 & DT1;
+beHARAMICROSS = Harami_s & wLD1 & BH < BH1 & BL > BL1 & B<0.25*B1 & UT1;
+//////////////////////////////////////////////////
+//   DOJI STAR
+buDS = Dojistar_s & bLD1 & SpinningTop1 & H < L1+(DR1/2) & BH<BL1 & DT1; 
+beDS = Dojistar_s & wLD1 & SpinningTop1 & L > H1-(DR1/2) & BL>BH1 & UT1; 
+////////////////////////////////////
+//   buPIERCINGLINE
+buPIERCINGLINE = Piercingline_s & bLD1 & wLD & C > ((B1/2) + BL1) & O < L1 & C<BH1 & DT1;
+//////////////////////////////////////////////////////////
+///////   beDARKCLOUDCOVER                         ///////
+beDARKCLOUDCOVER = Piercingline_s & wLD1 & bld & C < (B1/2 + BL1) & O>H1 & C>BL1 & UT1; 
+//////////////////////////////////////////////////////////
+
+//Pattern-Part:  3-sticks
+///////////////////////////////////////////////////////
+buMorningStar = Morning_evening_star_s & bLD2 & BH1<BL2+B2/3 & BL>L1 & wld & B1>0.25*B2 & B1<0.5*B2 & C>BL2+B2/2;
+buMorningDojiStar = Morning_evening_star_s & bLD2 & BH1<BL2+B2/3 & BL>L1 & wld & B1<0.25*B2 & C>BL2+B2/2;
+
+beEveningStar = Morning_evening_star_s & wLD2 & BL1>BH2-B2/3 & B1>0.25*B2 & B1<0.5*B2 & BH<H1 & bld & C<BL2+B2/2;
+beEveningDojiStar = Morning_evening_star_s & wLD2 & BL1>BH2-B2/3 & B1<0.25*B2 & BH<H1 & bld & C<BL2+B2/2;
+
+//other Patterns
+
+//Long shadows
+LongUPshadows = upshadow>0.6*DR & Ref(upshadow,-1)>0.6*DR1;
+LongDNshadows = DNshadow>0.6*DR & Ref(DNshadow,-1)>0.6*DR1;
+
+///////////////////////////////////////////////////////
+//Long % Short signals
+Pattern_1_Stick_BS = Hammer | InvertedHammer;
+Pattern_1_Stick_SS = beSSTAR | HangingMan | SpinningTop;
+
+Pattern_2_stick_BS = buENG | buHARAMI | buHARAMICROSS | buDS |  buPIERCINGLINE | buMorningStar | buMorningDojiStar;
+Pattern_2_stick_SS = beENG | beHARAMI | beHARAMICROSS | beDS  | beDARKCLOUDCOVER | beEveningDojiStar | beEveningStar;
+
+Pattern_3_stick_BS = 0;
+Pattern_3_stick_SS = 0;
+
+//PatternRank
+PR = IIf(Pattern_1_Stick_BS,1,IIf(Pattern_2_Stick_BS,2,IIf(Pattern_3_Stick_BS,3,IIf(Pattern_1_Stick_SS,-1,IIf(Pattern_2_Stick_SS,-2,IIf(Pattern_3_Stick_SS,-3,0))))));
+
+//Long = PR>0; Short = PR<0;
+
+//Ploting shapes - single-stick
+PlotShapes(IIf(PR>0,Longshape,IIf(PR<0,Shortshape,Null)),IIf(PR>0,LongColor,ShortColor),0,IIf(PR>0,L,H),IIf(PR>0,-12,-12));
+
+if(TextPlot){
+//PlotSignalText (Condition,Text,AdText,AdTextArray,Distance,Array,TextColor,BGColor);
+PlotSignalText (PR>0,"Buy",0,L,-0.8,L,LongColor,colorDefault);
+PlotSignalText (PR<0,"Sell",0,H,1.0,H,ShortColor,colorDefault);
+}
+//other plots
+
+LBPR = LastValue(ValueWhen(PR>0,PR));//last Long pattern rank
+LSPR = LastValue(ValueWhen(PR<0,PR));//last Short pattern rank
+
+Long_point = PR>0 == 1;
+Short_point = PR<0 == 1;
+
+//Candlestick - support line
+Sup_1 = LastValue(ValueWhen(Long_point & LBPR ==1,L,1));//Singlestick_support
+Sup_2 = LastValue(ValueWhen(Long_point & LBPR ==2,LLV(L,2),1));//Twostick_support
+Sup_3 = LastValue(ValueWhen(Long_point & LBPR ==3,LLV(L,3),1));//Threestick_support
+Support = IIf(LBPR==1,Sup_1,IIf(LBPR==2,Sup_2,IIf(LBPR==3,Sup_3,-1e10)));
+x_Long = LastValue(ValueWhen(Long_point,x,1));
+Plot_Long = IIf(LBPR==1 & x>=x_Long,Sup_1,IIf(LBPR==2 & x>=x_Long-1,Support,IIf(LBPR==3 & x>=x_Long-2,Support,-1e10)));
+Plot(IIf(SRplot,Plot_Long,Null),"Support",Longcolor,1+styleNoTitle);
+
+//Candlestick - resistance line
+Res_1 = LastValue(ValueWhen(Short_point & LSPR ==-1,H,1));//Singlestick_resistance
+Res_2 = LastValue(ValueWhen(Short_point & LSPR ==-2,HHV(H,2),1));//Twostick_resistance
+Res_3 = LastValue(ValueWhen(Short_point & LSPR ==-3,HHV(H,3),1));//Threestick_resistance
+Resistance = IIf(LSPR==-1,Res_1,IIf(LSPR==-2,Res_2,IIf(LSPR==-3,Res_3,-1e10)));
+x_Short = LastValue(ValueWhen(Short_point,x,1));
+Plot_Short = IIf(LSPR==-1 & x>=x_Short,Res_1,IIf(LSPR==-2 & x>=x_Short-1,Resistance,IIf(LSPR==-3 & x>=x_Short-2,Resistance,-1e10)));
+Plot(IIf(SRplot,Plot_Short,Null),"Resistance",Shortcolor,1+styleNoTitle);
+
+GraphXSpace = 2;
+
+PatternText = 
+WriteIf(Hammer,"Hammer",
+WriteIf(beSSTAR,"Shooting Star",
+WriteIf(InvertedHammer,"Inverted Hammer",
+WriteIf(HangingMan,"Hanging Man",
+WriteIf(SpinningTop AND NOT buDS,"Spinning Top",
+WriteIf(buENG,"Engulfing",
+WriteIf(beENG,"Engulfing",
+WriteIf(buHARAMI,"Harami",
+WriteIf(beHARAMI,"Harami",
+WriteIf(buHARAMICROSS,"Harami Cross",
+WriteIf(beHARAMICROSS,"Harami Cross",
+WriteIf(buDS,"Doji Star",
+WriteIf(beDS,"Doji Star",
+WriteIf(buPIERCINGLINE,"Piercingline",
+WriteIf(beDARKCLOUDCOVER,"Dark Cloud Cover",
+WriteIf(buMorningStar,"Morning Star",
+WriteIf(buMorningDojiStar,"Morning Doji Star",
+WriteIf(beEveningStar,"Evening Star",
+WriteIf(beEveningDojiStar,"Evening Doji Star",
+"")))))))))))))))))));
+
+
+
+Buy = PR>0; Sell = PR<0;
+Filter = NOT GroupID()==253;
+Filter = Filter AND (PR>0 OR PR<0);
+Adddefaultcolumns(2,1);
+AddTextColumn(PatternText,"Pattern",1.2,IIf(PR>0,colorGreen,colorRed));
+AddTextColumn(FullName(),"Full name");
+
+
+// Alerts ////////////////////////////////////////////////////////////////////
+Alerttext = "";
+//DefaultAlertText;
+
+
+AddAlert(Hammer,Audio,Email,"Bullish Hammer"+Alerttext,1,BarComplete);
+AddAlert(beSSTAR,Audio,Email,"Bearish Shooting Star"+Alerttext,2,BarComplete);
+AddAlert(InvertedHammer,Audio,Email,"Bullish Inverted Hammer"+Alerttext,2,BarComplete);
+AddAlert(HangingMan,Audio,Email,"Bearish Hanging Man"+Alerttext,2,BarComplete);
+AddAlert(SpinningTop AND NOT buDS,Audio,Email,"Bearish Spinning Top"+Alerttext,2,BarComplete);
+AddAlert(buENG,Audio,Email,"Bullish Engulfing"+Alerttext,1,BarComplete);
+AddAlert(beENG,Audio,Email,"Bearish Engulfing"+Alerttext,2,BarComplete);
+AddAlert(buHARAMI,Audio,Email,"Bullish Harami"+Alerttext,1,BarComplete);
+AddAlert(beHARAMI,Audio,Email,"Bearish Harami"+Alerttext,2,BarComplete);
+AddAlert(buHARAMICROSS,Audio,Email,"Bullish Harami Cross"+Alerttext,1,BarComplete);
+AddAlert(beHARAMICROSS,Audio,Email,"Bearish Harami Cross"+Alerttext,2,BarComplete);
+AddAlert(buDS,Audio,Email,"Bullish Doji Star"+Alerttext,1,BarComplete);
+AddAlert(beDS,Audio,Email,"Bearish Doji Star"+Alerttext,2,BarComplete);
+AddAlert(buPIERCINGLINE,Audio,Email,"Bullish Piercingline"+Alerttext,1,BarComplete);
+AddAlert(beDARKCLOUDCOVER,Audio,Email,"Bearish Dark Cloud Cover"+Alerttext,2,BarComplete);
+AddAlert(buMorningStar,Audio,Email,"Bullish Morning Star"+Alerttext,1,BarComplete);
+AddAlert(buMorningDojiStar,Audio,Email,"Bullish Morning Doji Star"+Alerttext,1,BarComplete);
+AddAlert(beEveningStar,Audio,Email,"Bearish Evening Star"+Alerttext,2,BarComplete);
+AddAlert(beEveningDojiStar,Audio,Email,"Bearish Evening Doji Star"+Alerttext,2,BarComplete);
+
+////////////////////////////////////////////////////////////////////////////
+
+Title = "Tradingbasis.com - Candlestick Recognition" + default_title +", "+EncodeColor(colorYellow)+ WriteIf(PR>0,"Bullish ",WriteIf(PR<0,"Bearish ",""))+PatternText+" ";
+
+ToolTip = ToolTip+"\n\n"+patterntext;

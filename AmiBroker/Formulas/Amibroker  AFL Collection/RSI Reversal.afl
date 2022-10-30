@@ -1,0 +1,142 @@
+/*							RSI Reversal.afl - Bill Barnard, 11/27/05
+	This is to be used as an include file for SIGNAL STUDY.afl or the entire contents are to be
+	pasted into SIGNAL OPTIMIZE.afl. Read discussion (first parameter) in SIGNAL STUDY.afl 	*/
+
+AA		=  (Status("action")==3 OR Status("action")==4 OR Status("action")==5);	//	= 1 in AA
+if (AA)	sigSelect = "RSI Reversal";
+if (sigSelect=="RSI Reversal")	{
+
+  if (AA)	//	if this code is being used in AA
+  {
+  	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	Current		= ParamToggle("Use Current Symbol?", "Using Symbol named just below for Indicator,Using Current Symbol for Indicator");
+  	indicSym		= ParamStr("Indicator Symbol", "RUT-I");
+  	param1		= Optimize("per",  22, 1, 25, 1);
+  	param2		= Optimize("smooth", 10, 1, 10, 1);
+  	param4		= 4;//Optimize("perc", 	4, 0, 8, 0.1);
+  	param4		= 0.001*param4;
+  	param6		= 1;//Optimize("AveTyp",  1, 0, 5, 1);
+  	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+}
+
+//	if this code is being used for an indicator, retrieve stored param information
+if (Status("action")==1)
+{
+	RRParamsList			= "";
+	RRParamsFileName	= "ConfigFiles\\RRParams"+GetChartID()+".bf";
+
+	fh 						= fopen( RRParamsFileName, "r");
+	if( fh )
+	{
+		while( ! feof( fh ) )
+		{
+			RRParamsList = fgets( fh );
+		}
+		fclose( fh );
+	}
+
+	q0		=		IIf(RRParamsList !="", 	StrToNum(StrExtract(RRParamsList,  0	)), 0	 		);//	Current
+	q1		= WriteIf(RRParamsList !="", 				  StrExtract(RRParamsList,   1	), 	"RUT-I"	);//	indicSym
+	q2		=		IIf(RRParamsList !="", 	StrToNum(StrExtract(RRParamsList,  2	)), 14	 		);//	param1
+	q3		=		IIf(RRParamsList !="", 	StrToNum(StrExtract(RRParamsList,  3	)), 5			);//	param2
+	q4		=		IIf(RRParamsList !="", 	StrToNum(StrExtract(RRParamsList,  4	)), 0	 		);//	param3
+	q5		=		IIf(RRParamsList !="", 	StrToNum(StrExtract(RRParamsList,  5	)), 2	 		);//	param4
+	q6		=		IIf(RRParamsList !="", 	StrToNum(StrExtract(RRParamsList,  6	)), 0			);//	param5
+	q7		=		IIf(RRParamsList !="", 	StrToNum(StrExtract(RRParamsList,  7	)), 1	 		);//	param6
+	q8		=		IIf(RRParamsList !="", 	StrToNum(StrExtract(RRParamsList,  8	)), 0			);//	param7
+	q9		=		IIf(RRParamsList !="", 	StrToNum(StrExtract(RRParamsList,  9	)), 0	 		);//	param8
+
+
+	_SECTION_BEGIN("INDICATOR PARAMETERS");
+	Current		= ParamToggle("RSI Reversal -                       Use Current Symbol?",
+						"Symbol below makes Indicator - click to change,Current Symbol makes Indicator - click to change", q0);
+	IndicString	= ParamStr("RSI Reversal -                              Indicator Symbol", "Indicator Symbol---"+q1);
+	indicSym		= StrMid(StrToUpper(IndicString), 19, 5);
+	param1		= Param("RSI Reversal -                                       RSI Period",  q2, 1, 25, 1);
+	param2		= Param("RSI Reversal -                      RSI Smoothing Period", q3, 1, 50, 1);
+	param3		= q4;
+	param4		= Param("RSI Reversal -                             Reversal Amount",  q5, 0, 15, 0.1);
+	param4		= 0.001*param4;
+	param5		= q6;
+	param6		= ParamList("RSI Reversal -                                  Average Type", "Simple Moving Average,"+
+								"Exponential Moving Average,Double Moving Average,Triple Moving Average,"+
+								"Weighted Moving Average,Till3 Moving Average", q7);
+	param6		= 	IIf(param6=="Simple Moving Average", 0, IIf(param6=="Exponential Moving Average", 1,
+						IIf(param6=="Double Moving Average", 2, IIf(param6=="Triple Moving Average", 3,
+						IIf(param6=="Weighted Moving Average", 4, 5)))));
+	param7		= q8;
+	param8		= q9;
+	_SECTION_END();
+}
+
+//	Buy/Sell rules start here
+aveStr		= "MA,EMA,DEMA,TEMA,WMA,Till3";
+aveType 		= StrExtract(aveStr, Param6);
+
+if (NOT current)	SetForeign(indicSym);
+Nam		= WriteIf(current, Name(), indicSym);	Name1	= Nam+"  RSI("+V0(param1)+")";
+indError	= IIf(IsNull(Close) OR (NOT current AND SetForeign(indicSym)==0), 1, 0);
+indicSym	= WriteIf(indError, "", indicSym);
+indstart	= 0;
+RSItemp	= 100000 + RSI(param1);
+if (NOT current)	RestorePriceArrays();
+RSIave	= MovAve(aveType, RSItemp, param2);
+RSIave	= IIf(indError, Null, RSIave);
+
+z			= Zig(RSIave, param4);
+bot 		= ROC(z, 1) < 0 AND Ref(ROC(z, 1), 1) > 0;
+top		= ROC(z, 1) > 0 AND Ref(ROC(z, 1), 1) < 0;
+recValley	= ValueWhen(bot, RSIave, 1);
+BuyLine	= IIf(BarsSince(top) > BarsSince(bot) OR BarsSince(top)==0
+				OR IsEmpty(BarsSince(top)),  (1 + 0.01*param4)*recValley, Null);
+recPeak	= ValueWhen(top, RSIave, 1);
+SellLine	= IIf(BarsSince(top) < BarsSince(bot) OR BarsSince(bot)==0
+				OR IsEmpty(BarsSince(bot)),  (1 - 0.01*param4)*recPeak, Null);
+
+ind1		= RSItemp - 100000;													Name1	= Name1+w2(ind1);
+ind1		= Null;	//we are  through with it and don't want it to be plotted
+ind2		= RSIave - 100000;													Name2	= aveType+"("+V0(param2)+") of RSI"+w2(ind2);
+ind3		= IIf(NOT IsEmpty(SellLine), SellLine - 100000, SellLine);	Name3	= "SellLine"+w2(ind3);
+ind4		= IIf(NOT IsEmpty(BuyLine), BuyLine - 100000, BuyLine);	Name4	= "BuyLine"+w2(ind4);
+ind5		= 1000*Param4;														Name5	= "\nReversal"+w0(ind5);
+param4	= ind5;
+ind5		= Null;	//we are  through with it and don't want it to be plotted
+
+Buy		= IIf(BarIndex() > indstart, Cross(ind2, ind4), 0);
+Sell		= IIf(BarIndex() > indstart, Cross(ind3, ind2), 0);
+
+BuyCond	= Flip(Buy, Sell);
+SellCond	= Flip(Sell, Buy);
+
+Buy		= ExRem(Buy, Sell);
+Sell		= ExRem(Sell, Buy);
+
+if (Status("action")==1)	// if this code is being used for an indicator
+{
+	//	make an initiation file to store params
+	RRParamsList = ""+
+		Current		+","+
+		indicSym		+","+
+		param1		+","+
+		param2		+","+
+		param3		+","+
+		param4		+","+
+		param5		+","+
+		param6		+","+
+		param7		+","+
+		param8		+","+
+		"";
+
+	fh 	= fopen( RRParamsFileName, "w");
+	if( fh )
+	{
+		fputs(RRParamsList, fh);
+		fclose( fh );
+	}
+}
+
+}

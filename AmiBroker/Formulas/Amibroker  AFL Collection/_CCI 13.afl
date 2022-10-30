@@ -1,0 +1,6 @@
+_SECTION_BEGIN("CCI");
+diff = (C+H+L)/3-EMA(C,34);
+Plot(diff,"",colorGreen);
+_SECTION_END();
+
+ 

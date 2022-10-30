@@ -1,0 +1,10 @@
+Buy = 	Ref( StochD( 15, 3, 3 ) , -2 ) > Ref( StochK( 15, 3 ) , -2 )
+	AND StochD( 15, 3, 3 ) < StochK( 15, 3 );
+
+Sell = Ref( StochD( 15, 3, 3 ) , -2 ) < Ref( StochK( 15, 3 ) , -2 )
+	AND StochD( 15, 3, 3 ) > StochK( 15, 3 );
+
+
+Short = 0;
+
+Cover = 0;

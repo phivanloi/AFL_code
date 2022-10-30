@@ -1,0 +1,26 @@
+/* My200Stocks.afl compiled by MurthyMSR */
+
+//Parameters
+MyCL = Param( "CL", 10, 10, 100, 10 );
+MyVK = Param( "VK", 30, 10, 100, 10 );
+MyTL = Param( "TL", 300, 100, 1000, 100 );
+
+TLM = EMA(C*V/100000,100) ;
+include = C> MyCL AND V/1000> MyVK AND C*V/100000 > MyTL AND TLM > 0.333 * MyTL ; 
+
+Buy = include ;
+Sell= O ; 
+
+/* Exploration */
+Filter= Buy ;
+{
+SetOption("NoDefaultColumns", True );
+AddTextColumn( Name(), "Symbol    ", 77 , colorDefault);
+
+AddColumn(C, "CL", format=4.1 );
+AddColumn(V/1000, "VK", format=6.0); 
+AddColumn(C*V/100000, "TL", format=6.0); 
+AddColumn(TLM, "TLM", format=6.0); 
+
+AddColumn(DateTime(), "Date", formatDateTime ); 
+}

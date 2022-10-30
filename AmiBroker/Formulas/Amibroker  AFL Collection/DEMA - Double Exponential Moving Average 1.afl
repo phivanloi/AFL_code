@@ -1,0 +1,13 @@
+_SECTION_BEGIN("Price1");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+piv = (H+L+C)/3;
+col_piv = IIf(piv > Ref(piv,-1),colorGreen,colorRed);
+piv_ema3 = EMA(piv,3);
+col_piv_ema = IIf(piv_ema3 > Ref(piv_ema3,-1),colorGreen,colorRed);
+
+Plot (piv, "piv",Col_piv,styleThick+styleDashed);
+Plot (piv_ema3, "piv ema3",Col_piv_ema);
+
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();

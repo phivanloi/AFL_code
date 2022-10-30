@@ -1,0 +1,9 @@
+/*MACD BULL-BEAR*/
+ob=Signal()<MACD();
+os=Signal()>=MACD();
+values5 = os>0;
+values6 = ob>0;
+AddToComposite(Values5,"~macdbear","V");
+AddToComposite(Values6,"~macdbull","V");
+Buy=0;
+

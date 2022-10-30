@@ -1,0 +1,122 @@
+_SECTION_BEGIN("RSI_Alert");
+RSI_alert = ParamToggle("RSi_Alert", "No|Yes",0);
+period = Param("period", 10, 1,100,1);
+r = RSI(period);
+Buy = Cross(r, 20);
+Sell = Cross(r, 80); 
+
+TelegramAlerts = ParamTrigger("Telegram Alert","Send Alert");
+TelegramAPI_ID = ParamStr("Telegram Bot API Key","1200942736:AAEG8y9qyJ7aHefUm4vt_xKqkNBxfKd3qCc");
+TelgramCHAT_ID = ParamStr("Telegram Channel ID","@Victor_AlgoTrading");  
+
+Message = numtostr(C) + " Spead = " + NumToStr(H - L) + " Volume =   " + NumToStr(V) + "   " + WriteVal(ROC(V, 1), 1.2) + ROC(V, 1) + " " 
++ " \n" + TimeNum() + "    " + Interval()  ;
+
+
+if(Buy[BarCount - 1] == 1 OR Sell[BarCount - 1] == 1 OR TelegramAlerts)
+{
+	exportPath = "C:\\Program Files\\AmiBroker\\ExportedImages\\";
+	fmkdir(exportPath);
+	AB = CreateObject("Broker.Application");
+	ABDocs = AB.Documents;
+	AD = ABDocs.Item(1); // Use the first chart only - set your default layout accordingly		
+	ADWindows = AD.Windows;
+	AD.Name = Name();
+	AW = AB.ActiveWindow; //SelectedTab = 1;
+//	filename = Name() + " " + Interval(2) + " " + StrReplace(StrReplace(Now(0), "/", "-"), ":", ".") + ".png";
+	filename = Name() + " " + Interval(2) + " " + StrReplace(StrReplace(DateTimeToStr(Now(5), 3 ), "/", "-"), ":", ".") + ".png";
+	AW.ExportImage(exportPath + filename);
+
+// Test Debug	AW.ExportImage(exportPath +  Name() + "-" + "10/29/2022 1.27.32 AM" + ".png");
+	
+	Message1 = "Buy@1h@" + Name()+" " + C;
+
+	arguments = Message1 + " " + filename;
+	ShellExecute("C:\\Users\\Admins\\Desktop\\stock_price\\pythonfile\\test.py", arguments , "C:\\Bot\\", 1 );
+
+	ih = InternetOpenURL("https://api.telegram.org/bot"+ TelegramAPI_ID + "/sendMessage?chat_id="+TelgramCHAT_ID+"&text=" + Message ); 
+	InternetClose(ih);	
+	
+//	fdelete(exportPath + filename);
+	fdelete(exportPath + "Screenshot_5"  + ".png");
+}
+
+GfxSetBkMode(1);
+X=750;
+Y=1;
+Font=10;
+GfxSetTextColor( colorGold );
+GfxTextOut( StrReplace(DateTimeToStr(Now(5), 3), "/", "_"), x+100, y+10 );
+// GfxTextOut( DateTimeToStr( NUMBER, mode = 0 ) x+100, y+10 );
+GfxSelectFont( "Century Gothic", 15, 100, False );
+/*
+GfxSetBkMode(1);
+X=750;
+Y=1;
+Font=10;
+
+GfxGradientRect( 1, 1, 1400, 40, colorGrey50, colorDarkGrey);
+GfxSetBkMode(0);
+GfxSelectFont( "Georgia", 18, 800, False );
+GfxSetTextColor( colorWhite );
+GfxTextOut( "ULTIMATE VOLATILITY EXPERT ", x+600, y+10 );
+GfxSelectFont( "Tahoma", 16, 800, False );
+
+GfxSetTextColor( colorGold );
+GfxTextOut( Name(), x+100, y+10 );
+GfxSelectFont( "Century Gothic", 15, 100, False );
+
+GfxSetTextColor( colorWhite );
+GfxTextOut( Date(), x+1000, y+10 );
+GfxSelectFont( "Comic Sans MS", 15, 500, False );
+GfxSetTextColor( colorYellow );
+GfxTextOut( Interval(2), x+275, y+10 );
+*/
+
+_SECTION_END();
+
+
+/*
+
+//TelegramAlerts = ParamTrigger("Telegram Alert","Send Alert");
+TelegramAPI_ID = ParamStr("Telegram Bot API Key","1333859675:AAFTmHzM54SIGgzrHajwbiCY1G_mv0bJ2uw");  //Get the Bot API key via BotFather in Telgram
+TelgramCHAT_ID = "@p1234567980";//ParamStr("Telegram Channel ID","@phukhangami");  //Channel ID example : @marketcalls_in
+
+Message1="Buy@1h@ ";
+
+for( i = 0; i < BarCount; i++ )
+{
+
+        
+if( Buy[i] ) {
+           
+  if(i==BarCount-1) {countbuy=countbuy+1;
+            
+            //Export Chart
+      exportPath = "C:\\Data\\";
+      AB = CreateObject("Broker.Application");
+      ABDocs = AB.Documents;
+      AD = ABDocs.Item(0); // Use the first chart only - set your default layout accordingly
+      ADWindows = AD.Windows;
+      AD.Name = Name();
+      AW = AD.ActiveWindow;//SelectedTab = 1;
+      filename = Name() + ".PNG";
+      AW.ExportImage( exportPath + filename);
+  // Send chart to telegram
+        //  ih = InternetOpenURL("https://api.telegram.org/bot"+TelegramAPI_ID+"/sendMessage?chat_id="+TelgramCHAT_ID+
+        //"&text="+Message1+Name()+" "+C[i]); 
+          
+        //  InternetClose(ih);
+          
+          //
+          Message1 = "Buy@1h@" + Name()+""+C[i];
+          Photo1 = "C:\\Data\\" + Name() + ".PNG";
+
+          arguments = Message1 + " " + Photo1;
+
+          ShellExecute("C:\\Bot\\BotSendPhoto.jar", arguments , "C:\\Bot\\", 1 );
+
+
+}
+}
+}

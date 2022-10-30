@@ -1,0 +1,75 @@
+Plot( C, "Close", IIf(C>Ref(C,-1),colorCustom9,colorRed),  ParamStyle("Style") | GetPriceStyle() ); 
+YCR = TimeFrameGetPrice("C", inDaily);
+YHR = TimeFrameGetPrice("H", inDaily);
+YLR = TimeFrameGetPrice("L", inDaily);
+YVR = TimeFrameGetPrice("V", inDaily);
+YC = TimeFrameGetPrice("C", inDaily, -1);// Ngay truoc
+YH = TimeFrameGetPrice("H", inDaily, -1);
+YL = TimeFrameGetPrice("L", inDaily, -1);
+YV = TimeFrameGetPrice("V", inDaily, -1);
+
+YCW = TimeFrameGetPrice("C", inWeekly,-1);
+YLW = TimeFrameGetPrice("L", inWeekly,-1);
+YHW = TimeFrameGetPrice("H", inWeekly,-1);
+YCWR = TimeFrameGetPrice("C", inWeekly);// Gia tuan nay
+YLWR = TimeFrameGetPrice("L", inWeekly);
+YHWR = TimeFrameGetPrice("H", inWeekly);
+YVW = TimeFrameGetPrice("V", inWeekly,-1);// kl tuan truoc
+YVWR = TimeFrameGetPrice("V", inWeekly);// kl realtime tuan nay
+
+
+YCM = TimeFrameGetPrice("C", inMonthly,-1);
+YLM = TimeFrameGetPrice("L", inMonthly,-1);
+YHM = TimeFrameGetPrice("H", inMonthly,-1);//gia thang truoc
+YCMR = TimeFrameGetPrice("C", inMonthly);// Gia thang nay
+YLMR = TimeFrameGetPrice("L", inMonthly);// gia thap thang nay
+YHMR = TimeFrameGetPrice("H", inMonthly);// gia cao thang nay
+YVM = TimeFrameGetPrice("V", inMonthly,-1); // khoi luong thang truoc
+YVMR = TimeFrameGetPrice("V", inMonthly);//kl thang nay
+
+TrungbinhN = (YC + YH + YL)/3;// Gia trung binh ngay truoc
+TrungbinhW = (YCW + YLW + YHW)/3; // Gia trung binh tuan truoc
+TrungbinhM = (YCM + YLM + YHM)/3; // Gia trung binh thang truoc
+
+TrungbinhNR = (YCR + YHR + YLR)/3;// Gia trung binh ngay nay
+TrungbinhWR = (YCWR + YLWR + YHWR)/3; // Gia trung binh tuan nay
+TrungbinhMR = (YCMR + YLMR + YHMR)/3; // Gia trung binh thang nay
+
+DDC=Prec(C-YC,2);///% thay doi gia ngay
+ChgC=Prec((DDC/YC)*100,2);
+DDKL=Prec(V-YV,2);// % thay doi kl ngay
+ChgCKL=Prec((DDKL/YV)*100,2);
+DDCV=Prec(TrungbinhNR*V- TrungbinhN*YV,2);//% thay doi gia tri ngay
+ChgCV = Prec((DDCV/(TrungbinhN*YV))*100,2);
+
+DDW=Prec(C-YCW,2);///% thay doi gia tuan
+ChgCW=Prec((DDW/YCW)*100,2);
+DDWKL=Prec(YVWR-YVW,2);// % thay doi kl tuan
+ChgCWKL=Prec((DDWKL/YVW)*100,2);
+DDCVW=Prec(TrungbinhWR*YVWR- TrungbinhW*YVW,2);//% thay doi gia tri tuan
+ChgCVW = Prec((DDCVW/(TrungbinhW*YVW))*100,2);
+
+DDM=Prec(C-YCM,2);//% thay doi gia tri thang
+ChgCM=Prec((DDM/YCM)*100,2);
+DDMKL=Prec(YVMR-YVM,2);// KL thang
+ChgCMKL=Prec((DDMKL/YVM)*100,2);
+DDCVM=Prec(TrungbinhMR*YVMR- TrungbinhM*YVM,2);//% thay doi gia tri thang
+ChgCVM = Prec((DDCVM/(TrungbinhM*YVM))*100,2);
+AddColumn(C, "Gia", 1.2, IIf(ChgC >= 0, colorGreen, colorRed),-1);
+AddColumn(V, "Khoi Luong Ngay", 1, IIf(ChgCKL>= 0, colorGreen, colorRed),-1);
+AddColumn(YCWR, "Gia Tuan", 1.2, IIf(ChgC >= 0, colorGreen, colorRed),-1);
+AddColumn(YVWR, "Khoi Luong Tuan", 1, IIf(ChgCKL>= 0, colorGreen, colorRed),-1);
+AddColumn(YCMR, "Gia Thang", 1.2, IIf(ChgC >= 0, colorGreen, colorRed),-1);
+AddColumn(YVMR, "Khoi Luong Thang", 1, IIf(ChgCKL>= 0, colorGreen, colorRed),-1);
+AddColumn(ChgC, "% Gia Daily", 1.2, IIf(ChgC >= 0, colorGreen, colorRed),-1);
+AddColumn(ChgCKL, "% KL Daily", 1.2, IIf(ChgCKL >= 0, colorGreen, colorRed),-1);
+AddColumn(ChgCV, "% GT TB Daily", 1.2, IIf(ChgCV >= 0, colorGreen, colorRed),-1);
+
+AddColumn(ChgCW, "% Gia Weekly", 1.2, IIf(ChgCW >= 0, colorGreen, colorRed),-1);
+AddColumn(ChgCWKL, "% KL Weekly", 1.2, IIf(ChgCWKL>= 0, colorGreen, colorRed),-1);
+AddColumn(ChgCVW, "% GT TB Weekly", 1.2, IIf(ChgCVW >= 0, colorGreen, colorRed),-1);
+
+AddColumn(ChgCM, "% Gia Monthly", 1.2, IIf(ChgCM >= 0, colorGreen, colorRed),-1);
+AddColumn(ChgCMKL, "% KL Monthly", 1.2, IIf(ChgCMKL>= 0, colorGreen, colorRed),-1);
+AddColumn(ChgCVM, "% GT TB Monthly", 1.2, IIf(ChgCVM >= 0, colorGreen, colorRed),-1);
+Filter = 1;

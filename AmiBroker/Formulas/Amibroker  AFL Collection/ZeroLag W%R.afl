@@ -1,0 +1,42 @@
+/*ZeroLag W%R*/
+"========";
+
+GraphXSpace = 3;
+
+R = ((HHV(H,14) - C) /(HHV (H,14) -LLV (L,14))) *-100;
+
+MaxGraph=10;
+Period= 10;
+EMA1= EMA(R,Period);
+EMA2= EMA(EMA1,5);
+Difference= EMA1 - EMA2;
+ZeroLagEMA= EMA1 + Difference;
+PR=100-abs(ZeroLagEMA);
+
+Graph0=PR;
+
+MoveAvg=MA(PR,5);
+
+
+Graph1=MoveAvg;
+
+Graph1Color=colorYellow;
+Graph0Style=4;
+upbar= PR>= MoveAvg AND PR>= Ref(PR,-1) ;
+downbar=(PR < MoveAvg) OR PR>= MoveAvg AND PR< Ref(PR,-1) ;
+barcolor = IIf( downbar,colorRed, IIf( upbar, colorBrightGreen, 7));
+Graph0BarColor = ValueWhen( barcolor != 0, barcolor );
+Graph2=20;
+Graph3=80;
+
+Graph2Style=Graph3Style=Graph4Style=1;
+Graph4Color=2;
+Graph2Color=5;
+Graph3Color=4;
+
+Graph5=0;
+Graph6=100;
+Graph5Style=Graph6Style=1;
+Graph5Color=Graph6Color=2;
+
+Title=Name()+"  < ZeroLag W%R :"+WriteVal(PR)+"%";

@@ -1,0 +1,9 @@
+_SECTION_BEGIN("multiple timeframe60mt");
+n=Param("TM",1,1,60,1);
+n_open = TimeFrameGetPrice("O",n*in1Minute*60,0,expandPoint); 
+n_high = TimeFrameGetPrice("H",n*in1Minute*60,0,expandPoint); 
+n_low = TimeFrameGetPrice("L",n*in1Minute*60,0,expandPoint); 
+n_close = TimeFrameGetPrice("C",n*in1Minute*60,0,expandPoint); 
+
+
+PlotOHLC(n_open,n_high,n_low,n_close,"TM",colorBlack,styleCandle);

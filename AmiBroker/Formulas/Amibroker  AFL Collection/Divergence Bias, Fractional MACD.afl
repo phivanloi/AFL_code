@@ -1,0 +1,22 @@
+_SECTION_BEGIN("Divergence Bias, Fractional MACD");
+r1 = Param("Fast EMA",12,1,100,1);
+r2 = Param("Slow EMA",26,1,100,1);
+r3 = Param("Signal Periods", 9, 1, 100, 1);
+P = ParamField("Price field", -1);
+
+// S, L- bar fractional MACD
+function fracMACD( r1, r2 )
+{
+    return EMA( P, r1 ) / EMA( P, r2 );
+} 
+
+x = fracMACD(r1, r2);
+y = EMA(fracMACD(r1, r2), r3);
+
+Color = IIf((x > Ref(x,-1) AND x < 1), colorYellow, IIf((x > Ref(x,-1) AND x > 1), colorLime, IIf((x < Ref(x,-1) AND x > 1), colorOrange, IIf((x < Ref(x,-1) AND x < 1), colorRed,0))));
+
+Plot(x, "MACD("+r1+","+r2+")", Color, styleThick);
+Plot(y, "Signal("+r3+")", colorPink, styleDashed);
+
+PlotGrid(1, colorLightGrey);
+_SECTION_END();

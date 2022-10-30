@@ -1,0 +1,101 @@
+// Downloaded From https://www.WiseStockTrader.com
+// By Barry Scarborough 7/14/2008, updated to handle large files 8/30/08,
+
+// Updated By Abhishek Gupta 27/02/2014
+// Added date filter to export data between a range
+// Added text files working
+// Removed file division
+// V: 2.0
+
+// Updated
+// #### READ THIS FIRST #### READ THIS FIRST #### READ THIS FIRST #### READ THIS FIRST #### READ THIS FIRST ####
+// Export intraday and EOD data to .csx/.txt files 
+// One file for each stock but the symbol name must be a valid Microsoft file Name OR you will have to modify it, see code below to change Name
+// This will create a directory C:\AmiBackup
+// Select your symbols to export with the "Apply to" filter in Analysis window, to save data base use all symbols AND all quotes or quotes from the period you want to backup
+// Make sure the chart is on the period you want to save 
+// Select the same timeframe period you want to save as using the Analysis "Settings"
+// Press Scan button
+// 
+
+// created a directory on your C drive named AmiBroker data backup
+dayhours = ParamToggle("Day hours only", "No|Yes", 0);
+filetype	= ParamList("File type", "csv,txt", 0);
+startyear	= Param("Start year", 2010, 2000, 2050, 1);
+startmonth	= Param("Start month", 1, 1, 12, 1);
+startday	= Param("Start day", 1, 1, 31, 1);
+endyear	= Param("End year", startyear+1, 2000, 2050, 1);
+endmonth	= Param("End month", 1, 1, 12, 1);
+endday		= Param("End day", 1, 1, 31, 1);
+startdate	= startyear*10000 + startmonth * 100 + startday;
+enddate	= endyear*10000 + endmonth * 100 + endday;
+
+fmkdir("c:\\AmiBackup\\");
+SetBarsRequired(100000,100000);
+lname = Name(); // gets the name of the symbol
+// note: if you have names with invalid characters like / you must rename the file before you try to create a Name 
+// add an IF line for each symbol you need to rename
+if (lname == "ER2U8-GLOBEX-FUT") lname = "ER2U8";
+
+fh = fopen( "c:\\AmiBackup\\" + lname + "." + filetype, "w"); 
+if( fh ) { 
+	if(Interval() == inDaily OR Interval() == inMonthly OR Interval() ==inWeekly) {
+		fputs( "Ticker,Date,Open,High,Low,Close,Volume \n", fh );
+	   	for( i = 0; i < BarCount; i++ ) { 
+ 		  	y = Year(); 
+ 		  	m = Month(); 
+		   	d = Day(); 
+			if (startdate<= y[i]*10000 + m[i]*100 + d[i] AND y[i]*10000 + m[i]*100 + d[i] < enddate) {
+				fputs( Name() + "," , fh );
+   			   	//ds = StrFormat("%02.0f%02.0f%02.0f,", m[ i ], d[ i ], y[ i ] ); 
+				ds = StrFormat("%02.0f%02.0f%02.0f,", y[ i ], m[ i ], d[ i ] );
+	   	   		fputs( ds, fh ); 
+		      	qs = StrFormat("%.2f,%.2f,%.2f,%.2f,%.0f,%.0f\n", O[ i ],H[ i ],L[ i ],C[ i ],V[ i ], OpenInt[ i ] );
+      			fputs( qs, fh ); 
+			}
+		}
+	} else { // intraday so add time field
+		//fputs( "Ticker,Date,Time,Open,High,Low,Close,Volume \n", fh );
+		fputs( "Ticker,Date,Time,Open,High,Low,Close,Volume,O/I \n", fh ); 
+ 	  	y = Year(); 
+ 	  	m = Month(); 
+	   	d = Day(); 
+	   	r = Hour();
+	   	e = Minute();
+	   	n = Second();
+   
+	   	for( i = 1; i < BarCount; i++ ) {
+			if (startdate<= y[i]*10000 + m[i]*100 + d[i] AND y[i]*10000 + m[i]*100 + d[i] < enddate) {
+				if (dayhours AND LastValue(TimeNum()) >= 91500 AND LastValue(TimeNum()) <=153100) {
+					fputs( Name() + "," , fh );
+					//ds = StrFormat("%02.0f-%02.0f-%02.0f,", m[ i ], d[ i ], y[ i ] ); 
+	 		   	  	ds = StrFormat("%02.0f%02.0f%02.0f,", y[ i ], m[ i ], d[ i ] );
+   				   	fputs( ds, fh ); 
+ 
+  	   		 		ts = StrFormat("%02.0f:%02.0f:%02.0f,", r[ i ], e[ i ], n[ i ] ); 
+  	    			fputs( ts, fh ); 
+
+	 	     		//qs = StrFormat("%.4f,%.4f,%.4f,%.4f,%.0f\n", O[ i ],H[ i ],L[ i ],C[ i ],V[ i ] ); 
+		 	     	qs = StrFormat("%.2f,%.2f,%.2f,%.2f,%.0f,%.0f\n", O[ i ],H[ i ],L[ i ],C[ i ],V[ i ], OpenInt[ i ] );
+			      	fputs( qs, fh ); 
+				}
+				if (!dayhours) { 
+					fputs( Name() + "," , fh );
+					//ds = StrFormat("%02.0f-%02.0f-%02.0f,", m[ i ], d[ i ], y[ i ] );
+	 		     	ds = StrFormat("%02.0f%02.0f%02.0f,", y[ i ], m[ i ], d[ i ] );
+   				   	fputs( ds, fh ); 
+ 	
+  		    		ts = StrFormat("%02.0f:%02.0f:%02.0f,", r[ i ], e[ i ], n[ i ] ); 
+  	   		 		fputs( ts, fh ); 
+
+					//qs = StrFormat("%.4f,%.4f,%.4f,%.4f,%.0f\n", O[ i ],H[ i ],L[ i ],C[ i ],V[ i ],OpenInt[i] ); 
+	 	     		qs = StrFormat("%.2f,%.2f,%.2f,%.2f,%.0f,%.0f\n", O[ i ],H[ i ],L[ i ],C[ i ],V[ i ],OpenInt[i] ); 
+			      	fputs( qs, fh ); 
+				}
+			}
+ 	  	} 
+	}
+   	fclose( fh ); 
+} 
+
+Buy = 1;

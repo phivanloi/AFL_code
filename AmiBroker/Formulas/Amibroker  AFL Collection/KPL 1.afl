@@ -1,0 +1,54 @@
+_SECTION_BEGIN("Price");
+
+upbar = C > Ref( H, -1 );
+downbar = C < Ref( L, -1 );
+
+
+/* Colourized price bars drawn here */
+Graph0 = Close;
+Graph0Style = 128;
+
+barcolor = IIf( downbar, colorRed, IIf( upbar, colorGreen, colorGrey40 ) );
+Graph0BarColor = ValueWhen( barcolor != 0, barcolor );
+// Only allowed in recent Beta
+//SetBarFillColor = ValueWhen( barcolor != 0, barcolor );
+
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g,
+Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle |ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+
+_SECTION_BEGIN("Shiree count back");
+
+// User defined parameters.
+
+GraphXSpace = 10; //defines how much extra space should be added above and below graph line (in percent).
+
+
+PH= ValueWhen((Ref(H,-2) > Ref(H, -4)) AND (Ref(H,-2) > Ref(H, -3)) AND (Ref(H,-2) > Ref(H, -1)) AND (Ref(H,-2) > H), Ref(H,-2));
+
+PL= ValueWhen((Ref(L,-2) <= Ref(L, -4))AND (Ref(L,-2) <= Ref(L, -3))AND (Ref(L,-2) <= Ref(L, -1)) AND(Ref(L,-2) <= L), Ref(L,-2));
+
+Plot(Ref(PH,2), "UpPivot", ParamColor("UpPivot Color",colorRed), styleDashed);
+Plot(Ref(PL,2), "DownPivot",ParamColor("DownPivot Color",colorGreen), styleDashed);
+Buy = C> PH;
+
+Sell = C< PL;
+
+Buy = ExRem(Buy,Sell);
+Sell= ExRem(Sell,Buy);
+
+Short = Sell;
+Cover = Buy;
+
+Short=ExRem(Short,Cover);
+Cover=ExRem(Cover,Short);
+
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ),0, IIf( Buy, Low, High ) );
+
+
+_SECTION_END();

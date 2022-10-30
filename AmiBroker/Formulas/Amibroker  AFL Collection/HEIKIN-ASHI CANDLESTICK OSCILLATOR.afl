@@ -1,0 +1,61 @@
+function ZeroLagTEMA( array, period ) 
+{ 
+ TMA1 = TEMA( array, period ); 
+ TMA2 = TEMA( TMA1, period ); 
+ Diff = TMA1 - TMA2; 
+ return TMA1 + Diff ; 
+} 
+
+///////////////////// 
+// Heikin-Ashi code 
+HaClose = (O+H+L+C)/4; 
+HaOpen = AMA( Ref( HaClose, -1 ), 0.5 ); 
+
+avp = Param("Up TEMA avg", 34, 1, 100 ); 
+avpdn = Param("Dn TEMA avg", 34, 1, 100 ); 
+
+// Velvoort is using not original, but modified Heikin-Ashi close 
+HaClose = ( HaClose + HaOpen + Max( H, HaOpen ) + Min( L, HaOpen ) )/4; 
+
+// up average 
+ZlHa = ZeroLagTEMA( HaClose, avp ); 
+ZlCl = ZeroLagTEMA( ( H + L ) / 2, avp ); 
+ZlDif = ZlCl - ZlHa; 
+
+keep1 = Hold( HaClose >= HaOpen, 2 ); 
+keep2 = ZlDif >= 0; 
+keeping = keep1 OR keep2; 
+keepall = keeping OR ( Ref( keeping, -1 ) AND ( C > O ) OR C >= Ref( C, -1 ) ); 
+keep3 = abs( C - O ) < ( H - L ) * 0.35 AND H >= Ref( L, -1 ); 
+utr = keepall OR ( Ref( keepall, -1 ) AND keep3 ); 
+
+// dn average 
+ZlHa = ZeroLagTEMA( HaClose, avpdn ); 
+ZlCl = ZeroLagTEMA( ( H + L ) / 2, avpdn ); 
+ZlDif = ZlCl - ZlHa; 
+
+keep1 = Hold( HaClose < HaOpen, 2 ); 
+keep2 = ZlDif < 0; 
+keeping = keep1 OR keep2; 
+keepall = keeping OR ( Ref( keeping, -1 ) AND ( C < O ) OR C < Ref( C, -1 ) ); 
+keep3 = abs( C - O ) < ( H - L ) * 0.35 AND L <= Ref( H, -1 ); 
+dtr = keepall OR ( Ref( keepall, -1 ) AND keep3 ); 
+
+upw = dtr == 0 AND Ref( dtr, -1 ) AND utr; 
+dnw = utr == 0 AND Ref( utr, -1 ) AND dtr; 
+
+Haco = Flip( upw, dnw ); 
+
+
+if( ParamToggle("Chart Type", "Price with color back|HACO wave" ) ) 
+{ 
+ Plot( Haco, "Haco", colorRed ); 
+} 
+else 
+{ 
+ Plot( C, "Close", colorBlack, 
+       ParamStyle( "Style", styleCandle, maskPrice ) ); 
+ Plot( 1, "", IIf( Haco , colorPaleGreen, colorRose ), 
+       styleArea | styleOwnScale, 0, 1 ); 
+}
+

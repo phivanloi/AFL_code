@@ -1,0 +1,379 @@
+_SECTION_BEGIN("Master_FPSR+ wolfe combined_1_2_5_8_12 liberal +RSI div");
+/*Wolf Buy Pattern*/
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////  CONDITION CHANGE  1  ///////////////////////////////////////////////////////////////////////////////////////
+
+P13=Peak(High,1,3);
+T13=Trough(Low,1,3);
+P12=Peak(High,1,2);
+T12=Trough(Low,1,2);
+P11=Peak(High,1,1);
+T11=Trough(Low,1,1);
+
+P13B=PeakBars(High,1,3);
+T13B=TroughBars(Low,1,3);
+P12B=PeakBars(High,1,2);
+T12B=TroughBars(Low,1,2);
+P11B=PeakBars(High,1,1);
+T11B=TroughBars(Low,1,1);
+
+aT11=T13B-T12B;
+aT12=T12B-T11B;
+
+aP11=P13B-P12B;
+aP12=P12B-P11B;
+
+WolfB1=T11B<1 AND T13B>P12B AND P12B>T12B AND T12B>P11B AND P11B>T11B AND P12>T12 AND P11>T11 AND P12>1.1*P11 AND T13>1.1*T12 AND T12>1.05*T11  AND (P12-T13)>1.05*(P11-T12) AND (T12<P12-1.05*(P12-T13) AND T12>P12-1.7*(P12-T13)) AND (P11>T12+0.38*(P12-T12) AND P11<T12+0.9*(P12-T12)) AND  (T11<P11-1.05*(P11-T12) AND  T11>P11-1.9*(P11-T12)) AND (AT11>0.7*AT12 AND AT11<1.25*AT12); 
+WolfB11=T11B<1 AND T13B>P12B AND P12B>T12B AND T12B>P11B AND P11B>T11B AND P12>T12 AND P11>T11 AND P12>P11 AND T13>T12 AND T12>T11  AND (P12-T13)>(P11-T12) AND (T12<P12-1.05*(P12-T13) AND T12>P12-1.9*(P12-T13)) AND (P11>T12+0.38*(P12-T12) AND P11<T12+0.9*(P12-T12)) AND  (T11<P11-1.05*(P11-T12) AND  T11>P11-2.2*(P11-T12)) AND (AT11>0.7*AT12 AND AT11<1.25*AT12);
+
+WolfS1=P11B<1 AND  P13B>T12B AND T12B>P12B AND P12B>T11B AND T11B>P11B AND P13>T12 AND T11>T12 AND P12>P13 AND P12>T11 AND P11>P12  AND (P13-T12)>1.05*(P12-T11) AND (P12>T12+1.05*(P13-T12) AND P12<T12+1.7*(P13-T12)) AND (T11>T12+0.38*(P12-T12) AND T11<T12+0.9*(P12-T12)) AND (P11>T11+1.05*(P12-T11) AND  P11<T11+1.9*(P12-T11)) AND (AP11>0.7*AP12 AND AP11<1.25*AP12) ; 
+WolfS11=P11B<1 AND  P13B>T12B AND T12B>P12B AND P12B>T11B AND T11B>P11B AND P13>T12 AND T11>T12 AND P12>P13 AND P12>T11 AND P11>P12  AND (P13-T12)>(P12-T11) AND (P12>T12+1.03*(P13-T12) AND P12<T12+1.8*(P13-T12)) AND (T11>T12+0.3*(P12-T12) AND T11<T12+0.9*(P12-T12)) AND (P11>T11+1.03*(P12-T11) AND  P11<T11+2.2*(P12-T11)) AND (AP11>0.6*AP12 AND AP11<1.35*AP12) ;
+
+PlotShapes(WolfS1*shapeDownTriangle,colorRed, 0, High, Offset =-40);
+PlotShapes(WolfS1*shapeDigit1,colorRed, 0, High, Offset =55);
+PlotShapes(WolfS11*shapeDownTriangle,colorDarkRed, 0, High, Offset =-10);
+PlotShapes(WolfS11*shapeDigit2,colorDarkRed, 0, High, Offset =25);
+
+
+PlotShapes(WolfB1*shapeUpTriangle,colorBrightGreen, 0, Low, Offset =0);
+PlotShapes(WolfB1*shapeDigit1,colorBrightGreen, 0, Low, Offset =-15);
+PlotShapes(WolfB11*shapeUpTriangle,colorGreen, 0, Low, Offset =-35);
+PlotShapes(WolfB11*shapeDigit2,colorGreen, 0, Low, Offset =-50);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////  CONDITION CHANGE  2  ///////////////////////////////////////////////////////////////////////////////////////
+
+P23=Peak(High,2,3);
+T23=Trough(Low,2,3);
+P22=Peak(High,2,2);
+T22=Trough(Low,2,2);
+P21=Peak(High,2,1);
+T21=Trough(Low,2,1);
+
+P23B=PeakBars(High,2,3);
+T23B=TroughBars(Low,2,3);
+P22B=PeakBars(High,2,2);
+T22B=TroughBars(Low,2,2);
+P21B=PeakBars(High,2,1);
+T21B=TroughBars(Low,2,1);
+
+aT21=T23B-T22B;
+aT22=T22B-T21B;
+
+aP21=P23B-P22B;
+aP22=P22B-P21B;
+
+WolfB2=T21B<1 AND T23B>P22B AND P22B>T22B AND T22B>P21B AND P21B>T21B AND P22>T22 AND P21>T21 AND P22>1.1*P21 AND T23>1.1*T22 AND T22>1.05*T21  AND (P22-T23)>1.05*(P21-T22) AND (T22<P22-1.05*(P22-T23) AND T22>P22-1.7*(P22-T23)) AND (P21>T22+0.38*(P22-T22) AND P21<T22+0.9*(P22-T22)) AND  (T21<P21-1.05*(P21-T22) AND  T21>P21-1.9*(P21-T22)) AND (AT21>0.7*AT22 AND AT21<1.25*AT22); 
+WolfB21=T21B<1 AND T23B>P22B AND P22B>T22B AND T22B>P21B AND P21B>T21B AND P22>T22 AND P21>T21 AND P22>P21 AND T23>T22 AND T22>T21  AND (P22-T23)>(P21-T22) AND (T22<P22-1.05*(P22-T23) AND T22>P22-1.7*(P22-T23)) AND (P21>T22+0.38*(P22-T22) AND P21<T22+0.9*(P22-T22)) AND  (T21<P21-1.05*(P21-T22) AND  T21>P21-1.9*(P21-T22)) AND (AT21>0.7*AT22 AND AT21<1.25*AT22);
+
+WolfS2=P21B<1 AND  P23B>T22B AND T22B>P22B AND P22B>T21B AND T21B>P21B AND P23>T22 AND T21>T22 AND P22>P23 AND P22>T21 AND P21>P22  AND (P23-T22)>1.05*(P22-T21) AND (P22>T22+1.05*(P23-T22) AND P22<T22+1.7*(P23-T22)) AND (T21>T22+0.38*(P22-T22) AND T21<T22+0.9*(P22-T22)) AND (P21>T21+1.05*(P22-T21) AND  P21<T21+1.9*(P22-T21)) AND (AP21>0.7*AP22 AND AP21<1.25*AP22) ; 
+WolfS21=P21B<1 AND  P23B>T22B AND T22B>P22B AND P22B>T21B AND T21B>P21B AND P23>T22 AND T21>T22 AND P22>P23 AND P22>T21 AND P21>P22  AND (P23-T22)>(P22-T21) AND (P22>T22+1.03*(P23-T22) AND P22<T22+1.8*(P23-T22)) AND (T21>T22+0.3*(P22-T22) AND T21<T22+0.9*(P22-T22)) AND (P21>T21+1.03*(P22-T21) AND  P21<T21+2*(P22-T21)) AND (AP21>0.6*AP22 AND AP21<1.35*AP22) ;
+
+PlotShapes(WolfS2*shapeDownTriangle,colorRed, 0, High, Offset =-40);
+PlotShapes(WolfS2*shapeDigit1,colorRed, 0, High, Offset =55);
+PlotShapes(WolfS21*shapeDownTriangle,colorDarkRed, 0, High, Offset =-10);
+PlotShapes(WolfS21*shapeDigit2,colorDarkRed, 0, High, Offset =25);
+
+PlotShapes(WolfB2*shapeUpTriangle,colorBrightGreen, 0, Low, Offset =0);
+PlotShapes(WolfB2*shapeDigit1,colorBrightGreen, 0, Low, Offset =-15);
+PlotShapes(WolfB21*shapeUpTriangle,colorGreen, 0, Low, Offset =-35);
+PlotShapes(WolfB21*shapeDigit2,colorGreen, 0, Low, Offset =-50);
+
+////////////////////////////////////////////////////  CONDITION CHANGE   5  //////////////////////////////////////////////////////////
+P53=Peak(High,5,3);
+T53=Trough(Low,5,3);
+P52=Peak(High,5,2);
+T52=Trough(Low,5,2);
+P51=Peak(High,5,1);
+T51=Trough(Low,5,1);
+
+P53B=PeakBars(High,5,3);
+T53B=TroughBars(Low,5,3);
+P52B=PeakBars(High,5,2);
+T52B=TroughBars(Low,5,2);
+P51B=PeakBars(High,5,1);
+T51B=TroughBars(Low,5,1);
+
+aT51=T53B-T52B;
+aT52=T52B-T51B;
+
+aP51=P53B-P52B;
+aP52=P52B-P51B;
+
+WolfB5=T51B<1 AND T53B>P52B AND P52B>T52B AND T52B>P51B AND P51B>T51B AND P52>T52 AND P51>T51 AND P52>1.1*P51 AND T53>1.1*T52 AND T52>1.05*T51  AND (P52-T53)>1.05*(P51-T52) AND (T52<P52-1.05*(P52-T53) AND T52>P52-1.7*(P52-T53)) AND (P51>T52+0.38*(P52-T52) AND P51<T52+0.9*(P52-T52)) AND  (T51<P51-1.05*(P51-T52) AND  T51>P51-1.9*(P51-T52)) AND (AT51>0.7*AT52 AND AT51<1.25*AT52); 
+WolfB51=T51B<1 AND T53B>P52B AND P52B>T52B AND T52B>P51B AND P51B>T51B AND P52>T52 AND P51>T51 AND P52>P51 AND T53>T52 AND T52>T51  AND (P52-T53)>(P51-T52) AND (T52<P52-1.05*(P52-T53) AND T52>P52-1.7*(P52-T53)) AND (P51>T52+0.38*(P52-T52) AND P51<T52+0.9*(P52-T52)) AND  (T51<P51-1.05*(P51-T52) AND  T51>P51-1.9*(P51-T52)) AND (AT51>0.7*AT52 AND AT51<1.25*AT52); 
+
+WolfS5=P51B<1 AND  P53B>T52B AND T52B>P52B AND P52B>T51B AND T51B>P51B AND P53>T52 AND T51>T52 AND P52>P53 AND P52>T51 AND P51>P52  AND (P53-T52)>1.05*(P52-T51) AND (P52>T52+1.05*(P53-T52) AND P52<T52+1.7*(P53-T52)) AND (T51>T52+0.38*(P52-T52) AND T51<T52+0.9*(P52-T52)) AND (P51>T51+1.05*(P52-T51) AND  P51<T51+1.9*(P52-T51)) AND (AP51>0.7*AP52 AND AP51<1.25*AP52) ; 
+WolfS51=P51B<1 AND  P53B>T52B AND T52B>P52B AND P52B>T51B AND T51B>P51B AND P53>T52 AND T51>T52 AND P52>P53 AND P52>T51 AND P51>P52  AND (P53-T52)>(P52-T51) AND (P52>T52+1.03*(P53-T52) AND P52<T52+1.8*(P53-T52)) AND (T51>T52+0.3*(P52-T52) AND T51<T52+0.9*(P52-T52)) AND (P51>T51+1.03*(P52-T51) AND  P51<T51+2*(P52-T51)) AND (AP51>0.6*AP52 AND AP51<1.35*AP52) ; 
+
+PlotShapes(WolfS5*shapeDownTriangle,colorRed, 0, High, Offset =-40);
+PlotShapes(WolfS5*shapeDigit1,colorRed, 0, High, Offset =55);
+
+PlotShapes(WolfS51*shapeDownTriangle,colorDarkRed, 0, High, Offset =-10);
+PlotShapes(WolfS51*shapeDigit2,colorDarkRed, 0, High, Offset =25);
+
+PlotShapes(WolfB5*shapeUpTriangle,colorBrightGreen, 0, Low, Offset =0);
+PlotShapes(WolfB5*shapeDigit1,colorBrightGreen, 0, Low, Offset =-15);
+
+PlotShapes(WolfB51*shapeUpTriangle,colorGreen, 0, Low, Offset =-35);
+PlotShapes(WolfB51*shapeDigit2,colorGreen, 0, Low, Offset =-50);
+
+///////////////////////////////////////////////////////  CONDITION CHANGE  8  ///////////////////////////////////////////////////////
+
+P83=Peak(High,8,3);
+T83=Trough(Low,8,3);
+P82=Peak(High,8,2);
+T82=Trough(Low,8,2);
+P81=Peak(High,8,1);
+T81=Trough(Low,8,1);
+
+P83B=PeakBars(High,8,3);
+T83B=TroughBars(Low,8,3);
+P82B=PeakBars(High,8,2);
+T82B=TroughBars(Low,8,2);
+P81B=PeakBars(High,8,1);
+T81B=TroughBars(Low,8,1);
+
+aT81=T83B-T82B;
+aT82=T82B-T81B;
+
+aP81=P83B-P82B;
+aP82=P82B-P81B;
+
+WolfB8=T81B<1 AND T83B>P82B AND P82B>T82B AND T82B>P81B AND P81B>T81B AND P82>T82 AND P81>T81 AND P82>1.1*P81 AND T83>1.1*T82 AND T82>1.05*T81  AND (P82-T83)>1.05*(P81-T82) AND (T82<P82-1.05*(P82-T83) AND T82>P82-1.7*(P82-T83)) AND (P81>T82+0.38*(P82-T82) AND P81<T82+0.9*(P82-T82)) AND  (T81<P81-1.05*(P81-T82) AND  T81>P81-1.9*(P81-T82)) AND (AT81>0.7*AT82 AND AT81<1.25*AT82); 
+WolfB81=T81B<1 AND T83B>P82B AND P82B>T82B AND T82B>P81B AND P81B>T81B AND P82>T82 AND P81>T81 AND P82>P81 AND T83>T82 AND T82>T81  AND (P82-T83)>(P81-T82) AND (T82<P82-1.05*(P82-T83) AND T82>P82-1.7*(P82-T83)) AND (P81>T82+0.38*(P82-T82) AND P81<T82+0.9*(P82-T82)) AND  (T81<P81-1.05*(P81-T82) AND  T81>P81-1.9*(P81-T82)) AND (AT81>0.7*AT82 AND AT81<1.25*AT82); 
+
+WolfS8=P81B<1 AND  P83B>T82B AND T82B>P82B AND P82B>T81B AND T81B>P81B AND P83>T82 AND T81>T82 AND P82>P83 AND P82>T81 AND P81>P82  AND (P83-T82)>1.05*(P82-T81) AND (P82>T82+1.05*(P83-T82) AND P82<T82+1.7*(P83-T82)) AND (T81>T82+0.38*(P82-T82) AND T81<T82+0.9*(P82-T82)) AND (P81>T81+1.05*(P82-T81) AND  P81<T81+1.9*(P82-T81)) AND (AP81>0.7*AP82 AND AP81<1.25*AP82) ; 
+WolfS81=P81B<1 AND  P83B>T82B AND T82B>P82B AND P82B>T81B AND T81B>P81B AND P83>T82 AND T81>T82 AND P82>P83 AND P82>T81 AND P81>P82  AND (P83-T82)>(P82-T81) AND (P82>T82+1.03*(P83-T82) AND P82<T82+1.8*(P83-T82)) AND (T81>T82+0.3*(P82-T82) AND T81<T82+0.9*(P82-T82)) AND (P81>T81+1.03*(P82-T81) AND  P81<T81+2*(P82-T81)) AND (AP81>0.6*AP82 AND AP81<1.35*AP82) ; 
+
+
+PlotShapes(WolfS8*shapeDownTriangle,colorRed, 0, High, Offset =-40);
+PlotShapes(WolfS8*shapeDigit1,colorRed, 0, High, Offset =55);
+
+PlotShapes(WolfS81*shapeDownTriangle,colorDarkRed, 0, High, Offset =-10);
+PlotShapes(WolfS81*shapeDigit2,colorDarkRed, 0, High, Offset =25);
+
+PlotShapes(WolfB8*shapeUpTriangle,colorBrightGreen, 0, Low, Offset =0);
+PlotShapes(WolfB8*shapeDigit1,colorBrightGreen, 0, Low, Offset =-15);
+
+PlotShapes(WolfB81*shapeUpTriangle,colorGreen, 0, Low, Offset =-35);
+PlotShapes(WolfB81*shapeDigit2,colorGreen, 0, Low, Offset =-50);
+
+///////////////////////////////////////////////////////  CONDITION CHANGE  12  ///////////////////////////////////////////////////////
+pdX=12;
+PX3=Peak(High,pdX,3);
+TX3=Trough(Low,pdX,3);
+PX2=Peak(High,pdX,2);
+TX2=Trough(Low,pdX,2);
+PX1=Peak(High,pdX,1);
+TX1=Trough(Low,pdX,1);
+
+PX3B=PeakBars(High,pdX,3);
+TX3B=TroughBars(Low,pdX,3);
+PX2B=PeakBars(High,pdX,2);
+TX2B=TroughBars(Low,pdX,2);
+PX1B=PeakBars(High,pdX,1);
+TX1B=TroughBars(Low,pdX,1);
+
+aTX1=TX3B-TX2B;
+aTX2=TX2B-TX1B;
+
+aPX1=PX3B-PX2B;
+aPX2=PX2B-PX1B;
+
+WolfB12=TX1B<1 AND TX3B>PX2B AND PX2B>TX2B AND TX2B>PX1B AND PX1B>TX1B AND PX2>TX2 AND PX1>TX1 AND PX2>1.1*PX1 AND TX3>1.1*TX2 AND TX2>1.05*TX1  AND (PX2-TX3)>1.05*(PX1-TX2) AND (TX2<PX2-1.05*(PX2-TX3) AND TX2>PX2-1.7*(PX2-TX3)) AND (PX1>TX2+0.38*(PX2-TX2) AND PX1<TX2+0.9*(PX2-TX2)) AND (TX1<PX1-1.05*(PX1-TX2) AND  TX1>PX1-1.9*(PX1-TX2)) AND (ATX1>0.7*ATX2 AND ATX1<1.25*ATX2); 
+WolfB112=TX1B<1 AND TX3B>PX2B AND PX2B>TX2B AND TX2B>PX1B AND PX1B>TX1B AND PX2>TX2 AND PX1>TX1 AND PX2>PX1 AND TX3>TX2 AND TX2>TX1  AND (PX2-TX3)>(PX1-TX2) AND (TX2<PX2-1.05*(PX2-TX3) AND TX2>PX2-1.7*(PX2-TX3)) AND (PX1>TX2+0.38*(PX2-TX2) AND PX1<TX2+0.9*(PX2-TX2)) AND  (TX1<PX1-1.05*(PX1-TX2) AND  TX1>PX1-1.9*(PX1-TX2)) AND (ATX1>0.7*ATX2 AND ATX1<1.25*ATX2); 
+
+WolfS12=PX1B<1 AND   PX3B>TX2B AND TX2B>PX2B AND PX2B>TX1B AND TX1B>PX1B AND PX3>TX2 AND TX1>TX2 AND PX2>PX3 AND PX2>TX1 AND PX1>PX2  AND (PX3-TX2)>1.05*(PX2-TX1) AND (PX2>TX2+1.05*(PX3-TX2) AND PX2<TX2+1.7*(PX3-TX2)) AND (TX1>TX2+0.38*(PX2-TX2) AND TX1<TX2+0.9*(PX2-TX2)) AND (PX1>TX1+1.05*(PX2-TX1) AND  PX1<TX1+1.9*(PX2-TX1)) AND (APX1>0.7*APX2 AND APX1<1.25*APX2) ; 
+WolfS112=PX1B<1 AND PX3B>TX2B AND TX2B>PX2B AND PX2B>TX1B AND TX1B>PX1B AND PX3>TX2 AND TX1>TX2 AND PX2>PX3 AND PX2>TX1 AND PX1>PX2  AND (PX3-TX2)>(PX2-TX1) AND (PX2>TX2+1.03*(PX3-TX2) AND PX2<TX2+1.8*(PX3-TX2)) AND (TX1>TX2+0.3*(PX2-TX2) AND TX1<TX2+0.9*(PX2-TX2)) AND (PX1>TX1+1.03*(PX2-TX1) AND  PX1<TX1+2*(PX2-TX1)) AND (APX1>0.6*APX2 AND APX1<1.35*APX2) ; 
+
+PlotShapes(WolfS12*shapeDownTriangle,colorRed, 0, High, Offset =-40);
+PlotShapes(WolfS12*shapeDigit1,colorRed, 0, High, Offset =55);
+
+PlotShapes(WolfS112*shapeDownTriangle,colorDarkRed, 0, High, Offset =-10);
+PlotShapes(WolfS112*shapeDigit2,colorDarkRed, 0, High, Offset =25);
+
+PlotShapes(WolfB12*shapeUpTriangle,colorBrightGreen, 0, Low, Offset =0);
+PlotShapes(WolfB12*shapeDigit1,colorBrightGreen, 0, Low, Offset =-15);
+
+PlotShapes(WolfB112*shapeUpTriangle,colorGreen, 0, Low, Offset =-35);
+PlotShapes(WolfB112*shapeDigit2,colorGreen, 0, Low, Offset =-50);
+
+
+///////////////////////////////////////////////  WOLF CUMULATIVE ///////////////////////////////////////////////////
+
+WolfB=WolfB1 OR WolfB11 OR WolfB2 OR WolfB21 OR WolfB5 OR WolfB51 OR WolfB8 OR WolfB81 OR WolfB12 OR WolfB112 ;
+
+WolfS= WolfS1 OR  WolfS11 OR  WolfS2 OR  WolfS21 OR  WolfS5 OR  WolfS51 OR  WolfS8 OR  WolfS81 OR  WolfS12 OR WolfS112;
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+VM=V/MA(V,40);
+Vola=VM>3;
+
+///////////////////////////////////////////////////RSI DIVERGENCE ////////////////////////////////////////////////////////////////////////////////
+////_SECTION_BEGIN("RSI Divergence");
+//------------------------------------------------------------------------------
+//
+//  Formula Name:    RSI Divergence
+//  Author/Uploader:ali alsehri
+//  E-mail:          
+//  Date/Time Added: 2008-04-02 23:50:02
+//  Origin:          
+//  Keywords:        
+//  Level:           medium
+//  Flags:           indicator
+//  Formula URL:     
+//  Details URL:     
+//
+//------------------------------------------------------------------------------
+//
+//  + scanner
+//
+//------------------------------------------------------------------------------
+
+/*---------------------------------------------------
+	//RSI Divergence
+	Aron Pipa, april, 02 , 2008
+--------------------------------------------------------*/
+
+GraphXSpace=7;
+n=Param("% Reverse ",20,0,100,1);
+
+Buy=Sell=0;
+Var = Zig(RSI(), n); 
+t= Trough(RSI(), n, 1); 
+p= Peak(RSI(), n, 1); 
+x[0] =Var[0];
+price[0] = C[0];
+j=0;
+
+// bearish divergence
+for ( i=0; i<BarCount; i++) 
+{
+if(Var[i] == p[i])
+{
+
+j++;
+x[j] =Var[i];
+price[j] =C[i];
+if(x[j] <x[j-1] && price[j-1]< price[j]) 
+Sell[i] =1;
+}
+}
+
+// bullish divergence
+for ( i=0; i<BarCount; i++) 
+{
+if(Var[i] == t[i])
+{
+j++;
+x[j] =Var[i];
+price[j] =C[i];
+if(x[j] >x[j-1] && price[j]<price[j-1]) 
+Buy[i] =1;
+}
+}
+
+//Plot(Var, "", 39); 
+//PlotShapes ( IIf(Sell, shapeSmallCircle, shapeNone), colorRed, 0 , Var,0);
+//PlotShapes( IIf(Buy, shapeSmallCircle, shapeNone),  colorBrightGreen, 0, Var,0);
+
+
+PlotShapes(Sell*shapeDownArrow,colorCustom13, 0, High, Offset =-50);
+PlotShapes(Sell*shapeDigit3,colorCustom13, 0, High, Offset =65);
+
+PlotShapes(Buy*shapeUpArrow,colorLightBlue, 0, Low, Offset =30);
+PlotShapes(Buy*shapeDigit3,colorLightBlue, 0, Low, Offset =15);
+
+
+
+//////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////   STOCH  DIVERSION ////////////////////////////////////////////////////////////////////////////////
+
+
+
+GraphXSpace=7;
+n1=Param("% Reverse ",20,0,100,1);
+
+Buy=Sell=0;
+Var = Zig(StochD(14,3,3), n1); 
+t= Trough(StochD(14,3,3), n1, 1); 
+p= Peak(StochD(14,3,3), n1, 1); 
+x[0] =Var[0];
+price[0] = C[0];
+j=0;
+
+// bearish divergence
+for ( i=0; i<BarCount; i++) 
+{
+if(Var[i] == p[i])
+{
+
+j++;
+x[j] =Var[i];
+price[j] =C[i];
+if(x[j] <x[j-1] && price[j-1]< price[j]) 
+SellST[i] =1;
+}
+}
+
+// bullish divergence
+for ( i=0; i<BarCount; i++) 
+{
+if(Var[i] == t[i])
+{
+j++;
+x[j] =Var[i];
+price[j] =C[i];
+if(x[j] >x[j-1] && price[j]<price[j-1]) 
+BuyST[i] =1;
+}
+}
+
+
+
+
+//PlotShapes(SellST*shapeDownArrow,colorCustom12, 0, High, Offset =-50);
+//PlotShapes(SellST*shapeDigit4,colorCustom12, 0, High, Offset =65);
+
+//PlotShapes(BuyST*shapeUpArrow,colorGold, 0, Low, Offset =30);
+//PlotShapes(BuyST*shapeDigit4,colorGold, 0, Low, Offset =15);
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+Filter=Buy OR Sell OR BuyST OR SellST  OR WolfB1 OR WolfS1 OR WolfB11 OR WolfS11 OR WolfB2 OR WolfS2 OR WolfB21 OR WolfS21 OR WolfB5 OR WolfS5 OR WolfB51 OR WolfS51 OR WolfB8 OR WolfS8 OR WolfB81 OR WolfS81 OR WolfB12 OR WolfS12 OR WolfB112 OR WolfS112 OR (WolfB OR WolfS);
+
+AddColumn( IIf(WolfB,1,IIf(WolfS,-1,0)) ,"W",1.0,colorBlack,IIf(WolfB,colorGreen,IIf(WolfS,colorRed,colorBlack)));
+
+AddColumn( IIf(Buy,1,IIf(Sell,-1,Null)), "rsiD", 1.0,colorWhite,IIf(Buy,colorGreen,IIf(Sell,colorRed,Null)));//RSI DIVERSION
+
+AddColumn( IIf(BuyST,1,IIf(SellST,-1,Null)) ,"STO",1.0,colorWhite,IIf(BuyST,colorDarkGreen,IIf(SellST,colorRed,Null)));////STOCH   DIVERSION
+
+//AddColumn( IIf(BuyOP,1,IIf(SellOP,-1,Null)) ,"PO",1.0,colorWhite,IIf(BuyOP,colorDarkGreen,IIf(SellOP,colorRed,Null)));////STOCH   DIVERSION
+
+
+
+
+//AddColumn( IIf(WolfB1 OR WolfB11,1,IIf(WolfS1 OR WolfS11,-1,0)) ,"1",1.0,colorBlack,IIf(WolfB11 OR WolfB1,colorGreen,IIf(WolfS11 OR WolfS1,colorRed,colorBlack)));
+//AddColumn( IIf(WolfB2 OR WolfB21,1,IIf(WolfS2 OR WolfS21,-1,0)) ,"2",1.0,colorBlack,IIf(WolfB21 OR WolfB2,colorGreen,IIf(WolfS21 OR WolfS2,colorRed,colorBlack)));
+//AddColumn( IIf(WolfB5 OR WolfB51,1,IIf(WolfS5 OR WolfS51,-1,0)) ,"5",1.0,colorBlack,IIf(WolfB51 OR WolfB5,colorGreen,IIf(WolfS51 OR WolfS5,colorRed,colorBlack)));
+//AddColumn( IIf(WolfB8 OR WolfB81,1,IIf(WolfS8 OR WolfS81,-1,0)) ,"8",1.0,colorBlack,IIf(WolfB81 OR WolfB8,colorGreen,IIf(WolfS81 OR WolfS8,colorRed,colorBlack)));
+//AddColumn( IIf(WolfB12 OR WolfB112,1,IIf(WolfS12 OR WolfS112,-1,0)) ,"12",1.0,colorBlack,IIf(WolfB112 OR WolfB12,colorGreen,IIf(WolfS112 OR WolfS12,colorRed,colorBlack)));
+
+
+
+_SECTION_END();

@@ -1,0 +1,26 @@
+TOP = Param("HIGH VALUE",100,1,1000);
+BOTTOM = Param("LOW VALUE",100,1,1000);
+
+x = HHV(H,top);
+y = LLV(L,bottom);
+nil = x;
+twelveand5 = x-((x-y)*0.125);
+twenty5 = x-((x-y)*0.25);
+thirty3and3 = x-((x-y)*0.3333);
+fifty = x-((x-y)*0.5);
+sixty6and6 = x-((x-y)*0.6667);
+seventy5 = x-((x-y)*0.75);
+eighty7and5 = x-((x-y)*0.875);
+hundred = x-((x-y)*1.00);
+
+Plot(nil, "", colorRed);
+Plot(twelveand5, "", colorRed);
+Plot(twenty5, "", colorRed);
+Plot(thirty3and3, "", colorRed);
+Plot(fifty, "", colorLime);
+Plot(sixty6and6, "", colorRed);
+Plot(seventy5, "", colorRed);
+Plot(eighty7and5, "", colorRed);
+Plot(hundred, "", colorRed);
+
+Plot(C, "", colorRose, styleCandle);

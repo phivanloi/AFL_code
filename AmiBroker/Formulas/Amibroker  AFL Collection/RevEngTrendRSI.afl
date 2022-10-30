@@ -1,0 +1,26 @@
+////////////////////////////////
+// RevEngTrendRSI
+////////////////////////////////
+RSIperiod = 14;
+wper = 14;
+Day1 = Param("day for point 1", 12, 1, 31, 1 );
+Month1 = Param("month for point 1", 10, 1, 12, 1 );
+Year1 = Param("year for point 1", 1990, 1950, 2150, 1 );
+Day2 = Param("day for point 2", 9, 1, 31, 1 );
+Month2 = Param("month for point 2", 10, 1, 12, 1 );
+Year2 = Param("year for point 2", 1992, 1950, 2150, 1 );
+Date1 = Day1 == Day() AND Month1 == Month() AND Year1 == Year();
+Date2 = Day2 == Day() AND Month2 == Month() AND Year2 == Year();
+i = BarsSince( Date1 );
+j = BarsSince( Date2 );
+RSI1 = ValueWhen( Date1, RSI( RSIperiod ) );
+RSI2 = ValueWhen( Date2, RSI( RSIperiod ) );
+Value = Min(Max((RSI2-RSI1)*(i+1)/(i-j)+RSI1, 1 ), 99 );
+AUC = Wilders( Max( C - Ref( C, -1 ), 0 ), wper );
+ADC = Wilders( Max( Ref( C, -1 ) - C, 0 ), wper );
+x = ( wper - 1 )*( ADC * Value/(100-Value)-AUC);
+RevEngTrendRSI = IIf( x >= 0, C + x, C + x*(100-Value)/Value );
+Plot( Close, Date() + ", Close", colorBlack, styleCandle );
+Plot( RevEngTrendRSI, "Reverse Trend RSI", colorRed );
+
+

@@ -1,0 +1,16 @@
+_SECTION_BEGIN("JDMX");
+//SetBarsRequired(10000, 0); 
+Plot( JurikDMX( 7), "", IIf(JurikDMX( 7) > Ref(JurikDMX( 7),-1), colorWhite, colorGrey40),styleNoLabel );
+Plot( JurikDMX( 8), "", IIf(JurikDMX( 8) > Ref(JurikDMX( 8),-1), colorAqua, colorBlue),styleNoLabel );
+Plot( JurikDMX( 9), "", IIf(JurikDMX( 9) > Ref(JurikDMX( 9),-1), colorAqua, colorBlue),styleNoLabel );
+Plot( JurikDMX( 10), "", IIf(JurikDMX( 10) > Ref(JurikDMX( 10),-1), colorAqua, colorBlue),styleNoLabel );
+
+//Plot( JurikDMX( 11), "", IIf(JurikDMX( 11) > Ref(JurikDMX( 11),-1), colorBrightGreen, colorRed),styleNoLabel );
+//Plot( JurikDMX( 12), "", IIf(JurikDMX( 12) > Ref(JurikDMX( 12),-1), colorBrightGreen, colorRed),styleNoLabel );
+//Plot( JurikDMX( 13), "", IIf(JurikDMX( 13) > Ref(JurikDMX( 13),-1), colorBrightGreen, colorRed),styleNoLabel );
+Plot( JurikDMX( 14), "", IIf(JurikDMX( 14) > Ref(JurikDMX( 14),-1), colorOrange, colorRed),styleNoLabel );
+Plot( JurikDMX( 15), "", IIf(JurikDMX( 15) > Ref(JurikDMX( 15),-1), colorOrange, colorRed),styleNoLabel );
+Plot( JurikDMX( 16), "", IIf(JurikDMX( 16) > Ref(JurikDMX( 16),-1), colorOrange, colorRed),styleNoLabel );
+
+Plot(0,"",colorGrey50,styleLine);
+_SECTION_END();

@@ -1,0 +1,2 @@
+Buy 	= Cross(Close, EMA(Close, 50) );
+Sell	= Cross(EMA(Close, 50) , Close );

@@ -1,0 +1,105 @@
+_SECTION_BEGIN("MAMA");
+SetBarsRequired( 10000, 10000 );
+SetChartOptions(0,chartShowArrows|chartShowDates);
+prc = ( High + Low ) / 2;
+fastlimit = 0.5;
+slowlimit = 0.05;
+pi=4*atan(1);
+    RTD=180/pi;
+    DTR=pi/180;
+
+Cyclepart=Param("Alpha",0.5,0.1,1,0.1);
+   
+Smooth[0] = Period = Detrender[0] = I1[0] = Q1[0] = 0;
+phase[0]=deltaphase[0]=MAMA[0]=FAMA[0]=0;
+for ( i = 6; i < BarCount; i++ )
+{
+Smooth[i] = ( 4 * prc[i] + 3 * prc[i-1] + 2 * prc[i-2] + prc[i-3] ) / 10;
+AmpCorr[i] = 0.075 * Period[i-1] + 0.54;
+Detrender[i] = ( 0.0962 * Smooth[i] + 0.5769 * Smooth[i-2] - 0.5769 * Smooth[i-4] - 0.0962 * Smooth[i-6] ) * AmpCorr[i];
+Q1[i] = ( 0.0962 * Detrender[i] + 0.5769 * Detrender[i-2] - 0.5769 * Detrender[i-4] - 0.0962 * Detrender[i-6] ) * AmpCorr[i];
+I1[i] = Detrender[i-3];
+if (I1[i] != 0) phase[i] = DTR*360/atan(q1[i]/I1[i]);
+deltaphase[i]=phase[i-1]-phase[i];
+if (deltaphase[i] <1) deltaphase[i]=1;
+alpha[i]=fastlimit[i]/deltaphase[i];
+if (alpha[i] < slowlimit[i]) alpha[i]=slowlimit[i];
+MAMA[i]=alpha[i] * prc [i] +(1-alpha[i])*MAMA[i-1];
+FAMA[i]=Cyclepart*alpha[i] * prc [i] +(1-Cyclepart*alpha[i])*FAMA[i-1];
+}
+
+Plot( MAMA, "MAMA", colorBlue, styleLine|styleThick );
+Plot( FAMA, "FAMA", colorGreen, styleLine|styleThick );
+PlotOHLC(O,H,L,C,"MAMA",IIf(MAma>fama,colorLime,colorRed),styleCandle|styleThick);
+_SECTION_END();
+
+_SECTION_BEGIN("SYSTEM");
+BuySetupValue=ValueWhen(Cross(MAMA,FAMA),H,1);
+SellsetupValue=ValueWhen(Cross(FAMA,MAMA),L,1);
+Buysetup =Cross(MAMA,FAMA) ;
+Sellsetup = Cross(FAMA,MAMA);
+Longa = Flip(Buysetup,Sellsetup);
+shrta = Flip(Sellsetup,Buysetup);
+Buy=Longa AND Cross(C,BuySetupValue);
+Sell=shrta AND Cross(SellsetupValue,C);
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+t1= Flip(Buy,Sell);
+t2= Flip(Sell,Buy);
+BPrice=ValueWhen(t1 AND Ref(t1,-1)==0,C,1);
+SPrice=ValueWhen(t2 AND Ref(t2,-1)==0,C,1);
+GraphXSpace = 5;
+dist = 1.5*ATR(20); 
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "" + C[ i ], i, L[ i ]-dist[i], colorLime ); 
+if( Sell[i] ) PlotText( "" + C[ i ], i, H[ i ]+dist[i], colorRed ); 
+} 
+_SECTION_END();
+//=================TITLE================================================================================================
+_SECTION_BEGIN("Title");
+if( Status("action") == actionIndicator ) 
+(
+Title = EncodeColor(colorBlue)+ "MAMA Poistional System" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorBlue) +
+ "  - " + Date() +" - "+"\n" +EncodeColor(colorBlue) +"Op-"+O+"  "+"Hi-"+H+"  "+"Lo-"+L+"  "+
+"Cl-"+C+"  "+ "Vol= "+ WriteVal(V,1.0)+"\n"+ 
+EncodeColor(colorLime)+
+WriteIf (Buy , " GO LONG / Reverse Signal at "+C+"  ","")+
+WriteIf (Sell , " EXIT LONG / Reverse Signal at "+C+"  ","")+"\n"+EncodeColor(colorBlue)+
+WriteIf(Sell , "Total Profit/Loss for the Last Trade Rs."+(C-BPrice)+"","")+
+WriteIf(Buy  , "Total Profit/Loss for the Last trade Rs."+(SPrice-C)+"","")+
+WriteIf(Longa AND NOT Buy, "Trade : Long - Entry price Rs."+(BPrice),"")+
+WriteIf(shrta AND NOT Sell, "Trade : Short - Entry price Rs."+(SPrice),"")+"\n"+ 
+WriteIf(Longa AND NOT Buy, "Current Profit/Loss Rs."+(C-BPrice)+"","")+
+WriteIf(shrta AND NOT Sell, "Current Profit/Loss Rs."+(SPrice-C)+"",""));
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+_SECTION_END();
+WriteVal(BuyPrice);
+WriteVal(Longa);
+WriteVal(t1);
+WriteVal(SellPrice);
+WriteVal(shrta);
+_SECTION_END();
+//=========================== Back ground Text ===================
+_SECTION_BEGIN("Background text");
+GfxSetOverlayMode(1);
+GfxSelectFont("Tahoma", Status("pxheight")/6 );
+GfxSetTextAlign( 6 );// center alignment
+//GfxSetTextColor( ColorRGB( 60, 45, 80 ) );
+GfxSetTextColor( ColorHSB( 42, 42, 42 ) );
+//GfxSetTextColor( ColorHSB( 5, 5,242) );
+GfxSetBkMode(0); // transparent
+//GfxTextOut( Name(), Status("pxwidth")/2, Status("pxheight")/12 );
+GfxSelectFont("Tahoma", Status("pxheight")/12 );
+//GfxTextOut( "MAMA System", Status("pxwidth")/2, Status("pxheight")/3 );
+GfxSelectFont("Tahoma", Status("pxheight")/20 );
+//GfxTextOut( "@ www.tatechnics.in", Status("pxwidth")/2, Status("pxheight")/2 );
+GfxSelectFont("Tahoma", Status("pxheight")/40);
+//GfxTextOut( "www.tatechnics.in", Status("pxwidth")/7, Status("pxheight")/6);
+
+_SECTION_END();

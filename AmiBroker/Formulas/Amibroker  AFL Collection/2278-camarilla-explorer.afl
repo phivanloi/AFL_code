@@ -1,0 +1,109 @@
+// V1 is Camarilla weekly explorer v1.afl
+// V1 is more generalized to configure for day/week and smart enough to take care of my requirements.
+// V3 added more specific customization for selecting good trade by the system.
+
+// Mostly all enhancements are cummulative unless mentioned somewhere.
+
+_SECTION_BEGIN("CAMARILLA Explorer");
+
+camSetting = ParamToggle("Interval", "Day,Week", 0);
+camInterval = inDaily;
+if ( camSetting == 1 )
+	camInterval = inWeekly;
+
+CAMWeek = ParamToggle("Week", "ThisWeek,NextWeek", 0);
+_week = -1; // default to y'day levels which means 'Thisweek'
+if (CAMWeek==1)
+	_week = 0; // change to current if 'Nextweek' is selected
+
+DayH = TimeFrameGetPrice("H", camInterval, _week); // yesterdays high
+DayL = TimeFrameGetPrice("L", camInterval, _week); // low
+DayC = TimeFrameGetPrice("C", camInterval, _week); // close
+
+H4 = (( (DayH-DayL) * (1.1/2) ) + DayC);
+H3 = (( (DayH-DayL) * (1.1/4) ) + DayC);
+H2 = (( (DayH-DayL) * (1.1/6) ) + DayC);
+H1 = (( (DayH-DayL) * (1.1/12) ) + DayC);
+
+L1 = (DayC - ( (DayH-DayL) * (1.1/12) ));
+L2 = (DayC - ( (DayH-DayL) * (1.1/6) ));
+L3 = (DayC - ( (DayH-DayL) * (1.1/4) ));
+L4 = (DayC - ( (DayH-DayL) * (1.1/2) ));
+
+// Current week's data
+currentWeekH = TimeFrameGetPrice("H", camInterval, 0); // Current week's high
+currentWeekL = TimeFrameGetPrice("L", camInterval, 0); // low
+currentWeekC = TimeFrameGetPrice("C", camInterval, 0); // close
+
+// Explorer to locate the price in CAM weekly levels
+priceAboveH4 = C>=H4 ;
+priceBetween_H4_and_H3 = C<H4 AND C>H3 ;
+priceBetween_H3_and_H1 = C<H3 AND C>H1 ;
+
+priceBelowL4 = C<=L4 ;
+priceBetween_L4_and_L3 = C>L4 AND C<L3 ;
+priceBetween_L3_and_L1 = C>=L3 AND C<=L1 ;
+
+TradeType = ParamList("Trade Levels", 
+	"All|Above H4|Between H3 and H4|Between H3 and H1|Between L3 and L1|Between L3 and L4|Below L4|Between L3L1 and H3H1|AboveH4 BelowL4|L3L1 H3H1 H4 L4", 9);
+
+if ( TradeType == "All" )
+{
+	Cover = Buy = priceAboveH4 OR priceBetween_H4_and_H3 OR priceBetween_H3_and_H1 OR
+				      priceBelowL4 OR priceBetween_L4_and_L3 OR priceBetween_L3_and_L1 ;
+}
+else if ( TradeType == "Above H4" )
+{
+	Cover = Buy = priceAboveH4 ;	
+}
+else if ( TradeType == "Below L4" )
+{
+	Cover = Buy = priceBelowL4 ;
+}
+else if ( TradeType == "Between H3 and H4" )
+{
+	Cover = Buy = priceBetween_H4_and_H3 ;
+} 
+else if ( TradeType == "Between L3 and L4" )
+{
+	Cover = Buy = priceBetween_L4_and_L3 ;
+}
+else if ( TradeType == "Between H3 and H1" )
+{
+	Cover = Buy = priceBetween_H3_and_H1 ;
+}
+else if ( TradeType == "Between L3 and L1" )
+{
+	Cover = Buy = priceBetween_L3_and_L1 ;
+}
+else if ( TradeType == "Between L3L1 and H3H1" )
+{
+	Cover = Buy = priceBetween_H3_and_H1 OR priceBetween_L3_and_L1 ;
+}
+else if ( TradeType == "AboveH4 BelowL4" )
+{
+	Cover = Buy = priceAboveH4 OR priceBelowL4 ;
+}
+else if ( TradeType == "L3L1 H3H1 H4 L4" )
+{
+	Cover = Buy = priceBetween_H3_and_H1 OR priceBetween_L3_and_L1 OR priceAboveH4 OR priceBelowL4 ;
+}
+
+//Filter = True ;   // If you want see ALL without any filter
+Filter = Buy ;
+	
+Signal1 = WriteIf(priceAboveH4, ">H4", WriteIf(priceBetween_H4_and_H3, "Between H3 & H4",
+                  WriteIf(priceBetween_H3_and_H1, "Between H1 & H3", WriteIf(priceBelowL4, "<L4",
+                  WriteIf(priceBetween_L4_and_L3, "Between L3 & L4",
+                  WriteIf(priceBetween_L3_and_L1, "Between L3 & L1", "UNKNOWN"))))));
+
+AddColumn(C, "Close", 5.2, colorDefault) ;
+AddTextColumn(Signal1, "Signal", 10, colorDefault) ;
+      
+Signal2 = WriteIf(currentWeekH>H4, "H>H4", WriteIf(currentWeekL<L4, "L<L4", "")) ; 
+		
+AddTextColumn( Signal2, "Signal2(E)", 0, bkgndColor=IIf(Signal2!="", colorRed, colorDefault)) ; // Signal extreme
+		
+AddColumn(currentWeekH, "  H  ", 6.2, colorDefault) ;
+AddColumn(H4, "  H4  ", 6.2, colorDefault) ;
+_SECTION_END();

@@ -1,0 +1,34 @@
+
+function T3( Price, T3Periods, s ) 
+{
+    e1	= AMA( Price, 2 / ( T3Periods + 1 ) );
+    e2	= AMA( e1, 2 / ( T3Periods + 1 ) );
+    e3	= AMA( e2, 2 / ( T3Periods + 1 ) );
+    e4	= AMA( e3, 2 / ( T3Periods + 1 ) );
+    e5	= AMA( e4, 2 / ( T3Periods + 1 ) );
+    e6	= AMA( e5, 2 / ( T3Periods + 1 ) );
+    C1 = -s ^ 3;
+    C2 = 3 * s ^ 2 * ( 1 + s );
+    C3 = -3 * s * ( s + 1 ) ^ 2;
+    C4 = ( 1 + s ) ^ 3;
+    T3Result = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
+    return Nz( T3Result );
+}
+ 
+function ReduceLag( Indicator, RLFactor )
+{
+    return ( Indicator / Ref( Indicator, -1 ) ) ^ RLFactor*Indicator;
+}
+ 
+_SECTION_BEGIN( "REDUCING INDICATOR LAG" );
+LRFactor 		= Param( "Lag-Reducing Factor", 1.7, 0, 10, 0.1 );
+Periods 		= Param( "T3 Periods", 5, 1, 10, 1 );
+Sensitivity		= Param( "T3 Sensitivity 1", 0.7, 0, 3, 0.03 );
+ 
+I1 = T3( O, Periods, Sensitivity );
+I2 = Reducelag( I1, LRFactor );
+ 
+Plot( C, "Close", 64, 128 );
+Plot( I1, "\nBasic T3", 2, 1 );
+Plot( I2, "\nLag-Reduced T3", 8, 1 | styleNoRescale );
+_SECTION_END();

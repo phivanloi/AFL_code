@@ -1,0 +1,11 @@
+/* Bernstein Momentum Indicator */
+/* Set Scaling to Automatic, Show dates On, Percent On, Middle On */
+
+Title = "Bernstein MOM Close - Ref(Close,-7)"; 
+GraphXSpace = 5;
+Graph0 = MA(Close - Ref(Close,-7),1); 
+Graph0Style = 5; 
+Graph0Color = 34;
+Graph1 = MA(Graph0,5);
+Graph1Style = 1;  
+Graph1Color = 32;

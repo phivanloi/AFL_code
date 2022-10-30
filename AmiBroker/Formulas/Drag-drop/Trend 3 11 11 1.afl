@@ -1,0 +1,41 @@
+_SECTION_BEGIN("Trend");
+//tg=Param("Day - Dinh",1,1,10,1);
+//if(tg1>150) tg2=150;
+//Plot( tg1, "", ParamColor("Color", colorBlue ), styleDots );
+//Plot( tg2, "", ParamColor("Color", colorBlue ), styleDots );
+//Plot( tg3, "", ParamColor("Color", colorBlue ), styleDots );
+mua = IIf(C>=O, 1,0);
+ban= IIf(C<O, 1,0);
+LucCau=mua*V;
+LucCung=ban*V;
+period=Param("chuky",4,3,10,1);
+LucCau10 = MA(LucCau,period);
+LucCung10 = MA(LucCung,period);
+LucCungCau10=(LucCau10-LucCung10);
+uptrend = LucCungCau10>0 AND RSI(14)>52;
+downtrend = LucCungCau10<0 AND RSI(14)<48;
+sideway= RSI(14)<=52 AND RSI(14)>=48;
+trend=IIf(uptrend,100,IIf(downtrend,-100,50));
+
+Plot( trend, "Trend", IIf(uptrend, colorBrightGreen,IIf(downtrend,colorRed,colorWhite)), ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick, maskHistogram  ) );
+
+Version (6.2);
+ exportPath = "C:\\Program Files (x86)\\AmiBroker1\\ExportedImages\\";
+  fmkdir( exportPath ); // Create the path if it does not exists 
+  // Try toi use a unique ID to avoid potential conflicts 
+   //GuiButton( "Export", exportButtonID , pxWidth -64, 4, 60, 28, notifyClicked ); 
+  // id = GuiGetEvent ( 0, 0 );
+    
+    
+    //notify = GuiGetEvent( 0, 1 ); 
+  
+  
+//   if(period==5) {
+//  AB =  CreateObject("1vbcvbxvx");
+//AW = AB.ActiveWindow();
+
+//AW.ExportImage( exportPath + "lon.png",640,480);
+//AW.ExportImage ( "C:\\example.gif", 640, 480 );
+
+ //  } 
+_SECTION_END();

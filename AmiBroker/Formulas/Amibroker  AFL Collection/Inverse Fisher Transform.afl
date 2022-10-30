@@ -1,0 +1,49 @@
+// General - purpose Inverse Fisher Transform function
+function InvFisherTfm( array )
+{
+e2y = exp( 2 * array );
+return ( e2y - 1 )/( e2y + 1 );
+}
+p1=20; p2=3; p3=7;
+p1=Optimize("p1",p1,3,20,1);
+p2=Optimize("p2",p2,3,20,1);
+p3=Optimize("p3",p3,2,20,1);
+
+Value1 = 0.1 * ( RSI( p1 ) - 50 );
+Value2 = WMA( Value1, p2 );
+ift=InvFisherTfm( Value2 );
+wift= MA(ift,p3);
+
+function CyberCycle( array, alpha )
+{
+smooth = ( array + 2 * Ref( array, -1 ) +
+2 * Ref( array, -2 ) + Ref( array, -3 ) ) / 6;
+// init value
+Cycle = ( array[ 2 ] - 2 * array[ 1 ] + array[ 0 ] )/4;
+for( i = 6; i < BarCount; i++ )
+{
+Cycle[ i ] = ( ( 1 - 0.5 * alpha) ^ 2 ) *
+( smooth[ i ] - 2 * smooth[ i - 1 ] + smooth[ i - 2] ) +
+2 * ( 1 - alpha ) * Cycle[ i - 1 ] -
+( ( 1 - alpha) ^ 2 ) * Cycle[ i - 2 ];
+}
+return Cycle;
+}
+Cycle = CyberCycle( (H+L)/2, 0.07 );
+ICycle = InvFisherTfm( Cycle );
+Plot(C,"Close",colorDarkBlue,styleCandle);
+//Plot( Cycle, "CyberCycle", colorBlue,styleOwnScale );
+//Plot( ICycle, "ICyberCycle", colorGreen, styleThick|styleOwnScale );
+PlotGrid( 0.5 );
+
+Plot( ift, "IFT-RSI", IIf(ift>wift,colorGreen,colorRed), styleThick |styleLeftAxisScale );
+Plot( Wift, "MA IFT", colorPaleBlue,styleLeftAxisScale );
+PlotGrid( 0.5 );
+PlotGrid(-0.5 );
+SetBarsRequired( 200, 0 );
+
+Buy=Cover=Cross(ift,wift);
+Sell=Short= Cross(wift,ift);
+
+PlotShapes(shapeDownArrow*Sell,colorRed)  ; 
+PlotShapes(shapeUpArrow*Buy,colorGreen);   

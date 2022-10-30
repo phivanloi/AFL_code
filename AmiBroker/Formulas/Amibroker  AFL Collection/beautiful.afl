@@ -1,0 +1,32 @@
+////////////////////////
+num = Param("trend",3,1,6,1);
+
+FirstVisibleBar = Status( "FirstVisibleBar" );
+Lastvisiblebar = Status("LastVisibleBar");
+
+for( b = Firstvisiblebar + num; b <= Lastvisiblebar AND b < BarCount - num; b++)
+{
+i = num;
+ml = 0;
+mu = 0;
+while( i > 0 )
+{
+if (L[b] <= L[b-i] && L[b] <= L[b+i] )
+{
+ml++;
+}
+if (H[b] >= H[b-i] && H[b] >= H[b+i] )
+{
+mu++;
+}
+i--;
+}
+if ( ml == num )
+{
+PlotText("\n***\n",b,L[b],colorGreen);
+}
+if ( mu == num )
+{
+PlotText("***\n",b,H[b],colorRed);
+}
+} 

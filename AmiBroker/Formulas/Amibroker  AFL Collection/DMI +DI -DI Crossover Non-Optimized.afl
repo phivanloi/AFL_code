@@ -1,0 +1,20 @@
+//DMI +DI/-DI Crossover ***Non-Optimized***
+
+//Enters long/short when the +DI crosses -DI. No Stops
+
+pds=14;
+P1=PDI(pds);
+P2=MDI(pds);
+
+Buy=p1 > p2;
+Sell=p1 < p2;
+Short=p1 < p2;
+Cover=p1 > p2;
+
+Filter=Buy OR Sell OR Short OR Cover;
+Buy=ExRem(Buy,Sell); Sell=ExRem(Sell,Buy); Short=ExRem(Short,Cover); Cover=ExRem(Cover,Short);
+
+AddColumn(Buy,"Buy");
+AddColumn(Sell,"sell");
+AddColumn(Short,"short");
+AddColumn(Cover,"cover");

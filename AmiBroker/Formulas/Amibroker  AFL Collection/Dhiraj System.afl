@@ -1,0 +1,423 @@
+//File: Dhiraj Chart
+SetChartBkColor(ParamColor("BackGround Color", colorBlack));
+pShowRangeLines = ParamToggle("Show Range Lines", "No|Yes", 0);
+pShowtradeLines = ParamToggle("Show Trade Lines", "No|Yes", 1);
+pShowMarkers = ParamToggle("Show Markers", "No|Yes", 1);
+synch1=ParamToggle("Show NR,s", "No|Yes", 0);
+Limit=Param(" Trade Till (Hour)(Min)(Sec)",142500,103000,153000,100);
+AFfilter =Param("Factor Filter",2,2,3,1);
+
+_SECTION_BEGIN ("foreign Index bar graph");
+synch=ParamToggle("Synch with Index", "No|Yes", 0);
+Vr=ParamList("Index to Synch",List = "^NSEI,^NSEBANK,^CNXIT,^NSMIDCP,RELIANCE.NS,SBIN.NS",0); 
+
+_SECTION_BEGIN("P/L Settings");
+PerctakeProfit=Param("Take Profit Percent",0.65,0.3,30,0.1);
+PercStoploss=Param("StopLoss Percent",0.8,0.2,5,0.1);
+trades1=Param("Trade Above",1,1,10,1);
+riskAmount=Param("Risk Amount",240,200,10000,100);
+
+_SECTION_BEGIN("Trade Variables");
+Volmin=Param("Volume Min",0,0,10000000,50);
+Volmax=Param("Volume Max",10000000,0,10000000,50);
+priceRL=Param("Price Range Min",15,1,20000,1);
+priceRH=Param("Price Range Max",20000,1,20000,1);
+PercChangemin=Param("Percentage Change Min set", -50, -100, 100, 0.1);
+PercChangemax=Param("Percentage Change Max set", 50, -100, 100, 0.1);
+
+//Program computes and displays various price values in real time 
+//
+// Today's Open
+// Prior Day High
+// Prior Day Low
+// Prior Day Open
+// Prior Day Close
+// Prior Day Middle 
+// day 1015 High
+// day 1015 Low
+
+PlotOHLC(Open,High,Low,Close,"",colorWhite,styleCandle);
+Bars  = 0;
+xpdh  = 90;
+_SECTION_BEGIN("SAR");
+acc = Param("Acceleration", 0.02, 0, 1, 0.001 );
+accm = Param("Max. acceleration", 0.2, 0, 1, 0.001 );
+Plot( SAR( acc, accm ), _DEFAULT_NAME(), ParamColor( "color",colorBlack), ParamStyle("Style", styleDots | styleNoLine, maskDefault | styleDots | styleNoLine ) );
+_SECTION_END();
+_SECTION_BEGIN("SMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 20, 2, 300, 1, 10 );
+Plot( MA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorYellow ), ParamStyle("Style", styleThick) ); 
+_SECTION_END();
+
+
+
+//slopes
+isSlopeUP=(MA( P, Periods )<L) AND Ref(MA( P, Periods ),-1)>Ref(MA( P, Periods ),-2) AND Ref(MA( P, Periods ),-2)>Ref(MA( P, Periods ),-3) AND Ref(MA( P, Periods ),-3)>Ref(MA( P, Periods ),-4);// AND Ref(MA( P, Periods ),-4)>Ref(MA( P, Periods ),-5) AND Ref(MA( P, Periods ),-5)>Ref(MA( P, Periods ),-6);
+isSlopeDN=(MA( P, Periods )>H) AND Ref(MA( P, Periods ),-1)<Ref(MA( P, Periods ),-2) AND Ref(MA( P, Periods ),-2)<Ref(MA( P, Periods ),-3) AND Ref(MA( P, Periods ),-3)<Ref(MA( P, Periods ),-4);// AND Ref(MA( P, Periods ),-4)<Ref(MA( P, Periods ),-5) AND Ref(MA( P, Periods ),-5)<Ref(MA( P, Periods ),-6);
+isSlpeUP=(MA( P, Periods )<C) AND Ref(MA( P, Periods ),-1)>Ref(MA( P, Periods ),-2) AND Ref(MA( P, Periods ),-1)>Ref(MA( P, Periods ),-3) AND Ref(MA( P, Periods ),-1)>Ref(MA( P, Periods ),-4) AND Ref(MA( P, Periods ),-1)>Ref(MA( P, Periods ),-5) AND Ref(MA( P, Periods ),-1)>Ref(MA( P, Periods ),-6);
+isSlpeDN=(MA( P, Periods )>C) AND Ref(MA( P, Periods ),-1)<Ref(MA( P, Periods ),-2) AND Ref(MA( P, Periods ),-1)<Ref(MA( P, Periods ),-3) AND Ref(MA( P, Periods ),-1)<Ref(MA( P, Periods ),-4) AND Ref(MA( P, Periods ),-1)<Ref(MA( P, Periods ),-5) AND Ref(MA( P, Periods ),-1)<Ref(MA( P, Periods ),-6);
+
+{
+//Convert data to daily
+Plot_Range = (TimeNum() >= 95500 AND TimeNum()<= 153500) AND (DateNum()==LastValue(DateNum()));
+FH_Range   = (TimeNum() >= 095500 AND TimeNum()<= 101459) AND (DateNum()==LastValue(DateNum()));
+
+FH_Prices  = High * FH_Range;
+FH_Marker  = BarsSince(FH_Range>0);
+
+//Find number of bars in 60 minutes 
+Num_Bars   = 3600 / Interval(1);  
+
+TimeFrameSet(inDaily);
+TOP_        = Open;
+PDH_        = Ref(High,-1);
+PDL_        = Ref(Low,-1);
+PDO_        = Ref(Open,-1);
+PDC_        = Ref(Close,-1);
+PDM_        = (PDH_+PDL_)/2;
+TimeFrameRestore();
+//
+isAll = True;
+isRth =  TimeNum() >= 095400 AND TimeNum() <= 101459;
+isdRth =  TimeNum() >= 095400 AND TimeNum() <= 160000;
+
+aRthL = IIf(isRth, L, 1000000);
+aRthH = IIf(isdRth, H, Null);
+aRthLd = IIf(isdRth, L, 1000000);
+
+TOP         = TimeFrameExpand(TOP_,inDaily,expandFirst); 
+PDH         = TimeFrameExpand(PDH_,inDaily,expandFirst); 
+PDL         = TimeFrameExpand(PDL_,inDaily,expandFirst); 
+PDO         = TimeFrameExpand(PDO_,inDaily,expandFirst); 
+PDC         = TimeFrameExpand(PDC_,inDaily,expandFirst); 
+PDM         = TimeFrameExpand(PDM_,inDaily,expandFirst); 
+FHH        = Ref(HHV(High*FH_Range,Num_Bars),-FH_Marker);
+FHL = TimeFrameCompress( aRthL, inDaily, compressLow );
+FHL = TimeFrameExpand( FHL, inDaily, expandFirst );
+DayH = TimeFrameCompress( aRthH, inDaily, compressHigh );
+DayH = TimeFrameExpand( DayH, inDaily, expandFirst );
+DayL = TimeFrameCompress( aRthLd, inDaily, compressLow );
+DayL = TimeFrameExpand( DayL, inDaily, expandFirst );
+
+//find factor
+FC1=((PDH-PDL)*0.433);
+FC2=((PDH-PDL)*0.7666);
+FC3=((PDH-PDL)*1.355);
+FC4=(FHH-FHL);
+
+//NOW FILTER TO FIND THE APPLICABLE FACTOR
+F11=IIf((FC4<=FC1+PDH*0.005),FC1,0);
+F22=IIf((FC4<=FC2+PDH*0.005 AND FC4>FC1+PDH*0.005),FC2,0);
+F33=IIf((FC4<=FC3 AND FC4>FC2+PDH*0.005),FC3,0);
+element1=IIf(F11>0,F11,0);
+element2=IIf(F22>0,F22,0);
+element3=IIf(F33>0,F33,0);
+AF=(F11+F22+F33); 
+since=(TimeNum() >= 101459 AND TimeNum()<= Limit) AND (DateNum()==LastValue(DateNum()));
+
+//nr7 / nr1 /nr8
+
+rang=High-Low;
+nr7s=IIf(rang==LLV(rang,7) ,shapeDigit7+shapePositionAbove,shapeNone);
+nr8s=IIf(Ref(nr7s,-1)  AND rang==LLV(rang,8) ,shapeDigit8+shapePositionAbove,shapeNone);
+nr7=IIf(synch1,nr7s,0);
+nr8=IIf(synch1,nr8s,0);
+InsideBar = Inside() ;
+nr1=IIf(nr7 AND InsideBar, shapeDigit1,shapeNone);
+
+//foreign
+SetForeign(Vr);
+HaC =(O+H+L+C)/4; 
+HaO = AMA( Ref( HaC, -1 ), 0.5 ); 
+HaH = Max( H, Max( HaC, HaO) ); 
+HaL = Min( L, Min( HaC, HaO) );
+BG3=HHV(LLV(HaL,4)+ATR(4),8); 
+BR3=LLV(HHV(HaH ,4)-ATR(4),8); 
+co = IIf(Hac>BG3 ,colorBrightGreen,IIf(Hac < BR3,colorRed,colorGrey50)); 
+Plot(4, "", Co,styleArea+styleOwnScale | styleNoLabel, -1, 100);
+RestorePriceArrays();
+_SECTION_END();
+
+//additional filters
+GLong=(TOP==FHL);// AND TimeNum()<= 101600;
+Gshort=(TOP==FHH);// AND TimeNum()<= 101600;
+GLS=(AF<=(FHH-FHL));
+advance=Foreign("NSE_Advancing","H");
+decline=Foreign("NSE_Declining","H");
+
+//NOW CALCULATE THE ENTRY-EXIT-STOPLOSS PARAMETERS
+BuyPrice=(DayL+AF);
+BuyTP1=(BuyPrice+(BuyPrice*(PerctakeProfit/100)));
+BuyTP2=(C>=BuyTP1 OR H>=BuyTP1 );
+SellPrice=(DayH-AF);
+SellTP1=(SellPrice-(SellPrice*(PerctakeProfit/100)));
+SellTP2=(C<=SellTP1 OR L<=SellTP1);
+TSB= IIf(SAR(acc,accm)>BuyTP1 AND SAR(acc,accm)<L,SAR(acc,accm),BuyTP1);
+TSB1=Cross(TSB,C);
+TSS= IIf(SAR(acc,accm)<SellTP1 AND SAR(acc,accm)>H,SAR(acc,accm),SellTP1);
+TSS1=Cross(C,TSS);
+percchange=(((C-PDC)/PDC)*100);
+Vol=(V>=Volmin AND V<=Volmax);
+Percentage=(percchange>=PercChangemin AND percchange<=PercChangemax);
+prc=(C>=priceRL AND C<=priceRH);
+Buy1=(Vol AND Percentage AND prc  AND since AND (Hac>BG3) AND advance>=Decline AND (Cross(C,BuyPrice)));
+Buy2=(Vol AND Percentage AND prc  AND since AND advance>=Decline AND (Cross(C,BuyPrice)));
+Short1= (Vol AND Percentage AND prc AND  since AND advance<=Decline AND (Hac<BR3) AND (Cross(SellPrice,C)));
+Short2= (Vol AND Percentage AND prc AND  since AND advance<=Decline AND (Cross(SellPrice,C)));
+Buy3 =  IIf(synch,Buy1,Buy2);
+Short3= IIf(synch,Short1,Short2);
+BuyStop1=(BuyPrice-(BuyPrice*(PercStoploss/100)));
+//BuyStop1=IIf(BuyStop1<= SellPrice, SellPrice, BuyStop1 );
+BuyStop2=(L<=BuyStop1 OR C<=BuyStop1);
+SellStop1=(SellPrice+(SellPrice*(PercStoploss/100)));
+//SellStop1=IIf(SellStop1 >= BuyPrice, BuyPrice, SellStop1);
+SellStop2=(H>=SellStop1 OR C>=SellStop1);
+
+//cumulative trades
+tradebase=(Buy3 OR Short3 AND since);
+trades=Cum(tradebase);
+trades2=(trades>=trades1);
+
+//buyTargetHit= IIf(buySince>=1 AND buyTPSince>=1 AND  buyStopSince <= 0,   1, 0);
+//buyStoplossHit= IIf(buySince>=1 AND buyStopSince>=1 AND  buyTPSince <= 0,   1, 0);
+
+
+Buy=(Buy3 AND trades2 AND isSlopeUP AND (NOT Ref(Buy3,-1) AND NOT Ref(Buy3,-2) AND NOT Ref(Buy3,-3) AND NOT Ref(Buy3,-4) AND NOT Ref(Buy3,-5))) ;
+Short=(Short3  AND trades2 AND isSlopeDN AND (NOT Ref(Short3,-1) AND NOT Ref(Short3,-2) AND NOT Ref(Short3,-3)  AND NOT Ref(Short3,-4) AND NOT Ref(Short3,-5))) ;
+BuyStop=IIf((Buy AND NOT BuyTP2),BuyStop1,Null);
+SellStop=IIf(Short AND NOT SellTP2,SellStop1,Null);
+BuyTP=IIf(Buy AND NOT BuyStop,BuyTP2,Null);
+SellTP=IIf(Short AND NOT SellStop,SellTP2,Null);
+
+
+//experiment
+tradebaseB=(Buy);
+tradesB=Cum(tradebaseB);
+
+BuyTP3=BuyTP2 AND TradesB>=1;
+tradebaseBTP=(BuyTP3);
+tradesBTP=Cum(tradebaseBTP);
+
+Buystop3=Buystop2 AND TradesB>=1;
+tradebaseBSL=(Buystop3 AND since);
+tradesBSL=Cum(tradebaseBSL);
+
+tradebaseS=(Short);
+tradesS=Cum(tradebaseS);
+
+SellTP3=SellTP2 AND TradesS>=1;
+tradebaseSTP=(SellTP3);
+tradesSTP=Cum(tradebaseSTP);
+
+Sellstop3=Sellstop2 AND TradesS>=1;
+tradebaseSSL=(Sellstop3 AND since);
+tradesSSL=Cum(tradebaseSSL);
+
+buyTriggered = (TradesB==1);
+buyTargetHit= (TradesBTP>=1);
+buyStoplossHit= (TradesBSL>=1);
+
+shortTriggered = TradesS==1;
+shortTargetHit= (TradesSTP>=1);
+shortStoplossHit= (TradesSSL>=1);
+//end
+
+
+
+//line plot basics
+Bars       = BarsSince(TimeNum() >= 95400 AND TimeNum() < 101459);//,BarIndex(),1); // AND DateNum()==LastValue(DateNum());
+x0         = BarCount-LastValue(Bars);
+x1         = BarCount-1;
+TOP_Line   = LineArray(x0,LastValue(TOP),x1,LastValue(TOP),0);
+PDH_Line   = LineArray(x0,LastValue(PDH),x1,LastValue(PDH),0);
+PDL_Line   = LineArray(x0,LastValue(PDL),x1,LastValue(PDL),0);
+PDC_Line   = LineArray(x0,LastValue(PDC),x1,LastValue(PDC),0);
+PDM_Line   = LineArray(x0,LastValue(PDM),x1,LastValue(PDM),0);
+FHH_Line   = LineArray(x0,LastValue(FHH),x1,LastValue(FHH),0);
+FHL_Line   = LineArray(x0,LastValue(FHL),x1,LastValue(FHL),0);
+BuyPriceline=LineArray(x0,LastValue(BuyPrice),x1,LastValue(BuyPrice),0);
+BuyStopline=LineArray(x0,LastValue(BuyStop1),x1,LastValue(BuyStop1),0);
+BuyTPline=LineArray(x0,SelectedValue(TSB),x1,SelectedValue(TSB),0);
+SellPriceline=LineArray(x0,LastValue(SellPrice),x1,LastValue(SellPrice),0);
+SellStopline=LineArray(x0,LastValue(SellStop1),x1,LastValue(SellStop1),0);
+SellTPline=LineArray(x0,SelectedValue(TSS),x1,SelectedValue(TSS),0);
+DayHline=LineArray(x0,LastValue(DayH),x1,LastValue(DayH),0);
+DayLline=LineArray(x0,LastValue(DayL),x1,LastValue(DayL),0);
+
+//Ready codes
+//Cshavebuy1=IIf((C>=((BuyStopline)) AND H<=BuyPriceline) AND NOT Short,Buystopline+(2*((Ref(High,-1)-Ref(Low,-1))*factor/100)),0);
+//Cshavesell1=IIf((C<=((Sellstopline)) AND L>=SellPriceline) AND NOT Buy,SellStopline-(2*((Ref(High,-1)-Ref(Low,-1))*factor/100)),0);
+Cshavebuy1=IIf((C>BuyStopline AND H<=BuyPriceline AND H > BuyPriceline*0.997) AND NOT Short AND since,(BuyPriceline*0.997),0);
+Cshavesell1=IIf((C<Sellstopline AND L>=SellPriceline AND L<SellPriceLine*1.002) AND NOT Buy AND since,(SellPriceLine*1.002),0);
+Cshavebuy2=Cshavebuy1 AND (NOT Ref(Cshavebuy1,1) AND isSlopeUP);
+Cshavebuy3=Cshavebuy1 AND (NOT Ref(Cshavebuy1,1) AND ((Hac>BG3) OR (NOT (Hac>BG3) AND NOT (Hac<BR3))) AND isSlopeUP);
+Cshavesell2=CshaveSell1  AND (NOT Ref(Cshavesell1,1) AND isSlopeDN);
+Cshavesell3=CshaveSell1  AND (NOT Ref(Cshavesell1,1) AND ((Hac<BR3) OR (NOT (Hac>BG3) AND NOT (Hac<BR3))) AND isSlopeDN);
+Cshavebuy= IIf(Synch,Cshavebuy3,Cshavebuy2);
+Cshavesell=IIf(synch,Cshavesell3,Cshavesell2);
+
+//Cshavesell1	=(L<=((Sellstop1)) AND L>=SellPrice AND since);
+//Cshavebuy=Cshavebuy1 AND (NOT Ref(Cshavebuy1,-1) AND NOT Ref(Cshavebuy1,1) );// AND synch;//AND isSlopeUP
+//Cshavesell=CshaveSell1  AND (NOT Ref(Cshavesell1,-1) AND NOT Ref(Cshavesell1,-1));// AND synch;//AND isSlopeDN
+
+
+//title
+/*
+buySince=  BarsSince(Buy ); // buy is triggered since how many bars back
+buyStopSince= BarsSince(IIf(Buysince>=0,BuyStop2 AND since,0)); // buy SL is triggered since how many bars back
+buyTPSince= BarsSince(IIf(Buysince>=0,BuyTP2 AND since,0)); // buy TP is triggered since how many bars back
+
+//buyTriggered = IIf(buySince>=0 ,1,0);
+//buyTargetHit= IIf(buySince>=0 AND buyTPSince>=0 AND  buySince >= buyTPSince ,   1, 0);
+//buyStoplossHit= IIf( buySince>=0 AND buyStopSince>=0 AND  buySince >= buyStopSince ,   1, 0);
+
+shortSince=  BarsSince(Short); // short is triggered since how many bars back
+shortStopSince= BarsSince(IIf(shortSince>=0,SellStop2 AND since,0)); // short SL is triggered since how many bars back
+shortTPSince= BarsSince(IIf(shortSince>=0,SellTP2 AND since,0)); // short TP is triggered since how many bars back
+
+shortTriggered = IIf(shortSince>=0,1,0);
+shortTargetHit= IIf(shortSince>=0 AND shortTPSince>=0 AND  shortSince>=shortTPSince,   1, 0);
+shortStoplossHit= IIf(shortSince>=0 AND shortStopSince>=0 AND  shortSince>=shortStopSince,   1, 0);
+*/
+
+
+//money management
+lotSize = round((riskAmount/(BuyPrice-BuyStop1)));
+
+//PLOT LINES
+Plot(IIf(pShowtradeLines,BuyPriceline,Null),"Buy Here",colorBrightGreen,styleDots|styleNoRescale);
+Plot(IIf(pShowtradeLines,BuyStopline,Null),"BuyStop",colorBrightGreen,styleDots|styleNoRescale| styleNoLine);
+Plot(IIf(pShowtradeLines,BuyTPline,Null),"Buy Take profit",colorBrightGreen,styleDashed|styleNoRescale);
+//Plot(IIf(pShowtradeLines,Cshavebuyline,Null),"Ready Long",colorLime,styleDashed|styleNoRescale);
+Plot(IIf(pShowtradeLines,SellPriceline,Null),"Short Here",colorRed,styleDots|styleNoRescale);
+Plot(IIf(pShowtradeLines,SellStopline,Null),"ShortStop",colorRed,styleDots|styleNoRescale| styleNoLine);
+Plot(IIf(pShowtradeLines,SellTPline,Null),"Short Take Profit",colorRed,styleDashed|styleNoRescale);
+//Plot(IIf(pShowtradeLines,Cshavesellline,Null),"Ready Short",colorOrange,styleDashed|styleNoRescale);
+Plot(IIf(pShowRangeLines,TOP_Line,Null),"Open",colorGreen,styleDashed|styleNoRescale);
+Plot(IIf(pShowRangeLines,PDH_Line,Null),"PDH",colorPlum,styleLine|styleNoRescale);
+Plot(IIf(pShowRangeLines,PDL_Line,Null),"PDL",colorPlum,styleLine|styleNoRescale);
+Plot(IIf(pShowRangeLines,DayHline,Null),"DayH",colorYellow,styleLine|styleNoRescale);
+Plot(IIf(pShowRangeLines,DayLline,Null),"DayL",colorYellow,styleLine|styleNoRescale);
+Plot(IIf(pShowRangeLines,FHH_Line,Null),"1015H",IIf(FH_Range==1,Null,colorBlue),styleLine|styleNoRescale);
+Plot(IIf(pShowRangeLines,FHL_Line,Null),"1015L",IIf(FH_Range==1,Null,colorBlue),styleLine|styleNoRescale);
+
+
+//Shapes
+PlotShapes(nr1,colorGreen,0,L);
+PlotShapes(nr7,colorGreen,0,H);
+PlotShapes(nr8,colorRed,0,(L-(H-L)/4));
+PlotShapes(IIf(pShowMarkers AND Short, shapeDownArrow, Null), colorOrange, 0,H,Offset=-15);
+PlotShapes(IIf(pShowMarkers AND Buy, shapeUpArrow, Null), colorWhite, 0,L,Offset=-15);
+PlotShapes(IIf(pShowMarkers AND Cshavesell, shapeHollowSmallDownTriangle, Null), colorOrange, 0,H,Offset=-35);
+PlotShapes(IIf(pShowMarkers AND Cshavebuy, shapeHollowSmallUpTriangle, Null), colorWhite, 0,L,Offset=-35);
+
+
+//Alerts
+AlertIf( Buy, "SOUND C:\\Windows\\Media\\Windows XP Startup.wav", "Buy",2);
+AlertIf( Short, "SOUND C:\\Windows\\Media\\Windows XP Startup.wav", "Short", 2 );
+AlertIf( BuyStop, "SOUND C:\\Windows\\Media\\Ringin.wav", "BuyStop Hit", 2 );
+AlertIf( TSB1, "SOUND C:\\Windows\\Media\\Ringin.wav", "Buy Take Profit", 2 );
+AlertIf( SellStop, "SOUND C:\\Windows\\Media\\Ringin.wav", "Short Stop Hit", 2 );
+AlertIf( TSS1, "SOUND C:\\Windows\\Media\\Ringin.wav", "Short Take Profit", 2 );
+AlertIf( Cshavebuy, "SOUND C:\\Windows\\Media\\Windows XP Startup.wav", "Get Ready to Buy", 2 );
+AlertIf( Cshavesell, "SOUND C:\\Windows\\Media\\Windows XP Startup.wav", "Get Ready to Short", 2 );
+//AlertIf( GLong, "SOUND C:\\Windows\\Media\\Windows XP Startup.wav", "Open = 1015L Buy", 2 );
+//AlertIf( Gshort, "SOUND C:\\Windows\\Media\\Windows XP Startup.wav", "Open = 1015H Short", 2 );
+//AlertIf( GLS, "SOUND C:\\Windows\\Media\\Windows XP Startup.wav", "Factor>=Range, Go Long or Short sure shot", 2 );
+
+
+//commentary
+
+if( Status("action") == actionIndicator ) 
+(
+Title = EncodeColor(colorWhite)+ "Dhiraj System" + " - " +  Name() + " - " + EncodeColor(colorYellow)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - " +EncodeColor(colorYellow) + "Vol= "+ WriteVal(V)+" - "+ WriteIf(Percchange, "% Change =  "+(Percchange)+"  ","")+
+WriteIf(GLS, "   -  FactorFriendlyBothSides  "+(GLS)+"  ","")+
+WriteIf(trades, "   -Trade #:   "+(Trades)+"  ","")+
+WriteIf(AF, "   -   AF:   "+(AF)+"  ","")+
+WriteIf((lotSize) AND since, " -  Position Size :  "+( lotSize )+"  ","")+
+"\n"+"\n"+
+
+WriteIf(F11, "F1:     Best "+"  ","")+
+WriteIf(F22, "F2:     Medium "+"  ","")+
+WriteIf(F33, "F3:     No Good"+"  ","")+
+WriteIf(F33, "F3:     No Good"+"  ","")+
+Comm2=("\n"+"Slope:      ")+
+WriteIf(isSlopeUP,EncodeColor(colorBrightGreen)+"+Up",
+WriteIf(isSlopeDN,EncodeColor(colorRed)+"-Down",EncodeColor(colorLightYellow)+"< Flat >"))+
+Comm2=("\n"+Vr+" :   Phase:    ")+
+WriteIf(Hac>BG3,EncodeColor(colorBrightGreen)+"+Up",
+WriteIf(Hac<BR3,EncodeColor(colorRed)+"-Down",EncodeColor(colorLightYellow)+"< Flat >"))+
+
+"\n"+"\n"+
+EncodeColor(colorBrightGreen) +
+WriteIf(BuyPrice, "BUY:  "+(BuyPrice)+"  ","")+
+WriteIf(BuyStop1, " - BUY SL:  "+(BuyStop1),"")+
+WriteIf(TSB , "  -  BUY TP:  "+(TSB)+" ","")+
+"\n"+
+EncodeColor(colorRed) +
+WriteIf(SellPrice, "SHORT:  "+(SellPrice)+"  ","")+
+WriteIf(SellStop1, "-  SHORT SL:  "+(SellStop1)+"  ","")+
+WriteIf(TSS, "   -  SHORT TP:  "+(TSS)+"  ","")+"\n"+
+"\n"+
+EncodeColor(colorBrightGreen) +
+WriteIf(GLong, "Open=1015L Bullish:  "+(GLong)+"  ","")+
+EncodeColor(colorRed) +
+WriteIf(Gshort, "Open=1015H Bearish:  "+(Gshort)+"  ","")+
+"\n"+
+EncodeColor(colorBrightGreen) +
+WriteIf(advance, "Advance:  "+(advance)+"  ","")+
+EncodeColor(colorRed) +
+WriteIf(decline, "   -  Decline:  "+(Decline)+"  ",""));
+
+
+
+
+//"\n"+
+
+//WriteVal(NSE_Advancing)+ WriteVal(CshaveSell)+ WriteVal(Buy));
+
+//exploration
+AddColumn( IIf(Cshavebuy, 82, IIf(Cshavesell, 82,01 )), "READY", formatChar, IIf(Cshavesell,colorDarkRed,colorGreen) );
+AddColumn( IIf(Buy, 66, IIf(Short, 83,01 )), "ACTION ", formatChar, IIf(Short,colorDarkRed,colorGreen) );
+AddTextColumn(
+WriteIf(element1,"F1",
+WriteIf(element2,"F2",
+WriteIf(element3,"F3",
+""))),"ELEMENT",1.0,
+IIf((element1 OR element2),colorDarkGreen,colorDarkRed));
+/*AddTextColumn(
+WriteIf(BuytargetHit,"buyTargetHit",
+WriteIf(buyStoplossHit,"buyStoplossHit",
+WriteIf(shortTargetHit ,"shortTargetHit ",
+WriteIf(shortStoplossHit,"shortStoplossHit",
+"")))),"Status",1.0,
+IIf((buyTargetHit OR shortTargetHit OR BuyTriggered),colorDarkGreen,colorDarkRed));*/
+AddColumn(BuyPrice,"Buy",1.2);
+AddColumn(BuyStop1,"Buy SL",1.2);
+AddColumn(TSB,"Buy TP",1.2);
+AddColumn(SellPrice,"Short",1.2);
+AddColumn(SellStop1,"Short SL",1.2);
+AddColumn(TSS,"Short TP",1.2);
+//AddColumn(Glong,"Open=1015LBuy",1.0);
+//AddColumn(Gshort,"Open=1015H Short",1.0);
+//AddColumn(GLS,"FactorFriendly",1.0);
+//AddColumn(trades,"TradeNo.",1.0);
+//Filter= IIf(AFfilter==2,((Buy OR  Short OR Cshavebuy OR Cshavesell OR buyTargetHit OR buyStoplossHit OR shortTargetHit OR shortStoplossHit AND (element1 OR element2))),((Buy OR  Short OR Cshavebuy OR Cshavesell OR buyTargetHit OR buyStoplossHit OR shortTargetHit OR shortStoplossHit) AND (element1 OR element2 OR element3)));// OR  GLong OR Gshort);// AND trades2 AND GLS;
+//}
+//OR buyTargetHit OR buyStoplossHit OR shortTargetHit OR shortStoplossHit
+Filter= IIf(AFfilter==2,Buy OR  Short OR Cshavebuy OR Cshavesell AND (element1 OR element2),Buy OR  Short OR Cshavebuy OR Cshavesell AND (element1 OR element2 OR element3));// OR  GLong OR Gshort);// AND trades2 AND GLS;
+}
+
+_SECTION_BEGIN("EMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+_SECTION_BEGIN("EMA1");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();

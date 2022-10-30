@@ -1,0 +1,8 @@
+_SECTION_BEGIN("trending ribbon");
+CondGreen=MyMike();
+Buy =  CondGreen;
+Sell =(NOT CondGreen);
+uptrend=Buy;
+Plot( 2, "",IIf( Buy, colorBrightGreen, IIf( Sell, colorRed, colorYellow )), styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+_SECTION_END();
+

@@ -1,0 +1,18 @@
+sig=C;
+
+
+n=7; L1=8;
+N=Optimize("N lengh MA",n,3,40,1);
+L1=Optimize("L1 per Vidya",L1,2,40,1);
+
+k = StDev(sig, L1)/MA(StDev(sig, L1), 5*L1);
+Alpha = 2/(N+1);
+
+IIf(Alpha*k>1, par = 1, par = Alpha*k);
+
+Vid1 = AMA2(C, par, (1-par));
+
+
+Plot(Vid1,"Vid1",IIf(sig>vid1,colorGreen,colorRed),styleLine|styleThick);
+
+Plot(C,"c",colorBlue,styleCandle|styleThick);

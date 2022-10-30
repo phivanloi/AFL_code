@@ -1,0 +1,3 @@
+SetChartBkGradientFill( ParamColor("BgTop", ColorRGB( 172,172,172 )),
+
+ParamColor("BgBottom", ColorRGB( 172,172,172 )),ParamColor("titleblock",ColorRGB( 172,172,172 ))); 

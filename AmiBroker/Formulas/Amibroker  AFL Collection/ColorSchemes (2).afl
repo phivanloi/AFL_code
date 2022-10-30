@@ -1,0 +1,100 @@
+//--------------------------------------------------------------------------------------------------
+//
+//  Color schemes - Bruce Robinson - 5/1/08
+//
+//--------------------------------------------------------------------------------------------------
+
+gradopt		= ParamToggle( 	"Solid/gradient chart",			"Solid,Gradient", 1		);
+
+Colorsolid		= ParamColor(		"Solid/axis background",				colorLightGrey 			);	//ColorRGB( 221, 221, 221 ) );
+
+schemeopt		= ParamToggle(	"Color scheme",					"No,Yes", 0				);
+
+scheme			= ParamList(		"Schemes",							"Stockcharts" + "," +
+																		"Sunset" + "," +
+																		"Underwater" + "," +
+																		"Streetlights" + "," +
+																		"Desert" + "," +
+																		"Fire and smoke" + "," +
+																		"Smog from above" + "," +
+																		"Smog from below" + "," +
+																		"Overcast" + "," +
+																		"Black on white"
+																		, 1							);
+
+if ( gradopt )
+{
+
+	colortop		= ParamColor(		"Gradient top",				ColorRGB( 255, 255, 210 )	);	//ColorRGB( 135, 160, 210 ) );
+	colorbottom	= ParamColor(		"Gradient bottom",			ColorRGB( 180, 180, 180 ) 	);
+
+	if ( schemeopt )
+	{
+		switch ( scheme )
+		{
+			case "Stockcharts":
+				Colortop		= ColorRGB( 187, 212, 217 );
+				Colorbottom	= ColorRGB( 250, 217, 173 );
+				break;
+		
+			case "Sunset":
+				Colortop		= ColorRGB( 135, 160, 210 );
+				Colorbottom	= ColorRGB( 255, 255, 190 );
+				break;
+
+			case "Underwater":
+				Colortop		= ColorRGB( 224, 217, 200 );
+				Colorbottom	= ColorRGB( 106, 140, 202 );
+				break;
+		
+			case "Streetlights":
+//				Colortop		= ColorRGB( 180, 180, 180 );
+				Colortop		= ColorRGB( 200, 200, 200 );
+//				Colorbottom	= ColorRGB( 60, 60, 60 );
+				Colorbottom	= ColorRGB( 80, 80, 80 );
+				break;
+		
+			case "Desert":
+				Colortop		= ColorRGB( 255, 255, 225 );
+				Colorbottom	= ColorRGB( 200, 165, 115 );
+				break;
+		
+			case "Fire and smoke":
+				Colortop		= ColorRGB( 160, 160, 160 );
+				Colorbottom	= ColorRGB( 255, 200, 145 );
+				break;
+		
+			case "Smog from above":
+				Colortop		= ColorRGB( 255, 255, 220 ); //ColorRGB( 170, 170, 170 );
+				Colorbottom	= ColorRGB( 170, 170, 170 ); //ColorRGB( 255, 255, 220 );
+				break;
+		
+			case "Smog from below":
+				Colortop		= ColorRGB( 170, 170, 170 );
+				Colorbottom	= ColorRGB( 255, 255, 220 );
+				break;
+
+			case "Overcast":
+				Colortop		= ColorRGB( 180, 180, 180 );
+				Colorbottom	= ColorRGB( 240, 240, 240 );
+				break;
+
+			case "Black on white":
+				Colortop		= colorWhite;
+				Colorbottom	= colorWhite;
+				Colorsolid		= colorWhite;
+				colorDefault	= colorBlack;
+				break;
+		
+			default:
+				Colortop		= ColorRGB( 185, 185, 185 );
+				Colorbottom	= ColorRGB( 240, 240, 240 );
+				break;
+		}
+	}
+	SetChartBkGradientFill( Colortop, Colorbottom );
+}
+//else
+{
+	SetChartBkColor( Colorsolid );
+}

@@ -1,0 +1,37 @@
+_SECTION_BEGIN("Closing Range");
+	newday = Day() != Ref(Day(),-1);  					//check if new day or not
+	starttime = ValueWhen(newday,TimeNum()) + 500;
+	//1500 = 15min, 3000 = 30min, 6000 = 60min
+	if(Interval() == in5Minute)
+		orb_range = 500;
+	else if(Interval() == in5Minute*2)
+		orb_range = 1000;
+	else if(Interval() == in15Minute) 
+		orb_range = 1500;
+	else orb_range = 1;
+	
+	lb_C = 9000/orb_range;
+	
+	CRBH = ValueWhen(BarIndex() == BarCount - 2 - LastValue(BarsSince(NewDay)), HHV(H, lb_C));
+	CRBL = ValueWhen(BarIndex() == BarCount - 2 - LastValue(BarsSince(NewDay)), LLV(L, lb_C));
+	x0 = BarCount - 2 - LastValue(BarsSince(NewDay)); 
+	x1 = BarCount - 1;
+	
+	
+	Plot(LineArray( x0, LastValue(CRBH), x1, LastValue(CRBH), 1 ),"",colorWhite, styleDashed|styleNoRescale, Null, Null, 1, 1, 1);
+	PlotText("CRBH", BarCount, LastValue(CRBH), colorBlack, colorPink);
+	Plot(LineArray( x0, LastValue(CRBL), x1, LastValue(CRBL), 1 ),"", colorWhite, styleDashed|styleNoRescale, Null, Null, 1, 1, 1);
+	PlotText("CRBL", BarCount, LastValue(CRBL), colorBlack, colorPink);
+	
+	Buy = Cross(C, CRBH) AND TimeNum() > starttime;
+	Short = Cross(CRBL, C) AND TimeNum() > starttime;
+	
+	PlotShapes(Buy*shapeUpArrow, colorGreen, 0, L);
+	PlotShapes(Short*shapeDownArrow, colorRed, 0, H);
+	
+	Filter = Buy OR Short;
+	txt = WriteIf(Buy, "Buy above CRBH @"+NumToStr(CRBH, 1.2), "Sell below CRBL @ "+NumToStr(CRBL, 1.2));
+	AddColumn(C, "LTP", 1.2);
+	AddTextColumn(txt, "Signal", 1.2, colorWhite, IIf(Buy, colorGreen, colorRed));
+_SECTION_END();
+/** Coded by Ankitkumar Chheda (twitter.com/sassy_ankit) **/

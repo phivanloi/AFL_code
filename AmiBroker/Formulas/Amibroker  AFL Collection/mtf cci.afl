@@ -1,0 +1,16 @@
+_SECTION_BEGIN("MTF CCI Ribbons");
+Title = "";
+TimeFrameSet(inDaily);
+dCCI20 = CCI(20);
+Daily_CCI_Color = IIf(dCCI20>35,colorBrightGreen,IIf(dCCI20<-35,colorRed,colorLightGrey));
+TimeFrameRestore(); // restore time frame to original 
+
+TimeFrameSet(inHourly);
+hCCI20 = CCI(20);
+Hourly_CCI_Color = IIf(hCCI20>35,colorBrightGreen,IIf(hCCI20<-35,colorRed,colorLightGrey));
+TimeFrameRestore(); // restore time frame to original 
+
+Plot(10, "", TimeFrameExpand(Daily_CCI_Color,inDaily),  styleNoLabel | styleOwnScale | styleArea, -1,21);
+Plot(11, "", colorBlack,  styleNoLabel | styleOwnScale | styleThick | styleDashed, -1,21);
+Plot(20, "", TimeFrameExpand(Hourly_CCI_Color,inHourly),  styleNoLabel | styleOwnScale | styleArea, -1,21);
+_SECTION_END();

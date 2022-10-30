@@ -1,0 +1,5 @@
+pds = Param("Moving Average Period",13,1,100,1);
+Apart = Param("Rate of Change Period",21,1,100,1);
+Smooth = EMA(C,pds);
+SROC = Smooth/Ref(Smooth,0-Apart);
+Plot( SROC, "SROC("+pds+","+Apart+")", ParamColor("color", colorCycle ), ParamStyle("Style") );

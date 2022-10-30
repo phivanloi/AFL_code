@@ -1,0 +1,89 @@
+//|------------------------------------------------------------------
+//|Tradingbasis.com - Sector industry relative strength analysis
+//|Version:1.2   10-May-2006
+//|Copyright © 2005, Tradingbasis.com
+//|http://www.tradingbasis.com
+//|e-mail: support@tradingbasis.com
+//|------------------------------------------------------------------
+SetChartOptions(0,chartShowDates|chartWrapTitle);
+Version(4.65);
+EnableTextOutput( False );
+
+_SECTION_BEGIN("Styles");
+width = Param("Sector ( Width )",2.5,0,5,0.5);
+IndustryStyle = ParamStyle("Industry",styleLine,maskAll);
+_SECTION_END();
+
+_SECTION_BEGIN("Colors");
+Sectorcolor = ParamColor("Sector",ColorRGB(182,182,190));
+IndustryColor = ParamColor("Industry",colorRed);
+_SECTION_END();
+
+RS = L; Tickers = V; 
+if(GroupID()==253 AND StrLeft(Name(),2)=="~i")
+{
+iRS = L;
+iFT = V;
+sRS = Null;
+sFT = Null;
+}
+else if(GroupID()==253 AND StrLeft(Name(),2)=="~s")
+{
+iRS = Null;
+iFT = Null;
+sRS = L;
+sFT = V;
+}
+else
+{
+iRS = Foreign("~i"+WriteVal(IndustryID(),1.0)+" - "+IndustryID(1),"L");
+iFT = Foreign("~i"+WriteVal(IndustryID(),1.0)+" - "+IndustryID(1),"V");
+sRS = Foreign("~s"+WriteVal(SectorID(),1.0)+" - "+SectorID(1),"L");
+sFT = Foreign("~s"+WriteVal(SectorID(),1.0)+" - "+SectorID(1),"V");
+}
+
+iRSavg = iRS/iFT;
+sRSavg = sRS/sFT;
+Plot(iRSavg,"",IndustryColor,IndustryStyle);
+if(Version()<4.75)
+{
+Plot(sRSavg,"",SectorColor,SectorStyle);
+}
+else{
+PlotOHLC(sRSavg-(width*0.01*sRSavg),sRSavg+(width*0.01*sRSavg),sRSavg-(width*0.01*sRSavg),sRSavg,"",sectorcolor,styleCloud);
+}
+
+InAA = Status("Action") >= 3;
+if(inAA){
+_SECTION_BEGIN("Automatic Analysis");
+FilterCond = ParamToggle("Display only Sectors and Industries in AA","No,Yes",0);
+_SECTION_END();
+
+if(Filtercond==0)
+{
+Filter = 1;
+AddColumn(C,"Close");
+AddColumn(V,"Volume");
+AddColumn(sRSavg,"RS(Sector)",1.2,colorDefault,colorDefault,width = 70); 
+AddColumn(iRSavg,"RS(Industry)",1.2,colorDefault,colorDefault,width = 80); 
+sector = SectorID(1);
+industry = IndustryID(1);
+AddTextColumn(Sector,"Sector name" );
+AddTextColumn(Industry,"Industry name"); 
+AddColumn(sFT,"Tickers in Sector",1,colorDefault,colorDefault,width = 100);  
+AddColumn(iFT,"Tickers in Industry",1,colorDefault,colorDefault,width = 120); 
+AddTextColumn(FullName(),"Full name");
+}
+else if (Filtercond == 1)
+{
+Filter = GroupID()==253;
+AddColumn(sRSavg,"RS(Sector)",1.2,colorDefault,colorDefault,width = 70); 
+AddColumn(iRSavg,"RS(Industry)",1.2,colorDefault,colorDefault,width = 80); 
+AddColumn(sFT,"Tickers in Sector",1,colorDefault,colorDefault,width = 100);  
+AddColumn(iFT,"Tickers in Industry",1,colorDefault,colorDefault,width = 120); 
+}
+}
+
+Title = "Tradingbasis.com - Sector Industry Trend Analysis - "+ Name()+" - {{INTERVAL}}"
++EncodeColor(SectorColor)+", Sector "+SectorID(1)+", Strength = "+ WriteVal(sRSavg,1.2)+", "+WriteVal(sFT,1.0)+ " Symbols, "
++EncodeColor(IndustryColor)+"Industry " +IndustryID(1)+", Strength = "+ WriteVal(iRSavg,1.2)+", "+WriteVal(iFT,1.0)+ " Symbols ";

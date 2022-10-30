@@ -1,0 +1,5 @@
+FractalUp1 = IIf((L < Ref(L,2) AND L < Ref(L,1) AND L < Ref(L,-1) AND L < Ref(L,-2)),1,0);
+FractalDown1 = IIf((H > Ref(H,2) AND H > Ref(H,1) AND H > Ref(H,-1) AND H > Ref(H,-2)),1,0);
+
+Plot(FractalUp1, "",5);
+Plot(FractalDown1, "", 4);

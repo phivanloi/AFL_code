@@ -1,0 +1,32 @@
+/*Sun & Cloud*/
+/* Modified from Ichimoku chart by CC Chen*/
+ 
+Long2 =EMA( ( HHV( H, 20 ) + LLV( L, 20) )/2,20);
+Long1 =EMA( ( HHV( H, 5 ) + LLV( L, 5) )/2,10);
+K=(H+2*C+L)/4;
+Z=  ( HHV( H, 3 ) + LLV( L, 3) )/2 ;
+SP=IIf(K>=Z*1.05,1.10*Z,IIf(K<Z*1.05 AND K>=Z,1.0*Z,IIf(K<Z,0.9*Z,0.9*Z)));
+M=IIf(Long1>long2,Long2,Long1);
+ 
+MaxGraph = 5;
+Graph0=M;
+Graph1 = SP;
+Graph2=Z;
+Graph3=Long2;
+Graph4=Long1;
+ 
+Graph0Style=6;
+Graph1Style =8;
+Graph2Style=4;
+Graph3Style=6;
+Graph4Style=6;
+ 
+Graph0Color=20;
+Graph1Color=3;
+Graph2Color=5;
+Graph3Color=2;
+Graph4Color=8;
+ 
+Title=Name() + "{Sun&Cloud} : "+WriteIf(Long1>long2,"Rising Sun","Dark Cloud Cover");
+ 
+ 

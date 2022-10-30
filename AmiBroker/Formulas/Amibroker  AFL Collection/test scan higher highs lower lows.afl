@@ -1,0 +1,41 @@
+/* sell when the High of today is lower than the High of yesterday AND the High of yesterday is lower than the High of the Day before. 
+the macd going lower for 2 days. adx lower for 3 days. ROC lower for 2 days the volume higher for 1 day.
+*/
+Buy = 	High > Ref( High , -1 )
+	AND Low > Ref( Low , -1 )
+	AND Ref( High , -1 ) > Ref( High , -2 )
+	AND Ref( Low , -1 ) > Ref( Low , -2 )
+	AND Volume > Ref( Volume , -1 )
+	AND Ref (Volume, -1) > Ref( Volume , -2 )	
+	AND MACD( 12, 26 ) > Ref( MACD( 12, 26 ) , -1 )
+	AND Ref( MACD( 12, 26 ) , -1 ) > Ref( MACD( 12, 26 ) , -2 )
+//	AND Ref( ADX( 14 ), -2 ) > Ref( ADX( 14 ), -3 )
+// 	AND Ref( ADX( 14 ), -1 ) > Ref( ADX( 14 ), -2 )
+  AND ADX( 14 ) > Ref( ADX( 14 ), -1 )
+	AND ROC( Close, 12, False ) > Ref( ROC( Close, 12, False ), -1 )
+	AND Ref( ROC( Close, 12, False ), -1 ) > Ref( ROC( Close, 12, False ), -2 )
+	AND BBandTop( Close, 15, 2 ) > Ref( BBandTop( Close, 15, 2 ) , -1 )
+	AND BBandBot( Close, 15, 2 ) < Ref( BBandBot( Close, 15, 2 ) , -1 );
+
+
+Sell = 0;
+
+Short = 	High < Ref( High , -1 )
+	AND Low < Ref( Low , -1 )
+	AND Ref( High , -1 ) < Ref( High , -2 )
+	AND Ref( Low , -1 ) < Ref( Low , -2 )
+	AND Volume > Ref( Volume , -1 )
+	AND Ref (Volume, -1) > Ref( Volume , -2 )	
+	AND MACD( 12, 26 ) < Ref( MACD( 12, 26 ) , -1 )
+	AND Ref( MACD( 12, 26 ) , -1 ) < Ref( MACD( 12, 26 ) , -2 )
+//	AND Ref( ADX( 14 ), -1 ) > Ref( ADX( 14 ), -2 )
+//	AND Ref( ADX( 14 ), -2 ) > Ref( ADX( 14 ), -3 )   
+	AND ADX( 14 ) > Ref( ADX( 14 ), -1 )
+	AND ROC( Close, 12, False ) < Ref( ROC( Close, 12, False ), -1 )
+	AND Ref( ROC( Close, 12, False ), -1 ) < Ref( ROC( Close, 12, False ), -2 )
+	AND BBandTop( Close, 15, 2 ) > Ref( BBandTop( Close, 15, 2 ) , -1 )
+	AND BBandBot( Close, 15, 2 ) < Ref( BBandBot( Close, 15, 2 ) , -1 );
+
+
+
+Cover = 0;

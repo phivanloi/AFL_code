@@ -1,0 +1,8 @@
+T3Sensitivity	= Param("T3 Sensitivity",1,0.1,5,0.01);
+T3Periods 		= Param("T3 Periods",3,1,10,1);
+Reset			= GapUp() OR GapDown();
+ResetReference	= (H+L+C)/3;
+T3rPlot = T3r( C, T3Sensitivity, T3Periods, ResetReference );
+Plot(C,"\nClose",IIf(Reset,2,1),128);
+Plot(T3rPlot,"\nResetable T3",4,1|styleThick);
+Plot(T3( C, T3Periods, T3Sensitivity),"\nTraditional T3",6,1|styleThick);

@@ -1,0 +1,19 @@
+function Trix2( array, period )
+{
+tmp = EMA( EMA( EMA( array, period ), period ), period );
+result = (tmp - Ref( tmp , -1 ))/Ref( tmp, -1 ) ;
+return result;
+}
+ 
+Trixline = Trix2( (O+C)/2, 5 );
+TrixSignal = EMA( Trixline, 3 );
+ 
+Plot( Trixline, "TRIX(5)", colorRed );
+Plot( TrixSignal, "EMA(TRIX,3)", colorBlue );
+ 
+GoldenCross = Cross( TrixLine, TrixSignal );
+TrixFall = Trixline < Ref( Trixline, -1 ) AND Ref( Trixline, -1 ) > Ref( Trixline, -2 );
+ 
+Buy = GoldenCross;
+Sell = TrixFall;
+Plot( Flip( Buy, Sell ), "Trade", colorPaleGreen, styleArea | styleOwnScale, 0, 1 );

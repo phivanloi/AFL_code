@@ -1,0 +1,27 @@
+BS = BarsSince(Year()!=Ref(Year(),1));
+//AddColumn(BS,"BS 1-1-06" , 3.2, colorDarkRed, colorLightGrey  );
+YTD = C - Ref( C, -BarsSince(Year()!=Ref(Year(),1))+1);
+P = (YTD*100)/Ref( C, -BarsSince(Year()!=Ref(Year(),1))+1);
+
+pds = 260;
+A = HHV(C,pds);
+B = LLV(C,pds);
+
+
+
+//Plot( C, "Close ", colorYellow, styleLine );
+Plot(P,"% Change from 01/01/2006",5,256);
+Plot(A, "Yearly high",2,256);
+Plot(B, "yearly Low",4,256);
+
+//function PlotVariableHistogram(array, threshold, label, pos_color, neg_color) {
+// xO = threshold;
+// xC = array;
+// xH = Max(xO, xC);
+// xL = Min(xO, xC);
+// color = IIf(array >= threshold, pos_color, neg_color);
+// PlotOHLC(xO, xH, xL, xC, label, color, styleCandle);
+
+//}
+//thresh = Param("Threshold", 0,0,100, 1);
+//PlotVariableHistogram(P, thresh, "% Change from 01/01/2006", colorGreen, colorRed); // use candle colors from prefs

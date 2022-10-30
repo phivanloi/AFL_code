@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<AmiBroker-Batch CompactMode="0">
+<Step>
+<Action>Explore</Action>
+<Param/>
+</Step>
+<Step>
+<Action>Export</Action>
+<Param>C:\\Users\\Admins\\Desktop\\stock_price\\test_atuo.csv</Param>
+</Step>
+</AmiBroker-Batch>

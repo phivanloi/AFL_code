@@ -1,0 +1,24 @@
+ 
+Buy = Close < BBandBot( Close, 20, 2 )*0.97;
+AddColumn( Close, "Close " );
+AddColumn( Open, "Open " );
+AddColumn( High, "High " );
+AddColumn( Low, "Low " );
+AddColumn( Volume, "Volume " );
+
+Sell = Close > BBandTop( Close, 20, 2 )*1.03;
+AddColumn( Close, "Close " );
+AddColumn( Open, "Open " );
+AddColumn( High, "High " );
+AddColumn( Low, "Low " );
+AddColumn( Volume, "Volume" );
+
+Sell = 0;
+
+Cover = 0;
+
+
+Filter = Buy OR Sell ;
+
+AddColumn(Buy,"buy",1.2);
+AddColumn(Sell,"sell",1.2);

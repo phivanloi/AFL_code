@@ -1,0 +1,68 @@
+///////// advance trenlines with candle pivots ///////////////////
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} ,{{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot(C, "", IIf(O>=C, colorOrange, colorGreen),styleCandle);
+
+SetChartBkGradientFill( ParamColor("Inner panel upper",colorBlack),ParamColor("Inner panel lower",colorBlack));
+_N(Title = EncodeColor(colorWhite)+StrFormat(" {{NAME}} - {{INTERVAL}} {{DATE}} Open:%g,high:%g,low:%g, Close:%g ,{{VALUES}}",O,H,L,C ));
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+
+farback=Param("How Far back to go",100,50,5000,10);
+nBars = Param("Number of bars", 12, 5, 40);
+aHPivs = H - H;aLPivs = L - L;
+aHPivHighs = H - H;aLPivLows = L - L;aHPivIdxs = H - H;aLPivIdxs = L - L;
+nHPivs = 0;nLPivs = 0;lastHPIdx = 0;lastLPIdx = 0;lastHPH = 0;lastLPL = 0;
+curPivBarIdx = 0;
+aHHVBars = HHVBars(H, nBars);aLLVBars = LLVBars(L, nBars);
+aHHV = HHV(H, nBars);aLLV = LLV(L, nBars);
+aVisBars = Status("barvisible");nLastVisBar = LastValue(Highest(IIf(aVisBars, BarIndex(), 0)));
+_TRACE("Last visible bar: " + nLastVisBar);
+curBar = (BarCount-1);curTrend = "";if (aLLVBars[curBar] < aHHVBars[curBar]) {
+curTrend = "D";}else {curTrend = "U";}
+for (i=0; i<farback; i++) {curBar = (BarCount - 1) - i;
+if (aLLVBars[curBar] < aHHVBars[curBar]) {
+if (curTrend == "U") {curTrend = "D";
+curPivBarIdx = curBar - aLLVBars[curBar];aLPivs[curPivBarIdx] = 1;aLPivLows[nLPivs] = L[curPivBarIdx];
+aLPivIdxs[nLPivs] = curPivBarIdx;nLPivs++;}
+} else {if (curTrend == "D") {curTrend = "U";curPivBarIdx = curBar - aHHVBars[curBar];
+aHPivs[curPivBarIdx] = 1;aHPivHighs[nHPivs] = H[curPivBarIdx];
+aHPivIdxs[nHPivs] = curPivBarIdx;nHPivs++;}} }
+curBar = (BarCount-1);candIdx = 0;candPrc = 0;lastLPIdx = aLPivIdxs[0];lastLPL = aLPivLows[0];
+lastHPIdx = aHPivIdxs[0];lastHPH = aHPivHighs[0];if (lastLPIdx > lastHPIdx) {
+candIdx = curBar - aHHVBars[curBar];candPrc = aHHV[curBar];
+if (lastHPH < candPrc AND candIdx > lastLPIdx AND candIdx < curBar) {
+aHPivs[candIdx] = 1;
+for (j=0; j<nHPivs; j++) {aHPivHighs[nHPivs-j] = aHPivHighs[nHPivs-(j+1)];
+aHPivIdxs[nHPivs-j] = aHPivIdxs[nHPivs-(j+1)];}aHPivHighs[0] = candPrc ;
+aHPivIdxs[0] = candIdx;nHPivs++;}} else {
+candIdx = curBar - aLLVBars[curBar];candPrc = aLLV[curBar];if (lastLPL > candPrc AND
+candIdx > lastHPIdx AND candIdx < curBar) {
+aLPivs[candIdx] = 1;
+for (j=0; j<nLPivs; j++) {aLPivLows[nLPivs-j] = aLPivLows[nLPivs-(j+1)];
+aLPivIdxs[nLPivs-j] = aLPivIdxs[nLPivs-(j+1)];}aLPivLows[0] = candPrc;
+aLPivIdxs[0] = candIdx;nLPivs++;}}
+for (k=0; k<nHPivs; k++) {_TRACE("High pivot no. " + k
++ " at barindex: " + aHPivIdxs[k] + ", "
++ WriteVal(ValueWhen(BarIndex()==aHPivIdxs[k],
+DateTime(), 1), formatDateTime)+ ", " + aHPivHighs[k]);}
+a1=ahpivs==1;a2=alpivs==1;
+PlotShapes(a1* shapeSmallCircle, colorRed, 0,H, Offset=0);
+PlotShapes(a2*shapeSmallCircle , colorGreen, 0,L, Offset=0);
+//////////////////////////////////////////////////////
+x = Cum(1);s1=L;s11=H;pS = a2 == 1;
+endt= SelectedValue(ValueWhen( pS, x, 1 ));
+startt=SelectedValue(ValueWhen( pS, x, 2 ));dtS =endt-startt;
+endS = SelectedValue(ValueWhen( pS, s1, 1 ) );
+startS = SelectedValue( ValueWhen( pS, s1, 2 ));aS = (endS-startS)/dtS;
+bS = endS;trendlineS = aS * ( x -endt ) + bS;
+g3= IIf(x>startt-10,trendlineS,-1e10);
+Plot(g3,"",colorRed,styleThick);
+pR = a1== 1;endt1= SelectedValue(ValueWhen( pR, x, 1 ));
+startt1=SelectedValue(ValueWhen( pR, x, 2 ));
+dtR =endt1-startt1;endR = SelectedValue(ValueWhen( pR, s11, 1 ) );
+startR = SelectedValue( ValueWhen( pR, s11, 2 ));
+aR = (endR-startR)/dtR;bR = endR;
+trendlineR = aR * ( x -endt1 ) + bR;
+g4= IIf(x>startT1-10,trendlineR,-1e10); 

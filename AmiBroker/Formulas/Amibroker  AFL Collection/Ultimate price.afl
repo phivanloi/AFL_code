@@ -1,0 +1,371 @@
+_SECTION_BEGIN("MACD HIst"); 
+ 
+SetChartBkColor( colorBlack ) ; 
+f = Param("fast ema",12,1,50,1);
+s = Param("Slow ema",26,2,100,1); 
+t = Param ("signal",9,1,50,1);
+A1=EMA(C,f)-EMA(C,s); 
+a2 = EMA(a1,t);
+Hist = a1-a2;
+em = EMA(Hist,2);
+D1=14;
+
+ST33=StochD(14);
+Ar=EMA(RSI(5),13);
+RSI13 = EMA( ar, 13 );
+
+Bar_col = IIf(Hist > em AND st33 > Ref(st33,-1)AND ar > RSI13,colorBrightGreen,IIf(Hist < em AND st33 < Ref(st33,-1)AND ar < RSI13,colorRed,colorYellow));
+Plot(C,"",bar_col,styleBar+styleThick);
+em34 = EMA(C,34);
+em20 = EMA(C,20);
+Plot(em34,"",colorWhite,styleThick);
+Plot(em20,"",colorAqua,styleThick);
+PlotOHLC(em34,IIf(em34 > em20,em34,em20),IIf(em34 < em20,em34,em20),em34,"",IIf(em20 > em34,colorBlue,colorBrown),styleCloud+styleNoLabel);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Support-Resistance");
+SupRes=ParamToggle("Sup-Res","No|Yes",1);
+SupResA = Param("Sup-Res A Period",20,0,100,1); 
+SupResB = Param("Sup-Res B Period",25,0,100,1);
+
+Res1 = ParamColor("Resistance High", colorRed );
+Res2 = ParamColor("Resistance Low", colorDarkRed );
+Sup1 = ParamColor("Support High", colorDarkGreen );
+Sup2 = ParamColor("Support Low", colorBrightGreen );
+if(SupRes)
+{
+MaxGraph = 12;
+BuyOffSet = SupResA;//Optimize("BuyOffSet",18,15,20,1);
+SellOffset = BuyOffSet;//Optimize("SellOffset",2,2,14,2);
+RegLength = 5;//Optimize("RegLength",5, 2,11,2);
+BuyATRPeriod = 2;//Optimize("BuyATRPeriod",2,2,5,1);
+SellATRPeriod = BuyATRPeriod;//Optimize("SellATRPeriod",4,2,11,2);
+ATRMultiplier = 0.5;//Optimize("ATRMultiplier",1,0.7,1.25,.05);
+SuppA = HHV(H-ATRMultiplier*ATR(BuyATRPeriod),BuyOffset); /* RED */
+RessB = LLV(L+ATRMultiplier*ATR(SellATRPeriod),SellOffset); /* GREEN */
+Plot(SuppA,"",sup1,ParamStyle("Sup-Res A Style", styleDashed|styleNoTitle) );
+Plot(RessB,"",res2,ParamStyle("Sup-Res A Style", styleDashed|styleNoTitle) ); 
+
+nn=SupResB;
+mmm=100;
+TYP=(High + Low + 2*Close)/4;
+CI=(TYP-MA(TYP,14))/(0.015*StDev(TYP,14));
+CCCI=EMA(CI,5)+mmm;
+Hh=HHV(H,nn);
+Ll=LLV(L,nn);
+MM=(Hh+Ll)/2;
+CCCC=EMA(CCCI*(Hh-Ll)/(2*mmm)+Ll,5);
+Plot(Hh,"",Res1, ParamStyle("Sup-Res B Style", styleThick|styleNoTitle) );
+Plot(Ll,"",Sup2, ParamStyle("Sup-Res B Style", styleThick|styleNoTitle) ) ;
+}
+_SECTION_END();
+
+
+
+_SECTION_BEGIN("Pivot");
+nBars = Param("Number of bars", 12, 5, 40);
+bShowTCZ = Param("Show TCZ", 1, 0, 1); 
+nExploreBarIdx = 0;
+nExploreDate = 0;
+nCurDateNum = 0;
+DN = DateNum();
+DT = DateTime();
+bTCZLong = False;
+bTCZShort = False;
+nAnchorPivIdx = 0;
+ADX8 = ADX(8);
+if(Status("action")==1) {
+	bDraw = True;
+	bUseLastVis = 1;
+} else {
+	bDraw = False;
+	bUseLastVis = False;
+	bTrace = 1;
+	nExploreDate = Status("rangetodate");
+	for (i=LastValue(BarIndex());i>=0;i--) {
+		nCurDateNum = DN[i];
+		if (nCurDateNum == nExploreDate) {
+			nExploreBarIdx = i;
+		}
+	}
+}
+GraphXSpace=7;
+if (bDraw) {
+}
+aHPivs = H - H;
+aLPivs = L - L;
+aHPivHighs = H - H;
+aLPivLows = L - L;
+aHPivIdxs = H - H;
+aLPivIdxs = L - L;
+aAddedHPivs = H - H;
+aAddedLPivs = L - L;
+aLegVol = H - H;
+aRetrcVol = H - H;
+nHPivs = 0;
+nLPivs = 0;
+lastHPIdx = 0;
+lastLPIdx = 0;
+lastHPH = 0;
+lastLPL = 0;
+curPivBarIdx = 0;
+aHHVBars = HHVBars(H, nBars);
+aLLVBars = LLVBars(L, nBars);
+aHHV = HHV(H, nBars);
+aLLV = LLV(L, nBars);
+nLastVisBar = LastValue(
+	Highest(IIf(Status("barvisible"), BarIndex(), 0)));
+curBar = IIf(nlastVisBar > 0 AND bUseLastVis, nlastVisBar, 
+	IIf(Status("action")==4 AND nExploreBarIdx > 0, nExploreBarIdx,
+	LastValue(BarIndex())));
+curTrend = "";
+if (aLLVBars[curBar] < aHHVBars[curBar]) 
+	curTrend = "D";
+else 
+	curTrend = "U";
+if (curBar >= 120) {
+	for (i=0; i<120; i++) { 
+		curBar = IIf(nlastVisBar > 0 AND bUseLastVis, 
+			nlastVisBar-i, 
+			IIf(Status("action")==4 AND nExploreBarIdx > 0, 
+			nExploreBarIdx-i,
+			LastValue(BarIndex())-i));
+		if (aLLVBars[curBar] < aHHVBars[curBar]) {
+			if (curTrend == "U") {
+				curTrend = "D";
+				curPivBarIdx = curBar - aLLVBars[curBar];
+				aLPivs[curPivBarIdx] = 1;
+				aLPivLows[nLPivs] = L[curPivBarIdx];
+				aLPivIdxs[nLPivs] = curPivBarIdx;
+				nLPivs++;
+			}
+		} else {
+			if (curTrend == "D") {
+				curTrend = "U";
+				curPivBarIdx = curBar - aHHVBars[curBar];
+				aHPivs[curPivBarIdx] = 1;
+				aHPivHighs[nHPivs] = H[curPivBarIdx];
+				aHPivIdxs[nHPivs] = curPivBarIdx;
+				nHPivs++;
+			}
+		}		
+	} 
+}
+curBar = 
+	IIf(nlastVisBar > 0 AND bUseLastVis, 
+	nlastVisBar, 
+	IIf(Status("action")==4 AND nExploreBarIdx > 0, 
+	nExploreBarIdx,
+	LastValue(BarIndex()))
+	);
+if (nHPivs >= 2 AND nLPivs >= 2) {
+	lastLPIdx = aLPivIdxs[0];
+	lastLPL = aLPivLows[0];
+	lastHPIdx = aHPivIdxs[0];
+	lastHPH = aHPivHighs[0];
+	nLastHOrLPivIdx = Max(lastLPIdx, lastHPIdx);
+	nAddPivsRng = curBar - nLastHOrLPivIdx;
+	aLLVAfterLastPiv = LLV(L, nAddPivsRng);  
+	nLLVAfterLastPiv = aLLVAfterLastPiv[curBar];
+	aLLVIdxAfterLastPiv = LLVBars(L, nAddPivsRng);  
+	nLLVIdxAfterLastPiv = curBar - aLLVIdxAfterLastPiv[curBar];
+	aHHVAfterLastPiv = HHV(H, nAddPivsRng); 
+	nHHVAfterLastPiv = aHHVAfterLastPiv[curBar];
+	aHHVIdxAfterLastPiv = HHVBars(H, nAddPivsRng); 
+	nHHVIdxAfterLastPiv = curBar - aHHVIdxAfterLastPiv[curBar];
+	if (lastHPIdx > lastLPIdx) {
+	
+		/*	There are at least two possibilities here. One is that
+	   		the previous high was higher, indicating that this is a 
+	   		possible short retracement or one in the making.
+	   		The other is that the previous high was lower, indicating 
+	   		that this is a possible long retracement in the working. 
+			However, both depend on opposing pivots. E.g., if I find 
+			higher highs, what if I have lower lows?  
+		
+			If the highs are descending, then I can consider:
+	   			- a lower low, and leave it at that
+	   			- a higher high and higher low
+	   			- a lower low and another lower high
+		*/
+		if (aHPivHighs[0] < aHPivHighs[1]) {
+	
+			if (nLLVAfterLastPiv < aLPivLows[0] AND 
+				(nLLVIdxAfterLastPiv - lastHPIdx - 1) >= 1
+				AND nLLVIdxAfterLastPiv != curBar	) {
+	
+				// -- OK, we'll add this as a pivot. 
+				//    Mark it for plotting...
+				aLPivs[nLLVIdxAfterLastPiv] = 1;
+				aAddedLPivs[nLLVIdxAfterLastPiv] = 1;
+		
+				//    ...and then rearrange elements in the 
+				//    pivot information arrays
+				for (j=0; j<nLPivs; j++) {
+					aLPivLows[nLPivs-j] = aLPivLows[nLPivs-(j+1)];
+					aLPivIdxs[nLPivs-j] = aLPivIdxs[nLPivs-(j+1)];
+				}
+				aLPivLows[0] = nLLVAfterLastPiv;
+				aLPivIdxs[0] = nLLVIdxAfterLastPiv;
+				nLPivs++;
+	
+			// -- Test whether to add piv given last piv is high 
+			//    AND we have lower highs	
+			}
+	
+		// -- Here, the last piv is a high piv, and we have 
+		//    higher-highs. The most likely addition is a 
+		//    Low piv that is a retracement.
+		} else {
+	
+			if (nLLVAfterLastPiv > aLPivLows[0] AND 
+				(nLLVIdxAfterLastPiv - lastHPIdx - 1) >= 1
+				AND nLLVIdxAfterLastPiv != curBar	) {
+	
+				// -- OK, we'll add this as a pivot. 
+				//    Mark it for plotting...
+				aLPivs[nLLVIdxAfterLastPiv] = 1;
+				aAddedLPivs[nLLVIdxAfterLastPiv] = 1;
+		
+				//    ...and then rearrange elements in the 
+				//    pivot information arrays
+				for (j=0; j<nLPivs; j++) {
+					aLPivLows[nLPivs-j] = aLPivLows[nLPivs-(j+1)];
+					aLPivIdxs[nLPivs-j] = aLPivIdxs[nLPivs-(j+1)];
+				}
+				aLPivLows[0] = nLLVAfterLastPiv;
+				aLPivIdxs[0] = nLLVIdxAfterLastPiv;
+				nLPivs++;
+	
+			// -- Test whether to add piv given last piv is high 
+			//    AND we have lower highs	
+			}	
+		// -- The last piv is a high and we have higher highs 
+		//    OR lower highs
+		}
+	
+	/* ****************************************************************
+		Still finding missed pivot(s). Here, the last piv is a low piv.
+	**************************************************************** */
+	} else {
+	
+		// -- First case, lower highs
+		if (aHPivHighs[0] < aHPivHighs[1]) {
+	
+			if (nHHVAfterLastPiv < aHPivHighs[0] AND 
+				(nHHVIdxAfterLastPiv - lastLPIdx - 1) >= 1
+				AND nHHVIdxAfterLastPiv != curBar	) {
+	
+				// -- OK, we'll add this as a pivot. 
+				//    Mark that for plotting
+				aHPivs[nHHVIdxAfterLastPiv] = 1;
+				aAddedHPivs[nHHVIdxAfterLastPiv] = 1;
+	
+				//    ...and then rearrange elements in the 
+				//    pivot information arrays
+				for (j=0; j<nHPivs; j++) {
+					aHPivHighs[nHPivs-j] = aHPivHighs[nHPivs-(j+1)];
+					aHPivIdxs[nHPivs-j] = aHPivIdxs[nhPivs-(j+1)];
+				}
+				aHPivHighs[0] = nHHVAfterLastPiv;
+				aHPivIdxs[0] = nHHVIdxAfterLastPiv;
+				nHPivs++;
+	
+			// -- Test whether to add piv given last piv is high 
+			//    AND we have lower highs	
+			}
+	
+		// -- Second case when last piv is a low piv, higher highs 
+		//    Most likely addition is high piv that is a retracement.
+		//    Considering adding a high piv as long as it is higher
+		} else {
+	
+			// -- Where I have higher highs,
+			if (nHHVAfterLastPiv > aHPivHighs[0] AND 
+				(nHHVIdxAfterLastPiv - lastLPIdx - 1) >= 1
+				AND nHHVIdxAfterLastPiv != curBar	) {
+	
+				// -- OK, we'll add this as a pivot. 
+				//    Mark it for plotting...
+				aHPivs[nHHVIdxAfterLastPiv] = 1;
+				aAddedHPivs[nHHVIdxAfterLastPiv] = 1;
+	
+				//    ...and then rearrange elements in the 
+				//    pivot information arrays
+				for (j=0; j<nHPivs; j++) {
+					aHPivHighs[nHPivs-j] = aHPivHighs[nHPivs-(j+1)];
+					aHPivIdxs[nHPivs-j] = aHPivIdxs[nhPivs-(j+1)];
+				}
+				aHPivHighs[0] = nHHVAfterLastPiv;
+				aHPivIdxs[0] = nHHVIdxAfterLastPiv;
+				nHPivs++;
+	
+			// -- Test whether to add piv given last piv is high 
+			//    AND we have lower highs	
+			}
+	
+		}
+			
+	} 
+
+// -- If there are at least two of each
+}
+
+/* ****************************************
+// -- Done with finding pivots
+***************************************** */ 
+
+if (bDraw) {
+PivotEntry = ParamColor( "Entry Color", colorBrightGreen );
+PivotEntry2 = ParamColor( "Entry Color2", colorYellow );
+PivotExit = ParamColor( "Exit Color", colorRed );
+PivotExit2 = ParamColor( "Exit Color2", colorYellow );
+	// -- OK, let's plot the pivots using arrows
+	PlotShapes(
+		IIf(aHPivs==1, shapeSquare, shapeNone), 
+			PivotExit, 0, 	High, Offset=30);
+	PlotShapes(
+		IIf(aAddedHPivs==1, shapeSquare, shapeNone),
+			PivotExit2, 0, High, Offset=30);
+	PlotShapes(
+		IIf(aLPivs==1, shapeSquare , shapeNone),		
+			PivotEntry, 0, Low, Offset=-30);
+	PlotShapes(
+		IIf(aAddedLPivs==1, shapeSquare , shapeNone), 
+			PivotEntry2, 0, Low, Offset=-30);
+
+	PlotShapes(
+		IIf(aHPivs==1, shapeSquare, shapeNone), 
+			colorBlack, 0, 	High, Offset=35);
+	PlotShapes(
+		IIf(aAddedHPivs==1, shapeSquare, shapeNone),
+			colorBlack, 0, High, Offset=35);
+	PlotShapes(
+		IIf(aLPivs==1, shapeSquare , shapeNone),		
+			colorBlack, 0, Low, Offset=-35);
+	PlotShapes(
+		IIf(aAddedLPivs==1, shapeSquare , shapeNone), 
+			colorBlack, 0, Low, Offset=-35);
+}
+
+/* ****************************************
+// -- Done with discovering and plotting pivots 
+***************************************** */ 
+m = (Hh+Ll)/2;
+Title = EncodeColor(colorWhite)+ "LINKON'S PIVOT TRADING SYSTEM" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+
+"\n"+
+WriteIf(H > Ref(H,-1),EncodeColor(colorGreen),EncodeColor(colorRed))+"              Hi "+H+"\n"+ 
+EncodeColor(colorWhite)+"Op "+O+EncodeColor(colorAqua)+" Cl : " +C+"\n"+
+WriteIf(L < Ref(L,-1),EncodeColor(colorRed),EncodeColor(colorGreen))+"              Lo "+L
++"\n"+"\n"+
+EncodeColor(colorGreen)+"SL for Short   "+Hh
++"\n"+
+EncodeColor(colorRed)+"SL for Long   "+Ll
++"\n"+
+EncodeColor(colorAqua)+"Midpoint   "+m
+
+
+
+;

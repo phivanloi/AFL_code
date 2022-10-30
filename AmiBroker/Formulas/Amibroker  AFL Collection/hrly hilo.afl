@@ -1,0 +1,43 @@
+// Amibroker AFL code by Edward Pottasch, 7/21/2011
+ Version(5.21);
+ xx=BarIndex();x=xx;Lx=LastValue(x);
+ tf=Param("Time Frame (min)",60,1,500,1);tfrm=in1Minute*tf;
+
+ TimeFrameSet(tfrm); 
+ H_tfrm=H;
+ L_tfrm=L;
+ TimeFrameRestore();
+ Lkbk=tfrm/Interval();
+ if(Lkbk>1)
+ {
+ H_tfrm=TimeFrameExpand(H_tfrm,tfrm,expandFirst); 
+ L_tfrm=TimeFrameExpand(L_tfrm,tfrm,expandFirst);
+ }
+
+ H_mark=H_tfrm==H;
+ L_mark=L_tfrm==L;
+
+ GraphXSpace=5;
+ SetChartOptions(0,chartShowDates);
+ SetBarFillColor(IIf(C>O,ColorRGB(0,75,0),IIf(C<=O, ColorRGB(75,0,0),colorLightGrey)));
+ Plot(C,"\nPrice",IIf(C>O,ColorRGB(0,255,0),IIf(C<= O,ColorRGB(255,0,0),colorLightGrey)),64,0,0,0,0);
+ PlotShapes(IIf(L_mark,shapeSmallCircle,shapeNone), colorGreen,0,L,-15);
+ PlotShapes(IIf(L_mark,shapeHollowCircle,shapeNone) ,colorLightGrey,0,L,-15);
+ PlotShapes(IIf(H_mark,shapeSmallCircle,shapeNone), colorRed,0,H,15);
+ PlotShapes(IIf(H_mark,shapeHollowCircle,shapeNone) ,colorLightGrey,0,H,15);
+ Plot(H_tfrm,"",colorRed,styleLine);
+ Plot(L_tfrm,"",colorGreen,styleLine);
+
+ qq=Interval()/60;
+ if(qq < 60){tf=" min";tt=qq;}
+ else if(qq >= 60 AND qq < 1440){tf=" hrs";tt=qq/60;}
+ else if(qq >= 1440){tf=" days";tt=(qq/60)/24;}
+ qq=Max(tfrm/60,Interval()/60);
+ if(qq < 60){tfa=" min";tta=qq;}
+ else if(qq >= 60 AND qq < 1440){tfa=" hrs";tta=qq/60;}
+ else if(qq >= 1440){tfa=" days";tta=(qq/60)/24;}
+
+ Title = Name() + EncodeColor( colorYellow ) + " | " +
+ EncodeColor( ColorRGB(131,111,255) ) + "Chart Timeframe: " + tt + tf + EncodeColor( colorBlue ) + " | " + 
+ EncodeColor( ColorRGB(131,111,255) ) + "Trend Timeframe: " + tta + tfa + EncodeColor( colorDarkGrey ) 
+ + EncodeColor( colorBlue ) + " | ";

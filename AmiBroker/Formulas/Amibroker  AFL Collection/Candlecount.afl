@@ -1,0 +1,7 @@
+Bar = BarIndex();
+SpanBars = EndValue( Bar ) - BeginValue( Bar );
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}}   %g", SpanBars)); 
+// Display number of bars in Title
+Plot( SpanBars, "Span Bars", colorBlack, styleNoLine|styleNoLabel );
+ 

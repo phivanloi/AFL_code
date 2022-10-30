@@ -1,0 +1,2 @@
+StochMACD=100*(MACD()-LLV(MACD(),14))/(HHV(MACD(),14)-LLV(MACD(),14));
+Plot(StochMACD,"",colorRed,styleThick);

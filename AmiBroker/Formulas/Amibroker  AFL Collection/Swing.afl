@@ -1,0 +1,34 @@
+
+// 350 Swing Indicator 
+_SECTION_BEGIN("350Swing"); 
+
+nRSILen = Param("RSI Length", 3, 2, 50 ); 
+nMALen = Param("MA Length", 3 ); 
+UpColor = ParamColor("UpColor", colorGreen ); 
+DnColor = ParamColor("DnColor", colorRed ); 
+
+r = RSI( nRSILen ); 
+rma = MA( r, nMALen ); 
+Color = IIf( r > 50, UpColor, DnColor ); 
+
+mode =  ParamList("Display", "RSI|RSIMA|Price"); 
+
+switch( mode ) 
+{ 
+case "RSI":  
+         Plot( r, _DEFAULT_NAME(), Color ); 
+         break; 
+case "RSIMA":   
+         Plot( rma,  "RSI MA" + _PARAM_VALUES(), colorBlue ); 
+         PlotOHLC( 50, rma, 50, rma, "", colorLightBlue , styleCloud | styleClipMinMax, 20, 80 ); 
+         break; 
+case "Price": 
+         SetBarFillColor( Color ); 
+         Plot( C, "Price", Color, styleCandle ); 
+         PlotShapes( ( rma < 20 ) * shapeSmallCircle, colorGreen, 0, L, -20 ); 
+         PlotShapes( ( rma > 80 ) * shapeSmallCircle, colorRed, 0, H, 20 ); 
+         Plot( HHV( H, 20 ), "", colorLightBlue ); 
+         Plot( LLV( L, 20 ), "", colorLightBlue ); 
+         break; 
+} 
+_SECTION_END();

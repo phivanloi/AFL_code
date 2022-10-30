@@ -1,0 +1,45 @@
+_SECTION_BEGIN("Ensign Volatility Stop");
+// Ensign Volatility Stop
+// get the multiple of 9 period EMA of ATR_Ensign
+
+k=Param("multiplication factor", 1,0.5,5,0.1);
+period=k*9;
+
+VS_raw = 2.5 * EMA(ATR(1), period);
+
+// for longs, VS line is below price
+
+loline = VS_below_price = HHV(Close, period) - VS_raw;
+
+// for shorts, VS line is above price
+
+hiline = VS_above_price = LLV(Close, period) + VS_raw;
+
+between = IIf (C < hiline AND C > loline, 1, 0);
+
+up = IIf(C > hiline OR (H > Ref(H, -1) AND H > hiline), 1, 0);
+
+dn = IIf(C < loline OR (L < Ref(L, -1) AND L < loline), 1, 0);
+
+upcond = IIf(between AND BarsSince(up) < BarsSince(dn) , 1, 0);
+
+dncond = IIf(between AND BarsSince(dn) < BarsSince(up) , 1, 0);
+
+upline = IIf(up OR upcond, loline, Null);
+
+dnline = IIf(dn OR dncond, hiline, Null);
+
+Plot(C, "", colorLightGrey, styleBar);
+
+Plot(upline, "", colorGreen, styleStaircase) ;
+
+Plot(dnline, "", colorRed, styleStaircase) ;
+Buy=upline;
+Sell=dnline;
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+PlotShapes(Buy*shapeUpArrow,colorGreen);
+PlotShapes(Sell*shapeDownArrow,colorRed);
+
+
+/**** END ****/

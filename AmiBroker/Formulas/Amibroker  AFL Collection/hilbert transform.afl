@@ -1,0 +1,9 @@
+price = (H + L) / 2;
+	sbInPhase = price;
+	sbQuadrature = price;
+
+	sbHilbertTransform(price);
+
+
+	Plot(sbInPhase,"InPhase",4,1);
+	Plot(sbQuadrature,"Quadrature",1,1);

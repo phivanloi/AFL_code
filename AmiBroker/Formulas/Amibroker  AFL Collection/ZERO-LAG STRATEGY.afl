@@ -1,0 +1,49 @@
+// Zero-Lag Indicator for AmiBroker 
+// TASC Traders Tips November 2010 
+// 
+
+Length = Param("Length", 32, 0, 100 ); 
+GainLimit = Param("Gain limit", 22, 1, 100 ); 
+Threshold = Param("Threshold", 0.75, 0.1, 10, 0.01 ); 
+
+alpha = 2 / ( Length + 1 ); 
+
+iEMA = AMA( Close, alpha ); 
+
+EC = Close[ 0 ]; 
+
+for( bar = 0; bar < BarCount; bar++ ) 
+{ 
+ EC1 = EC; 
+
+ LeastError = 1e9; 
+ BestEC = 0; 
+
+ for( gain = -0.1 * GainLimit; gain < 0.1 * GainLimit; gain += 0.1 ) 
+ { 
+   EC = alpha * ( iEMA[ bar ] + gain * ( Close[ bar ] - EC1 ) ) + 
+       ( 1 - alpha ) * EC1; 
+
+   Error = abs( Close[ bar ] - EC ); 
+
+   if( Error < LeastError ) 
+   { 
+    LeastError = Error; 
+    BestEC = EC; 
+   } 
+ } 
+ iEC[ bar ] = BestEC;   
+ iLeastError[ bar ] = LeastError; 
+} 
+Plot( iEMA, "EMA", colorRed ); 
+Plot( iEC, "EC" + _PARAM_VALUES(), colorYellow, styleThick ); 
+Plot( C, "Close", ParamColor("Color", colorGreen ), ParamStyle("Style") | GetPriceStyle() ); 
+
+// strategy rules 
+Buy = Cross( iEC, iEMA ) AND 100 * iLeastError / Close > Threshold; 
+Short = Cross( iEMA, iEC ) AND 100 * iLeastError / Close > Threshold; 
+Sell = Short; 
+Cover = Buy; 
+// trade on next bar open 
+SetTradeDelays( 1, 1, 1, 1 ); 
+BuyPrice = SellPrice = CoverPrice = ShortPrice = Open; 

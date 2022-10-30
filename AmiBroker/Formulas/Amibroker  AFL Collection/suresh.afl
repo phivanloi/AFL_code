@@ -1,0 +1,357 @@
+SetChartOptions( 0, chartShowArrows | chartShowDates );
+_N( Title = StrFormat( "{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Title=Title+ "\n" + NumToStr(DateNum());
+Title=Title+ "\n" + NumToStr(TimeNum());
+Plot( C, "Close", ParamColor( "Color", colorBlack ), styleNoTitle | ParamStyle( "Style" ) | GetPriceStyle() );
+//_TRACE("ABTest: test trace1 ");
+
+//#include "C:\Program Files\AmiBroker\sharedLibrary\DateTimeToNumber.afl"
+
+/*
+#include "C:\Program Files\AmiBroker\sharedLibrary\DateTimeToNumber.afl"
+        StaticVarSetText( "TradeType" ,"Stocks");  //Stocks|Forex
+        StaticVarSetText( "forexSymbol" ,"AAPL"); //"EUR.USD-IDEALPRO-CASH|
+        StaticVarSetText( "StockSymbol","AAPL"); //  "YHOO"
+        StaticVarSetText( "ShortOrLong" ,"Short");  //"Short|Long"
+        StaticVarSet( "EntryPrice" ,163.52000);
+        StaticVarSet( "ExitPrice" ,148.18000);
+        StaticVarSet( "EntryDate" ,Date_To_Num("20080721")); 
+        StaticVarSet( "ExitDate" ,Date_To_Num("20080721"));   
+        StaticVarSet( "EntryTime",Time_To_Num("11:01:47") );  
+        StaticVarSet( "ExitTime" ,Time_To_Num("17:52:17"));
+*/
+StaticVarSetText( "TradeType" , "Stocks" );  //Stocks|Forex
+StaticVarSetText( "forexSymbol" , "SBUX" ); //"EUR.USD-IDEALPRO-CASH|
+StaticVarSetText( "StockSymbol", "SBUX" ); //  "YHOO"
+StaticVarSetText( "ShortOrLong" , "Long" );  //"Short|Long"
+StaticVarSetText( "EntryPrice" , "14.5,15.5" );
+StaticVarSetText( "ExitPrice" , "14.3" );
+StaticVarSetText( "EntryDate" , "1080717,1080723" );
+StaticVarSetText( "ExitDate", "1080725" );
+StaticVarSetText( "EntryTime", "142500,120000" );
+StaticVarSetText( "ExitTime" , "110500" );
+
+
+StaticVarSet( "NoOfEntries" , 2 );
+StaticVarSet( "NoOfExits" , 1 );
+
+
+
+
+
+
+
+function returnBarIndex( array )
+{
+    indx = -1;
+
+    for ( i = 1; i < BarCount;i++ )
+    {
+
+        if ( array[i] == True )
+        {
+            indx = i;
+        }
+    }
+
+    return indx;
+}
+
+
+
+function returnShiftedArray( array, shift )
+{
+
+
+    newArray = array;
+
+    for ( i = 1; i < BarCount;i++ )
+    {
+
+        if ( ( array[i] == True ) && ( ( shift + i ) >= 0 ) && ( ( shift + i ) < BarCount ) )
+        {
+
+            newArray[shift+i] = True;
+            newArray[i] = False;
+
+
+        }
+    }
+
+
+    return newArray;
+}
+
+// get the static variables
+
+TradeType = StaticVarGetText( "TradeType" );
+forexSymbol = StaticVarGetText( "forexSymbol" );
+StockSymbol = StaticVarGetText( "StockSymbol" );
+ShortOrLong = StaticVarGetText( "ShortOrLong" );
+
+ExitPrice = StaticVarGet( "ExitPrice" );// obsolete
+
+
+
+ExitDate = StaticVarGet( "ExitDate" );// obsolete
+
+
+
+ExitTime = StaticVarGet( "NoOfEntries" );// obsolete
+
+for ( i = 0 ;i < StaticVarGet( "NoOfEntries" ) ;i++ )
+{
+    VarSet( "EntryDate" + ( i ), StrToNum( StrExtract( StaticVarGetText( "EntryDate" ), ( i ) ) )  );
+    VarSet( "EntryPrice" + ( i ), StrToNum( StrExtract( StaticVarGetText( "EntryPrice" ), ( i ) ) )  );
+	 VarSet( "EntryTime" + ( i ), StrToNum( StrExtract( StaticVarGetText( "EntryTime" ), ( i ) ) )  );
+
+	_TRACE( "ABTest: test 182 " +"EntryDate" + ( i ) +NumToStr( VarGet("EntryDate" + ( i ))));
+  _TRACE( "ABTest: test 182 " + "EntryDate" + ( i ) +  "string" + StrExtract( StaticVarGetText( "EntryDate" ), ( i ) ) );
+}
+
+// TESTING IF THE VARIABLES EXIST
+for ( i = 0 ;i < StaticVarGet( "NoOfEntries" ) ;i++ ){
+_TRACE( "ABTest: test 182 TESTING" +"EntryDate" + ( i ) +NumToStr( VarGet("EntryDate" + ( i ))));
+_TRACE( "ABTest: test 182 TESTING timeframe" +inWeekly);
+}
+
+for ( j = 0 ;j < StaticVarGet( "NoOfExits" ) ;j++ )
+{
+    VarSet( "ExitDate" + ( j ), StrToNum( StrExtract( StaticVarGetText( "ExitDate" ), ( j ) ) )  );
+	 VarSet( "ExitTime" + ( j ), StrToNum( StrExtract( StaticVarGetText( "ExitTime" ), ( j ) ) )  );
+
+    VarSet( "ExitPrice" + ( j ), StrToNum( StrExtract( StaticVarGetText( "ExitPrice" ), ( j ) ) )  );
+   // _TRACE( "ABTest: test 182 " + "ExitDate" + ( j ) +  "string" + StrExtract( StaticVarGetText( "ExitDate" ), ( j ) ) );
+
+}
+
+//Buy = Sell = Short = Cover = entryPrices = exitPrices = False;
+
+if ( TradeType == "Stocks" )
+{
+    stockname = stockSymbol;
+
+    SetOption( "FuturesMode", False );
+}
+else
+{
+    stockname = forexSymbol;
+    SetOption( "FuturesMode", True );
+
+}
+
+if ( Name() == STOCKNAME )
+{
+    // if the symbol matches what i am looking for
+    dn = DateNum();
+	tn=TimeNum();
+	entryPrices=exitPrices=Buy=Sell=Short=Cover=False;
+	range=H-L;
+    switch ( Interval() )
+    {
+            // START OF SWITCH.
+
+		 
+        case inDaily:
+		
+
+            for ( b = 0;b < BarCount;b++ )
+            {
+                // START OF DAILY
+
+                for ( i = 0 ;i < StaticVarGet( "NoOfEntries" );i++ )
+                {
+                    // _TRACE( "ABTest: test 182 " + "matchig dn " + NumToStr( dn[b] ) );
+                    //  _TRACE( "ABTest: test 182 " + i );
+
+      if ( ( VarGet( "EntryDate"  + i )  >	dn[b]-1 )  AND (VarGet( "EntryDate" + i )< dn[b]+1	 )  )
+                    {
+
+                        entryPrices[b] = VarGet( "EntryPrice" + i );
+							Buy[b]=Short[b]=True;
+                        //_TRACE( "ABTest: test 182 matching price " + NumToStr( VarGet( "EntryPrice" + i ) ) ) ;
+
+
+                        PlotText( "entry" + i + " " +":" + entryPrices[b]   , b, High[b]+range[b], colorBlue );
+                        // PlotText( "entry" + VarGet( "EntryPrice" + i )  , b, EntryPrice0, colorBlue );
+
+                      //  _TRACE( "ABTest: test 182 MATCHED " + NumToStr( VarGet( "EntryDate" + i ) ) + NumToStr( dn[b] ) );
+
+                    }
+
+
+                    for ( j = 0 ;j < StaticVarGet( "NoOfExits" );j++ )
+                    {
+					      if ( ( VarGet( "ExitDate"  + j )  > 	dn[b]-1 )  AND (VarGet( "ExitDate" + j )< dn[b]+1	 )  )
+                       
+                        {
+
+                            exitPrices[b] = VarGet( "ExitPrice" + j );
+								Sell[b]=Cover[b]=True;
+
+                            PlotText( "Exit"  +  j  +":" + VarGet( "ExitPrice" + j )  ,b, Low[b]-range[b], colorRed );
+								 // _TRACE( "ABTest: test 182 MATCHED " + NumToStr( VarGet( "ExitPrice" + j ) ) + NumToStr( dn[b] )  + NumToStr( VarGet( "ExitDate"  + j )));
+
+
+
+                        }
+
+
+
+
+                    }
+
+                }
+
+
+
+
+
+            } // START OF DAILY
+
+            break;
+
+		case inWeekly:
+
+            for ( b = 1;b < BarCount-1;b++ )
+            {
+                // START OF weekly
+
+                for ( i = 0 ;i < StaticVarGet( "NoOfEntries" );i++ )
+                {
+                    // _TRACE( "ABTest: test 182 " + "matchig dn " + NumToStr( dn[b] ) );
+                    //  _TRACE( "ABTest: test 182 " + i );
+		/*	PreviousBar=b;
+			if(b>0)
+			PreviousBar=b-1;
+			NextBar=b;
+			if(b<BarCount)
+			NextBar=b+1;*/
+
+      if ( ( VarGet( "EntryDate"  + i )  >=	dn[b] )  AND (VarGet( "EntryDate" + i )< dn[b+1]	)   )
+                    {
+
+                        entryPrices[b] = VarGet( "EntryPrice" + i );
+							Buy[b]=Short[b]=True;
+                        _TRACE( "ABTest: test 182 matching price entry " + NumToStr( VarGet( "EntryPrice" + i ) ) ) ;
+
+
+                        PlotText( "entry" + i + " " +":" + entryPrices[b]   , b, High[b]+range[b], colorBlue );
+                        // PlotText( "entry" + VarGet( "EntryPrice" + i )  , b, EntryPrice0, colorBlue );
+
+                      //  //( "ABTest: test 182 MATCHED " + NumToStr( VarGet( "EntryDate" + i ) ) + NumToStr( dn[b] ) );
+						
+                    }
+
+
+                    for ( j = 0 ;j < StaticVarGet( "NoOfExits" );j++ )
+                    {
+// if ( ( VarGet( "EntryDate"  + i )  >=	dn[b-1] )  AND (VarGet( "EntryDate" + i )< dn[b]	)   )
+					      if ( ( VarGet( "ExitDate"  + j )   >= 	dn[b] )  AND (VarGet( "ExitDate" + j )< dn[b+1]	 )  )
+                       
+                        {
+
+                            exitPrices[b] = VarGet( "ExitPrice" + j );
+								Sell[b]=Cover[b]=True;
+
+                            PlotText( "Exit"  +  j  +":" + VarGet( "ExitPrice" + j )  ,b, Low[b]-range[b], colorRed );
+								//  _TRACE( "ABTest: test 182 MATCHED " + NumToStr( VarGet( "ExitPrice" + j ) ) + NumToStr( dn[b] )  + NumToStr( VarGet( "ExitDate"  + j )));
+
+
+
+                        }
+
+
+
+
+                    }
+
+                }
+
+
+
+
+
+            } // START OF weekly
+
+            break;
+
+
+            //_TRACE("ABTest: test 182 " +"getting to break");
+
+
+case in1Minute:
+case in5Minute:
+case in15Minute:
+case inHourly:
+				
+            for ( b = 1;b < BarCount-1;b++ )
+            {
+                // START OF intraday
+
+                for ( i = 0 ;i < StaticVarGet( "NoOfEntries" );i++ )
+                {
+                    // _TRACE( "ABTest: test 182 " + "matchig dn " + NumToStr( dn[b] ) );
+                    //  _TRACE( "ABTest: test 182 " + i );
+		
+
+      if (  (VarGet( "EntryDate"  + i ) ==	dn[b] )     AND ( VarGet( "EntryTime"  + i )  >=	tn[b] )  AND (VarGet( "EntryTime" + i )< tn[b+1]	)  )
+                    {
+
+                        entryPrices[b] = VarGet( "EntryPrice" + i );
+							Buy[b]=Short[b]=True;
+                        _TRACE( "ABTest: test 182 matching price entry " + NumToStr( VarGet( "EntryPrice" + i ) ) ) ;
+
+
+                        PlotText( "entry" + i + " " +":" + entryPrices[b]   , b, High[b]+range[b], colorBlue );
+                        // PlotText( "entry" + VarGet( "EntryPrice" + i )  , b, EntryPrice0, colorBlue );
+
+                      //  //( "ABTest: test 182 MATCHED " + NumToStr( VarGet( "EntryDate" + i ) ) + NumToStr( dn[b] ) );
+						
+                    }
+
+
+                    for ( j = 0 ;j < StaticVarGet( "NoOfExits" );j++ )
+                    {
+// if ( ( VarGet( "EntryDate"  + i )  >=	dn[b-1] )  AND (VarGet( "EntryDate" + i )< dn[b]	)   )
+					     
+ 							if (  (VarGet( "ExitDate"  + j ) ==	dn[b] )     AND ( VarGet( "ExitTime"  + j )  >=	tn[b] )  AND (VarGet( "ExitTime" + j )< tn[b+1]	)  )
+
+                       
+                        {
+
+                            exitPrices[b] = VarGet( "ExitPrice" + j );
+								Sell[b]=Cover[b]=True;
+
+                            PlotText( "Exit"  +  j  +":" + VarGet( "ExitPrice" + j )  ,b, Low[b]-range[b], colorRed );
+								//  _TRACE( "ABTest: test 182 MATCHED " + NumToStr( VarGet( "ExitPrice" + j ) ) + NumToStr( dn[b] )  + NumToStr( VarGet( "ExitDate"  + j )));
+
+
+
+                        }
+
+
+
+
+                    }
+
+                }
+
+
+
+
+
+            } // end of intraday
+
+            break;
+
+
+            //_TRACE("ABTest: test 182 " +"getting to break");
+
+
+		
+
+    }// end of switch.
+PlotShapes( IIf(Buy OR Short, shapeSmallCircle, shapeNone),colorBrightGreen, 0, EntryPrices, 0 );
+PlotShapes( IIf( Sell OR Cover, shapeSmallCircle, shapeNone),colorRed, 0 ,ExitPrices, 0 );
+} // // if the symbol matches what i am looking for

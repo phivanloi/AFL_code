@@ -1,0 +1,28 @@
+
+_SECTION_BEGIN("%K Cloud");
+pk = Param("Periods", 15, 2, 100, 1 ); 
+Ksmooth = Param( "%K Avg", 3, 1, 200, 1 );
+//Plot( StochK( pk, Ksmooth), _DEFAULT_NAME(), ParamColor( “Color”, colorBrightGreen ), ParamStyle(“Style”) );
+_SECTION_END();
+
+_SECTION_BEGIN("%D Cloud");
+pd = Param("Periods", 15, 2, 100, 1 ); 
+Ksmooth = Param( "%K Avg", 3, 1, 200, 1 );
+Dsmooth = Param( "%D Avg", 3, 1, 200, 1 );
+//Plot( StochD( pd, Ksmooth, DSmooth ), _DEFAULT_NAME(), ParamColor( “Color”, colorRed ), ParamStyle(“Style”) );
+_SECTION_END();
+
+PlotOHLC( StochK(),StochK(),StochD(),StochK(),"", IIf( StochK()> StochD(), colorBrightGreen, colorRed ), styleCloud);
+
+Overbought= 80;
+Oversold= 20;
+Plot(Overbought,"OB",colorRed);
+Plot(Oversold,"OS",colorGreen); 
+
+a = StochK( pk );
+b = StochD( pd );
+Buy = Cross( a, b );
+Sell = Cross( b, a );
+PlotShapes( shapeSmallCircle * Buy + shapeSmallCircle * Sell, IIf( Buy, colorYellow, colorWhite ) );
+
+_SECTION_END();

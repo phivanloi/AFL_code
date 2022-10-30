@@ -1,0 +1,5 @@
+Midpoint = (H+L)/2;
+MPM = Midpoint - Ref( Midpoint , -1);
+BoxRatio = ( V/10000 )/( 8 * (H-L) );
+EMV = Nz( MPM/BoxRatio );
+Plot( EMA( EMV, 35 ), "Ease of movement (35)", colorRed );

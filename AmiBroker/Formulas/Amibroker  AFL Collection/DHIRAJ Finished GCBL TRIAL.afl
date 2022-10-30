@@ -1,0 +1,54 @@
+_SECTION_BEGIN("DHIRAJ GUPPY COUNT BACK TRIAL");
+
+MASK= ParamStyle("MASK",styleCandle, maskPrice);
+barcolor = IIf(C > Ref(C,-1), ParamColor("Up Color",colorBrightGreen), IIf(C ==Ref(C,-1),colorOrange, ParamColor("Dn Color",colorOrange))); 
+Plot( C, "Close", barcolor,MASK);
+
+
+
+HighestVal = HHV(High,20);
+SH=Ref(HighestVal,-1);
+TH=Ref(SH,-1);
+SecondHigh = 0; 
+thirdHigh=0;
+ //for( i = 1; i < 20; i++ ) { SecondHigh = IIf(Ref(High,-i) < HHV(High,20), IIf(Ref(High,-i) > SecondHigh, Ref(High,-i), SecondHigh), SecondHigh); 
+for( i = 1; i < 20; i++ ) { SecondHigh = IIf(Ref(High,-i) < HHV(High,20), IIf(Ref(High,-i) > SecondHigh, Ref(High,-i), SecondHigh), -SH); 
+} 
+for( i = 1; i < 20; i++ ) { thirdHigh = IIf(Ref(High,-i) < SecondHigh , IIf(Ref(High,-i) > thirdHigh , Ref(High,-i), thirdHigh ), -TH ); 
+ LB = ValueWhen(H==thirdHigh,Low);
+ Plot(LB ,"LB",colorRed,styleNoLine|styleDots);
+
+}
+
+
+/////////////////////////////////////////////
+//H1=HHV(H,30);
+//LB = ValueWhen(H==H1,Low);
+//Filter = 1;
+//AddColumn(H,"H");
+//AddColumn(LB,"L");
+//////////////////////////////////////////////
+//LB = ValueWhen(H==thirdHigh,Low);
+//Plot(LB ,"LB",colorRed,styleLine);
+//PlotShapes( shapeDownTriangle * LB, colorRed,0,H,-12);
+/////////////////////////////////////////////////////////
+RES=Ref(L,-thirdHigh);
+//RES=ValueWhen(Ref(thirdHigh,L), thirdHigh) ;
+//Plot(RES ,"TH",colorGreen,styleLine);
+ Filter =1; 
+AddColumn( High,"0",1.2); 
+AddColumn( Ref(High,-1),"1",1.2); 
+AddColumn( Ref(High,-2),"2",1.2); 
+AddColumn( Ref(High,-3),"3",1.2); 
+AddColumn( Ref(High,-4),"4",1.2); 
+AddColumn( Ref(High,-5),"5",1.2); 
+AddColumn( Ref(High,-6),"6",1.2); 
+AddColumn( HHV(High,20),"1rd",1.2);
+AddColumn( SecondHigh ,"2rd",1.2); 
+AddColumn( thirdHigh ,"3rd",1.2); 
+
+
+AddColumn(LB,"L");
+
+
+_SECTION_END();

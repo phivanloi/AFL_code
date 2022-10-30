@@ -1,0 +1,10 @@
+Adv = Cum(IIf(EMA(C,5)-EMA(C,35)>0,(EMA(C,5)-EMA(C,35)-Ref(EMA(C,5)-EMA(C,35),-1)),0));
+Dec = Cum(IIf(EMA(C,5)-EMA(C,35)<0,(EMA(C,5)-EMA(C,35)-Ref(EMA(C,5)-EMA(C,35),-1)),0));
+ADI = Adv+Dec;
+
+Plot(Adv, "Relatively Good",colorGreen, styleArea, styleNoLabel| styleOwnScale | styleThick);
+Plot(Dec, "Relatively Evil", colorRed, styleArea, styleNoLabel| styleOwnScale | styleThick);
+
+Plot(ADI, "Beyond Good & Evil", colorWhite, styleThick | styleOwnScale);
+
+GraphZOrder = 1;

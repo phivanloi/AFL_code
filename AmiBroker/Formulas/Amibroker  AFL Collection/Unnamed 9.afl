@@ -1,0 +1,76 @@
+//IO: Fitness:    CAR - MDD
+//IO: Goal:       Trades: >: 4
+//IO: Goal:       Trades: <: 12
+ 
+//IO: BegISDate:  12/20/2000
+//IO: EndOSDate:  01/31/2004
+//IO: LastOSDate: 01/31/2004
+ 
+M1Len      = Optimize("M1Len",          52,     1,   100,     1);
+M2Len      = Optimize("M2Len",          40,     1,   100,     1);
+M3Len      = Optimize("M3Len",          48,     1,   100,     1);
+MBB        = Optimize("MBB",             1,     0,     1,     1);
+MSS        = Optimize("MSS",             1,     0,     1,     1);
+ 
+M1 = AMA(C, 2 / (M1Len + 1));
+M2 = AMA(C, 2 / (M2Len + 1));
+M3 = M1 - M2;
+M4 = AMA(M3, 2 / (M3Len + 1));
+MB = M3 > M4;
+MS = M3 < M4;
+ 
+//Plot(M3, "M3", colorRed);
+//Plot(M4, "M4", colorWhite);
+ 
+S1Len      = Optimize("S1Len",          44,     1,   100,     1);
+S2Len      = Optimize("S2Len",          55,     1,   100,     1);
+S3Len      = Optimize("S3Len",          58,     1,   100,     1);
+SBB        = Optimize("SBB",             0,     0,     1,     1);
+SSS        = Optimize("SSS",             1,     0,     1,     1);
+ 
+S1H = HHV(C, S1Len);
+S1L = LLV(C, S1Len);
+S1  = (C - S1L) / (S1H - S1L);
+S2  = AMA(S1, 2 / (S2Len + 1));
+S3  = AMA(S2, 2 / (S3Len + 1));
+SB  = S2 > S3;
+SS  = S2 < S3;
+ 
+//Plot(S2, "S2", colorRed);
+//Plot(S3, "S3", colorWhite);
+ 
+R1Len      = Optimize("R1Len",          74,     1,   100,     1);
+R2Len      = Optimize("R2Len",          72,     1,   100,     1);
+R3Len      = Optimize("R3Len",          48,     1,   100,     1);
+RBB        = Optimize("RBB",             0,     0,     1,     1);
+RSS        = Optimize("RSS",             1,     0,     1,     1);
+ 
+R1  = RSIa(C, R1Len);
+R2  = AMA(R1, 2 / (R2Len + 1));
+R3  = AMA(R2, 2 / (R3Len + 1));
+RB  = R2 > R3;
+RS  = R2 < R3;
+ 
+//Plot(R2, "R2", colorRed);
+//Plot(R3, "R3", colorWhite);
+ 
+C1Len      = Optimize("C1Len",          17,     1,   100,     1);
+C2Len      = Optimize("C2Len",          50,     1,   100,     1);
+C3Len      = Optimize("C3Len",          16,     1,   100,     1);
+CBB        = Optimize("CBB",             1,     0,     1,     1);
+CSS        = Optimize("CSS",             1,     0,     1,     1);
+ 
+C1 = ROC(C, C1Len);
+C2 = AMA(C1, 2 / (C2Len + 1));
+C3 = AMA(C2, 2 / (C3Len + 1));
+CB = C2 > C3;
+CS = C2 < C3;
+ 
+//Plot(C2, "C2", colorRed);
+//Plot(C3, "C3", colorWhite);
+ 
+BTot       = Optimize("BTot",            2,     1,     4,     1);
+STot       = Optimize("STot",            3,     1,     4,     1);
+ 
+Buy  = MB * MBB + SB * SBB + RB * RBB + CB * CBB >= BTot;
+Sell = MS * MSS + SS * SSS + RS * RSS + CS * CSS >= STot;

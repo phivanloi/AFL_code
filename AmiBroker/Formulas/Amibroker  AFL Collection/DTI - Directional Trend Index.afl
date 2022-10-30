@@ -1,0 +1,21 @@
+r = Param( "Length", 25, 1, 100, 1 );
+s = Param( "Smoothing", 13, 1, 100, 1 );
+
+x = H - Ref(H,-1);
+
+HMU = x > 0;
+LMD = x < 0;
+
+HLM = HMU - LMD;
+
+//Plot(HLM, "", colorRed);
+
+a = EMA(EMA(HLM,r),s);
+b = EMA(EMA(abs(HLM),r),s);
+
+DTI = 100 * (a/b);
+
+Plot( DTI, "DTI("+r+","+s+")", ParamColor( "Color", colorRed ), ParamStyle("Style") );
+PlotGrid(0, colorLightGrey);
+PlotGrid(25, colorLightGrey);
+PlotGrid(-25, colorLightGrey);

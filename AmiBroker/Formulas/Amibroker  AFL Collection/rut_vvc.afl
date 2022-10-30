@@ -1,0 +1,63 @@
+_SECTION_BEGIN("VVC RUT Comparison");
+// VVC RUT Comparison
+// Written by Barry Scarborough - 8/17/2005
+// This program shows the Mercury buy and sell points forthe RUT and VVC indices.
+// It also providexs an exploration output that can be exported to a spreadsheet
+
+myVVC = Foreign("^VVC","C");
+myRUT = Foreign("^RUT","C");
+which 	= 0; 	// 0 = buy, 1 = sell
+
+
+function fMercury(which, price) 
+{
+	
+	opt1 = Param("Opt1 period", 12, 1, 50, 1);
+	opt2 = -Param("Opt2 period", 15, 1, 50, 1);
+	opt3 = Param("Opt3 period", 3, 1, 50, 1);
+	opt4 = -Param("Opt4 period", 17, 1, 50, 1);
+	opt5 = -Param("Opt5 period", 5, 1, 50, 1);
+
+	myEma1 = EMA(price, opt3);
+	myEma2 = EMA(price, opt1);
+
+	myRef1 = Ref( myEma1, opt4);
+	myRef2 = Ref(price, opt5);
+	myRef3 = Ref(price,opt2);
+
+	// buy point
+	if (which == 0)
+	{
+		retval = price > myRef1 AND price > myRef2 AND price > myEma2 AND  price > myRef3;
+	}
+	else
+	{
+	// short point
+		retval = price < myRef1 AND price < myRef2 AND price < myEma2 AND price < myRef3;
+	} // end if 
+	return retval;
+} // end function
+
+vvcBuy		= fMercury(0, myVVC); // look for VVC buy signal
+vvcSell 	= fMercury(1, myVVC);
+rutBuy 	= fMercury(0, myRUT);
+rutSell 	= fMercury(1, myRUT);
+
+Buy 	= ExRem(vvcBuy, vvcSell );
+Sell	= ExRem(vvcSell, vvcBuy );
+Short 	= ExRem(rutBuy , rutSell ) ;
+Cover	= ExRem(rutSell , rutBuy );
+
+
+Plot(Buy, "VVC Buy", colorGreen);
+Plot(-Sell, "VVC Sell", colorRed);
+Plot(-2 + Short, "RUT Buy", colorBlack);
+Plot(-2 - Cover, "Rut Sell", colorBlue);
+
+Filter = Buy OR Sell OR Short OR Cover; // snows only the trades
+AddColumn (Buy, "VVC Buy", 1.0);
+AddColumn (Sell, "VVC Sell", 1.0);
+AddColumn (Short, "RUT Buy", 1.0);
+AddColumn (Cover, "Rut Sell", 1.0);
+ 
+_SECTION_END();

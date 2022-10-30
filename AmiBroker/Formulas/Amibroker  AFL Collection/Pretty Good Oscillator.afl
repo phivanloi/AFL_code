@@ -1,0 +1,29 @@
+/* PGO
+
+PGO = (Close - N-Day SMA of Close) / N-Day EMA of True Range)
+
+EXAMPLE OF USE: A buysignal occurs when pgo>3, (current price breaks out of a exponential 3-ATR(89)-band). Long position is closed when PGO<0, (price crosses below simple 89-period MA). I didn´t take any short positions in this testing. Trades were entered and left next day at the open. 
+
+I compared PGO and PGO with a 1 ATR max loss value (position closed if C< close on signalbar - ATR(20).
+
+*/
+
+n=89; Av=23; stp=9;
+//n = Param("Periods",n,20,190,1);
+//av = Param("Average",av,2,50,1);
+n = Optimize("Periods",n,20,190,1);
+av = Optimize("Average",av,2,30,1);
+//stp = Optimize("Stop",stp,4,15,1);
+
+PGO= (C-MA(C,n))/EMA(ATR(1),n);
+
+Plot( PGO, "PGO (" +WriteVal( n, 1.0 )+")" , -9, 5 );
+Plot( 3, "" , 1, 5 );
+Plot( -3, "" , 1, 5 );
+
+PGOAVG=MA(PGO,av);
+
+Plot(PGOAVG,"AVG"+"("+WriteVal(Av, 1.0 )+")" ,colorYellow); 
+
+Buy=Cross(PGO,3);
+Sell=Cross(0,PGO);

@@ -1,0 +1,12 @@
+_SECTION_BEGIN("%B RSI");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 17, 2, 100, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+//Color = ParamColor("Color", colorCycle );
+//Style = ParamStyle("Style");
+//Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), Color, Style ); 
+//Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), Color, Style );
+BandWidthRSI = BBandTop(RSI(5), Periods, Width) - BBandBot(RSI(5),Periods, Width);
+bRSI =(RSI(5) - BBandBot(RSI(5), Periods, Width)) / BandWidthRSI;
+Plot( bRSI, "%b of RSI", colorRed);
+_SECTION_END();

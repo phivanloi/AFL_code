@@ -1,0 +1,11 @@
+ function Lastthursday()
+{
+ Daysinmonth=IIf(Month()==1 OR Month()==3 OR Month()==5 OR Month()==7 OR Month()==8 OR Month()==10 OR Month()==12,31,30);
+ Daysinmonthfeb=IIf(Year()%4 == 0 AND Year()%100!=0,29,28);
+ Daysinmonthfinal=IIf(Month()==2,Daysinmonthfeb,Daysinmonth);
+ returnvalue=IIf(Daysinmonthfinal-Day()<7 AND DayOfWeek()==4,1,0);
+ return returnvalue;
+}
+Graph0=Close;
+shape=IIf(Lastthursday(),shapeDownArrow,shapeNone);
+PlotShapes(shape,colorWhite,0,Graph0,-24);

@@ -1,0 +1,135 @@
+_SECTION_BEGIN("StockExplorer");
+// Downloaded From https://www.WiseStockTrader.com
+/* Super Stocks Explorer - Finding Super Stocks For Research Purposes
+Author: chimsedo
+Introduction:
+	- This piece of afl code is written for EOD charts in t+ markets (originally designed for Vietnamese market) to find all of the stocks with super strong rally 
+	in really short amount of time in the past, expressed in the form of consecutive limit-up bars, then specifies the date the rally ends.
+	- The types of stocks the explorer looks for are usually penny stocks, which soars up in a few days or even in a week or two, then collapse 
+	really quickly. 
+Used for:
+	- t+ market (if you trade in t+0 markets then please take this as a reference only and modify the code as per need)
+	- End-of-day/EOD chart only
+Purpose:
+	- Assist you in finding and doing a research about stocks with strong rally in shortest time possible.
+Params/Input:
+	- s: the number of up bar.
+	- rallyPerBar: how much one up bar increases compared to previous bar's close.
+Return/Result
+	- The day, month and year of the strong rally in short time of a stsock
+	- The bar index of the bar where the rally ends.
+Instruction:
+	- First set the span, i.e. the number of up bars that the stock should have. By default, I set it to 4, meaning 4 consecutive up bars.
+	- Next define rallyPerBar, i.e how much one up bar (daily) rises. By default, it is 1.05, or 5%.	
+	- In exploration window, choose Range = From-To-dates and set both date box Today (Today must not be the date that does not exist in your Ami data
+	like Sunday or so).
+	- If you want more results from one stock, adjust the dates in the exploration window backward.
+	- (optional) You can adjust the liquidity of the ouput stocks in liquidityA and liquidityM.
+*/
+
+	// params
+s = Param("Span", 4, 4, 10, 1);	
+rallyPerBar = Param("Rally/bar", 1.05, 0, 1000, 0.001);	
+liquidityA = Param("MAVol20Bars", 5000, 0, 999999999, 1);
+liquidityM = Param("MedianVol20Bars", 2000, 0, 999999999, 1);
+
+condL = 
+	MA(V, 20) >= liquidityA
+	AND Median(V, 20) >= liquidityM
+;
+nonStock =
+	!StrMatch(Name(), "^*")
+	AND !StrMatch(Name(), "FUES*")
+	AND !StrMatch(Name(), "FUEV*")
+	AND !StrMatch(Name(), "C???*") 
+	AND !StrMatch(Name(), "VN??*")
+	AND !StrMatch(Name(), "HNX30")
+	AND !StrMatch(Name(), "UPCOM") 
+	AND !StrMatch(Name(), "E1VF*") 
+;
+switch(s) {
+	case 4: 
+	consecutiveBars = 
+		Ref(C, 1)/C < rallyPerBar AND C/ Ref(C, -1) >= rallyPerBar AND Ref(C, -1)/ Ref(C, -2) >= rallyPerBar AND Ref(C, -2)/ Ref(C, -3) >= rallyPerBar 
+		AND Ref(C, -3)/ Ref(C, -4) >= rallyPerBar
+	;
+	endC = ValueWhen(consecutiveBars, Ref(C, -4), 1);
+	break;
+	case 5:
+	consecutiveBars =
+		Ref(C, 1)/C < rallyPerBar AND C/ Ref(C, -1) >= rallyPerBar AND Ref(C, -1)/ Ref(C, -2) >= rallyPerBar AND Ref(C, -2)/ Ref(C, -3) >= rallyPerBar 
+		AND Ref(C, -3)/ Ref(C, -4) >= rallyPerBar AND Ref(C, -4)/ Ref(C, -5) >= rallyPerBar
+	;
+	endC = ValueWhen(consecutiveBars, Ref(C, -5), 1);
+	break;
+	case 6:
+	consecutiveBars =
+		Ref(C, 1)/C < rallyPerBar AND C/ Ref(C, -1) >= rallyPerBar AND Ref(C, -1)/ Ref(C, -2) >= rallyPerBar AND Ref(C, -2)/ Ref(C, -3) >= rallyPerBar 
+		AND Ref(C, -3)/ Ref(C, -4) >= rallyPerBar AND Ref(C, -4)/ Ref(C, -5) >= rallyPerBar AND Ref(C, -5)/ Ref(C, -6) >= rallyPerBar
+	;
+	endC = ValueWhen(consecutiveBars, Ref(C, -6), 1);
+	case 7:
+	consecutiveBars =
+		Ref(C, 1)/C < rallyPerBar AND C/ Ref(C, -1) >= rallyPerBar AND Ref(C, -1)/ Ref(C, -2) >= rallyPerBar AND Ref(C, -2)/ Ref(C, -3) >= rallyPerBar 
+		AND Ref(C, -3)/ Ref(C, -4) >= rallyPerBar AND Ref(C, -4)/ Ref(C, -5) >= rallyPerBar AND Ref(C, -5)/ Ref(C, -6) >= rallyPerBar
+		AND Ref(C, -6)/ Ref(C, -7) >= rallyPerBar
+	;
+	endC = ValueWhen(consecutiveBars, Ref(C, -7), 1);
+	case 8:
+	consecutiveBars =
+		Ref(C, 1)/C < rallyPerBar AND C/ Ref(C, -1) >= rallyPerBar AND Ref(C, -1)/ Ref(C, -2) >= rallyPerBar AND Ref(C, -2)/ Ref(C, -3) >= rallyPerBar 
+		AND Ref(C, -3)/ Ref(C, -4) >= rallyPerBar AND Ref(C, -4)/ Ref(C, -5) >= rallyPerBar AND Ref(C, -5)/ Ref(C, -6) >= rallyPerBar
+		AND Ref(C, -6)/ Ref(C, -7) >= rallyPerBar AND Ref(C, -7)/ Ref(C, -8) >= rallyPerBar
+	;
+	endC = ValueWhen(consecutiveBars, Ref(C, -8), 1);
+	case 9:
+	consecutiveBars =
+		Ref(C, 1)/C < rallyPerBar AND C/ Ref(C, -1) >= rallyPerBar AND Ref(C, -1)/ Ref(C, -2) >= rallyPerBar AND Ref(C, -2)/ Ref(C, -3) >= rallyPerBar 
+		AND Ref(C, -3)/ Ref(C, -4) >= rallyPerBar AND Ref(C, -4)/ Ref(C, -5) >= rallyPerBar AND Ref(C, -5)/ Ref(C, -6) >= rallyPerBar
+		AND Ref(C, -6)/ Ref(C, -7) >= rallyPerBar AND Ref(C, -7)/ Ref(C, -8) >= rallyPerBar AND Ref(C, -8)/ Ref(C, -9) >= rallyPerBar
+	;
+	endC = ValueWhen(consecutiveBars, Ref(C, -9), 1);
+	case 10:
+	consecutiveBars =
+		Ref(C, 1)/C < rallyPerBar AND C/ Ref(C, -1) >= rallyPerBar AND Ref(C, -1)/ Ref(C, -2) >= rallyPerBar AND Ref(C, -2)/ Ref(C, -3) >= rallyPerBar 
+		AND Ref(C, -3)/ Ref(C, -4) >= rallyPerBar AND Ref(C, -4)/ Ref(C, -5) >= rallyPerBar AND Ref(C, -5)/ Ref(C, -6) >= rallyPerBar
+		AND Ref(C, -6)/ Ref(C, -7) >= rallyPerBar AND Ref(C, -7)/ Ref(C, -8) >= rallyPerBar AND Ref(C, -8)/ Ref(C, -9) >= rallyPerBar
+		AND Ref(C, -9)/ Ref(C, -10)
+	;
+	endC = ValueWhen(consecutiveBars, Ref(C, -10), 1);
+	break;
+	default:
+	consecutiveBars = 
+		Ref(C, 1)/C < rallyPerBar AND C/ Ref(C, -1) >= rallyPerBar AND Ref(C, -1)/ Ref(C, -2) >= rallyPerBar AND Ref(C, -2)/ Ref(C, -3) >= rallyPerBar 
+		AND Ref(C, -3)/ Ref(C, -4) >= rallyPerBar
+	;
+	break;
+}
+
+endRally = ValueWhen(consecutiveBars, DateTime(), 1);
+startRally = ValueWhen(consecutiveBars, Ref(DateTime(), -s), 1);
+endRally2 = ValueWhen(consecutiveBars, DateTime(), 2);
+startRally2 = ValueWhen(consecutiveBars, Ref(DateTime(), -s), 2);
+endRally3 = ValueWhen(consecutiveBars, DateTime(), 3);
+startRally3 = ValueWhen(consecutiveBars, Ref(DateTime(), -s), 3);
+endRally4 = ValueWhen(consecutiveBars, DateTime(), 4);
+startRally4 = ValueWhen(consecutiveBars, Ref(DateTime(), -s), 4);
+
+Filter = 
+	condL
+	AND nonStock
+;
+
+AddColumn(endC, "endC", 1.2);
+AddColumn(startRally, "startRally1", formatDateTime);
+AddColumn(endRally, "endRally1", formatDateTime);
+AddColumn(startRally2, "startRally2", formatDateTime);
+AddColumn(endRally2, "endRally2", formatDateTime);
+AddColumn(startRally3, "startRally3", formatDateTime);
+AddColumn(endRally3, "endRally3", formatDateTime);
+AddColumn(startRally4, "startRally4", formatDateTime);
+AddColumn(endRally4, "endRally4", formatDateTime);
+SetSortColumns(-4, -6);
+// AddRankColumn();
+AddSummaryRows(16, 1);
+_SECTION_END();

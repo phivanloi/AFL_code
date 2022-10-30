@@ -1,0 +1,22 @@
+_SECTION_BEGIN("XAverage");
+SetChartBkColor(ParamColor("Background Color",ColorRGB(0,0,0)));
+
+Length = 10;
+AvgExp = AMA( C, 2 / (Length + 1 ) );
+ColMa=IIf(AvgExp > Ref(AvgExp,-3) ,colorBlue,colorOrange);
+
+Plot(AvgExp,"MA",ColMa,styleThick,styleLine);
+_SECTION_END();
+
+_SECTION_BEGIN("Heiken Ashi");
+Value1 = MA(C,8);
+
+HaClose = (O + H + L + C)/4;
+HaOpen = AMA( Ref( HaClose, -1 ), 0.5 );
+HaHigh = Max( H, Max( HaClose, HaOpen ) );
+HaLow = Min( L, Min( HaClose, HaOpen ) );
+xDiff = (HaHigh - Halow) * 10000;
+SetBarFillColor(IIf(HaClose>HaOpen,colorBrightGreen,colorRed));
+Cancolor = IIf(HaClose > Value1,colorBrightGreen,colorRed);
+PlotOHLC( HaOpen, HaHigh, HaLow, HaClose, "", Cancolor, styleCandle );
+_SECTION_END();

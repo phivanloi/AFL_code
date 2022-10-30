@@ -1,0 +1,167 @@
+_SECTION_BEGIN("ORB");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+//Plot( C, "Close", ParamColor("Color", colorYellow ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+if( ParamToggle("Tooltip shows", "All Values|Only Prices" ) )
+{
+ ToolTip=StrFormat("Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 )));
+}
+
+
+//An n Bar Reversal Program
+//The theory says that this indicator gives reliable signals of strong trends.
+//Its disadvantage is that the signal can be a little late, but is offset by its reliability.
+// An uptrend is assumed to be in place if todays high is higher than those
+// of the previous n days,and a downtrend is in place when todays low is lower 
+//than those of the previous n days. Otherwise the existing trend persists.
+//n is commonly set at 3 but can be any value.
+//The implementation here simply shows arrows at trend reversals.
+
+n= Param("No. of Bars",50,2,500,1); //default values for n as 3,2,8,1
+TrendUp = H > Ref(HHV(H,n),-1);
+TrendDn = L < Ref(LLV(L,n),-1);
+TrendUp = ExRem(TrendUp,TrendDn);
+TrendDn = ExRem(TrendDn,TrendUp);
+
+Buy1 = TrendUp;
+Short1= TrendDn;
+Sell1 = TrendDn;
+Cover1 = TrendUp;
+
+Buy1 = ExRem(Buy1,Sell1);
+Sell1 = ExRem(Sell1,Buy1);
+Short1 = ExRem(Short1,Cover1);
+Cover1 = ExRem(Cover1,Short1);
+
+Filter = Buy1 OR Sell1;
+Filter = Short1 OR Cover1;
+PlotShapes(Buy1*shapeUpArrow,colorWhite);
+PlotShapes(Sell1*shapeDownArrow,colorWhite);
+
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+//Plot( C, "Close", ParamColor("Color", colorGold ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+_SECTION_BEGIN("CrH-L Prec");
+
+
+function TTF( periods )
+{
+BuyPower = HHV( High, periods ) - Ref( LLV( Low, periods ), -periods );
+SellPower = Ref( HHV( High, periods ), -periods ) - LLV( Low, periods );
+return 100 * (BuyPower - SellPower) / (1* (BuyPower + SellPower));
+} 
+ttf15 = TTF( 15 );
+
+//Plot( ttf15, "TTF(15)", colorRed );
+OptimizerSetEngine("trib");
+
+OptimizerSetOption("MaxEval", 5000 ); // 5000 evaluations 
+
+bt = Param( "Buy Trigger", 42, -150, 150, 1 );
+st = Param( "Sell Trigger", -54, -100, 60, 1 );
+
+Buy2 = Cross( ttf15, bt );
+Sell2 = Cross( -st, ttf15 );
+
+
+Buy2   = ExRem(Buy2, Sell2);
+Sell2  = ExRem(Sell2, Buy2);
+
+
+//Plot( Close, "Price", colorBlack, styleCandle );
+
+
+PlotShapes(IIf(Buy2,shapeUpArrow,shapeNone),colorGreen,0,L,-15);
+PlotShapes(IIf(Buy2,shapeHollowUpArrow,shapeNone),colorWhite,0,L,-15);
+PlotShapes(IIf(Buy2,shapeHollowSmallCircle,shapeNone),colorWhite,0,BuyPrice,0);
+
+PlotShapes(IIf(Sell2,shapeDownArrow,shapeNone),colorRed,0,H,-15);
+PlotShapes(IIf(Sell2,shapeHollowDownArrow,shapeNone),colorWhite,0,H,-15);
+PlotShapes(IIf(Sell2,shapeHollowSmallCircle,shapeNone),colorWhite,0,SellPrice,0);
+_SECTION_END();
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+//Plot( C, "Close", ParamColor("Color", colorYellow ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+if( ParamToggle("Tooltip shows", "All Values|Only Prices" ) )
+{
+ ToolTip=StrFormat("Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 )));
+}
+
+
+ttf15 = TTF( 15 );
+
+//Plot( ttf15, "TTF(15)", colorRed );
+OptimizerSetEngine("trib");
+
+OptimizerSetOption("MaxEval", 5000 ); // 5000 evaluations 
+
+bt = Param( "Buy Trigger", -63, -150, 150, 1 );
+st = Param( "Sell Trigger", 4, -100, 60, 1 );
+
+Buy3 = Cross( ttf15, bt );
+Sell3 = Cross( -st, ttf15 );
+
+Buy = Buy2 OR Buy3 ;
+Sell = Sell2 OR Sell3 ;
+
+Buy   = ExRem(Buy, Sell);
+Sell  = ExRem(Sell, Buy);
+
+
+//Plot( Close, "Price", colorBlack, styleCandle );
+
+
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorGreen,0,L,-15);
+PlotShapes(IIf(Buy,shapeHollowUpArrow,shapeNone),colorWhite,0,L,-15);
+PlotShapes(IIf(Buy,shapeHollowSmallCircle,shapeNone),colorWhite,0,BuyPrice,0);
+
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed,0,H,-15);
+PlotShapes(IIf(Sell,shapeHollowDownArrow,shapeNone),colorWhite,0,H,-15);
+PlotShapes(IIf(Sell,shapeHollowSmallCircle,shapeNone),colorWhite,0,SellPrice,0);
+if (EndValue(Buy)==1) Say("Buy for long peiod immediately but please confirm with nine trade chart"); 
+if (EndValue(Sell)==1) Say("Sell for long period immediately but please confirm with nine trade chart");
+_SECTION_END(); 
+
+_SECTION_END();
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+if( ParamToggle("Tooltip shows", "All Values|Only Prices" ) )
+{
+ ToolTip=StrFormat("Open: %g\nHigh:  %g\nLow:   %g\nClose:  %g (%.1f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 )));
+}
+//DynamicSR 
+iPeriods = Param("iPeriods",200 ,1, 200,1); 
+Dynamic_R = HHV(H,iPeriods); 
+Dynamic_S = LLV(L,iPeriods); 
+
+Dynamic_R = IIf(H >= Dynamic_R, H, Dynamic_R); 
+Dynamic_S = IIf(L <= Dynamic_S ,L,Dynamic_S); 
+ 
+DynamicRange = Dynamic_R - Dynamic_S; 
+fib1 = Dynamic_S + .24 * DynamicRange; 
+fib2 = Dynamic_S + .38 * DynamicRange; 
+fib3 = Dynamic_S + .50 * DynamicRange; 
+fib4 = Dynamic_S + .62 * DynamicRange; 
+fib5 = Dynamic_S + .76 * DynamicRange; 
+
+
+
+Plot(Dynamic_R,"DR",colorRed,1); 
+Plot(Dynamic_S,"DS",colorBlue,1); 
+Plot(fib1,"F1", colorPaleGreen,1|styleDashed); 
+Plot(fib2,"F2", colorBrown,1|styleDashed); 
+Plot(fib3,"F3", colorWhite,1|styleDashed); 
+Plot(fib4,"F4", colorDarkYellow,1|styleDashed); 
+Plot(fib5,"F5", colorGold,1|styleDashed);  
+  
+ 
+
+ 
+ 
+					_SECTION_END();

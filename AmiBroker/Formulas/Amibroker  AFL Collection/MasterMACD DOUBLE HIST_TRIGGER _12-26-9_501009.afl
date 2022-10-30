@@ -1,0 +1,46 @@
+
+
+_SECTION_BEGIN("MACD DOUBLE HIST TRIGGER_12-26-9_501009");
+//r1 = Param( "Fast avg", 12, 2, 200, 1 );
+//r2 = Param( "Slow avg", 26, 2, 200, 1 );
+//r3 = Param( "Signal avg", 9, 2, 200, 1 );
+ml = MACD(12, 26);
+sl = Signal(12,26,9);
+
+
+//Plot( ml = MACD(r1, r2), StrFormat(_SECTION_NAME()+"(%g,%g)", r1, r2), colorYellow, ParamStyle("MACD style") );
+//Plot( sl = Signal(r1,r2,r3), "Signal" + _PARAM_VALUES(), colorTeal, ParamStyle("Signal style") );
+
+
+hist=ml-sl;
+Colorhist=IIf(hist>Ref(hist,-1),colorBrightGreen,colorRed);
+Plot( hist, "TRIGGER_MACD Histogram", Colorhist, styleNoTitle | ParamStyle("Histogram style", styleHistogram | styleThick| styleNoLabel, maskHistogram ) );
+Plot( hist, "", Colorhist, styleNoTitle| styleThick | styleNoLabel, maskHistogram );
+
+
+//////////////////////////////////////////MACD Hist_50-100-9//////////////////////////////////////////////////////////////////////////////////
+//_SECTION_BEGIN("MACD Hist_60-120-9");
+//Br1 = Param( "Fast avg", 60, 2, 200, 1 );
+//Br2 = Param( "Slow avg", 120, 2, 200, 1 );
+//Br3 = Param( "Signal avg", 9, 2, 200, 1 );
+Bml = MACD(50, 100);
+Bsl = Signal(50, 100,9);
+
+
+//Plot( ml = MACD(r1, r2), StrFormat(_SECTION_NAME()+"(%g,%g)", r1, r2), colorYellow, ParamStyle("MACD style") );
+//Plot( sl = Signal(r1,r2,r3), "Signal" + _PARAM_VALUES(), colorTeal, ParamStyle("Signal style") );
+
+
+histB=Bml-Bsl;
+//ColorhistB=IIf(histB>Ref(histB,-1),colorGreen,colorDarkRed);
+//Plot( histB, "HistoB", ColorhistB, styleNoTitle | ParamStyle("Histogram style", styleHistogram | styleNoLabel, maskHistogram ) );
+//ColorHistB=IIf( uptrend, ColorRGB(10,200,20), ColorRGB(30,10,20));
+
+ColorHistBB=IIf(histB>Ref(histB,-1),ColorRGB(10,180,50),ColorRGB(170,10,50));
+Plot( histB, "", ColorHistBB, styleNoTitle| styleThick | styleNoLabel, maskHistogram );
+
+ColorHistB=IIf(histB>Ref(histB,-1),ColorRGB(10,80,50),ColorRGB(70,10,50));
+PlotOHLC( 0, histB , 0 ,0 , "", ColorHistB, styleCloud|styleNoLabel);
+
+
+_SECTION_END();

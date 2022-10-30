@@ -1,0 +1,46 @@
+_SECTION_BEGIN("Price"); 
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Kolkata Meet - Bands");
+//..........................................................................
+
+a = Param("Ang",30,1,100,1);
+b = Param("Rs Stop",30,1,100,1);
+//{for 60mins Nifty  Fut 30 is default,Lower the Time frame this would be Lower }
+a = (22 / 7) * (a / 180);
+K = L;
+S1=sin(1*a)*K;
+S2=sin(2*a)*Ref(K,-1);
+S3=sin(3*a)*Ref(K,-2);
+S4=sin(4*a)*Ref(K,-3);
+S5=sin(5*a)*Ref(K,-4);
+Num=S1+S2+S3+S4+S5;
+Den=sin(a)+sin(2*a)+sin(3*a)+sin(4*a)+sin(5*a);
+j1= Num/Den;
+K1= H;
+S11=sin(1*a)*K1;
+S21=sin(2*a)*Ref(K1,-1);
+S31=sin(3*a)*Ref(K1,-2);
+S41=sin(4*a)*Ref(K1,-3);
+S51=sin(5*a)*Ref(K1,-4);
+Num1=S11+S21+S31+S41+S51;
+j11 = Num1/Den;
+//{Initial Stop for Short}
+//Plot(j11 + b, "Short_Stop", colorGrey40,styleDashed);
+Plot(j11, "Short", colorLime,styleThick | styleDashed);
+Plot(j1, "Long", colorBlueGrey,styleThick | styleDashed);
+//{Initial Stop for Long}
+//Plot(j1-b, "Long_Stop", colorGrey40,styleDashed);
+
+//.................................................................................
+_SECTION_END();
+
+_SECTION_BEGIN("ichimuku");
+SL = ( HHV( H, 26 ) + LLV( L, 26) )/2;
+TL = ( HHV( H, 9 ) + LLV( L, 9 ) )/2;
+
+Color_buy = IIf (Close > sl AND Close > TL, colorBlue, IIf (Close < sl AND Close < TL,colorRed,colorYellow));
+

@@ -1,0 +1,8 @@
+Lb = Param("Look-Back Periods?",3,2,10,1);
+HLd = IIf(C >Ref(MA(H,Lb),-1),1,IIf(C<Ref(MA(L,Lb),-1),-1,0));
+HLv = ValueWhen(HLd!=0,HLd,1);
+HiVisual = IIf(HLv==-1,C-MA(H,Lb),0);
+LoVisual = IIf(HLv==1,C-MA(L,Lb),0);
+
+Plot(HiVisual, "", colorRed, styleHistogram | styleThick);
+Plot(LoVisual, "", colorLime, styleHistogram | styleThick);

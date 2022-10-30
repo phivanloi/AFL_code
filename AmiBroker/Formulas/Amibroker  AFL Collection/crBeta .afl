@@ -1,0 +1,14 @@
+function crBeta (Market,Stock, LB) {
+   MarketReturn = (Market-Ref(Market,-1)) / Ref(Market,-1);
+   StockReturn = (Stock-Ref(Stock,-1)) / Ref(Stock,-1);
+   MarketSquared = MarketReturn*MarketReturn;
+   StockSquared = StockReturn*StockReturn;
+   MS = MarketReturn * StockReturn;
+   AvgMarketDelta = Sum(MarketReturn,LB) / LB;
+   AvgStockDelta = Sum(StockReturn,LB) / LB;
+   SumOfMarketSquared = Sum(MarketSquared,LB);
+   SumofStockSquared = Sum(StockSquared,LB);
+   SumOfMS = Sum(MS,LB);
+   return (SumOfMS - (LB*AvgMarketDelta*AvgStockDelta)) / 
+                     SumOfMarketSquared - (LB*(AvgMarketDelta * AvgMarketDelta));
+}

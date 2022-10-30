@@ -1,0 +1,28 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{HUNG CANSLIM - CANSLIM.VN}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleDots | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+mua =   
+C > Ref(H,-1) AND C > Ref(H,-2) AND C > Ref(H,-3) AND C > Ref(H,-4)
+AND C*V >1000000
+;
+ban = C < Ref(L,-1)AND C < Ref(L,-2)AND C < Ref(L,-3) AND C < Ref(L,-4)
+ ;
+Buy = ExRem(mua, ban);
+Sell = ExRem(ban, mua);
+
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorBlue,0,Low,Offset=-10);
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed,0,High,Offset=-10);
+
+Filter = Buy OR Sell ;
+
+AddColumn( IIf( Buy, 66,1 ), "buy", formatChar, 1, bkcolor =IIf (Buy,colorGreen, colorRed ));
+AddColumn( IIf( Sell, 83,1 ), "sell", formatChar, 1, bkcolor =IIf (Sell,colorRed, colorGreen ));
+AddColumn(C,"close",1.2);
+
+AddColumn(C*V,"Gia tri GD ");
+
+AddColumn(((C - Ref(C,-1))/Ref(C,-1))*100 ,"% Tang gia ");
+AddColumn(((V - MA(V,50))/MA(V,50))*100 ,"% Dot bien KL");
+_SECTION_END();

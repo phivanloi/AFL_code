@@ -1,0 +1,11 @@
+CCTBBOsc = 100 * ( C + 2*StDev( C, 21) - MA( C, 21 ) ) / ( 4 * StDev( C, 21 ) );
+
+Plot( CCTBBOsc, "CCTBBOsc", colorRed, styleThick );
+Plot (0,"",colorBlue,styleNoLabel);
+Plot (100,"",colorBlue,styleNoLabel);
+
+_SECTION_BEGIN("MA1");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 200, 1, 10 );
+Plot( MA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
